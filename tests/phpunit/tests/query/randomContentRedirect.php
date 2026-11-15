@@ -187,6 +187,14 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		// Capture redirects and end the request before `exit` ends the test run.
 		add_filter( 'wp_redirect', array( $this, 'filter_wp_redirect' ), 10, 2 );
+
+		/*
+		 * The random redirect is sent on `template_redirect`, see go_to(). Canonical
+		 * redirects run on the same action and exit after redirecting even when the
+		 * redirect is suppressed, which would end the test run. Their interplay with
+		 * random content requests is covered by test_redirect_canonical_skips_random_content_requests_with_a_post().
+		 */
+		remove_action( 'template_redirect', 'redirect_canonical' );
 	}
 
 	/**
@@ -226,21 +234,6 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Requests a URL, stopping where a random content redirect ends the request.
-	 *
-	 * @param string $url The URL for the request.
-	 */
-	public function go_to( $url ) {
-		try {
-			parent::go_to( $url );
-		} catch ( WP_Tests_Exception $e ) {
-			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
-				throw $e;
-			}
-		}
-	}
-
-	/**
 	 * Starts recording database queries once the request has been parsed.
 	 */
 	public function start_recording_queries(): void {
@@ -259,6 +252,40 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		}
 
 		return $query;
+	}
+
+	/**
+	 * Requests a URL and fires the `template_redirect` action the redirect is sent on,
+	 * stopping where a random content redirect ends the request.
+	 *
+	 * @param string $url The URL to request.
+	 */
+	public function go_to( $url ): void {
+		try {
+			parent::go_to( $url );
+		} catch ( WP_Tests_Exception $e ) {
+			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
+				throw $e;
+			}
+
+			return;
+		}
+
+		$this->do_template_redirect();
+	}
+
+	/**
+	 * Fires the `template_redirect` action, stopping where a random content redirect
+	 * ends the request.
+	 */
+	protected function do_template_redirect(): void {
+		try {
+			do_action( 'template_redirect' );
+		} catch ( WP_Tests_Exception $e ) {
+			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
+				throw $e;
+			}
+		}
 	}
 
 	/**
@@ -1935,17 +1962,135 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the redirect happens before the `wp` action fires.
+	 * Ensure the redirect is sent on the `template_redirect` action at priority 100.
 	 */
-	public function test_redirect_happens_before_the_wp_action(): void {
+	public function test_redirect_is_added_to_template_redirect_at_priority_100(): void {
+		parent::go_to( home_url( '/random/' ) );
+
+		$this->assertSame( 100, has_action( 'template_redirect', 'wp_random_content_redirect' ), 'The redirect should be added to the template_redirect action at priority 100.' );
+		$this->assertNotRedirected( 'The redirect should not be sent before the template_redirect action.' );
+
+		$this->do_template_redirect();
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The redirect should be sent on the template_redirect action.' );
+	}
+
+	/**
+	 * Ensure the redirect is not added when there is no post to redirect to.
+	 */
+	public function test_redirect_is_not_added_to_template_redirect_without_a_post(): void {
+		parent::go_to( home_url( '/random/category/empty/' ) );
+
+		$this->assertFalse( has_action( 'template_redirect', 'wp_random_content_redirect' ), 'The redirect should not be added when no post is selected.' );
+	}
+
+	/**
+	 * Ensure canonical redirects, which run earlier on `template_redirect`, leave random content requests alone.
+	 *
+	 * A canonical redirect sent before the random redirect would redirect the request
+	 * twice and may drop the `random` query variable, sending the visitor to an archive.
+	 *
+	 * @ticket 66661
+	 *
+	 * @covers ::redirect_canonical
+	 *
+	 * @dataProvider data_redirect_canonical_skips_random_content_requests_with_a_post
+	 *
+	 * @param string $path Path of the random content request.
+	 */
+	public function test_redirect_canonical_skips_random_content_requests_with_a_post( string $path ): void {
+		parent::go_to( home_url( $path ) );
+
+		$this->assertSame( 100, has_action( 'template_redirect', 'wp_random_content_redirect' ), 'The request should be a random content request with a post.' );
+		$this->assertNull( redirect_canonical( home_url( $path ), false ), 'Canonical redirects must not redirect random content requests with a post.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_redirect_canonical_skips_random_content_requests_with_a_post(): array {
+		return array(
+			'random base'                 => array( '/random/' ),
+			'category'                    => array( '/random/category/arts/' ),
+			'tag'                         => array( '/random/tag/impressionism/' ),
+			'author'                      => array( '/random/author/random-editor/' ),
+			'query string'                => array( '/?random' ),
+			'cat query var'               => array( '/?random&category_name=sport' ),
+			'random base with date query' => array( '/random/?m=1844' ),
+			'random base with cat query'  => array( '/random/?category_name=sport' ),
+		);
+	}
+
+	/**
+	 * Ensure canonical redirects still apply to random content requests without a post to redirect to.
+	 *
+	 * @ticket 66661
+	 *
+	 * @covers ::redirect_canonical
+	 */
+	public function test_redirect_canonical_applies_to_random_requests_that_are_not_redirected(): void {
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+
+		parent::go_to( home_url( '/?random&category_name=sport' ) );
+
+		$this->assertSame(
+			home_url( '/category/sport/?random' ),
+			redirect_canonical( home_url( '/?random&category_name=sport' ), false ),
+			'Canonical redirects should apply when random content redirects are disabled.'
+		);
+	}
+
+	/**
+	 * Ensure the redirect is sent when an earlier callback replaces the current query.
+	 *
+	 * The selected post is in the main query, which `query_posts()` does not replace.
+	 *
+	 * @ticket 66661
+	 *
+	 * @dataProvider data_actions_before_the_redirect
+	 *
+	 * @param string $action Action the current query is replaced on.
+	 */
+	public function test_redirect_is_sent_when_the_current_query_is_replaced( string $action ): void {
+		add_action(
+			$action,
+			static function (): void {
+				query_posts( array( 'post_type' => 'page' ) );
+			}
+		);
+
+		$this->go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertNotSame( $GLOBALS['wp_the_query'], $GLOBALS['wp_query'], 'The current query should have been replaced.' );
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'The redirect should be to the post selected by the main query.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_actions_before_the_redirect(): array {
+		return array(
+			'wp'                => array( 'wp' ),
+			'template_redirect' => array( 'template_redirect' ),
+		);
+	}
+
+	/**
+	 * Ensure the redirect happens after the `wp` action fires.
+	 */
+	public function test_redirect_happens_after_the_wp_action(): void {
 		$wp = new MockAction();
 		add_action( 'wp', array( $wp, 'action' ) );
 
-		$redirected_before_wp = null;
+		$redirected_after_wp = null;
 		add_filter(
 			'wp_redirect',
-			static function ( string $location ) use ( $wp, &$redirected_before_wp ): string {
-				$redirected_before_wp = 0 === $wp->get_call_count();
+			static function ( string $location ) use ( $wp, &$redirected_after_wp ): string {
+				$redirected_after_wp = 1 === $wp->get_call_count();
 				return $location;
 			},
 			5
@@ -1953,7 +2098,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$this->go_to( home_url( '/random/' ) );
 
-		$this->assertTrue( $redirected_before_wp, 'The redirect should happen before the wp action.' );
+		$this->assertTrue( $redirected_after_wp, 'The redirect should happen after the wp action.' );
 	}
 
 	/*
@@ -2532,7 +2677,12 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		}
 
 		$this->assertTrue( $this->get_main_query()->is_random(), 'The main query should be the random content query.' );
-		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random content request should redirect after running the main query.' );
+		$this->assertSame( 100, has_action( 'template_redirect', 'wp_random_content_redirect' ), 'The redirect should be added to the template_redirect action after running the main query.' );
+		$this->assertFalse( is_404(), 'A random content request with a post should not 404.' );
+
+		$this->do_template_redirect();
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random content request should redirect on the template_redirect action.' );
 	}
 
 	/**

@@ -6,7 +6,9 @@ import {
 	TEST_IMAGE_PATH,
 	SIMULATED_ERROR,
 	countUploadRequests,
+	expectCrossOriginIsolated,
 	failMediaCreate,
+	supportsDocumentIsolation,
 	tile,
 	titleOf,
 	trackUploads,
@@ -46,6 +48,12 @@ async function openModalFromImageBlock( page, editor ) {
 }
 
 test.describe( 'Media modal client-side uploads', () => {
+	test.skip(
+		( { browserName, browser } ) =>
+			! supportsDocumentIsolation( browserName, browser ),
+		'This browser does not support Document-Isolation-Policy'
+	);
+
 	test.beforeEach( async ( { admin, postFactory } ) => {
 		const post = await postFactory.create( {
 			title: postFactory.uniqueTitle( 'Media modal' ),
@@ -56,13 +64,7 @@ test.describe( 'Media modal client-side uploads', () => {
 	test( 'loads the media frame integration in the block editor', async ( {
 		page,
 	} ) => {
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		await expect(
 			page.locator( 'script[src*="media-frame-upload"]' )
@@ -72,13 +74,7 @@ test.describe( 'Media modal client-side uploads', () => {
 	test( 'leaves the upload-media store configured by the block editor', async ( {
 		page,
 	} ) => {
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// The editor's provider passes its own mediaUpload setting; a second
 		// provider from the media frame script would pass the raw media-utils one.
@@ -115,16 +111,7 @@ test.describe( 'Media modal client-side uploads', () => {
 		attachments,
 		requestUtils,
 	} ) => {
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		// In Chromium builds without Document-Isolation-Policy support,
-		// isolation is legitimately unavailable and the pipeline falls back
-		// to classic uploads. Only assert where isolation is real.
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const counts = countUploadRequests( page );
 		const ids = trackUploads( page, attachments );
@@ -183,13 +170,7 @@ test.describe( 'Media modal client-side uploads', () => {
 		page,
 		editor,
 	} ) => {
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		await failMediaCreate( page );
 		const counts = countUploadRequests( page );
@@ -224,13 +205,7 @@ test.describe( 'Media modal client-side uploads', () => {
 		editor,
 		attachments,
 	} ) => {
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// A plugin uploader with its own action: the pipeline must not take
 		// its files, even though it is a wp.Uploader on an isolated screen.
@@ -256,7 +231,9 @@ test.describe( 'Media modal client-side uploads', () => {
 
 		expect( counts.create + counts.sideload + counts.finalize ).toBe( 0 );
 	} );
+} );
 
+test.describe( 'Media modal uploads without cross-origin isolation', () => {
 	test( 'falls back to the classic uploader when the editor is not isolated', async ( {
 		page,
 		editor,
