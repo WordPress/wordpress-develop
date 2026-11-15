@@ -587,6 +587,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
  * Send an email to the user with a link to the personal data export file
  *
  * @since 4.9.6
+ * @since 7.2.0 Returns a `WP_Error` if the request is not confirmed or completed.
  *
  * @param int $request_id The request ID for this personal data export.
  * @return true|WP_Error True on success or `WP_Error` on failure.
