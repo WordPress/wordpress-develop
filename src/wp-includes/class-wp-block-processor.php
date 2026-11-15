@@ -788,6 +788,7 @@ class WP_Block_Processor {
 		$this->state          = self::READY;
 		$after_prev_delimiter = $this->matched_delimiter_at + $this->matched_delimiter_length;
 		$at                   = $after_prev_delimiter;
+		$matched              = false;
 
 		while ( $at < $end ) {
 			/*
@@ -1023,6 +1024,7 @@ class WP_Block_Processor {
 				if ( $after_name_whitespace_at + $after_name_whitespace_length === $comment_closing_at - $void_flag_length ) {
 					// This must be a block delimiter!
 					$this->state = self::MATCHED;
+					$matched     = true;
 					break;
 				}
 
@@ -1072,11 +1074,12 @@ class WP_Block_Processor {
 
 			// This must be a block delimiter!
 			$this->state = self::MATCHED;
+			$matched     = true;
 			break;
 		}
 
 		// The end of the document was reached without a match.
-		if ( self::MATCHED !== $this->state ) {
+		if ( ! $matched ) {
 			// Stop at top-level free-form HTML at the end of the document.
 			if ( $after_prev_delimiter < $end ) {
 				$this->state                    = self::HTML_SPAN;
@@ -1348,8 +1351,6 @@ class WP_Block_Processor {
 	 * @param int $comment_starting_at Where the HTML comment started, the leading `<`.
 	 * @param int $search_end          Last offset in which to search, for limiting search span.
 	 * @return int Offset after the current HTML comment ends, or `$search_end` if no end was found.
-	 *
-	 * @phpstan-pure
 	 */
 	private function find_html_comment_end( int $comment_starting_at, int $search_end ): int {
 		$text = $this->source_text;
