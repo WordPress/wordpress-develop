@@ -250,6 +250,91 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50980
+	 * @group ms-excluded
+	 */
+	public function test_populate_options_adds_autoloaded_empty_wplang_on_single_site() {
+		global $wpdb;
+
+		$orig_options  = $wpdb->options;
+		$wpdb->options = self::$options;
+
+		populate_options();
+
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( 'notoptions', 'options' );
+		wp_load_alloptions();
+
+		$num_queries = get_num_queries();
+		$result      = get_option( 'WPLANG' );
+		$queries     = get_num_queries() - $num_queries;
+
+		$wpdb->query( "TRUNCATE TABLE {$wpdb->options}" );
+		$wpdb->options = $orig_options;
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( 'notoptions', 'options' );
+
+		$this->assertSame( '', $result, 'WPLANG should default to an empty string.' );
+		$this->assertSame( 0, $queries, 'WPLANG should be autoloaded.' );
+	}
+
+	/**
+	 * @ticket 50980
+	 * @group ms-excluded
+	 */
+	public function test_populate_options_keeps_existing_wplang() {
+		global $wpdb;
+
+		$orig_options  = $wpdb->options;
+		$wpdb->options = self::$options;
+
+		$wpdb->insert(
+			$wpdb->options,
+			array(
+				'option_name'  => 'WPLANG',
+				'option_value' => 'de_DE',
+			)
+		);
+
+		populate_options();
+
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( 'notoptions', 'options' );
+
+		$result = get_option( 'WPLANG' );
+
+		$wpdb->query( "TRUNCATE TABLE {$wpdb->options}" );
+		$wpdb->options = $orig_options;
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( 'notoptions', 'options' );
+
+		$this->assertSame( 'de_DE', $result );
+	}
+
+	/**
+	 * @ticket 50980
+	 * @group multisite
+	 * @group ms-required
+	 */
+	public function test_populate_options_does_not_add_wplang_on_multisite() {
+		global $wpdb;
+
+		$orig_options  = $wpdb->options;
+		$wpdb->options = self::$options;
+
+		populate_options();
+
+		$result = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", 'WPLANG' ) );
+
+		$wpdb->query( "TRUNCATE TABLE {$wpdb->options}" );
+		$wpdb->options = $orig_options;
+		wp_cache_delete( 'alloptions', 'options' );
+		wp_cache_delete( 'notoptions', 'options' );
+
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * @ticket 44896
 	 * @group multisite
 	 * @group ms-required
