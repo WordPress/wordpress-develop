@@ -71,6 +71,15 @@ class WP_Entity_Fields_Registry {
 	protected $initialized = false;
 
 	/**
+	 * Whether the registry is firing the `wp_entity_fields_api_init` action, the
+	 * only time register(), update(), unregister(), and register_collection() run.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	protected $initializing = false;
+
+	/**
 	 * The singleton instance.
 	 *
 	 * @since 7.2.0
@@ -575,32 +584,39 @@ class WP_Entity_Fields_Registry {
 		// the fields it updates does not fire the action again.
 		$this->initialized = true;
 
-		/**
-		 * Fires the first time the registered fields are read, after `init`.
-		 *
-		 * Register or adjust fields here, with wp_register_entity_fields(),
-		 * wp_update_entity_fields(), and wp_unregister_entity_fields(): it is the only
-		 * time they run.
-		 *
-		 * The first read happens wherever the fields are needed: while
-		 * handling a REST request as well as on `admin_footer` of the pages
-		 * that load the editor script. A callback should register fields and
-		 * nothing else; script modules, styles, and their enqueue hooks
-		 * belong on `init`.
-		 *
-		 * @since 7.2.0
-		 */
-		do_action( 'wp_entity_fields_api_init' );
+		$this->initializing = true;
+		try {
+			/**
+			 * Fires the first time the registered fields are read, after `init`.
+			 *
+			 * Register or adjust fields here, with wp_register_entity_fields(),
+			 * wp_update_entity_fields(), and wp_unregister_entity_fields(): it is the only
+			 * time they run.
+			 *
+			 * The first read happens wherever the fields are needed: while
+			 * handling a REST request as well as on `admin_footer` of the pages
+			 * that load the editor script. A callback should register fields and
+			 * nothing else; script modules, styles, and their enqueue hooks
+			 * belong on `init`.
+			 *
+			 * @since 7.2.0
+			 */
+			do_action( 'wp_entity_fields_api_init' );
+		} finally {
+			$this->initializing = false;
+		}
 	}
 
 	/**
-	 * Checks that the `wp_entity_fields_api_init` action is firing, as register(),
-	 * update(), and unregister() require.
+	 * Checks that the registry is firing the `wp_entity_fields_api_init` action,
+	 * as register(), update(), unregister(), and register_collection() require.
 	 *
 	 * Outside the action a registration would either come before the
 	 * defaults, which could then not be registered, or after the fields have been read
 	 * and the import map of the editor script built from them. Refusing
-	 * keeps the registry immutable once read.
+	 * keeps the registry immutable once read, even when the action is fired
+	 * again with do_action(), which is why the registry tracks its own firing
+	 * rather than check doing_action().
 	 *
 	 * @since 7.2.0
 	 *
@@ -608,7 +624,7 @@ class WP_Entity_Fields_Registry {
 	 * @return bool Whether the action is firing.
 	 */
 	protected function doing_entity_fields_api_init( $method ) {
-		if ( doing_action( 'wp_entity_fields_api_init' ) ) {
+		if ( $this->initializing ) {
 			return true;
 		}
 
