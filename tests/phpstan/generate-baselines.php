@@ -18,6 +18,12 @@
  * baseline, and retiring one that has reached zero, therefore need no manual
  * edit of the configuration.
  *
+ * With `--prune`, nothing is analyzed: the baselines that no longer list any
+ * entries are deleted, and the list in the configuration is updated to match. That
+ * completes running PHPStan with `--fix`, which removes the entries of fixed
+ * errors in place but leaves a baseline it has emptied behind, and so
+ * `composer phpstan:fix` runs it with `--prune` after `--fix`.
+ *
  * The intermediate baseline is generated in PHPStan's PHP format and read back
  * with `require`, so the entries arrive as an array. Nothing has to parse, or
  * re-escape, the message patterns.
@@ -29,6 +35,7 @@
  *     composer phpstan:baselines -- --identifier=variable.undefined,isset.variable
  *     composer phpstan:baselines -- --identifier=isset.variable --identifier=empty.variable
  *     composer phpstan:baselines -- --combined > all-errors.neon
+ *     composer phpstan:baselines -- --prune
  *
  * @package WordPress
  */
@@ -76,6 +83,7 @@ $output_option    = 'tests/phpstan/baselines';
 $memory_limit     = '2G';
 $only_identifiers = array();
 $combined         = false;
+$prune            = false;
 
 foreach ( $args as $arg ) {
 	if ( '--help' === $arg || '-h' === $arg ) {
@@ -85,6 +93,11 @@ foreach ( $args as $arg ) {
 
 	if ( '--combined' === $arg ) {
 		$combined = true;
+		continue;
+	}
+
+	if ( '--prune' === $arg ) {
+		$prune = true;
 		continue;
 	}
 
@@ -123,6 +136,57 @@ $output_dir  = $repo_root . '/' . trim( $output_option, '/' );
 if ( ! is_file( $config_path ) ) {
 	fwrite( STDERR, "Configuration not found: $config_option\n" );
 	exit( 1 );
+}
+
+/*
+ * Pruning needs no analysis. Running PHPStan with `--fix` lowers the counts of the
+ * entries whose errors were fixed and removes those that no longer match, but when
+ * it removes the last entry of a baseline it leaves the file behind, as
+ * `ignoreErrors: []`. That file suppresses nothing, so all that remains is to
+ * delete it and drop it from the configuration's `includes`, which is known from
+ * the file alone.
+ */
+if ( $prune ) {
+	if ( $combined ) {
+		fwrite( STDERR, "--prune and --combined cannot be used together.\n" );
+		exit( 1 );
+	}
+
+	$pruned = 0;
+
+	foreach ( find_baselines( $output_dir ) as $file ) {
+		$identifier = basename( $file, '.neon' );
+
+		if ( $only_identifiers && ! in_array( $identifier, $only_identifiers, true ) ) {
+			continue;
+		}
+
+		$is_empty = is_empty_baseline( read_file( $file ) );
+
+		if ( null === $is_empty ) {
+			fwrite( STDERR, sprintf( "%s: no `ignoreErrors` list found, left untouched.\n", $output_option . '/' . basename( $file ) ) );
+			continue;
+		}
+
+		if ( ! $is_empty ) {
+			continue;
+		}
+
+		if ( ! unlink( $file ) ) {
+			fwrite( STDERR, sprintf( "%s: could not be deleted.\n", $output_option . '/' . basename( $file ) ) );
+			exit( 1 );
+		}
+
+		printf( "%s: no entries remain, file deleted.\n", $output_option . '/' . basename( $file ) );
+		++$pruned;
+	}
+
+	if ( 0 === $pruned ) {
+		echo "No empty baselines found.\n";
+	}
+
+	update_config_includes( $config_path, $config_option, $output_dir );
+	exit( 0 );
 }
 
 /*
@@ -346,6 +410,11 @@ function get_usage(): string {
 		                       Default: tests/phpstan/baselines
 		  --combined           Print one combined baseline to stdout instead of writing
 		                       per-identifier files. Nothing is written to disk.
+		  --prune              Without analyzing anything, delete the baselines that no
+		                       longer list any entries, such as one emptied by running
+		                       PHPStan with --fix, and update the configuration's
+		                       `includes` to match. With --identifier, only those
+		                       baselines are considered.
 		  --memory-limit=<v>   Passed through to PHPStan. Default: 2G
 		  -h, --help           Show this message.
 
@@ -363,13 +432,19 @@ function get_usage(): string {
 		  Inspect everything as one baseline without writing any files:
 		    composer phpstan:baselines -- --combined
 
+		  Remove the entries of fixed errors, and any baseline left empty:
+		    composer phpstan:fix
+
+		  Remove only the baselines that list no entries:
+		    composer phpstan:baselines -- --prune
+
 		TEXT;
 }
 
 /**
  * Reads a file, failing loudly rather than continuing with false.
  *
- * @param non-falsy-string $path Absolute path to the file.
+ * @param non-empty-string $path Absolute path to the file.
  * @return string File contents.
  */
 function read_file( string $path ): string {
@@ -530,6 +605,53 @@ function find_baselines( string $output_dir ): array {
 	}
 
 	return $files;
+}
+
+/**
+ * Determines whether a baseline ignores no errors.
+ *
+ * That is the case when its `ignoreErrors` is an empty inline list, as PHPStan's
+ * `--fix` writes after removing the last entry, or a key with nothing nested under
+ * it. Only whole-line comments are skipped, since a message pattern such as
+ * `'#^…$#'` contains `#` and so a trailing comment cannot be told apart from it
+ * without parsing the NEON.
+ *
+ * @param string $contents Baseline file contents.
+ * @return bool|null Whether the baseline is empty, or null when it has no `ignoreErrors` key.
+ */
+function is_empty_baseline( string $contents ): ?bool {
+	$lines = explode( "\n", $contents );
+
+	foreach ( $lines as $i => $line ) {
+		if ( 1 !== preg_match( '/^(\s*)ignoreErrors:\s*(.*)$/', $line, $matches ) ) {
+			continue;
+		}
+
+		$value = trim( $matches[2] );
+
+		if ( '' !== $value && '#' !== $value[0] ) {
+			return 1 === preg_match( '/^\[\s*\](\s*#.*)?$/', $value );
+		}
+
+		// Nothing after the key, so its value is whatever is nested beneath it.
+		$indent = strlen( $matches[1] );
+
+		foreach ( array_slice( $lines, $i + 1 ) as $next ) {
+			$trimmed = trim( $next );
+
+			if ( '' === $trimmed || '#' === $trimmed[0] ) {
+				continue;
+			}
+
+			$next_indent = strlen( $next ) - strlen( ltrim( $next ) );
+
+			return $next_indent <= $indent;
+		}
+
+		return true;
+	}
+
+	return null;
 }
 
 /**

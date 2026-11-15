@@ -16,11 +16,19 @@ abstract class WP_Theme_UnitTestCase extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
-		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
-		$this->theme_root     = realpath( DIR_TESTDATA . '/themedir1' );
+		$this->original_stylesheet = get_stylesheet();
+		$this->orig_theme_dir      = $GLOBALS['wp_theme_directories'];
+		$this->theme_root          = realpath( DIR_TESTDATA . '/themedir1' );
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
@@ -46,6 +54,10 @@ abstract class WP_Theme_UnitTestCase extends WP_UnitTestCase {
 		wp_clean_themes_cache();
 		wp_clean_theme_json_cache();
 		unset( $GLOBALS['wp_themes'] );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		parent::tear_down();
 	}

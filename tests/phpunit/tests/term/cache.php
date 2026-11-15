@@ -49,7 +49,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		wp_update_term( $term->term_id, 'category', array( 'name' => 'Bar' ) );
 		$cats2 = get_the_category( $post->ID );
-		$this->assertNotEquals( $term->name, reset( $cats2 )->name );
+		$this->assertNotSame( $term->name, reset( $cats2 )->name );
 	}
 
 	/**
