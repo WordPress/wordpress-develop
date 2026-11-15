@@ -24,7 +24,6 @@ class WP_UnitTest_Factory_Callback_After_Create {
 	 * @since UT (3.7.0)
 	 *
 	 * @param int $object_id ID of the object to apply the callback on.
-	 *
 	 * @return mixed Updated object field.
 	 */
 	public function call( $object_id ) {

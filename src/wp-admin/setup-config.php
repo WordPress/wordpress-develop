@@ -14,6 +14,52 @@
  */
 define( 'WP_INSTALLING', true );
 
+if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
+}
+
+/*
+ * Check whether a wp-config.php file already exists, either in the WordPress root
+ * or one level above it (but not as part of another installation).
+ * This mirrors the lookup in wp-load.php.
+ */
+if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
+	$existing_config_location = 'root';
+} elseif ( @file_exists( dirname( ABSPATH ) . '/wp-config.php' ) && ! @file_exists( dirname( ABSPATH ) . '/wp-settings.php' ) ) {
+	$existing_config_location = 'parent';
+} else {
+	$existing_config_location = '';
+}
+
+if ( $existing_config_location ) {
+	/*
+	 * A configuration file already exists, so there is nothing to set up here.
+	 * Load WordPress through that file, like any other request would, so that the
+	 * site's locale is known and the message below can be translated.
+	 */
+	require_once ABSPATH . 'wp-load.php';
+
+	nocache_headers();
+
+	if ( 'root' === $existing_config_location ) {
+		$message = sprintf(
+			/* translators: 1: wp-config.php, 2: install.php */
+			__( 'The file %1$s already exists. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
+			'<code>wp-config.php</code>',
+			'install.php'
+		);
+	} else {
+		$message = sprintf(
+			/* translators: 1: wp-config.php, 2: install.php */
+			__( 'The file %1$s already exists one level above your WordPress installation. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
+			'<code>wp-config.php</code>',
+			'install.php'
+		);
+	}
+
+	wp_die( '<p>' . $message . '</p>', 409 );
+}
+
 /**
  * We are blissfully unaware of anything.
  */
@@ -25,10 +71,6 @@ define( 'WP_SETUP_CONFIG', true );
  * Set this to error_reporting( -1 ) for debugging
  */
 error_reporting( 0 );
-
-if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
-}
 
 require ABSPATH . 'wp-settings.php';
 
@@ -52,32 +94,6 @@ if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
 			__( 'Sorry, I need a %s file to work from. Please re-upload this file to your WordPress installation.' ),
 			'<code>wp-config-sample.php</code>'
 		)
-	);
-}
-
-// Check if wp-config.php has been created.
-if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
-	wp_die(
-		'<p>' . sprintf(
-			/* translators: 1: wp-config.php, 2: install.php */
-			__( 'The file %1$s already exists. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
-			'<code>wp-config.php</code>',
-			'install.php'
-		) . '</p>',
-		409
-	);
-}
-
-// Check if wp-config.php exists above the root directory but is not part of another installation.
-if ( @file_exists( ABSPATH . '../wp-config.php' ) && ! @file_exists( ABSPATH . '../wp-settings.php' ) ) {
-	wp_die(
-		'<p>' . sprintf(
-			/* translators: 1: wp-config.php, 2: install.php */
-			__( 'The file %1$s already exists one level above your WordPress installation. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
-			'<code>wp-config.php</code>',
-			'install.php'
-		) . '</p>',
-		409
 	);
 }
 
@@ -240,7 +256,7 @@ switch ( $step ) {
 			<td>
 				<div class="wp-pwd">
 					<input name="pwd" id="pwd" type="password" class="regular-text" data-reveal="1" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" spellcheck="false" />
-					<button type="button" class="button pwd-toggle hide-if-no-js" data-toggle="0" data-start-masked="1" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
+					<button type="button" class="button wp-hide-pw user-new-password-toggle pwd-toggle hide-if-no-js" data-toggle="0" data-start-masked="1" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility"></span>
 						<span class="text"><?php _e( 'Show' ); ?></span>
 					</button>
@@ -374,10 +390,26 @@ switch ( $step ) {
 			}
 		}
 
-		$key = 0;
+		/*
+		 * The Secrets API key is generated like the salts above, but written as base64-encoded
+		 * random bytes, the form the Secrets API uses as raw key material.
+		 */
+		try {
+			$secrets_key = base64_encode( random_bytes( 32 ) );
+		} catch ( Exception $ex ) {
+			$secrets_key = wp_generate_password( 64, true, true );
+		}
+
+		$key             = 0;
+		$has_secrets_key = false;
 		foreach ( $config_file as $line_num => $line ) {
 			if ( str_starts_with( $line, '$table_prefix =' ) ) {
 				$config_file[ $line_num ] = '$table_prefix = \'' . addcslashes( $prefix, "\\'" ) . "';\r\n";
+				continue;
+			}
+
+			if ( isset( $nonce_salt_line ) && ! isset( $salts_end_line ) && '/**#@-*/' === trim( $line ) ) {
+				$salts_end_line = $line_num;
 				continue;
 			}
 
@@ -410,9 +442,35 @@ switch ( $step ) {
 				case 'NONCE_SALT':
 					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . $secret_keys[ $key++ ] . "' );\r\n";
 					break;
+				case 'WP_SECRETS_KEY':
+					$config_file[ $line_num ] = "define( '" . $constant . "'," . $padding . "'" . $secrets_key . "' );\r\n";
+					$has_secrets_key          = true;
+					break;
+			}
+
+			if ( 'NONCE_SALT' === $constant ) {
+				$nonce_salt_line = $line_num;
 			}
 		}
 		unset( $line );
+
+		// A custom or older localized wp-config-sample.php may not define the key: add it after the salts.
+		if ( ! $has_secrets_key && isset( $nonce_salt_line ) ) {
+			$secrets_key_lines = array(
+				"\r\n",
+				"/**\r\n",
+				" * Encryption key for the Secrets API.\r\n",
+				" *\r\n",
+				" * Secrets stored by WordPress and plugins are encrypted with this key.\r\n",
+				" * Unlike the keys and salts above, changing it makes every stored secret unreadable.\r\n",
+				" *\r\n",
+				" * @since 7.2.0\r\n",
+				" */\r\n",
+				"define( 'WP_SECRETS_KEY', '" . $secrets_key . "' );\r\n",
+			);
+
+			array_splice( $config_file, ( $salts_end_line ?? $nonce_salt_line ) + 1, 0, $secrets_key_lines );
+		}
 
 		if ( ! is_writable( ABSPATH ) ) :
 			setup_config_display_header();

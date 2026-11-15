@@ -158,9 +158,10 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 		foreach ( $entries as $key => $entry ) {
 
 			// Get post for comparison.
-			$id = xml_find( $entries[ $key ]['child'], 'id' );
-			preg_match( '/\?p=(\d+)/', $id[0]['content'], $matches );
-			$post = get_post( $matches[1] );
+			$id      = xml_find( $entries[ $key ]['child'], 'id' );
+			$post_id = url_to_postid( $id[0]['content'] );
+			$this->assertGreaterThan( 0, $post_id, 'The feed item URL should resolve to a post.' );
+			$post = get_post( $post_id );
 
 			// Author.
 			$author = xml_find( $entries[ $key ]['child'], 'author', 'name' );
@@ -287,7 +288,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 			foreach ( (array) $links as $link ) {
 				if ( 'enclosure' === $link['attributes']['rel'] ) {
 					$this->assertSame( $enclosures[ $i ]['expected']['href'], $link['attributes']['href'] );
-					$this->assertEquals( $enclosures[ $i ]['expected']['length'], $link['attributes']['length'] );
+					$this->assertSame( (string) $enclosures[ $i ]['expected']['length'], $link['attributes']['length'] );
 					$this->assertSame( $enclosures[ $i ]['expected']['type'], $link['attributes']['type'] );
 					++$i;
 				}

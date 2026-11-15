@@ -78,6 +78,11 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		);
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_post_type( 'wptests_pt1' );
+		unregister_post_type( 'wptests_pt2' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		self::register_custom_post_objects();
