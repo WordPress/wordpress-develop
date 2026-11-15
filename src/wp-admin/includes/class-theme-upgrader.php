@@ -128,14 +128,15 @@ class Theme_Upgrader extends WP_Upgrader {
 		// Check to see if we need to install a parent theme.
 		$theme_info = $this->theme_info();
 
-		if ( ! $theme_info->parent() ) {
+		$parent_theme = $theme_info->parent();
+		if ( ! $parent_theme ) {
 			return $install_result;
 		}
 
 		$this->skin->feedback( 'parent_theme_search' );
 
-		if ( ! $theme_info->parent()->errors() ) {
-			$this->skin->feedback( 'parent_theme_currently_installed', $theme_info->parent()->display( 'Name' ), $theme_info->parent()->display( 'Version' ) );
+		if ( ! $parent_theme->errors() ) {
+			$this->skin->feedback( 'parent_theme_currently_installed', $parent_theme->display( 'Name' ), $parent_theme->display( 'Version' ) );
 			// We already have the theme, fall through.
 			return $install_result;
 		}

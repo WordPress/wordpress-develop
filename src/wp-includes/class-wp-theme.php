@@ -617,7 +617,8 @@ final class WP_Theme implements ArrayAccess {
 			case 'version':
 				return $this->get( 'Version' );
 			case 'parent_theme':
-				return $this->parent() ? $this->parent()->get( 'Name' ) : '';
+				$parent = $this->parent();
+				return $parent ? $parent->get( 'Name' ) : '';
 			case 'template_dir':
 				return $this->get_template_directory();
 			case 'stylesheet_dir':
@@ -762,7 +763,8 @@ final class WP_Theme implements ArrayAccess {
 			case 'Theme Root URI':
 				return $this->get_theme_root_uri();
 			case 'Parent Theme':
-				return $this->parent() ? $this->parent()->get( 'Name' ) : '';
+				$parent = $this->parent();
+				return $parent ? $parent->get( 'Name' ) : '';
 			default:
 				return null;
 		}
@@ -1221,8 +1223,9 @@ final class WP_Theme implements ArrayAccess {
 	 * @return string Absolute path of the template directory.
 	 */
 	public function get_template_directory() {
-		if ( $this->parent() ) {
-			$theme_root = $this->parent()->theme_root;
+		$parent = $this->parent();
+		if ( $parent ) {
+			$theme_root = $parent->theme_root;
 		} else {
 			$theme_root = $this->theme_root;
 		}
@@ -1255,8 +1258,9 @@ final class WP_Theme implements ArrayAccess {
 	 * @return string URL to the template directory.
 	 */
 	public function get_template_directory_uri() {
-		if ( $this->parent() ) {
-			$theme_root_uri = $this->parent()->get_theme_root_uri();
+		$parent = $this->parent();
+		if ( $parent ) {
+			$theme_root_uri = $parent->get_theme_root_uri();
 		} else {
 			$theme_root_uri = $this->get_theme_root_uri();
 		}

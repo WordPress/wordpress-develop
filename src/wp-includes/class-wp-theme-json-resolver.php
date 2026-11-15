@@ -316,12 +316,13 @@ class WP_Theme_JSON_Resolver {
 				static::$theme = new WP_Theme_JSON( $config );
 			}
 
-			if ( $wp_theme->parent() ) {
+			$wp_parent_theme = $wp_theme->parent();
+			if ( $wp_parent_theme ) {
 				// Get parent theme.json.
-				$parent_theme_json_file = $wp_theme->parent()->get_file_path( 'theme.json' );
+				$parent_theme_json_file = $wp_parent_theme->get_file_path( 'theme.json' );
 				if ( $theme_json_file !== $parent_theme_json_file && is_readable( $parent_theme_json_file ) ) {
 					$parent_theme_json_data = static::read_json_file( $parent_theme_json_file );
-					$parent_theme_json_data = static::translate( $parent_theme_json_data, $wp_theme->parent()->get( 'TextDomain' ) );
+					$parent_theme_json_data = static::translate( $parent_theme_json_data, $wp_parent_theme->get( 'TextDomain' ) );
 					$parent_theme           = new WP_Theme_JSON( $parent_theme_json_data );
 
 					/*

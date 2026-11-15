@@ -319,12 +319,14 @@ if ( $theme_errors ) {
 		)
 	);
 }
+
+$parent_theme = $theme->parent();
 ?>
 
 <div id="templateside">
 	<h2 id="theme-files-label"><?php _e( 'Theme Files' ); ?></h2>
 	<ul role="tree" aria-labelledby="theme-files-label">
-		<?php if ( $theme->parent() ) : ?>
+		<?php if ( $parent_theme ) : ?>
 			<li class="howto">
 				<?php
 				printf(
@@ -333,7 +335,7 @@ if ( $theme_errors ) {
 					sprintf(
 						'<a href="%s">%s</a>',
 						self_admin_url( 'theme-editor.php?theme=' . urlencode( $theme->get_template() ) ),
-						$theme->parent()->display( 'Name' )
+						$parent_theme->display( 'Name' )
 					)
 				);
 				?>
