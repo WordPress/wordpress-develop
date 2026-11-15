@@ -7,10 +7,12 @@
  *
  * On screens that do not load the Command Palette up front, its scripts and
  * styles are printed into an inert template by
- * wp_print_command_palette_assets_template(). They are downloaded once the page
- * is idle, but only added to the page when the palette is first requested, with
- * the keyboard shortcut or the toolbar button, so that they do not delay every
- * admin page load.
+ * wp_print_command_palette_assets_template(). For someone who has not used the
+ * palette yet, they are only downloaded once the page is idle, and added to the
+ * page when the palette is first requested, with the keyboard shortcut or the
+ * toolbar button, so that they do not delay every admin page load. For someone
+ * who has used it before, they are added to the page once it is idle, so that
+ * the palette opens right away.
  *
  * @since 7.3.0
  */
@@ -18,9 +20,13 @@
 	const TEMPLATE_ID = 'wp-command-palette-assets';
 	const TOOLBAR_ITEM_ID = 'wp-admin-bar-command-palette';
 	const TOOLBAR_LINK_SELECTOR = '#' + TOOLBAR_ITEM_ID + ' > .ab-item';
+	const USED_PALETTE_SETTING = 'commandpalette';
 	const IS_APPLE_OS = /Mac|iPod|iPhone|iPad/.test( window.navigator.platform );
 
-	let isLoading = false;
+	/** @type {Promise<void>|null} */
+	let paletteAssetsLoading = null;
+	let arePaletteAssetsLoaded = false;
+	let isWaitingToOpen = false;
 
 	/**
 	 * Tells whether a key press is the shortcut that opens the Command Palette.
@@ -35,12 +41,30 @@
 	}
 
 	/**
-	 * Tells whether the Command Palette assets are still waiting in their template.
+	 * Tells whether the Command Palette assets have not finished loading into the page yet.
 	 *
-	 * @return {boolean} Whether the assets have not been added to the page yet.
+	 * @return {boolean} Whether the assets are still in their template or still loading.
 	 */
 	function arePaletteAssetsPending() {
-		return isLoading || null !== document.getElementById( TEMPLATE_ID );
+		return ! arePaletteAssetsLoaded && ( null !== paletteAssetsLoading || null !== document.getElementById( TEMPLATE_ID ) );
+	}
+
+	/**
+	 * Tells whether the current user has opened the Command Palette before.
+	 *
+	 * @return {boolean} Whether the user setting records an earlier use.
+	 */
+	function hasUserUsedPalette() {
+		return 'function' === typeof window.getUserSetting && 'used' === window.getUserSetting( USED_PALETTE_SETTING );
+	}
+
+	/**
+	 * Records in the user settings that the current user has opened the Command Palette.
+	 */
+	function rememberUserUsedPalette() {
+		if ( ! hasUserUsedPalette() && 'function' === typeof window.setUserSetting ) {
+			window.setUserSetting( USED_PALETTE_SETTING, 'used' );
+		}
 	}
 
 	/**
@@ -122,7 +146,7 @@
 	}
 
 	/**
-	 * Downloads the Command Palette's scripts and styles once the page is idle, without running them.
+	 * Downloads the Command Palette's scripts and styles without running them.
 	 *
 	 * This takes the download off the first time the palette is opened, while the page itself
 	 * still does not parse or run the palette's scripts until then.
@@ -215,25 +239,62 @@
 	}
 
 	/**
+	 * Moves the Command Palette's assets from the template into the page, once.
+	 *
+	 * @return {Promise<void>} Resolves once the assets are in the page.
+	 */
+	function loadPaletteAssets() {
+		if ( ! paletteAssetsLoading ) {
+			const template = /** @type {HTMLTemplateElement|null} */ ( document.getElementById( TEMPLATE_ID ) );
+
+			if ( template ) {
+				template.remove();
+				paletteAssetsLoading = insertPaletteAssets( template.content );
+			} else {
+				paletteAssetsLoading = Promise.resolve();
+			}
+
+			paletteAssetsLoading.then( () => {
+				arePaletteAssetsLoaded = true;
+			} );
+		}
+
+		return paletteAssetsLoading;
+	}
+
+	/**
 	 * Opens the Command Palette, adding its assets to the page first if needed.
 	 */
 	async function openPalette() {
-		if ( isLoading ) {
+		if ( isWaitingToOpen ) {
 			return;
 		}
 
-		const template = /** @type {HTMLTemplateElement|null} */ ( document.getElementById( TEMPLATE_ID ) );
+		rememberUserUsedPalette();
 
-		if ( template ) {
-			isLoading = true;
+		if ( ! arePaletteAssetsLoaded ) {
+			isWaitingToOpen = true;
 			showPaletteLoading( true );
-			template.remove();
-			await insertPaletteAssets( template.content );
+			await loadPaletteAssets();
 			showPaletteLoading( false );
-			isLoading = false;
+			isWaitingToOpen = false;
 		}
 
 		window.wp.data.dispatch( 'core/commands' ).open();
+	}
+
+	/**
+	 * Prepares the Command Palette once the page is idle.
+	 *
+	 * Someone who has used the palette before gets it added to the page, so it opens
+	 * right away. Everyone else only gets its files downloaded.
+	 */
+	function preparePaletteWhenIdle() {
+		if ( hasUserUsedPalette() ) {
+			loadPaletteAssets();
+		} else {
+			prefetchPaletteAssets();
+		}
 	}
 
 	document.addEventListener( 'keydown', ( event ) => {
@@ -254,5 +315,5 @@
 		openPalette();
 	} );
 
-	whenPageIsIdle( prefetchPaletteAssets );
+	whenPageIsIdle( preparePaletteWhenIdle );
 }( window, document ) );

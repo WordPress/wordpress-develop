@@ -9,6 +9,9 @@ test.describe( 'Command Palette', () => {
 		page,
 		pageUtils,
 	} ) => {
+		await page.addInitScript( () => {
+			window.requestIdleCallback = () => 0;
+		} );
 		await admin.visitAdminPage( '/options-general.php' );
 
 		await expect( page.locator( 'script#wp-core-commands-js' ) ).toHaveCount( 0 );
@@ -43,6 +46,23 @@ test.describe( 'Command Palette', () => {
 
 		await pageUtils.pressKeys( 'primary+k' );
 		await expect( palette ).toBeVisible();
+	} );
+
+	test( 'is loaded once the page is idle after it has been used', async ( {
+		admin,
+		page,
+		pageUtils,
+	} ) => {
+		await admin.visitAdminPage( '/options-general.php' );
+		await pageUtils.pressKeys( 'primary+k' );
+		await expect(
+			page.getByRole( 'dialog', { name: 'Command palette' } )
+		).toBeVisible();
+
+		await admin.visitAdminPage( '/options-writing.php' );
+
+		await expect( page.locator( 'script#wp-core-commands-js' ) ).toHaveCount( 1 );
+		await expect( page.locator( '#wp-command-palette-assets' ) ).toHaveCount( 0 );
 	} );
 
 	test( 'opens from the toolbar button on a classic screen', async ( {
