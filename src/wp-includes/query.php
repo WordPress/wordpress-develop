@@ -1462,53 +1462,36 @@ function wp_random_content_post_limits( $limits, WP_Query $query ): string {
 }
 
 /**
- * Prevents the random content query from being split into multiple database queries.
- *
- * Randomly ordered queries are not cached, so there is no benefit to querying the post
- * IDs separately to the post objects. Disabling the split allows the random post to be
- * retrieved in a single database query.
- *
- * @since 7.2.0
- *
- * @param bool     $split_the_query Whether or not to split the query.
- * @param WP_Query $query           The WP_Query instance.
- * @return bool Whether or not to split the query.
- */
-function wp_random_content_split_the_query( $split_the_query, WP_Query $query ): bool {
-	if ( wp_is_random_content_query( $query ) ) {
-		return false;
-	}
-
-	return (bool) $split_the_query;
-}
-
-/**
  * Redirects random content requests to the randomly selected post.
  *
- * Called by {@see WP::handle_random()} immediately after the main query selects the
- * random post, to avoid unnecessary processing before the redirect. As the redirect
- * is sent before {@see WP::send_headers()}, the headers preventing the redirect being
- * cached or indexed are sent with it.
+ * Added to the {@see 'template_redirect'} action at priority 100 by
+ * {@see WP::handle_random()} once the main query has selected the random post, so the
+ * redirect is sent after the request is set up and the {@see 'wp'} action has fired.
+ * The headers preventing the redirect being cached or indexed are sent with it.
+ *
+ * The post is read from the main query rather than the current query, so the redirect
+ * is still sent when an earlier callback replaces the current query, for example by
+ * calling {@see query_posts()}.
+ *
+ * The request ends once a post is selected. The redirect is to the post's permalink
+ * as returned by {@see get_permalink()}, including a permalink filtered to be on
+ * another site.
  *
  * If no post is selected, for example on an empty archive, {@see WP::handle_random()}
- * handles the request as a 404. If the post's permalink is on another site, the
- * request is handled as a regular archive request.
+ * handles the request as a 404.
  *
  * @since 7.2.0
  *
- * @global WP_Query $wp_query WordPress Query object.
+ * @global WP_Query $wp_the_query WordPress main Query object.
  */
 function wp_random_content_redirect(): void {
-	global $wp_query;
+	global $wp_the_query;
 
-	if ( ! wp_is_random_content_query( $wp_query ) || ! $wp_query->post instanceof WP_Post ) {
-		return;
-	}
-
-	$location = get_permalink( $wp_query->post );
-
-	// Only consider redirecting permitted locations so wp_safe_redirect doesn't redirect to the fallback.
-	if ( ! $location || ! wp_validate_redirect( $location, '' ) ) {
+	if (
+		! $wp_the_query instanceof WP_Query
+		|| ! wp_is_random_content_query( $wp_the_query )
+		|| ! $wp_the_query->post instanceof WP_Post
+	) {
 		return;
 	}
 
@@ -1518,9 +1501,10 @@ function wp_random_content_redirect(): void {
 		header( 'X-Robots-Tag: noindex, follow' );
 	}
 
-	if ( wp_safe_redirect( $location, 302 ) ) {
-		exit;
-	}
+	$location = get_permalink( $wp_the_query->post );
+
+	wp_redirect( $location, 302 );
+	exit;
 }
 
 /**
@@ -1534,6 +1518,12 @@ function wp_random_content_redirect(): void {
  * unpublished, renamed, moved or deleted.
  *
  * Runs on the {@see 'wp_after_insert_post'} and {@see 'after_delete_post'} actions.
+ * Third-party code may fire these actions with unexpected values, so the parameters are
+ * not type declared. When `$post` is omitted it is looked up from `$post_id`. Passing
+ * anything other than a `WP_Post` as `$post`, or a post that cannot be looked up, is
+ * incorrect usage and nothing is flushed. `$post_before` is only considered on
+ * `wp_after_insert_post`, where passing anything other than a `WP_Post` or null is
+ * incorrect usage and the value is ignored.
  *
  * @since 7.2.0
  *
@@ -1541,21 +1531,59 @@ function wp_random_content_redirect(): void {
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param int          $post_id     Post ID.
- * @param WP_Post      $post        Post object.
+ * @param WP_Post|null $post        Optional. Post object. Looked up from `$post_id` when null. Default null.
  * @param bool         $update      Optional. Whether this is an existing post being updated. Default false.
  * @param WP_Post|null $post_before Optional. Post object before the update, null for new posts. Default null.
  */
-function wp_random_content_flush_rewrite_rules_for_post( int $post_id, WP_Post $post, bool $update = false, ?WP_Post $post_before = null ): void {
+function wp_random_content_flush_rewrite_rules_for_post( $post_id, $post = null, $update = false, $post_before = null ): void {
 	global $wp_rewrite;
+
+	// Only look up a real ID: get_post() falls back to the global post for an empty value.
+	if ( null === $post && (int) $post_id > 0 ) {
+		$post = get_post( (int) $post_id );
+	}
+
+	if ( ! $post instanceof WP_Post ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: $post, 2: WP_Post */
+				__( 'The %1$s argument must be a %2$s object.' ),
+				'<code>$post</code>',
+				'<code>WP_Post</code>'
+			),
+			'7.2.0'
+		);
+		return;
+	}
+
+	$posts = array( $post );
+
+	// Only wp_after_insert_post passes the previous post object, which matters when it was renamed or moved.
+	if ( 'wp_after_insert_post' === current_action() ) {
+		if ( $post_before instanceof WP_Post ) {
+			$posts[] = $post_before;
+		} elseif ( null !== $post_before ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: 1: $post_before, 2: WP_Post */
+					__( 'The %1$s argument must be a %2$s object or null.' ),
+					'<code>$post_before</code>',
+					'<code>WP_Post</code>'
+				),
+				'7.2.0'
+			);
+		}
+	}
 
 	if ( ! $wp_rewrite->using_permalinks() || ! wp_is_random_content_redirect_enabled() ) {
 		return;
 	}
 
-	foreach ( array( $post, $post_before ) as $page ) {
+	foreach ( $posts as $page ) {
 		if (
-			$page instanceof WP_Post
-			&& $wp_rewrite->get_random_base() === $page->post_name
+			$wp_rewrite->get_random_base() === $page->post_name
 			&& (
 				( 'page' === $page->post_type && 0 === (int) $page->post_parent )
 				|| ( 'post' === $page->post_type && $wp_rewrite->post_permalinks_share_random_base() )

@@ -27,12 +27,6 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 		self::register_custom_taxonomy();
 	}
 
-	public function tear_down() {
-		unregister_taxonomy( 'wptests_tax' );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * Helper to register a custom taxonomy for use in tests.
 	 *
@@ -122,7 +116,7 @@ class Tests_Link_EditTermLink extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_edit_term_link() {
+	public static function data_edit_term_link() {
 		return array(
 			'category passing term_id'              => array(
 				'taxonomy' => 'category',

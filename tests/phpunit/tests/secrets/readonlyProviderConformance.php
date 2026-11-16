@@ -7,7 +7,11 @@
  * A conformance kit that has only ever run against a writable provider would not
  * have proven that its own skips work.
  *
+ * @ticket 66187
+ *
  * @group secrets
+ *
+ * @coversNothing
  */
 class Tests_Secrets_ReadOnlyProviderConformance extends WP_Secrets_Provider_Conformance {
 
@@ -17,7 +21,7 @@ class Tests_Secrets_ReadOnlyProviderConformance extends WP_Secrets_Provider_Conf
 	 * @return WP_Secrets_Provider
 	 */
 	protected function provider() {
-		return new class() implements WP_Secrets_Provider {
+		return new class() extends WP_Secrets_Provider {
 			/**
 			 * @param string $name    The secret's name.
 			 * @param string $version A WP_Secret_Version constant.

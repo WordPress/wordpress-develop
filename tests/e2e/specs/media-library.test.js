@@ -132,18 +132,20 @@ test.describe( 'Media library', () => {
 		page,
 		requestUtils,
 	} ) => {
-		const image = await upload( requestUtils, 'image' );
-		const audio = await upload(
-			requestUtils,
-			'audio',
-			'uploads/small-audio.mp3'
-		);
+		await upload( requestUtils, 'image' );
+		await upload( requestUtils, 'audio', 'uploads/small-audio.mp3' );
 		await admin.visitAdminPage( '/upload.php', 'mode=grid' );
 		await page
 			.getByRole( 'searchbox', { name: 'Search media', exact: true } )
 			.fill( prefix );
-		const imageTile = page.locator( `.attachments [data-id="${ image }"]` );
-		const audioTile = page.locator( `.attachments [data-id="${ audio }"]` );
+		const imageTile = page.getByRole( 'checkbox', {
+			name: `${ prefix }-image`,
+			exact: true,
+		} );
+		const audioTile = page.getByRole( 'checkbox', {
+			name: `${ prefix }-audio`,
+			exact: true,
+		} );
 		await expect( imageTile ).toBeVisible();
 		await expect( audioTile ).toBeVisible();
 		await page
@@ -156,5 +158,84 @@ test.describe( 'Media library', () => {
 			.selectOption( 'image' );
 		await expect( imageTile ).toBeVisible();
 		await expect( audioTile ).toBeHidden();
+	} );
+
+	test( 'searches for an existing image', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const id = await upload( requestUtils, 'search' );
+		const title = `${ prefix }-search`;
+
+		await admin.visitAdminPage(
+			'/upload.php',
+			`mode=list&s=${ encodeURIComponent( title ) }`
+		);
+		const row = page.locator( `#post-${ id }` );
+		await expect( row ).toBeVisible();
+		await expect(
+			row.getByRole( 'link', { name: title, exact: true } )
+		).toBeVisible();
+	} );
+
+	test( 'shows an empty result when searching for missing media', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		// Ensure the library is not empty so ignoring search cannot vacuously pass.
+		await upload( requestUtils, 'present' );
+		const missing = `${ prefix }-missing-${ randomUUID() }`;
+
+		await admin.visitAdminPage(
+			'/upload.php',
+			`mode=list&s=${ encodeURIComponent( missing ) }`
+		);
+		await expect(
+			page.getByRole( 'cell', {
+				name: 'No media files found.',
+				exact: true,
+			} )
+		).toBeVisible();
+	} );
+
+	test( 'edits attachment title, alternative text, and description', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const id = await upload( requestUtils, 'details' );
+		const title = `${ prefix }-updated-title`;
+		const altText = `${ prefix }-alt`;
+		const description = `${ prefix }-description`;
+
+		await admin.visitAdminPage( '/post.php', `post=${ id }&action=edit` );
+
+		await page.getByLabel( 'Add title' ).fill( title );
+		await page.getByLabel( 'Alternative Text' ).fill( altText );
+		await page.getByLabel( 'Description' ).fill( description );
+		await page
+			.getByRole( 'button', { name: 'Update', exact: true } )
+			.click();
+
+		await expect( page.locator( '#message' ) ).toContainText(
+			'Media file updated.'
+		);
+		await expect( page.getByLabel( 'Add title' ) ).toHaveValue( title );
+		await expect( page.getByLabel( 'Alternative Text' ) ).toHaveValue(
+			altText
+		);
+		await expect( page.getByLabel( 'Description' ) ).toHaveValue(
+			description
+		);
+
+		const updated = await requestUtils.rest( {
+			path: `/wp/v2/media/${ id }`,
+			params: { context: 'edit' },
+		} );
+		expect( updated.title.raw ).toBe( title );
+		expect( updated.alt_text ).toBe( altText );
+		expect( updated.description.raw ).toBe( description );
 	} );
 } );
