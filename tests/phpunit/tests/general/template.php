@@ -16,7 +16,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public $site_icon_url;
 
 	public $custom_logo_id;
-	public $custom_logo_url;
 
 	/**
 	 * Blog page used by aria tests.
@@ -378,7 +377,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	private function insert_attachment() {
 		$this->site_icon_id  = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
-		$this->site_icon_url = wp_get_attachment_url( $this->site_icon_id );
+		$this->site_icon_url = wp_upload_dir()['url'] . '/' . wp_basename( get_attached_file( $this->site_icon_id ) );
 
 		return $this->site_icon_id;
 	}
@@ -558,8 +557,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.5.0
 	 */
 	private function insert_custom_logo() {
-		$this->custom_logo_id  = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
-		$this->custom_logo_url = wp_get_attachment_url( $this->custom_logo_id );
+		$this->custom_logo_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		return $this->custom_logo_id;
 	}
