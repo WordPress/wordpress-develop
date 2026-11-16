@@ -61,6 +61,9 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 	 */
 	public function test_single_row_reset_password_action_preserves_list_table_query() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		if ( is_multisite() ) {
+			grant_super_admin( get_current_user_id() );
+		}
 
 		$user = get_userdata( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
