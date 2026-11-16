@@ -45,7 +45,7 @@
 		"@playwright/test": "1.64.1",
 		"@pmmmwh/react-refresh-webpack-plugin": "0.6.2",
 		"@types/backbone": "1.4.23",
-		"@types/codemirror": "5.60.17",
+		"@types/codemirror": "5.60.18",
 		"@types/espree": "10.1.0",
 		"@types/htmlhint": "1.1.5",
 		"@types/jquery": "3.5.34",
