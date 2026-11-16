@@ -31,7 +31,7 @@ class WP_Comment_Query {
 	 * @since 3.5.0
 	 * @var WP_Meta_Query A meta query instance.
 	 */
-	public $meta_query = false;
+	public $meta_query;
 
 	/**
 	 * Metadata query clauses.
@@ -72,7 +72,7 @@ class WP_Comment_Query {
 	 * @since 3.7.0
 	 * @var WP_Date_Query A date query instance.
 	 */
-	public $date_query = false;
+	public $date_query;
 
 	/**
 	 * Query vars set by the user.

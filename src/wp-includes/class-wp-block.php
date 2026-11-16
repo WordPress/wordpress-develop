@@ -71,7 +71,7 @@ class WP_Block {
 	 * @since 5.5.0
 	 * @var WP_Block_List
 	 */
-	public $inner_blocks = array();
+	public $inner_blocks;
 
 	/**
 	 * Resultant HTML from inside block comment delimiters after removing inner
@@ -127,6 +127,7 @@ class WP_Block {
 	public function __construct( $block, $available_context = array(), $registry = null ) {
 		$this->parsed_block = $block;
 		$this->name         = $block['blockName'];
+		$this->inner_blocks = new WP_Block_List( array() );
 
 		if ( is_null( $registry ) ) {
 			$registry = WP_Block_Type_Registry::get_instance();
