@@ -15,8 +15,8 @@
  * and cannot turn encryption off. There is no method here that
  * accepts a plaintext secret value at all.
  *
- * An implementation should run WP_Secrets_Keyring_Conformance against itself before
- * shipping.
+ * An implementation should run WP_Secrets_Keyring_Conformance, from core's PHPUnit
+ * test suite, against itself before shipping.
  *
  * Implementations extend this class. It is abstract rather than an interface so
  * that a later release can add a method with a default implementation, and every

@@ -339,7 +339,12 @@ final class WP_Secrets_Config_Key_Provider extends WP_Secrets_Keyring {
 	 *
 	 * @phpstan-assert-if-true non-empty-string $value
 	 */
-	private function is_usable_key_value( $value, array $auth_values ): bool {
+	private function is_usable_key_value(
+		#[\SensitiveParameter]
+		$value,
+		#[\SensitiveParameter]
+		array $auth_values
+	): bool {
 		return is_string( $value )
 			&& '' !== trim( $value )
 			&& self::KNOWN_PLACEHOLDER !== $value

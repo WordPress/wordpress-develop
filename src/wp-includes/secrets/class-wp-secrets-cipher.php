@@ -15,7 +15,7 @@
  *
  * This class does not know where a master key comes from (that is
  * WP_Secrets_Key_Manager's job), does not know about the 'v'/current/previous record
- * envelope (that is assembled by the functions in secrets.php), and does not set
+ * envelope (that is assembled by WP_Secrets_Libsodium_Provider), and does not set
  * 'created' or 'needs_rotation' (those are facts about a write, not about the
  * cryptography). It knows exactly one thing: given a 32-byte master key and a single
  * slot's worth of material, encrypt or decrypt it correctly.
@@ -375,7 +375,10 @@ final class WP_Secrets_Cipher {
 	 * @param string $master_key Candidate master key.
 	 * @return bool
 	 */
-	private function is_valid_master_key( string $master_key ): bool {
+	private function is_valid_master_key(
+		#[\SensitiveParameter]
+		string $master_key
+	): bool {
 		return SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES === strlen( $master_key );
 	}
 
