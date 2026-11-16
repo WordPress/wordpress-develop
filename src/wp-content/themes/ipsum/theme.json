@@ -158,7 +158,6 @@
 					"fontFace": [
 						{
 							"fontFamily": "Manrope",
-							"fontStretch": "normal",
 							"fontStyle": "normal",
 							"fontWeight": "200 800",
 							"src": [
@@ -174,7 +173,6 @@
 					"fontFace": [
 						{
 							"fontFamily": "Inter",
-							"fontStretch": "normal",
 							"fontStyle": "normal",
 							"fontWeight": "100 800",
 							"src": [
@@ -183,7 +181,6 @@
 						},
 						{
 							"fontFamily": "Inter",
-							"fontStretch": "normal",
 							"fontStyle": "italic",
 							"fontWeight": "100 800",
 							"src": [
@@ -199,7 +196,6 @@
 					"fontFace": [
 						{
 							"fontFamily": "Archivo",
-							"fontStretch": "normal",
 							"fontStyle": "normal",
 							"fontWeight": "100 900",
 							"src": [
@@ -208,7 +204,6 @@
 						},
 						{
 							"fontFamily": "Archivo",
-							"fontStretch": "normal",
 							"fontStyle": "italic",
 							"fontWeight": "100 900",
 							"src": [
@@ -270,7 +265,6 @@
 					"fontFace": [
 						{
 							"fontFamily": "JetBrains Mono",
-							"fontStretch": "normal",
 							"fontStyle": "normal",
 							"fontWeight": "100 800",
 							"src": [
@@ -279,7 +273,6 @@
 						},
 						{
 							"fontFamily": "JetBrains Mono",
-							"fontStretch": "normal",
 							"fontStyle": "italic",
 							"fontWeight": "100 800",
 							"src": [
@@ -295,7 +288,6 @@
 					"fontFace": [
 						{
 							"fontFamily": "Archivo Condensed",
-							"fontStretch": "normal",
 							"fontStyle": "normal",
 							"fontWeight": "100 900",
 							"src": [
@@ -304,7 +296,6 @@
 						},
 						{
 							"fontFamily": "Archivo Condensed",
-							"fontStretch": "normal",
 							"fontStyle": "italic",
 							"fontWeight": "100 900",
 							"src": [
@@ -482,7 +473,7 @@
 				"color": {
 					"text": "var(--wp--preset--color--contrast)"
 				},
-				"css": "& :where(table:not(.has-text-color)) td{border-color: var(--wp--preset--color--accent-6) !important;} & :where(table:not(.has-text-color)) th{border-color: var(--wp--preset--color--accent-6) !important;} & :where(.wp-block-calendar table:not(.has-background) th){background-color:var(--wp--preset--color--accent-5)}"
+				"css": "& :where(table:not(.has-text-color)) td{border-color: var(--wp--preset--color--accent-6) !important;} & :where(table:not(.has-text-color)) th{border-color: var(--wp--preset--color--accent-6) !important;} & :where(table:not(.has-background) th){background-color:var(--wp--preset--color--accent-5)}"
 			},
 			"core/categories": {
 				"css": "& {padding-inline-start: var(--wp--preset--spacing--30);} & ul {padding-inline-start: var(--wp--preset--spacing--30);}",
@@ -652,12 +643,7 @@
 				"css": "& .wp-block-latest-posts__post-author{font-size:inherit;} & .wp-block-latest-posts__post-date{font-size:inherit;} & .wp-block-latest-posts__post-excerpt{margin-top: var(--wp--style--block-gap);} & .wp-block-latest-posts__post-full-content{margin-top: var(--wp--style--block-gap);}"
 			},
 			"core/list": {
-				"css": "& li{margin-top: 0.5rem;} &{padding-inline-start:var(--wp--preset--spacing--40);} & ul{padding-inline-start:var(--wp--preset--spacing--40);} & ol{padding-inline-start:var(--wp--preset--spacing--40);} & li::marker{font-family:var(--wp--preset--font-family--manrope);} &:where(ul){list-style-type:\"• \";} & ul{list-style-type:\"• \";} &:where(ul) > li::marker{color:var(--wp--preset--color--accent-6);} & ul > li::marker{color:var(--wp--preset--color--accent-6);}",
-				"spacing": {
-					"padding": {
-						"left": "0"
-					}
-				}
+				"css": "& li{margin-top: 0.5rem;} &{padding-inline-start:var(--wp--preset--spacing--40);} & ul{padding-inline-start:var(--wp--preset--spacing--40);} & ol{padding-inline-start:var(--wp--preset--spacing--40);} & li::marker{font-family:var(--wp--preset--font-family--manrope);} &:where(ul){list-style-type:\"• \";} & ul{list-style-type:\"• \";} &:where(ul) > li::marker{color:var(--wp--preset--color--accent-6);} & ul > li::marker{color:var(--wp--preset--color--accent-6);}"
 			},
 			"core/navigation": {
 				"@mobile": {
