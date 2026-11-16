@@ -56,9 +56,9 @@
 		"phpstan/phpstan-phpunit": "2.1.2",
 		"phpstan/phpstan-strict-rules": "2.1.2",
 		"yoast/phpunit-polyfills": "^1.1.0",
-		"wordpress/ai-provider-for-anthropic": "^1.0.5",
-		"wordpress/ai-provider-for-google": "^1.2.1",
-		"wordpress/ai-provider-for-openai": "^1.2.0"
+		"wordpress/ai-provider-for-anthropic": "1.0.5",
+		"wordpress/ai-provider-for-google": "1.2.1",
+		"wordpress/ai-provider-for-openai": "1.2.0"
 	},
 	"config": {
 		"audit": { "ignore": [ "GHSA-hmqg-cxww-wqhq", "PKSA-rdkp-vv9z-mjkg" ] },
