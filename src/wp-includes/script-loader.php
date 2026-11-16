@@ -993,6 +993,7 @@ function wp_default_scripts( $scripts ) {
 		'queue_limit_exceeded'      => __( 'You have attempted to queue too many files.' ),
 		/* translators: %s: File name. */
 		'file_exceeds_size_limit'   => __( '%s exceeds the maximum upload size for this site.' ),
+		'file_size_exceeded'        => __( 'This file exceeds the maximum upload size for this site.' ),
 		'zero_byte_file'            => __( 'This file is empty. Please try another.' ),
 		'invalid_filetype'          => __( 'This file cannot be processed by the web server.' ),
 		'not_an_image'              => __( 'This file is not an image. Please try another.' ),
