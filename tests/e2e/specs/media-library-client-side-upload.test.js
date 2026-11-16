@@ -8,14 +8,16 @@ import {
 	TEST_SVG_PATH,
 	SIMULATED_ERROR,
 	UNDECODABLE_HEIC,
+	countUploadRequests,
+	expectCrossOriginIsolated,
 	failMediaCreate,
 	stubClassicUpload,
-	withoutHeicDecoder,
-	countUploadRequests,
+	supportsDocumentIsolation,
 	tile,
 	titleOf,
 	trackUploads,
 	uniqueFile,
+	withoutHeicDecoder,
 } from '../utils/media-pipeline';
 
 // The plupload HTML5 runtime creates this hidden file input over the
@@ -88,6 +90,12 @@ async function suppressProviderRender( page ) {
 }
 
 test.describe( 'Media Library grid client-side uploads', () => {
+	test.skip(
+		( { browserName, browser } ) =>
+			! supportsDocumentIsolation( browserName, browser ),
+		'This browser does not support Document-Isolation-Policy'
+	);
+
 	test( 'sends the Document-Isolation-Policy header on the grid', async ( {
 		page,
 		admin,
@@ -107,32 +115,6 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		);
 	} );
 
-	test( 'does not send the Document-Isolation-Policy header in list mode', async ( {
-		page,
-		admin,
-	} ) => {
-		const responsePromise = page.waitForResponse(
-			( resp ) =>
-				resp.url().includes( '/wp-admin/upload.php' ) &&
-				resp.request().resourceType() === 'document' &&
-				resp.status() === 200
-		);
-
-		await admin.visitAdminPage( 'upload.php', 'mode=list' );
-
-		const headers = ( await responsePromise ).headers();
-		expect( headers[ 'document-isolation-policy' ] ).toBeUndefined();
-
-		// List mode uploads via media-new.php, so the grid integration
-		// script has no business on this screen either.
-		await expect(
-			page.locator( 'script[src*="media-frame-upload"]' )
-		).toHaveCount( 0 );
-
-		// Visiting with ?mode= persists the user's preference; restore it.
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-	} );
-
 	test( 'uploads an image through the client-side pipeline', async ( {
 		page,
 		admin,
@@ -141,16 +123,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		// In Chromium builds without Document-Isolation-Policy support,
-		// isolation is legitimately unavailable and the pipeline falls back
-		// to classic uploads. Only assert where isolation is real.
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// The REST route may be a pretty permalink (/wp/v2/media) or the
 		// plain form (index.php?rest_route=%2Fwp%2Fv2%2Fmedia), so match on
@@ -222,13 +195,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// Hold sideload requests so the upload stays in flight at a
 		// deterministic point.
@@ -295,13 +262,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
@@ -327,61 +288,6 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await expect( message ).toHaveText( /\S/ );
 		await expect( message ).not.toContainText( '[object Object]' );
 	} );
-	test( 'falls back to the classic uploader when the page is not isolated', async ( {
-		page,
-		admin,
-		attachments,
-	} ) => {
-		// Blocking the Document-Isolation-Policy header reproduces every
-		// browser that ignores it: the page is not isolated, the script
-		// must no-op, and classic plupload must still upload the file.
-		await page.route(
-			( url ) => url.pathname.endsWith( '/wp-admin/upload.php' ),
-			async ( route ) => {
-				const response = await route.fetch();
-				const headers = { ...response.headers() };
-				delete headers[ 'document-isolation-policy' ];
-				await route.fulfill( { response, headers } );
-			}
-		);
-
-		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
-
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		expect( isolated ).toBe( false );
-
-		let asyncUploadCount = 0;
-		let restUploadCount = 0;
-		page.on( 'request', ( request ) => {
-			if ( request.method() !== 'POST' ) {
-				return;
-			}
-			if ( request.url().includes( '/async-upload.php' ) ) {
-				asyncUploadCount++;
-			} else if (
-				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
-			) {
-				restUploadCount++;
-			}
-		} );
-
-		trackUploads( page, attachments );
-		const file = uniqueFile( TEST_IMAGE_PATH );
-		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
-		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( file );
-
-		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
-			timeout: 60_000,
-		} );
-
-		// Classic plupload handled the upload end to end.
-		expect( asyncUploadCount ).toBeGreaterThanOrEqual( 1 );
-		expect( restUploadCount ).toBe( 0 );
-	} );
-
 	test( 'uploads several files at once, including duplicates', async ( {
 		page,
 		admin,
@@ -389,13 +295,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		let finalizeCount = 0;
 		page.on( 'request', ( request ) => {
@@ -431,13 +331,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// Hold sideloads so the tile is observed mid-pipeline, after the
 		// original has been uploaded but before thumbnails have landed.
@@ -507,13 +401,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		await failMediaCreate( page );
 
@@ -545,13 +433,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		let asyncUploadCount = 0;
 		let restUploadCount = 0;
@@ -595,13 +477,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await stubClassicUpload( page );
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const counts = countUploadRequests( page );
 
@@ -651,13 +527,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		} );
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const counts = countUploadRequests( page );
 
@@ -683,13 +553,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		let asyncUploadCount = 0;
 		let restCreateCount = 0;
@@ -729,13 +593,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// What the "Scale images" setting or a `resize` passed through
 		// plupload_init turns on.
@@ -788,13 +646,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const ready = await page.evaluate( () =>
 			window.wp.mediaUploadPipeline.isReady()
@@ -828,13 +680,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await stubClassicUpload( page );
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const counts = countUploadRequests( page );
 
@@ -866,13 +712,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		await withoutHeicDecoder( page );
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const counts = countUploadRequests( page );
 
@@ -905,13 +745,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// The original and its sub-sizes reach the server; only finalize fails.
 		await page.route(
@@ -951,5 +785,88 @@ test.describe( 'Media Library grid client-side uploads', () => {
 				{ timeout: 30_000 }
 			)
 			.toBe( 0 );
+	} );
+} );
+
+test.describe( 'Media Library without cross-origin isolation', () => {
+	test( 'does not send the Document-Isolation-Policy header in list mode', async ( {
+		page,
+		admin,
+	} ) => {
+		const responsePromise = page.waitForResponse(
+			( resp ) =>
+				resp.url().includes( '/wp-admin/upload.php' ) &&
+				resp.request().resourceType() === 'document' &&
+				resp.status() === 200
+		);
+
+		await admin.visitAdminPage( 'upload.php', 'mode=list' );
+
+		const headers = ( await responsePromise ).headers();
+		expect( headers[ 'document-isolation-policy' ] ).toBeUndefined();
+
+		// List mode uploads via media-new.php, so the grid integration
+		// script has no business on this screen either.
+		await expect(
+			page.locator( 'script[src*="media-frame-upload"]' )
+		).toHaveCount( 0 );
+
+		// Visiting with ?mode= persists the user's preference; restore it.
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+	} );
+
+	test( 'falls back to the classic uploader when the page is not isolated', async ( {
+		page,
+		admin,
+		attachments,
+	} ) => {
+		// Blocking the Document-Isolation-Policy header reproduces every
+		// browser that ignores it: the page is not isolated, the script
+		// must no-op, and classic plupload must still upload the file.
+		await page.route(
+			( url ) => url.pathname.endsWith( '/wp-admin/upload.php' ),
+			async ( route ) => {
+				const response = await route.fetch();
+				const headers = { ...response.headers() };
+				delete headers[ 'document-isolation-policy' ];
+				await route.fulfill( { response, headers } );
+			}
+		);
+
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		expect( isolated ).toBe( false );
+
+		let asyncUploadCount = 0;
+		let restUploadCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				asyncUploadCount++;
+			} else if (
+				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
+			) {
+				restUploadCount++;
+			}
+		} );
+
+		trackUploads( page, attachments );
+		const file = uniqueFile( TEST_IMAGE_PATH );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( file );
+
+		await expect( tile( page, titleOf( file ) ) ).toBeVisible( {
+			timeout: 60_000,
+		} );
+
+		// Classic plupload handled the upload end to end.
+		expect( asyncUploadCount ).toBeGreaterThanOrEqual( 1 );
+		expect( restUploadCount ).toBe( 0 );
 	} );
 } );
