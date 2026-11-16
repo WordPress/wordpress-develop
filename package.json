@@ -43,7 +43,7 @@
 		"@lodder/grunt-postcss": "^3.1.1",
 		"@napi-rs/image": "1.16.0",
 		"@playwright/test": "1.64.1",
-		"@pmmmwh/react-refresh-webpack-plugin": "0.6.2",
+		"@pmmmwh/react-refresh-webpack-plugin": "0.6.3",
 		"@types/backbone": "1.4.23",
 		"@types/codemirror": "5.60.18",
 		"@types/espree": "10.1.0",
