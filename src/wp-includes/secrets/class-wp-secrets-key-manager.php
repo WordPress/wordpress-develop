@@ -253,6 +253,27 @@ final class WP_Secrets_Key_Manager {
 	}
 
 	/**
+	 * Determines whether a root key is stored, including one left behind by a conversion to multisite.
+	 *
+	 * Like get_root_key(), this moves a pre-conversion root key into sitemeta, and
+	 * checks a false result against the database, because a failed query also returns false.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool|WP_Error True if a root key is stored, false if none is stored,
+	 *                       WP_Error if the root key could not be read.
+	 */
+	public function has_root_key() {
+		if ( false !== $this->get_wrapped_root_key() ) {
+			return true;
+		}
+
+		$stored = $this->read_stored_root_key();
+
+		return is_wp_error( $stored ) ? $stored : false !== $stored;
+	}
+
+	/**
 	 * Re-wraps the root key under a new keyring, without touching any stored secret.
 	 *
 	 * Every derived master key is unchanged by this: they come from the root key's

@@ -240,6 +240,79 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that has_root_key() reports whether a root key is stored, without creating one.
+	 *
+	 * @ticket 66687
+	 *
+	 * @covers WP_Secrets_Key_Manager::has_root_key
+	 */
+	public function test_has_root_key_is_true_only_once_a_root_key_is_stored(): void {
+		$manager = new WP_Secrets_Key_Manager();
+
+		$this->assertFalse( $manager->has_root_key(), 'No root key should be reported before one is stored.' );
+		$this->assertFalse( get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION ), 'Checking for a root key should not create one.' );
+
+		$this->assertIsString( $manager->get_root_key(), 'Generating a root key should succeed.' );
+		$this->assertTrue( $manager->has_root_key(), 'A stored root key should be reported.' );
+	}
+
+	/**
+	 * Ensure that has_root_key() finds a root key still in the main site's options after a conversion to multisite.
+	 *
+	 * @ticket 66687
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers WP_Secrets_Key_Manager::has_root_key
+	 */
+	public function test_has_root_key_finds_a_pre_conversion_root_key(): void {
+		$this->skipWithoutMultisite();
+
+		$manager = new WP_Secrets_Key_Manager();
+		$this->assertIsString( $manager->get_root_key(), 'Generating a root key should succeed.' );
+
+		$wrapped = get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+		delete_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+		update_blog_option( get_main_site_id(), WP_Secrets_Key_Manager::ROOT_KEY_OPTION, $wrapped );
+
+		$this->assertTrue( ( new WP_Secrets_Key_Manager() )->has_root_key(), 'A root key left in the main site options should be reported.' );
+	}
+
+	/**
+	 * Ensure that has_root_key() still finds a stored root key after one failed read.
+	 *
+	 * @ticket 66687
+	 *
+	 * @covers WP_Secrets_Key_Manager::has_root_key
+	 */
+	public function test_has_root_key_is_true_after_one_failed_read(): void {
+		$this->assertIsString( ( new WP_Secrets_Key_Manager() )->get_root_key(), 'Generating a root key should succeed.' );
+
+		$this->fail_root_key_selects( 1 );
+
+		$this->assertTrue( $this->without_db_errors( array( new WP_Secrets_Key_Manager(), 'has_root_key' ) ), 'A stored root key should be reported after one failed read.' );
+	}
+
+	/**
+	 * Ensure that has_root_key() returns an error, not false, while the root key cannot be read.
+	 *
+	 * @ticket 66687
+	 *
+	 * @covers WP_Secrets_Key_Manager::has_root_key
+	 */
+	public function test_has_root_key_returns_an_error_while_the_root_key_cannot_be_read(): void {
+		$this->assertIsString( ( new WP_Secrets_Key_Manager() )->get_root_key(), 'Generating a root key should succeed.' );
+
+		$filter = $this->fail_root_key_selects( 10 );
+		$result = $this->without_db_errors( array( new WP_Secrets_Key_Manager(), 'has_root_key' ) );
+		remove_filter( 'query', $filter );
+
+		$this->assertWPError( $result, 'has_root_key() should return a WP_Error while the root key cannot be read.' );
+		$this->assertSame( WP_SECRETS_ERROR_STORE_UNAVAILABLE, $result->get_error_code(), 'The error should report an unavailable store.' );
+	}
+
+	/**
 	 * Simulates single-site-to-multisite conversion: moves the wrapped root key
 	 * from its main-site option row into sitemeta, the way a fresh
 	 * WP_Secrets_Key_Manager finds it after `wp core multisite-convert`.

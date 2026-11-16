@@ -179,6 +179,78 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that the key source check says to keep a legacy-form WP_SECRETS_KEY on a just-converted network.
+	 *
+	 * Until the first secrets read adopts it, the root key of a site converted to
+	 * multisite is still in the main site's options, not in sitemeta.
+	 *
+	 * @ticket 66687
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers WP_Site_Health::get_test_secrets_api_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_warns_to_keep_a_legacy_key_before_a_pre_conversion_root_key_is_adopted(): void {
+		$this->skipWithoutMultisite();
+
+		define( 'WP_SECRETS_KEY', 'not-base64-32!!' );
+
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
+
+		$wrapped = get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+		delete_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+		update_blog_option( get_main_site_id(), WP_Secrets_Key_Manager::ROOT_KEY_OPTION, $wrapped );
+
+		$result = ( new WP_Site_Health() )->get_test_secrets_api_key_source();
+
+		$this->assertSame( 'recommended', $result['status'], 'A legacy WP_SECRETS_KEY with stored secrets should produce a recommended status.' );
+		$this->assertStringContainsString( 'Keep its current value', $result['description'], 'The description should say to keep the current value.' );
+	}
+
+	/**
+	 * Ensure that the key source check says to keep a legacy-form WP_SECRETS_KEY while the root key cannot be read.
+	 *
+	 * A failed read does not show that no secrets are stored, nor that the key is wrong.
+	 *
+	 * @ticket 66687
+	 *
+	 * @covers WP_Site_Health::get_test_secrets_api_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_warns_to_keep_a_legacy_key_while_the_root_key_cannot_be_read(): void {
+		global $wpdb;
+
+		define( 'WP_SECRETS_KEY', 'not-base64-32!!' );
+
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
+
+		wp_cache_flush();
+		add_filter(
+			'query',
+			static function ( $query ) {
+				if ( str_starts_with( ltrim( $query ), 'SELECT' ) && str_contains( $query, "'" . WP_Secrets_Key_Manager::ROOT_KEY_OPTION . "'" ) ) {
+					return 'SELECT * FROM wptests_table_that_does_not_exist';
+				}
+
+				return $query;
+			}
+		);
+
+		$suppress = $wpdb->suppress_errors( true );
+		$result   = ( new WP_Site_Health() )->get_test_secrets_api_key_source();
+		$wpdb->suppress_errors( $suppress );
+
+		$this->assertSame( 'recommended', $result['status'], 'A failed root key read should not produce a critical status.' );
+		$this->assertStringContainsString( 'Keep its current value', $result['description'], 'The description should say to keep the current value.' );
+	}
+
+	/**
 	 * Ensure that the key source check is critical when the key cannot unwrap the stored root key.
 	 *
 	 * @ticket 66380
