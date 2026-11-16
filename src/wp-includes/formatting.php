@@ -5784,7 +5784,7 @@ function _sanitize_text_fields( $str, $keep_newlines = false ) {
 	$filtered = wp_check_invalid_utf8( $str );
 
 	if ( str_contains( $filtered, '<' ) ) {
-		$filtered = wp_pre_kses_less_than( $filtered );
+		$filtered = _sanitize_text_fields_encode_lone_less_than( $filtered );
 		// This will strip extra whitespace for us.
 		$filtered = wp_strip_all_tags( $filtered, false );
 
@@ -5813,6 +5813,35 @@ function _sanitize_text_fields( $str, $keep_newlines = false ) {
 	}
 
 	return $filtered;
+}
+
+/**
+ * Encodes the less than sign of each lone `<` span, leaving other characters as they are.
+ *
+ * Unlike wp_pre_kses_less_than(), this does not HTML-escape `&`, `'` or `"` in the span.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global string $wp_kses_operating_mode Indicates if this filter should run.
+ *
+ * @param string $content Text to be converted.
+ * @return string Converted text.
+ */
+function _sanitize_text_fields_encode_lone_less_than( $content ) {
+	global $wp_kses_operating_mode;
+
+	if ( 'legacy' !== ( $wp_kses_operating_mode ?? 'legacy' ) ) {
+		return $content;
+	}
+
+	return preg_replace_callback(
+		'%<[^>]*?((?=<)|>|$)%',
+		static function ( $matches ) {
+			return str_contains( $matches[0], '>' ) ? $matches[0] : '&lt;' . substr( $matches[0], 1 );
+		},
+		$content
+	);
 }
 
 /**
