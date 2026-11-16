@@ -1122,11 +1122,31 @@ class WP_Term_Query {
 	 * @return string Search SQL.
 	 */
 	protected function get_search_sql( $search ) {
+		$searches = array( $search );
+
+		$decoded = wp_specialchars_decode( $search, ENT_COMPAT );
+		if ( $decoded !== $search ) {
+			$searches[] = $decoded;
+		}
+
+		$encoded = _wp_specialchars( $decoded, ENT_COMPAT, 'UTF-8', true );
+		if ( $encoded !== $search && ! in_array( $encoded, $searches, true ) ) {
+			$searches[] = $encoded;
+		}
+
 		global $wpdb;
 
-		$like = '%' . $wpdb->esc_like( $search ) . '%';
+		$clauses = array();
+		foreach ( $searches as $search_term ) {
+			$like      = '%' . $wpdb->esc_like( $search_term ) . '%';
+			$clauses[] = $wpdb->prepare( '((t.name LIKE %s) OR (t.slug LIKE %s))', $like, $like );
+		}
 
-		return $wpdb->prepare( '((t.name LIKE %s) OR (t.slug LIKE %s))', $like, $like );
+		if ( 1 === count( $clauses ) ) {
+			return $clauses[0];
+		}
+
+		return '(' . implode( ' OR ', $clauses ) . ')';
 	}
 
 	/**
