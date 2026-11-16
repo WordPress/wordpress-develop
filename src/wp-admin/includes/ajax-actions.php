@@ -3819,7 +3819,7 @@ function wp_ajax_parse_embed() {
 		);
 	}
 
-	if ( has_shortcode( $parsed, 'audio' ) || has_shortcode( $parsed, 'video' ) ) {
+	if ( WP_Shortcode_Processor::contains_any_shortcode( $parsed, 'audio', 'video' ) ) {
 		$styles     = '';
 		$mce_styles = wpview_media_sandbox_styles();
 
