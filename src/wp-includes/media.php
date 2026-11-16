@@ -2370,8 +2370,19 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
  * @return string Converted 'img' element with 'width' and 'height' attributes added.
  */
 function wp_img_tag_add_width_and_height_attr( $image, $context, $attachment_id ) {
-	$image_src         = preg_match( '/src="([^"]+)"/', $image, $match_src ) ? $match_src[1] : '';
-	list( $image_src ) = explode( '?', $image_src );
+	$processor = new WP_HTML_Tag_Processor( $image );
+
+	if ( ! $processor->next_tag( 'IMG' ) ) {
+		return $image;
+	}
+
+	$src = $processor->get_attribute( 'src' );
+
+	if ( ! is_string( $src ) || '' === $src ) {
+		return $image;
+	}
+
+	list( $image_src ) = explode( '?', $src );
 
 	// Return early if we couldn't get the image source.
 	if ( ! $image_src ) {
@@ -2398,14 +2409,17 @@ function wp_img_tag_add_width_and_height_attr( $image, $context, $attachment_id 
 
 		if ( $size_array && $size_array[0] && $size_array[1] ) {
 			// If the width is enforced through style (e.g. in an inline image), calculate the dimension attributes.
-			$style_width = preg_match( '/style="width:\s*(\d+)px;"/', $image, $match_width ) ? (int) $match_width[1] : 0;
+			$style_attr  = $processor->get_attribute( 'style' );
+			$style_width = is_string( $style_attr ) && preg_match( '/^width:\s*(\d+)px;$/', $style_attr, $match_width ) ? (int) $match_width[1] : 0;
 			if ( $style_width ) {
 				$size_array[1] = (int) round( $size_array[1] * $style_width / $size_array[0] );
 				$size_array[0] = $style_width;
 			}
 
-			$hw = trim( image_hwstring( $size_array[0], $size_array[1] ) );
-			return str_replace( '<img', "<img {$hw}", $image );
+			$processor->set_attribute( 'width', (string) $size_array[0] );
+			$processor->set_attribute( 'height', (string) $size_array[1] );
+
+			return $processor->get_updated_html();
 		}
 	}
 
