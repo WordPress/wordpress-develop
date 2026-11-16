@@ -1420,6 +1420,24 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 55467
+	 */
+	public function test_update_value_return_success_with_same_value_in_duplicate_rows() {
+		$this->grant_write_permission();
+
+		add_post_meta( self::$post_id, 'test_single', 'duplicated' );
+		add_post_meta( self::$post_id, 'test_single', 'duplicated' );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params( array( 'meta' => array( 'test_single' => 'duplicated' ) ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'duplicated', $response->get_data()['meta']['test_single'] );
+	}
+
+	/**
 	 * @ticket 42069
 	 */
 	public function test_slashed_meta_key() {
