@@ -417,6 +417,45 @@ function get_plugin_updates() {
 }
 
 /**
+ * Builds the HTML for a plugin icon on the Updates screen.
+ *
+ * Plugin update payloads sometimes omit `icons` or provide a non-array value
+ * (for example a `stdClass`). Array access on those values fatals in PHP 8+.
+ *
+ * @since 7.2.0
+ *
+ * @param object|null $update Plugin update object, typically from `get_plugin_updates()`.
+ * @return string Icon HTML. An `<img>` when a usable icon URL is present, otherwise a Dashicon.
+ */
+function wp_get_plugin_update_icon_html( $update ) {
+	$default_icon = '<span class="dashicons dashicons-admin-plugins"></span>';
+
+	if ( ! is_object( $update ) || ! isset( $update->icons ) ) {
+		return $default_icon;
+	}
+
+	$icons = $update->icons;
+
+	if ( is_object( $icons ) ) {
+		$icons = get_object_vars( $icons );
+	}
+
+	if ( ! is_array( $icons ) ) {
+		return $default_icon;
+	}
+
+	$preferred_icons = array( 'svg', '2x', '1x', 'default' );
+
+	foreach ( $preferred_icons as $preferred_icon ) {
+		if ( ! empty( $icons[ $preferred_icon ] ) ) {
+			return '<img src="' . esc_url( $icons[ $preferred_icon ] ) . '" alt="" class="plugin-icon" />';
+		}
+	}
+
+	return $default_icon;
+}
+
+/**
  * Adds a callback to display update information for plugins with updates available.
  *
  * @since 2.9.0
