@@ -72,6 +72,25 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 37103
+	 *
+	 * @covers ::comments_popup_link
+	 */
+	public function test_comments_popup_link_should_not_replace_percent_sign_in_post_title() {
+		$post_id   = self::factory()->post->create( array( 'post_title' => '%Hello %% World%' ) );
+		$permalink = get_permalink( $post_id );
+
+		self::factory()->comment->create_post_comments( $post_id, 2 );
+		$this->go_to( $permalink );
+
+		ob_start();
+		comments_popup_link();
+		$comments_link = ob_get_clean();
+
+		$this->assertStringContainsString( '%Hello %% World%', $comments_link );
+	}
+
+	/**
 	 * @ticket 13651
 	 *
 	 * @covers ::get_comments_number_text
