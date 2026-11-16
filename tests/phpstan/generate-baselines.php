@@ -17,6 +17,11 @@
  * includes every baseline in that directory, so adding a newly split out baseline,
  * and retiring one that has reached zero, need no edit of the configuration.
  *
+ * Unless a configuration is named, this is done for each of DEFAULT_CONFIGS in
+ * turn: phpstan.neon.dist, which analyzes the whole codebase, and then
+ * phpstan-level-10.neon.dist, which holds selected paths to a stricter rule level
+ * and includes the former along with its baselines.
+ *
  * With `--prune`, nothing is analyzed: the baselines that no longer list any
  * entries are deleted. That completes running PHPStan with `--fix`, which removes
  * the entries of fixed errors in place but leaves a baseline it has emptied
@@ -57,6 +62,21 @@ const DEFAULT_OUTPUT_DIR = 'tests/phpstan/baselines';
  */
 const DEFAULT_CONFIG = 'phpstan.neon.dist';
 
+/**
+ * The configurations processed when neither `--config` nor `--output-dir` is given,
+ * each with the directory its baselines are written to.
+ *
+ * They are processed in this order, which matters: phpstan-level-10.neon.dist
+ * includes phpstan.neon.dist along with its baselines, so its own are only what is
+ * left over once those are up to date.
+ *
+ * Relative to the repository root.
+ */
+const DEFAULT_CONFIGS = array(
+	DEFAULT_CONFIG               => DEFAULT_OUTPUT_DIR,
+	'phpstan-level-10.neon.dist' => 'tests/phpstan/baselines-level-10',
+);
+
 if ( 'cli' !== PHP_SAPI ) {
 	fwrite( STDERR, "This script must be run from the command line.\n" );
 	exit( 1 );
@@ -74,7 +94,8 @@ foreach ( (array) ( $_SERVER['argv'] ?? array() ) as $arg ) {
 array_shift( $args );
 
 $config_option    = DEFAULT_CONFIG;
-$output_option    = DEFAULT_OUTPUT_DIR;
+$output_option    = null;
+$config_given     = false;
 $memory_limit     = '2G';
 $only_identifiers = array();
 $combined         = false;
@@ -121,11 +142,13 @@ foreach ( $args as $arg ) {
 
 	if ( 1 === preg_match( '/^--config=(.+)$/', $arg, $matches ) ) {
 		$config_option = $matches[1];
+		$config_given  = true;
 		continue;
 	}
 
 	if ( 1 === preg_match( '/^--output-dir=(.+)$/', $arg, $matches ) ) {
 		$output_option = $matches[1];
+		$config_given  = true;
 		continue;
 	}
 
@@ -136,6 +159,45 @@ foreach ( $args as $arg ) {
 
 	fwrite( STDERR, "Unrecognized option: $arg\n\n" . get_usage() );
 	exit( 1 );
+}
+
+/*
+ * Without a configuration named, every default configuration is processed in turn,
+ * each by a run of this script naming it, so that each run is the same as one asked
+ * for directly. The first failure stops the rest, since each configuration after it
+ * depends on the baselines of those before it.
+ *
+ * `--combined` prints a single baseline, so it keeps to the first configuration.
+ */
+if ( ! $config_given && ! $combined ) {
+	foreach ( DEFAULT_CONFIGS as $config => $output ) {
+		$command = implode(
+			' ',
+			array_map(
+				'escapeshellarg',
+				array_merge( array( PHP_BINARY, __FILE__ ), $args, array( "--config=$config", "--output-dir=$output" ) )
+			)
+		);
+
+		fwrite( STDERR, "\n== $config ==\n\n" );
+
+		$exit_code = 0;
+		passthru( $command, $exit_code );
+
+		if ( 0 !== $exit_code ) {
+			exit( $exit_code );
+		}
+	}
+	exit( 0 );
+}
+
+/*
+ * A default configuration named without an output directory writes to its own,
+ * so that naming phpstan-level-10.neon.dist alone cannot write its baselines over
+ * those of phpstan.neon.dist.
+ */
+if ( null === $output_option ) {
+	$output_option = DEFAULT_CONFIGS[ trim( normalize_path( $config_option ), '/' ) ] ?? DEFAULT_OUTPUT_DIR;
 }
 
 $config_path = $repo_root . '/' . ltrim( $config_option, '/' );
@@ -338,6 +400,15 @@ if ( 0 !== $exit_code || ! is_file( $temp_baseline ) ) {
 	exit( 1 );
 }
 
+/*
+ * A configuration that turns off `reportUnmatchedIgnoredErrors` would also stop
+ * reporting the entries of its own baselines once they are stale, so each entry
+ * written for it turns that back on for itself. phpstan-level-10.neon.dist does
+ * so, because it drops the errors outside its strict paths before the ignores are
+ * matched against them.
+ */
+$report_unmatched = ! reports_unmatched_ignored_errors( $repo_root, $config_path, $memory_limit );
+
 /**
  * The entries of each error, grouped by the identifier of the error it suppresses.
  *
@@ -359,7 +430,7 @@ if ( $combined ) {
 	foreach ( $grouped as $entries ) {
 		$all = array_merge( $all, $entries );
 	}
-	echo build_baseline( $all, $output_dir, "# Every identifier, combined.\n" );
+	echo build_baseline( $all, $output_dir, "# Every identifier, combined.\n", $report_unmatched );
 	exit( 0 );
 }
 
@@ -396,19 +467,21 @@ if ( $loader !== $loader_contents ) {
  * The command each header gives for regenerating its baseline has to name the
  * configuration and the directory this run used, where they are not the
  * defaults. Without them, it would regenerate the default directory instead.
+ * A default configuration's own directory needs no naming, since naming the
+ * configuration alone writes there.
  */
 $regenerate_options = '';
 if ( DEFAULT_CONFIG !== $config_relative ) {
 	$regenerate_options .= ' --config=' . $config_option;
 }
-if ( ! $is_default_output_dir ) {
+if ( ( DEFAULT_CONFIGS[ $config_relative ] ?? DEFAULT_OUTPUT_DIR ) !== trim( normalize_path( $output_option ), '/' ) ) {
 	$regenerate_options .= ' --output-dir=' . $output_option;
 }
 
 foreach ( $grouped as $identifier => $entries ) {
 	$written = file_put_contents(
 		$output_dir . '/' . $identifier . '.neon',
-		build_baseline( $entries, $output_dir, build_baseline_header( $identifier, $regenerate_options ) )
+		build_baseline( $entries, $output_dir, build_baseline_header( $identifier, $regenerate_options ), $report_unmatched )
 	);
 
 	if ( false === $written ) {
@@ -468,6 +541,10 @@ function get_usage(): string {
 		tests/phpstan/baselines/loader.php, so neither addition nor removal needs an
 		edit of it.
 
+		Without --config or --output-dir, this is done for phpstan.neon.dist into
+		tests/phpstan/baselines, and then for phpstan-level-10.neon.dist into
+		tests/phpstan/baselines-level-10. The other options apply to both.
+
 		Usage:
 		  composer phpstan:baselines [-- <options>]
 
@@ -478,16 +555,20 @@ function get_usage(): string {
 		                       rather than left behind empty.
 		                       Default: every identifier reported.
 		  --config=<path>      Configuration to analyze with, relative to the repository
-		                       root. Default: phpstan.neon.dist
+		                       root. Naming one processes only that configuration.
+		                       Default: both of the above.
 		  --output-dir=<path>  Where the per-identifier baselines are written, relative
 		                       to the repository root. Paths inside them are written
 		                       relative to this directory. A loader is written there
 		                       too, which the configuration has to include. Baselines
 		                       in other directories stay in force, so only the errors
 		                       they leave are written.
-		                       Default: tests/phpstan/baselines
+		                       Default: the directory of the configuration named
+		                       above, or else tests/phpstan/baselines
 		  --combined           Print one combined baseline to stdout instead of writing
-		                       per-identifier files. Nothing is written to disk.
+		                       per-identifier files. Nothing is written to disk. Only
+		                       phpstan.neon.dist is analyzed, unless --config names
+		                       another configuration.
 		  --prune              Without analyzing anything, delete the baselines that no
 		                       longer list any entries, such as one emptied by running
 		                       PHPStan with --fix. With --identifier, only those
@@ -761,18 +842,55 @@ function count_errors( array $entries ): int {
 }
 
 /**
+ * Determines whether a configuration reports ignores that no longer match an error.
+ *
+ * The parameter is read from what PHPStan resolves, so that it reflects every
+ * file the configuration includes. Only its line is matched, rather than decoding
+ * the whole dump, because the JSON PHPStan prints can be invalid: it writes the
+ * `\<` in a message pattern as is, which is not a valid JSON escape.
+ *
+ * @param non-empty-string $repo_root    Absolute path to the repository root.
+ * @param non-empty-string $config_path  Absolute path to the configuration file.
+ * @param string           $memory_limit Memory limit passed to PHPStan.
+ * @return bool Whether `reportUnmatchedIgnoredErrors` is on.
+ */
+function reports_unmatched_ignored_errors( string $repo_root, string $config_path, string $memory_limit ): bool {
+	$command = sprintf(
+		'%s dump-parameters --configuration=%s --json --memory-limit=%s',
+		escapeshellarg( $repo_root . '/vendor/bin/phpstan' ),
+		escapeshellarg( $config_path ),
+		escapeshellarg( $memory_limit )
+	);
+
+	$output    = array();
+	$exit_code = 0;
+	exec( $command, $output, $exit_code );
+
+	foreach ( $output as $line ) {
+		if ( 1 === preg_match( '/^\s*"reportUnmatchedIgnoredErrors": (true|false),?$/', $line, $matches ) ) {
+			return 'true' === $matches[1];
+		}
+	}
+
+	fwrite( STDERR, "Could not read reportUnmatchedIgnoredErrors from the configuration (exit status $exit_code).\n" );
+	exit( 1 );
+}
+
+/**
  * Builds a baseline file in PHPStan's NEON format.
  *
  * The entry layout matches what PHPStan itself writes, so a regenerated file can
  * be diffed against one it produced. Paths are rewritten relative to the file's
  * own directory, since that is what a NEON `path` resolves against.
  *
- * @param list<array{message: string, identifier: non-falsy-string, count: int<0, max>, path: non-empty-string}> $entries    Baseline entries.
- * @param non-empty-string                                                                                       $output_dir Directory the file is written to.
- * @param string                                                                                                 $header     Comment block, or an empty string.
+ * @param list<array{message: string, identifier: non-falsy-string, count: int<0, max>, path: non-empty-string}> $entries          Baseline entries.
+ * @param non-empty-string                                                                                       $output_dir       Directory the file is written to.
+ * @param string                                                                                                 $header           Comment block, or an empty string.
+ * @param bool                                                                                                   $report_unmatched Whether each entry sets `reportUnmatched: true`, for a
+ *                                                                                                                                 configuration that does not report unmatched ignores.
  * @return non-falsy-string Baseline file contents.
  */
-function build_baseline( array $entries, string $output_dir, string $header ): string {
+function build_baseline( array $entries, string $output_dir, string $header, bool $report_unmatched ): string {
 	$contents = ( '' === $header ? '' : $header . "\n" ) . "parameters:\n\tignoreErrors:\n";
 
 	foreach ( $entries as $entry ) {
@@ -780,7 +898,8 @@ function build_baseline( array $entries, string $output_dir, string $header ): s
 			. "\t\t\tmessage: " . quote_neon_value( $entry['message'] ) . "\n"
 			. "\t\t\tidentifier: " . $entry['identifier'] . "\n"
 			. "\t\t\tcount: " . $entry['count'] . "\n"
-			. "\t\t\tpath: " . get_relative_path( $output_dir, $entry['path'] ) . "\n";
+			. "\t\t\tpath: " . get_relative_path( $output_dir, $entry['path'] ) . "\n"
+			. ( $report_unmatched ? "\t\t\treportUnmatched: true\n" : '' );
 	}
 
 	return $contents;
