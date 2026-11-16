@@ -51,6 +51,8 @@ class Walker_Comment extends Walker {
 	 * @param string $output Used to append additional content (passed by reference).
 	 * @param int    $depth  Optional. Depth of the current comment. Default 0.
 	 * @param array  $args   Optional. Uses 'style' argument for type of HTML list. Default empty array.
+	 *
+	 * @phpstan-impure
 	 */
 	public function start_lvl( &$output, $depth = 0, $args = array() ) {
 		$GLOBALS['comment_depth'] = $depth + 1;
@@ -80,6 +82,8 @@ class Walker_Comment extends Walker {
 	 * @param int    $depth  Optional. Depth of the current comment. Default 0.
 	 * @param array  $args   Optional. Will only append content if style argument value is 'ol' or 'ul'.
 	 *                       Default empty array.
+	 *
+	 * @phpstan-impure
 	 */
 	public function end_lvl( &$output, $depth = 0, $args = array() ) {
 		$GLOBALS['comment_depth'] = $depth + 1;
@@ -169,6 +173,8 @@ class Walker_Comment extends Walker {
 	 * @param int        $depth             Optional. Depth of the current comment in reference to parents. Default 0.
 	 * @param array      $args              Optional. An array of arguments. Default empty array.
 	 * @param int        $current_object_id Optional. ID of the current comment. Default 0.
+	 *
+	 * @phpstan-impure
 	 */
 	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
 		// Restores the more descriptive, specific name for use within this method.

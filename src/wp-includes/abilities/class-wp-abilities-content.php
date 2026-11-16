@@ -397,6 +397,8 @@ final class WP_Abilities_Content {
 	 *
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return array<string, mixed>|WP_Error A page of posts, or a WP_Error on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	private function execute_content_query( $input = array() ) {
 		$input  = rest_sanitize_object( $input );
@@ -1349,6 +1351,8 @@ final class WP_Abilities_Content {
 	 *
 	 * @param int $user_id The user ID.
 	 * @return WP_User|null The user, or null when they no longer exist or may not be seen.
+	 *
+	 * @phpstan-impure
 	 */
 	private function get_visible_author( int $user_id ): ?WP_User {
 		$user = get_userdata( $user_id );

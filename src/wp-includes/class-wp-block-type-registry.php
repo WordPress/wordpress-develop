@@ -46,6 +46,8 @@ final class WP_Block_Type_Registry {
 	 * @return WP_Block_Type|false The registered block type on success, or false on failure.
 	 *
 	 * @phpstan-param (lowercase-string&non-falsy-string)|WP_Block_Type $name
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( $name, $args = array() ) {
 		$block_type = null;
@@ -112,6 +114,8 @@ final class WP_Block_Type_Registry {
 	 * @param string|WP_Block_Type $name Block type name including namespace, or alternatively
 	 *                                   a complete WP_Block_Type instance.
 	 * @return WP_Block_Type|false The unregistered block type on success, or false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( $name ) {
 		if ( $name instanceof WP_Block_Type ) {
@@ -195,6 +199,8 @@ final class WP_Block_Type_Registry {
 	 * @since 5.0.0
 	 *
 	 * @return WP_Block_Type_Registry The main instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		self::$instance ??= new self();

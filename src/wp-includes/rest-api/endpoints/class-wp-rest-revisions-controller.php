@@ -604,6 +604,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_Post         $item    Post revision object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		/*
@@ -818,6 +820,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @since 7.2.0 The `meta` property only describes the meta keys that are revisioned for the parent post type.
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

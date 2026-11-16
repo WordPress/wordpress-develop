@@ -260,6 +260,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_items( $request ) {
 
@@ -1456,6 +1458,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_Comment      $item    Comment object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
@@ -1879,6 +1883,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @return array
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {
@@ -2335,6 +2341,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int[] $note_ids Array of note comment IDs.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function prefetch_reaction_summaries( $note_ids ) {
 		global $wpdb;

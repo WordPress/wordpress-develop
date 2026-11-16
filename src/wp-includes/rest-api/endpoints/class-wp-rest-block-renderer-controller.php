@@ -107,6 +107,8 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request Request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_permissions_check( $request ) {
 		global $post;
@@ -149,6 +151,8 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item( $request ) {
 		global $post;
@@ -200,6 +204,8 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 * @since 5.0.0
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

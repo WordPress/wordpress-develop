@@ -31,6 +31,8 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 * @global int    $paged
 	 * @global string $type
 	 * @global array  $theme_field_defaults
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		require ABSPATH . 'wp-admin/includes/theme-install.php';

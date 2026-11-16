@@ -63,6 +63,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 * Performs an action before installing a plugin.
 	 *
 	 * @since 2.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function before() {
 		if ( ! empty( $this->api ) ) {
@@ -196,6 +198,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 * @since 5.5.0
 	 *
 	 * @return bool Whether the plugin can be overwritten and HTML was outputted.
+	 *
+	 * @phpstan-impure
 	 */
 	private function do_overwrite() {
 		if ( 'upload' !== $this->type || ! is_wp_error( $this->result ) || 'folder_exists' !== $this->result->get_error_code() ) {

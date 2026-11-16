@@ -857,6 +857,8 @@ final class WP_Theme implements ArrayAccess {
 	 * Clears the cache for the theme.
 	 *
 	 * @since 3.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function cache_delete() {
 		foreach ( array( 'theme', 'screenshot', 'headers', 'post_templates' ) as $key ) {
@@ -899,6 +901,8 @@ final class WP_Theme implements ArrayAccess {
 	 *             ? string|false
 	 *             : false )
 	 * )
+	 *
+	 * @phpstan-impure
 	 */
 	public function get( $header ) {
 		if ( ! isset( $this->headers[ $header ] ) ) {
@@ -1091,6 +1095,8 @@ final class WP_Theme implements ArrayAccess {
 	 * @return string|string[] Translated value. An array for Tags header, string otherwise.
 	 *
 	 * @phpstan-return ( $value is string ? string : string[] )
+	 *
+	 * @phpstan-impure
 	 */
 	private function translate_header( $header, $value ) {
 		switch ( $header ) {
@@ -1283,6 +1289,8 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 3.4.0
 	 *
 	 * @return string Theme root URI.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_theme_root_uri() {
 		if ( ! isset( $this->theme_root_uri ) ) {
@@ -1559,6 +1567,8 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @return bool True if the textdomain was successfully loaded or has already been loaded.
 	 *  False if no textdomain was specified in the file headers, or if the domain could not be loaded.
+	 *
+	 * @phpstan-impure
 	 */
 	public function load_textdomain() {
 		if ( isset( $this->textdomain_loaded ) ) {
@@ -1626,6 +1636,8 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 5.9.0
 	 *
 	 * @return bool
+	 *
+	 * @phpstan-impure
 	 */
 	public function is_block_theme() {
 		if ( isset( $this->block_theme ) ) {
@@ -1837,6 +1849,8 @@ final class WP_Theme implements ArrayAccess {
 	 *     @type string $wp_template      Theme-relative directory name for block templates.
 	 *     @type string $wp_template_part Theme-relative directory name for block template parts.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_block_template_folders() {
 		// Return set/cached value if available.

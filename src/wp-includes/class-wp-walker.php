@@ -129,6 +129,8 @@ class Walker {
 	 * @param int    $depth             Depth of current element.
 	 * @param array  $args              An array of arguments.
 	 * @param string $output            Used to append additional content (passed by reference).
+	 *
+	 * @phpstan-impure
 	 */
 	public function display_element( $element, &$children_elements, $max_depth, $depth, $args, &$output ) {
 		if ( ! $element ) {
@@ -299,6 +301,8 @@ class Walker {
 	 * @param int   $per_page  Number of elements per page.
 	 * @param mixed ...$args   Optional additional arguments.
 	 * @return string XHTML of the specified page of elements.
+	 *
+	 * @phpstan-impure
 	 */
 	public function paged_walk( $elements, $max_depth, $page_num, $per_page, ...$args ) {
 		$output = '';

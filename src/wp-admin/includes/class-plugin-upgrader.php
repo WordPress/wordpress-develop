@@ -53,6 +53,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * Initializes the upgrade strings.
 	 *
 	 * @since 2.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function upgrade_strings() {
 		$this->strings['up_to_date'] = __( 'The plugin is at the latest version.' );
@@ -71,6 +73,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * Initializes the installation strings.
 	 *
 	 * @since 2.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function install_strings() {
 		$this->strings['no_package'] = __( 'Installation package not available.' );
@@ -286,6 +290,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 *     @type bool $clear_update_cache Whether to clear the plugin updates cache if successful. Default true.
 	 * }
 	 * @return array|false An array of results indexed by plugin file, or false if unable to connect to the filesystem.
+	 *
+	 * @phpstan-impure
 	 */
 	public function bulk_upgrade( $plugins, $args = array() ) {
 		$wp_version = wp_get_wp_version();
@@ -463,6 +469,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 *
 	 * @param string $source The path to the downloaded package source.
 	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function check_package( $source ) {
 		global $wp_filesystem;

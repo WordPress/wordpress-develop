@@ -257,6 +257,8 @@ class WP_View_Config_Data {
 	 * @param array $spec    The names to remove, keyed to match the configuration shape.
 	 * @param int   $version The schema version the spec was authored against.
 	 * @return WP_View_Config_Data The instance, for chaining.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove( array $spec, int $version ) {
 		if ( $version <= 0 || $version > self::LATEST_VERSION ) {
@@ -406,6 +408,8 @@ class WP_View_Config_Data {
 	 * @param string $method  The public method the patch was passed to, for misuse reporting.
 	 * @param string $mode    How to apply each named key's value: `merge`, `replace`, or `set`.
 	 * @return WP_View_Config_Data The instance, for chaining.
+	 *
+	 * @phpstan-impure
 	 */
 	private function apply( array $patch, int $version, $method, $mode ) {
 		if ( $version <= 0 || $version > self::LATEST_VERSION ) {

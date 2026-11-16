@@ -53,6 +53,8 @@ class WP_Icon_Collections_Registry {
 	 * @return bool True if the collection was registered successfully, false otherwise.
 	 *
 	 * @phpstan-param lowercase-string&non-empty-string $collection_slug
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( $collection_slug, $collection_properties ) {
 		if ( ! isset( $collection_slug ) || ! is_string( $collection_slug ) ) {
@@ -159,6 +161,8 @@ class WP_Icon_Collections_Registry {
 	 *
 	 * @param string $collection_slug Icon collection slug.
 	 * @return bool True if the collection was unregistered successfully, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( $collection_slug ) {
 		if ( ! $this->is_registered( $collection_slug ) ) {
@@ -233,6 +237,8 @@ class WP_Icon_Collections_Registry {
 	 * @since 7.1.0
 	 *
 	 * @return WP_Icon_Collections_Registry The main instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		self::$instance ??= new self();

@@ -40,6 +40,8 @@ class WP_Customize_Nav_Menu_Location_Control extends WP_Customize_Control {
 	 * @since 4.3.0
 	 *
 	 * @see WP_Customize_Control::to_json()
+	 *
+	 * @phpstan-impure
 	 */
 	public function to_json() {
 		parent::to_json();

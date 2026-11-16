@@ -318,6 +318,8 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 * @since 6.1.0 The `icon` property was added.
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

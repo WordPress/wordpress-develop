@@ -364,6 +364,8 @@ class WP_oEmbed {
 	 * @param string $provider The URL to the oEmbed provider..
 	 * @param bool   $regex    Optional. Whether the $format parameter is in a regex format.
 	 *                         Default false.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function _add_provider_early( $format, $provider, $regex = false ) {
 		if ( empty( self::$early_providers['add'] ) ) {
@@ -387,6 +389,8 @@ class WP_oEmbed {
 	 *
 	 * @param string $format The format of URL that this provider can handle. You can use
 	 *                       asterisks as wildcards.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function _remove_provider_early( $format ) {
 		if ( empty( self::$early_providers['remove'] ) ) {

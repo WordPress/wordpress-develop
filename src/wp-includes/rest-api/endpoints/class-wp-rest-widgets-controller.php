@@ -503,6 +503,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @see retrieve_widgets()
+	 *
+	 * @phpstan-impure
 	 */
 	protected function retrieve_widgets() {
 		if ( ! $this->widgets_retrieved ) {
@@ -804,6 +806,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

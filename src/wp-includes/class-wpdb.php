@@ -812,6 +812,8 @@ class wpdb {
 	 *
 	 * @param string $name  The private member to set.
 	 * @param mixed  $value The value to set.
+	 *
+	 * @phpstan-impure
 	 */
 	public function __set( $name, $value ) {
 		$protected_members = array(
@@ -853,6 +855,8 @@ class wpdb {
 	 * Sets $this->charset and $this->collate.
 	 *
 	 * @since 3.1.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function init_charset() {
 		$charset = '';
@@ -1011,6 +1015,8 @@ class wpdb {
 	 * @param bool   $set_table_names Optional. Whether the table names, e.g. wpdb::$posts,
 	 *                                should be updated or not. Default true.
 	 * @return string|WP_Error Old prefix or WP_Error on error.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_prefix( $prefix, $set_table_names = true ) {
 
@@ -1056,6 +1062,8 @@ class wpdb {
 	 * @param int $blog_id
 	 * @param int $network_id Optional. Network ID. Default 0.
 	 * @return int Previous blog ID.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_blog_id( $blog_id, $network_id = 0 ) {
 		if ( ! empty( $network_id ) ) {
@@ -1205,6 +1213,8 @@ class wpdb {
 	 * @param string $db  Database name.
 	 * @param mysqli $dbh Optional. Database connection.
 	 *                    Defaults to the current database handle.
+	 *
+	 * @phpstan-impure
 	 */
 	public function select( $db, $dbh = null ) {
 		if ( is_null( $dbh ) ) {
@@ -1823,6 +1833,8 @@ class wpdb {
 	 *
 	 * @param string $str The error to display.
 	 * @return void|false Void if the showing of errors is enabled, false if disabled.
+	 *
+	 * @phpstan-impure
 	 */
 	public function print_error( $str = '' ) {
 		global $EZSQL_ERROR;
@@ -1897,6 +1909,8 @@ class wpdb {
 	 *
 	 * @param bool $show Optional. Whether to show errors. Default true.
 	 * @return bool Whether showing of errors was previously active.
+	 *
+	 * @phpstan-impure
 	 */
 	public function show_errors( $show = true ) {
 		$errors            = $this->show_errors;
@@ -1914,6 +1928,8 @@ class wpdb {
 	 * @see wpdb::show_errors()
 	 *
 	 * @return bool Whether showing of errors was previously active.
+	 *
+	 * @phpstan-impure
 	 */
 	public function hide_errors() {
 		$show              = $this->show_errors;
@@ -1932,6 +1948,8 @@ class wpdb {
 	 *
 	 * @param bool $suppress Optional. Whether to suppress errors. Default true.
 	 * @return bool Whether suppressing of errors was previously active.
+	 *
+	 * @phpstan-impure
 	 */
 	public function suppress_errors( $suppress = true ) {
 		$errors                = $this->suppress_errors;
@@ -1943,6 +1961,8 @@ class wpdb {
 	 * Kills cached query results.
 	 *
 	 * @since 0.71
+	 *
+	 * @phpstan-impure
 	 */
 	public function flush() {
 		$this->last_result   = array();
@@ -1979,6 +1999,8 @@ class wpdb {
 	 *
 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
 	 * @return bool True with a successful connection, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function db_connect( $allow_bail = true ) {
 		$this->is_mysql = true;
@@ -2242,6 +2264,8 @@ class wpdb {
 	 * @param string $query Database query.
 	 * @return int|bool Boolean true for CREATE, ALTER, TRUNCATE and DROP queries. Number of rows
 	 *                  affected/selected for all other queries. Boolean false on error.
+	 *
+	 * @phpstan-impure
 	 */
 	public function query( $query ) {
 		if ( ! $this->ready ) {
@@ -2375,6 +2399,8 @@ class wpdb {
 	 * @see wpdb::query()
 	 *
 	 * @param string $query The query to run.
+	 *
+	 * @phpstan-impure
 	 */
 	private function _do_query( $query ) {
 		if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES ) {
@@ -2408,6 +2434,8 @@ class wpdb {
 	 * @param string $query_callstack Comma-separated list of the calling functions.
 	 * @param float  $query_start     Unix timestamp of the time at the start of the query.
 	 * @param array  $query_data      Custom query data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function log_query( $query, $query_time, $query_callstack, $query_start, $query_data ) {
 		/**
@@ -2614,6 +2642,8 @@ class wpdb {
 	 * @param string          $type   Optional. Type of operation. Either 'INSERT' or 'REPLACE'.
 	 *                                Default 'INSERT'.
 	 * @return int|false The number of rows affected, or false on error.
+	 *
+	 * @phpstan-impure
 	 */
 	public function _insert_replace_helper( $table, $data, $format = null, $type = 'INSERT' ) {
 		$this->insert_id = 0;
@@ -2708,6 +2738,8 @@ class wpdb {
 	 *                                      If omitted, all values in $where will be treated as strings unless otherwise
 	 *                                      specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows updated, or false on error.
+	 *
+	 * @phpstan-impure
 	 */
 	public function update( $table, $data, $where, $format = null, $where_format = null ) {
 		if ( ! is_array( $data ) || ! is_array( $where ) ) {
@@ -2793,6 +2825,8 @@ class wpdb {
 	 *                                      If omitted, all values in $where will be treated as strings unless otherwise
 	 *                                      specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows deleted, or false on error.
+	 *
+	 * @phpstan-impure
 	 */
 	public function delete( $table, $where, $where_format = null ) {
 		if ( ! is_array( $where ) ) {
@@ -2840,6 +2874,8 @@ class wpdb {
 	 * @param string[]|string $format Formats or format to be mapped to the values in the data.
 	 * @return array|false An array of fields that contain paired value and formats.
 	 *                     False for invalid values.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function process_fields( $table, $data, $format ) {
 		$data = $this->process_field_formats( $data, $format );
@@ -3061,6 +3097,8 @@ class wpdb {
 	 * @param int         $y     Optional. Row of value to return. Indexed from 0. Default 0.
 	 * @return string|null Database query result (as string), or null on failure or when the value is an empty string.
 	 * @phpstan-return non-empty-string|null
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_var( $query = null, $x = 0, $y = 0 ) {
 		$this->func_call = "\$db->get_var(\"$query\", $x, $y)";
@@ -3121,6 +3159,8 @@ class wpdb {
 	 *         )
 	 *         : null
 	 * )
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";
@@ -3167,6 +3207,8 @@ class wpdb {
 	 * @param int         $x     Optional. Column to return. Indexed from 0. Default 0.
 	 * @return array Database query result. Array indexed from 0 by SQL result row number.
 	 * @phpstan-return list<non-empty-string|null>
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_col( $query = null, $x = 0 ) {
 		if ( $query ) {
@@ -3233,6 +3275,8 @@ class wpdb {
 	 *         )
 	 *         : null
 	 * )
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_results( $query = null, $output = OBJECT ) {
 		$this->func_call = "\$db->get_results(\"$query\", $output)";
@@ -3304,6 +3348,8 @@ class wpdb {
 	 *
 	 * @param string $table Table name.
 	 * @return string|WP_Error Table character set, WP_Error object if it couldn't be found.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function get_table_charset( $table ) {
 		$tablekey = strtolower( $table );
@@ -3582,6 +3628,8 @@ class wpdb {
 	 *
 	 * @param string $query The query to check.
 	 * @return bool True if the collation is safe, false if it isn't.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function check_safe_collation( $query ) {
 		if ( $this->checking_collation ) {
@@ -3652,6 +3700,8 @@ class wpdb {
 	 *                        This works as a passthrough: any additional keys such as 'field' are
 	 *                        retained in each value array. If we cannot remove invalid characters,
 	 *                        a WP_Error object is returned.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function strip_invalid_text( $data ) {
 		$db_check_string = false;
@@ -3964,6 +4014,8 @@ class wpdb {
 	 * Loads the column metadata from the last query.
 	 *
 	 * @since 3.5.0
+	 *
+	 * @phpstan-impure
 	 */
 	protected function load_col_info() {
 		if ( $this->col_info || ! $this->result instanceof mysqli_result ) {
@@ -4015,6 +4067,8 @@ class wpdb {
 	 * @since 1.5.0
 	 *
 	 * @return true
+	 *
+	 * @phpstan-impure
 	 */
 	public function timer_start() {
 		$this->time_start = microtime( true );
@@ -4043,6 +4097,8 @@ class wpdb {
 	 * @param string $error_code Optional. A computer-readable string to identify the error.
 	 *                           Default '500'.
 	 * @return false False if the showing of errors is disabled.
+	 *
+	 * @phpstan-impure
 	 */
 	public function bail( $message, $error_code = '500' ) {
 		if ( $this->show_errors ) {
@@ -4077,6 +4133,8 @@ class wpdb {
 	 *
 	 * @return bool True if the connection was successfully closed,
 	 *              false if it wasn't, or if the connection doesn't exist.
+	 *
+	 * @phpstan-impure
 	 */
 	public function close() {
 		if ( ! $this->dbh ) {

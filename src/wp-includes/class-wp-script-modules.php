@@ -141,6 +141,8 @@ class WP_Script_Modules {
 	 *     @type bool                $in_footer     Whether to print the script module in the footer. Only relevant to block themes. Default 'false'. Optional.
 	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( string $id, string $src, array $deps = array(), $version = false, array $args = array() ) {
 		if ( '' === $id ) {
@@ -231,6 +233,8 @@ class WP_Script_Modules {
 	 * @param string              $id       Script module identifier.
 	 * @param 'auto'|'low'|'high' $priority Fetch priority for the script module.
 	 * @return bool Whether setting the fetchpriority was successful.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_fetchpriority( string $id, string $priority ): bool {
 		if ( ! isset( $this->registered[ $id ] ) ) {
@@ -265,6 +269,8 @@ class WP_Script_Modules {
 	 * @param string           $id        Script module identifier.
 	 * @param bool             $in_footer Whether to print in the footer.
 	 * @return bool Whether setting the printing location was successful.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_in_footer( string $id, bool $in_footer ): bool {
 		if ( ! isset( $this->registered[ $id ] ) ) {
@@ -313,6 +319,8 @@ class WP_Script_Modules {
 	 *     @type bool                $in_footer     Whether to print the script module in the footer. Only relevant to block themes. Default 'false'. Optional.
 	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function enqueue( string $id, string $src = '', array $deps = array(), $version = false, array $args = array() ) {
 		if ( '' === $id ) {
@@ -334,6 +342,8 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 *
 	 * @param string $id The identifier of the script module.
+	 *
+	 * @phpstan-impure
 	 */
 	public function dequeue( string $id ) {
 		$this->queue = array_values( array_diff( $this->queue, array( $id ) ) );
@@ -345,6 +355,8 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 *
 	 * @param string $id The identifier of the script module.
+	 *
+	 * @phpstan-impure
 	 */
 	public function deregister( string $id ) {
 		$this->dequeue( $id );
@@ -366,6 +378,8 @@ class WP_Script_Modules {
 	 * @param string $domain Optional. Text domain. Default 'default'.
 	 * @param string $path   Optional. The full file path to the directory containing translation files.
 	 * @return bool True if the text domain was registered, false if the module is not registered.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_translations( string $id, string $domain = 'default', string $path = '' ): bool {
 		if ( ! isset( $this->registered[ $id ] ) ) {
@@ -573,6 +587,8 @@ class WP_Script_Modules {
 	 * @since 6.9.0
 	 *
 	 * @param string $id The script module identifier.
+	 *
+	 * @phpstan-impure
 	 */
 	private function print_script_module( string $id ) {
 		if ( in_array( $id, $this->done, true ) || ! in_array( $id, $this->queue, true ) ) {
@@ -670,6 +686,8 @@ class WP_Script_Modules {
 	 *
 	 * @return array<string, array<string, string>> Array with an `imports` key mapping to an array of script module
 	 *                                              identifiers and their respective URLs, including the version query.
+	 *
+	 * @phpstan-impure
 	 */
 	private function get_import_map(): array {
 		global $wp_scripts;
@@ -848,6 +866,8 @@ class WP_Script_Modules {
 	 *
 	 * @param string $id The script ID.
 	 * @return string[] Script module IDs.
+	 *
+	 * @phpstan-impure
 	 */
 	private function get_dependents( string $id ): array {
 		// Check if dependents map for the handle in question is present. If so, use it.
@@ -944,6 +964,8 @@ class WP_Script_Modules {
 	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
 	 * @param string[] &$sorted      The array of sorted identifiers, passed by reference.
 	 * @return bool True on success, false on failure (e.g., missing dependency).
+	 *
+	 * @phpstan-impure
 	 */
 	private function sort_item_dependencies( string $id, array $import_types, array &$sorted ): bool {
 		// If already processed, don't do it again.

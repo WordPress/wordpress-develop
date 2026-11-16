@@ -71,6 +71,8 @@ class WP_Locale_Switcher {
 	 * @param string    $locale  The locale to switch to.
 	 * @param int|false $user_id Optional. User ID as context. Default false.
 	 * @return bool True on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function switch_to_locale( $locale, $user_id = false ) {
 		$current_locale = determine_locale();
@@ -157,6 +159,8 @@ class WP_Locale_Switcher {
 	 * @since 4.7.0
 	 *
 	 * @return string|false Locale on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function restore_current_locale() {
 		if ( empty( $this->stack ) ) {
@@ -276,6 +280,8 @@ class WP_Locale_Switcher {
 	 * @global PHPMailer\PHPMailer\PHPMailer $phpmailer
 	 *
 	 * @param string $locale The locale to change to.
+	 *
+	 * @phpstan-impure
 	 */
 	private function change_locale( $locale ) {
 		global $wp_locale, $phpmailer;

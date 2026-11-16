@@ -383,6 +383,8 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * @since 6.6.0 Merged parent and parent controller schema data.
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

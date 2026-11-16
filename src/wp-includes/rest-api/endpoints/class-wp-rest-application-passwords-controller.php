@@ -781,6 +781,8 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @since 5.6.0
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

@@ -36,6 +36,8 @@ class Automatic_Upgrader_Skin extends WP_Upgrader_Skin {
 	 *                                                    for being writable. Default empty.
 	 * @param bool          $allow_relaxed_file_ownership Optional. Whether to allow Group/World writable. Default false.
 	 * @return bool True on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function request_filesystem_credentials( $error = false, $context = '', $allow_relaxed_file_ownership = false ) {
 		if ( $context ) {
@@ -70,6 +72,8 @@ class Automatic_Upgrader_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @param string|array|WP_Error $feedback Message data.
 	 * @param mixed                 ...$args  Optional text replacements.
+	 *
+	 * @phpstan-impure
 	 */
 	public function feedback( $feedback, ...$args ) {
 		if ( is_wp_error( $feedback ) ) {

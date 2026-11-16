@@ -115,6 +115,8 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 * Initializes the upgrade strings.
 	 *
 	 * @since 3.7.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function upgrade_strings() {
 		$this->strings['starting_upgrade'] = __( 'Some of your translations need updating. Sit tight for a few more seconds while they are updated as well.' );
@@ -173,6 +175,8 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 * }
 	 * @return array|bool|WP_Error Will return an array of results, or true if there are no updates,
 	 *                             false or WP_Error for initial errors.
+	 *
+	 * @phpstan-impure
 	 */
 	public function bulk_upgrade( $language_updates = array(), $args = array() ) {
 		global $wp_filesystem;

@@ -69,6 +69,8 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 *
 	 * @param string $new_content The string to replace the content between the matching tags.
 	 * @return bool Whether the content was successfully replaced.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_content_between_balanced_tags( string $new_content ): bool {
 		$positions = $this->get_after_opener_tag_and_before_closer_tag_positions( true );
@@ -104,6 +106,8 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 * @param string $new_content The markup to replace the content between the matching tags with.
 	 * @return bool Whether the matching closer tag was found. When it is not found, the cursor is at the end
 	 *              of the HTML and nothing is replaced.
+	 *
+	 * @phpstan-impure
 	 */
 	public function skip_to_balanced_tag_closer( string $new_content ): bool {
 		$bookmarks = $this->get_balanced_tag_bookmarks();
@@ -139,6 +143,8 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 *
 	 * @param string $new_content The string to append after the closing template tag.
 	 * @return bool Whether the content was successfully appended.
+	 *
+	 * @phpstan-impure
 	 */
 	public function append_content_after_template_tag_closer( string $new_content ): bool {
 		if ( empty( $new_content ) || 'TEMPLATE' !== $this->get_tag() || ! $this->is_tag_closer() ) {

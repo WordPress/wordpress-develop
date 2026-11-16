@@ -239,6 +239,8 @@ class WP_Term_Query {
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query WP_Term_Query arguments. See WP_Term_Query::__construct() for accepted arguments.
+	 *
+	 * @phpstan-impure
 	 */
 	public function parse_query( $query = '' ) {
 		if ( empty( $query ) ) {
@@ -318,6 +320,8 @@ class WP_Term_Query {
 	 *                         ? array<int, string>
 	 *                         : WP_Term[] ) ) ) )
 	 * )
+	 *
+	 * @phpstan-impure
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -362,6 +366,8 @@ class WP_Term_Query {
 	 *                                             taxonomy hierarchy.
 	 *
 	 * @phpstan-return 0|numeric-string|int[]|array<int, int>|string[]|array<int, string>|WP_Term[]
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_terms() {
 		global $wpdb;

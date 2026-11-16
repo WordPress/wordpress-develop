@@ -52,6 +52,8 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 *
 	 * @param string $store_name The name of the store.
 	 * @return WP_Style_Engine_CSS_Rules_Store|null
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_store( $store_name = 'default' ) {
 		if ( ! is_string( $store_name ) || empty( $store_name ) ) {
@@ -80,6 +82,8 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * Clears all stores from static::$stores.
 	 *
 	 * @since 6.1.0
+	 *
+	 * @phpstan-impure
 	 */
 	public static function remove_all_stores() {
 		static::$stores = array();
@@ -91,6 +95,8 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * @since 6.1.0
 	 *
 	 * @param string $name The store name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_name( $name ) {
 		$this->name = $name;
@@ -130,6 +136,8 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 *                            such as `@media (min-width: 80rem)` or `@layer module`.
 	 * @return WP_Style_Engine_CSS_Rule|null Returns a WP_Style_Engine_CSS_Rule object,
 	 *                                       or null if the selector is empty.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_rule( $selector, $rules_group = '' ) {
 		$selector    = $selector ? trim( $selector ) : '';
@@ -161,6 +169,8 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * @since 6.1.0
 	 *
 	 * @param string $selector The CSS selector.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_rule( $selector ) {
 		unset( $this->rules[ $selector ] );

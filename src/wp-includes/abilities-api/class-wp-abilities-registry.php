@@ -89,6 +89,8 @@ final class WP_Abilities_Registry {
 	 * @return WP_Ability|null The registered ability instance on success, null on failure.
 	 *
 	 * @phpstan-param lowercase-string&non-falsy-string $name
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( string $name, array $args ): ?WP_Ability {
 		if ( ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $name ) ) {
@@ -216,6 +218,8 @@ final class WP_Abilities_Registry {
 	 *
 	 * @param string $name The name of the registered ability, with its namespace.
 	 * @return WP_Ability|null The unregistered ability instance on success, null on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( string $name ): ?WP_Ability {
 		if ( ! $this->is_registered( $name ) ) {
@@ -298,6 +302,8 @@ final class WP_Abilities_Registry {
 	 * @since 6.9.0
 	 *
 	 * @return WP_Abilities_Registry|null The main registry instance, or null when `init` action has not fired.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance(): ?self {
 		if ( ! did_action( 'init' ) ) {

@@ -114,6 +114,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @global string             $orderby The column to order the themes list by.
 	 * @global string             $order   The order of the themes list (ASC or DESC).
 	 * @global string             $s       The search string.
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		global $status, $totals, $page, $orderby, $order, $s;
@@ -815,6 +817,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @global int    $page   The current page number.
 	 *
 	 * @param WP_Theme $theme The current WP_Theme object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function column_autoupdates( $theme ) {
 		global $status, $page;

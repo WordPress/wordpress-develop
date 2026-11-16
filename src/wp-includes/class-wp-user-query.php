@@ -261,6 +261,8 @@ class WP_User_Query {
 	 *                                                logins will not be included in results. Default empty array.
 	 *     @type bool            $cache_results       Whether to cache user information. Default true.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_query( $query = array() ) {
 		global $wpdb, $wp_roles;
@@ -778,6 +780,8 @@ class WP_User_Query {
 	 * @since 3.1.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function query() {
 		global $wpdb;
@@ -920,6 +924,8 @@ class WP_User_Query {
 	 *
 	 * @param string $query_var Query variable key.
 	 * @param mixed  $value     Query variable value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set( $query_var, $value ) {
 		$this->query_vars[ $query_var ] = $value;
@@ -989,6 +995,8 @@ class WP_User_Query {
 	 *
 	 * @param string $orderby Alias for the field to order by.
 	 * @return string Value to used in the ORDER clause, if `$orderby` is valid.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function parse_orderby( $orderby ) {
 		global $wpdb;
@@ -1154,6 +1162,8 @@ class WP_User_Query {
 	 *
 	 * @param string $name  Property to check if set.
 	 * @param mixed  $value Property value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function __set( $name, $value ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {

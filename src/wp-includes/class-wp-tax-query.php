@@ -132,6 +132,8 @@ class WP_Tax_Query {
 	 *
 	 * @param array $queries Array of queries clauses.
 	 * @return array Sanitized array of query clauses.
+	 *
+	 * @phpstan-impure
 	 */
 	public function sanitize_query( $queries ) {
 		$cleaned_query = array();
@@ -240,6 +242,8 @@ class WP_Tax_Query {
 	 *     @type string $join  SQL fragment to append to the main JOIN clause.
 	 *     @type string $where SQL fragment to append to the main WHERE clause.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_sql( $primary_table, $primary_id_column ) {
 		$this->primary_table     = $primary_table;
@@ -377,6 +381,8 @@ class WP_Tax_Query {
 	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
 	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_sql_for_clause( &$clause, $parent_query ) {
 		global $wpdb;

@@ -204,6 +204,8 @@ abstract class WP_AI_Client_Builder {
 	 * @param string            $name      The method name in snake_case.
 	 * @param array<int, mixed> $arguments The method arguments.
 	 * @return mixed The result of the method call.
+	 *
+	 * @phpstan-impure
 	 */
 	public function __call( string $name, array $arguments ) {
 		/*

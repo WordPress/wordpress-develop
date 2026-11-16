@@ -55,6 +55,8 @@ final class WP_Ability_Categories_Registry {
 	 * @return WP_Ability_Category|null The registered ability category instance on success, null on failure.
 	 *
 	 * @phpstan-param lowercase-string&non-empty-string $slug
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( string $slug, array $args ): ?WP_Ability_Category {
 		if ( $this->is_registered( $slug ) ) {
@@ -119,6 +121,8 @@ final class WP_Ability_Categories_Registry {
 	 *
 	 * @param string $slug The slug of the registered ability category.
 	 * @return WP_Ability_Category|null The unregistered ability category instance on success, null on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( string $slug ): ?WP_Ability_Category {
 		if ( ! $this->is_registered( $slug ) ) {
@@ -201,6 +205,8 @@ final class WP_Ability_Categories_Registry {
 	 * @since 6.9.0
 	 *
 	 * @return WP_Ability_Categories_Registry|null The main registry instance, or null when `init` action has not fired.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance(): ?self {
 		if ( ! did_action( 'init' ) ) {

@@ -208,6 +208,8 @@ final class WP_Secrets_Key_Manager {
 	 * @param bool $create Optional. Whether to generate and store a root key if none
 	 *                     exists. Default true.
 	 * @return string|WP_Error 32 raw bytes on success. WP_Error on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_root_key( bool $create = true ) {
 		$wrapped = $this->get_wrapped_root_key();
@@ -264,6 +266,8 @@ final class WP_Secrets_Key_Manager {
 	 * @param WP_Secrets_Keyring $old_keyring Unwraps the current wrapped root key.
 	 * @param WP_Secrets_Keyring $new_keyring Wraps it again for storage.
 	 * @return true|WP_Error
+	 *
+	 * @phpstan-impure
 	 */
 	public function rotate_site_key( WP_Secrets_Keyring $old_keyring, WP_Secrets_Keyring $new_keyring ) {
 		$wrapped = $this->get_wrapped_root_key();
@@ -365,6 +369,8 @@ final class WP_Secrets_Key_Manager {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return string|WP_Error
+	 *
+	 * @phpstan-impure
 	 */
 	private function generate_root_key() {
 		global $wpdb;

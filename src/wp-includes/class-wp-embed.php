@@ -58,6 +58,8 @@ class WP_Embed {
 	 *
 	 * @param string $content Content to parse.
 	 * @return string Content with shortcode parsed.
+	 *
+	 * @phpstan-impure
 	 */
 	public function run_shortcode( $content ) {
 		global $shortcode_tags;
@@ -109,6 +111,8 @@ class WP_Embed {
 	 * @param int      $priority Optional. Used to specify the order in which the registered handlers will be tested.
 	 *                           Lower numbers correspond with earlier testing, and handlers with the same priority are
 	 *                           tested in the order in which they were added to the action. Default 10.
+	 *
+	 * @phpstan-impure
 	 */
 	public function register_handler( $id, $regex, $callback, $priority = 10 ) {
 		$this->handlers[ $priority ][ $id ] = array(
@@ -124,6 +128,8 @@ class WP_Embed {
 	 *
 	 * @param string $id       The handler ID that should be removed.
 	 * @param int    $priority Optional. The priority of the handler to be removed (default: 10).
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister_handler( $id, $priority = 10 ) {
 		unset( $this->handlers[ $priority ][ $id ] );
@@ -192,6 +198,8 @@ class WP_Embed {
 	 * @param string $url The URL attempting to be embedded.
 	 * @return string|false The embed HTML on success, otherwise the original URL.
 	 *                      `->maybe_make_link()` can return false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function shortcode( $attr, $url = '' ) {
 		$post = get_post();
@@ -400,6 +408,8 @@ class WP_Embed {
 	 * Triggers a caching of all oEmbed results.
 	 *
 	 * @param int $post_id Post ID to do the caching for.
+	 *
+	 * @phpstan-impure
 	 */
 	public function cache_oembed( $post_id ) {
 		$post = get_post( $post_id );
@@ -459,6 +469,8 @@ class WP_Embed {
 	 *
 	 * @param array $matches A regex match array.
 	 * @return string The embed HTML on success, otherwise the original URL.
+	 *
+	 * @phpstan-impure
 	 */
 	public function autoembed_callback( $matches ) {
 		$oldval              = $this->linkifunknown;

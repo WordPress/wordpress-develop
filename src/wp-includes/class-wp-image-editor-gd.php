@@ -86,6 +86,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @since 3.5.0
 	 *
 	 * @return true|WP_Error True if loaded successfully; WP_Error on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function load() {
 		if ( $this->image ) {
@@ -181,6 +183,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
 	 * }
 	 * @return true|WP_Error
+	 *
+	 * @phpstan-impure
 	 */
 	public function resize( $max_w, $max_h, $crop = false ) {
 		if ( ( $this->size['width'] === $max_w ) && ( $this->size['height'] === $max_h ) ) {
@@ -304,6 +308,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * }
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
+	 *
+	 * @phpstan-impure
 	 */
 	public function make_subsize( $size_data ) {
 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
@@ -350,6 +356,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param int  $dst_h   Optional. The destination height.
 	 * @param bool $src_abs Optional. If the source crop points are absolute.
 	 * @return true|WP_Error
+	 *
+	 * @phpstan-impure
 	 */
 	public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
 		/*
@@ -404,6 +412,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @param float $angle
 	 * @return true|WP_Error
+	 *
+	 * @phpstan-impure
 	 */
 	public function rotate( $angle ) {
 		if ( function_exists( 'imagerotate' ) ) {
@@ -510,6 +520,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *     @type string $mime-type The mime type of the image.
 	 *     @type int    $filesize  File size of the image.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function save( $destfilename = null, $mime_type = null ) {
 		$saved = $this->_save( $this->image, $destfilename, $mime_type );
@@ -623,6 +635,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param int   $quality Compression Quality. Range: [1,100]
 	 * @param array $dims    Optional. Image dimensions array with 'width' and 'height' keys.
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_quality( $quality = null, $dims = array() ) {
 		$quality_result = parent::set_quality( $quality, $dims );

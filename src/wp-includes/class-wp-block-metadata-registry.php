@@ -80,6 +80,8 @@ class WP_Block_Metadata_Registry {
 	 * @param string $path     The absolute base path for the collection ( e.g., WP_PLUGIN_DIR . '/my-plugin/blocks/' ).
 	 * @param string $manifest The absolute path to the manifest file containing the metadata collection.
 	 * @return bool True if the collection was registered successfully, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function register_collection( $path, $manifest ) {
 		$path = rtrim( wp_normalize_path( $path ), '/' );
@@ -230,6 +232,8 @@ class WP_Block_Metadata_Registry {
 	 *
 	 * @param string $file_or_folder The normalized path to the file or folder.
 	 * @return string|null The normalized collection path if found, or null if not found.
+	 *
+	 * @phpstan-impure
 	 */
 	private static function find_collection_path( $file_or_folder ) {
 		if ( empty( $file_or_folder ) ) {
@@ -331,6 +335,8 @@ class WP_Block_Metadata_Registry {
 	 * @since 6.7.2
 	 *
 	 * @return string[] List of directory paths within which metadata collections are allowed.
+	 *
+	 * @phpstan-impure
 	 */
 	private static function get_default_collection_roots() {
 		if ( isset( self::$default_collection_roots ) ) {

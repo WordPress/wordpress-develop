@@ -117,6 +117,8 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	 * @since 6.3.0
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

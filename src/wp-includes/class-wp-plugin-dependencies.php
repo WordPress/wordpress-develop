@@ -117,6 +117,8 @@ class WP_Plugin_Dependencies {
 	 * Initializes by fetching plugin header and plugin API data.
 	 *
 	 * @since 6.5.0
+	 *
+	 * @phpstan-impure
 	 */
 	public static function initialize() {
 		if ( false === self::$initialized ) {
@@ -531,6 +533,8 @@ class WP_Plugin_Dependencies {
 	 * @since 6.5.0
 	 *
 	 * @return array An array of plugin data.
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function get_plugins() {
 		if ( is_array( self::$plugins ) ) {
@@ -547,6 +551,8 @@ class WP_Plugin_Dependencies {
 	 * Reads and stores dependency slugs from a plugin's 'Requires Plugins' header.
 	 *
 	 * @since 6.5.0
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function read_dependencies_from_plugin_headers() {
 		self::$dependencies     = array();
@@ -613,6 +619,8 @@ class WP_Plugin_Dependencies {
 	 * @since 6.5.0
 	 *
 	 * @return array An array of install dependencies filepaths, relative to the plugins directory.
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function get_dependency_filepaths() {
 		if ( is_array( self::$dependency_filepaths ) ) {
@@ -646,6 +654,8 @@ class WP_Plugin_Dependencies {
 	 * @global string $pagenow The filename of the current screen.
 	 *
 	 * @return array|null An array of dependency API data, or null on early exit.
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function get_dependency_api_data() {
 		global $pagenow;
@@ -730,6 +740,8 @@ class WP_Plugin_Dependencies {
 	 * @since 6.5.0
 	 *
 	 * @return array An array of plugin directory names.
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function get_plugin_dirnames() {
 		if ( is_array( self::$plugin_dirnames ) ) {
@@ -753,6 +765,8 @@ class WP_Plugin_Dependencies {
 	 * @since 6.5.0
 	 *
 	 * @return array[] An array of circular dependency pairings.
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function get_circular_dependencies() {
 		if ( is_array( self::$circular_dependencies_pairs ) ) {
@@ -791,6 +805,8 @@ class WP_Plugin_Dependencies {
 	 * @param array $dependents   Array of dependent plugins.
 	 * @param array $dependencies Array of plugins dependencies.
 	 * @return array A circular dependency pairing, or an empty array if none exists.
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function check_for_circular_dependencies( $dependents, $dependencies ) {
 		$circular_dependencies_pairs = array();

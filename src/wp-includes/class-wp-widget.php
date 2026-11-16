@@ -288,6 +288,8 @@ class WP_Widget {
 	 *
 	 * @param int $number The unique order number of this widget instance compared to other
 	 *                    instances of the same class.
+	 *
+	 * @phpstan-impure
 	 */
 	public function _set( $number ) {
 		$this->number = $number;
@@ -414,6 +416,8 @@ class WP_Widget {
 	 * @param int $deprecated Not used.
 	 *
 	 * @final
+	 *
+	 * @phpstan-impure
 	 */
 	public function update_callback( $deprecated = 1 ) {
 		global $wp_registered_widgets;

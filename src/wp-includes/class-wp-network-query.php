@@ -155,6 +155,8 @@ class WP_Network_Query {
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query WP_Network_Query arguments. See WP_Network_Query::__construct() for accepted arguments.
+	 *
+	 * @phpstan-impure
 	 */
 	public function parse_query( $query = '' ) {
 		if ( empty( $query ) ) {
@@ -187,6 +189,8 @@ class WP_Network_Query {
 	 *         $query is array{ fields: 'ids', ... } ? int[] : array<int, WP_Network>
 	 *     )
 	 * )
+	 *
+	 * @phpstan-impure
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -200,6 +204,8 @@ class WP_Network_Query {
 	 *
 	 * @return WP_Network[]|int[]|int List of WP_Network objects, a list of network IDs when 'fields' is set
 	 *                                to 'ids', or the number of networks when 'count' is passed as a query var.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_networks() {
 		$this->parse_query();
@@ -338,6 +344,8 @@ class WP_Network_Query {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return int|array A single count of network IDs if a count query. An array of network IDs if a full query.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function get_network_ids() {
 		global $wpdb;
@@ -531,6 +539,8 @@ class WP_Network_Query {
 	 * @since 4.6.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @phpstan-impure
 	 */
 	private function set_found_networks() {
 		global $wpdb;

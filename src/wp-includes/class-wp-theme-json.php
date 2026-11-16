@@ -1930,6 +1930,8 @@ class WP_Theme_JSON {
 	 * @since 6.6.0 Updated to include block style variations from the block styles registry.
 	 *
 	 * @return array Block metadata.
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function get_blocks_metadata() {
 		$registry       = WP_Block_Type_Registry::get_instance();
@@ -4670,6 +4672,8 @@ class WP_Theme_JSON {
 	 * @since 6.7.0 Replace background image objects during merge.
 	 *
 	 * @param WP_Theme_JSON $incoming Data to merge.
+	 *
+	 * @phpstan-impure
 	 */
 	public function merge( $incoming ) {
 		$incoming_data    = $incoming->get_raw_data();

@@ -46,6 +46,8 @@ class WP_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		$themes = wp_get_themes( array( 'allowed' => true ) );

@@ -142,6 +142,8 @@ class WP_Locale {
 	 * @since 2.1.0
 	 *
 	 * @global string $text_direction
+	 *
+	 * @phpstan-impure
 	 */
 	public function init() {
 		// The weekdays.
@@ -393,6 +395,8 @@ class WP_Locale {
 	 * @global array $weekday_abbrev
 	 * @global array $month
 	 * @global array $month_abbrev
+	 *
+	 * @phpstan-impure
 	 */
 	public function register_globals() {
 		$GLOBALS['weekday']         = $this->weekday;

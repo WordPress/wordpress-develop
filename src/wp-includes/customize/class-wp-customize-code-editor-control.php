@@ -45,6 +45,8 @@ class WP_Customize_Code_Editor_Control extends WP_Customize_Control {
 	 * Enqueue control related scripts/styles.
 	 *
 	 * @since 4.9.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function enqueue() {
 		$this->editor_settings = wp_enqueue_code_editor(

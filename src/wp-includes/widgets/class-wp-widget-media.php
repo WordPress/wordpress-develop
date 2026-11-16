@@ -99,6 +99,8 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 *
 	 * @param int $number Optional. The unique order number of this widget instance
 	 *                    compared to other instances of the same class. Default -1.
+	 *
+	 * @phpstan-impure
 	 */
 	public function _register_one( $number = -1 ) {
 		parent::_register_one( $number );
@@ -448,6 +450,8 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * Resets the cache for the default labels.
 	 *
 	 * @since 6.0.0
+	 *
+	 * @phpstan-impure
 	 */
 	public static function reset_default_labels() {
 		self::$default_description = '';
@@ -472,6 +476,8 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @since 6.0.0
 	 *
 	 * @return string
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function get_default_description() {
 		if ( self::$default_description ) {
@@ -488,6 +494,8 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @since 6.0.0
 	 *
 	 * @return (string|array)[]
+	 *
+	 * @phpstan-impure
 	 */
 	protected static function get_l10n_defaults() {
 		if ( ! empty( self::$l10n_defaults ) ) {

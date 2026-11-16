@@ -87,6 +87,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 *
 	 * @param int $offset Offset of block value to retrieve.
 	 * @return WP_Block|null Block value if exists, or null.
+	 *
+	 * @phpstan-impure
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {

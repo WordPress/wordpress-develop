@@ -38,6 +38,8 @@ final class WP_Block_Templates_Registry {
 	 * @return WP_Block_Template|WP_Error The registered template on success, or WP_Error on failure.
 	 *
 	 * @phpstan-param lowercase-string&non-falsy-string $template_name
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( $template_name, $args = array() ) {
 
@@ -217,6 +219,8 @@ final class WP_Block_Templates_Registry {
 	 *
 	 * @param string $template_name Template name including namespace.
 	 * @return WP_Block_Template|WP_Error The unregistered template on success, or WP_Error on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( $template_name ) {
 		if ( ! $this->is_registered( $template_name ) ) {
@@ -242,6 +246,8 @@ final class WP_Block_Templates_Registry {
 	 * @since 6.7.0
 	 *
 	 * @return WP_Block_Templates_Registry The main instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		self::$instance ??= new self();

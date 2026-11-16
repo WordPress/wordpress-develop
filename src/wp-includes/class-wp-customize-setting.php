@@ -245,6 +245,8 @@ class WP_Customize_Setting {
 	 * calls get combined into one call, greatly improving performance.
 	 *
 	 * @since 4.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	protected function aggregate_multidimensional() {
 		$id_base = $this->id_data['base'];
@@ -271,6 +273,8 @@ class WP_Customize_Setting {
 	 *
 	 * @since 4.5.0
 	 * @ignore
+	 *
+	 * @phpstan-impure
 	 */
 	public static function reset_aggregated_multidimensionals() {
 		self::$aggregated_multidimensionals = array();
@@ -318,6 +322,8 @@ class WP_Customize_Setting {
 	 * @since 4.4.0 Added boolean return value.
 	 *
 	 * @return bool False when preview short-circuits due no change needing to be previewed.
+	 *
+	 * @phpstan-impure
 	 */
 	public function preview() {
 		if ( ! isset( $this->_previewed_blog_id ) ) {
@@ -431,6 +437,8 @@ class WP_Customize_Setting {
 	 *
 	 * @see WP_Customize_Manager::set_post_value()
 	 * @see WP_Customize_Setting::_multidimensional_preview_filter()
+	 *
+	 * @phpstan-impure
 	 */
 	final public function _clear_aggregated_multidimensional_preview_applied_flag() {
 		unset( self::$aggregated_multidimensionals[ $this->type ][ $this->id_data['base'] ]['preview_applied_instances'][ $this->id ] );
@@ -479,6 +487,8 @@ class WP_Customize_Setting {
 	 * @see WP_Customize_Setting::$aggregated_multidimensionals
 	 * @param mixed $original Original root value.
 	 * @return mixed New or old value.
+	 *
+	 * @phpstan-impure
 	 */
 	final public function _multidimensional_preview_filter( $original ) {
 		if ( ! $this->is_current_blog_previewed() ) {
@@ -680,6 +690,8 @@ class WP_Customize_Setting {
 	 *
 	 * @param mixed $value The value to update.
 	 * @return bool The result of saving the value.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function update( $value ) {
 		$id_base = $this->id_data['base'];

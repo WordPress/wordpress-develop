@@ -110,6 +110,8 @@ class _WP_Dependency {
 	 * @param string $name The data key to add.
 	 * @param mixed  $data The data value to add.
 	 * @return bool False if not scalar, true otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_data( $name, $data ) {
 		if ( ! is_scalar( $name ) ) {
@@ -127,6 +129,8 @@ class _WP_Dependency {
 	 * @param string $domain The translation textdomain.
 	 * @param string $path   Optional. The full file path to the directory containing translation files.
 	 * @return bool False if $domain is not a string, true otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_translations( $domain, $path = '' ) {
 		if ( ! is_string( $domain ) ) {

@@ -235,6 +235,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param Node[] $nodes The nodes of the file.
 	 * @return null Always null, leaving the nodes as they are.
+	 *
+	 * @phpstan-impure
 	 */
 	public function beforeTraverse( array $nodes ) {
 		$this->scope_local_types = array();
@@ -248,6 +250,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param Node $node The node being left.
 	 * @return null Always null, leaving the node as it is.
+	 *
+	 * @phpstan-impure
 	 */
 	public function leaveNode( Node $node ) {
 		if ( $node instanceof Node\Stmt\ClassLike || $node instanceof Node\FunctionLike ) {
@@ -271,6 +275,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param Node $node The node being entered.
 	 * @return null
+	 *
+	 * @phpstan-impure
 	 */
 	public function enterNode( Node $node ): ?Node {
 		// Each namespace has imports of its own, so entering one starts afresh.
@@ -394,6 +400,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @param string              $text         Raw docblock text including the `/**` markers.
 	 * @param array<string, true> $by_reference Parameters the function takes by reference.
 	 * @return list<string> Tag lines, without the leading ` * `.
+	 *
+	 * @phpstan-impure
 	 */
 	private function build_additions( string $text, array $by_reference ): array {
 		$additions = array();
@@ -962,6 +970,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param TypeNode $type Parsed type, which is left unchanged.
 	 * @return string|null The normalized type, or null if it names a template type or type alias.
+	 *
+	 * @phpstan-impure
 	 */
 	private function normalize_type( TypeNode $type ): ?string {
 		$key = ( $this->resolves_names ? 'resolved' : '' ) . ';' . implode( ',', array_keys( $this->local_types ) ) . ';' . $type;
@@ -1019,6 +1029,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			 * @param string $name Name as written.
 			 * @return string The name lowercased, and stripped of a leading backslash where
 			 *                names are not resolved against a namespace or imports.
+			 *
+			 * @phpstan-impure
 			 */
 			private function normalize_name( string $name ): string {
 				$name = strtolower( $name );
@@ -1256,6 +1268,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param string $type Type as written in the docblock.
 	 * @return TypeNode|null The parsed type, or null if the whole string is not one.
+	 *
+	 * @phpstan-impure
 	 */
 	private function parse_type( string $type ): ?TypeNode {
 		if ( ! array_key_exists( $type, $this->parsed ) ) {
@@ -1270,6 +1284,8 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param string $type Type as written in the docblock.
 	 * @return TypeNode|null The parsed type, or null if the whole string is not one.
+	 *
+	 * @phpstan-impure
 	 */
 	private function parse_uncached( string $type ): ?TypeNode {
 		if ( null === $this->lexer || null === $this->type_parser ) {

@@ -363,6 +363,8 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @since 4.9.6
 	 * @since 5.1.0 Added support for column sorting.
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		$this->items    = array();

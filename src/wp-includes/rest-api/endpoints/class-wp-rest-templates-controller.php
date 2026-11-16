@@ -1065,6 +1065,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 5.9.0 Added `'area'`.
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

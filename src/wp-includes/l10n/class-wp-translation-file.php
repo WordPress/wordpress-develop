@@ -213,6 +213,8 @@ abstract class WP_Translation_File {
 	 *
 	 * @param int $number Count.
 	 * @return int Plural form.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_plural_form( int $number ): int {
 		if ( ! $this->parsed ) {
@@ -281,6 +283,8 @@ abstract class WP_Translation_File {
 	 *
 	 * @param WP_Translation_File $source Source file.
 	 * @return bool True on success, false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function import( WP_Translation_File $source ): bool {
 		if ( null !== $source->error() ) {

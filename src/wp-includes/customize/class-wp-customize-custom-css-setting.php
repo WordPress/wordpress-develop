@@ -79,6 +79,8 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	 * @since 4.7.9
 	 *
 	 * @return bool False when preview short-circuits due no change needing to be previewed.
+	 *
+	 * @phpstan-impure
 	 */
 	public function preview() {
 		if ( $this->is_previewed ) {

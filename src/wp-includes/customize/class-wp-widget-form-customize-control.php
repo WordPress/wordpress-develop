@@ -85,6 +85,8 @@ class WP_Widget_Form_Customize_Control extends WP_Customize_Control {
 	 * @since 3.9.0
 	 *
 	 * @global array $wp_registered_widgets
+	 *
+	 * @phpstan-impure
 	 */
 	public function to_json() {
 		global $wp_registered_widgets;

@@ -59,6 +59,8 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param array<int, Node> $nodes Top-level nodes about to be traversed.
 	 * @return array<int, Node>|null
+	 *
+	 * @phpstan-impure
 	 */
 	public function beforeTraverse( array $nodes ): ?array {
 		$this->stack = array();
@@ -71,6 +73,8 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param Node $node The node being entered.
 	 * @return null
+	 *
+	 * @phpstan-impure
 	 */
 	public function enterNode( Node $node ): ?Node {
 		if ( $node instanceof Node\FunctionLike ) {

@@ -73,6 +73,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		$taxonomy = $this->screen->taxonomy;
@@ -334,6 +336,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 *
 	 * @param WP_Term $tag   Term object.
 	 * @param int     $level
+	 *
+	 * @phpstan-impure
 	 */
 	public function single_row( $tag, $level = 0 ) {
 		global $taxonomy;

@@ -38,6 +38,8 @@ class WP_Style_Engine_Processor {
 	 *
 	 * @param WP_Style_Engine_CSS_Rules_Store $store The store to add.
 	 * @return WP_Style_Engine_Processor Returns the object to allow chaining methods.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_store( $store ) {
 		if ( ! $store instanceof WP_Style_Engine_CSS_Rules_Store ) {
@@ -64,6 +66,8 @@ class WP_Style_Engine_Processor {
 	 *                                                                       WP_Style_Engine_CSS_Rule objects
 	 *                                                                       from a store or otherwise.
 	 * @return WP_Style_Engine_Processor Returns the object to allow chaining methods.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_rules( $css_rules ) {
 		if ( ! is_array( $css_rules ) ) {
@@ -146,6 +150,8 @@ class WP_Style_Engine_Processor {
 	 * Combines selectors from the rules store when they have the same styles.
 	 *
 	 * @since 6.1.0
+	 *
+	 * @phpstan-impure
 	 */
 	private function combine_rules_selectors() {
 		// Build an array of selectors along with the JSON-ified styles to make comparisons easier.

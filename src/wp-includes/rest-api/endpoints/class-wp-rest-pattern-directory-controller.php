@@ -227,6 +227,8 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * @since 6.2.0 Added `'block_types'` to schema.
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

@@ -111,6 +111,8 @@ class WP_HTML_Active_Formatting_Elements {
 	 * @link https://html.spec.whatwg.org/#push-onto-the-list-of-active-formatting-elements
 	 *
 	 * @param WP_HTML_Token $token Push this node onto the stack.
+	 *
+	 * @phpstan-impure
 	 */
 	public function push( WP_HTML_Token $token ) {
 		/*

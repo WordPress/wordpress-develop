@@ -45,6 +45,8 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 	 *
 	 * @param mixed $value The value to update.
 	 * @return true Always returns true.
+	 *
+	 * @phpstan-impure
 	 */
 	public function update( $value ) {
 		global $custom_image_header;

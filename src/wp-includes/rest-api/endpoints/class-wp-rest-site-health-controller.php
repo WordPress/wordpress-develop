@@ -346,6 +346,8 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * @since 5.6.0
 	 *
 	 * @return array The test schema.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

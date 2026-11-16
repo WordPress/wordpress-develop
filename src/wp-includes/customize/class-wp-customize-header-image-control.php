@@ -104,6 +104,8 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	 * @since 3.9.0
 	 *
 	 * @global Custom_Image_Header $custom_image_header
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_control() {
 		global $custom_image_header;

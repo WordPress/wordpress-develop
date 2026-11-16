@@ -63,6 +63,8 @@ final class HookDocsVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param Node[] $nodes Nodes about to be traversed.
 	 * @return Node[]|null
+	 *
+	 * @phpstan-impure
 	 */
 	public function beforeTraverse( array $nodes ): ?array {
 		$this->latestDocComment = null;
@@ -76,6 +78,8 @@ final class HookDocsVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param Node $node Node being entered.
 	 * @return Node|null
+	 *
+	 * @phpstan-impure
 	 */
 	public function enterNode( Node $node ): ?Node {
 		$doc = $node->getDocComment();
@@ -108,6 +112,8 @@ final class HookDocsVisitor extends NodeVisitorAbstract {
 	 *
 	 * @param Node $node Node being left.
 	 * @return Node|null
+	 *
+	 * @phpstan-impure
 	 */
 	public function leaveNode( Node $node ): ?Node {
 		$top = end( $this->stack );

@@ -50,6 +50,8 @@ final class WP_Block_Pattern_Categories_Registry {
 	 *     @type string $description Optional. A human-readable description of the pattern category.
 	 * }
 	 * @return bool True if the pattern category was registered with success and false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( $category_name, $category_properties ) {
 		if ( ! isset( $category_name ) || ! is_string( $category_name ) ) {
@@ -85,6 +87,8 @@ final class WP_Block_Pattern_Categories_Registry {
 	 *
 	 * @param string $category_name Pattern category name including namespace.
 	 * @return bool True if the pattern was unregistered with success and false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( $category_name ) {
 		if ( ! $this->is_registered( $category_name ) ) {
@@ -155,6 +159,8 @@ final class WP_Block_Pattern_Categories_Registry {
 	 * @since 5.5.0
 	 *
 	 * @return WP_Block_Pattern_Categories_Registry The main instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		self::$instance ??= new self();

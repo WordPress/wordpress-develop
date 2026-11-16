@@ -503,6 +503,8 @@ class WP_Rewrite {
 	 * @since 1.5.0
 	 *
 	 * @return string|false Date permalink structure on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_date_permastruct() {
 		if ( isset( $this->date_structure ) ) {
@@ -673,6 +675,8 @@ class WP_Rewrite {
 	 * @since 1.5.0
 	 *
 	 * @return string|false Author permalink structure on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_author_permastruct() {
 		if ( isset( $this->author_structure ) ) {
@@ -699,6 +703,8 @@ class WP_Rewrite {
 	 * @since 1.5.0
 	 *
 	 * @return string|false Search permalink structure on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_search_permastruct() {
 		if ( isset( $this->search_structure ) ) {
@@ -725,6 +731,8 @@ class WP_Rewrite {
 	 * @since 1.5.0
 	 *
 	 * @return string|false Page permalink structure on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_page_permastruct() {
 		if ( isset( $this->page_structure ) ) {
@@ -751,6 +759,8 @@ class WP_Rewrite {
 	 * @since 1.5.0
 	 *
 	 * @return string|false Feed permalink structure on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_feed_permastruct() {
 		if ( isset( $this->feed_structure ) ) {
@@ -777,6 +787,8 @@ class WP_Rewrite {
 	 * @since 1.5.0
 	 *
 	 * @return string|false Comment feed permalink structure on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_comment_feed_permastruct() {
 		if ( isset( $this->comment_feed_structure ) ) {
@@ -808,6 +820,8 @@ class WP_Rewrite {
 	 * @param string $tag   Name of the rewrite tag to add or update.
 	 * @param string $regex Regular expression to substitute the tag for in rewrite rules.
 	 * @param string $query String to append to the rewritten query. Must end in '='.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_rewrite_tag( $tag, $regex, $query ) {
 		$position = array_search( $tag, $this->rewritecode, true );
@@ -832,6 +846,8 @@ class WP_Rewrite {
 	 * @see WP_Rewrite::$queryreplace
 	 *
 	 * @param string $tag Name of the rewrite tag to remove.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_rewrite_tag( $tag ) {
 		$position = array_search( $tag, $this->rewritecode, true );
@@ -1291,6 +1307,8 @@ class WP_Rewrite {
 	 * @since 1.5.0
 	 *
 	 * @return array<string, string> An associative array of matches and queries.
+	 *
+	 * @phpstan-impure
 	 */
 	public function rewrite_rules() {
 		$rewrite = array();
@@ -1658,6 +1676,8 @@ class WP_Rewrite {
 	 * @since 1.5.0
 	 *
 	 * @return string[] Array of rewrite rules keyed by their regex pattern.
+	 *
+	 * @phpstan-impure
 	 */
 	public function wp_rewrite_rules() {
 		$this->rules = get_option( 'rewrite_rules' );
@@ -1674,6 +1694,8 @@ class WP_Rewrite {
 	 * If the {@see 'wp_loaded'} action has not occurred yet, will postpone saving to the database.
 	 *
 	 * @since 6.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	private function refresh_rewrite_rules() {
 		$this->rules   = '';
@@ -1704,6 +1726,8 @@ class WP_Rewrite {
 	 * @since 1.5.0
 	 *
 	 * @return string
+	 *
+	 * @phpstan-impure
 	 */
 	public function mod_rewrite_rules() {
 		if ( ! $this->using_permalinks() ) {
@@ -1849,6 +1873,8 @@ class WP_Rewrite {
 	 * @param string|array $query The corresponding query vars for this rewrite rule.
 	 * @param string       $after Optional. Priority of the new rule. Accepts 'top'
 	 *                            or 'bottom'. Default 'bottom'.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_rule( $regex, $query, $after = 'bottom' ) {
 		if ( is_array( $query ) ) {
@@ -1880,6 +1906,8 @@ class WP_Rewrite {
 	 *
 	 * @param string $regex Regular expression to match request against.
 	 * @param string $query The corresponding query vars for this rewrite rule.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_external_rule( $regex, $query ) {
 		$this->non_wp_rules[ $regex ] = $query;
@@ -1917,6 +1945,8 @@ class WP_Rewrite {
 	 * @param string|bool $query_var Optional. Name of the corresponding query variable. Pass `false` to
 	 *                               skip registering a query_var for this endpoint. Defaults to the
 	 *                               value of `$name`.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_endpoint( $name, $places, $query_var = true ) {
 		global $wp;
@@ -1983,6 +2013,8 @@ class WP_Rewrite {
 	 *                             and rewrite rules built for each in-turn. Default true.
 	 *     @type bool $endpoints   Whether endpoints should be applied to the generated rules. Default true.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_permastruct( $name, $struct, $args = array() ) {
 		// Back-compat for the old parameters: $with_front and $ep_mask.
@@ -2024,6 +2056,8 @@ class WP_Rewrite {
 	 * @since 4.5.0
 	 *
 	 * @param string $name Name for permalink structure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_permastruct( $name ) {
 		unset( $this->extra_permastructs[ $name ] );
@@ -2084,6 +2118,8 @@ class WP_Rewrite {
 	 * '%tag%', or '%author%'.
 	 *
 	 * @since 1.5.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function init() {
 		$this->extra_rules         = array();

@@ -69,6 +69,8 @@ final class WP_Speculation_Rules implements JsonSerializable {
 	 * @param string               $id   Unique string identifier for the speculation rule.
 	 * @param array<string, mixed> $rule Associative array of rule arguments.
 	 * @return bool True on success, false if invalid parameters are provided.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_rule( string $mode, string $id, array $rule ): bool {
 		if ( ! self::is_valid_mode( $mode ) ) {

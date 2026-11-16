@@ -88,6 +88,8 @@ class WP_Block_Parser {
 	 *                                         inner blocks were found.
 	 *     }
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function parse( $document ) {
 		if ( is_object( $document ) && method_exists( $document, '__toString' ) ) {
@@ -136,6 +138,8 @@ class WP_Block_Parser {
 	 * @since 5.0.0
 	 *
 	 * @return bool
+	 *
+	 * @phpstan-impure
 	 */
 	public function proceed() {
 		// Ensure this is initialized, because some legacy code calls this method directly.
@@ -297,6 +301,8 @@ class WP_Block_Parser {
 	 * @deprecated 7.2.0 Use {@see WP_Block_Processor} instead.
 	 *
 	 * @return array
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_token() {
 		// Ensure this is initialized, because some legacy code calls this method directly.
@@ -354,6 +360,8 @@ class WP_Block_Parser {
 	 * @since 5.0.0
 	 *
 	 * @param null|int $length How many bytes of document text to output.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_freeform( $length = null ) {
 		$length ??= strlen( $this->document ) - $this->offset;
@@ -398,6 +406,8 @@ class WP_Block_Parser {
 	 * @since 5.0.0
 	 *
 	 * @param int|null $end_offset byte offset into document for where we should stop sending text output as HTML.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_block_from_stack( $end_offset = null ) {
 		$stack_top   = array_pop( $this->stack );

@@ -144,6 +144,8 @@ class WP_Site_Icon {
 	 *
 	 * @param array[] $sizes Array of arrays containing information for additional sizes.
 	 * @return array[] Array of arrays containing additional image sizes.
+	 *
+	 * @phpstan-impure
 	 */
 	public function additional_sizes( $sizes = array() ) {
 		$only_crop_sizes = array();
@@ -188,6 +190,8 @@ class WP_Site_Icon {
 	 *
 	 * @param string[] $sizes Array of image size names.
 	 * @return string[] Array of image size names.
+	 *
+	 * @phpstan-impure
 	 */
 	public function intermediate_image_sizes( $sizes = array() ) {
 		/** This filter is documented in wp-admin/includes/class-wp-site-icon.php */

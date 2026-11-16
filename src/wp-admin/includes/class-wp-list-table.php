@@ -233,6 +233,8 @@ class WP_List_Table {
 	 *
 	 * @param string $name  Property to check if set.
 	 * @param mixed  $value Property value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function __set( $name, $value ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
@@ -337,6 +339,8 @@ class WP_List_Table {
 	 * @since 3.1.0
 	 *
 	 * @param array|string $args Array or string of arguments with information about the pagination.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function set_pagination_args( $args ) {
 		$args = wp_parse_args(
@@ -605,6 +609,8 @@ class WP_List_Table {
 	 *
 	 * @param string $which The location of the bulk actions: Either 'top' or 'bottom'.
 	 *                      This is designated as optional for backward compatibility.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function bulk_actions( $which = '' ) {
 		if ( is_null( $this->_actions ) ) {
@@ -1054,6 +1060,8 @@ class WP_List_Table {
 	 * @param string $which The location of the pagination: Either 'top' or 'bottom'.
 	 *
 	 * @phpstan-param 'top'|'bottom' $which
+	 *
+	 * @phpstan-impure
 	 */
 	protected function pagination( $which ) {
 		if ( empty( $this->_pagination_args['total_items'] ) ) {
@@ -1336,6 +1344,8 @@ class WP_List_Table {
 	 * @since 3.1.0
 	 *
 	 * @return array<int, array|string> Column information.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function get_column_info() {
 		// $_column_headers is already set / cached.

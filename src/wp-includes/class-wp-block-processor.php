@@ -733,6 +733,8 @@ class WP_Block_Processor {
 	 * @since 6.9.0
 	 *
 	 * @return bool Whether a token was matched or the end of the document was reached without finding any.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_token(): bool {
 		if ( $this->last_error || self::COMPLETE === $this->state || self::INCOMPLETE_INPUT === $this->state ) {
@@ -1898,6 +1900,8 @@ class WP_Block_Processor {
 	 * @since 6.9.0
 	 *
 	 * @return array|null Parsed JSON attributes, if present and valid, otherwise `null`.
+	 *
+	 * @phpstan-impure
 	 */
 	public function allocate_and_return_parsed_attributes(): ?array {
 		$this->last_json_error = JSON_ERROR_NONE;

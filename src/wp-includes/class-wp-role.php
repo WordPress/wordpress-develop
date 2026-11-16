@@ -55,6 +55,8 @@ class WP_Role {
 	 *
 	 * @param string $cap   Capability name.
 	 * @param bool   $grant Whether role has capability privilege.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_cap( $cap, $grant = true ) {
 		$this->capabilities[ $cap ] = $grant;
@@ -67,6 +69,8 @@ class WP_Role {
 	 * @since 2.0.0
 	 *
 	 * @param string $cap Capability name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_cap( $cap ) {
 		unset( $this->capabilities[ $cap ] );

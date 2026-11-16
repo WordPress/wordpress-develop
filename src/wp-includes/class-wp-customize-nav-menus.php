@@ -1358,6 +1358,8 @@ final class WP_Customize_Nav_Menus {
 	 * @since 4.7.0
 	 *
 	 * @global stdClass[] $wp_post_statuses List of post statuses.
+	 *
+	 * @phpstan-impure
 	 */
 	public function make_auto_draft_status_previewable() {
 		global $wp_post_statuses;
@@ -1445,6 +1447,8 @@ final class WP_Customize_Nav_Menus {
 	 *
 	 * @param array $args An array containing wp_nav_menu() arguments.
 	 * @return array Arguments.
+	 *
+	 * @phpstan-impure
 	 */
 	public function filter_wp_nav_menu_args( $args ) {
 		/*

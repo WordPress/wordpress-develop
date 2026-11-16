@@ -335,6 +335,8 @@ class WP_Comment_Query {
 	 * @since 4.2.0 Extracted from WP_Comment_Query::query().
 	 *
 	 * @param string|array $query WP_Comment_Query arguments. See WP_Comment_Query::__construct() for accepted arguments.
+	 *
+	 * @phpstan-impure
 	 */
 	public function parse_query( $query = '' ) {
 		if ( empty( $query ) ) {
@@ -371,6 +373,8 @@ class WP_Comment_Query {
 	 *         $query is array{ fields: 'ids', ... } ? non-negative-int[] : array<int, WP_Comment>
 	 *     )
 	 * )
+	 *
+	 * @phpstan-impure
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -386,6 +390,8 @@ class WP_Comment_Query {
 	 *
 	 * @return int|int[]|WP_Comment[] List of comments or number of found comments if `$count` argument is true.
 	 * @phpstan-return array<int, WP_Comment>|non-negative-int[]|non-negative-int
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_comments() {
 		global $wpdb;
@@ -555,6 +561,8 @@ class WP_Comment_Query {
 	 *
 	 * @return int|array A single count of comment IDs if a count query. An array of comment IDs if a full query.
 	 * @phpstan-return non-negative-int|list<non-negative-int>
+	 *
+	 * @phpstan-impure
 	 */
 	protected function get_comment_ids() {
 		global $wpdb;
@@ -1018,6 +1026,8 @@ class WP_Comment_Query {
 	 * @since 4.6.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @phpstan-impure
 	 */
 	private function set_found_comments() {
 		global $wpdb;

@@ -621,6 +621,8 @@ final class WP_Customize_Manager {
 	 * @since 4.9.0
 	 *
 	 * @global string $pagenow The filename of the current screen.
+	 *
+	 * @phpstan-impure
 	 */
 	public function establish_loaded_changeset() {
 		global $pagenow;
@@ -682,6 +684,8 @@ final class WP_Customize_Manager {
 	 * to swap it out at runtime.
 	 *
 	 * @since 3.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function start_previewing_theme() {
 		// Bail if we're already previewing.
@@ -721,6 +725,8 @@ final class WP_Customize_Manager {
 	 * Removes filters to change the active theme.
 	 *
 	 * @since 3.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function stop_previewing_theme() {
 		if ( ! $this->is_preview() ) {
@@ -787,6 +793,8 @@ final class WP_Customize_Manager {
 	 * @see WP_Customize_Manager::establish_loaded_changeset()
 	 *
 	 * @return bool Is changeset branching.
+	 *
+	 * @phpstan-impure
 	 */
 	public function branching() {
 
@@ -842,6 +850,8 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 *
 	 * @return WP_Theme
+	 *
+	 * @phpstan-impure
 	 */
 	public function theme() {
 		if ( ! $this->theme ) {
@@ -1103,6 +1113,8 @@ final class WP_Customize_Manager {
 	 * @since 4.7.0
 	 *
 	 * @return int|null Post ID on success or null if there is no post yet saved.
+	 *
+	 * @phpstan-impure
 	 */
 	public function changeset_post_id() {
 		if ( ! isset( $this->_changeset_post_id ) ) {
@@ -1159,6 +1171,8 @@ final class WP_Customize_Manager {
 	 * @since 4.9.0 This will return the changeset's data with a user's autosave revision merged on top, if one exists and $autosaved is true.
 	 *
 	 * @return array Changeset data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function changeset_data() {
 		if ( isset( $this->_changeset_data ) ) {
@@ -1205,6 +1219,8 @@ final class WP_Customize_Manager {
 	 * @since 4.7.0
 	 *
 	 * @param array $starter_content Starter content. Defaults to `get_theme_starter_content()`.
+	 *
+	 * @phpstan-impure
 	 */
 	public function import_theme_starter_content( $starter_content = array() ) {
 		if ( empty( $starter_content ) ) {
@@ -1718,6 +1734,8 @@ final class WP_Customize_Manager {
 	 * Saves starter content changeset.
 	 *
 	 * @since 4.7.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function _save_starter_content_changeset() {
 
@@ -1762,6 +1780,8 @@ final class WP_Customize_Manager {
 	 *     @type bool $exclude_post_data Whether the post input values should also be excluded. Defaults to false when lacking the customize capability.
 	 * }
 	 * @return array
+	 *
+	 * @phpstan-impure
 	 */
 	public function unsanitized_post_values( $args = array() ) {
 		$args = array_merge(
@@ -1869,6 +1889,8 @@ final class WP_Customize_Manager {
 	 *
 	 * @param string $setting_id ID for the WP_Customize_Setting instance.
 	 * @param mixed  $value      Post value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_post_value( $setting_id, $value ) {
 		$this->unsanitized_post_values(); // Populate _post_values from $_POST['customized'].
@@ -2644,6 +2666,8 @@ final class WP_Customize_Manager {
 	 * }
 	 *
 	 * @return array|WP_Error Returns array on success and WP_Error with array data on error.
+	 *
+	 * @phpstan-impure
 	 */
 	public function save_changeset_post( $args = array() ) {
 
@@ -3478,6 +3502,8 @@ final class WP_Customize_Manager {
 	 *
 	 * @param int $changeset_post_id ID for customize_changeset post. Defaults to the changeset for the current manager instance.
 	 * @return true|WP_Error True or error info.
+	 *
+	 * @phpstan-impure
 	 */
 	public function _publish_changeset_values( $changeset_post_id ) {
 		global $wpdb;
@@ -3779,6 +3805,8 @@ final class WP_Customize_Manager {
 	 *                                          See WP_Customize_Setting::__construct() for information
 	 *                                          on accepted arguments. Default empty array.
 	 * @return WP_Customize_Setting The instance of the setting that was added.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_setting( $id, $args = array() ) {
 		if ( $id instanceof WP_Customize_Setting ) {
@@ -3880,6 +3908,8 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 *
 	 * @param string $id Customize Setting ID.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_setting( $id ) {
 		unset( $this->settings[ $id ] );
@@ -3898,6 +3928,8 @@ final class WP_Customize_Manager {
 	 *                                        See WP_Customize_Panel::__construct() for information
 	 *                                        on accepted arguments. Default empty array.
 	 * @return WP_Customize_Panel The instance of the panel that was added.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_panel( $id, $args = array() ) {
 		if ( $id instanceof WP_Customize_Panel ) {
@@ -3930,6 +3962,8 @@ final class WP_Customize_Manager {
 	 * @since 4.0.0
 	 *
 	 * @param string $id Panel ID to remove.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_panel( $id ) {
 		// Removing core components this way is _doing_it_wrong().
@@ -3962,6 +3996,8 @@ final class WP_Customize_Manager {
 	 * @see WP_Customize_Panel
 	 *
 	 * @param string $panel Name of a custom panel which is a subclass of WP_Customize_Panel.
+	 *
+	 * @phpstan-impure
 	 */
 	public function register_panel_type( $panel ) {
 		$this->registered_panel_types[] = $panel;
@@ -3992,6 +4028,8 @@ final class WP_Customize_Manager {
 	 *                                          See WP_Customize_Section::__construct() for information
 	 *                                          on accepted arguments. Default empty array.
 	 * @return WP_Customize_Section The instance of the section that was added.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_section( $id, $args = array() ) {
 		if ( $id instanceof WP_Customize_Section ) {
@@ -4024,6 +4062,8 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 *
 	 * @param string $id Section ID.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_section( $id ) {
 		unset( $this->sections[ $id ] );
@@ -4039,6 +4079,8 @@ final class WP_Customize_Manager {
 	 * @see WP_Customize_Section
 	 *
 	 * @param string $section Name of a custom section which is a subclass of WP_Customize_Section.
+	 *
+	 * @phpstan-impure
 	 */
 	public function register_section_type( $section ) {
 		$this->registered_section_types[] = $section;
@@ -4069,6 +4111,8 @@ final class WP_Customize_Manager {
 	 *                                          See WP_Customize_Control::__construct() for information
 	 *                                          on accepted arguments. Default empty array.
 	 * @return WP_Customize_Control The instance of the control that was added.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_control( $id, $args = array() ) {
 		if ( $id instanceof WP_Customize_Control ) {
@@ -4101,6 +4145,8 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 *
 	 * @param string $id ID of the control.
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_control( $id ) {
 		unset( $this->controls[ $id ] );
@@ -4115,6 +4161,8 @@ final class WP_Customize_Manager {
 	 *
 	 * @param string $control Name of a custom control which is a subclass of
 	 *                        WP_Customize_Control.
+	 *
+	 * @phpstan-impure
 	 */
 	public function register_control_type( $control ) {
 		$this->registered_control_types[] = $control;
@@ -4435,6 +4483,8 @@ final class WP_Customize_Manager {
 	 * and sort by priority.
 	 *
 	 * @since 3.4.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_controls() {
 
@@ -4599,6 +4649,8 @@ final class WP_Customize_Manager {
 	 * @since 4.4.0
 	 *
 	 * @param string $preview_url URL to be previewed.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_preview_url( $preview_url ) {
 		$preview_url       = sanitize_url( $preview_url );
@@ -4687,6 +4739,8 @@ final class WP_Customize_Manager {
 	 * @since 4.4.0
 	 *
 	 * @param string $return_url URL for return link.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_return_url( $return_url ) {
 		$return_url       = sanitize_url( $return_url );
@@ -4750,6 +4804,8 @@ final class WP_Customize_Manager {
 	 *     @type string $section ID for section to be autofocused.
 	 *     @type string $panel   ID for panel to be autofocused.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_autofocus( $autofocus ) {
 		$this->autofocus = array_filter( wp_array_slice_assoc( $autofocus, array( 'panel', 'section', 'control' ) ), 'is_string' );

@@ -70,6 +70,8 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 	 *
 	 * @since 3.4.0
 	 * @uses WP_Customize_Control::to_json()
+	 *
+	 * @phpstan-impure
 	 */
 	public function to_json() {
 		parent::to_json();

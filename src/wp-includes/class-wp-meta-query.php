@@ -188,6 +188,8 @@ class WP_Meta_Query {
 	 *
 	 * @param array $queries Array of query clauses.
 	 * @return array Sanitized array of query clauses.
+	 *
+	 * @phpstan-impure
 	 */
 	public function sanitize_query( $queries ) {
 		$clean_queries = array();
@@ -353,6 +355,8 @@ class WP_Meta_Query {
 	 *     @type string $join  SQL fragment to append to the main JOIN clause.
 	 *     @type string $where SQL fragment to append to the main WHERE clause.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_sql( $type, $primary_table, $primary_id_column, $context = null ) {
 		$meta_table = _get_meta_table( $type );
@@ -529,6 +533,8 @@ class WP_Meta_Query {
 	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
 	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_sql_for_clause( &$clause, $parent_query, $clause_key = '' ) {
 		global $wpdb;

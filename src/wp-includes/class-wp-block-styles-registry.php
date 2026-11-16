@@ -77,6 +77,8 @@ final class WP_Block_Styles_Registry {
 	 *     @type array<string, mixed> $style_data   Theme.json-like object to generate CSS from.
 	 * }
 	 * @return bool True if the block style was registered with success and false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( $block_name, $style_properties ) {
 
@@ -130,6 +132,8 @@ final class WP_Block_Styles_Registry {
 	 * @param string $block_name       Block type name including namespace.
 	 * @param string $block_style_name Block style name.
 	 * @return bool True if the block style was unregistered with success and false otherwise.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( $block_name, $block_style_name ) {
 		if ( ! $this->is_registered( $block_name, $block_style_name ) ) {
@@ -213,6 +217,8 @@ final class WP_Block_Styles_Registry {
 	 * @since 5.3.0
 	 *
 	 * @return WP_Block_Styles_Registry The main instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		self::$instance ??= new self();

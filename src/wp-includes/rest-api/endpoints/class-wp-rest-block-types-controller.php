@@ -417,6 +417,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @since 6.3.0 Added `selectors` field.
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

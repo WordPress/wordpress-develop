@@ -183,6 +183,8 @@ class WP_Upgrader {
 	 * Adds the generic strings to WP_Upgrader::$strings.
 	 *
 	 * @since 2.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function generic_strings() {
 		$this->strings['bad_request']    = __( 'Invalid data provided.' );
@@ -537,6 +539,8 @@ class WP_Upgrader {
 	 * }
 	 *
 	 * @return array|WP_Error The result (also stored in `WP_Upgrader::$result`), or a WP_Error on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function install_package( $args = array() ) {
 		global $wp_filesystem, $wp_theme_directories;
@@ -801,6 +805,8 @@ class WP_Upgrader {
 	 * }
 	 * @return array|false|WP_Error The result from self::install_package() on success, otherwise a WP_Error,
 	 *                              or false if unable to connect to the filesystem.
+	 *
+	 * @phpstan-impure
 	 */
 	public function run( $options ) {
 

@@ -426,6 +426,8 @@ class WP_Block_Type {
 	 *
 	 * @param string $name  Property name.
 	 * @param mixed  $value Property value.
+	 *
+	 * @phpstan-impure
 	 */
 	public function __set( $name, $value ) {
 		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
@@ -546,6 +548,8 @@ class WP_Block_Type {
 	 *
 	 * @param array|string $args Array or string of arguments for registering a block type.
 	 *                           See WP_Block_Type::__construct() for information on accepted arguments.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_props( $args ) {
 		$args = wp_parse_args(
@@ -603,6 +607,8 @@ class WP_Block_Type {
 	 * @since 6.5.0
 	 *
 	 * @return array[]
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_variations() {
 		if ( ! isset( $this->variations ) ) {

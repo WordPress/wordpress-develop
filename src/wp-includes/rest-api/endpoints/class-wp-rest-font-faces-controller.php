@@ -499,6 +499,8 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @since 6.5.0
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

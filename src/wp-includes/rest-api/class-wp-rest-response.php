@@ -103,6 +103,8 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @phpstan-param non-falsy-string $rel
 	 * @phpstan-param non-falsy-string $href
 	 * @phpstan-param Link_Attributes  $attributes
+	 *
+	 * @phpstan-impure
 	 */
 	public function add_link( $rel, $href, $attributes = array() ) {
 		if ( empty( $this->links[ $rel ] ) ) {
@@ -130,6 +132,8 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *                          Default null.
 	 *
 	 * @phpstan-param non-falsy-string $rel
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove_link( $rel, $href = null ) {
 		if ( ! isset( $this->links[ $rel ] ) ) {
@@ -234,6 +238,8 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @since 4.4.0
 	 *
 	 * @param string $route Route name.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_matched_route( $route ) {
 		$this->matched_route = $route;
@@ -260,6 +266,8 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @param array<string, mixed> $handler The matched handler.
 	 *
 	 * @phpstan-param Route_Handler $handler
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_matched_handler( $handler ) {
 		$this->matched_handler = $handler;
@@ -304,6 +312,8 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *                                             and `links` features are on. A feature not named stays on.
 	 *
 	 * @phpstan-param bool|array{fields?: bool, embed?: bool, links?: bool} $processing
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_data_processing( $processing ) {
 		$this->data_processing = WP_REST_Server::resolve_data_processing( array( 'data_processing' => $processing ) );

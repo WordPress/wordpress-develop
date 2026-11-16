@@ -59,6 +59,13 @@ services:
 		tags:
 			- phpstan.rules.rule
 
+	# Enforces that a non-void method which writes object, class, or global state is
+	# marked `@phpstan-impure`, so that callers do not keep stale narrowed types.
+	-
+		class: WordPress\PHPStan\MissingImpureTagRule
+		tags:
+			- phpstan.rules.rule
+
 	# Runs the visitors above over every file PHPStan parses, not only the ones it
 	# analyzes.
 	#
@@ -305,6 +312,7 @@ parameters:
 		- ApplyFiltersDynamicFunctionReturnTypeExtension.php
 		- HookDocumentationRule.php
 		- HookParamCountRule.php
+		- MissingImpureTagRule.php
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:

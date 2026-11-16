@@ -219,6 +219,8 @@ class WP_REST_Icon_Collections_Controller extends WP_REST_Controller {
 	 * @since 7.1.0
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

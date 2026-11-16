@@ -239,6 +239,8 @@ class WP_Site_Query {
 	 * @see WP_Site_Query::__construct()
 	 *
 	 * @param string|array $query Array or string of WP_Site_Query arguments. See WP_Site_Query::__construct().
+	 *
+	 * @phpstan-impure
 	 */
 	public function parse_query( $query = '' ) {
 		if ( empty( $query ) ) {
@@ -271,6 +273,8 @@ class WP_Site_Query {
 	 *         $query is array{ fields: 'ids', ... } ? int[] : array<int, WP_Site>
 	 *     )
 	 * )
+	 *
+	 * @phpstan-impure
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -287,6 +291,8 @@ class WP_Site_Query {
 	 *
 	 * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
 	 *                             or the number of sites when 'count' is passed as a query var.
+	 *
+	 * @phpstan-impure
 	 */
 	public function get_sites() {
 		global $wpdb;
@@ -442,6 +448,8 @@ class WP_Site_Query {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return int|array A single count of site IDs if a count query. An array of site IDs if a full query.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function get_site_ids() {
 		global $wpdb;
@@ -735,6 +743,8 @@ class WP_Site_Query {
 	 * @since 4.6.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @phpstan-impure
 	 */
 	private function set_found_sites() {
 		global $wpdb;

@@ -82,6 +82,8 @@ class Plugin_Upgrader_Skin extends WP_Upgrader_Skin {
 	 * Performs an action following a single plugin update.
 	 *
 	 * @since 2.8.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function after() {
 		$this->plugin = $this->upgrader->plugin_info();

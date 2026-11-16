@@ -76,6 +76,8 @@ class WP_Metadata_Lazyloader {
 	 * @param string $object_type Type of object whose meta is to be lazy-loaded. Accepts 'term' or 'comment'.
 	 * @param array  $object_ids  Array of object IDs.
 	 * @return void|WP_Error WP_Error on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function queue_objects( $object_type, $object_ids ) {
 		if ( ! isset( $this->settings[ $object_type ] ) ) {
@@ -112,6 +114,8 @@ class WP_Metadata_Lazyloader {
 	 *
 	 * @param string $object_type Object type. Accepts 'comment' or 'term'.
 	 * @return void|WP_Error WP_Error on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function reset_queue( $object_type ) {
 		if ( ! isset( $this->settings[ $object_type ] ) ) {

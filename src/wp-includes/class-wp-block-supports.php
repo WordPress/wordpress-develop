@@ -58,6 +58,8 @@ class WP_Block_Supports {
 	 * @since 5.6.0
 	 *
 	 * @return WP_Block_Supports The main instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		self::$instance ??= new self();

@@ -446,6 +446,8 @@ class HookDocBlock {
 	 *
 	 * @param string $file Absolute path to the file.
 	 * @return HookDocs
+	 *
+	 * @phpstan-impure
 	 */
 	private function getHookDocs( string $file ): array {
 		$this->fileHookDocs[ $file ] ??= self::loadHookDocs( $file );

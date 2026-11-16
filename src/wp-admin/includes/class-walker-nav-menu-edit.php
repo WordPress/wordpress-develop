@@ -56,6 +56,8 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 	 * @param int      $depth             Depth of menu item. Used for padding.
 	 * @param stdClass $args              Not used.
 	 * @param int      $current_object_id Optional. ID of the current menu item. Default 0.
+	 *
+	 * @phpstan-impure
 	 */
 	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
 		global $_wp_nav_menu_max_depth;

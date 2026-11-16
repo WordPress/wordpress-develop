@@ -46,6 +46,8 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * @global string $s       Search string.
 	 * @global string $orderby The field to order the links by.
 	 * @global string $order   The direction to order the links.
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		global $cat_id, $s, $orderby, $order;

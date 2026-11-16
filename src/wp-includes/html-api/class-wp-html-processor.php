@@ -814,6 +814,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @ignore
 	 *
 	 * @return bool
+	 *
+	 * @phpstan-impure
 	 */
 	private function next_visitable_token(): bool {
 		$this->current_element = null;
@@ -1032,6 +1034,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @param string $node_to_process Whether to parse the next node or reprocess the current node.
 	 * @return bool Whether a tag was matched.
+	 *
+	 * @phpstan-impure
 	 */
 	public function step( $node_to_process = self::PROCESS_NEXT_NODE ): bool {
 		// Refuse to proceed if there was a previous error.
@@ -1582,6 +1586,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#the-initial-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_initial(): bool {
 		$token_name = $this->get_token_name();
@@ -1656,6 +1662,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#the-before-html-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_before_html(): bool {
 		$token_name = $this->get_token_name();
@@ -1755,6 +1763,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#the-before-head-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_before_head(): bool {
 		$token_name = $this->get_token_name();
@@ -1853,6 +1863,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_head(): bool {
 		$token_name = $this->get_token_name();
@@ -2076,6 +2088,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-inheadnoscript
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_head_noscript(): bool {
 		$token_name = $this->get_token_name();
@@ -2181,6 +2195,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#the-after-head-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_after_head(): bool {
 		$token_name = $this->get_token_name();
@@ -2326,6 +2342,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_body(): bool {
 		$token_name = $this->get_token_name();
@@ -3445,6 +3463,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-intable
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_table(): bool {
 		$token_name = $this->get_token_name();
@@ -3723,6 +3743,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-incaption
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_caption(): bool {
 		$tag_name = $this->get_tag();
@@ -3808,6 +3830,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-incolgroup
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_column_group(): bool {
 		$token_name = $this->get_token_name();
@@ -3918,6 +3942,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-intbody
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_table_body(): bool {
 		$tag_name = $this->get_tag();
@@ -4022,6 +4048,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-intr
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_row(): bool {
 		$tag_name = $this->get_tag();
@@ -4133,6 +4161,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-intd
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_cell(): bool {
 		$tag_name = $this->get_tag();
@@ -4238,6 +4268,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-intemplate
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_template(): bool {
 		$token_name = $this->get_token_name();
@@ -4370,6 +4402,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-afterbody
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_after_body(): bool {
 		$tag_name   = $this->get_token_name();
@@ -4461,6 +4495,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-inframeset
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_frameset(): bool {
 		$tag_name   = $this->get_token_name();
@@ -4583,6 +4619,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-afterframeset
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_after_frameset(): bool {
 		$tag_name   = $this->get_token_name();
@@ -4671,6 +4709,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_after_after_body(): bool {
 		$tag_name   = $this->get_token_name();
@@ -4807,6 +4847,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @link https://html.spec.whatwg.org/#parsing-main-inforeign
 	 *
 	 * @return bool Whether an element was found.
+	 *
+	 * @phpstan-impure
 	 */
 	private function step_in_foreign_content(): bool {
 		$tag_name   = $this->get_token_name();
@@ -5120,6 +5162,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @throws Exception When unable to allocate requested bookmark.
 	 *
 	 * @return string Name of created bookmark.
+	 *
+	 * @phpstan-impure
 	 */
 	private function bookmark_token() {
 		if ( ! parent::set_bookmark( (string) ++$this->bookmark_counter ) ) {
@@ -5533,6 +5577,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
+	 *
+	 * @phpstan-impure
 	 */
 	public function seek( $bookmark_name ): bool {
 		// Flush any pending updates to the document before beginning.
@@ -6297,6 +6343,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return WP_HTML_Token Newly-created virtual token.
 	 *
 	 * @phpstan-param non-falsy-string $token_name
+	 *
+	 * @phpstan-impure
 	 */
 	private function insert_virtual_node( $token_name, $bookmark_name = null ): WP_HTML_Token {
 		$here = $this->bookmarks[ $this->state->current_token->bookmark_name ];

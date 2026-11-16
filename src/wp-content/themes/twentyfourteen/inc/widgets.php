@@ -71,6 +71,8 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 *
 	 * @param array $args     An array of standard parameters for widgets in this theme.
 	 * @param array $instance An array of settings for this widget instance.
+	 *
+	 * @phpstan-impure
 	 */
 	public function widget( $args, $instance ) {
 		$format = isset( $instance['format'] ) ? $instance['format'] : '';

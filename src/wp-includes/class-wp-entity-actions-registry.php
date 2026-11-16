@@ -110,6 +110,8 @@ class WP_Entity_Actions_Registry {
 	 * @since 7.2.0
 	 *
 	 * @return WP_Entity_Actions_Registry The registry.
+	 *
+	 * @phpstan-impure
 	 */
 	public static function get_instance() {
 		if ( null === self::$instance ) {
@@ -151,6 +153,8 @@ class WP_Entity_Actions_Registry {
 	 *                  call. Empty when none is, when called outside the
 	 *                  `wp_entity_actions_api_init` action, or when an argument is
 	 *                  invalid.
+	 *
+	 * @phpstan-impure
 	 */
 	public function register( $origin, $kind, $name, $actions, $script_module = null ) {
 		if ( ! $this->validate_arguments( __METHOD__, $origin, $kind, $name, $actions, $script_module ) ) {
@@ -315,6 +319,8 @@ class WP_Entity_Actions_Registry {
 	 *                 Empty when none of the actions is registered, when
 	 *                 called outside the `wp_entity_actions_api_init` action, or
 	 *                 when the entity is invalid.
+	 *
+	 * @phpstan-impure
 	 */
 	public function unregister( $kind, $name, $ids = null ) {
 		if ( ! $this->doing_entity_actions_api_init( __METHOD__ ) || ! $this->validate_entity( __METHOD__, $kind, $name ) ) {
@@ -472,6 +478,8 @@ class WP_Entity_Actions_Registry {
 	 * doing_action() check for the reads made while it runs.
 	 *
 	 * @since 7.2.0
+	 *
+	 * @phpstan-impure
 	 */
 	protected function initialize() {
 		if ( $this->initialized ) {
@@ -713,6 +721,8 @@ class WP_Entity_Actions_Registry {
 	 * @param string      $name          The entity name.
 	 * @param string[]    $ids           The ids of the actions.
 	 * @param string|null $script_module The id of the script module, if any.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function add_action_module( $kind, $name, $ids, $script_module ) {
 		if ( null === $script_module ) {
@@ -737,6 +747,8 @@ class WP_Entity_Actions_Registry {
 	 *
 	 * @param string $kind The entity kind.
 	 * @param string $name The entity name.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function forget_empty_entity( $kind, $name ) {
 		if ( empty( $this->actions[ $kind ][ $name ] ) ) {

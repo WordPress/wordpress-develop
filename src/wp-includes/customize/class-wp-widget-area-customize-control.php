@@ -36,6 +36,8 @@ class WP_Widget_Area_Customize_Control extends WP_Customize_Control {
 	 * Refreshes the parameters passed to the JavaScript via JSON.
 	 *
 	 * @since 3.9.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function to_json() {
 		parent::to_json();

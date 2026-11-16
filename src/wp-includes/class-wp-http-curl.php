@@ -69,6 +69,8 @@ class WP_Http_Curl {
 	 * @param string       $url  The request URL.
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'. A WP_Error instance upon error
+	 *
+	 * @phpstan-impure
 	 */
 	public function request( $url, $args = array() ) {
 		$defaults = array(
@@ -369,6 +371,8 @@ class WP_Http_Curl {
 	 * @param resource $handle  cURL handle.
 	 * @param string   $headers cURL request headers.
 	 * @return int Length of the request headers.
+	 *
+	 * @phpstan-impure
 	 */
 	private function stream_headers( $handle, $headers ) {
 		$this->headers .= $headers;
@@ -387,6 +391,8 @@ class WP_Http_Curl {
 	 * @param resource $handle cURL handle.
 	 * @param string   $data   cURL request body.
 	 * @return int Total bytes of data written.
+	 *
+	 * @phpstan-impure
 	 */
 	private function stream_body( $handle, $data ) {
 		$data_length = strlen( $data );

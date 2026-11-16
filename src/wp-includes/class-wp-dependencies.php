@@ -130,6 +130,8 @@ class WP_Dependencies {
 	 *                                       Default false.
 	 * @param int|false             $group   Optional. Group level: level (int), no group (false).
 	 * @return string[] Array of handles of items that have been processed.
+	 *
+	 * @phpstan-impure
 	 */
 	public function do_items( $handles = false, $group = false ) {
 		/*
@@ -189,6 +191,8 @@ class WP_Dependencies {
 	 * @param int|false       $group     Optional. Group level: level (int), no group (false).
 	 *                                   Default false.
 	 * @return bool True on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function all_deps( $handles, $recursion = false, $group = false ) {
 		$handles = (array) $handles;
@@ -277,6 +281,8 @@ class WP_Dependencies {
 	 * @param mixed            $args   Optional. Custom property of the item. NOT the class property $args.
 	 *                                 Examples: $media, $in_footer.
 	 * @return bool Whether the item has been registered. True on success, false on failure.
+	 *
+	 * @phpstan-impure
 	 */
 	public function add( $handle, $src, $deps = array(), $ver = false, $args = null ) {
 		if ( isset( $this->registered[ $handle ] ) ) {
@@ -355,6 +361,8 @@ class WP_Dependencies {
 	 * @since 2.6.0 Moved from `WP_Scripts`.
 	 *
 	 * @param string|string[] $handles Item handle (string) or item handles (array of strings).
+	 *
+	 * @phpstan-impure
 	 */
 	public function remove( $handles ) {
 		foreach ( (array) $handles as $handle ) {
@@ -374,6 +382,8 @@ class WP_Dependencies {
 	 * @since 2.6.0 Moved from `WP_Scripts`.
 	 *
 	 * @param string|string[] $handles Item handle (string) or item handles (array of strings).
+	 *
+	 * @phpstan-impure
 	 */
 	public function enqueue( $handles ) {
 		foreach ( (array) $handles as $handle ) {
@@ -408,6 +418,8 @@ class WP_Dependencies {
 	 * @since 2.6.0 Moved from `WP_Scripts`.
 	 *
 	 * @param string|string[] $handles Item handle (string) or item handles (array of strings).
+	 *
+	 * @phpstan-impure
 	 */
 	public function dequeue( $handles ) {
 		foreach ( (array) $handles as $handle ) {
@@ -434,6 +446,8 @@ class WP_Dependencies {
 	 * @param string[] $queue  An array of queued _WP_Dependency handles.
 	 * @param string   $handle Name of the item. Should be unique.
 	 * @return bool Whether the handle is found after recursively searching the dependency tree.
+	 *
+	 * @phpstan-impure
 	 */
 	protected function recurse_deps( $queue, $handle ) {
 		if ( isset( $this->all_queued_deps ) ) {
@@ -517,6 +531,8 @@ class WP_Dependencies {
 	 * @param bool      $recursion Internal flag that calling function was called recursively.
 	 * @param int|false $group     Group level: level (int), no group (false).
 	 * @return bool Not already in the group or a lower group.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_group( $handle, $recursion, $group ) {
 		$group = (int) $group;

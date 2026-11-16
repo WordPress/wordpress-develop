@@ -127,6 +127,8 @@ class Custom_Background {
 	 * Executes custom background modification.
 	 *
 	 * @since 3.0.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function take_action() {
 		if ( empty( $_POST ) ) {
@@ -515,6 +517,8 @@ class Custom_Background {
 	 * Handles an Image upload for the background image.
 	 *
 	 * @since 3.0.0
+	 *
+	 * @phpstan-impure
 	 */
 	public function handle_upload() {
 		if ( empty( $_FILES ) ) {

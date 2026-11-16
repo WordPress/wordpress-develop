@@ -204,6 +204,8 @@ abstract class WP_Image_Editor {
 	 * @param int|null $width  Image width.
 	 * @param int|null $height Image height.
 	 * @return true
+	 *
+	 * @phpstan-impure
 	 */
 	protected function update_size( $width = null, $height = null ) {
 		$this->size = array(
@@ -238,6 +240,8 @@ abstract class WP_Image_Editor {
 	 * @param array $dims    Optional. Image dimensions array with 'width' and 'height' keys.
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
 
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_quality( $quality = null, $dims = array() ) {
 		// Use the output mime type if present. If not, fall back to the input/initial mime type.
@@ -340,6 +344,8 @@ abstract class WP_Image_Editor {
 	 * @param string $filename
 	 * @param string $mime_type
 	 * @return array { filename|null, extension, mime-type }
+	 *
+	 * @phpstan-impure
 	 */
 	protected function get_output_format( $filename = null, $mime_type = null ) {
 		$new_ext = null;

@@ -133,6 +133,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @since 4.2.0
 	 *
 	 * @param bool $display Whether the table layout should be hierarchical.
+	 *
+	 * @phpstan-impure
 	 */
 	public function set_hierarchical_display( $display ) {
 		$this->hierarchical_display = $display;
@@ -150,6 +152,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @global array    $avail_post_stati
 	 * @global WP_Query $wp_query         WordPress Query object.
 	 * @global int      $per_page
+	 *
+	 * @phpstan-impure
 	 */
 	public function prepare_items() {
 		global $mode, $avail_post_stati, $wp_query, $per_page;
@@ -810,6 +814,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 	/**
 	 * @param array $posts
 	 * @param int   $level
+	 *
+	 * @phpstan-impure
 	 */
 	private function _display_rows( $posts, $level = 0 ) {
 		$post_type = $this->screen->post_type;
@@ -837,6 +843,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param array $pages
 	 * @param int   $pagenum
 	 * @param int   $per_page
+	 *
+	 * @phpstan-impure
 	 */
 	private function _display_rows_hierarchical( $pages, $pagenum = 1, $per_page = 20 ) {
 		global $wpdb;
@@ -1139,6 +1147,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @global string $mode List table view mode.
 	 *
 	 * @param WP_Post $post The current WP_Post object.
+	 *
+	 * @phpstan-impure
 	 */
 	public function column_title( $post ) {
 		global $mode;
@@ -1505,6 +1515,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 *
 	 * @param int|WP_Post $post
 	 * @param int         $level
+	 *
+	 * @phpstan-impure
 	 */
 	public function single_row( $post, $level = 0 ) {
 		$global_post = get_post();
