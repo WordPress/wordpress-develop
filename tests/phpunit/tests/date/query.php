@@ -524,10 +524,8 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	public function test_build_mysql_datetime_datetime_non_array() {
 		$q = new WP_Date_Query( array() );
 
-		// This might be a fragile test if it takes longer than 1 second to run.
-		$found    = $q->build_mysql_datetime( 'foo' );
-		$expected = gmdate( 'Y-m-d H:i:s', false );
-		$this->assertSame( $expected, $found );
+		$found = $q->build_mysql_datetime( 'foo' );
+		$this->assertSame( '1970-01-01 00:00:00', $found );
 	}
 
 	/**

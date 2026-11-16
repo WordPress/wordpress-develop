@@ -7,6 +7,11 @@
  * @covers ::next_comments_link
  */
 class Tests_Link_GetNextCommentsLink extends WP_UnitTestCase {
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '' );
+	}
 
 	public function test_page_should_respect_value_of_cpage_query_var() {
 		$p = self::factory()->post->create();

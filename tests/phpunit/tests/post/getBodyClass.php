@@ -21,8 +21,6 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		unregister_taxonomy( 'wptests_tax' );
-
 		if ( get_stylesheet() !== $this->original_stylesheet ) {
 			switch_theme( $this->original_stylesheet );
 		}
