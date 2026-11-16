@@ -11,6 +11,23 @@ define( 'WP_INSTALLING', true );
 /** Sets up the WordPress Environment. */
 require __DIR__ . '/wp-load.php';
 
+/*
+ * The posts from the main query are not used on this screen, so short-circuit
+ * the query to avoid an unnecessary database query. Singular queries, such as
+ * a static front page, are left alone so that the queried object stays available
+ * to the theme. The 404 handling is bypassed, as an empty main query
+ * should not result in a 404 status for this screen.
+ */
+add_filter(
+	'posts_pre_query',
+	static function ( $posts, $query ) {
+		return $query->is_main_query() && ! $query->is_singular() ? array() : $posts;
+	},
+	10,
+	2
+);
+add_filter( 'pre_handle_404', '__return_true' );
+
 require __DIR__ . '/wp-blog-header.php';
 
 if ( ! is_multisite() ) {
