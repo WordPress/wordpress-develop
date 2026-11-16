@@ -431,6 +431,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	/**
 	 * The ability is registered in the content category with its label and annotations.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_registers_the_ability(): void {
@@ -452,6 +453,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	/**
 	 * The ability is not registered when no post type is exposed to abilities.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_is_not_registered_without_exposed_post_types(): void {
@@ -467,6 +469,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	/**
 	 * The input schema takes `where`, with the post type and ID, and `permanent`.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_input_schema(): void {
@@ -492,6 +495,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	/**
 	 * The output holds the outcome only.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_output_schema(): void {
@@ -513,6 +517,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers S12.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_example_trashes_a_post(): void {
@@ -540,6 +545,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers S12.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_example_deletes_a_page_permanently(): void {
@@ -568,6 +574,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers S5 and S12.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_example_rejects_trashing_a_trashed_post(): void {
@@ -610,6 +617,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers S4 and S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_permission_callback_refuses_a_logged_out_user(): void {
@@ -659,6 +667,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_inputs_refused_by_the_permission_callback
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param mixed $input The input.
@@ -675,6 +684,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 * The permission callback is only a coarse gate: it lets a logged-in subscriber through, and
 	 * the execute callback decides on the post.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_permission_callback_returns_true_for_a_logged_in_user_and_an_exposed_type(): void {
@@ -709,6 +719,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_ids_that_are_not_whole_numbers_of_at_least_1
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param mixed $id The ID.
@@ -759,6 +770,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_ids_that_are_not_whole_numbers_in_a_direct_call
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param mixed $id The ID.
@@ -797,6 +809,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers S2.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_direct_call_reads_an_id_made_of_digits(): void {
@@ -844,6 +857,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_posts_that_are_not_posts
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $post The post, as a fixture name.
@@ -874,6 +888,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers S3 and S13.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_direct_call_for_a_type_that_is_not_exposed_is_not_found(): void {
@@ -903,6 +918,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers S3 and S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_type_no_longer_exposed_cannot_be_deleted(): void {
@@ -945,6 +961,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_direct_inputs_with_a_malformed_where
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param mixed $input The input.
@@ -965,6 +982,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers O1, S4 and S13.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_lookup_comes_before_the_capability(): void {
@@ -1075,6 +1093,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_trash_matrix
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $role     The role to delete as.
@@ -1192,6 +1211,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_permanent_delete_matrix
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $role     The role to delete as.
@@ -1222,6 +1242,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers S12.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_permanent_false_trashes_the_post(): void {
@@ -1260,6 +1281,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_permanent_values_that_are_not_true
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param mixed $permanent The value.
@@ -1288,6 +1310,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers S12.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_direct_call_deletes_permanently_for_boolean_true(): void {
@@ -1331,6 +1354,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_special_pages
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $page The page, as a fixture name.
@@ -1358,6 +1382,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_special_pages
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $page The page, as a fixture name.
@@ -1397,6 +1422,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_special_pages_for_a_site_administrator
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $page    The page, as a fixture name.
@@ -1428,6 +1454,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_special_pages
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $page The page, as a fixture name.
@@ -1467,6 +1494,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_operations_that_are_stopped
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param bool   $permanent Whether the delete is permanent.
@@ -1515,6 +1543,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_keys_outside_the_allow_list
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string|null $location Where the key is sent, or null for the top level.
@@ -1548,6 +1577,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers S6 and S12.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_direct_call_ignores_keys_outside_the_allow_list(): void {
@@ -1580,6 +1610,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * Covers S4.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_each_call_checks_the_current_user(): void {
@@ -1623,6 +1654,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_whole_number_forms
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $form The form of the ID.

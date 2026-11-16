@@ -389,6 +389,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The ability is registered in the content category with its label and annotations.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_registers_the_ability(): void {
@@ -410,6 +411,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The ability is not registered when no post type is exposed to abilities.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_is_not_registered_without_exposed_post_types(): void {
@@ -425,6 +427,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The input schema takes `data`, with the post type and the allowed attributes, and `fields`.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_input_schema(): void {
@@ -489,6 +492,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S11.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_output_schema_is_a_query_item(): void {
@@ -508,6 +512,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The schema enums are built from the site when the ability is registered.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_schema_enums_list_the_exposed_post_types_and_registered_statuses(): void {
@@ -535,6 +540,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * Example 1: a draft with the default fields.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_example_creates_a_draft_with_the_default_fields(): void {
@@ -567,6 +573,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * Example 2: a published child page with chosen fields.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_example_creates_a_published_child_page_with_chosen_fields(): void {
@@ -645,6 +652,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S1 and S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_example_rejects_a_parent_for_a_post_type_that_is_not_hierarchical(): void {
@@ -694,6 +702,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_users_refused_by_the_permission_callback
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string|null $role The role to log in as, or null to stay logged out.
@@ -761,6 +770,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_inputs_refused_by_the_permission_callback
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param mixed $input The input.
@@ -776,6 +786,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The permission callback returns true for a user who may create posts of an exposed type.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_permission_callback_returns_true_for_a_user_who_may_create_posts(): void {
@@ -833,6 +844,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_create_by_role_and_status
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string      $role     The role to create as.
@@ -883,6 +895,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S3 and S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_type_no_longer_exposed_cannot_be_created(): void {
@@ -971,6 +984,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_direct_inputs_without_an_exposed_type
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param mixed $input The input.
@@ -1052,6 +1066,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_invalid_data
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param array<string, mixed> $data The data.
@@ -1103,6 +1118,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_keys_outside_the_allow_list
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $key   The key.
@@ -1133,6 +1149,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S6.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_direct_call_ignores_keys_outside_the_allow_list(): void {
@@ -1221,6 +1238,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_statuses_that_can_never_be_set
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -1252,6 +1270,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_statuses_that_can_never_be_set
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -1280,6 +1299,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S1, S5 and S7.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_status_no_longer_registered_is_rejected(): void {
@@ -1373,6 +1393,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_custom_statuses_that_make_a_post_visible
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -1406,6 +1427,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_custom_statuses_that_make_a_post_visible
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -1435,6 +1457,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S7.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_custom_status_that_keeps_a_post_hidden_needs_no_publish_posts(): void {
@@ -1473,6 +1496,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_statuses_reported_as_stored
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status   The requested status.
@@ -1519,6 +1543,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_authors_named_without_edit_others_posts
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $author The author, as a fixture name.
@@ -1558,6 +1583,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A user without `edit_others_posts` may name themselves as the author.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_naming_oneself_as_the_author_needs_no_edit_others_posts(): void {
@@ -1580,6 +1606,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A user with `edit_others_posts` may name another existing user as the author.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_naming_another_author_with_edit_others_posts(): void {
@@ -1604,6 +1631,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S5 and S8.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_naming_a_missing_author_with_edit_others_posts_is_an_invalid_author(): void {
@@ -1632,6 +1660,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @group ms-required
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_naming_an_author_who_is_not_a_member_of_the_site_is_an_invalid_author(): void {
@@ -1666,6 +1695,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @group ms-required
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_naming_a_non_member_without_edit_others_posts_is_refused_like_a_missing_user(): void {
@@ -1721,6 +1751,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_parents_that_cannot_be_used
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $parent_key The parent, as a fixture name.
@@ -1756,6 +1787,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A readable page of the same type can be the parent, and `0` makes a top-level page.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_parent_is_stored(): void {
@@ -1813,6 +1845,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_unsupported_attributes
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $type      The post type.
@@ -1880,6 +1913,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_values_of_the_wrong_type
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $type      The post type.
@@ -1906,6 +1940,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * An empty title is valid next to other content.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_empty_title_is_valid(): void {
@@ -1933,6 +1968,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_empty_post_is_the_save_error(): void {
@@ -1959,6 +1995,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A database error during the save keeps its own code and message, with status 500.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_database_error_is_the_save_error(): void {
@@ -1996,6 +2033,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The after-insert hooks fire once, as in any regular save.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_after_insert_hooks_fire_once(): void {
@@ -2036,6 +2074,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_slugs
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $slug     The sent slug.
@@ -2065,6 +2104,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S1 and S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_slug_that_sanitizes_to_nothing_is_rejected(): void {
@@ -2105,6 +2145,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_statuses_with_unique_slugs
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string|null $status The status, or null to send none.
@@ -2144,6 +2185,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_draft_page_slugs_by_parent
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $parent_key   The parent, as a fixture name.
@@ -2194,6 +2236,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_dates
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param array<string, string> $date  The sent date.
@@ -2226,6 +2269,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A draft created without a date has a floating date.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_draft_without_a_date_floats(): void {
@@ -2251,6 +2295,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_date_that_is_not_a_date_time_fails_input_validation(): void {
@@ -2348,6 +2393,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_filtered_markup
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $input          The sent markup.
@@ -2376,6 +2422,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S10.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_markup_of_a_contributor_is_filtered(): void {
@@ -2395,6 +2442,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @group ms-required
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_markup_of_a_site_administrator_is_filtered_on_multisite(): void {
@@ -2431,6 +2479,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @group ms-excluded
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_markup_of_an_administrator_is_not_filtered(): void {
@@ -2446,6 +2495,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @group ms-required
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_markup_of_a_super_admin_is_not_filtered(): void {
@@ -2459,6 +2509,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * Quotes, backslashes and non-ASCII text survive a round trip unchanged.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_quotes_backslashes_and_non_ascii_text_survive_a_round_trip(): void {
@@ -2496,6 +2547,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S11.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_raw_fields_are_left_out_when_the_writer_cannot_edit_the_new_post(): void {
@@ -2527,6 +2579,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S4.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_each_call_checks_the_current_user(): void {
@@ -2555,6 +2608,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S11.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_returns_the_requested_fields_and_the_id(): void {
@@ -2637,6 +2691,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_whole_number_forms
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $form The form of the author.
@@ -2665,6 +2720,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_whole_number_forms
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $form The form of the parent.
@@ -2724,6 +2780,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_dates_without_a_usable_value
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param array<string, mixed> $date The date.
@@ -2752,6 +2809,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S5 and S7.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_private_post_needs_publish_posts_from_a_user_who_may_create_posts(): void {
@@ -2786,6 +2844,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_pending_post_of_a_contributor_without_a_date_floats(): void {
@@ -2814,6 +2873,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S3 and S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_type_exposed_after_registration_fails_input_validation(): void {
@@ -2875,6 +2935,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S5 and S7.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_user_with_only_the_create_capability_creates_a_draft_and_cannot_publish(): void {
@@ -2924,6 +2985,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_direct_call_with_only_the_edit_capability_cannot_create(): void {
@@ -2959,6 +3021,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @group ms-required
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_editor_of_the_first_site_only_is_refused_on_the_second_site(): void {
@@ -3000,6 +3063,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @group ms-required
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_member_of_the_first_site_only_is_an_invalid_author_on_the_second_site(): void {
@@ -3036,6 +3100,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * Covers S9 (C13).
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_trashed_page_the_user_may_read_is_accepted_as_the_parent(): void {
