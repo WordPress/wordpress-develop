@@ -707,10 +707,11 @@ function bulk_edit_posts( $post_data = null ) {
 		// Prevent wp_insert_post() from overwriting post format with the old data.
 		unset( $post_data['tax_input']['post_format'] );
 
-		// Reset post date of scheduled post to be published.
+		// Reset the date for scheduled posts and drafts that have not been published before.
 		if (
-			in_array( $post->post_status, array( 'future', 'draft' ), true ) &&
-			'publish' === $post_data['post_status']
+			'publish' === $post_data['post_status'] &&
+			( 'future' === $post->post_status ||
+				( 'draft' === $post->post_status && '0000-00-00 00:00:00' === $post->post_date_gmt ) )
 		) {
 			$post_data['post_date']     = current_time( 'mysql' );
 			$post_data['post_date_gmt'] = '';
