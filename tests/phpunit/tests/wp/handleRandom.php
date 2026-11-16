@@ -130,23 +130,74 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure random content queries are not served from the query cache.
+	 * Ensure random post selections are not served from the query cache.
 	 *
-	 * If the ID query were cached, the same post would be selected until the cache is
-	 * invalidated.
+	 * If the selection query were cached, the post at each offset would be cached until
+	 * the cache is invalidated, storing a query for each offset.
 	 *
 	 * @ticket 64498
+	 * @ticket 66654
 	 */
-	public function test_random_content_queries_are_not_cached(): void {
+	public function test_random_post_selections_are_not_cached(): void {
+		$queries = new MockAction();
+		add_filter( 'query', array( $queries, 'filter' ) );
+
+		for ( $i = 0; $i < 2; $i++ ) {
+			$this->handle_random( array( 'random' => '' ) );
+
+			try {
+				do_action( 'template_redirect' );
+			} catch ( WP_Tests_Exception $e ) {
+				$this->assertSame( self::REDIRECT_EXCEPTION_MESSAGE, $e->getMessage(), "An unexpected exception was thrown by request {$i}." );
+			}
+		}
+
+		$selection_queries = preg_grep( '/^(?!.*SQL_CALC_FOUND_ROWS).*LIMIT \d+, 1\s*$/s', array_column( $queries->get_args(), 0 ) );
+
+		$this->assertCount( 2, $selection_queries, 'The selection query should run for each request rather than reuse a cached result.' );
+	}
+
+	/**
+	 * Ensure the query counting the eligible posts is served from the query cache.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_count_query_is_served_from_the_query_cache(): void {
+		$queries = new MockAction();
+		add_filter( 'query', array( $queries, 'filter' ) );
+
+		$found_posts = array();
+		for ( $i = 0; $i < 2; $i++ ) {
+			$this->handle_random( array( 'random' => '' ) );
+			$found_posts[] = $GLOBALS['wp_the_query']->found_posts;
+		}
+
+		$count_queries = preg_grep( '/SQL_CALC_FOUND_ROWS/', array_column( $queries->get_args(), 0 ) );
+
+		$this->assertCount( 1, $count_queries, 'The count query should only be made by the first request.' );
+		$this->assertSame( array( 5, 5 ), $found_posts, 'The cached count should match the count made by the first request.' );
+	}
+
+	/**
+	 * Ensure the cached count of eligible posts is invalidated when a post is published.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_cached_count_is_invalidated_when_a_post_is_published(): void {
+		$this->handle_random( array( 'random' => '' ) );
+		$count_before = $GLOBALS['wp_the_query']->found_posts;
+
+		self::factory()->post->create();
+
 		$queries = new MockAction();
 		add_filter( 'query', array( $queries, 'filter' ) );
 
 		$this->handle_random( array( 'random' => '' ) );
-		$this->handle_random( array( 'random' => '' ) );
 
-		$random_queries = preg_grep( '/RAND\(\)/', array_column( $queries->get_args(), 0 ) );
+		$count_queries = preg_grep( '/SQL_CALC_FOUND_ROWS/', array_column( $queries->get_args(), 0 ) );
 
-		$this->assertCount( 2, $random_queries, 'The random ID query should run for each request rather than reuse a cached result.' );
+		$this->assertCount( 1, $count_queries, 'The count query should be made again after a post is published.' );
+		$this->assertSame( $count_before + 1, $GLOBALS['wp_the_query']->found_posts, 'The count should include the published post.' );
 	}
 
 	/**

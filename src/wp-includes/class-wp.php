@@ -706,24 +706,22 @@ class WP {
 	/**
 	 * Redirects random content requests to a randomly selected post.
 	 *
-	 * For random content requests, runs the main query to select a single random post
-	 * from the requested archive and redirects to it. For example, `example.com/random/`
-	 * redirects to a random post and `example.com/random/category/news/` redirects to a
-	 * random post in the "news" category.
+	 * For random content requests, runs the main query to count the posts in the
+	 * requested archive and redirects to one of them selected at random. For example,
+	 * `example.com/random/` redirects to a random post and `example.com/random/category/news/`
+	 * redirects to a random post in the "news" category.
 	 *
-	 * The random post is selected by the main query, so {@see 'pre_get_posts'} callbacks
-	 * customizing the archive apply to the selection. While the query runs, callbacks
-	 * enforcing the eligible posts, order and limit are added after any other callbacks:
+	 * The eligible posts are counted by the main query, so {@see 'pre_get_posts'} callbacks
+	 * customizing the archive apply to the selection. While the query runs,
+	 * {@see wp_random_content_pre_get_posts()} is added to the {@see 'pre_get_posts'}
+	 * action after any other callbacks to limit the query to counting the eligible posts.
 	 *
-	 * - {@see wp_random_content_pre_get_posts()} on the {@see 'pre_get_posts'} action.
-	 * - {@see wp_random_content_posts_orderby()} on the {@see 'posts_orderby'} filter.
-	 * - {@see wp_random_content_post_limits()} on the {@see 'post_limits'} filter.
+	 * If posts are counted, the post is selected and the redirect is sent by
+	 * {@see wp_random_content_redirect()} on the {@see 'template_redirect'} action at
+	 * priority 100, so the request is set up and the {@see 'wp'} action has fired before
+	 * the redirect.
 	 *
-	 * If a post is selected, the redirect is sent by {@see wp_random_content_redirect()}
-	 * on the {@see 'template_redirect'} action at priority 100, so the request is set up
-	 * and the {@see 'wp'} action has fired before the redirect.
-	 *
-	 * If no post is selected, for example on an empty archive, the request is a 404 as
+	 * If no posts are counted, for example on an empty archive, the request is a 404 as
 	 * there is no post to redirect to. If a post is selected, the request ends with
 	 * the redirect. Otherwise the request continues with the results of the main
 	 * query, which is not run again.
@@ -743,20 +741,16 @@ class WP {
 		}
 
 		add_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', 20 );
-		add_filter( 'posts_orderby', 'wp_random_content_posts_orderby', 20, 2 );
-		add_filter( 'post_limits', 'wp_random_content_post_limits', 20, 2 );
 
 		$this->query_posts();
 
 		remove_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', 20 );
-		remove_filter( 'posts_orderby', 'wp_random_content_posts_orderby', 20 );
-		remove_filter( 'post_limits', 'wp_random_content_post_limits', 20 );
 
 		if ( ! wp_is_random_content_query( $wp_the_query ) ) {
 			return true;
 		}
 
-		if ( $wp_the_query->post instanceof WP_Post ) {
+		if ( $wp_the_query->found_posts > 0 ) {
 			add_action( 'template_redirect', 'wp_random_content_redirect', 100 );
 		} else {
 			$wp_the_query->set_404();

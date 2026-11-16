@@ -49,13 +49,13 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	/*
-	 * Random content requests with a selected post are redirected to that post by
+	 * Random content requests with eligible posts are redirected to one of them by
 	 * wp_random_content_redirect() later on the `template_redirect` action. A canonical
 	 * redirect would redirect the request twice and may drop the `random` query variable.
 	 */
 	if ( $wp_the_query instanceof WP_Query
 		&& wp_is_random_content_query( $wp_the_query )
-		&& $wp_the_query->post instanceof WP_Post
+		&& $wp_the_query->found_posts > 0
 	) {
 		return null;
 	}

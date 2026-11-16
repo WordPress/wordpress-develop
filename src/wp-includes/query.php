@@ -1374,12 +1374,12 @@ function wp_get_random_content_post_types( WP_Query $query ): array {
 }
 
 /**
- * Limits the main query to posts eligible for random content requests.
+ * Limits the main query to counting the posts eligible for random content requests.
  *
- * The main query is used to select the random post so the request runs the same
- * query, and the same filters, as the archive it is randomizing. As such, callbacks
- * on the {@see 'pre_get_posts'} action may modify the posts eligible for selection,
- * for example to limit the post types or exclude a category:
+ * The main query counts the eligible posts in the archive being randomized and the
+ * random post is then selected from them by {@see wp_get_random_content_post()}. As such,
+ * callbacks on the {@see 'pre_get_posts'} action may modify the posts eligible for
+ * selection, for example to limit the post types or exclude a category:
  *
  *     add_action(
  *         'pre_get_posts',
@@ -1390,10 +1390,9 @@ function wp_get_random_content_post_types( WP_Query $query ): array {
  *         }
  *     );
  *
- * Only randomable post types and published posts without a password are eligible.
- * The number and order of posts are enforced by {@see wp_random_content_post_limits()} and
- * {@see wp_random_content_posts_orderby()}, so callbacks modifying them on archives do not
- * affect the selection.
+ * Only published posts without a password of a randomable post type are eligible. The
+ * posts are counted by selecting the first post of the archive, as later pages or an
+ * offset may be beyond the last post. Sticky posts are ignored.
  *
  * Added to the {@see 'pre_get_posts'} action by {@see WP::handle_random()} while the
  * random content query runs, so it runs after other callbacks.
@@ -1411,65 +1410,89 @@ function wp_random_content_pre_get_posts( $query ): void {
 	$query->set( 'post_status', 'publish' );
 	$query->set( 'has_password', false );
 	$query->set( 'ignore_sticky_posts', true );
-	$query->set( 'no_found_rows', true );
+
+	/*
+	 * Only the number of eligible posts is needed, so a single ID is selected. A limit
+	 * is required for the number of found rows to be calculated.
+	 */
+	$query->set( 'fields', 'ids' );
+	$query->set( 'no_found_rows', false );
+	$query->set( 'posts_per_page', 1 );
+	$query->set( 'posts_per_archive_page', 0 );
+	$query->set( 'showposts', 0 );
+	$query->set( 'nopaging', false );
+	$query->set( 'paged', 0 );
 	$query->set( 'update_post_meta_cache', false );
 	$query->set( 'update_post_term_cache', false );
-	// The order and number of posts are enforced by filters, which a suppressed query skips.
-	$query->set( 'suppress_filters', false );
+
+	unset( $query->query_vars['offset'] );
 }
 
 /**
- * Orders the random content query randomly.
+ * Selects a random post from the posts counted by a random content query.
  *
- * Added to the {@see 'posts_orderby'} filter by {@see WP::handle_random()} while the random
- * content query runs. Enforcing the order in SQL prevents {@see 'pre_get_posts'}
- * callbacks setting the order of posts on archives from affecting the selection.
+ * A random offset within the number of posts counted by the random content query is
+ * generated and the post at that offset is selected by a query using the same query
+ * variables, so the {@see 'pre_get_posts'} callbacks that applied to the random content
+ * query apply to the selection. As the selection query is not the main query, callbacks
+ * on the SQL clause filters that check for the main query do not apply to it.
+ *
+ * Counting the eligible posts and selecting the post at a random offset avoids ordering
+ * every eligible post randomly in the database.
+ *
+ * The selected post is loaded into the post cache. Its meta and terms are not.
  *
  * @since 7.2.0
  *
- * @param string   $orderby The ORDER BY clause of the query.
- * @param WP_Query $query   The WP_Query instance.
- * @return string The ORDER BY clause of the query.
+ * @see wp_random_content_pre_get_posts()
+ *
+ * @param WP_Query $query The random content query that counted the eligible posts.
+ * @return WP_Post|null The randomly selected post, null if no post is selected.
  */
-function wp_random_content_posts_orderby( $orderby, WP_Query $query ): string {
-	if ( wp_is_random_content_query( $query ) ) {
-		return 'RAND()';
+function wp_get_random_content_post( WP_Query $query ): ?WP_Post {
+	if ( $query->found_posts < 1 ) {
+		return null;
 	}
 
-	return (string) $orderby;
+	$query_vars = $query->query_vars;
+
+	// Passing an empty search makes the query a search, see WP_Query::parse_query().
+	if ( isset( $query_vars['s'] ) && '' === $query_vars['s'] ) {
+		unset( $query_vars['s'] );
+	}
+
+	// The single post, sticky post and cache priming settings are those of the count.
+	$selection_query = new WP_Query();
+	$posts           = $selection_query->query(
+		array_merge(
+			$query_vars,
+			array(
+				'fields'        => '',
+				'offset'        => wp_rand( 0, $query->found_posts - 1 ),
+				// The order of the posts does not affect the randomness of the selection.
+				'orderby'       => 'none',
+				'no_found_rows' => true,
+				// Caching the result would store a query for each offset.
+				'cache_results' => false,
+			)
+		)
+	);
+
+	$post = reset( $posts );
+
+	return $post instanceof WP_Post ? $post : null;
 }
 
 /**
- * Limits the random content query to a single post.
- *
- * Added to the {@see 'post_limits'} filter by {@see WP::handle_random()} while the random
- * content query runs. Enforcing the limit in SQL prevents {@see 'pre_get_posts'}
- * callbacks setting the number of posts, offset or page on archives from affecting
- * the selection.
- *
- * @since 7.2.0
- *
- * @param string   $limits The LIMIT clause of the query.
- * @param WP_Query $query  The WP_Query instance.
- * @return string The LIMIT clause of the query.
- */
-function wp_random_content_post_limits( $limits, WP_Query $query ): string {
-	if ( wp_is_random_content_query( $query ) ) {
-		return 'LIMIT 0, 1';
-	}
-
-	return (string) $limits;
-}
-
-/**
- * Redirects random content requests to the randomly selected post.
+ * Redirects random content requests to a randomly selected post.
  *
  * Added to the {@see 'template_redirect'} action at priority 100 by
- * {@see WP::handle_random()} once the main query has selected the random post, so the
+ * {@see WP::handle_random()} once the main query has counted the eligible posts, so the
  * redirect is sent after the request is set up and the {@see 'wp'} action has fired.
- * The headers preventing the redirect being cached or indexed are sent with it.
+ * The post is selected by {@see wp_get_random_content_post()} and the headers preventing
+ * the redirect being cached or indexed are sent with the redirect.
  *
- * The post is read from the main query rather than the current query, so the redirect
+ * The posts are counted by the main query rather than the current query, so the redirect
  * is still sent when an earlier callback replaces the current query, for example by
  * calling {@see query_posts()}.
  *
@@ -1477,8 +1500,9 @@ function wp_random_content_post_limits( $limits, WP_Query $query ): string {
  * as returned by {@see get_permalink()}, including a permalink filtered to be on
  * another site.
  *
- * If no post is selected, for example on an empty archive, {@see WP::handle_random()}
- * handles the request as a 404.
+ * If no posts are counted, for example on an empty archive, {@see WP::handle_random()}
+ * handles the request as a 404. If posts are counted but none is selected, for example
+ * because the posts changed after they were counted, the request is handled as a 404.
  *
  * @since 7.2.0
  *
@@ -1490,8 +1514,17 @@ function wp_random_content_redirect(): void {
 	if (
 		! $wp_the_query instanceof WP_Query
 		|| ! wp_is_random_content_query( $wp_the_query )
-		|| ! $wp_the_query->post instanceof WP_Post
+		|| $wp_the_query->found_posts < 1
 	) {
+		return;
+	}
+
+	$post = wp_get_random_content_post( $wp_the_query );
+
+	if ( ! $post ) {
+		$wp_the_query->set_404();
+		status_header( 404 );
+		nocache_headers();
 		return;
 	}
 
@@ -1501,7 +1534,7 @@ function wp_random_content_redirect(): void {
 		header( 'X-Robots-Tag: noindex, follow' );
 	}
 
-	$location = get_permalink( $wp_the_query->post );
+	$location = get_permalink( $post );
 
 	wp_redirect( $location, 302 );
 	exit;

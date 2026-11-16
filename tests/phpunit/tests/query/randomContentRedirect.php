@@ -8,10 +8,9 @@
  * @ticket 64498
  *
  * @covers ::wp_random_content_redirect
+ * @covers ::wp_get_random_content_post
  * @covers WP::handle_random
  * @covers ::wp_random_content_pre_get_posts
- * @covers ::wp_random_content_posts_orderby
- * @covers ::wp_random_content_post_limits
  * @covers ::wp_is_random_content_query
  * @covers ::wp_get_random_content_post_types
  * @covers ::wp_random_content_flush_rewrite_rules_for_post
@@ -977,19 +976,20 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		stick_post( $sticky );
 
 		/*
-		 * Make the "random" order deterministic so the sticky post is never selected by the query.
-		 * The order is replaced after the random order is enforced on the 'posts_orderby' filter.
+		 * Exclude the sticky post from the queries counting and selecting the random post,
+		 * so it is only selected if sticky posts are prepended to the selection. Sticky
+		 * posts are prepended by a separate query that suppresses filters.
 		 */
-		$sticky_orderby = "{$wpdb->posts}.ID = {$sticky} ASC";
+		$exclude_sticky = " AND {$wpdb->posts}.ID != {$sticky}";
 		add_filter(
 			'posts_clauses',
 			/**
 			 * @param array<string, string> $clauses
 			 * @return array<string, string>
 			 */
-			static function ( array $clauses, WP_Query $query ) use ( $sticky_orderby ): array {
-				if ( $query->is_main_query() ) {
-					$clauses['orderby'] = $sticky_orderby;
+			static function ( array $clauses, WP_Query $query ) use ( $exclude_sticky ): array {
+				if ( $query->is_random() ) {
+					$clauses['where'] .= $exclude_sticky;
 				}
 				return $clauses;
 			},
@@ -1807,9 +1807,11 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure theme customizations of the archive order and limit do not override the random query.
+	 * Ensure theme customizations of the archive limit do not apply to the count query.
+	 *
+	 * @ticket 66654
 	 */
-	public function test_pre_get_posts_archive_customizations_do_not_override_the_random_order(): void {
+	public function test_pre_get_posts_archive_limit_does_not_apply_to_the_count_query(): void {
 		// Typical theme customization of the main query for archives.
 		add_action(
 			'pre_get_posts',
@@ -1826,8 +1828,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The customized archive query was not run.' );
-		$this->assertStringContainsString( 'ORDER BY RAND()', $request, 'The random order should not be overridden by archive customizations.' );
-		$this->assertStringContainsString( 'LIMIT 0, 1', $request, 'Only one post should be selected when archive customizations set the number of posts.' );
+		$this->assertStringContainsString( 'ORDER BY wptests_posts.post_title ASC', $request, 'The archive order should apply to the count query.' );
+		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $request, 'The count query should select a single post when archive customizations set the number of posts.' );
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Archive customizations should not prevent the redirect.' );
 	}
 
 	/**
@@ -2106,42 +2109,240 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 */
 
 	/**
-	 * The random order is applied to post IDs only, so the database sorts IDs rather than
-	 * full rows, including post content, of every eligible post.
+	 * Ensure the posts are counted by a single ID query selecting one post.
+	 *
+	 * @ticket 66654
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
-	public function test_random_post_is_selected_by_a_single_random_id_query(): void {
+	public function test_posts_are_counted_by_a_single_id_query_selecting_one_post(): void {
 		global $wpdb;
 
 		$this->go_to_and_record_queries( home_url( '/random/' ) );
 
 		$this->assertNotNull( $this->redirect_location, 'The request did not redirect.' );
 
-		$random_queries = array_values( preg_grep( '/RAND\(\)/', $this->queries ) );
-		$this->assertCount( 1, $random_queries, "Exactly one random query should be made:\n" . implode( "\n", $this->queries ) );
-		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.ID\s+FROM/", $random_queries[0], 'The random query should select post IDs only.' );
-		$this->assertMatchesRegularExpression( '/ORDER BY RAND\(\)/', $random_queries[0], 'The query should use a random order.' );
-		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $random_queries[0], 'The query should select a single post.' );
-		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $random_queries[0], 'The query should not count found rows.' );
+		$count_queries = array_values( preg_grep( '/SQL_CALC_FOUND_ROWS/', $this->queries ) );
+		$this->assertCount( 1, $count_queries, "Exactly one count query should be made:\n" . implode( "\n", $this->queries ) );
+		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+SQL_CALC_FOUND_ROWS\s+{$wpdb->posts}\.ID\s+FROM/", $count_queries[0], 'The count query should select post IDs only.' );
+		$this->assertStringContainsString( "ORDER BY {$wpdb->posts}.post_date DESC", $count_queries[0], 'The count query should use the archive order.' );
+		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $count_queries[0], 'The count query should select a single post.' );
+		$this->assertTrue( $this->get_main_query()->get( 'ignore_sticky_posts' ), 'The count query should ignore sticky posts.' );
 	}
 
 	/**
-	 * At most one more query is made, to load the selected post by its ID.
+	 * Ensure no database query orders posts randomly.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_no_query_orders_posts_randomly(): void {
+		$this->go_to_and_record_queries( home_url( '/random/' ) );
+
+		$this->assertNotNull( $this->redirect_location, 'The request did not redirect.' );
+		$this->assertEmpty( preg_grep( '/RAND\(/i', $this->queries ), "No query should order posts randomly:\n" . implode( "\n", $this->queries ) );
+	}
+
+	/**
+	 * Ensure the random post is selected by its offset and loaded by its ID after the posts are counted.
+	 *
+	 * @ticket 66654
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
-	public function test_random_post_is_loaded_by_id_after_the_random_query(): void {
+	public function test_random_post_is_selected_by_offset_after_the_count_query(): void {
 		global $wpdb;
 
 		$this->go_to_and_record_queries( home_url( '/random/' ) );
 
-		$this->assertLessThanOrEqual( 2, count( $this->queries ), "No more than two database queries should be made to select the random post:\n" . implode( "\n", $this->queries ) );
-		$this->assertStringContainsString( 'RAND()', $this->queries[0], 'The random query should be made first.' );
+		$this->assertNotNull( $this->redirect_location, 'The request did not redirect.' );
+		$this->assertLessThanOrEqual( 4, count( $this->queries ), "No more than four database queries should be made to select the random post:\n" . implode( "\n", $this->queries ) );
+		$this->assertStringContainsString( 'SQL_CALC_FOUND_ROWS', $this->queries[0], 'The count query should be made first.' );
+		$this->assertSame( 'SELECT FOUND_ROWS()', $this->queries[1], 'The number of eligible posts should be retrieved after the count query.' );
+		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.ID\s+FROM/", $this->queries[2], 'The selection query should select post IDs only.' );
+		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $this->queries[2], 'The selection query should not count found rows.' );
+		$this->assertStringNotContainsString( 'ORDER BY', $this->queries[2], 'The selection query should not be ordered.' );
+		$this->assertMatchesRegularExpression( '/LIMIT [01], 1\s*$/', $this->queries[2], 'The selection query should select a single post at an offset within the eligible posts.' );
 
-		if ( isset( $this->queries[1] ) ) {
-			$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.\*\s+FROM\s+{$wpdb->posts}\s+WHERE\s+ID\s+IN\s+\(\d+\)/", $this->queries[1], 'The second query should load the selected post by its ID.' );
+		if ( isset( $this->queries[3] ) ) {
+			$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.\*\s+FROM\s+{$wpdb->posts}\s+WHERE\s+ID\s+IN\s+\(\d+\)/", $this->queries[3], 'The final query should load the selected post by its ID.' );
 		}
+	}
+
+	/**
+	 * Ensure the selection offset is always within the number of eligible posts.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_selection_offset_is_within_the_number_of_eligible_posts(): void {
+		$this->create_post();
+
+		for ( $i = 0; $i < 20; $i++ ) {
+			$this->redirect_location = null;
+			$this->queries           = array();
+			$this->go_to_and_record_queries( home_url( '/random/' ) );
+
+			$this->assertNotNull( $this->redirect_location, "Request {$i} did not redirect." );
+
+			$selection_queries = array_values( preg_grep( '/^(?!.*SQL_CALC_FOUND_ROWS).*LIMIT \d+, 1\s*$/s', $this->queries ) );
+			$this->assertCount( 1, $selection_queries, "Request {$i} should make exactly one selection query:\n" . implode( "\n", $this->queries ) );
+
+			preg_match( '/LIMIT (\d+), 1\s*$/', $selection_queries[0], $matches );
+			$this->assertLessThan( 3, (int) $matches[1], "Request {$i} should select a post at an offset within the three eligible posts." );
+		}
+	}
+
+	/**
+	 * Ensure every eligible post can be selected, including the last.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_every_eligible_post_can_be_selected(): void {
+		$third_post = $this->create_post();
+
+		$seen = array();
+		for ( $i = 0; $i < 60; $i++ ) {
+			$this->redirect_location = null;
+			$this->go_to( home_url( '/random/' ) );
+			$seen[ $this->redirect_location ] = true;
+		}
+
+		// The probability of any of the three posts not being selected in 60 requests is about 1 in 10^10.
+		$this->assertEqualsCanonicalizing(
+			array_map( 'get_permalink', array( self::$arts_post, self::$sport_post, $third_post ) ),
+			array_keys( $seen ),
+			'Every eligible post should be selected.'
+		);
+	}
+
+	/**
+	 * Ensure the selected post is loaded into the post cache.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_selected_post_is_loaded_into_the_post_cache(): void {
+		$cached_posts = array();
+		add_filter(
+			'wp_redirect',
+			static function ( string $location ) use ( &$cached_posts ): string {
+				// Checked before anything else can load the posts.
+				foreach ( array( self::$arts_post, self::$sport_post ) as $post_id ) {
+					if ( false !== wp_cache_get( $post_id, 'posts' ) ) {
+						$cached_posts[] = $post_id;
+					}
+				}
+				return $location;
+			},
+			5
+		);
+
+		wp_cache_flush();
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotNull( $this->redirect_location, 'The request did not redirect.' );
+		$this->assertContains( $this->redirect_location, array_map( 'get_permalink', $cached_posts ), 'The selected post should be in the post cache.' );
+	}
+
+	/**
+	 * Ensure the request is a 404 when the counted posts cannot be selected.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_request_is_a_404_when_the_counted_posts_cannot_be_selected(): void {
+		$status = new MockAction();
+		add_filter( 'status_header', array( $status, 'filter' ), 10, 2 );
+
+		parent::go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertSame( 1, $this->get_main_query()->found_posts, 'The post in the category should be counted.' );
+
+		// The post is deleted after the posts are counted but before it is selected.
+		wp_delete_post( self::$arts_post, true );
+		$this->do_template_redirect();
+
+		$this->assertNotRedirected( 'A request without a post to select should not redirect.' );
+		$this->assertTrue( is_404(), 'A request without a post to select should be a 404.' );
+		$this->assertContains( 404, array_column( $status->get_args(), 1 ), 'A request without a post to select should send a 404 status.' );
+	}
+
+	/**
+	 * Ensure password protected posts are not counted as eligible posts.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_password_protected_posts_are_not_counted(): void {
+		for ( $i = 0; $i < 30; $i++ ) {
+			$this->create_post(
+				array(
+					'post_password' => 'secret',
+					'post_category' => array( self::$arts_category ),
+				)
+			);
+		}
+
+		for ( $i = 0; $i < 5; $i++ ) {
+			$this->redirect_location = null;
+			$this->go_to( home_url( '/random/category/arts/' ) );
+
+			$this->assertSame( 1, $this->get_main_query()->found_posts, "Request {$i} should not count the password protected posts." );
+			$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, "Request {$i} should redirect to the only eligible post." );
+		}
+	}
+
+	/**
+	 * Ensure the selection query is parsed as the same kind of request as the main query.
+	 *
+	 * @ticket 66654
+	 *
+	 * @dataProvider data_selection_query_is_parsed_as_the_same_request_as_the_main_query
+	 *
+	 * @param string $path Random content request path.
+	 */
+	public function test_selection_query_is_parsed_as_the_same_request_as_the_main_query( string $path ): void {
+		$selection_query = null;
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ) use ( &$selection_query ): void {
+				if ( ! $query->is_main_query() ) {
+					$selection_query = $query;
+				}
+			}
+		);
+
+		$this->go_to( home_url( $path ) );
+
+		$this->assertNotNull( $this->redirect_location, 'The request did not redirect.' );
+		$this->assertInstanceOf( WP_Query::class, $selection_query, 'The selection query was not run.' );
+
+		$main_query = $this->get_main_query();
+		foreach ( array( 'is_home', 'is_archive', 'is_category', 'is_search', 'is_random' ) as $flag ) {
+			$this->assertSame( $main_query->$flag, $selection_query->$flag, "The selection query should match the main query for {$flag}." );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_selection_query_is_parsed_as_the_same_request_as_the_main_query(): array {
+		return array(
+			'home'     => array( '/random/' ),
+			'category' => array( '/random/category/arts/' ),
+			'search'   => array( '/?s=Baseball&random' ),
+		);
+	}
+
+	/**
+	 * Ensure no post is selected when the query has not counted any posts.
+	 *
+	 * @ticket 66654
+	 *
+	 * @covers ::wp_get_random_content_post
+	 */
+	public function test_wp_get_random_content_post_returns_null_without_counted_posts(): void {
+		$query = new WP_Query();
+
+		$this->assertNull( wp_get_random_content_post( $query ), 'No post should be selected when no posts are counted.' );
 	}
 
 	/**
@@ -2185,15 +2386,17 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 */
 
 	/**
-	 * Ensure the random query selects a single post when a theme overrides the limit.
+	 * Ensure the request redirects to a single post when a theme overrides the limit.
 	 *
-	 * @dataProvider data_query_vars_overriding_the_limit
+	 * @ticket 66654
+	 *
+	 * @dataProvider data_random_redirect_when_a_theme_overrides_the_limit
 	 *
 	 * @param string $path      Request path.
 	 * @param string $query_var Query variable set by a theme.
 	 * @param mixed  $value     Query variable value.
 	 */
-	public function test_random_query_is_limited_to_one_post_when_a_theme_overrides_the_limit( string $path, string $query_var, $value ): void {
+	public function test_random_redirect_when_a_theme_overrides_the_limit( string $path, string $query_var, $value ): void {
 		add_action(
 			'pre_get_posts',
 			static function ( WP_Query $query ) use ( $query_var, $value ): void {
@@ -2207,18 +2410,19 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The random query with a theme limit override was not run.' );
-		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $request, 'The random query should select a single post.' );
+		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $request, 'The count query should select a single post when a theme overrides the limit.' );
+		$this->assertGreaterThan( 0, $this->get_main_query()->found_posts, 'The posts should be counted when a theme overrides the limit.' );
 		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Theme limit overrides should not prevent a single post being selected.' );
 	}
 
 	/**
-	 * Data provider for {@see self::test_random_query_is_limited_to_one_post_when_a_theme_overrides_the_limit()}.
+	 * Data provider for {@see self::test_random_redirect_when_a_theme_overrides_the_limit()}.
 	 *
 	 * The limit is applied differently to the home page and archives, see WP_Query::get_posts().
 	 *
 	 * @return array<non-falsy-string, array{ path: non-falsy-string, query_var: non-falsy-string, value: bool|int }>
 	 */
-	public static function data_query_vars_overriding_the_limit(): array {
+	public static function data_random_redirect_when_a_theme_overrides_the_limit(): array {
 		$overrides = array(
 			'nopaging'               => array( 'nopaging', true ),
 			'posts_per_archive_page' => array( 'posts_per_archive_page', 10 ),
@@ -2693,12 +2897,20 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * @param string $path Path to request.
 	 */
 	public function test_main_query_is_run_once_for_random_requests( string $path ): void {
-		$pre_get_posts = new MockAction();
-		add_action( 'pre_get_posts', array( $pre_get_posts, 'action' ) );
+		// The random post is selected by a secondary query, which is not counted.
+		$main_query_runs = 0;
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ) use ( &$main_query_runs ): void {
+				if ( $query->is_main_query() ) {
+					++$main_query_runs;
+				}
+			}
+		);
 
 		$this->go_to( home_url( $path ) );
 
-		$this->assertSame( 1, $pre_get_posts->get_call_count(), "The main query should be run once for {$path}." );
+		$this->assertSame( 1, $main_query_runs, "The main query should be run once for {$path}." );
 	}
 
 	/**
@@ -2720,14 +2932,14 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->go_to( home_url( '/random/' ) );
 
 		$this->assertFalse( has_action( 'pre_get_posts', 'wp_random_content_pre_get_posts' ), 'The pre_get_posts callback should be removed after the main query.' );
-		$this->assertFalse( has_filter( 'posts_orderby', 'wp_random_content_posts_orderby' ), 'The posts_orderby callback should be removed after the main query.' );
-		$this->assertFalse( has_filter( 'post_limits', 'wp_random_content_post_limits' ), 'The post_limits callback should be removed after the main query.' );
 	}
 
 	/**
-	 * Ensure the `posts_orderby` and `post_limits` filters do not override the random order or limit.
+	 * Ensure the `posts_orderby` and `post_limits` filters apply to the count query without preventing the redirect.
+	 *
+	 * @ticket 66654
 	 */
-	public function test_sql_customizations_do_not_override_the_random_order_or_limit(): void {
+	public function test_sql_customizations_apply_to_the_count_query(): void {
 		add_filter(
 			'posts_orderby',
 			static function (): string {
@@ -2745,14 +2957,17 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The random query with SQL customizations was not run.' );
-		$this->assertStringContainsString( 'ORDER BY RAND()', $request, 'The posts_orderby filter should not override the random order.' );
-		$this->assertStringContainsString( 'LIMIT 0, 1', $request, 'The post_limits filter should not override the random limit.' );
+		$this->assertStringContainsString( 'ORDER BY post_title ASC', $request, 'The posts_orderby filter should apply to the count query.' );
+		$this->assertMatchesRegularExpression( '/LIMIT 0, 10\s*$/', $request, 'The post_limits filter should apply to the count query.' );
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'SQL customizations should not prevent the redirect.' );
 	}
 
 	/**
-	 * Ensure suppressing filters does not bypass the random order or limit.
+	 * Ensure suppressing filters does not prevent the posts being counted.
+	 *
+	 * @ticket 66654
 	 */
-	public function test_suppressed_filters_do_not_bypass_the_random_order_or_limit(): void {
+	public function test_suppressed_filters_do_not_prevent_the_posts_being_counted(): void {
 		add_action(
 			'pre_get_posts',
 			static function ( WP_Query $query ): void {
@@ -2766,8 +2981,8 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The random query with suppressed filters was not run.' );
-		$this->assertStringContainsString( 'ORDER BY RAND()', $request, 'Suppressing filters should not bypass the random order.' );
-		$this->assertStringContainsString( 'LIMIT 0, 1', $request, 'Suppressing filters should not bypass the random limit.' );
+		$this->assertMatchesRegularExpression( '/^\s*SELECT\s+SQL_CALC_FOUND_ROWS\s/', $request, 'Suppressing filters should not prevent the posts being counted.' );
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Suppressing filters should not prevent the redirect.' );
 	}
 
 	/*
