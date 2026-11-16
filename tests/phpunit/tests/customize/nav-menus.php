@@ -466,6 +466,188 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that an exact post slug match is returned even with no title overlap with the query.
+	 *
+	 * @ticket 44803
+	 */
+	public function test_search_available_items_query_should_return_exact_slug_match_for_post() {
+		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
+
+		$slug_matched_post = self::factory()->post->create(
+			array(
+				'post_title' => 'Completely Unrelated Title',
+				'post_name'  => 'zzz-exact-slug-target',
+			)
+		);
+		self::factory()->post->create( array( 'post_title' => 'Another Unrelated Post' ) );
+
+		$results = $menus->search_available_items_query(
+			array(
+				'pagenum' => 1,
+				's'       => 'zzz-exact-slug-target',
+			)
+		);
+
+		$this->assertCount( 1, $results );
+		$this->assertSame( 'post-' . $slug_matched_post, $results[0]['id'] );
+	}
+
+	/**
+	 * Test that an exact post slug match is ranked first, ahead of newer title matches.
+	 *
+	 * @ticket 44803
+	 */
+	public function test_search_available_items_query_should_rank_exact_slug_match_first_for_post() {
+		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
+
+		$slug_matched_post = self::factory()->post->create(
+			array(
+				'post_title' => 'Old Unrelated Title',
+				'post_name'  => 'gamma',
+				'post_date'  => gmdate( 'Y-m-d H:i:s', strtotime( '-1 year' ) ),
+			)
+		);
+		self::factory()->post->create_many( 3, array( 'post_title' => 'Gamma Info Page' ) );
+
+		$results = $menus->search_available_items_query(
+			array(
+				'pagenum' => 1,
+				's'       => 'gamma',
+			)
+		);
+
+		$this->assertCount( 4, $results );
+		$this->assertSame( 'post-' . $slug_matched_post, $results[0]['id'] );
+	}
+
+	/**
+	 * Test that an exact post slug match takes a slot within the existing 20-item cap.
+	 *
+	 * @ticket 44803
+	 */
+	public function test_search_available_items_query_should_cap_post_results_at_twenty_with_exact_slug_match() {
+		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
+
+		self::factory()->post->create_many( 20, array( 'post_title' => 'Widget Info Page' ) );
+		$slug_matched_post = self::factory()->post->create(
+			array(
+				'post_title' => 'Completely Unrelated Title',
+				'post_name'  => 'widget',
+			)
+		);
+
+		$results = $menus->search_available_items_query(
+			array(
+				'pagenum' => 1,
+				's'       => 'widget',
+			)
+		);
+
+		$this->assertCount( 20, $results );
+		$ids = wp_list_pluck( $results, 'id' );
+		$this->assertContains( 'post-' . $slug_matched_post, $ids );
+	}
+
+	/**
+	 * Test that an exact post slug match against a non-published post is excluded.
+	 *
+	 * @ticket 44803
+	 */
+	public function test_search_available_items_query_should_not_return_exact_slug_match_for_non_published_post() {
+		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
+
+		self::factory()->post->create(
+			array(
+				'post_status' => 'draft',
+				'post_title'  => 'Unrelated Draft Title',
+				'post_name'   => 'draft-exact-slug-target',
+			)
+		);
+
+		$results = $menus->search_available_items_query(
+			array(
+				'pagenum' => 1,
+				's'       => 'draft-exact-slug-target',
+			)
+		);
+
+		$this->assertSame( array(), $results );
+	}
+
+	/**
+	 * Test that an exact term slug match is returned even with no name overlap with the query.
+	 *
+	 * @ticket 44803
+	 */
+	public function test_search_available_items_query_should_return_exact_slug_match_for_term() {
+		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
+
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'labels' => array(
+					'name' => 'Tests Taxonomy',
+				),
+			)
+		);
+
+		$slug_matched_term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Something Else Entirely',
+				'slug'     => 'zzz-term-slug-target',
+			)
+		);
+
+		$results = $menus->search_available_items_query(
+			array(
+				'pagenum' => 1,
+				's'       => 'zzz-term-slug-target',
+			)
+		);
+
+		$this->assertCount( 1, $results );
+		$this->assertSame( 'term-' . $slug_matched_term, $results[0]['id'] );
+	}
+
+	/**
+	 * Test that an exact post slug match appears exactly once, only on the first page of results.
+	 *
+	 * @ticket 44803
+	 */
+	public function test_search_available_items_query_should_not_duplicate_exact_slug_match_across_pages() {
+		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
+
+		self::factory()->post->create_many( 22, array( 'post_title' => 'Zeta Info Page' ) );
+		$slug_matched_post = self::factory()->post->create(
+			array(
+				'post_title' => 'Completely Unrelated Title',
+				'post_name'  => 'zeta',
+			)
+		);
+
+		$page_1 = $menus->search_available_items_query(
+			array(
+				'pagenum' => 1,
+				's'       => 'zeta',
+			)
+		);
+		$page_2 = $menus->search_available_items_query(
+			array(
+				'pagenum' => 2,
+				's'       => 'zeta',
+			)
+		);
+
+		$this->assertCount( 20, $page_1 );
+		$this->assertSame( 'post-' . $slug_matched_post, $page_1[0]['id'] );
+
+		$page_2_ids = wp_list_pluck( $page_2, 'id' );
+		$this->assertNotContains( 'post-' . $slug_matched_post, $page_2_ids );
+	}
+
+	/**
 	 * Count for number of times customize_nav_menu_searched_items filtered.
 	 *
 	 * @var int
