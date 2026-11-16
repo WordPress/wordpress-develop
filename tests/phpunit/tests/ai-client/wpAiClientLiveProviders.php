@@ -118,13 +118,6 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		);
 		update_option( 'timezone_string', 'Pacific/Chatham' );
 
-		foreach ( wp_get_abilities() as $ability ) {
-			wp_unregister_ability( $ability->get_name() );
-		}
-		foreach ( wp_get_ability_categories() as $ability_category ) {
-			wp_unregister_ability_category( $ability_category->get_slug() );
-		}
-
 		// The core abilities can only be registered while their registration actions run.
 		$wp_current_filter[] = 'wp_abilities_api_categories_init';
 		wp_register_core_ability_categories();
@@ -242,16 +235,19 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		 */
 		try {
 			$provider_class::modelMetadataDirectory()->listModelMetadata();
-		} catch ( NetworkException | ServerException | ClientException $e ) {
-			if ( $e instanceof ClientException && 429 !== $e->getCode() ) {
+		} catch ( ClientException $e ) {
+			if ( 429 !== $e->getCode() ) {
 				$this->fail( "The model list request failed, check the $key_name: " . $e->getMessage() );
 			}
+			$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
+		} catch ( NetworkException | ServerException $e ) {
 			$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
 		}
 
 		if ( $model && ! $provider_class::modelMetadataDirectory()->hasModelMetadata( $model ) ) {
 			$this->fail( "The provider has no \"$model\" model, check the $model_name." );
 		}
+		$model_instance = $model ? $registry->getProviderModel( $provider, $model ) : null;
 
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( ...$abilities );
 		$messages = array( new UserMessage( array( new MessagePart( $question ) ) ) );
@@ -273,8 +269,8 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 				->using_system_instruction( 'Answer every question with the abilities. Quote the values they return unchanged.' )
 				->using_abilities( ...$abilities );
 
-			if ( $model ) {
-				$builder->using_model( $registry->getProviderModel( $provider, $model ) );
+			if ( $model_instance ) {
+				$builder->using_model( $model_instance );
 			}
 
 			$result = $builder->generate_text_result();
