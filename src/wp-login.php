@@ -1263,6 +1263,10 @@ switch ( $action ) {
 		if ( ! $http_post ) {
 			$request = wp_get_user_request( $request_id );
 
+			if ( ! $request ) {
+				wp_die( __( 'Invalid personal data request.' ) );
+			}
+
 			if ( 'export_personal_data' === $request->action_name ) {
 				$message = __( 'Please confirm that you want to export your personal data.' );
 			} elseif ( 'remove_personal_data' === $request->action_name ) {
