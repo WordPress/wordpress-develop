@@ -9,6 +9,16 @@
 class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 
 	use WP_Secrets_Assertions;
+	use WP_Secrets_Manager_User;
+
+	/**
+	 * Runs each test as a user who can manage secrets.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_current_user_to_secrets_manager();
+	}
 
 	/**
 	 * Ensure that a stored secret is retrieved with its original value, name and a fingerprint.
@@ -169,19 +179,22 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that wp_set_secret() and wp_get_secret() succeed without a logged-in user.
+	 * Ensure that wp_get_secret() succeeds without a logged-in user.
 	 *
-	 * Capability checks belong at the operator boundary (CLI, admin screens), not in the
-	 * API itself, so plugins can use their own secrets from any context, such as cron.
+	 * Storing a secret takes a capability, but the code that uses one has to be able
+	 * to read it from any request, such as cron. Tests_Secrets_Capabilities covers
+	 * the check on the functions that change a secret.
 	 *
-	 * @covers ::wp_set_secret
+	 * @ticket 66696
+	 *
 	 * @covers ::wp_get_secret
 	 */
-	public function test_no_capability_check_is_applied(): void {
+	public function test_no_capability_check_is_applied_to_reading(): void {
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
+
 		wp_set_current_user( 0 ); // No logged-in user, no capabilities at all.
 
-		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Storing a secret without a logged-in user should succeed.' );
-		$this->assertInstanceOf( WP_Secret::class, wp_get_secret( 'myplugin/api-key' ), 'Retrieving a secret without a logged-in user should return a WP_Secret.' );
+		$this->assertIsSecret( wp_get_secret( 'myplugin/api-key' ), 'value', 'Retrieving a secret without a logged-in user should return it.' );
 	}
 
 	/**
@@ -209,7 +222,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 
 		$this->assertSame( 'myplugin/api-key', $name, 'The hook should receive the secret name.' );
 		$this->assertSame( 'created', $action, 'The hook action should be created.' );
-		$this->assertSame( 0, $actor_id, 'With no user logged in, the actor should be reported as 0.' );
+		$this->assertSame( get_current_user_id(), $actor_id, 'The actor should be reported as the current user.' );
 		$this->assertGreaterThanOrEqual( $before, $timestamp, 'The timestamp should not predate the write.' );
 		$this->assertLessThanOrEqual( $after, $timestamp, 'The timestamp should not postdate the write.' );
 		$this->assertSame( '', $old_fingerprint, 'The old fingerprint should be empty for a new secret.' );
@@ -255,7 +268,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 * @covers ::wp_set_secret
 	 */
 	public function test_change_hook_reports_the_current_user_as_actor(): void {
-		$user_id = self::factory()->user->create();
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 
 		$captured_actor = null;

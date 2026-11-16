@@ -25,6 +25,16 @@
 class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 
 	use WP_Secrets_Assertions;
+	use WP_Secrets_Manager_User;
+
+	/**
+	 * Runs each test as a user who can manage secrets.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_current_user_to_secrets_manager();
+	}
 
 	/**
 	 * Ensure that a secret round-trips through a plugin-supplied store paired with the default keyring.

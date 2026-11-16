@@ -8,6 +8,17 @@
  */
 class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 
+	use WP_Secrets_Manager_User;
+
+	/**
+	 * Runs each test as a user who can manage secrets.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_current_user_to_secrets_manager();
+	}
+
 	/**
 	 * Ensure that wp_import_option_as_secret() stores the option's value as a secret.
 	 *

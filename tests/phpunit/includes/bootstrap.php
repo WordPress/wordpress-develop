@@ -416,6 +416,7 @@ require __DIR__ . '/class-wp-sitemaps-test-provider.php';
 require __DIR__ . '/class-wp-sitemaps-empty-test-provider.php';
 require __DIR__ . '/class-wp-sitemaps-large-test-provider.php';
 require __DIR__ . '/secrets/trait-wp-secrets-assertions.php';
+require __DIR__ . '/secrets/trait-wp-secrets-manager-user.php';
 require __DIR__ . '/secrets/class-mock-store.php';
 require __DIR__ . '/secrets/class-mock-keyring.php';
 require __DIR__ . '/secrets/class-wp-secrets-provider-conformance.php';
