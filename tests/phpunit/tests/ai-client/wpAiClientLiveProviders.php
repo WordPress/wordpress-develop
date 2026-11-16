@@ -6,13 +6,13 @@
  * `WP_TESTS_AI_ANTHROPIC_API_KEY`, `WP_TESTS_AI_GOOGLE_API_KEY` or `WP_TESTS_AI_OPENAI_API_KEY`
  * environment variable:
  *
- *     WP_TESTS_AI_ANTHROPIC_API_KEY=… vendor/bin/phpunit --group external-http --filter Tests_AI_Client_LiveProviders
+ *     WP_TESTS_AI_ANTHROPIC_API_KEY=your-key vendor/bin/phpunit --group external-http --filter Tests_AI_Client_LiveProviders
  *
  * The provider tools and the Connectors read other names, such as `ANTHROPIC_API_KEY`, so a key
  * set for them does not start these tests, and a key set for these tests is not used by a site.
  *
- * A provider uses its default model, unless a `WP_TESTS_AI_{PROVIDER}_MODEL` environment
- * variable, such as `WP_TESTS_AI_GOOGLE_MODEL`, names another one.
+ * A provider uses its default model, unless its `WP_TESTS_AI_*_MODEL` environment variable,
+ * such as `WP_TESTS_AI_GOOGLE_MODEL`, names another one.
  *
  * @group ai-client
  * @group abilities-api
@@ -48,18 +48,31 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	 * For each core ability, a question no other ability answers and the value the answer must contain.
 	 */
 	private const QUESTIONS = array(
-		'core/get-site-info'        => array( 'What is the character encoding of this site?', 'UTF-8' ),
-		'core/get-user-info'        => array( 'What is my display name?', 'Barnaby Quillfeather' ),
-		'core/get-environment-info' => array( 'Which PHP version does this site run?', PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION ),
-		'core/settings-get'         => array( 'What is the timezone setting of this site?', 'Pacific/Chatham' ),
-		'core/users-query'          => array( 'What is the display name of the user with the username "live_provider_editor"?', 'Marigold Featherstone' ),
-		'core/content-query'        => array( 'What is the title of the post with the slug "live-provider-post"?', 'Quokka Lighthouse Notes' ),
+		'core/get-site-info'        => array(
+			'question' => 'What is the character encoding of this site?',
+			'answer'   => 'UTF-8',
+		),
+		'core/get-user-info'        => array(
+			'question' => 'What is my display name?',
+			'answer'   => 'Barnaby Quillfeather',
+		),
+		'core/get-environment-info' => array(
+			'question' => 'Which PHP version does this site run?',
+			'answer'   => PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION,
+		),
+		'core/settings-get'         => array(
+			'question' => 'What is the timezone setting of this site?',
+			'answer'   => 'Pacific/Chatham',
+		),
+		'core/users-query'          => array(
+			'question' => 'What is the display name of the user with the username "live_provider_editor"?',
+			'answer'   => 'Marigold Featherstone',
+		),
+		'core/content-query'        => array(
+			'question' => 'What is the title of the post with the slug "live-provider-post"?',
+			'answer'   => 'Quokka Lighthouse Notes',
+		),
 	);
-
-	/**
-	 * How many requests a model may take to answer.
-	 */
-	private const MAX_ROUNDS = 6;
 
 	/**
 	 * ID of the administrator who asks the questions.
@@ -162,11 +175,11 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	public function test_provider_answers_with_core_abilities( string $provider, array $abilities ): void {
 		$questions = array_intersect_key( self::QUESTIONS, array_flip( $abilities ) );
 
-		list( $answer, $called, $model ) = $this->ask( $provider, $abilities, implode( ' ', array_column( $questions, 0 ) ) );
+		list( $answer, $called, $model ) = $this->ask( $provider, $abilities, implode( ' ', array_column( $questions, 'question' ) ) );
 
 		// A model may quote a value as it is in the JSON it received, where slashes are escaped.
 		$answer  = str_replace( '\/', '/', $answer );
-		$missing = array_filter( array_column( $questions, 1 ), static fn ( $value ) => false === stripos( $answer, $value ) );
+		$missing = array_filter( array_column( $questions, 'answer' ), static fn ( $value ) => false === stripos( $answer, $value ) );
 		$context = "Model: $model. Answer: $answer";
 
 		$this->assertSameSets( $abilities, $called, "Every ability given to the model should run without an error. $context" );
@@ -229,26 +242,22 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		 * Any other exception, such as a response the provider changed, is an error of the test.
 		 */
 		try {
-			$models = $provider_class::modelMetadataDirectory()->listModelMetadata();
-		} catch ( NetworkException | ServerException $e ) {
-			$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
-		} catch ( ClientException $e ) {
-			if ( 429 === $e->getCode() ) {
-				$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
+			$provider_class::modelMetadataDirectory()->listModelMetadata();
+		} catch ( NetworkException | ServerException | ClientException $e ) {
+			if ( $e instanceof ClientException && 429 !== $e->getCode() ) {
+				$this->fail( "The model list request failed, check the $key_name: " . $e->getMessage() );
 			}
-			$this->fail( "The model list request failed, check the $key_name: " . $e->getMessage() );
-		}
-
-		// A model preference that matches no model would fall back to another model without an error.
-		if ( $model && ! in_array( $model, array_map( static fn ( $metadata ) => $metadata->getId(), $models ), true ) ) {
-			$this->fail( "The provider has no \"$model\" model, check the $model_name." );
+			$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
 		}
 
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( ...$abilities );
 		$messages = array( new UserMessage( array( new MessagePart( $question ) ) ) );
 		$called   = array();
 
-		for ( $round = 0; $round < self::MAX_ROUNDS; $round++ ) {
+		// A model may call one ability per response: a request for each, one to answer and a spare one.
+		$max_rounds = count( $abilities ) + 2;
+
+		for ( $round = 0; $round < $max_rounds; $round++ ) {
 			$builder = ( new WP_AI_Client_Prompt_Builder( $registry, $messages ) )
 				->using_provider( $provider )
 				->using_system_instruction( 'Answer every question with the abilities. Quote the values they return unchanged.' )
@@ -262,19 +271,31 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 
 			if ( is_wp_error( $result ) ) {
 				$status = $result->get_error_data()['status'] ?? 0;
-				$error  = "($status): " . $result->get_error_message();
 
 				// Only a rate limit, a server error of the provider and a network error skip the test.
 				if ( 429 === $status || in_array( $result->get_error_code(), array( 'prompt_network_error', 'prompt_upstream_server_error' ), true ) ) {
-					$this->markTestSkipped( "The provider is unavailable $error" );
+					$this->markTestSkipped( 'The provider is unavailable: ' . $result->get_error_message() );
 				}
-				$this->fail( "The request failed $error" );
+				$this->fail( 'The request failed: ' . $result->get_error_message() );
+			}
+
+			// A model preference the provider cannot use for the prompt falls back to another model without an error.
+			if ( $model && $result->getModelMetadata()->getId() !== $model ) {
+				$this->fail( "The provider has no \"$model\" model for this prompt, check the $model_name." );
 			}
 
 			// OpenAI returns each function call as its own candidate, so keep the message of each one.
 			$has_calls = false;
+			$answer    = '';
 			foreach ( $result->toMessages() as $message ) {
 				$messages[] = $message;
+
+				// An answer may be split into several text parts.
+				foreach ( $message->getParts() as $part ) {
+					if ( $part->getChannel()->isContent() && null !== $part->getText() ) {
+						$answer .= $part->getText();
+					}
+				}
 
 				if ( ! $resolver->has_ability_calls( $message ) ) {
 					continue;
@@ -293,7 +314,7 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 			}
 
 			if ( ! $has_calls ) {
-				return array( implode( "\n", $result->toTexts() ), array_unique( $called ), $result->getModelMetadata()->getId() );
+				return array( $answer, array_unique( $called ), $result->getModelMetadata()->getId() );
 			}
 		}
 

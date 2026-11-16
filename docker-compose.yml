@@ -50,7 +50,6 @@ services:
       GITHUB_EVENT_NAME: ${GITHUB_EVENT_NAME-false}
       HOST_PATH: ${PWD-}/${LOCAL_DIR-src}
       # Passed through for the live AI provider tests, and only when they are set.
-      # Only the tests read these names, so the keys are not used by the local site.
       WP_TESTS_AI_ANTHROPIC_API_KEY:
       WP_TESTS_AI_GOOGLE_API_KEY:
       WP_TESTS_AI_OPENAI_API_KEY:
