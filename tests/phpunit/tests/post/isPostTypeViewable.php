@@ -4,6 +4,16 @@
  * @group post
  */
 class Tests_Post_IsPostTypeViewable extends WP_UnitTestCase {
+
+	public function tear_down() {
+		$post_type = get_post_type_object( 'wptests_pt' );
+		if ( $post_type ) {
+			$post_type->_builtin = false;
+			unregister_post_type( 'wptests_pt' );
+		}
+
+		parent::tear_down();
+	}
 	public function test_should_return_false_for_non_publicly_queryable_types() {
 		register_post_type(
 			'wptests_pt',

@@ -303,6 +303,63 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * The `attachment` post type provides the form of the media editor.
+	 *
+	 * @ticket 66229
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_attachment_form() {
+		wp_set_current_user( self::$editor_id );
+
+		$response = $this->dispatch_request( 'postType', 'attachment' );
+		$this->assertSame( 200, $response->get_status(), 'The request succeeds.' );
+
+		$data = json_decode( wp_json_encode( $response->get_data() ), true );
+
+		$this->assertSame( array( 'type' => 'panel' ), $data['form']['layout'], 'The form uses a panel layout.' );
+		$this->assertSame(
+			array( 'title', 'alt_text', 'caption', 'description', 'date', 'author', 'filename', 'mime_type', 'filesize', 'media_dimensions', 'attached_to' ),
+			array_map(
+				static function ( $field ) {
+					return is_array( $field ) ? $field['id'] : $field;
+				},
+				$data['form']['fields']
+			),
+			'The form lists the media editor fields in order.'
+		);
+	}
+
+	/**
+	 * The `root`/`site` entity provides the form of the site identity screen.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_root_site_form() {
+		// Admin: reading root config requires `manage_options`.
+		wp_set_current_user( self::$admin_id );
+
+		$response = $this->dispatch_request( 'root', 'site' );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = json_decode( wp_json_encode( $response->get_data() ), true );
+
+		$this->assertSame(
+			array(
+				'type'          => 'regular',
+				'labelPosition' => 'top',
+			),
+			$data['form']['layout']
+		);
+		$this->assertSame(
+			array( 'title', 'description', 'site_logo', 'site_icon' ),
+			$data['form']['fields']
+		);
+	}
+
+	/**
 	 * Empty object-typed config values serialize as JSON objects ({}), not arrays ([]).
 	 *
 	 * @covers ::get_items
@@ -384,5 +441,51 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 			array( 'kind', 'name', 'version', 'default_view', 'default_layouts', 'view_list', 'form' ),
 			array_keys( $schema['properties'] )
 		);
+	}
+
+	/**
+	 * `search` and `page` are not part of the view schema: they are managed via
+	 * the URL, which is their only source of truth.
+	 *
+	 * @covers ::get_item_schema
+	 */
+	public function test_get_item_schema_excludes_url_managed_view_properties() {
+		$controller = new WP_REST_View_Config_Controller();
+		$schema     = $controller->get_item_schema();
+
+		$views = array(
+			'default_view'             => $schema['properties']['default_view']['properties'],
+			'view_list item view'      => $schema['properties']['view_list']['items']['properties']['view']['properties'],
+			'default_layouts.table'    => $schema['properties']['default_layouts']['properties']['table']['properties'],
+			'default_layouts.grid'     => $schema['properties']['default_layouts']['properties']['grid']['properties'],
+			'default_layouts.list'     => $schema['properties']['default_layouts']['properties']['list']['properties'],
+			'default_layouts.activity' => $schema['properties']['default_layouts']['properties']['activity']['properties'],
+		);
+
+		foreach ( $views as $label => $properties ) {
+			$this->assertArrayNotHasKey( 'search', $properties, "$label should not declare a `search` property." );
+			$this->assertArrayNotHasKey( 'page', $properties, "$label should not declare a `page` property." );
+		}
+	}
+
+	/**
+	 * The table layout schema describes the column styles.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::get_item_schema
+	 * @covers ::get_table_layout_schema
+	 * @covers ::get_column_style_schema
+	 */
+	public function test_get_item_schema_describes_table_column_styles() {
+		$controller = new WP_REST_View_Config_Controller();
+		$schema     = $controller->get_item_schema();
+
+		$styles = $schema['properties']['default_layouts']['properties']['table']['properties']['layout']['properties']['styles'];
+
+		$this->assertArrayHasKey( 'description', $styles, 'The column styles should be described.' );
+		foreach ( array( 'width', 'maxWidth', 'minWidth', 'align' ) as $property ) {
+			$this->assertArrayHasKey( 'description', $styles['additionalProperties']['properties'][ $property ], "The `$property` column style should be described." );
+		}
 	}
 }

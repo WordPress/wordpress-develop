@@ -35,7 +35,7 @@ class Tests_Formatting_LinksAddTarget extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_links_add_target() {
+	public static function data_links_add_target() {
 		return array(
 			array(
 				'MY CONTENT <div> SOME ADDITIONAL TEXT <a href="XYZ" src="ABC">LINK</a> HERE </div> END TEXT',

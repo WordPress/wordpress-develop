@@ -326,7 +326,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_context_param_with_data_provider() {
+	public static function data_context_param_with_data_provider() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
@@ -420,7 +420,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_items_with_data_provider() {
+	public static function data_get_items_with_data_provider() {
 		return array(
 			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
@@ -462,7 +462,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_items_endpoint_should_return_unauthorized_https_status_code_for_unauthorized_request() {
+	public static function data_get_items_endpoint_should_return_unauthorized_https_status_code_for_unauthorized_request() {
 		return array(
 			'templates, GET request'       => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'GET' ),
 			'templates, HEAD request'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'HEAD' ),
@@ -493,7 +493,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_items_endpoint_should_return_forbidden_https_status_code_for_users_with_insufficient_permissions() {
+	public static function data_get_items_endpoint_should_return_forbidden_https_status_code_for_users_with_insufficient_permissions() {
 		return array(
 			'templates, GET request'       => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'GET' ),
 			'templates, HEAD request'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'HEAD' ),
@@ -529,7 +529,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_items_for_templates_based_on_theme_files_should_return_bad_response_status() {
+	public static function data_get_items_for_templates_based_on_theme_files_should_return_bad_response_status() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
 			'template parts' => array( 'template-parts', self::TEST_THEME . '//small-header' ),
@@ -563,7 +563,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_item_for_templates_based_on_theme_files_should_return_bad_response_status() {
+	public static function data_get_item_for_templates_based_on_theme_files_should_return_bad_response_status() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
 			'template parts' => array( 'template-parts', self::TEST_THEME . '//small-header' ),
@@ -635,7 +635,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_item_with_data_provider() {
+	public static function data_get_item_with_data_provider() {
 		return array(
 			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
@@ -729,7 +729,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_item_not_found() {
+	public static function data_get_item_not_found() {
 		return array(
 			'templates, GET request'       => array( 'template_post', 'templates', 'GET' ),
 			'templates, HEAD request'      => array( 'template_post', 'templates', 'HEAD' ),
@@ -772,7 +772,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_item_invalid_parent_id() {
+	public static function data_get_item_invalid_parent_id() {
 		return array(
 			'templates, GET request'       => array(
 				'template_post',
@@ -881,7 +881,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_prepare_item_with_data_provider() {
+	public static function data_prepare_item_with_data_provider() {
 		return array(
 			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
@@ -943,7 +943,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_item_schema_with_data_provider() {
+	public static function data_get_item_schema_with_data_provider() {
 		return array(
 			'templates'      => array(
 				'templates',
@@ -961,29 +961,52 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @coversNothing
+	 * Template revisions collection is not creatable; create requests are rejected.
+	 *
+	 * Create does not match the revisions collection route (GET-only). It falls through to the
+	 * templates controller, which rejects the unknown template id with rest_template_not_found.
+	 *
 	 * @ticket 56922
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		$this->markTestSkipped(
-			sprintf(
-				"The '%s' controller doesn't currently support the ability to create template revisions.",
-				WP_REST_Template_Revisions_Controller::class
-			)
-		);
+		wp_set_current_user( self::$admin_id );
+
+		$route = '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/revisions';
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'POST', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
 	}
 
 	/**
-	 * @coversNothing
+	 * Template revisions item route is not editable; update requests are rejected.
+	 *
+	 * Write methods do not match the revisions item route (GET/DELETE only). They fall through
+	 * to the templates controller, which rejects the unknown template id with rest_template_not_found.
+	 *
 	 * @ticket 56922
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		$this->markTestSkipped(
-			sprintf(
-				"The '%s' controller doesn't currently support the ability to update template revisions.",
-				WP_REST_Template_Revisions_Controller::class
-			)
-		);
+		wp_set_current_user( self::$admin_id );
+
+		$revision_id = self::$template_revisions[0];
+		$route       = '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/revisions/' . $revision_id;
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, $route );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
+		}
 	}
 
 	/**
@@ -1028,7 +1051,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_delete_item_with_data_provider() {
+	public static function data_delete_item_with_data_provider() {
 		return array(
 			'templates'      => array(
 				'template_post',
@@ -1074,7 +1097,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_delete_item_incorrect_permission() {
+	public static function data_delete_item_incorrect_permission() {
 		return array(
 			'templates'      => array(
 				'template_post',
@@ -1121,7 +1144,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_delete_item_no_permission() {
+	public static function data_delete_item_no_permission() {
 		return array(
 			'templates'      => array(
 				'template_post',
@@ -1167,7 +1190,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_delete_item_not_found() {
+	public static function data_delete_item_not_found() {
 		return array(
 			'templates'      => array(
 				'template_post',

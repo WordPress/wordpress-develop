@@ -90,7 +90,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		// Force last_changed to increment.
 		clean_post_cache( $pages[0]->ID );
-		$this->assertNotEquals( $time1, $time2 = wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertNotSame( $time1, $time2 = wp_cache_get( 'last_changed', 'posts' ) );
 		get_post( $pages[0]->ID );
 		$num_queries = get_num_queries();
 
@@ -472,7 +472,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertSameSets( $parsed_args, $filter_args[0][1], 'Unexpected $parsed_args for get_pages_query_args filter' );
 	}
 
-	public function data_get_pages_args() {
+	public static function data_get_pages_args() {
 		return array(
 			'default'            => array(
 				'args'                => array(),
