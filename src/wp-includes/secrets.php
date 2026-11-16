@@ -253,7 +253,7 @@ function wp_secrets_validate_name( string $name ) {
 		);
 	}
 
-	$segment_pattern = '/^[a-z0-9]([a-z0-9_-]*[a-z0-9])?\z/';
+	$segment_pattern = '/^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$/';
 
 	if ( 0 === $slashes ) {
 		if ( ! preg_match( $segment_pattern, $name ) ) {
@@ -417,11 +417,7 @@ function wp_using_secrets_dropin(): bool {
  * @param string $value The plaintext value to store.
  * @return true|WP_Error
  */
-function wp_set_secret(
-	string $name,
-	#[\SensitiveParameter]
-	$value
-) {
+function wp_set_secret( string $name, $value ) {
 	return _wp_secrets_set( $name, $value, false );
 }
 
@@ -548,11 +544,7 @@ function wp_list_secrets( string $namespace = '' ) { // phpcs:ignore Universal.N
  * @param string $value The plaintext value to store.
  * @return true|WP_Error
  */
-function wp_set_network_secret(
-	string $name,
-	#[\SensitiveParameter]
-	$value
-) {
+function wp_set_network_secret( string $name, $value ) {
 	return _wp_secrets_set( $name, $value, true );
 }
 
@@ -719,14 +711,7 @@ function wp_secrets_provider_label(): string {
  *                                     wp_secret_changed.
  * @return true|WP_Error
  */
-function _wp_secrets_set(
-	string $name,
-	#[\SensitiveParameter]
-	$value,
-	bool $network,
-	bool $needs_rotation = false,
-	?string $action_override = null
-) {
+function _wp_secrets_set( string $name, $value, bool $network, bool $needs_rotation = false, ?string $action_override = null ) {
 	return _wp_secrets_get_provider()->set( $name, $value, $network, $needs_rotation, $action_override );
 }
 
