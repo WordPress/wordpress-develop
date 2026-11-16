@@ -2198,6 +2198,7 @@ function validate_username( $username ) {
  * @since 5.3.0 The `user_activation_key` field can be passed to `$userdata`.
  * @since 5.3.0 The `spam` field can be passed to `$userdata` (Multisite only).
  * @since 5.9.0 The `meta_input` field can be passed to `$userdata` to allow addition of user meta data.
+ * @since 7.3.0 The `rich_editing`, `syntax_highlighting`, and `show_admin_bar_front` fields accept a boolean.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -2222,12 +2223,12 @@ function validate_username( $username ) {
  *                                        to build the second part of the user's display name
  *                                        if `$display_name` is not specified.
  *     @type string $description          The user's biographical description.
- *     @type string $rich_editing         Whether to enable the rich-editor for the user.
+ *     @type string|bool $rich_editing    Whether to enable the rich-editor for the user.
  *                                        Accepts 'true' or 'false' as a string literal,
- *                                        not boolean. Default 'true'.
- *     @type string $syntax_highlighting  Whether to enable the rich code editor for the user.
+ *                                        or a boolean. Default 'true'.
+ *     @type string|bool $syntax_highlighting Whether to enable the rich code editor for the user.
  *                                        Accepts 'true' or 'false' as a string literal,
- *                                        not boolean. Default 'true'.
+ *                                        or a boolean. Default 'true'.
  *     @type string $comment_shortcuts    Whether to enable comment moderation keyboard
  *                                        shortcuts for the user. Accepts 'true' or 'false'
  *                                        as a string literal, not boolean. Default 'false'.
@@ -2238,9 +2239,9 @@ function validate_username( $username ) {
  *     @type string $user_activation_key  Password reset key. Default empty.
  *     @type bool   $spam                 Multisite only. Whether the user is marked as spam.
  *                                        Default false.
- *     @type string $show_admin_bar_front Whether to display the Admin Bar for the user
+ *     @type string|bool $show_admin_bar_front Whether to display the Admin Bar for the user
  *                                        on the site's front end. Accepts 'true' or 'false'
- *                                        as a string literal, not boolean. Default 'true'.
+ *                                        as a string literal, or a boolean. Default 'true'.
  *     @type string $role                 User's role.
  *     @type string $locale               User's locale. Default empty.
  *     @type array  $meta_input           Array of custom user meta values keyed by meta key.
@@ -2536,6 +2537,13 @@ function wp_insert_user( $userdata ) {
 	 * @param string $description The user's description.
 	 */
 	$meta['description'] = apply_filters( 'pre_user_description', $description );
+
+	// These preferences are stored as 'true'/'false' strings, so convert booleans to match.
+	foreach ( array( 'rich_editing', 'syntax_highlighting', 'infinite_scrolling', 'show_admin_bar_front' ) as $preference ) {
+		if ( isset( $userdata[ $preference ] ) && is_bool( $userdata[ $preference ] ) ) {
+			$userdata[ $preference ] = $userdata[ $preference ] ? 'true' : 'false';
+		}
+	}
 
 	$meta['rich_editing'] = empty( $userdata['rich_editing'] ) ? 'true' : $userdata['rich_editing'];
 
