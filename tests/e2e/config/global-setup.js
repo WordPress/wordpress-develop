@@ -11,6 +11,11 @@ import { request } from '@playwright/test';
 import { RequestUtils } from '@wordpress/e2e-test-utils-playwright';
 
 /**
+ * Internal dependencies
+ */
+import { removeMuPlugins } from '../fixtures/site';
+
+/**
  *
  * @param {import('@playwright/test').FullConfig} config
  * @returns {Promise<void>}
@@ -23,6 +28,7 @@ async function globalSetup( config ) {
 	// An interrupted run can leave this behind, and it breaks the whole site.
 	const documentRoot = join( process.cwd(), process.env.LOCAL_DIR ?? 'src' );
 	rmSync( join( documentRoot, '.maintenance' ), { force: true } );
+	removeMuPlugins();
 
 	const requestContext = await request.newContext( {
 		baseURL,

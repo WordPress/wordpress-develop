@@ -2,6 +2,7 @@
  * External dependencies
  */
 import { randomUUID } from 'node:crypto';
+import { readdirSync, rmSync } from 'node:fs';
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -135,23 +136,47 @@ export const siteOptions = async ( { baseURL }, use ) => {
 	}
 };
 
+const muPluginDirectory = join(
+	process.cwd(),
+	process.env.LOCAL_DIR ?? 'src',
+	'wp-content/mu-plugins'
+);
+const MU_PLUGIN_PREFIX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-/;
+
+/**
+ * Deletes the must-use plugins that `muPlugin` wrote. Global setup calls this, while no
+ * test runs.
+ */
+export function removeMuPlugins() {
+	let names;
+	try {
+		names = readdirSync( muPluginDirectory );
+	} catch {
+		return;
+	}
+	for ( const name of names ) {
+		if ( MU_PLUGIN_PREFIX.test( name ) ) {
+			rmSync( join( muPluginDirectory, name ), { force: true } );
+		}
+	}
+}
+
 /**
  * Writes must-use plugins. Each file name gets a unique prefix, so that tests in other workers
- * cannot overwrite or delete it. Teardown deletes each file that `write` wrote.
+ * cannot overwrite it.
+ *
+ * The files stay until the next run's global setup deletes them. A request from another worker
+ * can list a file and then include it, so deleting the file between the two makes that request
+ * fail. Each plugin must therefore not change requests from other tests.
  */
 export const muPlugin = async ( {}, use ) => {
-	const directory = join(
-		process.cwd(),
-		process.env.LOCAL_DIR ?? 'src',
-		'wp-content/mu-plugins'
-	);
-	const files = new Set();
-
 	await use( {
 		write: async ( fileName, php ) => {
-			const file = join( directory, `${ randomUUID() }-${ fileName }` );
-			files.add( file );
-			await mkdir( directory, { recursive: true } );
+			const file = join(
+				muPluginDirectory,
+				`${ randomUUID() }-${ fileName }`
+			);
+			await mkdir( muPluginDirectory, { recursive: true } );
 			// WordPress loads only `*.php` files, so it never includes a half-written file.
 			const temporary = `${ file }.tmp`;
 			try {
@@ -163,8 +188,4 @@ export const muPlugin = async ( {}, use ) => {
 			return file;
 		},
 	} );
-
-	await settleRestores(
-		[ ...files ].map( ( file ) => rm( file, { force: true } ) )
-	);
 };
