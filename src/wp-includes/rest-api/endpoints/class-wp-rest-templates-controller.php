@@ -25,6 +25,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	protected $post_type;
 
 	/**
+	 * The template being prepared for the response, so prepare_links() can reuse it.
+	 *
+	 * @since 7.2.0
+	 */
+	private ?WP_Block_Template $prepared_template = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 5.8.0
@@ -832,7 +839,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $data );
 
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
-			$links = $this->prepare_links( $template->id );
+			$this->prepared_template = $template;
+			$links                   = $this->prepare_links( $template->id );
+			$this->prepared_template = null;
 			$response->add_links( $links );
 			if ( ! empty( $links['self']['href'] ) ) {
 				$actions = $this->get_available_actions();
@@ -984,7 +993,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		);
 
 		if ( post_type_supports( $this->post_type, 'revisions' ) ) {
-			$template = get_block_template( $id, $this->post_type );
+			// Reuse the template being prepared instead of querying it again for each item.
+			if ( $this->prepared_template instanceof WP_Block_Template && $this->prepared_template->id === $id ) {
+				$template = $this->prepared_template;
+			} else {
+				// Only reached when a subclass calls prepare_links() outside of prepare_item_for_response().
+				$template = get_block_template( $id, $this->post_type );
+			}
 			if ( $template instanceof WP_Block_Template && ! empty( $template->wp_id ) ) {
 				$revisions       = wp_get_latest_revision_id_and_total_count( $template->wp_id );
 				$revisions_count = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
