@@ -1876,7 +1876,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	public function test_update_without_a_date_keeps_a_draft_floating(): void {
 		update_option( 'timezone_string', 'America/New_York' );
-		$post_id = $this->create_floating_draft( '2099-06-15 10:00:00' );
+		$post_id = $this->create_floating_draft( '2099-01-15 10:00:00' );
 
 		$this->login_as( 'editor' );
 		$this->register_abilities();
@@ -1930,7 +1930,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	public function test_pending_without_a_date_keeps_a_draft_floating(): void {
 		update_option( 'timezone_string', 'America/New_York' );
-		$post_id = $this->create_floating_draft( '2099-06-15 10:00:00' );
+		$post_id = $this->create_floating_draft( '2099-01-15 10:00:00' );
 
 		$this->login_as( 'editor' );
 		$this->register_abilities();
@@ -2012,7 +2012,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	public function test_new_date_pins_a_floating_draft( array $date ): void {
 		update_option( 'timezone_string', 'America/New_York' );
-		$post_id = $this->create_floating_draft( '2099-06-15 10:00:00' );
+		$post_id = $this->create_floating_draft( '2099-01-15 10:00:00' );
 
 		$this->login_as( 'editor' );
 		$this->register_abilities();
@@ -2025,14 +2025,17 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Returns dates equal to the date a floating draft shows, 2099-06-15 10:00 in America/New_York.
+	 * Returns dates equal to the date a floating draft shows, 2099-01-15 10:00 in America/New_York.
+	 *
+	 * The date is in winter because PHP versions before 8.1 apply no daylight saving time
+	 * after 2037.
 	 *
 	 * @return array<string, array{date: array<string, string>}> The dates.
 	 */
 	public static function data_dates_equal_to_the_floating_date(): array {
 		return array(
-			'site' => array( array( 'site' => '2099-06-15T10:00:00' ) ),
-			'gmt'  => array( array( 'gmt' => '2099-06-15T14:00:00' ) ),
+			'site' => array( array( 'site' => '2099-01-15T10:00:00' ) ),
+			'gmt'  => array( array( 'gmt' => '2099-01-15T15:00:00' ) ),
 		);
 	}
 
@@ -2047,7 +2050,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	public function test_date_equal_to_the_floating_date_does_not_pin_the_draft( array $date ): void {
 		update_option( 'timezone_string', 'America/New_York' );
-		$post_id = $this->create_floating_draft( '2099-06-15 10:00:00' );
+		$post_id = $this->create_floating_draft( '2099-01-15 10:00:00' );
 
 		$this->login_as( 'editor' );
 		$this->register_abilities();
@@ -2127,8 +2130,8 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 			array(
 				'post_author'   => self::$user_ids['editor'],
 				'post_status'   => 'future',
-				'post_date'     => '2099-06-15 10:00:00',
-				'post_date_gmt' => '2099-06-15 14:00:00',
+				'post_date'     => '2099-01-15 10:00:00',
+				'post_date_gmt' => '2099-01-15 15:00:00',
 			)
 		);
 
@@ -2138,8 +2141,8 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$post = $this->assert_updated( $this->update_post( $post_id, array( 'date' => $date ) ), $post_id );
 
 		$this->assertSame( 'future', $post->post_status, 'The post should stay scheduled.' );
-		$this->assertSame( '2099-06-15 10:00:00', $post->post_date, 'The local date should not change.' );
-		$this->assertSame( '2099-06-15 14:00:00', $post->post_date_gmt, 'The GMT date should not change.' );
+		$this->assertSame( '2099-01-15 10:00:00', $post->post_date, 'The local date should not change.' );
+		$this->assertSame( '2099-01-15 15:00:00', $post->post_date_gmt, 'The GMT date should not change.' );
 	}
 
 	/**
@@ -2149,10 +2152,10 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	public static function data_schedules_a_floating_draft_for_the_date_it_shows(): array {
 		return array(
-			'future, site'  => array( 'future', array( 'site' => '2099-06-15T10:00:00' ) ),
-			'future, gmt'   => array( 'future', array( 'gmt' => '2099-06-15T14:00:00' ) ),
-			'publish, site' => array( 'publish', array( 'site' => '2099-06-15T10:00:00' ) ),
-			'publish, gmt'  => array( 'publish', array( 'gmt' => '2099-06-15T14:00:00' ) ),
+			'future, site'  => array( 'future', array( 'site' => '2099-01-15T10:00:00' ) ),
+			'future, gmt'   => array( 'future', array( 'gmt' => '2099-01-15T15:00:00' ) ),
+			'publish, site' => array( 'publish', array( 'site' => '2099-01-15T10:00:00' ) ),
+			'publish, gmt'  => array( 'publish', array( 'gmt' => '2099-01-15T15:00:00' ) ),
 		);
 	}
 
@@ -2168,7 +2171,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	public function test_scheduling_a_floating_draft_for_the_date_it_shows( string $status, array $date ): void {
 		update_option( 'timezone_string', 'America/New_York' );
-		$post_id = $this->create_floating_draft( '2099-06-15 10:00:00' );
+		$post_id = $this->create_floating_draft( '2099-01-15 10:00:00' );
 
 		$this->login_as( 'editor' );
 		$this->register_abilities();
@@ -2184,8 +2187,8 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$post   = $this->assert_updated( $result, $post_id );
 
 		$this->assertSame( 'future', $post->post_status, 'The post should be scheduled.' );
-		$this->assertSame( '2099-06-15 10:00:00', $post->post_date, 'The local date should be the sent date.' );
-		$this->assertSame( '2099-06-15 14:00:00', $post->post_date_gmt, 'The GMT date should be the sent date.' );
+		$this->assertSame( '2099-01-15 10:00:00', $post->post_date, 'The local date should be the sent date.' );
+		$this->assertSame( '2099-01-15 15:00:00', $post->post_date_gmt, 'The GMT date should be the sent date.' );
 		$this->assertSame( 'future', $result['status'], 'The scheduled status should be returned.' );
 	}
 
