@@ -111,4 +111,27 @@ EOF;
 
 		$this->assertEqualHTML( $content, $post->post_content );
 	}
+
+	/**
+	 * Ensures that a user without `unfiltered_html` keeps the content after a NOSCRIPT element.
+	 *
+	 * @ticket 66674
+	 */
+	public function test_post_content_keeps_content_after_noscript_for_contributor() {
+		$contributor_id = self::factory()->user->create( array( 'role' => 'contributor' ) );
+		wp_set_current_user( $contributor_id );
+		$this->assertFalse( current_user_can( 'unfiltered_html' ), 'Contributors should not have unfiltered_html.' );
+
+		// Attach the save filters the way WordPress does for the current user.
+		kses_init();
+
+		$id = wp_insert_post(
+			array(
+				'post_author'  => $contributor_id,
+				'post_content' => '<p>Before</p><noscript><img src="a.jpg"></noscript><p>After</p>',
+			)
+		);
+
+		$this->assertEqualHTML( '<p>Before</p><p>After</p>', get_post( $id )->post_content );
+	}
 }
