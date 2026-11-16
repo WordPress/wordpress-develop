@@ -455,7 +455,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				<span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. %s: Attachment title. */
-				printf( __( 'Select %s' ), _draft_or_post_title() );
+				printf( __( 'Select %s' ), esc_html( wp_strip_all_tags( ( $this->get_unescaped_post_title( $post ) ) ) ) );
 				?>
 				</span>
 			</label>
@@ -648,7 +648,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			?>
 			<?php
 			if ( $user_can_edit ) {
-				$title = _draft_or_post_title( $post->post_parent );
+				$title = wp_strip_all_tags( $this->get_unescaped_post_title( $post->post_parent ) );
 				printf(
 					'<br /><a href="#the-list" onclick="findPosts.open( \'media[]\', \'%s\' ); return false;" class="hide-if-no-js aria-button-if-js" aria-label="%s">%s</a>',
 					$post->ID,
@@ -927,7 +927,7 @@ class WP_Media_List_Table extends WP_List_Table {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
-		$att_title = _draft_or_post_title();
+		$att_title = wp_strip_all_tags( $this->get_unescaped_post_title( $post ) );
 		$actions   = $this->_get_row_actions( $post, $att_title );
 
 		return $this->row_actions( $actions );
@@ -945,9 +945,30 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @return string The attachment title.
 	 */
 	protected function get_primary_column_aria_label( $post ) {
-		// The title may contain HTML. The printed aria-label uses esc_attr() later.
-		$attachment_title = html_entity_decode( _draft_or_post_title( $post ), ENT_QUOTES, get_bloginfo( 'charset' ) );
-		$attachment_title = wp_strip_all_tags( $attachment_title );
+		$attachment_title = wp_strip_all_tags( $this->get_unescaped_post_title( $post ) );
+
+		return $attachment_title;
+	}
+
+	/**
+	 * Returns an unescaped post title.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Post $post The current WP_Post object.
+	 * @return string The attachment title.
+	 */
+	protected function get_unescaped_post_title( $post ) {
+		$has_the_title_filter = has_filter( 'the_title', 'esc_html' );
+		if ( $has_the_title_filter ) {
+			remove_filter( 'the_title', 'esc_html' );
+		}
+
+		$attachment_title = empty( get_the_title( $post ) ) ? __( '(no title)' ) : get_the_title( $post );
+
+		if ( $has_the_title_filter ) {
+			add_filter( 'the_title', 'esc_html' );
+		}
 
 		return $attachment_title;
 	}
