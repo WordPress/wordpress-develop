@@ -382,6 +382,47 @@
 	} );
 
 
+	_.each( [ 'setMeta', 'setMetas' ], function( method ) {
+		QUnit.test( method + ' initializes missing meta and triggers change events.', function( assert ) {
+			var done = assert.async();
+
+			wp.api.loadPromise.done( function() {
+				var post = new wp.api.models.Post(),
+					changes = 0,
+					originalMeta;
+
+				post.on( 'change:meta', function() {
+					changes++;
+				} );
+
+				function setValue( value ) {
+					if ( 'setMeta' === method ) {
+						post.setMeta( 'test_key', value );
+					} else {
+						post.setMetas( { test_key: value } );
+					}
+				}
+
+				setValue( 'first' );
+				assert.strictEqual( post.getMeta( 'test_key' ), 'first', 'Missing meta is initialized.' );
+				assert.strictEqual( changes, 1, 'Initial meta triggers a change event.' );
+
+				originalMeta = post.getMetas();
+				originalMeta.existing_key = 'preserved';
+				setValue( 'second' );
+				assert.strictEqual( post.getMeta( 'test_key' ), 'second', 'Existing meta is updated.' );
+				assert.strictEqual( post.getMeta( 'existing_key' ), 'preserved', 'Other meta values are preserved.' );
+				assert.strictEqual( originalMeta.test_key, 'first', 'The previous meta object is not mutated.' );
+				assert.strictEqual( post.previous( 'meta' ), originalMeta, 'The previous meta remains available.' );
+				assert.strictEqual( changes, 2, 'Updating meta triggers a change event.' );
+
+				setValue( 'second' );
+				assert.strictEqual( changes, 2, 'Unchanged meta does not trigger another change event.' );
+				done();
+			} );
+		} );
+	} );
+
 	var theModelTypesWithMeta = [
 		'Posts',
 		'Comments',
