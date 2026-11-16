@@ -202,7 +202,15 @@ class Walker_Nav_Menu extends Walker {
 		 * @param stdClass         $args      An object of wp_nav_menu() arguments.
 		 * @param int              $depth     Depth of menu item. Used for padding.
 		 */
-		$class_names = implode( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $menu_item, $args, $depth ) );
+		$classes = apply_filters( 'nav_menu_css_class', array_filter( $classes ), $menu_item, $args, $depth );
+
+		/*
+		 * Store the filtered classes back on the menu item so that later hooks,
+		 * such as walker_nav_menu_start_el, see the same classes applied to the <li>.
+		 */
+		$menu_item->classes = $classes;
+
+		$class_names = implode( ' ', $classes );
 
 		/**
 		 * Filters the ID attribute applied to a menu item's list item element.
