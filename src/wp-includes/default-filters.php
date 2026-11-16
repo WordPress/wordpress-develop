@@ -156,7 +156,12 @@ add_action( 'init', 'wp_create_initial_comment_meta' );
 // Places to balance tags on input.
 foreach ( array( 'content_save_pre', 'excerpt_save_pre', 'comment_save_pre', 'pre_comment_content' ) as $filter ) {
 	add_filter( $filter, 'convert_invalid_entities' );
-	add_filter( $filter, 'balanceTags', 50 );
+
+	if ( 'content_save_pre' === $filter ) {
+		add_filter( $filter, '_balance_tags_by_page', 50 );
+	} else {
+		add_filter( $filter, 'balanceTags', 50 );
+	}
 }
 
 // Format strings for display.
