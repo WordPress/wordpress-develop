@@ -12,6 +12,7 @@
  * @covers ::wp_random_content_pre_get_posts
  * @covers ::wp_random_content_posts_orderby
  * @covers ::wp_random_content_post_limits
+ * @covers ::wp_random_content_posts_pre_query
  * @covers ::wp_is_random_content_query
  * @covers ::wp_get_random_content_post_types
  * @covers ::wp_random_content_flush_rewrite_rules_for_post
@@ -977,19 +978,20 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		stick_post( $sticky );
 
 		/*
-		 * Make the "random" order deterministic so the sticky post is never selected by the query.
-		 * The order is replaced after the random order is enforced on the 'posts_orderby' filter.
+		 * Exclude the sticky post from the pool of posts the random post is selected from,
+		 * so it is only selected if sticky posts are prepended to the selection. Sticky
+		 * posts are prepended by a separate query that suppresses filters.
 		 */
-		$sticky_orderby = "{$wpdb->posts}.ID = {$sticky} ASC";
+		$exclude_sticky = " AND {$wpdb->posts}.ID != {$sticky}";
 		add_filter(
 			'posts_clauses',
 			/**
 			 * @param array<string, string> $clauses
 			 * @return array<string, string>
 			 */
-			static function ( array $clauses, WP_Query $query ) use ( $sticky_orderby ): array {
+			static function ( array $clauses, WP_Query $query ) use ( $exclude_sticky ): array {
 				if ( $query->is_main_query() ) {
-					$clauses['orderby'] = $sticky_orderby;
+					$clauses['where'] .= $exclude_sticky;
 				}
 				return $clauses;
 			},
@@ -1827,7 +1829,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The customized archive query was not run.' );
 		$this->assertStringContainsString( 'ORDER BY RAND()', $request, 'The random order should not be overridden by archive customizations.' );
-		$this->assertStringContainsString( 'LIMIT 0, 1', $request, 'Only one post should be selected when archive customizations set the number of posts.' );
+		$this->assertMatchesRegularExpression( '/LIMIT 0, 50\s*$/', $request, 'The pool of posts should be selected when archive customizations set the number of posts.' );
 	}
 
 	/**
@@ -2122,7 +2124,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->assertCount( 1, $random_queries, "Exactly one random query should be made:\n" . implode( "\n", $this->queries ) );
 		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.ID\s+FROM/", $random_queries[0], 'The random query should select post IDs only.' );
 		$this->assertMatchesRegularExpression( '/ORDER BY RAND\(\)/', $random_queries[0], 'The query should use a random order.' );
-		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $random_queries[0], 'The query should select a single post.' );
+		$this->assertMatchesRegularExpression( '/LIMIT 0, 50\s*$/', $random_queries[0], 'The query should select the pool of posts.' );
 		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $random_queries[0], 'The query should not count found rows.' );
 	}
 
@@ -2140,7 +2142,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'RAND()', $this->queries[0], 'The random query should be made first.' );
 
 		if ( isset( $this->queries[1] ) ) {
-			$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.\*\s+FROM\s+{$wpdb->posts}\s+WHERE\s+ID\s+IN\s+\(\d+\)/", $this->queries[1], 'The second query should load the selected post by its ID.' );
+			$this->assertMatchesRegularExpression( "/^\s*SELECT\s+\*\s+FROM\s+{$wpdb->posts}\s+WHERE\s+ID\s+=\s+\d+\s+LIMIT\s+1/", $this->queries[1], 'The second query should load the selected post by its ID.' );
 		}
 	}
 
@@ -2207,7 +2209,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The random query with a theme limit override was not run.' );
-		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $request, 'The random query should select a single post.' );
+		$this->assertMatchesRegularExpression( '/LIMIT 0, 50\s*$/', $request, 'The random query should select the pool of posts.' );
 		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Theme limit overrides should not prevent a single post being selected.' );
 	}
 
@@ -2746,7 +2748,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The random query with SQL customizations was not run.' );
 		$this->assertStringContainsString( 'ORDER BY RAND()', $request, 'The posts_orderby filter should not override the random order.' );
-		$this->assertStringContainsString( 'LIMIT 0, 1', $request, 'The post_limits filter should not override the random limit.' );
+		$this->assertMatchesRegularExpression( '/LIMIT 0, 50\s*$/', $request, 'The post_limits filter should not override the random limit.' );
 	}
 
 	/**
@@ -2767,7 +2769,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The random query with suppressed filters was not run.' );
 		$this->assertStringContainsString( 'ORDER BY RAND()', $request, 'Suppressing filters should not bypass the random order.' );
-		$this->assertStringContainsString( 'LIMIT 0, 1', $request, 'Suppressing filters should not bypass the random limit.' );
+		$this->assertMatchesRegularExpression( '/LIMIT 0, 50\s*$/', $request, 'Suppressing filters should not bypass the random limit.' );
 	}
 
 	/*

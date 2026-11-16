@@ -5,6 +5,7 @@
  * @group query
  *
  * @covers WP::handle_random
+ * @covers ::wp_random_content_posts_pre_query
  */
 class Tests_WP_HandleRandom extends WP_UnitTestCase {
 
@@ -130,23 +131,113 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure random content queries are not served from the query cache.
-	 *
-	 * If the ID query were cached, the same post would be selected until the cache is
-	 * invalidated.
+	 * Ensure the pool of randomly ordered posts is served from the cache.
 	 *
 	 * @ticket 64498
+	 * @ticket 66654
 	 */
-	public function test_random_content_queries_are_not_cached(): void {
+	public function test_random_post_pool_is_served_from_the_cache(): void {
+		$queries = new MockAction();
+		add_filter( 'query', array( $queries, 'filter' ) );
+
+		for ( $i = 0; $i < 2; $i++ ) {
+			$this->handle_random( array( 'random' => '' ) );
+			$this->assertInstanceOf( WP_Post::class, $GLOBALS['wp_the_query']->post, "Request {$i} should select a post." );
+		}
+
+		$random_queries = preg_grep( '/RAND\(\)/', array_column( $queries->get_args(), 0 ) );
+
+		$this->assertCount( 1, $random_queries, 'The random query should only be made by the first request.' );
+	}
+
+	/**
+	 * Ensure each request selects a post from the cached pool at random.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_posts_are_selected_at_random_from_the_cached_pool(): void {
+		$queries = new MockAction();
+		add_filter( 'query', array( $queries, 'filter' ) );
+
+		$selected = array();
+		for ( $i = 0; $i < 30; $i++ ) {
+			$this->handle_random( array( 'random' => '' ) );
+			$selected[ $GLOBALS['wp_the_query']->post->ID ] = true;
+		}
+
+		$random_queries = preg_grep( '/RAND\(\)/', array_column( $queries->get_args(), 0 ) );
+
+		$this->assertCount( 1, $random_queries, 'The pool should be selected by a single random query.' );
+		// With 5 posts the probability of a single post being selected 30 times in a row is about 1 in 10^20.
+		$this->assertGreaterThan( 1, count( $selected ), 'Requests using the cached pool should select different posts.' );
+	}
+
+	/**
+	 * Ensure the cached pool is invalidated when a post is published.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_cached_pool_is_invalidated_when_a_post_is_published(): void {
+		$this->handle_random( array( 'random' => '' ) );
+
+		self::factory()->post->create();
+
 		$queries = new MockAction();
 		add_filter( 'query', array( $queries, 'filter' ) );
 
 		$this->handle_random( array( 'random' => '' ) );
-		$this->handle_random( array( 'random' => '' ) );
 
 		$random_queries = preg_grep( '/RAND\(\)/', array_column( $queries->get_args(), 0 ) );
 
-		$this->assertCount( 2, $random_queries, 'The random ID query should run for each request rather than reuse a cached result.' );
+		$this->assertCount( 1, $random_queries, 'The random query should be made again after a post is published.' );
+	}
+
+	/**
+	 * Ensure random content requests for different archives use different pools.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_cached_pool_is_not_shared_between_archives(): void {
+		$queries = new MockAction();
+		add_filter( 'query', array( $queries, 'filter' ) );
+
+		$this->handle_random( array( 'random' => '' ) );
+		$this->handle_random(
+			array(
+				'random' => '',
+				's'      => 'Post',
+			)
+		);
+
+		$random_queries = preg_grep( '/RAND\(\)/', array_column( $queries->get_args(), 0 ) );
+
+		$this->assertCount( 2, $random_queries, 'Each archive should have its own pool.' );
+	}
+
+	/**
+	 * Ensure only the selected post is loaded from the pool.
+	 *
+	 * @ticket 66654
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_only_the_selected_post_is_loaded_from_the_pool(): void {
+		global $wpdb;
+
+		$queries = new MockAction();
+		add_filter( 'query', array( $queries, 'filter' ) );
+
+		$this->handle_random( array( 'random' => '' ) );
+
+		$executed      = array_column( $queries->get_args(), 0 );
+		$random_query  = array_values( preg_grep( '/RAND\(\)/', $executed ) );
+		$posts_queries = array_values( preg_grep( "/^\s*SELECT\s+(\*|{$wpdb->posts}\.\*)\s+FROM\s+{$wpdb->posts}\s+WHERE\s+ID/", $executed ) );
+
+		$this->assertCount( 1, $random_query, 'The pool should be selected by a single random query.' );
+		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.ID\s+FROM/", $random_query[0], 'The pool query should select post IDs only.' );
+		$this->assertMatchesRegularExpression( '/LIMIT 0, 50\s*$/', $random_query[0], 'The pool query should select up to 50 posts.' );
+		$this->assertCount( 1, $posts_queries, "Only the selected post should be loaded:\n" . implode( "\n", $executed ) );
+		$this->assertStringContainsString( (string) $GLOBALS['wp_the_query']->post->ID, $posts_queries[0], 'The selected post should be loaded.' );
 	}
 
 	/**

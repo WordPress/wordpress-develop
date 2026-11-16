@@ -718,6 +718,8 @@ class WP {
 	 * - {@see wp_random_content_pre_get_posts()} on the {@see 'pre_get_posts'} action.
 	 * - {@see wp_random_content_posts_orderby()} on the {@see 'posts_orderby'} filter.
 	 * - {@see wp_random_content_post_limits()} on the {@see 'post_limits'} filter.
+	 * - {@see wp_random_content_posts_pre_query()} on the {@see 'posts_pre_query'} filter,
+	 *   which selects the random post from a cached pool of randomly ordered posts.
 	 *
 	 * If a post is selected, the redirect is sent by {@see wp_random_content_redirect()}
 	 * on the {@see 'template_redirect'} action at priority 100, so the request is set up
@@ -745,12 +747,14 @@ class WP {
 		add_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', 20 );
 		add_filter( 'posts_orderby', 'wp_random_content_posts_orderby', 20, 2 );
 		add_filter( 'post_limits', 'wp_random_content_post_limits', 20, 2 );
+		add_filter( 'posts_pre_query', 'wp_random_content_posts_pre_query', 20, 2 );
 
 		$this->query_posts();
 
 		remove_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', 20 );
 		remove_filter( 'posts_orderby', 'wp_random_content_posts_orderby', 20 );
 		remove_filter( 'post_limits', 'wp_random_content_post_limits', 20 );
+		remove_filter( 'posts_pre_query', 'wp_random_content_posts_pre_query', 20 );
 
 		if ( ! wp_is_random_content_query( $wp_the_query ) ) {
 			return true;

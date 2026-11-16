@@ -1393,7 +1393,8 @@ function wp_get_random_content_post_types( WP_Query $query ): array {
  * Only randomable post types and published posts without a password are eligible.
  * The number and order of posts are enforced by {@see wp_random_content_post_limits()} and
  * {@see wp_random_content_posts_orderby()}, so callbacks modifying them on archives do not
- * affect the selection.
+ * affect the selection. The random post is selected from a cached pool of posts by
+ * {@see wp_random_content_posts_pre_query()}.
  *
  * Added to the {@see 'pre_get_posts'} action by {@see WP::handle_random()} while the
  * random content query runs, so it runs after other callbacks.
@@ -1411,6 +1412,8 @@ function wp_random_content_pre_get_posts( $query ): void {
 	$query->set( 'post_status', 'publish' );
 	$query->set( 'has_password', false );
 	$query->set( 'ignore_sticky_posts', true );
+	// Only the IDs of the pool of posts are selected, see wp_random_content_posts_pre_query().
+	$query->set( 'fields', 'ids' );
 	$query->set( 'no_found_rows', true );
 	$query->set( 'update_post_meta_cache', false );
 	$query->set( 'update_post_term_cache', false );
@@ -1440,12 +1443,16 @@ function wp_random_content_posts_orderby( $orderby, WP_Query $query ): string {
 }
 
 /**
- * Limits the random content query to a single post.
+ * Limits the random content query to the pool of posts the random post is selected from.
  *
  * Added to the {@see 'post_limits'} filter by {@see WP::handle_random()} while the random
  * content query runs. Enforcing the limit in SQL prevents {@see 'pre_get_posts'}
  * callbacks setting the number of posts, offset or page on archives from affecting
  * the selection.
+ *
+ * Selecting a pool of posts costs about the same as selecting a single post, as the
+ * database orders every eligible post randomly either way. The pool is cached by
+ * {@see wp_random_content_posts_pre_query()}.
  *
  * @since 7.2.0
  *
@@ -1455,10 +1462,66 @@ function wp_random_content_posts_orderby( $orderby, WP_Query $query ): string {
  */
 function wp_random_content_post_limits( $limits, WP_Query $query ): string {
 	if ( wp_is_random_content_query( $query ) ) {
-		return 'LIMIT 0, 1';
+		return 'LIMIT 0, 50';
 	}
 
 	return (string) $limits;
+}
+
+/**
+ * Selects the random post from a cached pool of randomly ordered posts.
+ *
+ * WP_Query does not cache randomly ordered queries, so the IDs of the pool of posts
+ * selected by the random content query are cached here for an hour. Each request
+ * selects a post from the pool at random, so the database only orders the eligible
+ * posts randomly when the pool is not cached. The cache is invalidated when posts
+ * change.
+ *
+ * The pool is selected by an ID query, set by {@see wp_random_content_pre_get_posts()},
+ * so only the selected post is loaded.
+ *
+ * Added to the {@see 'posts_pre_query'} filter by {@see WP::handle_random()} while the
+ * random content query runs. Posts returned by an earlier callback are not replaced.
+ *
+ * @since 7.2.0
+ *
+ * @see wp_random_content_post_limits()
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param WP_Post[]|int[]|null $posts Posts returned by an earlier callback, or null to run the query.
+ * @param WP_Query             $query The WP_Query instance.
+ * @return WP_Post[]|int[]|null The selected post ID, an empty array if there are no
+ *                              eligible posts, or the posts from an earlier callback.
+ */
+function wp_random_content_posts_pre_query( $posts, WP_Query $query ) {
+	global $wpdb;
+
+	if ( null !== $posts || ! wp_is_random_content_query( $query ) ) {
+		return $posts;
+	}
+
+	// The placeholder escape differs between requests, see wpdb::placeholder_escape().
+	$cache_key    = 'wp_random_content:' . md5( $wpdb->remove_placeholder_escape( $query->request ) );
+	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$post_ids     = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
+
+	if ( ! is_array( $post_ids ) ) {
+		$post_ids = array_map( 'intval', $wpdb->get_col( $query->request ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query is prepared by WP_Query.
+		wp_cache_set_salted( $cache_key, $post_ids, 'post-queries', $last_changed, HOUR_IN_SECONDS );
+	}
+
+	/*
+	 * The pool is selected by an ID query, but the selected post is returned as the
+	 * post object of the main query. WP_Query handles the returned posts according to
+	 * the fields query variable, which is read after this filter runs.
+	 */
+	$query->query_vars['fields'] = 'all';
+
+	if ( array() === $post_ids ) {
+		return array();
+	}
+
+	return array( $post_ids[ wp_rand( 0, count( $post_ids ) - 1 ) ] );
 }
 
 /**
