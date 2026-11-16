@@ -72,7 +72,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertIsArray( $record['current'], 'The current slot should be an array.' );
 
 		$record['current'] = array_merge( $record['current'], $current );
-		update_site_option( "_wp_network_secret_{$name}", $record );
+		$this->assertTrue( update_site_option( "_wp_network_secret_{$name}", $record ), "Overriding the stored record of {$name} should succeed." );
 	}
 
 	/**
