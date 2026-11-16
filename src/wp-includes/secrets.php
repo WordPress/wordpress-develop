@@ -761,7 +761,7 @@ function wp_is_secrets_api_available(): bool {
 		}
 
 		// With no root key stored yet, the first write creates one under this key.
-		return false === get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+		return false === get_network_option( get_main_network_id(), WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
 	}
 
 	return true;
