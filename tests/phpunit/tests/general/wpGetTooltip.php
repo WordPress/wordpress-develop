@@ -336,7 +336,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_percent_encoded_hrefs() {
+	public static function data_percent_encoded_hrefs() {
 		return array(
 			'an encoded space' => array( '/wp-admin/edit.php?s=hello%20world' ),
 			'an encoded slash' => array( '/x?p=a%2Fb' ),
@@ -348,7 +348,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_button_markup_containing_percent_signs() {
+	public static function data_button_markup_containing_percent_signs() {
 		return array(
 			'a literal percent sign'      => array(
 				'<button type="button">100% done</button>',
@@ -382,7 +382,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_tooltip_types() {
+	public static function data_tooltip_types() {
 		return array(
 			'tooltip'   => array( 'tooltip' ),
 			'toggletip' => array( 'toggletip' ),

@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import { randomUUID } from 'node:crypto';
+
+/**
  * WordPress dependencies
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
@@ -6,13 +11,48 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 const themeSlug = 'e2e-test-theme';
 const themeName = 'E2E Test Theme';
 
+async function uploadTheme( admin, page, fixture ) {
+	await admin.visitAdminPage( 'theme-install.php' );
+	await page
+		.getByRole( 'button', { name: 'Upload Theme', exact: true } )
+		.click();
+	await page
+		.locator( '#themezip' )
+		.setInputFiles( `tests/e2e/assets/${ fixture }` );
+	await page
+		.getByRole( 'button', { name: 'Install Now', exact: true } )
+		.click();
+}
+
+async function deleteTheme( requestUtils ) {
+	const themes = await requestUtils.rest( { path: '/wp/v2/themes' } );
+	if ( ! themes.some( ( theme ) => theme.stylesheet === themeSlug ) ) {
+		return;
+	}
+	const themesResponse = await requestUtils.request.get(
+		'wp-admin/themes.php'
+	);
+	const html = await themesResponse.text();
+	await themesResponse.dispose();
+	const deleteQuery = html.match(
+		`action=delete&amp;stylesheet=${ themeSlug }&amp;_wpnonce=[a-z0-9]+`
+	);
+	expect( deleteQuery ).not.toBeNull();
+	const response = await requestUtils.request.get(
+		`wp-admin/themes.php?${ deleteQuery[ 0 ].replace( /&amp;/g, '&' ) }`
+	);
+	expect( response.ok() ).toBe( true );
+	await response.dispose();
+}
+
 test.describe( 'Theme management', () => {
 	let previousTheme;
-	let ownsTheme;
 
 	test.beforeEach( async ( { admin, page, requestUtils } ) => {
+		previousTheme = undefined;
 		// The fixture slug requires an environment not shared with another test run.
-		ownsTheme = false;
+		// An interrupted run can leave the fixture theme installed.
+		await deleteTheme( requestUtils );
 		const themes = await requestUtils.rest( { path: '/wp/v2/themes' } );
 		expect( themes.map( ( theme ) => theme.stylesheet ) ).not.toContain(
 			themeSlug
@@ -20,44 +60,18 @@ test.describe( 'Theme management', () => {
 		previousTheme = themes.find(
 			( theme ) => theme.status === 'active'
 		).stylesheet;
-		ownsTheme = true;
-		await admin.visitAdminPage( 'theme-install.php' );
-		await page
-			.getByRole( 'button', { name: 'Upload Theme', exact: true } )
-			.click();
-		await page
-			.locator( '#themezip' )
-			.setInputFiles( 'tests/e2e/assets/e2e-test-theme.zip' );
-		await page
-			.getByRole( 'button', { name: 'Install Now', exact: true } )
-			.click();
+		await uploadTheme( admin, page, 'e2e-test-theme.zip' );
 		await expect(
 			page.getByText( 'Theme installed successfully.', { exact: true } )
 		).toBeVisible();
 	} );
 
 	test.afterEach( async ( { requestUtils } ) => {
-		if ( ! ownsTheme ) {
+		if ( ! previousTheme ) {
 			return;
 		}
 		await requestUtils.activateTheme( previousTheme );
-		const themes = await requestUtils.rest( { path: '/wp/v2/themes' } );
-		if ( themes.some( ( theme ) => theme.stylesheet === themeSlug ) ) {
-			const themesResponse = await requestUtils.request.get(
-				'wp-admin/themes.php'
-			);
-			const html = await themesResponse.text();
-			await themesResponse.dispose();
-			const deleteQuery = html.match(
-				`action=delete&amp;stylesheet=${ themeSlug }&amp;_wpnonce=[a-z0-9]+`
-			);
-			expect( deleteQuery ).not.toBeNull();
-			const response = await requestUtils.request.get(
-				`wp-admin/themes.php?${ deleteQuery[ 0 ].replace( /&amp;/g, '&' ) }`
-			);
-			expect( response.ok() ).toBe( true );
-			await response.dispose();
-		}
+		await deleteTheme( requestUtils );
 		const remainingThemes = await requestUtils.rest( {
 			path: '/wp/v2/themes',
 		} );
@@ -76,23 +90,27 @@ test.describe( 'Theme management', () => {
 		requestUtils,
 	} ) => {
 		await admin.visitAdminPage( 'themes.php' );
-		const card = page.locator( `.theme[data-slug="${ themeSlug }"]` );
-		await card.hover();
-		await card
+		await page
+			.getByRole( 'button', {
+				name: `View Theme Details for ${ themeName }`,
+				exact: true,
+			} )
+			.hover();
+		await page
 			.getByRole( 'link', {
 				name: `Activate ${ themeName }`,
 				exact: true,
 			} )
 			.click();
 		await expect(
-			card.getByRole( 'heading', {
+			page.getByRole( 'heading', {
 				name: `Active: ${ themeName }`,
 				exact: true,
 			} )
 		).toBeVisible();
 		await page.reload();
 		await expect(
-			card.getByRole( 'heading', {
+			page.getByRole( 'heading', {
 				name: `Active: ${ themeName }`,
 				exact: true,
 			} )
@@ -109,8 +127,11 @@ test.describe( 'Theme management', () => {
 		requestUtils,
 	} ) => {
 		await admin.visitAdminPage( 'themes.php' );
-		const card = page.locator( `.theme[data-slug="${ themeSlug }"]` );
-		await card.click();
+		const details = page.getByRole( 'button', {
+			name: `View Theme Details for ${ themeName }`,
+			exact: true,
+		} );
+		await details.click();
 		await Promise.all( [
 			page.waitForEvent( 'dialog' ).then( async ( dialog ) => {
 				expect( dialog.type() ).toBe( 'confirm' );
@@ -123,9 +144,9 @@ test.describe( 'Theme management', () => {
 				} )
 				.click(),
 		] );
-		await expect( card ).toHaveCount( 0 );
+		await expect( details ).toHaveCount( 0 );
 		await page.reload();
-		await expect( card ).toHaveCount( 0 );
+		await expect( details ).toHaveCount( 0 );
 		const themes = await requestUtils.rest( { path: '/wp/v2/themes' } );
 		expect( themes.map( ( theme ) => theme.stylesheet ) ).not.toContain(
 			themeSlug
@@ -133,5 +154,100 @@ test.describe( 'Theme management', () => {
 		expect(
 			themes.find( ( theme ) => theme.status === 'active' ).stylesheet
 		).toBe( previousTheme );
+	} );
+
+	test( 'replaces an installed theme with an uploaded version', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		expect(
+			(
+				await requestUtils.rest( {
+					path: `/wp/v2/themes/${ themeSlug }`,
+				} )
+			).version
+		).toBe( '1.0' );
+		await uploadTheme( admin, page, 'e2e-test-theme-2.0.zip' );
+		await expect(
+			page.getByRole( 'heading', {
+				name: 'This theme is already installed.',
+				exact: true,
+			} )
+		).toBeVisible();
+		await expect(
+			page.getByRole( 'row', { name: 'Version 1.0 2.0', exact: true } )
+		).toBeVisible();
+		await page
+			.getByRole( 'link', {
+				name: 'Replace installed with uploaded',
+				exact: true,
+			} )
+			.click();
+		await expect(
+			page.getByText( 'Theme updated successfully.', { exact: true } )
+		).toBeVisible();
+		expect(
+			(
+				await requestUtils.rest( {
+					path: `/wp/v2/themes/${ themeSlug }`,
+				} )
+			).version
+		).toBe( '2.0' );
+	} );
+
+	test( 'searches for an installed theme', async ( { admin, page } ) => {
+		await admin.visitAdminPage( 'themes.php' );
+		const search = page.getByRole( 'searchbox', {
+			name: 'Search installed themes',
+			exact: true,
+		} );
+		await expect( search ).toBeVisible();
+		const themeDetailsButtons = page.getByRole( 'button', {
+			name: /View Theme Details for /,
+		} );
+		// Confirm search starts from a broader results set before filtering.
+		await expect
+			.poll( async () => themeDetailsButtons.count() )
+			.toBeGreaterThan( 1 );
+		await search.fill( themeName );
+
+		// Wait for the debounced filter, then require a single matching result.
+		await expect( themeDetailsButtons ).toHaveCount( 1 );
+		await expect(
+			page.getByRole( 'button', {
+				name: `View Theme Details for ${ themeName }`,
+				exact: true,
+			} )
+		).toBeVisible();
+	} );
+
+	test( 'shows an empty result when searching for a missing theme', async ( {
+		admin,
+		page,
+	} ) => {
+		// Fixture theme from beforeEach keeps the library non-empty so ignoring
+		// search cannot vacuously pass.
+		const missing = `e2e-missing-theme-${ randomUUID().slice( 0, 8 ) }`;
+		await admin.visitAdminPage( 'themes.php' );
+		const search = page.getByRole( 'searchbox', {
+			name: 'Search installed themes',
+			exact: true,
+		} );
+		await expect( search ).toBeVisible();
+		await search.fill( missing );
+
+		// Scope to the empty-state paragraph; the same copy is also spoken via
+		// wp.a11y.speak() into a live region.
+		const emptyState = page.locator( 'p.no-themes' );
+		await expect( emptyState ).toBeVisible();
+		await expect( emptyState ).toHaveText(
+			'No themes found. Try a different search.'
+		);
+		await expect(
+			page.getByRole( 'button', {
+				name: /View Theme Details for /,
+			} )
+		).toHaveCount( 0 );
 	} );
 } );

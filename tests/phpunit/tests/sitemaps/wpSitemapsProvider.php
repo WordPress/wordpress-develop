@@ -9,10 +9,15 @@
  */
 class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+		$this->set_permalink_structure( '' );
+	}
+
 	/**
 	 * Creates a provider that only implements the abstract methods.
 	 *
-	 * @param array $pages Number of sitemap pages, keyed by object subtype name. The '' key is used without subtypes.
+	 * @param array<string, int> $pages Number of sitemap pages, keyed by object subtype name. The '' key is used without subtypes.
 	 * @return WP_Sitemaps_Provider Provider instance.
 	 */
 	private function get_provider( array $pages ) {
@@ -21,10 +26,13 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 			/**
 			 * Number of sitemap pages, keyed by object subtype name.
 			 *
-			 * @var array
+			 * @var array<string, int>
 			 */
 			private $pages;
 
+			/**
+			 * @param array<string, int> $pages Number of sitemap pages, keyed by object subtype name.
+			 */
 			public function __construct( array $pages ) {
 				$this->name        = 'tests';
 				$this->object_type = 'test';
@@ -44,7 +52,7 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 	/**
 	 * Creates a provider with object subtypes.
 	 *
-	 * @param array $pages Number of sitemap pages, keyed by object subtype name.
+	 * @param array<string, int> $pages Number of sitemap pages, keyed by object subtype name.
 	 * @return WP_Sitemaps_Provider Provider instance.
 	 */
 	private function get_provider_with_subtypes( array $pages ) {
@@ -53,16 +61,22 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 			/**
 			 * Number of sitemap pages, keyed by object subtype name.
 			 *
-			 * @var array
+			 * @var array<string, int>
 			 */
 			private $pages;
 
+			/**
+			 * @param array<string, int> $pages Number of sitemap pages, keyed by object subtype name.
+			 */
 			public function __construct( array $pages ) {
 				$this->name        = 'tests';
 				$this->object_type = 'test';
 				$this->pages       = $pages;
 			}
 
+			/**
+			 * @return array<string, stdClass>
+			 */
 			public function get_object_subtypes() {
 				$subtypes = array();
 
@@ -284,7 +298,7 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 	 * @param string $expected Expected path with pretty permalinks.
 	 */
 	public function test_get_sitemap_url_with_pretty_permalinks( $name, $page, $unused, $expected ) {
-		$this->set_permalink_structure( '/%year%/%postname%/' );
+		$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 
 		$this->assertSame(
 			'http://' . WP_TESTS_DOMAIN . $expected,

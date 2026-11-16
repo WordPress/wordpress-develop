@@ -13,7 +13,7 @@
  * Uses libsodium envelope encryption and stores ciphertext in the options tables.
  *
  * This is the default rather than a privileged case. Everything it does is expressed
- * through WP_Secrets_Provider, the same interface a platform implements, so a KMS-
+ * through WP_Secrets_Provider, the same class a platform extends, so a KMS-
  * or HSM-backed provider is a peer rather than an exception carved into the side of
  * this one.
  *
@@ -32,7 +32,7 @@
  *
  * @since 7.2.0
  */
-final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
+final class WP_Secrets_Libsodium_Provider extends WP_Secrets_Provider {
 
 	/**
 	 * Where ciphertext records live.
@@ -233,7 +233,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 * @param WP_Secrets_Cipher $cipher       A cipher instance.
 	 * @param string            $master_key   32-byte master key.
 	 * @param string            $scope        'site' or 'network'.
-	 * @param int               $site_id      Blog id for site scope, 0 for network scope.
+	 * @param int               $site_id      Blog ID for site scope, 0 for network scope.
 	 * @param string            $name         The secret's namespaced name.
 	 * @param array<mixed>      $current_slot The outgoing current slot, as stored.
 	 * @return array|WP_Error The same value, re-encrypted and bound to
@@ -245,7 +245,15 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 * @phpstan-return array{dk: string, dk_nonce: string, ct: string, nonce: string, fingerprint: string, created: int, needs_rotation: bool}|WP_Error
 	 * @phpstan-param 'site'|'network' $scope
 	 */
-	private function demote_slot( WP_Secrets_Cipher $cipher, string $master_key, string $scope, int $site_id, string $name, array $current_slot ) {
+	private function demote_slot(
+		WP_Secrets_Cipher $cipher,
+		#[\SensitiveParameter]
+		string $master_key,
+		string $scope,
+		int $site_id,
+		string $name,
+		array $current_slot
+	) {
 		$plaintext = $cipher->decrypt_value( $master_key, $scope, $site_id, $name, WP_Secret_Version::CURRENT, $current_slot );
 
 		if ( is_wp_error( $plaintext ) ) {
@@ -289,7 +297,14 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 *                                     wp_import_option_as_secret() passes 'imported'.
 	 * @return true|WP_Error
 	 */
-	public function set( string $name, $value, bool $network = false, bool $needs_rotation = false, ?string $action = null ) {
+	public function set(
+		string $name,
+		#[\SensitiveParameter]
+		$value,
+		bool $network = false,
+		bool $needs_rotation = false,
+		?string $action = null
+	) {
 		$name_check = wp_secrets_validate_name( $name );
 
 		if ( is_wp_error( $name_check ) ) {
@@ -419,15 +434,15 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 		/**
 		 * Fires whenever a secret is created, updated, deleted, imported, or retired.
 		 *
-		 * The only hook in the core-bound Secrets API code, and it does not fire on the
-		 * retrieval path. Fingerprints are readable; values are never passed.
+		 * This hook does not fire on the retrieval path. Fingerprints are passed;
+		 * values never are.
 		 *
 		 * @since 7.2.0
 		 *
 		 * @param string $name            The secret's namespaced name.
 		 * @param string $action          One of 'created', 'updated', 'deleted',
 		 *                                'imported', 'retired'.
-		 * @param int    $actor_id        The current user id, or 0.
+		 * @param int    $actor_id        The current user ID, or 0.
 		 * @param int    $timestamp       Unix timestamp of the change.
 		 * @param string $old_fingerprint The previous fingerprint, or '' if none.
 		 * @param string $new_fingerprint The new fingerprint, or '' if the secret was deleted.
@@ -485,15 +500,18 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 		}
 
 		if ( ! isset( $record[ $version ] ) || ! is_array( $record[ $version ] ) ) {
-			// The secret exists, but this slot does not. Absence, not an error –
-			// this matters most for PREVIOUS on a secret that has never been rotated.
+			/*
+			 * The secret exists, but this slot does not. Absence, not an error –
+			 * this matters most for PREVIOUS on a secret that has never been rotated.
+			 */
 			return null;
 		}
 
 		$scope   = $network ? 'network' : 'site';
 		$site_id = $network ? 0 : get_current_blog_id();
 
-		$master_key = $this->key_manager->get_master_key( $scope, $network ? null : $site_id );
+		// Reading never creates a root key: without the stored one, nothing can be decrypted.
+		$master_key = $this->key_manager->get_master_key( $scope, $network ? null : $site_id, false );
 
 		if ( is_wp_error( $master_key ) ) {
 			return $master_key;
@@ -587,10 +605,6 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 *
 	 * Backs wp_retire_secret_version() and wp_retire_network_secret_version().
 	 *
-	 * Beyond the API surface the proposal names. It states that retirement is "an
-	 * explicit operator action" but names no function; this is this implementation's
-	 * name for it, pending confirmation in the comments thread.
-	 *
 	 * @since 7.2.0
 	 *
 	 * @param string $name    The secret's namespaced name.
@@ -650,10 +664,6 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 
 	/**
 	 * Shared implementation behind wp_list_secrets() and wp_list_network_secrets().
-	 *
-	 * Beyond the API surface the proposal names, and justified by its statement that
-	 * "the hooks and accessors an admin screen would need are in scope now; the screen
-	 * itself is not."
 	 *
 	 * Fingerprints returned here come directly from the stored record field, not
 	 * recomputed by decrypting each secret. That is a deliberate difference from

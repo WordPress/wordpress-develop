@@ -5,7 +5,8 @@
  * Kept in one place so a change to what "never contains plaintext" means is a single
  * edit rather than a search across the suite.
  *
- * @package SecretsAPI
+ * @package WordPress
+ * @subpackage Secrets
  */
 
 /**
@@ -50,13 +51,15 @@ trait WP_Secrets_Assertions {
 	 * @param string $slot     A WP_Secret_Version constant.
 	 * @param string $expected Expected plaintext.
 	 * @param bool   $network  Whether this is a network-scope secret.
+	 * @param string $message  Optional failure message.
 	 *
 	 * @phpstan-param WP_Secret_Version::CURRENT|WP_Secret_Version::PREVIOUS $slot
 	 */
-	public function assertRecordSlotDecryptsTo( $name, $slot, $expected, $network = false ): void { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid -- PHPUnit assertion naming, like assertWPError().
-		$secret = $network ? wp_get_network_secret( $name, $slot ) : wp_get_secret( $name, $slot );
+	public function assertRecordSlotDecryptsTo( $name, $slot, $expected, $network = false, $message = '' ): void { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid -- PHPUnit assertion naming, like assertWPError().
+		$secret  = $network ? wp_get_network_secret( $name, $slot ) : wp_get_secret( $name, $slot );
+		$context = '' !== $message ? $message . ' ' : '';
 
-		$this->assertIsSecret( $secret, $expected, sprintf( 'Slot "%s" of "%s":', $slot, $name ) );
+		$this->assertIsSecret( $secret, $expected, $context . sprintf( 'Slot "%s" of "%s":', $slot, $name ) );
 	}
 
 	/**
@@ -79,7 +82,7 @@ trait WP_Secrets_Assertions {
 		$this->assertStringNotContainsString(
 			$plaintext,
 			$flattened,
-			'' !== $message ? $message : 'Plaintext leaked into a structure that must never contain it.'
+			'' !== $message ? $message : 'Plaintext leaked into a structure that should never contain it.'
 		);
 	}
 }
