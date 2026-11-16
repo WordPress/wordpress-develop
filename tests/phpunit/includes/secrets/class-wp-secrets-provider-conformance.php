@@ -19,8 +19,7 @@
  * version history is not asked to produce a previous one. What does not vary is
  * checked for everyone.
  *
- * @package WordPress
- * @subpackage Secrets
+ * @package SecretsAPI
  */
 abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
@@ -103,36 +102,27 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
 	// – declarations must be coherent ----------------------------------------
 
-	/**
-	 * Ensure that the provider reports a label that is neither empty nor only whitespace.
-	 */
 	public function test_reports_a_non_empty_label(): void {
 		$label = $this->provider()->get_label();
 
-		$this->assertIsString( $label, 'The provider label should be a string.' );
-		$this->assertNotSame( '', trim( $label ), 'The provider label should not be empty or only whitespace.' );
+		$this->assertIsString( $label );
+		$this->assertNotSame( '', trim( $label ) );
 	}
 
-	/**
-	 * Ensure that the provider reports one of the BOUNDARY_* constants as its protection boundary.
-	 */
 	public function test_reports_a_known_protection_boundary(): void {
 		$this->assertContains(
 			$this->provider()->get_protection_boundary(),
 			array( WP_Secrets_Provider::BOUNDARY_WORDPRESS, WP_Secrets_Provider::BOUNDARY_PROVIDER ),
-			'get_protection_boundary() should return one of the BOUNDARY_* constants.'
+			'get_protection_boundary() must return one of the BOUNDARY_* constants.'
 		);
 	}
 
-	/**
-	 * Ensure that the provider declares whether it accepts writes as a boolean.
-	 */
 	public function test_is_writable_returns_a_bool(): void {
-		$this->assertIsBool( $this->provider()->is_writable(), 'The provider should report is_writable() as a bool.' );
+		$this->assertIsBool( $this->provider()->is_writable() );
 	}
 
 	/**
-	 * The declaration has to match the behavior, or a settings screen that trusts
+	 * The declaration has to match the behaviour, or a settings screen that trusts
 	 * is_writable() will offer a save control that cannot work.
 	 */
 	public function test_a_read_only_provider_actually_refuses_writes(): void {
@@ -144,11 +134,11 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
 		$result = $provider->set( $this->conformance_name(), 'value' );
 
-		$this->assertWPError( $result, 'The provider should refuse a write with a WP_Error when read-only.' );
+		$this->assertWPError( $result );
 		$this->assertSame(
 			WP_SECRETS_ERROR_PROVIDER_READ_ONLY,
 			$result->get_error_code(),
-			'A provider that declares itself read-only should refuse with secret_provider_read_only.'
+			'A provider that declares itself read-only must refuse with secret_provider_read_only.'
 		);
 	}
 
@@ -163,7 +153,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	public function test_a_name_that_was_never_set_is_null(): void {
 		$result = $this->provider()->get( 'conformance/never-set-' . uniqid(), WP_Secret_Version::CURRENT );
 
-		$this->assertNull( $result, 'The provider should return null for a name that was never set.' );
+		$this->assertNull( $result );
 	}
 
 	/**
@@ -176,17 +166,14 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$this->assertNotWPError( $provider->set( $name, 'only-ever-one-value' ), 'The provider should accept the initial write.' );
+		$this->assertNotWPError( $provider->set( $name, 'only-ever-one-value' ) );
 
 		$previous = $provider->get( $name, WP_Secret_Version::PREVIOUS );
 
 		$this->assertNotWPError( $previous, 'PREVIOUS with no previous value is absence, not an error.' );
-		$this->assertNull( $previous, 'The provider should return null for a PREVIOUS version that does not exist.' );
+		$this->assertNull( $previous );
 	}
 
-	/**
-	 * Ensure that the provider treats deleting a secret that was never set as success.
-	 */
 	public function test_deleting_something_absent_is_success(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
@@ -197,36 +184,30 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * Ensure that the provider treats retiring a secret that has no previous version as success.
-	 */
 	public function test_retiring_with_no_previous_version_is_success(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$this->assertTrue( $provider->set( $name, 'value' ), 'Setting the secret to value should succeed.' );
+		$provider->set( $name, 'value' );
 
-		$this->assertNotWPError( $provider->retire_previous( $name ), 'The provider should treat retiring with no previous version as success.' );
+		$this->assertNotWPError( $provider->retire_previous( $name ) );
 	}
 
 	// – the round trip --------------------------------------------------------
 
-	/**
-	 * Ensure that the provider returns a stored value unchanged, under the name it was stored as.
-	 */
 	public function test_a_stored_value_comes_back_intact(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$this->assertNotWPError( $provider->set( $name, 'sk_live_conformance_value' ), 'The provider should accept the write.' );
+		$this->assertNotWPError( $provider->set( $name, 'sk_live_conformance_value' ) );
 
 		$secret = $provider->get( $name, WP_Secret_Version::CURRENT );
 
-		$this->assertInstanceOf( 'WP_Secret', $secret, 'The provider should return the stored value as a WP_Secret.' );
-		$this->assertSame( 'sk_live_conformance_value', $secret->reveal(), 'The provider should return the stored value unchanged.' );
-		$this->assertSame( $name, $secret->get_name(), 'The provider should return the secret under the name it was stored as.' );
+		$this->assertInstanceOf( 'WP_Secret', $secret );
+		$this->assertSame( 'sk_live_conformance_value', $secret->reveal() );
+		$this->assertSame( $name, $secret->get_name() );
 	}
 
 	/**
@@ -239,20 +220,20 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$this->assertTrue( $provider->set( $name, 'stable-value' ), 'Setting the secret to stable-value should succeed.' );
+		$provider->set( $name, 'stable-value' );
 
 		$first_read  = $provider->get( $name, WP_Secret_Version::CURRENT );
 		$second_read = $provider->get( $name, WP_Secret_Version::CURRENT );
 
-		$this->assertInstanceOf( 'WP_Secret', $first_read, 'The provider should return the first read as a WP_Secret.' );
-		$this->assertInstanceOf( 'WP_Secret', $second_read, 'The provider should return the second read as a WP_Secret.' );
+		$this->assertInstanceOf( 'WP_Secret', $first_read );
+		$this->assertInstanceOf( 'WP_Secret', $second_read );
 
 		$first  = $first_read->fingerprint();
 		$second = $second_read->fingerprint();
 
-		$this->assertIsString( $first, 'The provider should return the fingerprint as a string.' );
-		$this->assertNotSame( '', $first, 'The provider should return a non-empty fingerprint.' );
-		$this->assertSame( $first, $second, 'The provider should return the same fingerprint for the same value.' );
+		$this->assertIsString( $first );
+		$this->assertNotSame( '', $first );
+		$this->assertSame( $first, $second );
 	}
 
 	/**
@@ -271,8 +252,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$this->assertTrue( $provider->set( $name, 'first-value' ), 'Setting the secret to first-value should succeed.' );
-		$this->assertTrue( $provider->set( $name, 'second-value' ), 'Setting the secret to second-value should succeed.' );
+		$provider->set( $name, 'first-value' );
+		$provider->set( $name, 'second-value' );
 
 		$previous = $provider->get( $name, WP_Secret_Version::PREVIOUS );
 
@@ -280,26 +261,23 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Provider keeps no previous version; there is nothing to keep.' );
 		}
 
-		$this->assertNotWPError( $provider->set( $name, 'second-value' ), 'The provider should accept a write of the unchanged value.' );
+		$this->assertNotWPError( $provider->set( $name, 'second-value' ) );
 
 		$kept = $provider->get( $name, WP_Secret_Version::PREVIOUS );
 
-		$this->assertInstanceOf( 'WP_Secret', $kept, 'Writing an unchanged value should not discard the previous version.' );
-		$this->assertSame( $previous->fingerprint(), $kept->fingerprint(), 'Writing an unchanged value should not replace the previous version.' );
+		$this->assertInstanceOf( 'WP_Secret', $kept, 'Writing an unchanged value must not discard the previous version.' );
+		$this->assertSame( $previous->fingerprint(), $kept->fingerprint(), 'Writing an unchanged value must not replace the previous version.' );
 	}
 
-	/**
-	 * Ensure that the provider reports a deleted secret as absent.
-	 */
 	public function test_a_deleted_secret_reads_as_absent(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$this->assertTrue( $provider->set( $name, 'value' ), 'Setting the secret to value should succeed.' );
-		$this->assertNotWPError( $provider->delete( $name ), 'The provider should accept the delete.' );
+		$provider->set( $name, 'value' );
+		$this->assertNotWPError( $provider->delete( $name ) );
 
-		$this->assertNull( $provider->get( $name, WP_Secret_Version::CURRENT ), 'The provider should report a deleted secret as null.' );
+		$this->assertNull( $provider->get( $name, WP_Secret_Version::CURRENT ) );
 	}
 
 	// – every change is reported ----------------------------------------------
@@ -316,36 +294,33 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$name = $this->conformance_name();
 		$this->record_changes();
 
-		$this->assertNotWPError( $provider->set( $name, 'UNIQUE-CONFORMANCE-CANARY-7c1d' ), 'The provider should accept the write.' );
+		$this->assertNotWPError( $provider->set( $name, 'UNIQUE-CONFORMANCE-CANARY-7c1d' ) );
 
-		$this->assertCount( 1, $this->recorded_changes, 'set() should fire wp_secret_changed exactly once.' );
+		$this->assertCount( 1, $this->recorded_changes, 'set() must fire wp_secret_changed exactly once.' );
 
 		$change = $this->recorded_changes[0];
 
 		$this->assertCount( 7, $change, 'wp_secret_changed takes seven arguments, ending with $network.' );
-		$this->assertSame( $name, $change[0], 'The provider should report the name of the written secret.' );
-		$this->assertContains( $change[1], array( 'created', 'updated' ), 'The provider should report a write as created or updated.' );
+		$this->assertSame( $name, $change[0] );
+		$this->assertContains( $change[1], array( 'created', 'updated' ) );
 		$this->assertIsInt( $change[2], 'The actor is a user id, or 0.' );
 		$this->assertIsInt( $change[3], 'The timestamp is a Unix timestamp.' );
 		$this->assertIsString( $change[4], "The old fingerprint is a string, '' when there is none." );
 		$this->assertIsString( $change[5], "The new fingerprint is a string, '' when there is none." );
-		$this->assertFalse( $change[6], 'A site-scope write should report $network as false.' );
-		$this->assertNotContains( 'UNIQUE-CONFORMANCE-CANARY-7c1d', $change, 'wp_secret_changed should never be passed a value.' );
+		$this->assertFalse( $change[6], 'A site-scope write must report $network as false.' );
+		$this->assertNotContains( 'UNIQUE-CONFORMANCE-CANARY-7c1d', $change, 'wp_secret_changed must never be passed a value.' );
 	}
 
-	/**
-	 * Ensure that the provider reports an action override passed to set() to wp_secret_changed unchanged.
-	 */
 	public function test_an_action_override_is_reported_as_given(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
 
 		$this->record_changes();
 
-		$this->assertNotWPError( $provider->set( $this->conformance_name(), 'value', false, false, 'imported' ), 'The provider should accept a write with an action override.' );
+		$this->assertNotWPError( $provider->set( $this->conformance_name(), 'value', false, false, 'imported' ) );
 
-		$this->assertCount( 1, $this->recorded_changes, 'The provider should fire wp_secret_changed exactly once for the write.' );
-		$this->assertSame( 'imported', $this->recorded_changes[0][1], 'The provider should report the action override as given.' );
+		$this->assertCount( 1, $this->recorded_changes );
+		$this->assertSame( 'imported', $this->recorded_changes[0][1] );
 	}
 
 	/**
@@ -359,31 +334,28 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$name = $this->conformance_name();
 		$this->record_changes();
 
-		$this->assertNotWPError( $provider->set( $name, 'value', true ), 'The provider should accept a network-scope write.' );
-		$this->assertNotWPError( $provider->delete( $name, true ), 'The provider should accept a network-scope delete.' );
+		$this->assertNotWPError( $provider->set( $name, 'value', true ) );
+		$this->assertNotWPError( $provider->delete( $name, true ) );
 
-		$this->assertCount( 2, $this->recorded_changes, 'The provider should fire wp_secret_changed once for each network-scope change.' );
-		$this->assertTrue( $this->recorded_changes[0][6], 'A network-scope write should report $network as true.' );
-		$this->assertTrue( $this->recorded_changes[1][6], 'A network-scope delete should report $network as true.' );
+		$this->assertCount( 2, $this->recorded_changes );
+		$this->assertTrue( $this->recorded_changes[0][6], 'A network-scope write must report $network as true.' );
+		$this->assertTrue( $this->recorded_changes[1][6], 'A network-scope delete must report $network as true.' );
 	}
 
-	/**
-	 * Ensure that the provider fires wp_secret_changed once, as deleted, when a secret is deleted.
-	 */
 	public function test_deleting_a_secret_reports_a_change(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$this->assertTrue( $provider->set( $name, 'value' ), 'Setting the secret to value should succeed.' );
+		$provider->set( $name, 'value' );
 
 		$this->record_changes();
 
-		$this->assertNotWPError( $provider->delete( $name ), 'The provider should accept the delete.' );
+		$this->assertNotWPError( $provider->delete( $name ) );
 
-		$this->assertCount( 1, $this->recorded_changes, 'delete() should fire wp_secret_changed exactly once.' );
-		$this->assertSame( $name, $this->recorded_changes[0][0], 'The provider should report the name of the deleted secret.' );
-		$this->assertSame( 'deleted', $this->recorded_changes[0][1], 'The provider should report a delete as deleted.' );
+		$this->assertCount( 1, $this->recorded_changes, 'delete() must fire wp_secret_changed exactly once.' );
+		$this->assertSame( $name, $this->recorded_changes[0][0] );
+		$this->assertSame( 'deleted', $this->recorded_changes[0][1] );
 	}
 
 	/**
@@ -396,8 +368,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$this->assertTrue( $provider->set( $name, 'first-value' ), 'Setting the secret to first-value should succeed.' );
-		$this->assertTrue( $provider->set( $name, 'second-value' ), 'Setting the secret to second-value should succeed.' );
+		$provider->set( $name, 'first-value' );
+		$provider->set( $name, 'second-value' );
 
 		if ( ! $this->has_previous_version( $provider, $name ) ) {
 			$this->markTestSkipped( 'Provider keeps no previous version; there is nothing to retire.' );
@@ -405,20 +377,17 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
 		$this->record_changes();
 
-		$this->assertNotWPError( $provider->retire_previous( $name ), 'The provider should accept retiring the previous version.' );
+		$this->assertNotWPError( $provider->retire_previous( $name ) );
 
 		if ( $this->has_previous_version( $provider, $name ) ) {
 			$this->markTestSkipped( 'Provider leaves version history to its backend; nothing was cleared.' );
 		}
 
-		$this->assertCount( 1, $this->recorded_changes, 'retire_previous() should fire wp_secret_changed exactly once.' );
-		$this->assertSame( $name, $this->recorded_changes[0][0], 'The provider should report the name of the retired secret.' );
-		$this->assertSame( 'retired', $this->recorded_changes[0][1], 'The provider should report a retire as retired.' );
+		$this->assertCount( 1, $this->recorded_changes, 'retire_previous() must fire wp_secret_changed exactly once.' );
+		$this->assertSame( $name, $this->recorded_changes[0][0] );
+		$this->assertSame( 'retired', $this->recorded_changes[0][1] );
 	}
 
-	/**
-	 * Ensure that a read-only provider does not fire wp_secret_changed for a write it refused.
-	 */
 	public function test_a_refused_write_reports_no_change(): void {
 		$provider = $this->provider();
 
@@ -428,53 +397,44 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 
 		$this->record_changes();
 
-		$this->assertWPError( $provider->set( $this->conformance_name(), 'value' ), 'The provider should refuse a write with a WP_Error when read-only.' );
-		$this->assertCount( 0, $this->recorded_changes, 'A write that did not happen should not be reported as a change.' );
+		$this->assertWPError( $provider->set( $this->conformance_name(), 'value' ) );
+		$this->assertCount( 0, $this->recorded_changes, 'A write that did not happen must not be reported as a change.' );
 	}
 
 	// – listing never leaks ---------------------------------------------------
 
-	/**
-	 * Ensure that the provider's listing of secrets never contains a stored plaintext value.
-	 *
-	 * The whole listing is encoded and searched rather than checked field by field, so a
-	 * value leaked under any key, including one the contract does not define, is caught.
-	 */
-	public function test_listing_never_contains_a_stored_value(): void {
+	public function test_listing_returns_an_array_or_an_error_and_never_a_value(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$this->assertTrue( $provider->set( $name, 'UNIQUE-CONFORMANCE-CANARY-3f9b' ), 'Setting the secret to UNIQUE-CONFORMANCE-CANARY-3f9b should succeed.' );
+		$provider->set( $name, 'UNIQUE-CONFORMANCE-CANARY-3f9b' );
 
 		$entries = $provider->list_secrets();
 
-		$this->assertIsArray( $entries, 'The provider should return the listing as an array.' );
+		$this->assertIsArray( $entries );
 
 		$dump = wp_json_encode( $entries );
 
-		$this->assertIsString( $dump, 'list_secrets() should return something that can be encoded and inspected.' );
+		$this->assertIsString( $dump, 'list_secrets() must return something that can be encoded and inspected.' );
 		$this->assertStringNotContainsString(
 			'UNIQUE-CONFORMANCE-CANARY-3f9b',
 			$dump,
-			'list_secrets() should never expose a plaintext.'
+			'list_secrets() must never expose a plaintext.'
 		);
 	}
 
-	/**
-	 * Ensure that the provider includes the name of a stored secret in its listing.
-	 */
 	public function test_listing_includes_a_stored_secret(): void {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
 
 		$name = $this->conformance_name();
-		$this->assertTrue( $provider->set( $name, 'value' ), 'Setting the secret to value should succeed.' );
+		$provider->set( $name, 'value' );
 
 		$entries = $provider->list_secrets();
 
-		$this->assertNotWPError( $entries, 'The provider should return the listing without a WP_Error.' );
-		$this->assertContains( $name, wp_list_pluck( $entries, 'name' ), 'The provider should include a stored secret in the listing.' );
+		$this->assertNotWPError( $entries );
+		$this->assertContains( $name, wp_list_pluck( $entries, 'name' ) );
 	}
 
 	/**
@@ -486,16 +446,16 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$provider = $this->provider();
 		$this->require_writable( $provider );
 
-		$this->assertTrue( $provider->set( 'conformance-a/one', 'value' ), 'Setting conformance-a/one to value should succeed.' );
-		$this->assertTrue( $provider->set( 'conformance-b/two', 'value' ), 'Setting conformance-b/two to value should succeed.' );
+		$provider->set( 'conformance-a/one', 'value' );
+		$provider->set( 'conformance-b/two', 'value' );
 
 		$entries = $provider->list_secrets( 'conformance-a' );
 
-		$this->assertNotWPError( $entries, 'The provider should return the prefixed listing without a WP_Error.' );
+		$this->assertNotWPError( $entries );
 
 		$names = wp_list_pluck( $entries, 'name' );
 
-		$this->assertContains( 'conformance-a/one', $names, 'The provider should include a secret matching the prefix.' );
-		$this->assertNotContains( 'conformance-b/two', $names, 'The provider should omit a secret not matching the prefix.' );
+		$this->assertContains( 'conformance-a/one', $names );
+		$this->assertNotContains( 'conformance-b/two', $names );
 	}
 }

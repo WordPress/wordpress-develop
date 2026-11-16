@@ -75,6 +75,7 @@ final class WP_Secrets_Broken_Store implements WP_Secrets_Store {
 		return $this->error();
 	}
 
+
 	/**
 	 * Builds the error every method returns.
 	 *
