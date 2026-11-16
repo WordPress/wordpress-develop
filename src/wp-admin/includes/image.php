@@ -1049,13 +1049,13 @@ function wp_read_image_metadata( $file ) {
 
 	foreach ( array( 'title', 'caption', 'credit', 'copyright', 'camera', 'iso' ) as $key ) {
 		if ( $meta[ $key ] && ! wp_is_valid_utf8( $meta[ $key ] ) ) {
-			$meta[ $key ] = utf8_encode( $meta[ $key ] );
+			$meta[ $key ] = _wp_iso_8859_1_to_utf8( $meta[ $key ] );
 		}
 	}
 
 	foreach ( $meta['keywords'] as $key => $keyword ) {
 		if ( ! wp_is_valid_utf8( $keyword ) ) {
-			$meta['keywords'][ $key ] = utf8_encode( $keyword );
+			$meta['keywords'][ $key ] = _wp_iso_8859_1_to_utf8( $keyword );
 		}
 	}
 

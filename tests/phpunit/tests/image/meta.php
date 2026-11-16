@@ -150,6 +150,96 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures image metadata is always returned as valid UTF-8.
+	 *
+	 * Core does not read the IPTC coded character set, so the encoding of these fields
+	 * is unknown. Fields which fail to validate as UTF-8 are decoded as ISO-8859-1
+	 * (latin1): correct when the text really is latin1, mojibake otherwise. Invalid
+	 * UTF-8 reaching the database is stripped by `strip_invalid_text()`, which is why
+	 * the conversion has to happen at all. See #35316.
+	 *
+	 * These cases pin that behavior so it cannot change silently.
+	 *
+	 * @ticket 65828
+	 * @ticket 35316
+	 */
+	public function test_iptc_non_utf8_text_is_converted() {
+		if ( ! is_callable( 'iptcembed' ) || ! is_callable( 'iptcparse' ) ) {
+			$this->markTestSkipped( 'The iptcembed() and iptcparse() functions are required.' );
+		}
+
+		$block = $this->build_iptc_block(
+			array(
+				105 => mb_convert_encoding( 'wyróżnij', 'ISO-8859-2', 'UTF-8' ),
+				120 => mb_convert_encoding( 'Café', 'ISO-8859-1', 'UTF-8' ),
+				110 => "Credit \xC0",
+				116 => "Copyright \xE9",
+				25  => array(
+					'valid keyword',
+					"sunset\xC0",
+					// The Slovak keywords from the image attached to #35316.
+					mb_convert_encoding( 'Vodná elektráreň Gabčíkovo', 'ISO-8859-2', 'UTF-8' ),
+				),
+			)
+		);
+
+		$file = wp_tempnam( 'iptc-non-utf8.jpg' );
+		file_put_contents( $file, iptcembed( $block, DIR_TESTDATA . '/images/test-image.jpg' ) );
+
+		$out = wp_read_image_metadata( $file );
+
+		unlink( $file );
+
+		$this->assertIsArray( $out, 'Metadata should have been read from the image.' );
+
+		foreach ( array( 'title', 'caption', 'credit', 'copyright' ) as $key ) {
+			$this->assertTrue(
+				wp_is_valid_utf8( $out[ $key ] ),
+				"The '{$key}' field should always be valid UTF-8."
+			);
+		}
+
+		$this->assertSame(
+			'Café',
+			$out['caption'],
+			'ISO-8859-1 text should round-trip unchanged.'
+		);
+
+		$this->assertSame(
+			'wyró¿nij',
+			$out['title'],
+			'Text in another single-byte encoding should be decoded as ISO-8859-1.'
+		);
+
+		$this->assertSame(
+			array( 'valid keyword', 'sunsetÀ', 'Vodná elektráreò Gabèíkovo' ),
+			$out['keywords'],
+			'Keywords should be converted individually while valid entries are left alone.'
+		);
+	}
+
+	/**
+	 * Builds a raw IPTC APP13 block for the given record 2 datasets.
+	 *
+	 * @param array $tags Map of dataset number to a string value or list of string values.
+	 * @return string Binary IPTC block suitable for iptcembed().
+	 */
+	private function build_iptc_block( array $tags ) {
+		$block = '';
+
+		foreach ( $tags as $dataset => $values ) {
+			foreach ( (array) $values as $value ) {
+				$length = strlen( $value );
+				$block .= chr( 0x1C ) . chr( 2 ) . chr( $dataset )
+					. chr( ( $length >> 8 ) & 0xFF ) . chr( $length & 0xFF )
+					. $value;
+			}
+		}
+
+		return $block;
+	}
+
+	/**
 	 * wp_read_image_metadata() should return false if the image file doesn't exist.
 	 */
 	public function test_missing_image_file() {
