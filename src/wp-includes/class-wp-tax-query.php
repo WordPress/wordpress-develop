@@ -602,7 +602,13 @@ class WP_Tax_Query {
 		$resulting_field = sanitize_key( $resulting_field );
 
 		// Empty 'terms' always results in a null transformation.
-		$terms = array_filter( $query['terms'] );
+		if ( 'slug' === $query['field'] ) {
+			// A slug of '0' is valid, unlike a zero ID.
+			$terms = array_filter( $query['terms'], static fn( $term ) => $term || '0' === $term );
+		} else {
+			$terms = array_filter( $query['terms'] );
+		}
+
 		if ( empty( $terms ) ) {
 			$query['terms'] = array();
 			$query['field'] = $resulting_field;
