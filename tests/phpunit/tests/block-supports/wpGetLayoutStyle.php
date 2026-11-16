@@ -45,7 +45,7 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_get_layout_style() {
+	public static function data_wp_get_layout_style() {
 		return array(
 			'no args should return empty value'            => array(
 				'args'            => array(),

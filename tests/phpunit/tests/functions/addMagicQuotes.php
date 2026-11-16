@@ -28,7 +28,7 @@ class Tests_Functions_AddMagicQuotes extends WP_UnitTestCase {
 	 *     @type array $expected   Expected return value.
 	 * }
 	 */
-	public function data_add_magic_quotes() {
+	public static function data_add_magic_quotes() {
 		return array(
 			array(
 				array(
