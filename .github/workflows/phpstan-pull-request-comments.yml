@@ -57,6 +57,19 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
+      # The results of the analysis holding selected paths to rule level 10. A pull request whose branch does not have
+      # that analysis yet uploads none, which is fine. Whether they were expected is decided from the results above.
+      - name: Download the results of the level 10 analysis
+        id: download-level-10
+        if: ${{ steps.download.outcome == 'success' }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        continue-on-error: true
+        with:
+          name: phpstan-results-level-10
+          path: ${{ runner.temp }}/phpstan-results-level-10
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
       - name: Create, update, or resolve the PHPStan comment
         if: ${{ steps.download.outcome == 'success' }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -99,6 +112,49 @@ jobs:
               message: ( asString( error.message ) ?? '' ).slice( 0, 1000 ),
               identifier: /^[A-Za-z0-9.]+$/.test( error.identifier ) ? error.identifier : null,
               ignorable: error.ignorable === true,
+              // The rule level of the analysis that reported the error: 10 for the paths phpstan-level-10.neon.dist
+              // holds to it, and 5 for everything else, including history recorded before there was a level 10.
+              level: error.level === 10 ? 10 : 5,
+            } );
+
+            // The paths held to rule level 10 are analyzed a second time, and that analysis uploads its results
+            // separately. The results above list the analyses the run made, and when the level 10 one is among them
+            // but its results are missing, the comment is left as it is: every error that only analysis reported
+            // would otherwise be shown as resolved. A run from a branch that does not have that analysis yet lists
+            // none, and has only these results.
+            const expectsLevel10 = Array.isArray( results.analyses ) && results.analyses.includes( 'level-10' );
+            let level10Errors = [];
+            if ( expectsLevel10 ) {
+              let level10Results = null;
+              try {
+                level10Results = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results-level-10/results.json`, 'utf8' ) );
+              } catch ( error ) {
+                core.info( `The results of the level 10 analysis are missing, so the comment is left as it is: ${ error.message }` );
+                return;
+              }
+              if ( level10Results?.pull_request !== issue_number || ! Array.isArray( level10Results.errors ) ) {
+                core.setFailed( 'The results of the level 10 analysis are malformed.' );
+                return;
+              }
+              level10Errors = level10Results.errors.map( ( error ) => normalize( { ...error, level: 10 } ) );
+            }
+
+            // The level 10 analysis includes everything the other one does, so an error it reports at a lower level is
+            // reported by both. Such an error is listed once, as found by the analysis of the whole codebase, and the
+            // level 10 one only adds what is left over. Errors are matched as they are below, apart from their line.
+            const errorKey = ( error ) => JSON.stringify( [ error.file, error.identifier, error.message ] );
+            const level5Counts = new Map();
+            const level5Errors = results.errors.map( normalize );
+            for ( const error of level5Errors ) {
+              level5Counts.set( errorKey( error ), ( level5Counts.get( errorKey( error ) ) ?? 0 ) + 1 );
+            }
+            const level10Only = level10Errors.filter( ( error ) => {
+              const count = level5Counts.get( errorKey( error ) ) ?? 0;
+              if ( count > 0 ) {
+                level5Counts.set( errorKey( error ), count - 1 );
+                return false;
+              }
+              return true;
             } );
 
             // An error is recognized from one run to the next by its file, identifier and message, but not its line,
@@ -107,10 +163,10 @@ jobs:
             // is fixed or added, those after it shift to the history of the one before or after, so their first reports
             // can be off, and the one shown as resolved or new is the last rather than the one that was. That is rarer
             // than lines being added or removed above them, which would throw off matching them by line.
-            const errors = results.errors.map( normalize );
+            const errors = [ ...level5Errors, ...level10Only ];
             const occurrences = new Map();
             for ( const error of [ ...errors ].sort( ( a, b ) => ( a.line ?? 0 ) - ( b.line ?? 0 ) ) ) {
-              const key = JSON.stringify( [ error.file, error.identifier, error.message ] );
+              const key = errorKey( error );
               const occurrence = occurrences.get( key ) ?? 0;
               occurrences.set( key, occurrence + 1 );
               error.key = `${ key }#${ occurrence }`;
@@ -215,10 +271,13 @@ jobs:
                   : `The ${ rows.length } errors are not listed here, to keep this comment short. They are listed in ${ where }.`;
               }
               const more = `…and ${ rows.length - shown.length } more, which are listed in ${ where }.`;
+              // The rule level is only shown in a table listing an error from the level 10 analysis, so that one listing
+              // only errors from the analysis of the whole codebase looks as it did before there were two.
+              const withLevel = shown.some( ( error ) => error.level === 10 );
               const lines = [
-                `| Location | Error | Identifier | First reported |${ withResolution ? ' Resolved |' : '' }`,
-                `| --- | --- | --- | --- |${ withResolution ? ' --- |' : '' }`,
-                ...shown.map( ( error ) => `| ${ location( error ) } | ${ code( error.message ) } | ${ identifier( error ) } | ${ commit( error.introduced ) } |${ withResolution ? ` ${ commit( error.fixed ) } |` : '' }` ),
+                `| Location | Error | Identifier |${ withLevel ? ' Level |' : '' } First reported |${ withResolution ? ' Resolved |' : '' }`,
+                `| --- | --- | --- |${ withLevel ? ' --- |' : '' } --- |${ withResolution ? ' --- |' : '' }`,
+                ...shown.map( ( error ) => `| ${ location( error ) } | ${ code( error.message ) } | ${ identifier( error ) } |${ withLevel ? ` ${ error.level } |` : '' } ${ commit( error.introduced ) } |${ withResolution ? ` ${ commit( error.fixed ) } |` : '' }` ),
               ];
               if ( shown.length < rows.length ) {
                 lines.push( '', more );
@@ -247,6 +306,9 @@ jobs:
                     '> [!NOTE]',
                     `> ${ filesWithLinesOff.size === 1 ? 'A file with errors has' : `${ filesWithLinesOff.size } files with errors have` } changed in ${ code( pr.base.ref ) } since this branch was last updated, so the line numbers reported in ${ filesWithLinesOff.size === 1 ? 'it' : 'them' } may be off and are not linked. Merge the latest ${ code( pr.base.ref ) } into this branch for accurate links.`,
                   ].join( '\n' ) );
+                }
+                if ( active.some( ( error ) => error.level === 10 ) ) {
+                  sections.push( `An error at level 10 is in a path that ${ code( 'phpstan-level-10.neon.dist' ) } holds to rule level 10, which the rest of the codebase is not yet held to. See [Stricter analysis of selected paths](${ readmeUrl }#stricter-analysis-of-selected-paths).` );
                 }
               } else {
                 // Resolved by the last commit that resolved anything, so that later commits do not change the comment.
@@ -316,8 +378,8 @@ jobs:
 
               // The errors tracked are taken in the order they are listed, so that each one listed keeps its history.
               const tracked = [ ...unignorable, ...ignorable ].slice( 0, trackedLimit ).concat( resolved ).map( ( error ) => {
-                const { key, file, line, message, identifier, ignorable, introduced, seen, fixed } = error;
-                return { key, file, line: lineMayBeOff( error ) ? null : line, message, identifier, ignorable, introduced, seen, fixed };
+                const { key, file, line, message, identifier, ignorable, level, introduced, seen, fixed } = error;
+                return { key, file, line: lineMayBeOff( error ) ? null : line, message, identifier, ignorable, level, introduced, seen, fixed };
               } );
               sections.push( `<!-- phpstan-history:${ zlib.deflateRawSync( JSON.stringify( tracked ) ).toString( 'base64' ) } -->` );
 
