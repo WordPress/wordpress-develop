@@ -3353,9 +3353,9 @@ function wp_unique_term_slug( $slug, $term ) {
 /**
  * Updates term based on arguments provided.
  *
- * The `$args` will indiscriminately override all values with the same field name.
- * Care must be taken to not override important information need to update or
- * update will fail (or perhaps create a new term, neither would be acceptable).
+ * Only the term's name, slug, description, parent, and term group can be changed.
+ * Any other values in `$args` are ignored, apart from being passed to the hooks
+ * that fire during the update.
  *
  * Defaults will set 'alias_of', 'description', 'parent', and 'slug' if not
  * defined in `$args` already.
@@ -3379,16 +3379,20 @@ function wp_unique_term_slug( $slug, $term ) {
  *     @type string $alias_of    Slug of the term to make this term an alias of.
  *                               Default empty string. Accepts a term slug.
  *     @type string $description The term description. Default empty string.
+ *     @type string $name        The term name. Default is the current name.
  *     @type int    $parent      The id of the parent term. Default 0.
  *     @type string $slug        The term slug to use. Default empty string.
+ *     @type int    $term_group  The term group ID. Overridden when `$alias_of` is set.
  * }
  * @return array|WP_Error An array containing the `term_id` and `term_taxonomy_id`,
  *                        WP_Error otherwise.
  * @phpstan-param array{
  *     alias_of?: string,
  *     description?: string,
+ *     name?: string,
  *     parent?: non-negative-int,
  *     slug?: string|null,
+ *     term_group?: int,
  *     ...
  * } $args
  * @phpstan-return array{
@@ -3507,7 +3511,16 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 		 * Otherwise, bail.
 		 */
 		if ( $empty_slug || ( $parent !== (int) $term['parent'] ) ) {
-			$slug = wp_unique_term_slug( $slug, (object) $args );
+			$slug = wp_unique_term_slug(
+				$slug,
+				(object) array_merge(
+					$args,
+					array(
+						'term_id'  => $term_id,
+						'taxonomy' => $taxonomy,
+					)
+				)
+			);
 		} else {
 			/* translators: %s: Taxonomy term slug. */
 			return new WP_Error( 'duplicate_term_slug', sprintf( __( 'The slug &#8220;%s&#8221; is already in use by another term.' ), $slug ) );
