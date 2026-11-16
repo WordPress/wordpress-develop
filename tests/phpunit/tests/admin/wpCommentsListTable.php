@@ -279,4 +279,176 @@ OPTIONS;
 			'all type requested'                 => array( 'all' ),
 		);
 	}
+
+	/**
+	 * Creates a chain of nested comments and returns the deepest one.
+	 *
+	 * @param int $depth   Depth of the deepest comment (1 = top-level).
+	 * @param int $post_id Post ID.
+	 * @return WP_Comment
+	 */
+	private function create_comment_chain( $depth, $post_id ) {
+		$parent = 0;
+		for ( $i = 1; $i <= $depth; $i++ ) {
+			$parent = self::factory()->comment->create(
+				array(
+					'comment_post_ID' => $post_id,
+					'comment_parent'  => $parent,
+				)
+			);
+		}
+
+		return get_comment( $parent );
+	}
+
+	/**
+	 * Renders a single comment row and returns its HTML.
+	 *
+	 * single_row() sets the internal capability flag that row actions depend on.
+	 *
+	 * @param WP_Comment $comment Comment.
+	 * @return string
+	 */
+	private function get_comment_row_html( $comment ) {
+		$table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
+
+		ob_start();
+		$table->single_row( $comment );
+		return ob_get_clean();
+	}
+
+	/**
+	 * @ticket 13792
+	 *
+	 * @covers WP_Comments_List_Table::get_comment_depth
+	 *
+	 * @dataProvider data_get_comment_depth
+	 *
+	 * @param int $depth Expected depth.
+	 */
+	public function test_get_comment_depth( $depth ) {
+		$post_id = self::factory()->post->create();
+		$comment = $this->create_comment_chain( $depth, $post_id );
+		$table   = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
+
+		$this->assertSame( $depth, $table->get_comment_depth( $comment ) );
+	}
+
+	public function data_get_comment_depth() {
+		return array(
+			'top-level'            => array( 1 ),
+			'first reply'          => array( 2 ),
+			'deeply nested'        => array( 5 ),
+			'deeper than max (10)' => array( 11 ),
+		);
+	}
+
+	/**
+	 * @ticket 13792
+	 *
+	 * @covers WP_Comments_List_Table::get_comment_depth
+	 */
+	public function test_get_comment_depth_treats_orphaned_comment_as_top_level() {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::factory()->post->create(),
+				'comment_parent'  => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+			)
+		);
+		$table      = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
+
+		$this->assertSame( 1, $table->get_comment_depth( get_comment( $comment_id ) ) );
+	}
+
+	/**
+	 * @ticket 13792
+	 *
+	 * @covers WP_Comments_List_Table::handle_row_actions
+	 *
+	 * @dataProvider data_reply_action_respects_nesting_limit
+	 *
+	 * @param int  $max_depth     Value of the thread_comments_depth option.
+	 * @param int  $comment_depth Depth of the rendered comment.
+	 * @param bool $expect_reply  Whether the Reply action should be shown.
+	 */
+	public function test_reply_action_respects_nesting_limit( $max_depth, $comment_depth, $expect_reply ) {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		update_option( 'thread_comments', 1 );
+		update_option( 'thread_comments_depth', $max_depth );
+
+		$html = $this->get_comment_row_html(
+			$this->create_comment_chain( $comment_depth, self::factory()->post->create() )
+		);
+
+		if ( $expect_reply ) {
+			$this->assertStringContainsString( 'data-action="replyto"', $html, 'Reply action should be shown.' );
+			$this->assertStringNotContainsString( 'nesting-limit-reached', $html, 'Nesting limit notice should not be shown.' );
+		} else {
+			$this->assertStringNotContainsString( 'data-action="replyto"', $html, 'Reply action should not be shown.' );
+			$this->assertStringContainsString( 'nesting-limit-reached', $html, 'Nesting limit notice should be shown.' );
+		}
+	}
+
+	public function data_reply_action_respects_nesting_limit() {
+		return array(
+			'top-level comment'   => array( 5, 1, true ),
+			'one below the limit' => array( 5, 4, true ),
+			'at the limit'        => array( 5, 5, false ),
+			'minimum limit'       => array( 2, 2, false ),
+		);
+	}
+
+	/**
+	 * @ticket 13792
+	 *
+	 * @covers WP_Comments_List_Table::handle_row_actions
+	 */
+	public function test_reply_action_is_shown_when_threading_is_disabled() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		update_option( 'thread_comments', 0 );
+		update_option( 'thread_comments_depth', 2 );
+
+		$html = $this->get_comment_row_html(
+			$this->create_comment_chain( 3, self::factory()->post->create() )
+		);
+
+		$this->assertStringContainsString( 'data-action="replyto"', $html, 'Reply action should be shown.' );
+		$this->assertStringNotContainsString( 'nesting-limit-reached', $html, 'Nesting limit notice should not be shown.' );
+	}
+
+	/**
+	 * @ticket 13792
+	 *
+	 * @covers WP_Comments_List_Table::handle_row_actions
+	 */
+	public function test_nesting_limit_links_to_discussion_settings_for_admins() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		update_option( 'thread_comments', 1 );
+		update_option( 'thread_comments_depth', 2 );
+
+		$html = $this->get_comment_row_html(
+			$this->create_comment_chain( 2, self::factory()->post->create() )
+		);
+
+		$this->assertStringContainsString( 'options-discussion.php#thread_comments_depth', $html );
+	}
+
+	/**
+	 * @ticket 13792
+	 *
+	 * @covers WP_Comments_List_Table::handle_row_actions
+	 */
+	public function test_nesting_limit_is_not_a_link_for_users_without_manage_options() {
+		$editor_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id );
+		update_option( 'thread_comments', 1 );
+		update_option( 'thread_comments_depth', 2 );
+
+		$html = $this->get_comment_row_html(
+			$this->create_comment_chain( 2, self::factory()->post->create( array( 'post_author' => $editor_id ) ) )
+		);
+
+		$this->assertStringContainsString( 'nesting-limit-reached', $html, 'Nesting limit notice should be shown.' );
+		$this->assertStringNotContainsString( 'options-discussion.php', $html, 'Settings link should not be shown.' );
+	}
 }
