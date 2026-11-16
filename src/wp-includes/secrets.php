@@ -129,26 +129,6 @@ define( 'WP_SECRETS_RECORD_VERSION', 1 );
 define( 'WP_SECRETS_MAX_NAME_LENGTH', 172 );
 
 /**
- * Capability required to manage site-scope secrets at the operator boundary.
- *
- * Checked by WP-CLI and by a future admin screen, never by the function-level API
- * itself. See wp_set_secret() for why.
- *
- * This is a meta capability. It is not stored on any role: map_meta_cap() maps it
- * to `manage_options`.
- *
- * @since 7.2.0
- */
-define( 'WP_SECRETS_CAP_MANAGE', 'manage_secrets' );
-
-/**
- * Capability required at the operator boundary to manage network-scope secrets.
- *
- * @since 7.2.0
- */
-define( 'WP_SECRETS_CAP_MANAGE_NETWORK', 'manage_network_secrets' );
-
-/**
  * Best-effort clearing of a plaintext value from memory.
  *
  * This is hygiene, not a guarantee. PHP strings are reference-counted and often
@@ -543,9 +523,8 @@ function wp_list_secrets( string $namespace = '' ) { // phpcs:ignore Universal.N
 /**
  * Encrypts and stores a network-scope secret.
  *
- * Site secrets and network secrets are separate functions with separate
- * capabilities and separate storage prefixes, with no implicit fallback from one
- * scope to the other.
+ * Site secrets and network secrets are separate functions with separate storage
+ * prefixes, with no implicit fallback from one scope to the other.
  *
  * @since 7.2.0
  *

@@ -275,8 +275,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'manage_network_plugins'      => array(),
 			'manage_network_themes'       => array(),
 			'manage_network_options'      => array(),
-			'manage_network_secrets'      => array(),
-			'manage_secrets'              => array( 'administrator' ),
 			'delete_site'                 => array(),
 			'upgrade_network'             => array(),
 
@@ -316,8 +314,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'manage_network_plugins'      => array(),
 			'manage_network_themes'       => array(),
 			'manage_network_options'      => array(),
-			'manage_network_secrets'      => array(),
-			'manage_secrets'              => array( 'administrator' ),
 			'setup_network'               => array(),
 			'upload_plugins'              => array(),
 			'upload_themes'               => array(),

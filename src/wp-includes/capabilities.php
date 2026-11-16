@@ -34,7 +34,6 @@
  *              `edit_app_password`, `delete_app_passwords`, `delete_app_password`,
  *              and `update_https` capabilities.
  * @since 6.7.0 Added the `edit_block_binding` capability.
- * @since 7.2.0 Added the `manage_secrets` and `manage_network_secrets` capabilities.
  *
  * @global array $post_type_meta_caps Used to get post type meta capabilities.
  *
@@ -699,9 +698,6 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'customize':
 			$caps[] = 'edit_theme_options';
 			break;
-		case 'manage_secrets':
-			$caps[] = 'manage_options';
-			break;
 		case 'delete_site':
 			if ( is_multisite() ) {
 				$caps[] = 'manage_options';
@@ -771,7 +767,6 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'manage_network_plugins':
 		case 'manage_network_themes':
 		case 'manage_network_options':
-		case 'manage_network_secrets':
 		case 'upgrade_network':
 			$caps[] = $cap;
 			break;
