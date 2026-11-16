@@ -21,6 +21,8 @@
 use WordPress\AiClient\Messages\DTO\MessagePart;
 use WordPress\AiClient\Messages\DTO\UserMessage;
 use WordPress\AiClient\Providers\Http\Exception\ClientException;
+use WordPress\AiClient\Providers\Http\Exception\NetworkException;
+use WordPress\AiClient\Providers\Http\Exception\ServerException;
 use WordPress\AiClient\Providers\ProviderRegistry;
 
 class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
@@ -188,8 +190,8 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	/**
 	 * Asks a provider a question and runs the abilities the model calls until it answers.
 	 *
-	 * The test is skipped when the provider has no API key or is temporarily unavailable,
-	 * and fails when the provider rejects the key.
+	 * The test is skipped when the provider has no API key or is unavailable: it limits the
+	 * requests, has a server error or cannot be reached. Every other error fails the test.
 	 *
 	 * @param string   $provider  Provider ID.
 	 * @param string[] $abilities Names of the abilities given to the model.
@@ -213,14 +215,17 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		/*
 		 * The AI Client reports a provider whose models cannot be listed as one without models,
 		 * so list them here to get the reason. A successful list is cached for the requests below.
+		 * Any other exception, such as a response the provider changed, is an error of the test.
 		 */
 		try {
 			self::PROVIDERS[ $provider ]::modelMetadataDirectory()->listModelMetadata();
-		} catch ( Exception $e ) {
-			if ( $e instanceof ClientException && 429 !== $e->getCode() ) {
-				$this->fail( "The provider rejected the $key_name: " . $e->getMessage() );
-			}
+		} catch ( NetworkException | ServerException $e ) {
 			$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
+		} catch ( ClientException $e ) {
+			if ( 429 === $e->getCode() ) {
+				$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
+			}
+			$this->fail( "The provider rejected the $key_name: " . $e->getMessage() );
 		}
 
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( ...$abilities );
@@ -240,11 +245,14 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 			$result = $builder->generate_text_result();
 
 			if ( is_wp_error( $result ) ) {
-				$status = $result->get_error_data()['status'] ?? 0;
-				if ( 429 === $status || $status >= 500 ) {
-					$this->markTestSkipped( "The provider is unavailable ($status): " . $result->get_error_message() );
+				$status  = $result->get_error_data()['status'] ?? 0;
+				$message = "($status): " . $result->get_error_message();
+
+				// Only a rate limit, a server error of the provider and a network error skip the test.
+				if ( 429 === $status || in_array( $result->get_error_code(), array( 'prompt_network_error', 'prompt_upstream_server_error' ), true ) ) {
+					$this->markTestSkipped( "The provider is unavailable $message" );
 				}
-				$this->fail( "The request failed ($status): " . $result->get_error_message() );
+				$this->fail( "The request failed $message" );
 			}
 
 			// OpenAI returns each function call as its own candidate, so keep them all, not just toMessage().
