@@ -21,6 +21,13 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	protected $backup_registered_sidebars;
 
 	/**
+	 * Theme support state before the test runs.
+	 *
+	 * @var array
+	 */
+	protected $backup_theme_features;
+
+	/**
 	 * ID of the administrator user.
 	 *
 	 * @var int
@@ -40,6 +47,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
+		$this->backup_theme_features = $GLOBALS['_wp_theme_features'];
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		add_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
 
@@ -110,6 +118,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_customize'] );
 		unset( $GLOBALS['wp_scripts'] );
 		$GLOBALS['wp_registered_sidebars'] = $this->backup_registered_sidebars;
+		$GLOBALS['_wp_theme_features']     = $this->backup_theme_features;
 		parent::tear_down();
 	}
 
@@ -190,7 +199,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( $expected['description'], $description );
 	}
 
-	public function data_customize_register_control_label_and_description() {
+	public static function data_customize_register_control_label_and_description() {
 		return array(
 			'with widgets block editor' => array(
 				'sidebars'            => array(
@@ -824,7 +833,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( $bad_params, $this->manager->widgets->filter_dynamic_sidebar_params( $bad_params ) );
 
 		$filtered_params = $this->manager->widgets->filter_dynamic_sidebar_params( $params );
-		$this->assertNotEquals( $params, $filtered_params );
+		$this->assertNotSame( $params, $filtered_params );
 		ob_start();
 		do_action( 'dynamic_sidebar_after', 'foo' );
 		$output = ob_get_clean();

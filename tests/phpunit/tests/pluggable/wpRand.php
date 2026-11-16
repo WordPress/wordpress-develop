@@ -35,7 +35,7 @@ class Tests_Pluggable_wpRand extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_rand_should_return_a_non_negative_integer() {
+	public static function data_wp_rand_should_return_a_non_negative_integer() {
 		return array(
 			'1 and 99'       => array(
 				'min' => 1,
@@ -82,7 +82,7 @@ class Tests_Pluggable_wpRand extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_rand_should_return_zero_when_min_and_max_are_zero() {
+	public static function data_wp_rand_should_return_zero_when_min_and_max_are_zero() {
 		return array(
 			'min and max as 0'      => array(
 				'min' => 0,

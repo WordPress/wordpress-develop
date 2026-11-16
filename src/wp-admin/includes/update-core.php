@@ -931,7 +931,6 @@ $_old_files = array(
 	'wp-includes/images/icon-library/border.svg',
 	'wp-includes/images/icon-library/box.svg',
 	'wp-includes/images/icon-library/breadcrumbs.svg',
-	'wp-includes/images/icon-library/brush.svg',
 	'wp-includes/images/icon-library/bug.svg',
 	'wp-includes/images/icon-library/button.svg',
 	'wp-includes/images/icon-library/buttons.svg',
@@ -969,7 +968,6 @@ $_old_files = array(
 	'wp-includes/images/icon-library/currency-pound.svg',
 	'wp-includes/images/icon-library/custom-link.svg',
 	'wp-includes/images/icon-library/custom-post-type.svg',
-	'wp-includes/images/icon-library/dashboard.svg',
 	'wp-includes/images/icon-library/details.svg',
 	'wp-includes/images/icon-library/drafts.svg',
 	'wp-includes/images/icon-library/drag-handle.svg',
@@ -1035,7 +1033,6 @@ $_old_files = array(
 	'wp-includes/images/icon-library/line-dotted.svg',
 	'wp-includes/images/icon-library/line-solid.svg',
 	'wp-includes/images/icon-library/link-off.svg',
-	'wp-includes/images/icon-library/link.svg',
 	'wp-includes/images/icon-library/list-item.svg',
 	'wp-includes/images/icon-library/list-view.svg',
 	'wp-includes/images/icon-library/list.svg',
@@ -1046,7 +1043,6 @@ $_old_files = array(
 	'wp-includes/images/icon-library/loop.svg',
 	'wp-includes/images/icon-library/math.svg',
 	'wp-includes/images/icon-library/media-and-text.svg',
-	'wp-includes/images/icon-library/media.svg',
 	'wp-includes/images/icon-library/megaphone.svg',
 	'wp-includes/images/icon-library/more.svg',
 	'wp-includes/images/icon-library/move-to.svg',
@@ -1057,13 +1053,10 @@ $_old_files = array(
 	'wp-includes/images/icon-library/offline.svg',
 	'wp-includes/images/icon-library/overlay-text.svg',
 	'wp-includes/images/icon-library/page-break.svg',
-	'wp-includes/images/icon-library/page.svg',
 	'wp-includes/images/icon-library/pages.svg',
 	'wp-includes/images/icon-library/pending.svg',
 	'wp-includes/images/icon-library/percent.svg',
 	'wp-includes/images/icon-library/pin-small.svg',
-	'wp-includes/images/icon-library/pin.svg',
-	'wp-includes/images/icon-library/plugins.svg',
 	'wp-includes/images/icon-library/plus-circle-filled.svg',
 	'wp-includes/images/icon-library/position-center.svg',
 	'wp-includes/images/icon-library/position-left.svg',
@@ -1072,7 +1065,6 @@ $_old_files = array(
 	'wp-includes/images/icon-library/post-categories.svg',
 	'wp-includes/images/icon-library/post-comments-count.svg',
 	'wp-includes/images/icon-library/post-comments-form.svg',
-	'wp-includes/images/icon-library/post-comments.svg',
 	'wp-includes/images/icon-library/post-content.svg',
 	'wp-includes/images/icon-library/post-date.svg',
 	'wp-includes/images/icon-library/post-excerpt.svg',
@@ -1141,7 +1133,6 @@ $_old_files = array(
 	'wp-includes/images/icon-library/thumbs-up.svg',
 	'wp-includes/images/icon-library/time-to-read.svg',
 	'wp-includes/images/icon-library/title.svg',
-	'wp-includes/images/icon-library/tool.svg',
 	'wp-includes/images/icon-library/trash.svg',
 	'wp-includes/images/icon-library/trending-down.svg',
 	'wp-includes/images/icon-library/trending-up.svg',
@@ -1150,11 +1141,9 @@ $_old_files = array(
 	'wp-includes/images/icon-library/ungroup.svg',
 	'wp-includes/images/icon-library/unlock.svg',
 	'wp-includes/images/icon-library/unseen.svg',
-	'wp-includes/images/icon-library/update.svg',
 	'wp-includes/images/icon-library/video.svg',
 	'wp-includes/images/icon-library/widget.svg',
 	'wp-includes/images/icon-library/word-count.svg',
-	'wp-includes/images/icon-library/wordpress.svg',
 	'wp-admin/images/about-header-credits.webp',
 	'wp-admin/images/about-header-credits-rtl.webp',
 	'wp-admin/images/about-header-default.webp',
@@ -1166,6 +1155,24 @@ $_old_files = array(
 	'wp-admin/images/about-header-privacy.webp',
 	'wp-admin/images/about-header-privacy-rtl.webp',
 	'wp-admin/images/about-release-logo.svg',
+	/*
+	 * Restored in WordPress 7.2.
+	 *
+	 * 'wp-includes/images/icon-library/brush.svg',
+	 * 'wp-includes/images/icon-library/dashboard.svg',
+	 * 'wp-includes/images/icon-library/link.svg',
+	 * 'wp-includes/images/icon-library/media.svg',
+	 * 'wp-includes/images/icon-library/page.svg',
+	 * 'wp-includes/images/icon-library/pin.svg',
+	 * 'wp-includes/images/icon-library/plugins.svg',
+	 * 'wp-includes/images/icon-library/post-comments.svg',
+	 * 'wp-includes/images/icon-library/tool.svg',
+	 * 'wp-includes/images/icon-library/update.svg',
+	 * 'wp-includes/images/icon-library/wordpress.svg',
+	 */
+	// 7.2
+	'wp-includes/js/dist/sync.js',
+	'wp-includes/js/dist/sync.min.js',
 );
 
 /**
@@ -1298,6 +1305,7 @@ $_new_bundled_files = array(
 	'themes/twentytwentythree/' => '6.1',
 	'themes/twentytwentyfour/'  => '6.4',
 	'themes/twentytwentyfive/'  => '6.7',
+	'themes/ipsum/'             => '7.2',
 );
 
 /**
@@ -1549,8 +1557,9 @@ function update_core( $from, $to ) {
 	/*
 	 * Don't copy wp-content, we'll deal with that below.
 	 * We also copy version.php last so failed updates report their old version.
+	 * Never copy a wp-config.php, which could have been written to the working directory.
 	 */
-	$skip              = array( 'wp-content', 'wp-includes/version.php' );
+	$skip              = array( 'wp-content', 'wp-includes/version.php', 'wp-config.php' );
 	$check_is_writable = array();
 
 	// Check to see which files don't really need updating - only available for 3.7 and higher.

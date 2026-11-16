@@ -11,8 +11,16 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 	private static $template_canvas_path = ABSPATH . WPINC . '/template-canvas.php';
 
+	/**
+	 * Original stylesheet before the test switches themes.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( 'block-theme' );
 		do_action( 'setup_theme' );
 		do_action( 'after_setup_theme' );
@@ -21,6 +29,11 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	public function tear_down() {
 		global $_wp_current_template_id, $_wp_current_template_content;
 		unset( $_wp_current_template_id, $_wp_current_template_content );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		parent::tear_down();
 	}
 
@@ -369,7 +382,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<string, string>>
 	 */
-	public function data_provider_skip_link_actions(): array {
+	public static function data_provider_skip_link_actions(): array {
 		return array(
 			'the_block_template_skip_link'        => array(
 				'action'   => 'wp_footer',
@@ -415,7 +428,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_block_theme_folders() {
+	public static function data_get_block_theme_folders() {
 		return array(
 			'block-theme'                       => array(
 				'block-theme',
@@ -583,7 +596,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{theme_directory: string, template_type: string, expected_slugs: string[]}>
 	 */
-	public function data_get_block_templates_files_slugs() {
+	public static function data_get_block_templates_files_slugs() {
 		return array(
 			'template parts in a theme whose directory name does not end with parts' => array(
 				'theme_directory' => 'default',
@@ -689,7 +702,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		// Try to unregister again, should return WP_Error.
 		$error = unregister_block_template( $template_name );
 
-		$this->assertInstanceOf( 'WP_Error', $error );
+		$this->assertWPError( $error );
 		$this->assertStringContainsString(
 			$template_name,
 			$error->get_error_message(),

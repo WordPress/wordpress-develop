@@ -287,10 +287,14 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Logs user in.
 	 *
 	 * @since 2.8.0
+	 * @since 7.2.0 Returns an error if the `$username` or `$password` argument is not a scalar.
 	 *
-	 * @param string $username User's username.
-	 * @param string $password User's password.
+	 * @param mixed $username User's username.
+	 * @param mixed $password User's password.
 	 * @return WP_User|false WP_User object if authentication passed, false otherwise.
+	 *
+	 * @phpstan-assert-if-true =scalar $username
+	 * @phpstan-assert-if-true =scalar $password
 	 */
 	public function login(
 		$username,
@@ -302,10 +306,20 @@ class wp_xmlrpc_server extends IXR_Server {
 			return false;
 		}
 
+		/*
+		 * Arrays and objects sent by the client would cause a fatal error in
+		 * wp_authenticate(). Other scalar types are tolerated and cast to
+		 * strings, which preserves backward compatibility.
+		 */
+		if ( ! is_scalar( $username ) || ! is_scalar( $password ) ) {
+			$this->error = new IXR_Error( 400, __( 'The username and password arguments should be strings.' ) );
+			return false;
+		}
+
 		if ( $this->auth_failed ) {
 			$user = new WP_Error( 'login_prevented' );
 		} else {
-			$user = wp_authenticate( $username, $password );
+			$user = wp_authenticate( (string) $username, (string) $password );
 		}
 
 		if ( is_wp_error( $user ) ) {
@@ -337,9 +351,12 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @deprecated 2.8.0 Use wp_xmlrpc_server::login()
 	 * @see wp_xmlrpc_server::login()
 	 *
-	 * @param string $username User's username.
-	 * @param string $password User's password.
+	 * @param mixed $username User's username.
+	 * @param mixed $password User's password.
 	 * @return bool Whether authentication passed.
+	 *
+	 * @phpstan-assert-if-true =scalar $username
+	 * @phpstan-assert-if-true =scalar $password
 	 */
 	public function login_pass_ok(
 		$username,
@@ -381,8 +398,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 5.7.3
 	 *
-	 * @param IXR_Error|string $error   Error code or an error object.
-	 * @param false            $message Error message. Optional.
+	 * @param IXR_Error|int $error   Error code or an error object.
+	 * @param string|false  $message Error message. Optional. Default false.
 	 */
 	public function error( $error, $message = false ) {
 		// Accepts either an error object or an error code and message
@@ -6621,7 +6638,8 @@ class wp_xmlrpc_server extends IXR_Server {
 		 *
 		 * @since 2.1.0
 		 *
-		 * @param bool $error Whether to pre-empt the media upload. Default false.
+		 * @param string|false $error Error message to return instead of uploading, or false to
+		 *                            allow the upload. Default false.
 		 */
 		$upload_err = apply_filters( 'pre_upload_error', false );
 		if ( $upload_err ) {

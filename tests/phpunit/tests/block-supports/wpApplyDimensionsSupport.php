@@ -71,7 +71,7 @@ class Tests_Block_Supports_WpApplyDimensionsSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_minimum_height_block_support() {
+	public static function data_minimum_height_block_support() {
 		return array(
 			'style is applied' => array(
 				'block_name' => 'test/dimensions-block-supports',
@@ -150,7 +150,7 @@ class Tests_Block_Supports_WpApplyDimensionsSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_width_block_support() {
+	public static function data_width_block_support() {
 		return array(
 			'style is applied' => array(
 				'block_name' => 'test/width-style-is-applied',
@@ -221,7 +221,7 @@ class Tests_Block_Supports_WpApplyDimensionsSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_height_block_support() {
+	public static function data_height_block_support() {
 		return array(
 			'style is applied' => array(
 				'block_name' => 'test/height-style-is-applied',
@@ -292,7 +292,7 @@ class Tests_Block_Supports_WpApplyDimensionsSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_minimum_width_block_support() {
+	public static function data_minimum_width_block_support() {
 		return array(
 			'style is applied' => array(
 				'block_name' => 'test/min-width-style-is-applied',

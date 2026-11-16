@@ -153,6 +153,8 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name or page name. Default false.
  * @return string|false The permalink URL. False if the post does not exist.
+ *
+ * @phpstan-return ( $post is WP_Post ? string : string|false )
  */
 function get_the_permalink( $post = 0, $leavename = false ) {
 	return get_permalink( $post, $leavename );
@@ -166,6 +168,8 @@ function get_the_permalink( $post = 0, $leavename = false ) {
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name or page name. Default false.
  * @return string|false The permalink URL. False if the post does not exist.
+ *
+ * @phpstan-return ( $post is WP_Post ? string : string|false )
  */
 function get_permalink( $post = 0, $leavename = false ) {
 	$rewritecode = array(
@@ -320,6 +324,8 @@ function get_permalink( $post = 0, $leavename = false ) {
  * @param bool        $leavename Optional. Whether to keep post name. Default false.
  * @param bool        $sample    Optional. Is it a sample permalink. Default false.
  * @return string|false The post permalink URL. False if the post does not exist.
+ *
+ * @phpstan-return ( $post is WP_Post ? string : string|false )
  */
 function get_post_permalink( $post = 0, $leavename = false, $sample = false ) {
 	global $wp_rewrite;
@@ -1554,6 +1560,8 @@ function edit_post_link( $text = null, $before = '', $after = '', $post = 0, $cs
  * @param string      $deprecated   Not used.
  * @param bool        $force_delete Optional. Whether to bypass Trash and force deletion. Default false.
  * @return string|null The delete post link URL for the given post.
+ *
+ * @phpstan-param '' $deprecated
  */
 function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -2201,9 +2209,13 @@ function prev_post_rel_link( $title = '%title', $in_same_term = false, $excluded
  * @return array|null Array containing the boundary post object if successful, null otherwise.
  */
 function get_boundary_post( $in_same_term = false, $excluded_terms = '', $start = true, $taxonomy = 'category' ) {
+	if ( ! taxonomy_exists( $taxonomy ) ) {
+		return null;
+	}
+
 	$post = get_post();
 
-	if ( ! $post || ! is_single() || is_attachment() || ! taxonomy_exists( $taxonomy ) ) {
+	if ( $in_same_term && ! $post ) {
 		return null;
 	}
 
@@ -4370,10 +4382,12 @@ function is_avatar_comment_type( $comment_type ) {
 	 * @since 3.0.0
 	 *
 	 * @since 6.9.0 The 'note' comment type was added.
+	 * @since 7.2.0 The 'reaction' comment type was added.
 	 *
-	 * @param array $types An array of content types. Default contains 'comment' and 'note'.
+	 * @param array $types An array of content types. Default contains 'comment', 'note',
+	 *                     and 'reaction'.
 	 */
-	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment', 'note' ) );
+	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment', 'note', 'reaction' ) );
 
 	return in_array( $comment_type, (array) $allowed_comment_types, true );
 }
@@ -4842,7 +4856,16 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 		$link = sprintf(
 			'<a class="privacy-policy-link" href="%s" rel="privacy-policy">%s</a>',
 			esc_url( $privacy_policy_url ),
-			esc_html( $page_title )
+			wp_kses(
+				$page_title,
+				array(
+					'strong' => array( 'class' => true ),
+					'em'     => array( 'class' => true ),
+					'b'      => array( 'class' => true ),
+					'i'      => array( 'class' => true ),
+					'span'   => array( 'class' => true ),
+				)
+			)
 		);
 	}
 
@@ -4881,8 +4904,11 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
  * @since 6.2.0
  *
  * @return string[] An array of URL hosts.
+ *
+ * @phpstan-return list<lowercase-string>
  */
 function wp_internal_hosts() {
+	/** @var list<lowercase-string>|null $internal_hosts */
 	static $internal_hosts;
 
 	if ( empty( $internal_hosts ) ) {
@@ -4899,8 +4925,10 @@ function wp_internal_hosts() {
 				wp_parse_url( home_url(), PHP_URL_HOST ),
 			)
 		);
-		$internal_hosts = array_unique(
-			array_map( 'strtolower', (array) $internal_hosts )
+		$internal_hosts = array_values(
+			array_unique(
+				array_map( 'strtolower', (array) $internal_hosts )
+			)
 		);
 	}
 

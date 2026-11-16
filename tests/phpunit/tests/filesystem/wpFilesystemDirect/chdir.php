@@ -52,7 +52,7 @@ class Tests_Filesystem_WpFilesystemDirect_Chdir extends WP_Filesystem_Direct_Uni
 	 *
 	 * @return array[]
 	 */
-	public function data_should_fail_to_change_directory() {
+	public static function data_should_fail_to_change_directory() {
 		return array(
 			'a file that exists'              => array(
 				'path' => 'a_file_that_exists.txt',

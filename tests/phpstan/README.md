@@ -4,7 +4,7 @@ PHPStan is a static analysis tool for PHP that checks your code for errors witho
 
 ## Running the tests
 
-PHPStan requires PHP and Composer dependencies to be installed.
+PHPStan requires PHP and Composer dependencies to be installed. Since there is no `composer.lock`, run `composer update` after pulling changes to `composer.json`, such as the addition of a PHPStan extension, or PHPStan will fail to load the configuration.
 
 If you don't already have an environment ready, you can set one up by following [these instructions](https://github.com/WordPress/wordpress-develop/blob/master/README.md).
 
@@ -43,11 +43,66 @@ Note the `--` in each of those. Composer needs it in order to pass the flags on 
 
 For available flags, see https://phpstan.org/user-guide/command-line-usage.
 
+## Results on pull requests
+
+The analysis also runs on every pull request that changes PHP files or the PHPStan configuration. The errors it reports are shown in two places:
+
+- As annotations on the changed files. Most errors are annotated as warnings, which do not fail the check.
+- In a comment on the pull request, which lists every error in a table along with the commit it was first reported for. The comment is updated as new commits are pushed, moving each error that a commit resolves into a collapsed list of resolved errors, which also names that commit. Once all of the errors are resolved, the comment is marked as resolved and collapsed.
+
+Some errors cannot be ignored, and so cannot be reported as warnings either. These fail the check. The most common is an [out-of-date baseline](#removing-stale-entries-with---fix), which is reported when an error recorded in a baseline was fixed without the baseline being updated. Such an error is reported against a file rather than a line in it, so its annotation does not appear alongside the changes, and it would easily go unnoticed if the check passed.
+
 ## The PHPStan configuration
 
-The PHPStan configuration file is located at [`phpstan.neon.dist`](../../phpstan.neon.dist).
+The PHPStan configuration file is located at [`phpstan.neon.dist`](../../phpstan.neon.dist). It sets the standards the code is held to: the rule level, the baselines, the errors ignored as not actionable, and the [strict rules](#strict-rules) enabled. It includes [`base.neon`](base.neon), which configures what PHPStan needs to know to analyze the codebase at all, such as the [WordPress-specific extensions](#wordpress-specific-extensions), the paths analyzed, and the supported PHP versions.
 
-You can create a local copy at `phpstan.neon` to override the default configuration.
+To override the default configuration, create a `phpstan.neon` file in the repository root, which PHPStan reads in place of `phpstan.neon.dist`. Include `phpstan.neon.dist` in it rather than copying it, so the override only states what it changes and keeps up with changes to the default configuration. For example, to analyze at a stricter rule level:
+
+```neon
+includes:
+	- phpstan.neon.dist
+
+parameters:
+	level: 10
+```
+
+### Strict rules
+
+`phpstan.neon.dist` enables only the rules from [phpstan-strict-rules](https://github.com/phpstan/phpstan-strict-rules) which the code already complies with, registering each one individually. It does not include the package's `rules.neon`, since that file also makes several PHPStan parameters stricter, such as `checkDynamicProperties` and `reportMaybesInMethodSignatures`, even when its rules are disabled.
+
+To work toward complying with more of them, include `rules.neon` in your `phpstan.neon`. It enables every rule and makes those parameters stricter, unless `strictRules.allRules` is set to `false`, in which case only the rules set to `true` are enabled but the parameters are still made stricter. Either way, disable the rules `phpstan.neon.dist` already registers, or each error they report is reported twice:
+
+```neon
+includes:
+	- phpstan.neon.dist
+	- vendor/phpstan/phpstan-strict-rules/rules.neon
+
+parameters:
+	strictRules:
+		allRules: false
+		disallowedLooseComparison: true
+		overwriteVariablesWithLoop: true
+
+		# Already registered in phpstan.neon.dist.
+		disallowedBacktick: false
+		disallowedShortTernary: false
+		closureUsesThis: false
+		matchingInheritedMethodNames: false
+```
+
+The rules for `while` and `do`-`while` conditions are only enabled with [bleeding edge](https://phpstan.org/blog/what-is-bleeding-edge) (as are those for unary `+` and `-` operands), so `booleansInConditions: true` alone does not cover loops. Set `booleansInLoopConditions: true` to enable them without it.
+
+### Seeing every error
+
+The baselines and other ignored errors cannot be removed by leaving out an include, but a key ending in `!` replaces the value it would otherwise be merged with. So to see every error, including those the baselines suppress:
+
+```neon
+includes:
+	- phpstan.neon.dist
+
+parameters:
+	ignoreErrors!: []
+```
 
 For more information about configuring PHPStan, see the [PHPStan documentation's Config reference](https://phpstan.org/config-reference).
 
@@ -79,12 +134,25 @@ PHPStan reads that hash as free text, so the value stays a plain `array` and not
 A hash whose translation would be a guess is left alone, and the value keeps whatever type it has today. The visitor therefore only ever narrows a type, and never contradicts one:
 
 - A `@phpstan-param` or `@phpstan-return` written by hand always wins. Hash notation cannot express everything a type can — a function returning either of two shapes, or one whose return carries keys beyond those it documents, as `get_avatar_data()` returns the processed `$args` too — so a shape that has been tuned in the source is never overwritten by the derived one. Only the tag it was written for: a `@phpstan-param` for one parameter says nothing about the next, and a conditional `@phpstan-return` naming a parameter is not a shape for it.
-- The declared type has to name something a shape can be put on: a bare `array` or `object`, or a class, on its own or as one member of a union such as `string|array` or `array|WP_Error` — in a union the bare member is the one the hash is about, since a `WP_Error` carries no keys. A type that is already more specific than the hash, such as `array<string, string|bool>`, is left as written.
+- The declared type has to name something a shape can be put on: a bare `array` or `object`, or a class, on its own or as one member of a union such as `string|array` or `array|WP_Error` — in a union the bare member is the one the hash is about, since a `WP_Error` carries no keys. A type that is already more specific than the hash, such as `array<string, string|bool>`, is left as written. The exception is a `T[]` whose hash is a single `...$0` entry typed as that `T`: the hash then describes the elements, as it does for the blocks `parse_blocks()` returns, so its `array[]` becomes `array<array-key, array{blockName: string|null, attrs: array, innerBlocks: array[], innerHTML: string, innerContent: array}>`, sealed like any other `@return` shape. An `array[][]` may document its outer elements as a bare `array`, as `wp_print_font_faces()` does, but only when their own hash goes on to describe the inner arrays the same way. A bare `array` beside the `T[]`, as in `array|array[]`, takes the shape instead. Named keys beside a `T[]` describe the array itself rather than its elements, so a `string[]` with named keys keeps its type.
 - The hash has to be well formed: every `{` closed by a `}` on a line of its own, and every `@type` carrying a `$name` and a type that PHPStan's own type parser reads as one. Asking the parser rather than describing what a type may contain is what keeps `?string`, `(string|null)[]` and `callable(): void` from being turned away as malformed.
 - A hash on a bare `object` that would have to stay open is skipped, because PHPStan's object shapes have a fixed member list and no `...`, and sealing one would report every member the hash does not name. A hash on a named class is kept: `stdClass&object{...}` is not sealed, since the intersection leaves the class to say what else may be read and a `stdClass` accepts anything. That is what lets the theme data `WP_Theme_Install_List_Table::single_row()` documents keep its shape while the wordpress.org API is still free to add to it.
 - A parameter taken by reference is skipped, because PHPStan checks a by-reference argument in both directions, and a shape there would be a contract every caller's variable has to satisfy before the call rather than a description of what the function reads.
 
-Keys of a `@param` hash are optional, at every level, and the shape is left open with a trailing `...`, because the hash lists the keys core reads rather than the only keys a caller may pass. Keys of a `@return` hash are required and the shape is sealed, since they describe a value core itself builds. Numbered keys such as `$0` and `$1` are required in either case, because positional arguments are passed in order. A description opening with `Optional.` overrides all of that, and is the only thing that does: the word further into a description is prose, as in the "Optional self closing slash" of a match array whose every group is always set.
+Keys of a `@param` hash are optional, at every level, and the shape is left open with a trailing `...`, because the hash lists the keys core reads rather than the only keys a caller may pass. Keys of a `@return` hash are required and the shape is sealed, since they describe a value core itself builds. Numbered keys such as `$0` and `$1` are required in either case, because positional arguments are passed in order. A description opening with `Optional.` overrides all of that, making the key optional. A `Required.` sentence, opening or closing the description, makes a `@param` key required, which is what a value such as a parsed block needs, since its keys are always set:
+
+```php
+ * @param array[] $blocks {
+ *     An array of blocks.
+ *
+ *     @type array ...$0 {
+ *         @type string|null $blockName Required. Name of block.
+ *         @type array       $attrs     Required. Attributes from block comment delimiters.
+ *     }
+ * }
+```
+
+Those two sentences are the only markers. Either word elsewhere in a description is prose, as in the "Optional self closing slash" of a match array whose every group is always set, or a "Capability required for the panel". `Required.` must also be capitalized, while `Optional.` may be written in any case: prose mistaken for `Required.` would report an error at every call that leaves the key out, whereas prose mistaken for `Optional.` only loosens the type.
 
 Reading a key that a `@return` hash does not document is therefore reported rather than silently typed as `mixed` — unless the hash says otherwise itself, by listing a `...$N` entry beside its named keys, which is how core writes "and the rest" for the positional hashes of `wp_maybe_grant_site_health_caps()` and `WP_Meta_Query`.
 
@@ -124,7 +192,7 @@ As we adopt PHPStan iteratively, you may be faced with false positives due to le
 
 PHPStan errors can be ignored in the following ways:
 
-- Using the `@phpstan-ignore {error-identifier} (Reason for ignoring)` annotation in the code itself. This should be used to suppress false positives with a specific line of code.
+- Using the `@phpstan-ignore {error-identifier} (Reason for ignoring)` annotation in the code itself. **Avoid this if at all possible.** An ignore comment stays in the code, hiding the error from every later analysis of that line, so first try to fix the error, or to correct the types that PHPStan relies on, such as those in a docblock. It is only for a false positive with a specific line of code that cannot be resolved any other way.
 
 - Adding the error pattern to the `ignoreErrors` section of the `phpstan.neon.dist` configuration file. This should be used to handle conflicts with WordPress Coding Standards or similar project decisions, or to allowlist legacy code that is not worth refactoring solely to satisfy the tests.
 
@@ -148,11 +216,40 @@ Every entry is scoped to the file the error occurs in and carries an exact occur
 
 Both the path and the count matter. A new occurrence of an already baselined error does not match the entry, even in a file that is already listed, and is reported as a new error. That is the point of recording them this way: the baselines describe exactly what exists today, so nothing new slips in behind them.
 
-The consequence is that **fixing a baselined error means regenerating its baseline as part of the same change**, because the count no longer matches. A count that no longer matches is reported as an `ignore.count` error, which PHPStan does not allow to be ignored or baselined.
+The consequence is that **fixing a baselined error means updating its baseline as part of the same change**, because the count no longer matches. A count that no longer matches is reported as an `ignore.count` error, and an entry that matches nothing at all as an `ignore.unmatched` error, neither of which PHPStan allows to be ignored or baselined. Either [remove the stale entries with `--fix`](#removing-stale-entries-with---fix), or [regenerate the baselines](#regenerating-the-baselines).
+
+### Removing stale entries with `--fix`
+
+PHPStan marks an error it can fix automatically with 🔧, and ends its report by saying how many there are. Stale ignores are among them: a baseline entry whose count is now too high, or that matches nothing at all, and an `@phpstan-ignore` comment that no longer ignores anything. Fix them in place with:
+
+```bash
+npm run typecheck:php:fix
+```
+
+or, outside the Docker environment:
+
+```bash
+composer phpstan:fix
+```
+
+This runs three steps, each only when the one before it succeeds:
+
+1. PHPStan with its `--fix` option, which lowers the count of the entry, or removes the entry, leaving the rest of the baseline as it was. It is usually much faster than regenerating, since it reuses the result cache of the run that reported the errors. Unlike regenerating, it also removes an `@phpstan-ignore` comment that no longer matches.
+2. `composer phpstan:baselines -- --prune`, which deletes any baseline left with no entries, along with its `includes` entry in `phpstan.neon.dist`. Removing the last entry of a baseline leaves the file behind, as `ignoreErrors: []`. Pruning analyzes nothing, so it can also be run on its own.
+3. The analysis once more, which reuses the result cache and so is quick. PHPStan's `--fix` reports only what it fixed, and succeeds even when other errors remain, so this is what shows the errors that are left.
+
+Keep in mind:
+
+- **It fails when nothing is fixable.** PHPStan then says `No fixable errors found` and stops the script there, so run `composer phpstan` to see whether any errors remain.
+- **It always analyzes the whole tree with `phpstan.neon.dist`**, whatever a local `phpstan.neon` says. PHPStan only reports stale ignores when it analyzes every path, and a configuration at another rule level can report a baselined error with a different message, in which case `--fix` would remove an entry that the default configuration still needs.
+- **It fixes every fixable error the run reports**, not only stale ignores. A few other errors can also be fixed automatically, such as a [useless cast](https://phpstan.org/error-identifiers/cast.useless), so check the diff before committing it.
+- PHPStan's `--fix-ignored`, run as `composer phpstan -- --fix-ignored`, goes further and also fixes the fixable errors which a baseline currently ignores. That is a way to work through a baseline, but expect larger diffs, and follow it with `composer phpstan:baselines -- --prune`.
+
+The feature is marked experimental in PHPStan. See [the PHPStan documentation](https://phpstan.org/user-guide/command-line-usage) for details.
 
 ### Regenerating the baselines
 
-The baselines are generated, and should not be edited by hand. Regenerate them with:
+The baselines are generated, and should not be edited by hand, other than by `--fix` as described [above](#removing-stale-entries-with---fix). Regenerate them with:
 
 ```bash
 npm run typecheck:php:baselines
@@ -173,6 +270,9 @@ npm run typecheck:php:baselines -- --identifier=isset.variable --identifier=empt
 # print every error as one baseline, writing nothing:
 npm run typecheck:php:baselines -- --combined
 
+# without analyzing anything, delete the baselines that list no entries:
+npm run typecheck:php:baselines -- --prune
+
 # the remaining options:
 npm run typecheck:php:baselines -- --help
 ```
@@ -184,6 +284,7 @@ composer phpstan:baselines
 
 composer phpstan:baselines -- --identifier=variable.undefined
 composer phpstan:baselines -- --combined
+composer phpstan:baselines -- --prune
 composer phpstan:baselines -- --help
 ```
 
@@ -209,7 +310,7 @@ A cache written before one of them changed therefore answers with what the old c
 rm -rf .cache
 ```
 
-The results cache alone is not the problem. PHPStan invalidates that itself when the configuration changes, and [`HookDocsResultCacheMetaExtension`](HookDocsResultCacheMetaExtension.php) already folds every file in this directory into its key, so it is discarded when one of them is edited. What survives either is the per-file reflection, which is keyed by the source file's own contents and has no way to know that reading it now yields something else. CI keys its cache on these files for the same reason; see [`.github/workflows/reusable-phpstan-static-analysis-v1.yml`](../../.github/workflows/reusable-phpstan-static-analysis-v1.yml).
+The results cache alone is not the problem. PHPStan invalidates that itself when the configuration changes, and also when a bootstrap file or the source of any extension the configuration registers is edited, which covers every file in this directory that runs during analysis. What survives either is the per-file reflection, which is keyed by the source file's own contents and has no way to know that reading it now yields something else. CI keys its cache on these files for the same reason; see [`.github/workflows/reusable-phpstan-static-analysis-v1.yml`](../../.github/workflows/reusable-phpstan-static-analysis-v1.yml).
 
 Analyzing a subset of the tree used to call for the same treatment, the same silence arriving from the other direction. A file named on the command line is analyzed, but a file merely *read* on its behalf went to PHPStan's simple parser, where these visitors do not run, so the reflection stored for it carried no derived shape — wrong for that run, and there in the cache for the next full run to restore. [`base.neon`](base.neon) now has the simple parser wrap the rich one, so every parse rewrites the same docblocks and a run over a subset derives what a full run derives. It does so by redefining one of PHPStan's own parser services, which is not a documented extension point; if a hash notation type ever looks wrong after a PHPStan upgrade, check that definition first.
 

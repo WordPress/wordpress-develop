@@ -644,15 +644,10 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * @ticket 30009
 	 */
 	public function test_wp_save_post_revision_error() {
-		$post = self::factory()->post->create_and_get(
-			array(
-				'ID' => PHP_INT_MAX,
-			)
-		);
-
-		$revision = _wp_put_post_revision( $post );
+		$revision = _wp_put_post_revision( PHP_INT_MAX );
 
 		$this->assertWPError( $revision );
+		$this->assertSame( 'invalid_post', $revision->get_error_code() );
 	}
 
 	/**
@@ -810,7 +805,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_get_post_revisions_url() {
+	public static function data_wp_get_post_revisions_url() {
 		return array(
 			'one revision'       => array( 'revisions' => 1 ),
 			'multiple revisions' => array( 'revisions' => 2 ),
