@@ -127,6 +127,66 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that a single-label 'localhost' domain is accepted.
+	 *
+	 * @ticket 17433
+	 */
+	public function test_should_accept_localhost_as_the_domain() {
+		$this->assertSame( 'mylogin@localhost', is_email( 'mylogin@localhost' ) );
+		$this->assertSame( 'mylogin@LOCALHOST', is_email( 'mylogin@LOCALHOST' ) );
+		$this->assertSame( 'mylogin@LocalHost', is_email( 'mylogin@LocalHost' ) );
+	}
+
+	/**
+	 * Ensures that domains merely containing 'localhost' are not treated as the localhost domain.
+	 *
+	 * @ticket 17433
+	 */
+	public function test_should_not_treat_a_domain_containing_localhost_as_localhost() {
+		$invalid_emails = array(
+			'mylogin@notlocalhost',
+			'mylogin@localhostx',
+			'mylogin@mylocalhost',
+			'mylogin@localhost2',
+			'mylogin@xlocalhost',
+			'mylogin@fakedomain',
+			'mylogin@intranet',
+		);
+
+		foreach ( $invalid_emails as $email ) {
+			$this->assertFalse(
+				is_email( $email ),
+				'Should have rejected the email as invalid.'
+			);
+		}
+	}
+
+	/**
+	 * Ensures that the filter context for other single-label domains is unchanged.
+	 *
+	 * @ticket 17433
+	 */
+	public function test_should_report_domain_no_periods_context_for_a_non_localhost_single_label_domain() {
+		$context = null;
+
+		$capture_context = static function ( $is_email, $email, $email_context ) use ( &$context ) {
+			$context = $email_context;
+			return $is_email;
+		};
+
+		add_filter( 'is_email', $capture_context, 10, 3 );
+
+		try {
+			$result = is_email( 'mylogin@fakedomain' );
+		} finally {
+			remove_filter( 'is_email', $capture_context, 10 );
+		}
+
+		$this->assertFalse( $result, 'Should have rejected the email as invalid.' );
+		$this->assertSame( 'domain_no_periods', $context, 'Should have reported the unchanged filter context.' );
+	}
+
+	/**
 	 * Transforms invalid byte sequences in UTF-8 into representations of
 	 * each byte value, according to the maximal subpart rule.
 	 *
