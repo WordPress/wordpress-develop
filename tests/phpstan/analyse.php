@@ -23,8 +23,10 @@
  * baselines left without entries are then deleted, and both analyses run again
  * to show what remains.
  *
- * Every other argument is passed to each analysis. Naming a configuration with
- * `--configuration` or `-c` runs only that one, as PHPStan itself would.
+ * Every other argument is passed to each analysis, except that an argument which
+ * only makes sense for one, such as paths to analyze, a configuration, a level, or
+ * a report format for a program to read, runs only the first, as PHPStan itself
+ * would.
  *
  * Run it through Composer:
  *
@@ -69,14 +71,23 @@ if ( $fix ) {
 	$args = array_values( array_diff( $args, array( '--fix' ) ) );
 }
 
-foreach ( $args as $arg ) {
-	if ( '-c' === $arg || str_starts_with( $arg, '--configuration' ) || ( str_starts_with( $arg, '-c' ) && ! str_starts_with( $arg, '--' ) ) ) {
-		if ( $fix ) {
-			fwrite( STDERR, "--fix always uses the default configurations, so it cannot be combined with --configuration.\n" );
-			exit( 1 );
-		}
-		exit( run( 'Analyzing with the configuration given', $phpstan, $args ) );
+/*
+ * Some arguments only make sense for a single analysis. Paths would replace the
+ * strict paths of the second one, holding whatever they name to level 10; a level
+ * would analyze the strict paths at another; a report format meant to be read by
+ * a program would print two reports in a row; and a baseline would be written by
+ * each in turn. With any of them, only the first analysis runs, as it did before
+ * there were two.
+ */
+$single_reason = get_single_analysis_reason( $args );
+
+if ( null !== $single_reason ) {
+	if ( $fix ) {
+		fwrite( STDERR, "--fix always uses the default configurations and every path, so it cannot be combined with $single_reason.\n" );
+		exit( 1 );
 	}
+	fwrite( STDERR, "Running a single analysis, because of $single_reason.\n" );
+	exit( run( 'Analyzing', $phpstan, $args ) );
 }
 
 if ( $fix ) {
@@ -89,7 +100,7 @@ if ( $fix ) {
 		}
 	}
 
-	$status = run( 'Deleting the baselines left without entries', PHP_BINARY, array( __DIR__ . '/generate-baselines.php', '--prune' ), false );
+	$status = run( 'Deleting the baselines left without entries', __DIR__ . '/generate-baselines.php', array( '--prune' ), false );
 	if ( 0 !== $status ) {
 		exit( $status );
 	}
@@ -120,16 +131,19 @@ exit( max( $exit_code, run( "Analyzing the strict paths with $strict_config", $p
  * The heading goes to stderr, so that what the command writes to stdout, such as
  * a report in a machine-readable format, is left as it is.
  *
+ * The script runs on the PHP running this one, which Composer's `@php` chose,
+ * rather than on whichever `php` the script's shebang finds first.
+ *
  * @param string   $heading     Heading describing the run.
- * @param string   $command     Command to run.
- * @param string[] $args        Arguments, each escaped for the shell.
- * @param bool     $is_analysis Whether the command is a PHPStan analysis, to which `analyse` is passed first.
- * @return int Exit status of the command.
+ * @param string   $script      Path to the PHP script to run.
+ * @param string[] $args        Arguments, which are escaped for the shell here.
+ * @param bool     $is_analysis Whether the script is PHPStan, to which `analyse` is passed first.
+ * @return int Exit status of the script.
  */
-function run( string $heading, string $command, array $args, bool $is_analysis = true ): int {
+function run( string $heading, string $script, array $args, bool $is_analysis = true ): int {
 	fwrite( STDERR, "\n== $heading ==\n\n" );
 
-	$parts = array( escapeshellarg( $command ) );
+	$parts = array( escapeshellarg( PHP_BINARY ), escapeshellarg( $script ) );
 	if ( $is_analysis ) {
 		$parts[] = 'analyse';
 	}
@@ -157,7 +171,7 @@ function run( string $heading, string $command, array $args, bool $is_analysis =
 function is_strictest_level( string $phpstan, string $config ): bool {
 	$output    = array();
 	$exit_code = 0;
-	exec( sprintf( '%s dump-parameters --configuration=%s --json 2>/dev/null', escapeshellarg( $phpstan ), escapeshellarg( $config ) ), $output, $exit_code );
+	exec( sprintf( '%s %s dump-parameters --configuration=%s --json 2>/dev/null', escapeshellarg( PHP_BINARY ), escapeshellarg( $phpstan ), escapeshellarg( $config ) ), $output, $exit_code );
 
 	foreach ( $output as $line ) {
 		if ( 1 === preg_match( '/^\s*"level": ("max"|"?\d+"?),?$/', $line, $matches ) ) {
@@ -167,4 +181,52 @@ function is_strictest_level( string $phpstan, string $config ): bool {
 	}
 
 	return false;
+}
+
+/**
+ * Finds an argument that only makes sense for a single analysis.
+ *
+ * Those are a configuration, a level, a report format, a baseline to generate,
+ * `--fix-ignored`, and the paths to analyze. An option's value can follow it as the
+ * next argument, so that is skipped rather than taken for a path.
+ *
+ * @param string[] $args Arguments.
+ * @return string|null Description of the first such argument, or null if there is none.
+ */
+function get_single_analysis_reason( array $args ): ?string {
+	// The options whose value can be given as the next argument rather than after `=`.
+	$takes_value = array( '-c', '--configuration', '-l', '--level', '-a', '--autoload-file', '--error-format', '--memory-limit', '--tmp-file', '--instead-of' );
+	$single      = array( '-c', '--configuration', '-l', '--level', '--error-format', '--generate-baseline', '-b', '--fix-ignored' );
+
+	$count = count( $args );
+	for ( $i = 0; $i < $count; $i++ ) {
+		$arg = $args[ $i ];
+
+		if ( '--' === $arg ) {
+			return $i + 1 < $count ? 'the paths given' : null;
+		}
+
+		if ( '' === $arg || '-' !== $arg[0] ) {
+			return 'the paths given';
+		}
+
+		// A long option's value follows `=`, and a short option's follows its letter directly, as in `-l6`.
+		if ( 0 === strpos( $arg, '--' ) ) {
+			$name      = explode( '=', $arg, 2 )[0];
+			$has_value = false !== strpos( $arg, '=' );
+		} else {
+			$name      = substr( $arg, 0, 2 );
+			$has_value = strlen( $arg ) > 2;
+		}
+
+		if ( in_array( $name, $single, true ) ) {
+			return $name;
+		}
+
+		if ( ! $has_value && in_array( $name, $takes_value, true ) ) {
+			++$i;
+		}
+	}
+
+	return null;
 }
