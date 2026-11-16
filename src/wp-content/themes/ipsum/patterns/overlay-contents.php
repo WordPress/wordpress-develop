@@ -26,5 +26,5 @@
 <!-- wp:navigation {"textColor":"contrast","showSubmenuIcon":false,"submenuVisibility":"always","overlayMenu":"never","style":{"typography":{"letterSpacing":"-0.02rem"}},"fontSize":"2-x-large","layout":{"type":"flex","orientation":"vertical"},"ariaLabel":"<?php echo esc_attr_x( 'Primary', 'Accessible name of the main site navigation', 'ipsum' ); ?>"} /--></div>
 <!-- /wp:group -->
 
-<!-- wp:search {"label":"<?php esc_attr_e( 'Search', 'ipsum' ); ?>","buttonText":"<?php esc_attr_e( 'Search', 'ipsum' ); ?>","buttonPosition":"button-inside","buttonUseIcon":true,"style":{"spacing":{"margin":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"ariaLabel":"<?php echo esc_attr_x( 'Menu', 'Accessible name of the search form in the navigation overlay', 'ipsum' ); ?>"} /--></div>
+<!-- wp:search {"label":"<?php esc_attr_e( 'Search', 'ipsum' ); ?>","buttonText":"<?php esc_attr_e( 'Search', 'ipsum' ); ?>","buttonPosition":"button-inside","buttonUseIcon":true,"style":{"spacing":{"margin":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"ariaLabel":"<?php echo esc_attr_x( 'Site', 'Accessible name of the search form', 'ipsum' ); ?>"} /--></div>
 <!-- /wp:group -->
