@@ -8,6 +8,17 @@
  */
 class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 
+	use WP_Secrets_Manager_User;
+
+	/**
+	 * Runs each test as a user who can manage secrets.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_current_user_to_secrets_manager();
+	}
+
 	/**
 	 * Ensure that wp_list_secrets() returns an empty array when no secrets are stored.
 	 *

@@ -8,6 +8,17 @@
  */
 class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 
+	use WP_Secrets_Manager_User;
+
+	/**
+	 * Runs each test as a user who can manage secrets.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_current_user_to_secrets_manager();
+	}
+
 	/**
 	 * Ensure that wp_delete_secret() removes a stored secret so it can no longer be retrieved.
 	 *
@@ -107,20 +118,5 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 
 		$this->assertTrue( wp_delete_secret( 'myplugin/corrupt' ), 'Deleting a corrupt record should return true.' );
 		$this->assertNull( wp_get_secret( 'myplugin/corrupt' ), 'A deleted corrupt record should no longer be retrievable.' );
-	}
-
-	/**
-	 * Ensure that wp_delete_secret() succeeds without a logged-in user.
-	 *
-	 * Capability checks belong at the operator boundary (CLI, admin screens), not in the
-	 * API itself, so plugins can manage their own secrets from any context.
-	 *
-	 * @covers ::wp_delete_secret
-	 */
-	public function test_no_capability_check_is_applied(): void {
-		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ), 'Setting myplugin/api-key to value should succeed.' );
-		wp_set_current_user( 0 );
-
-		$this->assertTrue( wp_delete_secret( 'myplugin/api-key' ), 'Deleting a secret without a logged-in user should succeed.' );
 	}
 }

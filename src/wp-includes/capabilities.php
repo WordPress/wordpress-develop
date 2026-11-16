@@ -767,9 +767,27 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'manage_network_plugins':
 		case 'manage_network_themes':
 		case 'manage_network_options':
-		case 'manage_network_secrets':
 		case 'upgrade_network':
 			$caps[] = $cap;
+			break;
+		case 'manage_secret':
+		case 'manage_network_secret':
+			if ( ! isset( $args[0] ) || ! is_string( $args[0] ) || '' === $args[0] ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: %s: Capability name. */
+						__( 'When checking for the %s capability, you must always check it against a specific secret.' ),
+						'<code>' . $cap . '</code>'
+					),
+					'7.2.0'
+				);
+
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
+			$caps[] = 'manage_secret' === $cap ? 'manage_secrets' : 'manage_network_secrets';
 			break;
 		case 'setup_network':
 			if ( is_multisite() ) {
@@ -1357,6 +1375,38 @@ function wp_maybe_grant_resume_extensions_caps( $allcaps ) {
 function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
 	if ( ! empty( $allcaps['install_plugins'] ) && ( ! is_multisite() || is_super_admin( $user->ID ) ) ) {
 		$allcaps['view_site_health_checks'] = true;
+	}
+
+	return $allcaps;
+}
+
+/**
+ * Filters the user capabilities to grant the 'manage_secrets' and 'manage_network_secrets'
+ * capabilities as necessary.
+ *
+ * A user who can manage options can manage site-scope secrets. A user who can
+ * manage network options can manage network-scope secrets. On a single site, where
+ * network-scope secrets are stored alongside the site's own and no role has
+ * 'manage_network_options', a user who can manage options can manage both.
+ *
+ * A Multisite super admin has every capability and is not affected by this filter.
+ *
+ * @since 7.2.0
+ *
+ * @param bool[] $allcaps An array of all the user's capabilities.
+ * @return bool[] Filtered array of the user's capabilities.
+ */
+function wp_maybe_grant_secrets_caps( $allcaps ) {
+	if ( ! empty( $allcaps['manage_options'] ) ) {
+		$allcaps['manage_secrets'] = true;
+
+		if ( ! is_multisite() ) {
+			$allcaps['manage_network_secrets'] = true;
+		}
+	}
+
+	if ( ! empty( $allcaps['manage_network_options'] ) ) {
+		$allcaps['manage_network_secrets'] = true;
 	}
 
 	return $allcaps;

@@ -9,6 +9,17 @@
  */
 class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 
+	use WP_Secrets_Manager_User;
+
+	/**
+	 * Runs each test as a user who can manage secrets.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_current_user_to_secrets_manager();
+	}
+
 	/**
 	 * Loads the Site Health and debug data classes.
 	 */
@@ -565,9 +576,13 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	/**
 	 * Ensure that the debug information omits network secret counts on a single site install.
 	 *
+	 * @group ms-excluded
+	 *
 	 * @covers WP_Debug_Data::get_wp_secrets_api
 	 */
 	public function test_debug_info_omits_network_fields_on_single_site(): void {
+		$this->skipWithMultisite();
+
 		$info = $this->debug_section();
 
 		$this->assertArrayNotHasKey( 'network_secret_count', $this->debug_fields( $info ), 'Network secret counts should be omitted on a single site install.' );

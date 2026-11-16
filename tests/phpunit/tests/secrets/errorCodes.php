@@ -38,6 +38,7 @@ class Tests_Secrets_ErrorCodes extends WP_UnitTestCase {
 			'record malformed'           => array( 'WP_SECRETS_ERROR_RECORD_MALFORMED', 'secret_record_malformed' ),
 			'record unsupported version' => array( 'WP_SECRETS_ERROR_RECORD_UNSUPPORTED_VERSION', 'secret_record_unsupported_version' ),
 			'provider read only'         => array( 'WP_SECRETS_ERROR_PROVIDER_READ_ONLY', 'secret_provider_read_only' ),
+			'not allowed'                => array( 'WP_SECRETS_ERROR_NOT_ALLOWED', 'secret_not_allowed' ),
 		);
 	}
 

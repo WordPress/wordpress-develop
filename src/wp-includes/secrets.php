@@ -106,6 +106,17 @@ define( 'WP_SECRETS_ERROR_RECORD_UNSUPPORTED_VERSION', 'secret_record_unsupporte
 define( 'WP_SECRETS_ERROR_PROVIDER_READ_ONLY', 'secret_provider_read_only' );
 
 /**
+ * The current user is not allowed to change this secret.
+ *
+ * Returned by every function that stores, imports, deletes, or retires a secret
+ * when the `manage_secret` or `manage_network_secret` check fails, including when
+ * no user is logged in at all. Reading and listing secrets never return it.
+ *
+ * @since 7.2.0
+ */
+define( 'WP_SECRETS_ERROR_NOT_ALLOWED', 'secret_not_allowed' );
+
+/**
  * The current record format version.
  *
  * Bumped only if the record shape in WP_Secrets_Cipher's slot arrays ever changes
@@ -127,23 +138,6 @@ define( 'WP_SECRETS_RECORD_VERSION', 1 );
  * @since 7.2.0
  */
 define( 'WP_SECRETS_MAX_NAME_LENGTH', 172 );
-
-/**
- * Capability required to manage site-scope secrets at the operator boundary.
- *
- * Checked by WP-CLI and by a future admin screen, never by the function-level API
- * itself. See wp_set_secret() for why.
- *
- * @since 7.2.0
- */
-define( 'WP_SECRETS_CAP_MANAGE', 'manage_secrets' );
-
-/**
- * Capability required at the operator boundary to manage network-scope secrets.
- *
- * @since 7.2.0
- */
-define( 'WP_SECRETS_CAP_MANAGE_NETWORK', 'manage_network_secrets' );
 
 /**
  * Best-effort clearing of a plaintext value from memory.
@@ -409,15 +403,27 @@ function wp_using_secrets_dropin(): bool {
  * Encrypts and stores a secret.
  *
  * Encryption is unconditional: there is no plaintext mode and no constant to
- * disable it. No capability check is applied here, because this must be callable from
- * cron, REST, and front-end requests where no user is logged in. Enforce
- * capabilities at the operator boundary (CLI, an admin screen) instead.
+ * disable it.
+ *
+ * Storing a secret is an action taken by a person who is allowed to manage it. The
+ * current user must have the `manage_secret` meta capability for this secret, which
+ * maps to `manage_secrets` by default. A request with no logged-in user has no
+ * capabilities and is refused: cron, an unauthenticated REST request, and WP-CLI
+ * run without a user cannot store a secret.
+ *
+ * A plugin can change who is allowed to manage one of its own secrets, for example
+ * to limit it to specific users, with the {@see 'map_meta_cap'} filter. The secret's
+ * name is passed as the first capability argument.
+ *
+ * Reading a secret with wp_get_secret() is never subject to a capability check.
  *
  * @since 7.2.0
  *
  * @param string $name  The secret's namespaced name ('plugin-slug/secret-name').
  * @param string $value The plaintext value to store.
- * @return true|WP_Error
+ * @return true|WP_Error True on success. WP_Error on failure, with the code
+ *                       WP_SECRETS_ERROR_NOT_ALLOWED if the current user cannot
+ *                       manage this secret.
  */
 function wp_set_secret(
 	string $name,
@@ -439,6 +445,8 @@ function wp_set_secret(
  * replication paths that option went through; re-encrypting it here does not undo
  * that, and the flag exists so an operator (or a future admin screen) knows to
  * actually rotate the value rather than considering the migration finished.
+ *
+ * Subject to the same capability check as wp_set_secret().
  *
  * @since 7.2.0
  *
@@ -477,8 +485,10 @@ function wp_import_option_as_secret( string $option, string $name ) {
  * Retrieves a secret.
  *
  * Three states, never collapsed: a WP_Secret if it exists and decrypts, null if it
- * does not exist, WP_Error if it exists but could not be retrieved. No capability
- * check is applied here. See wp_set_secret().
+ * does not exist, WP_Error if it exists but could not be retrieved.
+ *
+ * No capability check is applied here: a secret has to be readable by the code that
+ * uses it on any request, including cron and requests with no logged-in user.
  *
  * @since 7.2.0
  *
@@ -495,6 +505,8 @@ function wp_get_secret( string $name, string $version = WP_Secret_Version::CURRE
 /**
  * Deletes a secret.
  *
+ * Subject to the same capability check as wp_set_secret().
+ *
  * @since 7.2.0
  *
  * @param string $name The secret's namespaced name.
@@ -510,6 +522,8 @@ function wp_delete_secret( string $name ) {
  * An explicit operator action, with no timers and no cron. Calling this on a secret
  * that has never been rotated, or that does not exist, is a successful no-op:
  * the previous slot is already absent either way.
+ *
+ * Subject to the same capability check as wp_set_secret().
  *
  * @since 7.2.0
  *
@@ -544,6 +558,9 @@ function wp_list_secrets( string $namespace = '' ) { // phpcs:ignore Universal.N
  * capabilities and separate storage prefixes, with no implicit fallback from one
  * scope to the other.
  *
+ * The current user must have the `manage_network_secret` meta capability for this
+ * secret, which maps to `manage_network_secrets` by default. See wp_set_secret().
+ *
  * @since 7.2.0
  *
  * @param string $name  The secret's namespaced name.
@@ -576,6 +593,8 @@ function wp_get_network_secret( string $name, string $version = WP_Secret_Versio
 /**
  * Deletes a network-scope secret.
  *
+ * Subject to the same capability check as wp_set_network_secret().
+ *
  * @since 7.2.0
  *
  * @param string $name The secret's namespaced name.
@@ -587,6 +606,8 @@ function wp_delete_network_secret( string $name ) {
 
 /**
  * Clears a network-scope secret's previous version.
+ *
+ * Subject to the same capability check as wp_set_network_secret().
  *
  * @since 7.2.0
  *
@@ -781,6 +802,36 @@ function wp_secrets_provider_label(): string {
 }
 
 /**
+ * Checks whether the current user is allowed to change a secret.
+ *
+ * Checked here rather than inside the provider: this is a contract between the API
+ * and its caller, and a provider from a secrets.php drop-in could silently skip a
+ * check it was asked to repeat.
+ *
+ * A call made before the pluggable functions are loaded has no current user to
+ * check, so it is refused rather than left to fail fatally.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $name    The secret's name.
+ * @param bool   $network Whether this is a network-scope secret.
+ * @return true|WP_Error True if the current user can manage the secret, WP_Error otherwise.
+ */
+function _wp_secrets_check_manage_capability( string $name, bool $network ) {
+	$capability = $network ? 'manage_network_secret' : 'manage_secret';
+
+	if ( function_exists( 'wp_get_current_user' ) && current_user_can( $capability, $name ) ) {
+		return true;
+	}
+
+	return new WP_Error(
+		WP_SECRETS_ERROR_NOT_ALLOWED,
+		__( 'Sorry, you are not allowed to manage this secret.' )
+	);
+}
+
+/**
  * Shared implementation behind wp_set_secret() and wp_set_network_secret().
  *
  * @since 7.2.0
@@ -802,6 +853,12 @@ function _wp_secrets_set(
 	bool $needs_rotation = false,
 	?string $action_override = null
 ) {
+	$allowed = _wp_secrets_check_manage_capability( $name, $network );
+
+	if ( is_wp_error( $allowed ) ) {
+		return $allowed;
+	}
+
 	return _wp_secrets_get_provider()->set( $name, $value, $network, $needs_rotation, $action_override );
 }
 
@@ -852,6 +909,12 @@ function _wp_secrets_get( string $name, string $version, bool $network ) {
  * @return true|WP_Error
  */
 function _wp_secrets_delete( string $name, bool $network ) {
+	$allowed = _wp_secrets_check_manage_capability( $name, $network );
+
+	if ( is_wp_error( $allowed ) ) {
+		return $allowed;
+	}
+
 	return _wp_secrets_get_provider()->delete( $name, $network );
 }
 
@@ -866,6 +929,12 @@ function _wp_secrets_delete( string $name, bool $network ) {
  * @return true|WP_Error
  */
 function _wp_secrets_retire( string $name, bool $network ) {
+	$allowed = _wp_secrets_check_manage_capability( $name, $network );
+
+	if ( is_wp_error( $allowed ) ) {
+		return $allowed;
+	}
+
 	return _wp_secrets_get_provider()->retire_previous( $name, $network );
 }
 

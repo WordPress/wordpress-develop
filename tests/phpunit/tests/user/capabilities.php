@@ -127,6 +127,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'list_users'              => array( 'administrator' ),
 			'manage_options'          => array( 'administrator' ),
 			'manage_secrets'          => array( 'administrator' ),
+			'manage_network_secrets'  => array( 'administrator' ),
 			'promote_users'           => array( 'administrator' ),
 			'remove_users'            => array( 'administrator' ),
 			'switch_themes'           => array( 'administrator' ),
@@ -204,6 +205,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'update_plugins'          => array(),
 			'update_themes'           => array(),
 			'view_site_health_checks' => array(),
+			'manage_network_secrets'  => array(),
 
 			'edit_theme_options'      => array( 'administrator' ),
 			'export'                  => array( 'administrator' ),
@@ -277,7 +279,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'manage_network_plugins'      => array(),
 			'manage_network_themes'       => array(),
 			'manage_network_options'      => array(),
-			'manage_network_secrets'      => array(),
 			'delete_site'                 => array(),
 			'upgrade_network'             => array(),
 
@@ -317,7 +318,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'manage_network_plugins'      => array(),
 			'manage_network_themes'       => array(),
 			'manage_network_options'      => array(),
-			'manage_network_secrets'      => array(),
 			'setup_network'               => array(),
 			'upload_plugins'              => array(),
 			'upload_themes'               => array(),
@@ -478,7 +478,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			// The following are granted via `user_has_cap`:
 			$actual['resume_plugins'],
 			$actual['resume_themes'],
-			$actual['view_site_health_checks']
+			$actual['view_site_health_checks'],
+			$actual['manage_secrets'],
+			$actual['manage_network_secrets']
 		);
 
 		unset(
@@ -575,7 +577,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$expected['edit_app_password'],
 			$expected['delete_app_passwords'],
 			$expected['delete_app_password'],
-			$expected['edit_block_binding']
+			$expected['edit_block_binding'],
+			$expected['manage_secret'],
+			$expected['manage_network_secret']
 		);
 
 		$expected = array_keys( $expected );
