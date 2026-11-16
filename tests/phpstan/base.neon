@@ -305,6 +305,7 @@ parameters:
 		- ApplyFiltersDynamicFunctionReturnTypeExtension.php
 		- HookDocumentationRule.php
 		- HookParamCountRule.php
+		- StrictPathsIgnoreErrorExtension.php
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:

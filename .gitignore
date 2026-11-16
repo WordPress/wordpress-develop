@@ -24,6 +24,7 @@ wp-tests-config.php
 /tests/phpunit/build
 /wp-cli.local.yml
 /phpstan.neon
+/phpstan-level-10.neon
 /*.tsbuildinfo
 /jsdoc
 /composer.lock
