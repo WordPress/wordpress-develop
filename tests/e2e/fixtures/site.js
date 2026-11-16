@@ -1,7 +1,8 @@
 /**
  * External dependencies
  */
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 /**
@@ -135,7 +136,8 @@ export const siteOptions = async ( { baseURL }, use ) => {
 };
 
 /**
- * Writes must-use plugins. Teardown deletes each file that `write` wrote.
+ * Writes must-use plugins. Each file name gets a unique prefix, so that tests in other workers
+ * cannot overwrite or delete it. Teardown deletes each file that `write` wrote.
  */
 export const muPlugin = async ( {}, use ) => {
 	const directory = join(
@@ -147,10 +149,17 @@ export const muPlugin = async ( {}, use ) => {
 
 	await use( {
 		write: async ( fileName, php ) => {
-			const file = join( directory, fileName );
+			const file = join( directory, `${ randomUUID() }-${ fileName }` );
 			files.add( file );
 			await mkdir( directory, { recursive: true } );
-			await writeFile( file, php );
+			// WordPress loads only `*.php` files, so it never includes a half-written file.
+			const temporary = `${ file }.tmp`;
+			try {
+				await writeFile( temporary, php );
+				await rename( temporary, file );
+			} finally {
+				await rm( temporary, { force: true } );
+			}
 			return file;
 		},
 	} );
