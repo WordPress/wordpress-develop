@@ -44,7 +44,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 					__( 'That image cannot be found. Check your <a href="%s">media library</a> and make sure it was not deleted.' ),
 					esc_url( admin_url( 'upload.php' ) )
 				),
-				/* translators: %d: Widget count. */
+				/* translators: %d: Widget count. Please translate as singular in both cases. */
 				'media_library_state_multi'  => _n_noop( 'Image Widget (%d)', 'Image Widget (%d)' ),
 				'media_library_state_single' => __( 'Image Widget' ),
 			)
