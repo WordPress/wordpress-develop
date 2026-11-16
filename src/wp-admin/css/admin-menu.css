@@ -93,14 +93,14 @@
 }
 
 #adminmenu a:hover,
-#adminmenu li.menu-top > a:focus,
+#adminmenu li.menu-top > a:focus-visible,
 #adminmenu .wp-submenu a:hover,
-#adminmenu .wp-submenu a:focus {
+#adminmenu .wp-submenu a:focus-visible {
 	color: #72aee6;
 }
 
 #adminmenu a:hover,
-#adminmenu a:focus,
+#adminmenu a:focus-visible,
 .folded #adminmenu .wp-submenu-head:hover {
 	box-shadow: inset 4px 0 0 0 currentColor;
 	transition: box-shadow 0.1s linear;
@@ -159,7 +159,7 @@
 /* ensure that wp-submenu's box shadow doesn't appear on top of the focused menu item's background. */
 #adminmenu li.menu-top:hover,
 #adminmenu li.opensub > a.menu-top,
-#adminmenu li > a.menu-top:focus {
+#adminmenu li > a.menu-top:focus-visible {
 	position: relative;
 	background-color: #1d2327;
 	color: #72aee6;
@@ -167,7 +167,7 @@
 
 .folded #adminmenu li.menu-top:hover,
 .folded #adminmenu li.opensub > a.menu-top,
-.folded #adminmenu li > a.menu-top:focus {
+.folded #adminmenu li > a.menu-top:focus-visible {
 	z-index: 10000;
 }
 
@@ -303,8 +303,7 @@ div.wp-menu-image::before {
 }
 
 #adminmenu div.wp-menu-image {
-	color: #a7aaad;
-	color: rgba(240, 246, 252, 0.6);
+	color: #c3c4c7;
 	transition: color 0.1s ease-in-out;
 }
 
@@ -482,7 +481,7 @@ ul#adminmenu > li.current > a.current::after {
 	position: relative;
 	overflow: visible;
 	background: none;
-	color: #a7aaad;
+	color: #c3c4c7;
 	cursor: pointer;
 }
 
@@ -657,7 +656,7 @@ li#wp-admin-bar-menu-toggle {
 
 	.auto-fold #adminmenu li.menu-top:hover,
 	.auto-fold #adminmenu li.opensub > a.menu-top,
-	.auto-fold #adminmenu li > a.menu-top:focus {
+	.auto-fold #adminmenu li > a.menu-top:focus-visible {
 		z-index: 10000;
 	}
 
@@ -811,12 +810,10 @@ li#wp-admin-bar-menu-toggle {
 		display: block;
 		padding: 0;
 		overflow: hidden;
-		outline: none;
 		text-decoration: none;
-		border: 1px solid transparent;
 		background: none;
-		height: 44px;
-		margin-left: -1px;
+		height: 46px;
+		box-sizing: border-box;
 	}
 
 	.wp-responsive-open #wpadminbar #wp-admin-bar-menu-toggle a {
@@ -827,17 +824,13 @@ li#wp-admin-bar-menu-toggle {
 		display: block;
 	}
 
-	#wpadminbar #wp-admin-bar-menu-toggle a:hover {
-		border: 1px solid transparent;
-	}
-
 	#wpadminbar #wp-admin-bar-menu-toggle .ab-icon {
 		display: flex;
 		align-items: center;
 		float: left;
 		margin: 0;
-		height: 44px;
-		width: 50px;
+		height: 46px;
+		width: 52px;
 		padding: 0;
 		border: none;
 		box-sizing: border-box;

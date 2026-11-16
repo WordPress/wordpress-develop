@@ -35,6 +35,8 @@ class WP_Block_Parser {
 	/**
 	 * List of parsed blocks
 	 *
+	 * See WP_Block_Parser_Block for the structure of each block.
+	 *
 	 * @since 5.0.0
 	 * @var array[]
 	 */
@@ -66,11 +68,46 @@ class WP_Block_Parser {
 	 * return an error on invalid inputs.
 	 *
 	 * @since 5.0.0
+	 * @since 7.2.0 Triggers a notice when the document is not a string, and returns
+	 *              an empty array unless the document is a stringable object.
 	 *
 	 * @param string $document Input document being parsed.
-	 * @return array[]
+	 * @return array[] {
+	 *     Array of block structures.
+	 *
+	 *     @type array ...$0 {
+	 *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
+	 *
+	 *         @type string|null $blockName    Name of block, or `null` when the block is
+	 *                                         top-level freeform HTML content.
+	 *         @type array       $attrs        Attributes from block comment delimiters.
+	 *         @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                         have the same structure as this one.
+	 *         @type string      $innerHTML    HTML from inside block comment delimiters.
+	 *         @type array       $innerContent List of string fragments and null markers where
+	 *                                         inner blocks were found.
+	 *     }
+	 * }
 	 */
 	public function parse( $document ) {
+		if ( is_object( $document ) && method_exists( $document, '__toString' ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Convert the document to a string before calling parse().' ),
+				'7.2.0'
+			);
+			$document = (string) $document;
+		}
+
+		if ( ! is_string( $document ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The document must be a string.' ),
+				'7.2.0'
+			);
+			return array();
+		}
+
 		$this->document = $document;
 		$this->offset   = 0;
 		$this->output   = array();
@@ -319,7 +356,7 @@ class WP_Block_Parser {
 	 * @param null|int $length How many bytes of document text to output.
 	 */
 	public function add_freeform( $length = null ) {
-		$length = $length ?? strlen( $this->document ) - $this->offset;
+		$length ??= strlen( $this->document ) - $this->offset;
 
 		if ( 0 === $length ) {
 			return;
@@ -395,40 +432,55 @@ class WP_Block_Parser {
 	 * @since 7.2.0
 	 */
 	public function implicitly_close_and_add_all_open_blocks(): void {
-		$implicitly_closed = null;
-		$last_freeform     = null;
+		$last_closed_block = null;
+		$last_opener_at    = strlen( $this->document );
+		$last_leading_html = null;
 
+		/**
+		 * There is a stack of open blocks, starting with a top-level block,
+		 * and where each successive item in the stack is a child of that block.
+		 * There are also spans of HTML content between the block delimiters.
+		 *
+		 * As the stack is collapsed, any HTML segments within that block must
+		 * be collected into it, before closing and appending to its parent’s
+		 * inner blocks array.
+		 */
 		while ( null !== ( $stack_top = array_pop( $this->stack ) ) ) {
-			if ( isset( $last_freeform ) ) {
-				$html = substr( $this->document, $stack_top->prev_offset, $last_freeform[1] - $stack_top->prev_offset );
-			} else {
-				$html = substr( $this->document, $stack_top->prev_offset );
-			}
+			/*
+			 * Since there is no open inner block on the top-most block on the stack,
+			 * the first iteration’s remaining HTML span will be from the last `prev_offset`
+			 * until the end of the document. For each containing parent, it will run from
+			 * the `prev_offset` until the opening of the block that was just closed.
+			 */
+			$html_length = $last_opener_at - $stack_top->prev_offset;
+			if ( 0 !== $html_length ) {
+				$html = substr( $this->document, $stack_top->prev_offset, $html_length );
 
-			if ( '' !== $html ) {
 				$stack_top->block->innerHTML     .= $html;
 				$stack_top->block->innerContent[] = $html;
 			}
 
-			// Trap potential leading freeform content for the final output.
-			$last_freeform = array( $stack_top->leading_html_start ?? 0, $stack_top->token_start );
-
-			if ( isset( $implicitly_closed ) ) {
+			if ( isset( $last_closed_block ) ) {
 				$stack_top->block->innerContent[] = null;
-				$stack_top->block->innerBlocks[]  = $implicitly_closed;
+				$stack_top->block->innerBlocks[]  = (array) $last_closed_block;
 			}
 
-			$implicitly_closed = $stack_top->block;
+			$last_closed_block = $stack_top->block;
+			$last_opener_at    = $stack_top->token_start;
+			$last_leading_html = $stack_top->leading_html_start;
 		}
 
-		if ( isset( $last_freeform ) && $last_freeform[1] > $last_freeform[0] ) {
-			$html           = substr( $this->document, $last_freeform[0], $last_freeform[1] - $last_freeform[0] );
+		// Collect any HTML preceding the outermost open block.
+		if ( isset( $last_leading_html ) && $last_opener_at > $last_leading_html ) {
+			$html           = substr( $this->document, $last_leading_html, $last_opener_at - $last_leading_html );
 			$this->output[] = (array) $this->freeform( $html );
 		}
 
-		if ( isset( $implicitly_closed ) ) {
-			$this->output[] = (array) $implicitly_closed;
+		if ( isset( $last_closed_block ) ) {
+			$this->output[] = (array) $last_closed_block;
 		}
+
+		$this->offset = strlen( $this->document );
 	}
 }
 

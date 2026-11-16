@@ -88,6 +88,7 @@ wp-tests-config.php
 /src/wp-content/object-cache.php
 /src/wp-content/php-error.php
 /src/wp-content/sunrise.php
+/src/wp-content/test-suite-uploads
 
 # Files and folders relating to wp-content build tools.
 /src/wp-content/themes/twentynineteen/node_modules
@@ -95,10 +96,12 @@ wp-tests-config.php
 /src/wp-content/themes/twentytwenty/node_modules
 /src/wp-content/themes/twentytwentytwo/node_modules
 /src/wp-content/themes/twentytwentyfive/node_modules
+/src/wp-content/themes/ipsum/node_modules
 
 # Minified files in bundled themes
 /src/wp-content/themes/twentytwentytwo/*.min.css
 /src/wp-content/themes/twentytwentyfive/*.min.css
+/src/wp-content/themes/ipsum/*.min.css
 
 # Operating system specific files
 .DS_Store

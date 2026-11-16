@@ -5,7 +5,7 @@
  * Categories: header
  * Block Types: core/template-part/header
  * Viewport width: 1280
- * Description: The theme’s default header — site title and tagline on the left, navigation on the right.
+ * Description: The theme’s default header, with the site title and tagline on the left and the navigation on the right.
  *
  * @package Ipsum
  * @since Ipsum 1.0
@@ -20,6 +20,6 @@
 <!-- wp:site-tagline {"style":{"layout":{"selfStretch":"fill","flexSize":null}}} /--></div>
 <!-- /wp:group -->
 
-<!-- wp:navigation {"overlay":"navigation-overlay","icon":"menu","fontSize":"small","ariaLabel":"<?php esc_attr_e( 'Primary', 'ipsum' ); ?>"} /--></div>
+<!-- wp:navigation {"overlay":"navigation-overlay","icon":"menu","overlayBackgroundColor":"base","overlayTextColor":"contrast","fontSize":"small","layout":{"type":"flex","justifyContent":"right"},"ariaLabel":"<?php esc_attr_e( 'Primary', 'ipsum' ); ?>"} /--></div>
 <!-- /wp:group --></div>
 <!-- /wp:group -->

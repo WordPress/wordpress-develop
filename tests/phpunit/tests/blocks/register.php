@@ -754,7 +754,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_register_block_style_handle_uses_correct_core_stylesheet() {
+	public static function data_register_block_style_handle_uses_correct_core_stylesheet() {
 		return array(
 			'block with style'           => array(
 				WPINC . '/blocks/archives/block.json',
@@ -1078,7 +1078,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_register_block_registers_with_args_override_returns_false_when_name_is_missing() {
+	public static function data_register_block_registers_with_args_override_returns_false_when_name_is_missing() {
 		return array(
 			'no block.json file and no name argument' => array(
 				'file' => '', // No block.json file.
@@ -1350,7 +1350,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_register_block_type_accepts_editor_script_array() {
+	public static function data_register_block_type_accepts_editor_script_array() {
 		return array(
 			'an empty array'      => array(
 				'editor_script' => array(),
@@ -1416,7 +1416,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_register_block_type_throws_doing_it_wrong() {
+	public static function data_register_block_type_throws_doing_it_wrong() {
 		return array(
 			'a non-string array'     => array(
 				'editor_script' => array( null, false, true, -1, 0, 1, -1.0, 0.0, 1.0, INF, NAN, new stdClass() ),
@@ -1607,7 +1607,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_register_block_style_name_contains_spaces() {
+	public static function data_register_block_style_name_contains_spaces() {
 		return array(
 			'multiple spaces' => array(
 				array(

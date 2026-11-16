@@ -13,8 +13,6 @@ class Tests_Link_TheFeedLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_the_feed_link_pretty_permastruct_default_feed() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected_url = home_url( '/feed/' );
 		$expected     = '<a href="' . esc_url( $expected_url ) . '">Entries Feed</a>';
 
