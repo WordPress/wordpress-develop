@@ -8,14 +8,16 @@
  */
 
 /**
- * Manages the root key and derives per-scope master keys from it.
+ * Manages root keys and derives per-scope master keys from them.
  *
- * Owns the root key's generation, storage, and rotation.
+ * Owns root-key generation, storage, and rotation.
  *
- * There is exactly one root key per install: 32 random bytes, generated once, wrapped
- * by the active WP_Secrets_Keyring, and stored via update_site_option() (which is a
- * plain option on single-site, and network-wide on multisite). It is the only value a
- * site-key rotation ever re-wraps, on a single site or on a 500-site network.
+ * On single-site installs, there is one root key stored via update_network_option()
+ * (backed by wp_options). On multisite installs, there is one root key per network in
+ * wp_sitemeta: 32 random bytes, generated once per network and wrapped by the active
+ * WP_Secrets_Keyring. Site-scope master keys use the root key of the network the
+ * target site belongs to, while network-scope master keys use the current network's
+ * root key. It is the only value a site-key rotation ever re-wraps on a network.
  *
  * Master keys are derived from the root key on demand and never stored:
  *
@@ -24,14 +26,16 @@
  * - Network scope: sodium_crypto_kdf_derive_from_key( 32, 0, 'wpsecnet', $root ).
  *   Subkey ID 0 is reserved for this (blog IDs start at 1) and the context string
  *   differs from the site path, so there is no collision between the two. Identical
- *   on every blog, so a network secret written on one blog reads on every other.
+ *   on every blog within the current network, so a network secret written on one blog
+ *   reads on every other blog in that network.
  *
- * One unwrapped copy of the root key lives in this object for the rest of the
- * request, in memory only, never in the object cache. It is replaced whenever the
+ * One unwrapped copy of each network's root key lives in this object for the rest of
+ * the request, in memory only, never in the object cache. It is replaced whenever the
  * stored wrapped value changes – a rotation, a re-wrap, a restore – so it is never
  * stale. Callers of get_root_key() still receive a copy and must zero it themselves;
  * this object's own copy is not theirs to zero. The practical effect: a remote
- * keyring (a KMS or HSM call) is invoked once per request, not once per secret.
+ * keyring (a KMS or HSM call) is invoked once per network per request, not once per
+ * secret.
  *
  * @since 7.2.0
  */
@@ -40,8 +44,8 @@ final class WP_Secrets_Key_Manager {
 	/**
 	 * Option name the wrapped root key is stored under.
 	 *
-	 * Always accessed through the *_site_option() functions directly, never through a
-	 * WP_Secrets_Store. Swapping the pluggable secret store therefore never relocates
+	 * Always accessed through the *_network_option() functions directly, never through
+	 * a WP_Secrets_Store. Swapping the pluggable secret store therefore never relocates
 	 * the root key, and swapping the keyring never affects where ciphertext lives.
 	 *
 	 * @since 7.2.0
@@ -84,24 +88,23 @@ final class WP_Secrets_Key_Manager {
 	private $keyring;
 
 	/**
-	 * The unwrapped root key currently cached for this request, or null if nothing
-	 * has been unwrapped yet.
+	 * Unwrapped root keys currently cached for this request, keyed by network ID.
 	 *
 	 * @since 7.2.0
-	 * @var string|null
+	 * @var array<int, string>
 	 */
-	private $cached_root_key = null;
+	private $cached_root_keys = array();
 
 	/**
-	 * The wrapped value $cached_root_key was unwrapped from, or null if nothing has
-	 * been unwrapped yet. Used to detect that the stored wrapped value changed
-	 * underneath this object (a rotation, a re-wrap, a restore) so the cache is not
-	 * served stale.
+	 * Wrapped values that $cached_root_keys were unwrapped from, keyed by network ID.
+	 *
+	 * Used to detect that the stored wrapped value changed underneath this object
+	 * (a rotation, a re-wrap, a restore) so the cache is not served stale.
 	 *
 	 * @since 7.2.0
-	 * @var string|null
+	 * @var array<int, string>
 	 */
-	private $cached_wrapped = null;
+	private $cached_wrapped = array();
 
 	/**
 	 * Constructor.
@@ -113,6 +116,24 @@ final class WP_Secrets_Key_Manager {
 	 */
 	public function __construct( ?WP_Secrets_Keyring $keyring = null ) {
 		$this->keyring = $keyring ? $keyring : new WP_Secrets_Config_Key_Provider();
+	}
+
+	/**
+	 * Destructor.
+	 *
+	 * Clears cached unwrapped root keys from memory when the manager is destroyed.
+	 *
+	 * @since 7.2.0
+	 */
+	public function __destruct() {
+		foreach ( $this->cached_root_keys as &$root_key ) {
+			if ( is_string( $root_key ) ) {
+				wp_secrets_memzero( $root_key );
+			}
+		}
+		unset( $root_key );
+
+		$this->cached_root_keys = array();
 	}
 
 	/**
@@ -131,7 +152,11 @@ final class WP_Secrets_Key_Manager {
 	}
 
 	/**
-	 * Derives a scope's master key from the root key.
+	 * Derives a scope's master key from a root key.
+	 *
+	 * On multisite, site-scope master keys are derived from the root key of the
+	 * network that $site_id belongs to (`get_site( $site_id )->network_id`), while
+	 * network-scope master keys are derived from the current network's root key.
 	 *
 	 * @since 7.2.0
 	 *
@@ -158,8 +183,9 @@ final class WP_Secrets_Key_Manager {
 		}
 
 		if ( 'network' === $scope ) {
-			$subkey_id = self::NETWORK_SUBKEY_ID;
-			$context   = self::NETWORK_KDF_CONTEXT;
+			$subkey_id  = self::NETWORK_SUBKEY_ID;
+			$context    = self::NETWORK_KDF_CONTEXT;
+			$network_id = get_current_network_id();
 		} else {
 			$subkey_id = $site_id ?? get_current_blog_id();
 
@@ -171,10 +197,12 @@ final class WP_Secrets_Key_Manager {
 				return new WP_Error( WP_SECRETS_ERROR_INVALID_ARGUMENT, $message );
 			}
 
-			$context = self::SITE_KDF_CONTEXT;
+			$context    = self::SITE_KDF_CONTEXT;
+			$site       = is_multisite() ? get_site( $subkey_id ) : null;
+			$network_id = $site instanceof WP_Site ? (int) $site->network_id : get_current_network_id();
 		}
 
-		$root_key = $this->get_root_key( $create_root_key );
+		$root_key = $this->get_root_key( $create_root_key, $network_id );
 
 		if ( is_wp_error( $root_key ) ) {
 			return $root_key;
@@ -197,23 +225,37 @@ final class WP_Secrets_Key_Manager {
 	}
 
 	/**
-	 * Returns the root key, generating and persisting one on first use.
+	 * Returns the root key for a network, generating and persisting one on first use.
 	 *
-	 * get_site_option() also returns false when its query fails, so a false result is
-	 * checked against the database before a new root key is generated. Generating one
-	 * while another is stored would make every existing secret undecryptable.
+	 * get_network_option() also returns false when its query fails, so a false result
+	 * is checked against the database before a new root key is generated. Generating
+	 * one while another is stored would make every existing secret undecryptable.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param bool $create Optional. Whether to generate and store a root key if none
-	 *                     exists. Default true.
+	 * @param bool     $create     Optional. Whether to generate and store a root key if none
+	 *                             exists. Default true.
+	 * @param int|null $network_id Optional. Network ID on multisite. Defaults to
+	 *                             get_current_network_id(). Ignored on single-site.
 	 * @return string|WP_Error 32 raw bytes on success. WP_Error on failure.
 	 */
-	public function get_root_key( bool $create = true ) {
-		$wrapped = $this->get_wrapped_root_key();
+	public function get_root_key( bool $create = true, ?int $network_id = null ) {
+		if ( null !== $network_id && $network_id < 1 ) {
+			$message = __( 'Network ID must be a positive integer.' );
+
+			_doing_it_wrong( __METHOD__, $message, '7.2.0' );
+
+			return new WP_Error(
+				WP_SECRETS_ERROR_INVALID_ARGUMENT,
+				__( 'The network ID for root key lookup must be a positive integer.' )
+			);
+		}
+
+		$network_id = is_multisite() && null !== $network_id ? $network_id : get_current_network_id();
+		$wrapped    = $this->get_wrapped_root_key( $network_id );
 
 		if ( false === $wrapped ) {
-			$wrapped = $this->read_stored_root_key();
+			$wrapped = $this->read_stored_root_key( $network_id );
 
 			if ( is_wp_error( $wrapped ) ) {
 				return $wrapped;
@@ -227,7 +269,7 @@ final class WP_Secrets_Key_Manager {
 					);
 				}
 
-				return $this->generate_root_key();
+				return $this->generate_root_key( $network_id );
 			}
 		}
 
@@ -238,18 +280,14 @@ final class WP_Secrets_Key_Manager {
 			);
 		}
 
-		if ( null !== $this->cached_root_key && $wrapped === $this->cached_wrapped ) {
-			return $this->cached_root_key;
+		if (
+			isset( $this->cached_root_keys[ $network_id ], $this->cached_wrapped[ $network_id ] ) &&
+			$wrapped === $this->cached_wrapped[ $network_id ]
+		) {
+			return $this->cached_root_keys[ $network_id ];
 		}
 
-		$root_key = $this->keyring->unwrap( $wrapped );
-
-		if ( is_string( $root_key ) ) {
-			$this->cached_wrapped  = $wrapped;
-			$this->cached_root_key = $root_key;
-		}
-
-		return $root_key;
+		return $this->unwrap_and_cache( $wrapped, $network_id );
 	}
 
 	/**
@@ -266,7 +304,8 @@ final class WP_Secrets_Key_Manager {
 	 * @return true|WP_Error
 	 */
 	public function rotate_site_key( WP_Secrets_Keyring $old_keyring, WP_Secrets_Keyring $new_keyring ) {
-		$wrapped = $this->get_wrapped_root_key();
+		$network_id = get_current_network_id();
+		$wrapped    = $this->get_wrapped_root_key( $network_id );
 
 		if ( ! is_string( $wrapped ) ) {
 			return new WP_Error(
@@ -275,8 +314,12 @@ final class WP_Secrets_Key_Manager {
 			);
 		}
 
-		if ( $old_keyring === $this->keyring && null !== $this->cached_root_key && $wrapped === $this->cached_wrapped ) {
-			$root_key = $this->cached_root_key;
+		if (
+			$old_keyring === $this->keyring &&
+			isset( $this->cached_root_keys[ $network_id ], $this->cached_wrapped[ $network_id ] ) &&
+			$wrapped === $this->cached_wrapped[ $network_id ]
+		) {
+			$root_key = $this->cached_root_keys[ $network_id ];
 		} else {
 			$root_key = $old_keyring->unwrap( $wrapped );
 		}
@@ -294,14 +337,14 @@ final class WP_Secrets_Key_Manager {
 		}
 
 		/*
-		 * update_site_option() returns false both on genuine failure and when the
+		 * update_network_option() returns false both on genuine failure and when the
 		 * new value equals the old one – a documented ambiguity shared with
 		 * update_option(). In practice this never collides here: wrap() draws a
 		 * fresh random nonce every call, so the re-wrapped value is only equal to
 		 * the old one if this call somehow re-wrapped under the exact same nonce,
 		 * astronomically unlikely.
 		 */
-		if ( ! update_site_option( self::ROOT_KEY_OPTION, $rewrapped ) ) {
+		if ( ! update_network_option( $network_id, self::ROOT_KEY_OPTION, $rewrapped ) ) {
 			wp_secrets_memzero( $root_key );
 
 			return new WP_Error(
@@ -310,8 +353,12 @@ final class WP_Secrets_Key_Manager {
 			);
 		}
 
-		$this->cached_wrapped  = $rewrapped;
-		$this->cached_root_key = $root_key;
+		if ( isset( $this->cached_root_keys[ $network_id ] ) ) {
+			wp_secrets_memzero( $this->cached_root_keys[ $network_id ] );
+		}
+
+		$this->cached_wrapped[ $network_id ]   = $rewrapped;
+		$this->cached_root_keys[ $network_id ] = $root_key;
 
 		wp_secrets_memzero( $root_key );
 
@@ -319,44 +366,45 @@ final class WP_Secrets_Key_Manager {
 	}
 
 	/**
-	 * Returns the wrapped root key, adopting a pre-conversion copy if needed.
+	 * Returns the wrapped root key for a network, adopting a pre-conversion copy if needed.
 	 *
 	 * A single site converted to multisite keeps its wrapped root key in its own
-	 * (now main site's) options row: `update_site_option()` only starts writing to
+	 * (now main site's) options row: `update_network_option()` only starts writing to
 	 * sitemeta once `is_multisite()` is true, and the conversion process does not
-	 * move existing option rows. Without this, a network's first read would find no
-	 * sitemeta row and mint a brand new root key, stranding every secret written
+	 * move existing option rows. Without this, the main network's first read would
+	 * find no sitemeta row and mint a brand new root key, stranding every secret written
 	 * before conversion.
 	 *
 	 * @since 7.2.0
 	 *
+	 * @param int $network_id Network ID to look up.
 	 * @return mixed The wrapped root key, or false if none exists anywhere. Anything
 	 *               but a string or false is a corrupt row, which the caller reports.
 	 */
-	private function get_wrapped_root_key() {
-		$wrapped = get_site_option( self::ROOT_KEY_OPTION );
+	private function get_wrapped_root_key( int $network_id ) {
+		$wrapped = get_network_option( $network_id, self::ROOT_KEY_OPTION );
 
-		if ( false !== $wrapped || ! is_multisite() ) {
+		if ( false !== $wrapped || ! is_multisite() || get_main_network_id() !== $network_id ) {
 			return $wrapped;
 		}
 
-		$main_site_id = get_main_site_id();
+		$main_site_id = get_main_site_id( $network_id );
 		$legacy       = get_blog_option( $main_site_id, self::ROOT_KEY_OPTION );
 
 		if ( ! is_string( $legacy ) ) {
 			return false;
 		}
 
-		if ( add_site_option( self::ROOT_KEY_OPTION, $legacy ) ) {
+		if ( add_network_option( $network_id, self::ROOT_KEY_OPTION, $legacy ) ) {
 			delete_blog_option( $main_site_id, self::ROOT_KEY_OPTION );
 		}
 
 		// Re-read: handles a concurrent request that already adopted it.
-		return get_site_option( self::ROOT_KEY_OPTION );
+		return get_network_option( $network_id, self::ROOT_KEY_OPTION );
 	}
 
 	/**
-	 * Generates a new root key and persists it.
+	 * Generates a new root key and persists it for the given network.
 	 *
 	 * Handles the race where two requests both find no root key at the same time.
 	 *
@@ -364,11 +412,10 @@ final class WP_Secrets_Key_Manager {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
+	 * @param int $network_id Network ID to store the root key for.
 	 * @return string|WP_Error
 	 */
-	private function generate_root_key() {
-		global $wpdb;
-
+	private function generate_root_key( int $network_id ) {
 		$candidate = random_bytes( 32 );
 
 		$wrapped = $this->keyring->wrap( $candidate );
@@ -379,14 +426,18 @@ final class WP_Secrets_Key_Manager {
 			return $wrapped;
 		}
 
-		$inserted_row_id = $this->insert_root_key( $wrapped );
+		$inserted_row_id = $this->insert_root_key( $wrapped, $network_id );
 
 		// Use whichever root key is stored now: this one, or one another request stored first.
-		$existing = $this->read_stored_root_key();
+		$existing = $this->read_stored_root_key( $network_id );
 
 		if ( is_string( $existing ) && hash_equals( $existing, $wrapped ) ) {
-			$this->cached_wrapped  = $wrapped;
-			$this->cached_root_key = $candidate;
+			if ( isset( $this->cached_root_keys[ $network_id ] ) ) {
+				wp_secrets_memzero( $this->cached_root_keys[ $network_id ] );
+			}
+
+			$this->cached_wrapped[ $network_id ]   = $wrapped;
+			$this->cached_root_keys[ $network_id ] = $candidate;
 
 			return $candidate;
 		}
@@ -395,6 +446,7 @@ final class WP_Secrets_Key_Manager {
 		wp_secrets_memzero( $candidate );
 
 		if ( $inserted_row_id ) {
+			global $wpdb;
 			$wpdb->delete( $wpdb->sitemeta, array( 'meta_id' => $inserted_row_id ) );
 		}
 
@@ -409,20 +461,37 @@ final class WP_Secrets_Key_Manager {
 			);
 		}
 
-		$root_key = $this->keyring->unwrap( $existing );
+		return $this->unwrap_and_cache( $existing, $network_id );
+	}
+
+	/**
+	 * Unwraps a wrapped root key and caches it for the given network.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $wrapped    The wrapped root key.
+	 * @param int    $network_id Network ID to cache under.
+	 * @return string|WP_Error Unwrapped root key bytes on success, WP_Error on failure.
+	 */
+	private function unwrap_and_cache( string $wrapped, int $network_id ) {
+		$root_key = $this->keyring->unwrap( $wrapped );
 
 		if ( is_string( $root_key ) ) {
-			$this->cached_wrapped  = $existing;
-			$this->cached_root_key = $root_key;
+			if ( isset( $this->cached_root_keys[ $network_id ] ) ) {
+				wp_secrets_memzero( $this->cached_root_keys[ $network_id ] );
+			}
+
+			$this->cached_wrapped[ $network_id ]   = $wrapped;
+			$this->cached_root_keys[ $network_id ] = $root_key;
 		}
 
 		return $root_key;
 	}
 
 	/**
-	 * Stores a new wrapped root key unless one is already stored.
+	 * Stores a new wrapped root key for a network unless one is already stored.
 	 *
-	 * This does not use add_site_option(). On a single site that is add_option(), which
+	 * This does not use add_network_option(). On a single site that is add_option(), which
 	 * skips its existence check for an option cached as missing and then overwrites the
 	 * stored row, so a failed read followed by add_option() would replace the root key.
 	 *
@@ -430,10 +499,11 @@ final class WP_Secrets_Key_Manager {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string $wrapped The wrapped root key.
+	 * @param string $wrapped    The wrapped root key.
+	 * @param int    $network_id Network ID on multisite.
 	 * @return int ID of the inserted wp_sitemeta row on multisite, 0 otherwise.
 	 */
-	private function insert_root_key( string $wrapped ): int {
+	private function insert_root_key( string $wrapped, int $network_id ): int {
 		global $wpdb;
 
 		$value = maybe_serialize( $wrapped );
@@ -459,7 +529,7 @@ final class WP_Secrets_Key_Manager {
 		$inserted = $wpdb->insert(
 			$wpdb->sitemeta,
 			array(
-				'site_id'    => get_current_network_id(),
+				'site_id'    => $network_id,
 				'meta_key'   => self::ROOT_KEY_OPTION,
 				'meta_value' => $value,
 			)
@@ -469,9 +539,9 @@ final class WP_Secrets_Key_Manager {
 	}
 
 	/**
-	 * Reads the wrapped root key from the database, bypassing the options cache.
+	 * Reads a network's wrapped root key from the database, bypassing the options cache.
 	 *
-	 * get_site_option() returns false both when the root key does not exist and when
+	 * get_network_option() returns false both when the root key does not exist and when
 	 * its query failed, and caches the option as missing either way. This read tells
 	 * the two apart. When the row exists, it also clears that cache entry.
 	 *
@@ -479,10 +549,11 @@ final class WP_Secrets_Key_Manager {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
+	 * @param int $network_id Network ID to query on multisite.
 	 * @return string|false|WP_Error The wrapped root key, false if none is stored, or
 	 *                               WP_Error if the read failed or the row is malformed.
 	 */
-	private function read_stored_root_key() {
+	private function read_stored_root_key( int $network_id ) {
 		global $wpdb;
 
 		if ( is_multisite() ) {
@@ -490,7 +561,7 @@ final class WP_Secrets_Key_Manager {
 				$wpdb->prepare(
 					"SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s AND site_id = %d ORDER BY meta_id ASC LIMIT 1",
 					self::ROOT_KEY_OPTION,
-					get_current_network_id()
+					$network_id
 				)
 			);
 		} else {
@@ -513,7 +584,7 @@ final class WP_Secrets_Key_Manager {
 			return false;
 		}
 
-		$this->forget_missing_root_key();
+		$this->forget_missing_root_key( $network_id );
 
 		$value = maybe_unserialize( $value );
 
@@ -531,10 +602,11 @@ final class WP_Secrets_Key_Manager {
 	 * Removes the root key from the cache of options that do not exist.
 	 *
 	 * @since 7.2.0
+	 *
+	 * @param int $network_id Network ID whose site-options cache should be cleared on multisite.
 	 */
-	private function forget_missing_root_key(): void {
+	private function forget_missing_root_key( int $network_id ): void {
 		if ( is_multisite() ) {
-			$network_id     = get_current_network_id();
 			$group          = 'site-options';
 			$notoptions_key = "$network_id:notoptions";
 
