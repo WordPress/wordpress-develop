@@ -816,6 +816,28 @@ function set_screen_options() {
 }
 
 /**
+ * Queries an IIS configuration document, matching elements in the root element's default namespace.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param DOMDocument $doc  The configuration document.
+ * @param string      $path Absolute XPath location path with unprefixed element names.
+ * @return DOMNodeList|false The matching nodes, or false if the expression is invalid.
+ */
+function _iis7_query_config( $doc, $path ) {
+	$xpath     = new DOMXPath( $doc );
+	$namespace = $doc->documentElement->namespaceURI; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+	if ( $namespace ) {
+		$xpath->registerNamespace( 'iis', $namespace );
+		$path = str_replace( '/', '/iis:', $path );
+	}
+
+	return $xpath->query( $path );
+}
+
+/**
  * Checks if rewrite rule for WordPress already exists in the IIS 7+ configuration file.
  *
  * @since 2.8.0
@@ -837,8 +859,7 @@ function iis7_rewrite_rule_exists( $filename ) {
 		return false;
 	}
 
-	$xpath = new DOMXPath( $doc );
-	$rules = $xpath->query( '/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'wordpress\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'WordPress\')]' );
+	$rules = _iis7_query_config( $doc, '/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'wordpress\') or starts-with(@name,\'WordPress\')]' );
 
 	if ( 0 === $rules->length ) {
 		return false;
@@ -872,8 +893,7 @@ function iis7_delete_rewrite_rule( $filename ) {
 		return false;
 	}
 
-	$xpath = new DOMXPath( $doc );
-	$rules = $xpath->query( '/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'wordpress\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'WordPress\')]' );
+	$rules = _iis7_query_config( $doc, '/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'wordpress\') or starts-with(@name,\'WordPress\')]' );
 
 	if ( $rules->length > 0 ) {
 		$child  = $rules->item( 0 );
@@ -914,24 +934,22 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 		return false;
 	}
 
-	$xpath = new DOMXPath( $doc );
-
 	// First check if the rule already exists as in that case there is no need to re-add it.
-	$wordpress_rules = $xpath->query( '/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'wordpress\')] | /configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'WordPress\')]' );
+	$wordpress_rules = _iis7_query_config( $doc, '/configuration/system.webServer/rewrite/rules/rule[starts-with(@name,\'wordpress\') or starts-with(@name,\'WordPress\')]' );
 
 	if ( $wordpress_rules->length > 0 ) {
 		return true;
 	}
 
 	// Check the XPath to the rewrite rule and create XML nodes if they do not exist.
-	$xml_nodes = $xpath->query( '/configuration/system.webServer/rewrite/rules' );
+	$xml_nodes = _iis7_query_config( $doc, '/configuration/system.webServer/rewrite/rules' );
 
 	if ( $xml_nodes->length > 0 ) {
 		$rules_node = $xml_nodes->item( 0 );
 	} else {
 		$rules_node = $doc->createElement( 'rules' );
 
-		$xml_nodes = $xpath->query( '/configuration/system.webServer/rewrite' );
+		$xml_nodes = _iis7_query_config( $doc, '/configuration/system.webServer/rewrite' );
 
 		if ( $xml_nodes->length > 0 ) {
 			$rewrite_node = $xml_nodes->item( 0 );
@@ -940,7 +958,7 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 			$rewrite_node = $doc->createElement( 'rewrite' );
 			$rewrite_node->appendChild( $rules_node );
 
-			$xml_nodes = $xpath->query( '/configuration/system.webServer' );
+			$xml_nodes = _iis7_query_config( $doc, '/configuration/system.webServer' );
 
 			if ( $xml_nodes->length > 0 ) {
 				$system_web_server_node = $xml_nodes->item( 0 );
@@ -949,7 +967,7 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 				$system_web_server_node = $doc->createElement( 'system.webServer' );
 				$system_web_server_node->appendChild( $rewrite_node );
 
-				$xml_nodes = $xpath->query( '/configuration' );
+				$xml_nodes = _iis7_query_config( $doc, '/configuration' );
 
 				if ( $xml_nodes->length > 0 ) {
 					$config_node = $xml_nodes->item( 0 );
