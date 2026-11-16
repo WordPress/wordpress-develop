@@ -521,6 +521,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * The ability is registered in the content category with its label and annotations.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_registers_the_ability(): void {
@@ -542,6 +543,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * The ability is not registered when no post type is exposed to abilities.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_is_not_registered_without_exposed_post_types(): void {
@@ -558,6 +560,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 * The input schema takes `where`, with the post type and ID, `data`, with at least one
 	 * attribute, and `fields`.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_input_schema(): void {
@@ -617,6 +620,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S11.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_output_schema_is_a_query_item(): void {
@@ -634,6 +638,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * Example 1: a new title and excerpt.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_example_updates_the_title_and_excerpt(): void {
@@ -684,6 +689,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * Example 2: publishing the draft.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_example_publishes_the_draft(): void {
@@ -719,6 +725,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S4, S5 and S13.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_example_rejects_a_post_the_user_cannot_edit(): void {
@@ -752,6 +759,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S4 and S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_permission_callback_refuses_a_logged_out_user(): void {
@@ -808,6 +816,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_inputs_refused_by_the_permission_callback
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param mixed $input The input.
@@ -824,6 +833,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 * The permission callback is only a coarse gate: it lets a logged-in subscriber through, and
 	 * the execute callback decides on the post.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_permission_callback_returns_true_for_a_logged_in_user_and_an_exposed_type(): void {
@@ -870,6 +880,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_ids_that_are_not_whole_numbers_of_at_least_1
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param mixed $id The ID.
@@ -920,6 +931,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_ids_that_are_not_whole_numbers_in_a_direct_call
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param mixed $id The ID.
@@ -958,6 +970,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S2.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_direct_call_reads_an_id_made_of_digits(): void {
@@ -1005,6 +1018,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_posts_that_are_not_posts
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $post The post, as a fixture name.
@@ -1035,6 +1049,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S3 and S13.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_direct_call_for_a_type_that_is_not_exposed_is_not_found(): void {
@@ -1064,6 +1079,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S3 and S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_type_no_longer_exposed_cannot_be_updated(): void {
@@ -1128,6 +1144,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_direct_inputs_with_a_malformed_where
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param mixed $input The input.
@@ -1147,6 +1164,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers O1.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_lookup_comes_before_the_attribute_rules(): void {
@@ -1260,6 +1278,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_update_matrix
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $role    The role to update as.
@@ -1317,6 +1336,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_invalid_data
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param array<string, mixed> $data The data.
@@ -1381,6 +1401,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_keys_outside_the_allow_list
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $location Where the key is sent.
@@ -1416,6 +1437,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S6.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_direct_call_ignores_keys_outside_the_allow_list(): void {
@@ -1510,6 +1532,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_statuses_that_can_never_be_set
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -1536,6 +1559,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_statuses_that_can_never_be_set
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -1588,6 +1612,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_status_changes_without_publish_posts
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $role    The role or fixture name of the user, who owns the draft.
@@ -1620,6 +1645,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * A contributor may edit their own private post, but may not make a post private.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_status_equal_to_the_stored_status_passes_with_no_check(): void {
@@ -1645,6 +1671,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * A draft is scheduled with `future` and a date in the future.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_schedules_a_draft(): void {
@@ -1686,6 +1713,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_unpublished_statuses
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -1719,6 +1747,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_statuses_reported_as_stored
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status   The requested status.
@@ -1747,6 +1776,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * A post in the Trash is updated like any other post and stays in the Trash.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_updates_a_post_in_the_trash(): void {
@@ -1781,6 +1811,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_statuses_that_move_a_post_out_of_the_trash
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $role   The role, which owns the post.
@@ -1803,6 +1834,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S5 and S7.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_publishing_a_post_from_the_trash_needs_publish_posts(): void {
@@ -1838,6 +1870,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_authors_named_without_edit_others_posts
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $author The author, as a fixture name.
@@ -1871,6 +1904,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * A user with `edit_others_posts` may change the author of a post.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_changes_the_author(): void {
@@ -1889,6 +1923,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 * An author equal to the stored author changes nothing and passes with no check, even when
 	 * that user no longer exists.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_author_equal_to_the_stored_author_passes_with_no_check(): void {
@@ -1925,6 +1960,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S5 and S8.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_naming_a_missing_author_with_edit_others_posts_is_an_invalid_author(): void {
@@ -1947,6 +1983,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @group ms-required
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_naming_an_author_who_is_not_a_member_of_the_site_is_an_invalid_author(): void {
@@ -1990,6 +2027,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_parents_that_cannot_be_used
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $parent_key The parent, as a fixture name.
@@ -2016,6 +2054,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 * A parent equal to the stored parent changes nothing and passes with no check, even when the
 	 * user may not read it.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_parent_equal_to_the_stored_parent_passes_with_no_check(): void {
@@ -2055,6 +2094,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_parents_that_can_be_used
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string|null $parent_key The parent, as a fixture name, or null for 0.
@@ -2092,6 +2132,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_unsupported_attributes
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $post      The post, as a fixture name.
@@ -2135,6 +2176,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_values_of_the_wrong_type
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $attribute The attribute.
@@ -2164,6 +2206,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * Attributes that were not sent keep their stored values.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_attributes_not_sent_keep_their_stored_values(): void {
@@ -2199,6 +2242,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S1 and S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_slug_that_sanitizes_to_nothing_is_rejected(): void {
@@ -2233,6 +2277,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_posts_taking_a_used_slug
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string      $post   The post, as a fixture name.
@@ -2271,6 +2316,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_draft_page_slugs_by_parent
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $parent_key The parent, as a fixture name.
@@ -2310,6 +2356,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * D1: an update without a date keeps a floating draft floating.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_update_without_a_date_keeps_a_draft_floating(): void {
@@ -2343,6 +2390,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_statuses_that_stamp_the_current_time
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -2363,6 +2411,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * D1: moving a floating draft to pending without a date keeps it floating.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_pending_without_a_date_keeps_a_draft_floating(): void {
@@ -2402,6 +2451,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_new_dates
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param array<string, string> $date The sent date.
@@ -2443,6 +2493,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_new_dates_for_a_floating_draft
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param array<string, string> $date The sent date.
@@ -2478,6 +2529,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_dates_equal_to_the_floating_date
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param array<string, string> $date The sent date.
@@ -2523,6 +2575,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_past_dates_equal_to_the_floating_date
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param array<string, string> $date The sent date.
@@ -2554,6 +2607,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_dates_equal_to_the_floating_date
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param array<string, string> $date The sent date.
@@ -2598,6 +2652,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_schedules_a_floating_draft_for_the_date_it_shows
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string                $status The status.
@@ -2631,6 +2686,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_date_that_is_not_a_date_time_fails_input_validation(): void {
@@ -2652,6 +2708,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S10.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_markup_of_an_author_is_filtered(): void {
@@ -2684,6 +2741,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @group ms-excluded
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_markup_of_an_administrator_is_not_filtered(): void {
@@ -2705,6 +2763,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @group ms-required
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_markup_of_a_site_administrator_is_filtered_on_multisite(): void {
@@ -2721,6 +2780,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * Quotes, backslashes and non-ASCII text survive a round trip unchanged.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_quotes_backslashes_and_non_ascii_text_survive_a_round_trip(): void {
@@ -2757,6 +2817,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S11.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_raw_fields_are_left_out_when_the_writer_can_no_longer_edit_the_post(): void {
@@ -2785,6 +2846,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S11.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_password_protected_post_is_returned_with_its_protection_flag(): void {
@@ -2819,6 +2881,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S4.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_each_call_checks_the_current_user(): void {
@@ -2858,6 +2921,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S11.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_each_call_checks_the_author_visibility_again(): void {
@@ -2912,6 +2976,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_empty_post_is_the_save_error(): void {
@@ -2938,6 +3003,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * A database error during the save keeps its own code and message, with status 500.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_database_error_is_the_save_error(): void {
@@ -2970,6 +3036,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	/**
 	 * A stored page template that no longer exists does not fail an unrelated update and is kept.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_stale_page_template_does_not_fail_an_update(): void {
@@ -2997,6 +3064,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 * A save that stores a revision also fires the hooks for the revision, so only the fires
 	 * for the updated post are counted, and a regular save of an identical post is the reference.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_after_insert_hooks_fire_once(): void {
@@ -3081,6 +3149,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_whole_number_forms
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $form The form of the ID.
@@ -3111,6 +3180,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_whole_number_forms
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $form The form of the author.
@@ -3141,6 +3211,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_whole_number_forms
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $form The form of the parent.
@@ -3206,6 +3277,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_internal_stored_statuses
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status The stored status, which is also sent.
@@ -3249,6 +3321,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S5 (C1).
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_trash_for_a_post_in_the_trash_fails_input_validation(): void {
@@ -3301,6 +3374,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_dates_without_a_usable_value
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param array<string, mixed> $date The date.
@@ -3356,6 +3430,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_inputs_without_usable_data
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param array<string, mixed> $input The input, without `where`.
@@ -3383,6 +3458,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_stores_an_empty_excerpt_and_an_empty_title(): void {
@@ -3420,6 +3496,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S7.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_author_denied_publish_posts_may_set_pending(): void {
@@ -3484,6 +3561,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_date_changes_on_a_published_or_scheduled_post
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $stored_status   The status the post has.
@@ -3530,6 +3608,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_named_status_changes_on_a_published_or_scheduled_post
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $stored_status The status the post has.
@@ -3592,6 +3671,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S4, S5 and S7.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_edit_post_granted_on_one_post_allows_only_editing_that_post(): void {
@@ -3677,6 +3757,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S4 and S5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_editor_cannot_update_the_privacy_policy_page(): void {
@@ -3711,6 +3792,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_special_pages_an_editor_may_update
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $page The page, as a fixture name.
@@ -3745,6 +3827,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_updates_of_a_page_with_a_missing_parent
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param bool $send_parent Whether the stored parent is sent.
@@ -3814,6 +3897,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S7 (C4).
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_contributor_may_set_a_hidden_custom_status(): void {
@@ -3852,6 +3936,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * @dataProvider data_custom_visible_statuses_by_stored_status
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -3878,6 +3963,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S11 (C14).
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_output_is_the_id_alone_when_the_update_takes_away_read_access(): void {
@@ -3919,6 +4005,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_UnitTest
 	 *
 	 * Covers S11 (C14).
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_output_is_complete_when_the_caller_may_still_read_the_post(): void {

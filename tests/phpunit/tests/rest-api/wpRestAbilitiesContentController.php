@@ -472,6 +472,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * Create runs with POST and the input in a JSON body.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_create_runs_with_post_and_a_json_body(): void {
@@ -501,6 +502,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * Update runs with POST and the input in a JSON body.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_update_runs_with_post_and_a_json_body(): void {
@@ -535,6 +537,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * Delete runs with DELETE and the input in the query string, where the ID is a string.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_delete_runs_with_delete_and_the_input_in_the_query_string(): void {
@@ -578,6 +581,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_permanent_query_string_values
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $permanent The value in the query string.
@@ -634,6 +638,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_permanent_query_string_values_that_are_not_booleans
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $permanent The value in the query string.
@@ -665,6 +670,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	 *
 	 * Covers C5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_create_with_the_input_in_the_query_string_returns_400(): void {
@@ -692,6 +698,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	 *
 	 * Covers C5.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_delete_with_the_input_in_a_json_body_returns_400(): void {
@@ -740,6 +747,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wrong_methods_for_write_abilities
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $ability The ability name.
@@ -774,6 +782,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * A logged-out user is refused as unauthenticated.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_logged_out_create_receives_401(): void {
@@ -789,6 +798,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * A user the permission callback refuses is forbidden.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_subscriber_create_receives_403(): void {
@@ -804,6 +814,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * Input that fails the schema is rejected.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_create_with_input_that_fails_the_schema_returns_400(): void {
@@ -828,6 +839,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * The not-found error of an update reaches the response with its status.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_update_of_a_missing_post_returns_404(): void {
@@ -853,6 +865,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * The edit error of an update reaches the response with its status.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_update_of_a_post_the_user_cannot_edit_returns_403(): void {
@@ -886,6 +899,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * The invalid attribute error of a create reaches the response with its status.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_create_with_an_unsupported_attribute_returns_400(): void {
@@ -912,6 +926,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * The already-trashed error of a delete reaches the response with its status.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_trashing_a_trashed_post_returns_410(): void {

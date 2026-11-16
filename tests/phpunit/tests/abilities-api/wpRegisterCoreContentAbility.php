@@ -6798,6 +6798,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Covers S14.
 	 *
 	 * @dataProvider data_roles_with_edit_access_to_other_users_posts
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $role The role to query as.
@@ -6825,6 +6826,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * Covers S14.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_trash_can_be_requested_next_to_another_status(): void {
@@ -6849,6 +6851,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A query without a status does not cover `trash`, also not when it lists slugs.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_slugs_without_a_status_do_not_cover_trashed_posts(): void {
@@ -6873,6 +6876,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A query without a status does not cover `trash`.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_query_without_a_status_does_not_cover_trashed_posts(): void {
@@ -6889,6 +6893,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * Covers S14.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_trash_needs_edit_posts(): void {
@@ -6929,6 +6934,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Covers S14.
 	 *
 	 * @dataProvider data_roles_that_edit_only_their_own_trashed_posts
+	 * @ticket 66706
 	 * @since 7.3.0
 	 *
 	 * @param string $role The role to query as.
@@ -6962,6 +6968,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Other internal statuses are still rejected.
 	 *
+	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_other_internal_statuses_are_still_rejected(): void {
