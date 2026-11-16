@@ -1213,6 +1213,60 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 15001
+	 * @covers ::register_new_user
+	 */
+	public function test_register_new_user_should_preserve_user_login_too_long_error() {
+		$result = register_new_user( str_repeat( 'a', 61 ), 'new-user@example.org' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'user_login_too_long', $result->get_error_code() );
+		$this->assertSame( __( 'Username may not be longer than 60 characters.' ), $result->get_error_message() );
+	}
+
+	/**
+	 * @ticket 15001
+	 * @covers ::register_new_user
+	 */
+	public function test_register_new_user_should_preserve_existing_user_email_error() {
+		$user_email = 'existing-user@example.org';
+		self::factory()->user->create( array( 'user_email' => $user_email ) );
+
+		// Introduce an email collision after the registration checks have passed.
+		add_filter(
+			'pre_user_email',
+			static function () use ( $user_email ) {
+				return $user_email;
+			}
+		);
+
+		$result = register_new_user( 'new-user', 'new-user@example.org' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'existing_user_email', $result->get_error_code() );
+		$this->assertSame( __( 'Sorry, that email address is already used!' ), $result->get_error_message() );
+		$this->assertFalse( username_exists( 'new-user' ), 'A user should not be created with the duplicate email.' );
+	}
+
+	/**
+	 * @ticket 15001
+	 * @covers ::register_new_user
+	 */
+	public function test_register_new_user_should_preserve_registration_errors() {
+		self::factory()->user->create(
+			array(
+				'user_login' => 'existing-user',
+				'user_email' => 'existing-user@example.org',
+			)
+		);
+
+		$result = register_new_user( 'existing-user', 'existing-user@example.org' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( array( 'username_exists', 'email_exists' ), $result->get_error_codes() );
+	}
+
+	/**
 	 * @ticket 27317
 	 * @group ms-required
 	 */
