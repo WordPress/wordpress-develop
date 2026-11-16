@@ -91,7 +91,21 @@ final class WP_Connector_Registry {
 	 *     @type string $name           Required. The connector's display name.
 	 *     @type string $description    Optional. The connector's description. Default empty string.
 	 *     @type string $logo_url       Optional. URL to the connector's logo image.
-	 *     @type string $type           Required. The connector type, e.g. 'ai_provider'.
+	 *     @type string $type           Required. The connector type. Any non-empty string is
+	 *                                  accepted, and several connectors may share a type.
+	 *                                  'ai_provider' is the only type core treats specially.
+	 *                                  Such a connector is not registered when wp_supports_ai()
+	 *                                  is false. For connectors using the 'api_key' method, an
+	 *                                  'ai_provider' key is checked with the AI Client when saved
+	 *                                  (an invalid key is cleared) and passed to the AI Client,
+	 *                                  which decides whether it is connected; for any other type,
+	 *                                  the key is saved as given, and the connector counts as
+	 *                                  connected when any of its key sources holds a key.
+	 *                                  Connectors using the 'application_password' method count
+	 *                                  as connected when both a username and a password are
+	 *                                  stored, whatever their type. The type is part of the
+	 *                                  default `setting_name`, so set `setting_name` explicitly
+	 *                                  if the type may change later.
 	 *     @type array  $authentication {
 	 *         Required. Authentication configuration.
 	 *
