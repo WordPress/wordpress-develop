@@ -145,6 +145,8 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	/**
 	 * Tests that a provider answers questions by calling the core abilities it is given.
 	 *
+	 * @ticket 66707
+	 *
 	 * @dataProvider data_providers_and_abilities
 	 *
 	 * @param string   $provider  Provider ID.
