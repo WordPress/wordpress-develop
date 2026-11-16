@@ -378,6 +378,6 @@ function wp_register_core_abilities(): void {
 	// Register the user abilities (currently the read-only `core/users-query`).
 	( new WP_Abilities_Users() )->register();
 
-	// Register the content abilities: `core/content-query`, `core/content-create`, `core/content-update`, and `core/content-delete`.
+	// Register the content abilities (query, create, update, and delete).
 	( new WP_Abilities_Content() )->register();
 }

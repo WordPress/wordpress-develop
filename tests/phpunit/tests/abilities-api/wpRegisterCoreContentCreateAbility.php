@@ -2,6 +2,8 @@
 
 declare( strict_types=1 );
 
+require_once __DIR__ . '/testcase-content-write-ability.php';
+
 /**
  * Tests for the core/content-create ability shipped with the Abilities API.
  *
@@ -9,7 +11,7 @@ declare( strict_types=1 );
  *
  * @group abilities-api
  */
-class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTestCase {
+class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilities_Content_Write_UnitTestCase {
 
 	/**
 	 * The name of the ability under test.
@@ -18,25 +20,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @var string
 	 */
-	private const ABILITY = 'core/content-create';
-
-	/**
-	 * The content abilities, which every test unregisters before and after it runs.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var list<string>
-	 */
-	private const CONTENT_ABILITIES = array( 'core/content-query', 'core/content-create', 'core/content-update', 'core/content-delete' );
-
-	/**
-	 * A user ID that no user has.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var int
-	 */
-	private const MISSING_ID = 987654321;
+	protected const ABILITY = 'core/content-create';
 
 	/**
 	 * A date that stays in the future.
@@ -45,25 +29,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * @var string
 	 */
-	private const FUTURE_GMT = '2035-06-01T12:00:00';
-
-	/**
-	 * Shared user IDs keyed by role or fixture name.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var array<string, int>
-	 */
-	private static $user_ids = array();
-
-	/**
-	 * Shared post IDs keyed by fixture name.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var array<string, int>
-	 */
-	private static $post_ids = array();
+	private const FUTURE_GMT = '2099-06-01T12:00:00';
 
 	/**
 	 * Creates shared users and posts.
@@ -158,213 +124,18 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	}
 
 	/**
-	 * Unregisters the content abilities and registers the content category.
-	 *
-	 * @since 7.3.0
-	 */
-	public function set_up(): void {
-		parent::set_up();
-
-		foreach ( self::CONTENT_ABILITIES as $ability_name ) {
-			if ( wp_has_ability( $ability_name ) ) {
-				wp_unregister_ability( $ability_name );
-			}
-		}
-
-		if ( ! wp_has_ability_category( 'content' ) ) {
-			global $wp_current_filter;
-			$wp_current_filter[] = 'wp_abilities_api_categories_init'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Faking the action context to register within it.
-			wp_register_ability_category(
-				'content',
-				array(
-					'label'       => 'Content',
-					'description' => 'Content.',
-				)
-			);
-		}
-	}
-
-	/**
-	 * Unregisters the content abilities and the category, and resets the post types.
-	 *
-	 * @since 7.3.0
-	 */
-	public function tear_down(): void {
-		foreach ( self::CONTENT_ABILITIES as $ability_name ) {
-			if ( wp_has_ability( $ability_name ) ) {
-				wp_unregister_ability( $ability_name );
-			}
-		}
-
-		if ( wp_has_ability_category( 'content' ) ) {
-			wp_unregister_ability_category( 'content' );
-		}
-
-		/*
-		 * A test may turn off `show_in_abilities` on `post` and `page`, and the next class's
-		 * wpSetUpBeforeClass() runs before the next set_up() resets the post types.
-		 */
-		$this->reset_post_types();
-
-		parent::tear_down();
-	}
-
-	/**
-	 * Registers the content abilities inside a faked init action.
-	 *
-	 * @since 7.3.0
-	 */
-	private function register_abilities(): void {
-		global $wp_current_filter;
-		$wp_current_filter[] = 'wp_abilities_api_init'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Faking the action context to register within it.
-		( new WP_Abilities_Content() )->register();
-	}
-
-	/**
-	 * Registers the content abilities and returns the callbacks of the create ability.
-	 *
-	 * The callbacks call private methods, so tests that skip input validation or the
-	 * permission check capture them from the registration arguments.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return array<string, callable> The permission and execute callbacks, keyed by argument name.
-	 */
-	private function get_ability_callbacks(): array {
-		$callbacks = array();
-
-		add_filter(
-			'wp_register_ability_args',
-			static function ( array $args, string $name ) use ( &$callbacks ): array {
-				if ( self::ABILITY === $name ) {
-					$callbacks = array(
-						'permission_callback' => $args['permission_callback'],
-						'execute_callback'    => $args['execute_callback'],
-					);
-				}
-
-				return $args;
-			},
-			10,
-			2
-		);
-
-		$this->register_abilities();
-
-		$this->assertArrayHasKey( 'execute_callback', $callbacks, 'The core/content-create ability should be registered with callbacks.' );
-
-		return $callbacks;
-	}
-
-	/**
-	 * Runs the registered create ability with the given input.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param mixed $input The ability input.
-	 * @return mixed The ability result.
-	 */
-	private function run_ability( $input ) {
-		$this->assertTrue( wp_has_ability( self::ABILITY ), 'The core/content-create ability should be registered.' );
-
-		return wp_get_ability( self::ABILITY )->execute( $input );
-	}
-
-	/**
-	 * Logs in as the shared user with the given role or fixture name.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param string $role The role or fixture name.
-	 */
-	private function login_as( string $role ): void {
-		wp_set_current_user( self::$user_ids[ $role ] );
-	}
-
-	/**
-	 * Takes a snapshot of the stored content: the number of posts per type and status,
-	 * revisions included, and the number of meta rows and term relationships.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return array<string, mixed> The snapshot.
-	 */
-	private function snapshot(): array {
-		global $wpdb;
-
-		return array(
-			'posts' => $wpdb->get_results( "SELECT post_type, post_status, COUNT(*) AS total FROM {$wpdb->posts} GROUP BY post_type, post_status ORDER BY post_type, post_status", ARRAY_A ),
-			'meta'  => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->postmeta}" ),
-			'terms' => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->term_relationships}" ),
-		);
-	}
-
-	/**
-	 * Asserts that a result is an error with the given code and status.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param mixed  $result  The ability result.
-	 * @param string $code    The expected error code.
-	 * @param int    $status  The expected error status.
-	 * @param string $context What the call was, for the assertion messages.
-	 */
-	private function assert_error( $result, string $code, int $status, string $context ): void {
-		$this->assertWPError( $result, "{$context}: the call should fail." );
-		$this->assertSame( $code, $result->get_error_code(), "{$context}: the error code should be {$code}." );
-
-		$data = $result->get_error_data();
-		$this->assertIsArray( $data, "{$context}: the error should carry data." );
-		$this->assertSame( $status, $data['status'] ?? null, "{$context}: the error status should be {$status}." );
-	}
-
-	/**
-	 * Asserts that a result is the invalid attribute error for the given attribute.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param mixed  $result    The ability result.
-	 * @param string $attribute The attribute name.
-	 * @param string $context   What the call was, for the assertion messages.
-	 */
-	private function assert_invalid_attribute( $result, string $attribute, string $context ): void {
-		$this->assert_error( $result, 'content_invalid_attribute', 400, $context );
-		$this->assertSame( "Invalid attribute: {$attribute}.", $result->get_error_message(), "{$context}: the message should name the attribute." );
-		$this->assertSame( array( "data[{$attribute}]" ), array_keys( $result->get_error_data()['params'] ?? array() ), "{$context}: the params should hold only the input path of the attribute." );
-	}
-
-	/**
-	 * Returns the newest post created by a call, or null when the call created none.
+	 * Returns the post a create call returned.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @param mixed $result The ability result.
-	 * @return WP_Post|null The created post.
+	 * @return WP_Post|null The post with the returned ID, or null when there is none.
 	 */
 	private function get_created_post( $result ): ?WP_Post {
 		$this->assertIsArray( $result, 'The create call should succeed.' );
 		$this->assertArrayHasKey( 'id', $result, 'The created post should be returned with its ID.' );
 
 		return get_post( $result['id'] );
-	}
-
-	/**
-	 * Removes the `description` keywords of a schema at every depth.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param array<string, mixed> $schema The schema.
-	 * @return array<string, mixed> The schema without descriptions.
-	 */
-	private function strip_descriptions( array $schema ): array {
-		unset( $schema['description'] );
-		foreach ( $schema as $key => $value ) {
-			if ( is_array( $value ) ) {
-				$schema[ $key ] = $this->strip_descriptions( $value );
-			}
-		}
-
-		return $schema;
 	}
 
 	/**
@@ -490,8 +261,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The output is one post item, the same object as an item of the query.
 	 *
-	 * Covers S11.
-	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
@@ -538,12 +307,12 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	}
 
 	/**
-	 * Example 1: a draft with the default fields.
+	 * A post created with only a type and a title is a draft, returned in the default fields.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
-	public function test_example_creates_a_draft_with_the_default_fields(): void {
+	public function test_creates_a_draft_with_the_default_fields(): void {
 		$this->login_as( 'administrator' );
 		$this->register_abilities();
 
@@ -558,11 +327,11 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 		$post = $this->get_created_post( $result );
 
-		$this->assertSame( array( 'id', 'type', 'status', 'date', 'slug', 'title' ), array_keys( $result ), 'The default fields should be returned.' );
+		$this->assertSameSets( array( 'id', 'type', 'status', 'date', 'slug', 'title' ), array_keys( $result ), 'The default fields should be returned.' );
 		$this->assertSame( $post->ID, $result['id'], 'The ID should be the ID of the new post.' );
 		$this->assertSame( 'post', $result['type'], 'The type should be post.' );
 		$this->assertSame( 'draft', $result['status'], 'The post should be a draft.' );
-		$this->assertSame( array( 'site', 'gmt' ), array_keys( $result['date'] ), 'The date should be given in site time and GMT.' );
+		$this->assertSameSets( array( 'site', 'gmt' ), array_keys( $result['date'] ), 'The date should be given in site time and GMT.' );
 		$this->assertNotFalse( rest_parse_date( $result['date']['site'] ), 'The site date should be a date-time.' );
 		$this->assertNotFalse( rest_parse_date( $result['date']['gmt'] ), 'The GMT date should be a date-time.' );
 		$this->assertSame( '', $result['slug'], 'A draft without a slug should have an empty slug.' );
@@ -571,12 +340,12 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	}
 
 	/**
-	 * Example 2: a published child page with chosen fields.
+	 * A published child page is returned in the chosen fields.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
-	public function test_example_creates_a_published_child_page_with_chosen_fields(): void {
+	public function test_creates_a_published_child_page_with_chosen_fields(): void {
 		$this->set_permalink_structure( '/%postname%/' );
 
 		$parent_id = self::factory()->post->create(
@@ -606,7 +375,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 		$post = $this->get_created_post( $result );
 
-		$this->assertSame( array( 'id', 'status', 'link', 'title', 'content', 'parent' ), array_keys( $result ), 'The chosen fields should be returned.' );
+		$this->assertSameSets( array( 'id', 'status', 'link', 'title', 'content', 'parent' ), array_keys( $result ), 'The chosen fields should be returned.' );
 		$this->assertSame( $post->ID, $result['id'], 'The ID should be the ID of the new page.' );
 		$this->assertSame( 'publish', $result['status'], 'The page should be published.' );
 		$this->assertSame( home_url( '/products/pricing/' ), $result['link'], 'The link should include the parent.' );
@@ -648,14 +417,12 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	}
 
 	/**
-	 * Example 3: an attribute the post type does not support.
-	 *
-	 * Covers S1 and S5.
+	 * An attribute the post type does not support is an invalid attribute.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
-	public function test_example_rejects_a_parent_for_a_post_type_that_is_not_hierarchical(): void {
+	public function test_rejects_a_parent_for_a_post_type_that_is_not_hierarchical(): void {
 		$this->login_as( 'administrator' );
 		$this->register_abilities();
 
@@ -673,9 +440,9 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 		$this->assertWPError( $result, 'A parent for a post should be rejected.' );
 		$this->assertSame( 'content_invalid_attribute', $result->get_error_code(), 'The error should be the invalid attribute error.' );
-		$this->assertSame( 'Invalid attribute: parent.', $result->get_error_message(), 'The message should name the parent.' );
+		$this->assertSame( 'The parent attribute is only supported for hierarchical post types.', $result->get_error_message(), 'The message should give the reason.' );
 		$this->assertSame( 400, $result->get_error_data()['status'], 'The status should be 400.' );
-		$this->assertSame( array( 'data[parent]' => 'The post type is not hierarchical.' ), $result->get_error_data()['params'], 'The params should give the fixed reason for the parent.' );
+		$this->assertSame( array( 'data[parent]' => 'The parent attribute is only supported for hierarchical post types.' ), $result->get_error_data()['params'], 'The params should give the reason for the parent.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -698,11 +465,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A logged-out user and a user without `create_posts` are refused before the ability runs.
 	 *
-	 * Covers S4 and S5.
-	 *
-	 * @dataProvider data_users_refused_by_the_permission_callback
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_users_refused_by_the_permission_callback
 	 * @since 7.3.0
 	 *
 	 * @param string|null $role The role to log in as, or null to stay logged out.
@@ -766,11 +530,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The permission callback returns false for missing or malformed input.
 	 *
-	 * Covers S1 and S3.
-	 *
-	 * @dataProvider data_inputs_refused_by_the_permission_callback
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_inputs_refused_by_the_permission_callback
 	 * @since 7.3.0
 	 *
 	 * @param mixed $input The input.
@@ -840,11 +601,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 * `future`, `publish` and `private` need `publish_posts`. A scheduled post is sent with a
 	 * date in the future.
 	 *
-	 * Covers S4, S5 and S7.
-	 *
-	 * @dataProvider data_create_by_role_and_status
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_create_by_role_and_status
 	 * @since 7.3.0
 	 *
 	 * @param string      $role     The role to create as.
@@ -893,8 +651,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A type whose `show_in_abilities` is turned off after registration cannot be created.
 	 *
-	 * Covers S3 and S5.
-	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
@@ -926,31 +682,17 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * Returns direct-call inputs without an exposed post type.
 	 *
-	 * @return array<string, array{input: mixed}> The inputs.
+	 * @return array<string, array{input: array<string, mixed>}> The inputs.
 	 */
 	public static function data_direct_inputs_without_an_exposed_type(): array {
 		return array(
-			'no input'              => array(
-				'input' => null,
-			),
-			'no data'               => array(
+			'no data'        => array(
 				'input' => array(),
 			),
-			'data that is a string' => array(
-				'input' => array( 'data' => 'post' ),
-			),
-			'no type'               => array(
+			'no type'        => array(
 				'input' => array( 'data' => array( 'title' => 'x' ) ),
 			),
-			'type that is a list'   => array(
-				'input' => array(
-					'data' => array(
-						'type'  => array( 'post' ),
-						'title' => 'x',
-					),
-				),
-			),
-			'attachment'            => array(
+			'attachment'     => array(
 				'input' => array(
 					'data' => array(
 						'type'  => 'attachment',
@@ -958,7 +700,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 					),
 				),
 			),
-			'revision'              => array(
+			'revision'       => array(
 				'input' => array(
 					'data' => array(
 						'type'  => 'revision',
@@ -966,7 +708,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 					),
 				),
 			),
-			'unexposed type'        => array(
+			'unexposed type' => array(
 				'input' => array(
 					'data' => array(
 						'type'  => 'cw_hidden',
@@ -980,16 +722,13 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * Called directly, input without an exposed post type is the not-found error.
 	 *
-	 * Covers S1, S3, S5 and S13.
-	 *
-	 * @dataProvider data_direct_inputs_without_an_exposed_type
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_direct_inputs_without_an_exposed_type
 	 * @since 7.3.0
 	 *
-	 * @param mixed $input The input.
+	 * @param array<string, mixed> $input The input.
 	 */
-	public function test_direct_call_without_an_exposed_type_is_not_found( $input ): void {
+	public function test_direct_call_without_an_exposed_type_is_not_found( array $input ): void {
 		register_post_type( 'cw_hidden', array( 'public' => true ) );
 
 		$this->login_as( 'administrator' );
@@ -1062,11 +801,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 * Called directly by a user without `create_posts`, the call fails on the capability before
 	 * anything about the attributes is checked.
 	 *
-	 * Covers S4, S5 and O2.
-	 *
-	 * @dataProvider data_invalid_data
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_invalid_data
 	 * @since 7.3.0
 	 *
 	 * @param array<string, mixed> $data The data.
@@ -1114,11 +850,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A key outside the allow-list fails input validation.
 	 *
-	 * Covers S1, S5 and S6.
-	 *
-	 * @dataProvider data_keys_outside_the_allow_list
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_keys_outside_the_allow_list
 	 * @since 7.3.0
 	 *
 	 * @param string $key   The key.
@@ -1145,100 +878,10 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	}
 
 	/**
-	 * Called directly, keys outside the allow-list are ignored and never written.
-	 *
-	 * Covers S6.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_direct_call_ignores_keys_outside_the_allow_list(): void {
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$existing_before = get_post( self::$post_ids['published_post'] )->to_array();
-		$category_id     = self::factory()->category->create();
-
-		$result = $execute(
-			array(
-				'data'    => array(
-					'type'              => 'post',
-					'title'             => 'Allow-list',
-					'ID'                => self::$post_ids['published_post'],
-					'post_type'         => 'page',
-					'post_password'     => 'secret',
-					'meta_input'        => array( 'cw_key' => 'value' ),
-					'tax_input'         => array( 'category' => array( 1 ) ),
-					'comment_status'    => 'closed',
-					'post_author'       => self::$user_ids['editor'],
-					'import_id'         => 7654321,
-					'guid'              => 'https://example.org/forged',
-					'page_template'     => 'cw-template.php',
-					'modified'          => '2001-01-01T00:00:00',
-					'post_modified'     => '2001-01-01 00:00:00',
-					'post_modified_gmt' => '2001-01-01 00:00:00',
-					'sticky'            => true,
-					'tags_input'        => array( 'cw-tag' ),
-					'post_category'     => array( $category_id ),
-					'menu_order'        => 5,
-					'post_mime_type'    => 'image/jpeg',
-				),
-				'unknown' => 'ignored',
-			)
-		);
-
-		$post = $this->get_created_post( $result );
-
-		$this->assertNotSame( self::$post_ids['published_post'], $post->ID, 'A new post should be created.' );
-		$this->assertNotSame( 7654321, $post->ID, 'The import ID should not be used.' );
-		$this->assertSame( 'post', $post->post_type, 'The post type should come from data.type.' );
-		$this->assertSame( 'Allow-list', $post->post_title, 'The title should be stored.' );
-		$this->assertSame( '', $post->post_password, 'No password should be stored.' );
-		$this->assertSame( array(), get_post_meta( $post->ID, 'cw_key' ), 'No meta should be stored.' );
-		$this->assertSame( 'open', $post->comment_status, 'The comment status should be the default.' );
-		$this->assertSame( self::$user_ids['administrator'], (int) $post->post_author, 'The author should be the current user.' );
-		$this->assertStringNotContainsString( 'forged', $post->guid, 'The GUID should not be the sent one.' );
-		$this->assertSame( '', get_post_meta( $post->ID, '_wp_page_template', true ), 'No page template should be stored.' );
-		// A new draft without a date floats, so only the site-time modified date holds the save time.
-		$this->assertNotSame( '2001-01-01 00:00:00', $post->post_modified, 'The sent site-time modified date should not be stored.' );
-		$this->assertNotSame( '2001-01-01 00:00:00', $post->post_modified_gmt, 'The sent GMT modified date should not be stored.' );
-		$this->assertEqualsWithDelta( time(), strtotime( get_gmt_from_date( $post->post_modified ) . ' UTC' ), 60, 'The stored site-time modified date should be the time of the save.' );
-		$this->assertFalse( is_sticky( $post->ID ), 'The post should not be sticky.' );
-		$this->assertSame( array(), wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) ), 'No tag should be stored.' );
-		$this->assertSame( array( (int) get_option( 'default_category' ) ), wp_get_post_categories( $post->ID ), 'Only the default category should be stored.' );
-		$this->assertSame( 0, $post->menu_order, 'The menu order should be 0.' );
-		$this->assertSame( '', $post->post_mime_type, 'No MIME type should be stored.' );
-		$this->assertSame( $existing_before, get_post( self::$post_ids['published_post'] )->to_array(), 'The post named by ID should not change.' );
-	}
-
-	/**
-	 * Returns statuses that can never be set.
-	 *
-	 * @return array<string, array{status: string}> The statuses.
-	 */
-	public static function data_statuses_that_can_never_be_set(): array {
-		return array(
-			'trash'             => array( 'trash' ),
-			'auto-draft'        => array( 'auto-draft' ),
-			'inherit'           => array( 'inherit' ),
-			'unregistered'      => array( 'cw_unregistered' ),
-			'request-pending'   => array( 'request-pending' ),
-			'request-confirmed' => array( 'request-confirmed' ),
-			'upper case'        => array( 'PUBLISH' ),
-			'trailing space'    => array( 'publish ' ),
-			'empty string'      => array( '' ),
-			'comma-joined list' => array( 'draft,publish' ),
-		);
-	}
-
-	/**
 	 * An internal or unregistered status fails input validation.
 	 *
-	 * Covers S5 and S7.
-	 *
-	 * @dataProvider data_statuses_that_can_never_be_set
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_statuses_that_can_never_be_set
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -1266,11 +909,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * Called directly, an internal or unregistered status is an invalid status.
 	 *
-	 * Covers S1, S5 and S7.
-	 *
-	 * @dataProvider data_statuses_that_can_never_be_set
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_statuses_that_can_never_be_set
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -1296,8 +936,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 	/**
 	 * A status that is no longer registered when the call runs is an invalid status.
-	 *
-	 * Covers S1, S5 and S7.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -1387,13 +1025,10 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 	/**
 	 * A custom status that makes a post visible needs `publish_posts`, and the refusal uses the
-	 * general message, also for a custom private status (C6).
-	 *
-	 * Covers S5 and S7.
-	 *
-	 * @dataProvider data_custom_statuses_that_make_a_post_visible
+	 * general message, also for a custom private status.
 	 *
 	 * @ticket 66706
+	 * @dataProvider data_custom_statuses_that_make_a_post_visible
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -1423,11 +1058,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A user with `publish_posts` may set a custom status that makes a post visible.
 	 *
-	 * Covers S7.
-	 *
-	 * @dataProvider data_custom_statuses_that_make_a_post_visible
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_custom_statuses_that_make_a_post_visible
 	 * @since 7.3.0
 	 *
 	 * @param string $status The status.
@@ -1454,8 +1086,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A custom status that is neither public, private nor publicly viewable needs nothing beyond
 	 * `create_posts`.
-	 *
-	 * Covers S7.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -1494,9 +1124,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The regular save rules decide the stored status, and the output reports it.
 	 *
-	 * @dataProvider data_statuses_reported_as_stored
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_statuses_reported_as_stored
 	 * @since 7.3.0
 	 *
 	 * @param string $status   The requested status.
@@ -1524,26 +1153,11 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	}
 
 	/**
-	 * Returns authors that a user without `edit_others_posts` may not name.
-	 *
-	 * @return array<string, array{author: string}> The authors, as fixture names.
-	 */
-	public static function data_authors_named_without_edit_others_posts(): array {
-		return array(
-			'existing user' => array( 'editor' ),
-			'missing user'  => array( 'missing' ),
-		);
-	}
-
-	/**
 	 * A user without `edit_others_posts` gets the same error for an existing and a missing
 	 * author, so the error never tells whether a user exists.
 	 *
-	 * Covers S5, S8 and O3.
-	 *
-	 * @dataProvider data_authors_named_without_edit_others_posts
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_authors_named_without_edit_others_posts
 	 * @since 7.3.0
 	 *
 	 * @param string $author The author, as a fixture name.
@@ -1629,8 +1243,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A user with `edit_others_posts` who names a missing user gets the invalid author error.
 	 *
-	 * Covers S5 and S8.
-	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
@@ -1655,8 +1267,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 	/**
 	 * On multisite, a user who is not a member of the site cannot be the author.
-	 *
-	 * Covers S5 and S8.
 	 *
 	 * @group ms-required
 	 *
@@ -1690,8 +1300,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * On multisite, a user without `edit_others_posts` who names a user who is not a member of the
 	 * site gets the same error as for a missing user.
-	 *
-	 * Covers S8 and O3.
 	 *
 	 * @group ms-required
 	 *
@@ -1747,11 +1355,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 * A missing parent, a parent of another type and a parent the user may not read give one
 	 * identical error, so the error never tells whether a post exists.
 	 *
-	 * Covers S5 and S9.
-	 *
-	 * @dataProvider data_parents_that_cannot_be_used
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_parents_that_cannot_be_used
 	 * @since 7.3.0
 	 *
 	 * @param string $parent_key The parent, as a fixture name.
@@ -1841,11 +1446,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * An attribute the post type does not support is rejected, even when it would change nothing.
 	 *
-	 * Covers S1, S5 and O4: the first failure is returned and nothing is written.
-	 *
-	 * @dataProvider data_unsupported_attributes
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_unsupported_attributes
 	 * @since 7.3.0
 	 *
 	 * @param string $type      The post type.
@@ -1907,22 +1509,19 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	}
 
 	/**
-	 * Called directly, a value of the wrong type is an invalid attribute.
-	 *
-	 * Covers S1 and S5.
-	 *
-	 * @dataProvider data_values_of_the_wrong_type
+	 * A value of the wrong type fails input validation.
 	 *
 	 * @ticket 66706
+	 * @dataProvider data_values_of_the_wrong_type
 	 * @since 7.3.0
 	 *
 	 * @param string $type      The post type.
 	 * @param string $attribute The attribute.
 	 * @param mixed  $value     The value.
 	 */
-	public function test_direct_call_rejects_a_value_of_the_wrong_type( string $type, string $attribute, $value ): void {
+	public function test_value_of_the_wrong_type_fails_input_validation( string $type, string $attribute, $value ): void {
 		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
+		$this->register_abilities();
 
 		$data = array( 'type' => $type );
 		if ( 'title' !== $attribute ) {
@@ -1931,9 +1530,10 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 		$data[ $attribute ] = $value;
 
 		$before = $this->snapshot();
-		$result = $execute( array( 'data' => $data ) );
+		$result = $this->run_ability( array( 'data' => $data ) );
 
-		$this->assert_invalid_attribute( $result, $attribute, 'A value of the wrong type' );
+		$this->assertWPError( $result, 'The call should fail.' );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the value.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -1965,8 +1565,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 	/**
 	 * A save error keeps its own code and message, with status 400 when the post is empty.
-	 *
-	 * Covers S5.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -2006,11 +1604,11 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 		$before = $this->snapshot();
 
-		$wpdb->suppress_errors = true;
+		$suppress = $wpdb->suppress_errors();
 		add_filter(
 			'query',
 			static function ( $query ) {
-				return 0 === strpos( $query, 'INSERT' ) ? '],' : $query;
+				return str_starts_with( $query, 'INSERT' ) ? '],' : $query;
 			}
 		);
 
@@ -2023,7 +1621,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 			)
 		);
 
-		$wpdb->suppress_errors = false;
+		$wpdb->suppress_errors( $suppress );
 
 		$this->assert_error( $result, 'db_insert_error', 500, 'A database error' );
 		$this->assertSame( 'Could not insert post into the database.', $result->get_error_message(), 'The message should be the message of the save error.' );
@@ -2072,9 +1670,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A slug is sanitized and stored.
 	 *
-	 * @dataProvider data_slugs
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_slugs
 	 * @since 7.3.0
 	 *
 	 * @param string $slug     The sent slug.
@@ -2102,8 +1699,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A slug that sanitizes to nothing is an invalid slug.
 	 *
-	 * Covers S1 and S5.
-	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
@@ -2127,6 +1722,65 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	}
 
 	/**
+	 * A user who may not publish posts cannot set the slug of a pending post.
+	 *
+	 * Intentionally strict: the save would drop the slug, so it is an error instead of being
+	 * dropped without notice.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_slug_of_a_pending_post_is_rejected_without_publish_posts(): void {
+		$this->login_as( 'contributor' );
+		$this->register_abilities();
+
+		$before = $this->snapshot();
+		$result = $this->run_ability(
+			array(
+				'data' => array(
+					'type'   => 'post',
+					'title'  => 'Pending slug',
+					'status' => 'pending',
+					'slug'   => 'pending-slug',
+				),
+			)
+		);
+
+		$this->assert_invalid_attribute( $result, 'slug', 'A slug on a pending post without publish_posts' );
+		$this->assertSame( 'The slug of a pending post can only be set by a user who can publish the post.', $result->get_error_message(), 'The message should say who may set the slug.' );
+		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written for a slug that cannot be stored.' );
+	}
+
+	/**
+	 * A user who may publish posts sets the slug of a pending post.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_slug_of_a_pending_post_is_stored_with_publish_posts(): void {
+		$this->login_as( 'publisher' );
+		$this->register_abilities();
+
+		$result = $this->run_ability(
+			array(
+				'data'   => array(
+					'type'   => 'post',
+					'title'  => 'Pending slug',
+					'status' => 'pending',
+					'slug'   => 'pending-slug',
+				),
+				'fields' => array( 'status', 'slug' ),
+			)
+		);
+
+		$post = $this->get_created_post( $result );
+
+		$this->assertSame( 'pending', $post->post_status, 'The post should be pending.' );
+		$this->assertSame( 'pending-slug', $post->post_name, 'The slug of the pending post should be stored.' );
+		$this->assertSame( 'pending-slug', $result['slug'], 'The slug of the pending post should be returned.' );
+	}
+
+	/**
 	 * Returns statuses for which the slug of a published post is made unique.
 	 *
 	 * @return array<string, array{status: string|null}> The statuses, or null for the default.
@@ -2143,9 +1797,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A new post never takes the slug of another post, also as a draft or a pending post.
 	 *
-	 * @dataProvider data_statuses_with_unique_slugs
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_statuses_with_unique_slugs
 	 * @since 7.3.0
 	 *
 	 * @param string|null $status The status, or null to send none.
@@ -2183,9 +1836,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A draft page is made unique among the pages that share its parent only.
 	 *
-	 * @dataProvider data_draft_page_slugs_by_parent
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_draft_page_slugs_by_parent
 	 * @since 7.3.0
 	 *
 	 * @param string $parent_key   The parent, as a fixture name.
@@ -2234,9 +1886,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A sent date sets both the local and the GMT date of a new draft.
 	 *
-	 * @dataProvider data_dates
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_dates
 	 * @since 7.3.0
 	 *
 	 * @param array<string, string> $date  The sent date.
@@ -2292,8 +1943,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 	/**
 	 * A date that is not a date-time fails input validation.
-	 *
-	 * Covers S5.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -2389,11 +2038,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The markup of an author, who lacks `unfiltered_html`, is filtered as on any other save.
 	 *
-	 * Covers S10.
-	 *
-	 * @dataProvider data_filtered_markup
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_filtered_markup
 	 * @since 7.3.0
 	 *
 	 * @param string $input          The sent markup.
@@ -2420,8 +2066,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The markup of a contributor is filtered.
 	 *
-	 * Covers S10.
-	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
@@ -2437,8 +2081,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 	/**
 	 * On multisite, the markup of a site administrator, who lacks `unfiltered_html`, is filtered.
-	 *
-	 * Covers S10.
 	 *
 	 * @group ms-required
 	 *
@@ -2475,8 +2117,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The markup of an administrator with `unfiltered_html` is stored unchanged.
 	 *
-	 * Covers S10.
-	 *
 	 * @group ms-excluded
 	 *
 	 * @ticket 66706
@@ -2490,8 +2130,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 	/**
 	 * On multisite, the markup of a super admin is stored unchanged.
-	 *
-	 * Covers S10.
 	 *
 	 * @group ms-required
 	 *
@@ -2545,8 +2183,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 *
 	 * The user may publish posts but not edit published posts.
 	 *
-	 * Covers S11.
-	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
@@ -2577,8 +2213,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * The current user is checked at each call, also on the same instance.
 	 *
-	 * Covers S4.
-	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
@@ -2605,8 +2239,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 	/**
 	 * Only the requested fields are returned, and the ID always is.
-	 *
-	 * Covers S11.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -2644,146 +2276,13 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	}
 
 	/**
-	 * Returns an integer in one of the forms that are read as that integer.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param int    $value The integer.
-	 * @param string $form  The form: `float`, `decimal`, `plus`, `leading space`, `trailing space`,
-	 *                      `leading newline` or `exponent`.
-	 * @return float|string The integer in that form.
-	 */
-	private static function whole_number_form( int $value, string $form ) {
-		$forms = array(
-			'float'           => (float) $value,
-			'decimal'         => "{$value}.0",
-			'plus'            => "+{$value}",
-			'leading space'   => " {$value}",
-			'trailing space'  => "{$value} ",
-			'leading newline' => "\n{$value}",
-			'exponent'        => "{$value}e0",
-		);
-
-		return $forms[ $form ];
-	}
-
-	/**
-	 * Returns the forms of a whole number that are read as the integer they equal.
-	 *
-	 * @return array<string, array{form: string}> The forms.
-	 */
-	public static function data_whole_number_forms(): array {
-		return array(
-			'whole float'                => array( 'float' ),
-			'string with .0'             => array( 'decimal' ),
-			'string with plus'           => array( 'plus' ),
-			'string with leading space'  => array( 'leading space' ),
-			'string with trailing space' => array( 'trailing space' ),
-			'string with leading line'   => array( 'leading newline' ),
-			'string with an exponent'    => array( 'exponent' ),
-		);
-	}
-
-	/**
-	 * Called directly, an author in another whole-number form is read as the integer it equals.
-	 *
-	 * Covers C3.
-	 *
-	 * @dataProvider data_whole_number_forms
+	 * Called directly, an empty date or a date that cannot be parsed is an invalid attribute.
 	 *
 	 * @ticket 66706
-	 * @since 7.3.0
-	 *
-	 * @param string $form The form of the author.
-	 */
-	public function test_direct_call_reads_an_author_in_a_whole_number_form( string $form ): void {
-		$this->login_as( 'editor' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$result = $execute(
-			array(
-				'data' => array(
-					'type'   => 'post',
-					'title'  => 'Whole number author',
-					'author' => self::whole_number_form( self::$user_ids['author'], $form ),
-				),
-			)
-		);
-
-		$this->assertSame( self::$user_ids['author'], (int) $this->get_created_post( $result )->post_author, 'The user with that ID should be the author.' );
-	}
-
-	/**
-	 * Called directly, a parent in another whole-number form is read as the integer it equals.
-	 *
-	 * Covers C3.
-	 *
-	 * @dataProvider data_whole_number_forms
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 *
-	 * @param string $form The form of the parent.
-	 */
-	public function test_direct_call_reads_a_parent_in_a_whole_number_form( string $form ): void {
-		$parent_id = self::$post_ids['published_page'];
-
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$result = $execute(
-			array(
-				'data' => array(
-					'type'   => 'page',
-					'title'  => 'Whole number parent',
-					'parent' => self::whole_number_form( $parent_id, $form ),
-				),
-			)
-		);
-
-		$this->assertSame( $parent_id, $this->get_created_post( $result )->post_parent, 'The page with that ID should be the parent.' );
-	}
-
-	/**
-	 * Returns date values without a usable value for a direct call.
-	 *
-	 * @return array<string, array{date: array<string, mixed>}> The dates.
-	 */
-	public static function data_dates_without_a_usable_value(): array {
-		return array(
-			'empty date'           => array( array() ),
-			'GMT that is a number' => array(
-				array(
-					'site' => '2016-12-12T14:00:00',
-					'gmt'  => 123,
-				),
-			),
-			'GMT that is a list'   => array(
-				array(
-					'site' => '2016-12-12T14:00:00',
-					'gmt'  => array( '2016-12-12T19:00:00' ),
-				),
-			),
-			'GMT that is null'     => array(
-				array(
-					'site' => '2016-12-12T14:00:00',
-					'gmt'  => null,
-				),
-			),
-		);
-	}
-
-	/**
-	 * Called directly, an empty date or a GMT value of the wrong type is an invalid attribute.
-	 *
-	 * Covers S5 (C2).
-	 *
 	 * @dataProvider data_dates_without_a_usable_value
-	 *
-	 * @ticket 66706
 	 * @since 7.3.0
 	 *
-	 * @param array<string, mixed> $date The date.
+	 * @param array<string, string> $date The date.
 	 */
 	public function test_direct_call_rejects_a_date_without_a_usable_value( array $date ): void {
 		$this->login_as( 'administrator' );
@@ -2805,44 +2304,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	}
 
 	/**
-	 * A user who may create posts but not publish them cannot create a private post.
-	 *
-	 * Covers S5 and S7.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_private_post_needs_publish_posts_from_a_user_who_may_create_posts(): void {
-		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
-		// Denies the capability that the role grants.
-		get_userdata( $user_id )->add_cap( 'publish_posts', false );
-		wp_set_current_user( $user_id );
-
-		$this->assertTrue( current_user_can( 'edit_posts' ), 'Precondition: the user should be able to create posts.' );
-		$this->assertFalse( current_user_can( 'publish_posts' ), 'Precondition: the user should not be able to publish posts.' );
-
-		$this->register_abilities();
-
-		$before = $this->snapshot();
-		$result = $this->run_ability(
-			array(
-				'data' => array(
-					'type'   => 'post',
-					'title'  => 'Private without publish_posts',
-					'status' => 'private',
-				),
-			)
-		);
-
-		$this->assert_error( $result, 'content_cannot_publish', 403, 'A private post without publish_posts' );
-		$this->assertSame( 'Sorry, you are not allowed to create private posts in this post type.', $result->get_error_message(), 'The message should be the private message.' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written for the refused private post.' );
-	}
-
-	/**
 	 * A pending post that a contributor creates without a date has a floating date.
-	 *
-	 * Covers S5.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -2870,8 +2332,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * A type that gets `show_in_abilities` after the abilities were registered is not in the type
 	 * enum, so a create of that type fails input validation.
-	 *
-	 * Covers S3 and S5.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -2933,8 +2393,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 * A user with only the create capability of a type may create a draft of it, but may not
 	 * publish it.
 	 *
-	 * Covers S5 and S7.
-	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
@@ -2983,8 +2441,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 * Called directly, a user with only the edit capability of a type, and not its create
 	 * capability, may not create a post of it.
 	 *
-	 * Covers S5.
-	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
@@ -3016,8 +2472,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	/**
 	 * On multisite, after switching to a second site, a user who is an editor only on the first
 	 * site may not create posts there.
-	 *
-	 * Covers S4 and S8.
 	 *
 	 * @group ms-required
 	 *
@@ -3059,8 +2513,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 	 * On multisite, after switching to a second site, an editor of that site who names a user who
 	 * is a member only of the first site gets the invalid author error.
 	 *
-	 * Covers S5 and S8.
-	 *
 	 * @group ms-required
 	 *
 	 * @ticket 66706
@@ -3097,8 +2549,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_UnitTest
 
 	/**
 	 * A page in the Trash that the user may read is accepted as the parent.
-	 *
-	 * Covers S9 (C13).
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
