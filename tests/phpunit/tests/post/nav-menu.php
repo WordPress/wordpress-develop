@@ -182,6 +182,48 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 14439
+	 */
+	public function test_wp_get_associated_nav_menu_items_menu_id() {
+		$menu_2_id = wp_create_nav_menu( 'bar' );
+		$post_id   = self::factory()->post->create();
+
+		$menu_1_item = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$menu_2_item = wp_update_nav_menu_item(
+			$menu_2_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		// Without a menu ID, menu items from all menus are returned.
+		$items = wp_get_associated_nav_menu_items( $post_id );
+		$this->assertSameSets( array( $menu_1_item, $menu_2_item ), $items );
+
+		// With a menu ID, only the menu items of that menu are returned.
+		$items = wp_get_associated_nav_menu_items( $post_id, 'post_type', '', $menu_2_id );
+		$this->assertSameSets( array( $menu_2_item ), $items );
+
+		// An invalid menu ID returns an empty array.
+		$items = wp_get_associated_nav_menu_items( $post_id, 'post_type', '', 999999 );
+		$this->assertSameSets( array(), $items );
+	}
+
+	/**
 	 * @ticket 27113
 	 */
 	public function test_orphan_nav_menu_item() {
