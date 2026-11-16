@@ -757,10 +757,15 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Settings builds responses in get_item()/update_item(); it does not override prepare_item_for_response().
+	 *
+	 * @ticket 40538
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->endpoint->prepare_item_for_response( array( 'title' => 'Example' ), $request );
+
+		$this->assertErrorResponse( 'invalid-method', $response, 405 );
 	}
 
 	/**
