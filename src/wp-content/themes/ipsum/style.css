@@ -76,6 +76,12 @@ span[style*="text-decoration"] {
 	text-underline-offset: 0.1em;
 }
 
+/* Focus ring in the text color, so it keeps contrast in every color variation. Buttons keep theme.json's. */
+:where(.wp-site-blocks *:focus-visible:not(.wp-element-button, .wp-block-button__link)) {
+	outline: 2px dotted currentcolor;
+	outline-offset: 2px;
+}
+
 /*
  * Breathing room when jumping to in-page anchors (e.g. the comments CTA
  * landing on #comments or #respond), so targets don't sit flush with the
@@ -215,6 +221,25 @@ header.wp-block-template-part:has(> .is-position-sticky) {
  */
 .admin-bar header.wp-block-template-part:has(> .is-position-sticky) {
 	inset-block-start: var(--wp-admin--admin-bar--height, 32px);
+}
+
+/* Below 600px the admin bar scrolls away (core's breakpoint), so stick to the very top. */
+@media (max-width: 600px) {
+	.admin-bar header.wp-block-template-part:has(> .is-position-sticky) {
+		inset-block-start: 0;
+	}
+}
+
+/*
+ * Keep focused elements and anchor targets from scrolling under a sticky
+ * header. Scroll padding can't follow the header's real height, so this is a
+ * generous guess: Header Sticky is under 120px tall with its 48px logo, and
+ * 10rem leaves room for a bigger logo or a title that wraps. Too much padding
+ * only leaves a little more space above what you scroll to. It replaces core's
+ * admin bar scroll padding, so the bar's height is added back.
+ */
+html:has(header.wp-block-template-part > .is-position-sticky) {
+	scroll-padding-block-start: calc(var(--wp-admin--admin-bar--height, 0px) + 10rem);
 }
 
 /*
