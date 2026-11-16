@@ -1868,7 +1868,7 @@ function upgrade_340() {
 	}
 
 	if ( $wp_current_db_version < 20080 ) {
-		if ( 'yes' === $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'uninstall_plugins'" ) ) {
+		if ( WP_Option_Autoload::LEGACY_YES === $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'uninstall_plugins'" ) ) {
 			$uninstall_plugins = get_option( 'uninstall_plugins' );
 			delete_option( 'uninstall_plugins' );
 			add_option( 'uninstall_plugins', $uninstall_plugins, '', false );
@@ -2404,7 +2404,8 @@ function upgrade_650() {
 		// Set autoload=no for all themes except the current one.
 		$theme_mods_options = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT option_name FROM $wpdb->options WHERE autoload = 'yes' AND option_name != %s AND option_name LIKE %s",
+				"SELECT option_name FROM $wpdb->options WHERE autoload = %s AND option_name != %s AND option_name LIKE %s",
+				WP_Option_Autoload::LEGACY_YES,
 				"theme_mods_$stylesheet",
 				$wpdb->esc_like( 'theme_mods_' ) . '%'
 			)
