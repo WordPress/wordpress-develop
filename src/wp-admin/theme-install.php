@@ -210,10 +210,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<ul class="filter-links">
-			<li><a href="#" data-sort="popular"><?php _ex( 'Popular', 'themes' ); ?></a></li>
-			<li><a href="#" data-sort="new"><?php _ex( 'Latest', 'themes' ); ?></a></li>
-			<li><a href="#" data-sort="block-themes"><?php _ex( 'Block Themes', 'themes' ); ?></a></li>
-			<li><a href="#" data-sort="favorites"><?php _ex( 'Favorites', 'themes' ); ?></a></li>
+			<li><button type="button" data-sort="popular"><?php _ex( 'Popular', 'themes' ); ?></button></li>
+			<li><button type="button" data-sort="new"><?php _ex( 'Latest', 'themes' ); ?></button></li>
+			<li><button type="button" data-sort="block-themes"><?php _ex( 'Block Themes', 'themes' ); ?></button></li>
+			<li><button type="button" data-sort="favorites"><?php _ex( 'Favorites', 'themes' ); ?></button></li>
 		</ul>
 
 		<button type="button" class="button drawer-toggle" aria-expanded="false"><?php _e( 'Feature Filter' ); ?></button>
