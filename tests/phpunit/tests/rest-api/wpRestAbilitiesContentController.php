@@ -854,7 +854,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The edit error of an update reaches the response with its status.
+	 * An update of a post the user cannot edit is refused before the ability runs.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -883,7 +883,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assert_error_response( $response, 403, 'content_cannot_edit', 'An update of a post the user cannot edit' );
+		$this->assert_error_response( $response, 403, 'rest_ability_cannot_execute', 'An update of a post the user cannot edit' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'The post the user cannot edit should not change.' );
 	}
 

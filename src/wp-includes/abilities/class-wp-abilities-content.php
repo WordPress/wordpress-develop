@@ -240,7 +240,7 @@ final class WP_Abilities_Content {
 					return $this->execute_content_update( $input );
 				},
 				'permission_callback' => function ( $input = array() ): bool {
-					return $this->check_post_permission( $input );
+					return $this->check_post_permission( $input, 'edit_post' );
 				},
 				'meta'                => array(
 					'annotations' => array(
@@ -274,7 +274,7 @@ final class WP_Abilities_Content {
 					return $this->execute_content_delete( $input );
 				},
 				'permission_callback' => function ( $input = array() ): bool {
-					return $this->check_post_permission( $input );
+					return $this->check_post_permission( $input, 'delete_post' );
 				},
 				'meta'                => array(
 					'annotations' => array(
@@ -353,23 +353,31 @@ final class WP_Abilities_Content {
 	/**
 	 * Permission callback for the `core/content-update` and `core/content-delete` abilities.
 	 *
-	 * A coarse gate: a logged-in user and a `where.type` that is exposed to abilities. The
-	 * post and the capabilities on it are checked by the execute callbacks.
+	 * Requires a logged-in user, a `where.type` that is exposed to abilities, and the given
+	 * capability on the post that `where` names. A post that does not exist is let through,
+	 * so that the execute callback can report it as not found. The execute callbacks check
+	 * the capability again and make every other decision.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param mixed $input Optional. The ability input. Default empty array.
+	 * @param mixed  $input      The ability input.
+	 * @param string $capability The capability required on the post: `edit_post` or `delete_post`.
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
-	private function check_post_permission( $input = array() ): bool {
+	private function check_post_permission( $input, string $capability ): bool {
 		if ( ! is_user_logged_in() ) {
 			return false;
 		}
 
 		// The input is read defensively: WP_Ability::check_permissions() does not prepare it.
 		$where = $this->get_input_object( rest_sanitize_object( $input ), 'where' ) ?? array();
+		if ( ! $this->get_exposed_post_type( $where['type'] ?? null ) ) {
+			return false;
+		}
 
-		return null !== $this->get_exposed_post_type( $where['type'] ?? null );
+		$post = $this->get_requested_post( array( 'where' => $where ) );
+
+		return ! $post || current_user_can( $capability, $post->ID );
 	}
 
 	/**
@@ -920,6 +928,7 @@ final class WP_Abilities_Content {
 			return $this->not_found_error();
 		}
 
+		// Checked again after the permission callback, whose result a filter can change.
 		if ( ! current_user_can( 'edit_post', $post->ID ) ) {
 			return new WP_Error(
 				'content_cannot_edit',
@@ -968,6 +977,7 @@ final class WP_Abilities_Content {
 			return $this->not_found_error();
 		}
 
+		// Checked again after the permission callback, whose result a filter can change.
 		if ( ! current_user_can( 'delete_post', $post->ID ) ) {
 			return new WP_Error(
 				'content_cannot_delete',

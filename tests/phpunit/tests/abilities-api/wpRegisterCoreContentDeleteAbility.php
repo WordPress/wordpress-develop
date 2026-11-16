@@ -425,18 +425,85 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
-	 * The permission callback is only a coarse gate: it lets a logged-in subscriber through, and
-	 * the execute callback decides on the post.
+	 * The permission callback returns false for a post the user cannot delete, in every form the
+	 * post can be named in input that was not prepared.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_unprepared_where_forms
+	 * @since 7.3.0
+	 *
+	 * @param string $id_type   The type to send the ID as.
+	 * @param bool   $as_object Whether to send `where` as an object.
+	 */
+	public function test_permission_callback_returns_false_for_a_post_the_user_cannot_delete( string $id_type, bool $as_object ): void {
+		$this->login_as( 'contributor' );
+
+		$permission = $this->get_ability_callbacks()['permission_callback'];
+		$where      = $this->build_unprepared_where( self::$post_ids['admin_post'], $id_type, $as_object );
+
+		$this->assertFalse( $permission( array( 'where' => $where ) ), 'The permission callback should return false.' );
+	}
+
+	/**
+	 * The permission callback returns true for a post the user can delete.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
-	public function test_permission_callback_returns_true_for_a_logged_in_user_and_an_exposed_type(): void {
+	public function test_permission_callback_returns_true_for_a_post_the_user_can_delete(): void {
+		$this->login_as( 'author' );
+
+		$permission = $this->get_ability_callbacks()['permission_callback'];
+
+		$this->assertTrue( $permission( $this->delete_input( self::$post_ids['author:draft'] ) ), 'The permission callback should return true.' );
+	}
+
+	/**
+	 * The permission callback lets a post that does not exist through, also for a user who may
+	 * delete nothing.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_permission_callback_lets_a_missing_post_through(): void {
 		$this->login_as( 'subscriber' );
 
 		$permission = $this->get_ability_callbacks()['permission_callback'];
 
-		$this->assertTrue( $permission( $this->delete_input( self::$post_ids['admin_post'] ) ), 'The permission callback should return true.' );
+		$this->assertTrue(
+			$permission(
+				array(
+					'where' => array(
+						'type' => 'post',
+						'id'   => self::MISSING_ID,
+					),
+				)
+			),
+			'The permission callback should return true.'
+		);
+	}
+
+	/**
+	 * A permission result that a filter turned into a grant does not skip the capability check
+	 * on the post.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_granted_permission_result_does_not_skip_the_capability_check(): void {
+		$post_id = self::$post_ids['admin_post'];
+
+		$this->login_as( 'contributor' );
+		$this->register_abilities();
+		add_filter( 'wp_ability_permission_result', '__return_true' );
+
+		$before    = $this->snapshot( $post_id );
+		$trash     = $this->run_ability( $this->delete_input( $post_id ) );
+		$permanent = $this->run_ability( $this->delete_input( $post_id, true ) );
+
+		$this->assert_cannot_delete( $trash, 'A trash granted by a filter' );
+		$this->assert_cannot_delete( $permanent, 'A permanent delete granted by a filter' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
 	/**
@@ -603,7 +670,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 
 	/**
 	 * The lookup comes before the capability: a user who may delete nothing gets the not-found
-	 * error for a missing post, and the 403 error for an existing post.
+	 * error for a missing post, and is refused for an existing post.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -624,7 +691,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$existing = $this->run_ability( $this->delete_input( self::$post_ids['admin_post'] ) );
 
 		$this->assert_not_found( $missing, 'A missing post' );
-		$this->assert_cannot_delete( $existing, 'An existing post the user may not delete' );
+		$this->assert_refused( $existing, 'An existing post the user may not delete' );
 		$this->assertSame( $before, $this->snapshot( self::$post_ids['admin_post'] ), 'The refused post should still exist, unchanged.' );
 	}
 
@@ -710,7 +777,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 
 	/**
 	 * Each role may trash the posts it may delete, gets the 410 error for those already in the
-	 * Trash, and the 403 error for the others, whatever their status.
+	 * Trash, and is refused for the others, whatever their status.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_delete_matrix
@@ -738,14 +805,14 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		if ( $may_delete ) {
 			$this->assert_error( $result, 'content_already_trashed', 410, 'Trashing a trashed post the role may delete' );
 		} else {
-			$this->assert_cannot_delete( $result, 'Trashing a post the role may not delete' );
+			$this->assert_refused( $result, 'Trashing a post the role may not delete' );
 		}
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
 	/**
 	 * Each role may delete permanently the posts it may delete, including posts in the Trash, and
-	 * gets the 403 error for the others, whatever their status.
+	 * is refused for the others, whatever their status.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_delete_matrix
@@ -770,7 +837,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 			return;
 		}
 
-		$this->assert_cannot_delete( $result, 'Deleting a post the role may not delete' );
+		$this->assert_refused( $result, 'Deleting a post the role may not delete' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
@@ -863,8 +930,8 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$trash     = $this->run_ability( $this->delete_input( $post_id ) );
 		$permanent = $this->run_ability( $this->delete_input( $post_id, true ) );
 
-		$this->assert_cannot_delete( $trash, 'An editor trashing a special page' );
-		$this->assert_cannot_delete( $permanent, 'An editor deleting a special page' );
+		$this->assert_refused( $trash, 'An editor trashing a special page' );
+		$this->assert_refused( $permanent, 'An editor deleting a special page' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
@@ -955,7 +1022,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 			return;
 		}
 
-		$this->assert_cannot_delete( $result, 'A site administrator trashing the privacy policy page' );
+		$this->assert_refused( $result, 'A site administrator trashing the privacy policy page' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
