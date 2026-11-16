@@ -523,8 +523,8 @@ do_action( 'edit_form_top', $post );
 <div id="post-body" class="metabox-holder columns-<?php echo ( 1 === get_current_screen()->get_columns() ) ? '1' : '2'; ?>">
 <div id="post-body-content">
 
-<?php if ( post_type_supports( $post_type, 'title' ) ) { ?>
 <div id="titlediv">
+<?php if ( post_type_supports( $post_type, 'title' ) ) { ?>
 <div id="titlewrap">
 	<?php
 	/**
@@ -547,6 +547,7 @@ do_action( 'edit_form_top', $post );
 	}
 	?>
 </div>
+<?php } ?>
 	<?php
 	/**
 	 * Fires before the permalink field in the edit form.
@@ -595,8 +596,7 @@ endif;
 	wp_nonce_field( 'samplepermalink', 'samplepermalinknonce', false );
 	?>
 </div><!-- /titlediv -->
-	<?php
-}
+<?php
 /**
  * Fires after the title field.
  *
