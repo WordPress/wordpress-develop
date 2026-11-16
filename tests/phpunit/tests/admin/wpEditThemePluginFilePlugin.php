@@ -368,6 +368,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 * Tests that a PHP file of an active plugin is saved when both loopback checks pass.
 	 *
 	 * @ticket 65819
+	 * @ticket 45755
 	 */
 	public function test_should_save_php_file_of_active_plugin_when_loopback_passes() {
 		update_option( 'active_plugins', array( $this->get_plugin() ) );
@@ -377,7 +378,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 		$this->assertSame( self::EDITED_PHP, $this->get_contents( self::SLUG . '.php' ), 'The new content should be written.' );
 		$this->assertSame(
 			array(
-				wp_parse_url( admin_url( 'plugin-editor.php' ), PHP_URL_PATH ),
+				wp_parse_url( network_admin_url( 'plugin-editor.php' ), PHP_URL_PATH ),
 				wp_parse_url( home_url( '/' ), PHP_URL_PATH ),
 			),
 			$this->get_loopback_paths(),
@@ -426,6 +427,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 * Tests that a PHP file of a network-active plugin triggers loopback checks on multisite.
 	 *
 	 * @ticket 65819
+	 * @ticket 45755
 	 * @group ms-required
 	 */
 	public function test_should_trigger_loopback_for_network_active_plugin() {
@@ -436,7 +438,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 		$this->assertSame( self::EDITED_PHP, $this->get_contents( self::SLUG . '.php' ), 'The new content should be written.' );
 		$this->assertSame(
 			array(
-				wp_parse_url( admin_url( 'plugin-editor.php' ), PHP_URL_PATH ),
+				wp_parse_url( network_admin_url( 'plugin-editor.php' ), PHP_URL_PATH ),
 				wp_parse_url( home_url( '/' ), PHP_URL_PATH ),
 			),
 			$this->get_loopback_paths(),
@@ -446,9 +448,28 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the editor loopback request is sent to the network admin on multisite.
+	 *
+	 * @ticket 45755
+	 * @group ms-required
+	 */
+	public function test_should_send_editor_loopback_to_network_admin_on_multisite() {
+		update_option( 'active_plugins', array( $this->get_plugin() ) );
+		$this->scrape_results = array( 'true', 'true' );
+
+		$this->assertTrue( wp_edit_theme_plugin_file( $this->get_request( self::SLUG . '.php', self::EDITED_PHP ) ), 'The file should be saved.' );
+
+		$editor_path = $this->get_loopback_paths()[0];
+		$this->assertSame( wp_parse_url( network_admin_url( 'plugin-editor.php' ), PHP_URL_PATH ), $editor_path, 'The editor loopback should use the network admin URL.' );
+		$this->assertStringContainsString( '/wp-admin/network/', $editor_path, 'The editor loopback should target the network admin.' );
+		$this->assertNotSame( wp_parse_url( admin_url( 'plugin-editor.php' ), PHP_URL_PATH ), $editor_path, 'The editor loopback should not target the site admin, which redirects.' );
+	}
+
+	/**
 	 * Tests that a PHP file edit of an active plugin is reverted when a loopback check fails.
 	 *
 	 * @ticket 65819
+	 * @ticket 45755
 	 *
 	 * @dataProvider data_failed_loopbacks
 	 *
@@ -480,7 +501,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 */
 	public static function data_failed_loopbacks() {
 		$loopback_failed = 'Unable to communicate back with site to check for fatal errors, so the PHP change was reverted. You will need to upload your PHP file change by some other means, such as by using SFTP.';
-		$editor_path     = wp_parse_url( admin_url( 'plugin-editor.php' ), PHP_URL_PATH );
+		$editor_path     = wp_parse_url( network_admin_url( 'plugin-editor.php' ), PHP_URL_PATH );
 		$home_path       = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
 
 		return array(
@@ -545,7 +566,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'wp_scrape_key', $query, 'The loopback should include the scrape key.' );
 		$this->assertArrayHasKey( 'wp_scrape_nonce', $query, 'The loopback should include the scrape nonce.' );
 
-		$editor_path = wp_parse_url( admin_url( 'plugin-editor.php' ), PHP_URL_PATH );
+		$editor_path = wp_parse_url( network_admin_url( 'plugin-editor.php' ), PHP_URL_PATH );
 		if ( wp_parse_url( $url, PHP_URL_PATH ) === $editor_path ) {
 			$this->assertArrayHasKey( 'plugin', $query, 'The editor loopback should include the plugin query arg.' );
 			$this->assertSame( $this->get_plugin(), $query['plugin'], 'The editor loopback should specify the edited plugin.' );
