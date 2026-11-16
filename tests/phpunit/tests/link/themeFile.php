@@ -167,7 +167,7 @@ class Tests_Link_ThemeFile extends WP_UnitTestCase {
 		$this->assertSame( sanitize_url( $parent_uri ), $parent_uri );
 	}
 
-	public function data_theme_files() {
+	public static function data_theme_files() {
 		$parent = 'theme-file-parent';
 		$child  = 'theme-file-child';
 

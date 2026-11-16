@@ -5,6 +5,7 @@
  * Categories: footer
  * Block Types: core/template-part/footer
  * Viewport width: 1280
+ * Description: The default footer stretched to the wide width, with the credit line and social links at either end of the row. The sidebar templates use it.
  *
  * @package Ipsum
  * @since Ipsum 1.0
