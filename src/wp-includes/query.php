@@ -1635,3 +1635,26 @@ function generate_postdata( $post ) {
 
 	return false;
 }
+
+/**
+ * Short-circuits the main query for screens that do not display its posts.
+ *
+ * Used on the signup and activation screens, which load the template
+ * but do not use the posts from the main query. Singular queries, such as
+ * a static front page, are left alone so that the queried object stays
+ * available to the theme.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param WP_Post[]|int[]|null $posts Array of post data, or null to allow WP_Query to run its normal query.
+ * @param WP_Query             $query The WP_Query instance.
+ * @return WP_Post[]|int[]|null Empty array for a non-singular main query, otherwise the passed value.
+ */
+function _wp_short_circuit_main_query( $posts, $query ) {
+	if ( $query->is_main_query() && ! $query->is_singular() ) {
+		return array();
+	}
+
+	return $posts;
+}
