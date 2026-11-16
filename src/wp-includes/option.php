@@ -402,8 +402,8 @@ function wp_set_option_autoload_values( array $options ) {
 	}
 
 	$grouped_options = array(
-		'on'  => array(),
-		'off' => array(),
+		WP_Option_Autoload::ON  => array(),
+		WP_Option_Autoload::OFF => array(),
 	);
 	$results         = array();
 	foreach ( $options as $option => $autoload ) {
@@ -413,10 +413,10 @@ function wp_set_option_autoload_values( array $options ) {
 		 * Sanitize autoload value and categorize accordingly.
 		 * The values 'yes', 'no', 'on', and 'off' are supported for backward compatibility.
 		 */
-		if ( 'off' === $autoload || 'no' === $autoload || false === $autoload ) {
-			$grouped_options['off'][] = $option;
+		if ( WP_Option_Autoload::OFF === $autoload || WP_Option_Autoload::LEGACY_NO === $autoload || false === $autoload ) {
+			$grouped_options[ WP_Option_Autoload::OFF ][] = $option;
 		} else {
-			$grouped_options['on'][] = $option;
+			$grouped_options[ WP_Option_Autoload::ON ][] = $option;
 		}
 		$results[ $option ] = false; // Initialize result value.
 	}
@@ -446,7 +446,7 @@ function wp_set_option_autoload_values( array $options ) {
 		return $results;
 	}
 
-	// Run UPDATE queries as needed (maximum 2) to update the relevant options' autoload values to 'yes' or 'no'.
+	// Run UPDATE queries as needed (maximum 2) to update the relevant options' autoload values to 'on' or 'off'.
 	foreach ( $grouped_options as $autoload => $options ) {
 		if ( ! $options ) {
 			continue;
@@ -486,13 +486,13 @@ function wp_set_option_autoload_values( array $options ) {
 	 * cache. This is not necessary when options were changed to 'on', since in that situation the entire cache is
 	 * deleted anyway.
 	 */
-	if ( $grouped_options['on'] ) {
-		wp_cache_delete_multiple( $grouped_options['on'], 'options' );
+	if ( $grouped_options[ WP_Option_Autoload::ON ] ) {
+		wp_cache_delete_multiple( $grouped_options[ WP_Option_Autoload::ON ], 'options' );
 		wp_cache_delete( 'alloptions', 'options' );
-	} elseif ( $grouped_options['off'] ) {
+	} elseif ( $grouped_options[ WP_Option_Autoload::OFF ] ) {
 		$alloptions = wp_load_alloptions( true );
 
-		foreach ( $grouped_options['off'] as $option ) {
+		foreach ( $grouped_options[ WP_Option_Autoload::OFF ] as $option ) {
 			if ( isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 			}
@@ -951,7 +951,7 @@ function update_option( $option, $value, $autoload = null ) {
 	} else {
 		// Retrieve the current autoload value to reevaluate it in case it was set automatically.
 		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
-		$allow_values = array( 'auto-on', 'auto-off', 'auto' );
+		$allow_values = array( WP_Option_Autoload::AUTO_ON, WP_Option_Autoload::AUTO_OFF, WP_Option_Autoload::AUTO );
 		if ( in_array( $raw_autoload, $allow_values, true ) ) {
 			$autoload = wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload );
 			if ( $autoload !== $raw_autoload ) {
@@ -1309,16 +1309,16 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
 
 	// Check if autoload is a boolean.
 	if ( is_bool( $autoload ) ) {
-		return $autoload ? 'on' : 'off';
+		return $autoload ? WP_Option_Autoload::ON : WP_Option_Autoload::OFF;
 	}
 
 	switch ( $autoload ) {
-		case 'on':
-		case 'yes':
-			return 'on';
-		case 'off':
-		case 'no':
-			return 'off';
+		case WP_Option_Autoload::ON:
+		case WP_Option_Autoload::LEGACY_YES:
+			return WP_Option_Autoload::ON;
+		case WP_Option_Autoload::OFF:
+		case WP_Option_Autoload::LEGACY_NO:
+			return WP_Option_Autoload::OFF;
 	}
 
 	/**
@@ -1334,10 +1334,10 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
 	 */
 	$autoload = apply_filters( 'wp_default_autoload_value', null, $option, $value, $serialized_value );
 	if ( is_bool( $autoload ) ) {
-		return $autoload ? 'auto-on' : 'auto-off';
+		return $autoload ? WP_Option_Autoload::AUTO_ON : WP_Option_Autoload::AUTO_OFF;
 	}
 
-	return 'auto';
+	return WP_Option_Autoload::AUTO;
 }
 
 /**
@@ -3348,7 +3348,12 @@ function filter_default_option( $default_value, $option, $passed_default ) {
  * @return string[] The values that trigger autoloading.
  */
 function wp_autoload_values_to_autoload() {
-	$autoload_values = array( 'yes', 'on', 'auto-on', 'auto' );
+	$autoload_values = array(
+		WP_Option_Autoload::LEGACY_YES,
+		WP_Option_Autoload::ON,
+		WP_Option_Autoload::AUTO_ON,
+		WP_Option_Autoload::AUTO,
+	);
 
 	/**
 	 * Filters the autoload values that should be considered for autoloading from the options table.

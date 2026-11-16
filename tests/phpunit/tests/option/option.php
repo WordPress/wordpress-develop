@@ -344,18 +344,18 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	public static function data_option_autoloading() {
 		return array(
 			// Supported values.
-			array( 'autoload_true', true, 'on' ),
-			array( 'autoload_false', false, 'off' ),
-			array( 'autoload_null', null, 'auto' ),
+			array( 'autoload_true', true, WP_Option_Autoload::ON ),
+			array( 'autoload_false', false, WP_Option_Autoload::OFF ),
+			array( 'autoload_null', null, WP_Option_Autoload::AUTO ),
 
 			// Values supported for backward compatibility.
-			array( 'autoload_yes', 'yes', 'on' ),
-			array( 'autoload_no', 'no', 'off' ),
+			array( 'autoload_yes', 'yes', WP_Option_Autoload::ON ),
+			array( 'autoload_no', 'no', WP_Option_Autoload::OFF ),
 
 			// Technically unsupported values.
-			array( 'autoload_string', 'foo', 'auto' ),
-			array( 'autoload_int', 123456, 'auto' ),
-			array( 'autoload_array', array(), 'auto' ),
+			array( 'autoload_string', 'foo', WP_Option_Autoload::AUTO ),
+			array( 'autoload_int', 123456, WP_Option_Autoload::AUTO ),
+			array( 'autoload_array', array(), WP_Option_Autoload::AUTO ),
 		);
 	}
 
@@ -382,32 +382,32 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	public static function data_option_autoloading_large_option() {
 		return array(
 			'on'    => array(
-				'autoload' => 'on',
-				'expected' => 'on',
+				'autoload' => WP_Option_Autoload::ON,
+				'expected' => WP_Option_Autoload::ON,
 			),
 			'off'   => array(
-				'autoload' => 'off',
-				'expected' => 'off',
+				'autoload' => WP_Option_Autoload::OFF,
+				'expected' => WP_Option_Autoload::OFF,
 			),
 			'yes'   => array(
 				'autoload' => 'yes',
-				'expected' => 'on',
+				'expected' => WP_Option_Autoload::ON,
 			),
 			'true'  => array(
 				'autoload' => true,
-				'expected' => 'on',
+				'expected' => WP_Option_Autoload::ON,
 			),
 			'no'    => array(
 				'autoload' => 'no',
-				'expected' => 'off',
+				'expected' => WP_Option_Autoload::OFF,
 			),
 			'false' => array(
 				'autoload' => false,
-				'expected' => 'off',
+				'expected' => WP_Option_Autoload::OFF,
 			),
 			'null'  => array(
 				'autoload' => null,
-				'expected' => 'auto-off',
+				'expected' => WP_Option_Autoload::AUTO_OFF,
 			),
 		);
 	}
@@ -430,7 +430,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertTrue( $updated );
 
 		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
-		$this->assertSame( 'auto', $actual->autoload );
+		$this->assertSame( WP_Option_Autoload::AUTO, $actual->autoload );
 	}
 
 	/**
