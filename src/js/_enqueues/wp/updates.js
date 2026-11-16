@@ -253,7 +253,7 @@
 	 *
 	 */
 	wp.updates.addAdminNotice = function( data ) {
-		var $notice = $( data.selector ),
+		var $notice = $( document ).find( data.selector ),
 			$headerEnd = $( '.wp-header-end' ),
 			$adminNotice;
 
@@ -1126,7 +1126,7 @@
 			buttonText = _x( 'Activated!', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: %s: The plugin name. */
-				'%s activated successfully.',
+				__( '%s activated successfully.' ),
 				response.pluginName
 			);
 
@@ -1165,7 +1165,7 @@
 						text: _x( 'Active', 'plugin' ),
 						ariaLabel: sprintf(
 							/* translators: %s: The plugin name. */
-							'%s is active.',
+							__( '%s is active.' ),
 							response.pluginName
 						)
 					}
@@ -1447,6 +1447,24 @@
 				}
 			}
 
+			// Remove from the other groups, such as those added through the `plugins_list` filter.
+			_.each( _.keys( plugins ), function( group ) {
+				var $view;
+
+				if ( 'all' === group || ! _.isArray( plugins[ group ] ) || -1 === _.indexOf( plugins[ group ], response.plugin ) ) {
+					return;
+				}
+
+				plugins[ group ] = _.without( plugins[ group ], response.plugin );
+				$view = $views.children( 'li.' + $.escapeSelector( group ) );
+
+				if ( plugins[ group ].length ) {
+					$view.find( '.count' ).text( '(' + plugins[ group ].length + ')' );
+				} else {
+					$view.remove();
+				}
+			} );
+
 			plugins.all = _.without( plugins.all, response.plugin );
 
 			if ( plugins.all.length ) {
@@ -1459,6 +1477,9 @@
 					$form.find( '#the-list' ).append( '<tr class="no-items"><td class="colspanchange" colspan="' + columnCount + '">' + __( 'No plugins are currently available.' ) + '</td></tr>' );
 				}
 			}
+
+			// Remove the trailing separator left on the last view when the view after it was removed.
+			$views.find( 'li:last' ).html( function() { return $( this ).children(); } );
 
 			if ( $itemsCount.length && $currentView.length ) {
 				remainingCount = plugins[ $currentView.parent( 'li' ).attr('class') ].length;

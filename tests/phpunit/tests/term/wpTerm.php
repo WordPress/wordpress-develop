@@ -164,7 +164,7 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ mixed }>
 	 */
-	public function data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss(): array {
+	public static function data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss(): array {
 		return array(
 			'true'                       => array( true ),
 			'a non-numeric string'       => array( 'not-a-term' ),

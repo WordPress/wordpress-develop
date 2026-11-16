@@ -92,8 +92,7 @@ class Tests_Term extends WP_UnitTestCase {
 	public function test_wp_count_terms_should_return_integer_zero_for_a_parent_outside_the_hierarchy() {
 		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
 
-		$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
-		$this->assertIsInt( $term_id, 'The term was not created.' );
+		self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
 
 		$count = wp_count_terms(
 			array(
@@ -148,7 +147,7 @@ class Tests_Term extends WP_UnitTestCase {
 
 		$this->assertTrue( wp_remove_object_terms( $posts[0], $tags[1], 'post_tag' ) );
 		$this->assertFalse( wp_remove_object_terms( $posts[0], $tags[0], 'post_tag' ) );
-		$this->assertInstanceOf( 'WP_Error', wp_remove_object_terms( $posts[0], $tags[1], 'non_existing_taxonomy' ) );
+		$this->assertWPError( wp_remove_object_terms( $posts[0], $tags[1], 'non_existing_taxonomy' ) );
 		$this->assertTrue( wp_remove_object_terms( $posts[1], $three_tags, 'post_tag' ) );
 		$this->assertCount( 0, wp_get_object_terms( $posts[1], 'post_tag' ) );
 
@@ -301,7 +300,7 @@ class Tests_Term extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_set_term_objects_finds_term_name_with_special_characters() {
+	public static function data_wp_set_term_objects_finds_term_name_with_special_characters() {
 		return array(
 			'ampersand'               => array( 'name' => 'Foo & Bar' ),
 			'ndash and mdash'         => array( 'name' => 'Foo – Bar' ),
@@ -336,8 +335,9 @@ class Tests_Term extends WP_UnitTestCase {
 
 		wp_delete_category( $cat_id1 );
 
-		$cat_id2 = self::factory()->category->create( array( 'parent' => $cat_id1 ) );
+		$cat_id2 = wp_insert_term( 'Child category', 'category', array( 'parent' => $cat_id1 ) );
 		$this->assertWPError( $cat_id2 );
+		$this->assertSame( 'missing_parent', $cat_id2->get_error_code() );
 	}
 
 	/**
@@ -406,7 +406,7 @@ class Tests_Term extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_term_filter() {
+	public static function data_get_term_filter() {
 		return self::text_array_to_dataprovider( array( 'edit', 'db', 'display', 'attribute', 'js', 'rss', 'raw' ) );
 	}
 }
