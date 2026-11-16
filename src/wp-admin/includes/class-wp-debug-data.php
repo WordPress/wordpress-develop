@@ -340,7 +340,8 @@ class WP_Debug_Data {
 	 * Gets the Secrets API section of the debug data.
 	 *
 	 * Counts and class names only – no secret values, and no fingerprints. Network
-	 * scope figures are included only for a super admin on a multisite install.
+	 * scope figures are included on a single site install, and for a super admin on
+	 * a multisite install.
 	 *
 	 * @since 7.2.0
 	 *
@@ -396,7 +397,7 @@ class WP_Debug_Data {
 			'value' => is_wp_error( $site_secrets ) ? __( 'Unavailable' ) : (string) count( $site_secrets ),
 		);
 
-		if ( is_multisite() && is_super_admin() ) {
+		if ( ! is_multisite() || is_super_admin() ) {
 			$network_secrets                = wp_list_network_secrets();
 			$fields['network_secret_count'] = array(
 				'label' => __( 'Network secrets' ),
