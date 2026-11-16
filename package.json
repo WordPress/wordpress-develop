@@ -41,7 +41,7 @@
 	"devDependencies": {
 		"@343dev/gifsicle": "1.2.0",
 		"@lodder/grunt-postcss": "^3.1.1",
-		"@napi-rs/image": "1.14.0",
+		"@napi-rs/image": "1.16.0",
 		"@playwright/test": "1.64.1",
 		"@pmmmwh/react-refresh-webpack-plugin": "0.6.2",
 		"@types/backbone": "1.4.23",
