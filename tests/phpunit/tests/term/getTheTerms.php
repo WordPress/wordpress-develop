@@ -222,7 +222,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 	 * @ticket 40306
 	 * @ticket 49799
 	 *
-	 * @dataProvider data_term_cache_priming_functions
+	 * @dataProvider data_term_cache_should_be_invalidated_on_set_object_terms
 	 *
 	 * @param string $priming_function Function used to prime the empty relationship cache.
 	 */
@@ -272,7 +272,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_term_cache_priming_functions() {
+	public static function data_term_cache_should_be_invalidated_on_set_object_terms() {
 		return array(
 			'get_the_terms'            => array( 'get_the_terms' ),
 			'update_object_term_cache' => array( 'update_object_term_cache' ),

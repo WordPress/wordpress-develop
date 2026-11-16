@@ -204,7 +204,7 @@ class Tests_Error_Protection_wpFatalErrorHandler extends WP_UnitTestCase {
 	 *
 	 * @covers ::should_handle_error
 	 *
-	 * @dataProvider data_should_handle_error_filter_values
+	 * @dataProvider data_should_handle_error_uses_filter_for_other_error_types
 	 *
 	 * @param mixed $filtered Value returned by the filter.
 	 * @param bool  $expected Whether the error should be handled.
@@ -234,7 +234,7 @@ class Tests_Error_Protection_wpFatalErrorHandler extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_should_handle_error_filter_values() {
+	public static function data_should_handle_error_uses_filter_for_other_error_types() {
 		return array(
 			'true'         => array( true, true ),
 			'false'        => array( false, false ),
@@ -475,7 +475,7 @@ class Tests_Error_Protection_wpFatalErrorHandler extends WP_UnitTestCase {
 	 *
 	 * @covers ::display_default_error_template
 	 *
-	 * @dataProvider data_default_error_template_messages
+	 * @dataProvider data_display_default_error_template_message
 	 *
 	 * @param bool   $is_admin       Whether the request is for an admin page.
 	 * @param bool   $is_initialized Whether recovery mode is initialized.
@@ -520,7 +520,7 @@ class Tests_Error_Protection_wpFatalErrorHandler extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_default_error_template_messages() {
+	public static function data_display_default_error_template_message() {
 		$generic  = 'There has been a critical error on this website.';
 		$recovery = 'There has been a critical error on this website, putting it in recovery mode. Please check the Themes and Plugins screens for more details. If you just installed or updated a theme or plugin, check the relevant page for that first.';
 

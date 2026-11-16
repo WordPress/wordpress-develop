@@ -157,7 +157,7 @@ class Tests_Date_GetPostDatetime extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_post_datetime
 	 *
-	 * @dataProvider data_get_post_datetime_invalid_times
+	 * @dataProvider data_get_post_datetime_returns_false_for_invalid_time
 	 *
 	 * @param string $field  Field to read, 'date' or 'modified'.
 	 * @param string $source Source to read, 'local' or 'gmt'.
@@ -186,7 +186,7 @@ class Tests_Date_GetPostDatetime extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_get_post_datetime_invalid_times() {
+	public static function data_get_post_datetime_returns_false_for_invalid_time() {
 		return array(
 			'empty published local time'     => array( 'date', 'local', '' ),
 			'zero published UTC time'        => array( 'date', 'gmt', '0000-00-00 00:00:00' ),

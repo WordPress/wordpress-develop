@@ -991,26 +991,13 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for event handler bindings.
-	 *
-	 * @return array<non-empty-string, array{ attribute: non-empty-string }> Data provider.
-	 */
-	public static function data_event_handler_bindings(): array {
-		return array(
-			'event handler'                         => array( 'attribute' => 'data-wp-bind--onclick' ),
-			'event handler with an empty unique ID' => array( 'attribute' => 'data-wp-bind--onclick---' ),
-			'event handler with a unique ID'        => array( 'attribute' => 'data-wp-bind--onclick---unique-id' ),
-		);
-	}
-
-	/**
 	 * Tests that `data-wp-bind` removes event handler bindings.
 	 *
 	 * @ticket 66452
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @dataProvider data_event_handler_bindings
+	 * @dataProvider data_wp_bind_removes_event_handler_bindings
 	 *
 	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 *
@@ -1020,6 +1007,19 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$html     = "<button att-before {$attribute}=\"myPlugin::state.id\" att-after>Text</button>";
 		$new_html = $this->interactivity->process_directives( $html );
 		$this->assertEqualHTML( '<button att-before att-after>Text</button>', $new_html );
+	}
+
+	/**
+	 * Data provider for event handler bindings.
+	 *
+	 * @return array<non-empty-string, array{ attribute: non-empty-string }> Data provider.
+	 */
+	public static function data_wp_bind_removes_event_handler_bindings(): array {
+		return array(
+			'event handler'                         => array( 'attribute' => 'data-wp-bind--onclick' ),
+			'event handler with an empty unique ID' => array( 'attribute' => 'data-wp-bind--onclick---' ),
+			'event handler with a unique ID'        => array( 'attribute' => 'data-wp-bind--onclick---unique-id' ),
+		);
 	}
 
 	/**

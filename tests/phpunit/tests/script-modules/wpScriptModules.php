@@ -2999,7 +2999,7 @@ HTML;
 	 *
 	 * @ticket 66591
 	 *
-	 * @dataProvider data_module_dependencies_of_script
+	 * @dataProvider data_print_script_module_translations_includes_module_dependencies_of_scripts
 	 *
 	 * @covers WP_Script_Modules::print_script_module_translations
 	 * @covers WP_Script_Modules::get_loadable_script_module_ids
@@ -3039,7 +3039,7 @@ HTML;
 	 *
 	 * @return array<string, array{ 0: array<string|array<string, string>> }>
 	 */
-	public static function data_module_dependencies_of_script(): array {
+	public static function data_print_script_module_translations_includes_module_dependencies_of_scripts(): array {
 		return array(
 			'module ID'      => array( array( 'imported-module' ) ),
 			'static import'  => array(
@@ -3067,7 +3067,7 @@ HTML;
 	 *
 	 * @ticket 66591
 	 *
-	 * @dataProvider data_enqueued_scripts_and_script_modules
+	 * @dataProvider data_print_script_module_translations_includes_module_dependencies_of_enqueued_scripts_once
 	 *
 	 * @covers WP_Script_Modules::print_script_module_translations
 	 * @covers WP_Script_Modules::get_loadable_script_module_ids
@@ -3098,7 +3098,7 @@ HTML;
 	 *
 	 * @return array<string, array{ 0: string[], 1: string[], 2: string[] }>
 	 */
-	public static function data_enqueued_scripts_and_script_modules(): array {
+	public static function data_print_script_module_translations_includes_module_dependencies_of_enqueued_scripts_once(): array {
 		return array(
 			'a dependency of the enqueued script'   => array( array( 'dependent-script' ), array(), array( 'imported-module' ) ),
 			'a script that is not enqueued'         => array( array(), array(), array() ),
@@ -3197,7 +3197,7 @@ HTML;
 	 *
 	 * @ticket 66591
 	 *
-	 * @dataProvider data_unregistered_or_circular_dependencies
+	 * @dataProvider data_print_script_module_translations_and_data_output_with_unregistered_or_circular_dependencies
 	 *
 	 * @covers WP_Script_Modules::print_script_module_translations
 	 * @covers WP_Script_Modules::print_script_module_data
@@ -3241,7 +3241,7 @@ HTML;
 	 *
 	 * @return array<string, array{ 0: array<string, string[]> }>
 	 */
-	public static function data_unregistered_or_circular_dependencies(): array {
+	public static function data_print_script_module_translations_and_data_output_with_unregistered_or_circular_dependencies(): array {
 		return array(
 			'a dependency that is not registered' => array(
 				array(

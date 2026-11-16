@@ -130,7 +130,7 @@ class Tests_Functions_WpGetUpdateData extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_plugin_and_theme_counts
+	 * @dataProvider data_should_pluralize_titles
 	 *
 	 * @param int    $plugins  The number of plugin updates.
 	 * @param int    $themes   The number of theme updates.
@@ -150,7 +150,7 @@ class Tests_Functions_WpGetUpdateData extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_plugin_and_theme_counts() {
+	public static function data_should_pluralize_titles() {
 		return array(
 			'one plugin'  => array( 1, 0, '1 Plugin Update' ),
 			'two plugins' => array( 2, 0, '2 Plugin Updates' ),
@@ -164,7 +164,7 @@ class Tests_Functions_WpGetUpdateData extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_core_responses
+	 * @dataProvider data_should_count_core_update_by_response
 	 *
 	 * @param string $response The core update response type.
 	 * @param int    $expected The expected count.
@@ -182,7 +182,7 @@ class Tests_Functions_WpGetUpdateData extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_core_responses() {
+	public static function data_should_count_core_update_by_response() {
 		return array(
 			'upgrade'     => array( 'upgrade', 1 ),
 			'latest'      => array( 'latest', 0 ),
@@ -303,7 +303,7 @@ class Tests_Functions_WpGetUpdateData extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_update_transients
+	 * @dataProvider data_should_count_translation_updates_once
 	 *
 	 * @param string $transient The update transient holding the translations.
 	 */
@@ -331,7 +331,7 @@ class Tests_Functions_WpGetUpdateData extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_update_transients() {
+	public static function data_should_count_translation_updates_once() {
 		return self::text_array_to_dataprovider( self::$transients );
 	}
 

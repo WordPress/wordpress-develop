@@ -14,7 +14,7 @@ class Tests_REST_API_RestFindMatchingPatternPropertySchema extends WP_UnitTestCa
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_matching_pattern_properties
+	 * @dataProvider data_returns_schema_of_matching_pattern
 	 *
 	 * @param string|int $property           Property name. Numeric names arrive as integers from array keys.
 	 * @param array      $pattern_properties Value of the patternProperties keyword.
@@ -31,7 +31,7 @@ class Tests_REST_API_RestFindMatchingPatternPropertySchema extends WP_UnitTestCa
 	 *
 	 * @return array[]
 	 */
-	public static function data_matching_pattern_properties() {
+	public static function data_returns_schema_of_matching_pattern() {
 		return array(
 			'integer property name'     => array(
 				123,
@@ -70,7 +70,7 @@ class Tests_REST_API_RestFindMatchingPatternPropertySchema extends WP_UnitTestCa
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_no_matching_pattern_properties
+	 * @dataProvider data_returns_null_without_matching_pattern
 	 *
 	 * @param string $property Property name.
 	 * @param array  $schema   Schema to search.
@@ -84,7 +84,7 @@ class Tests_REST_API_RestFindMatchingPatternPropertySchema extends WP_UnitTestCa
 	 *
 	 * @return array[]
 	 */
-	public static function data_no_matching_pattern_properties() {
+	public static function data_returns_null_without_matching_pattern() {
 		return array(
 			'no patternProperties'                 => array(
 				'prop',

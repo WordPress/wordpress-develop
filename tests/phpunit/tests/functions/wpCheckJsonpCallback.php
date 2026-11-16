@@ -14,7 +14,7 @@ class Tests_Functions_WpCheckJsonpCallback extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_valid_callbacks
+	 * @dataProvider data_returns_true_for_valid_callbacks
 	 *
 	 * @param string $callback Valid callback name.
 	 */
@@ -27,7 +27,7 @@ class Tests_Functions_WpCheckJsonpCallback extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_valid_callbacks() {
+	public static function data_returns_true_for_valid_callbacks() {
 		return array(
 			'empty string' => array( '' ),
 		);
@@ -38,7 +38,7 @@ class Tests_Functions_WpCheckJsonpCallback extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_invalid_callbacks
+	 * @dataProvider data_returns_false_for_invalid_callbacks
 	 *
 	 * @param mixed $callback Invalid callback value.
 	 */
@@ -51,7 +51,7 @@ class Tests_Functions_WpCheckJsonpCallback extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_invalid_callbacks() {
+	public static function data_returns_false_for_invalid_callbacks() {
 		return array(
 			'parentheses' => array( 'alert(1)' ),
 			'array'       => array( array( 'callback' ) ),

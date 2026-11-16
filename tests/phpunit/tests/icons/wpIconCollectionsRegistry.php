@@ -220,7 +220,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 66087
 	 *
-	 * @dataProvider data_boolean_public_properties
+	 * @dataProvider data_register_collection_accepts_boolean_public_property
 	 *
 	 * @covers ::register
 	 *
@@ -244,7 +244,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_boolean_public_properties() {
+	public static function data_register_collection_accepts_boolean_public_property() {
 		return array(
 			'public collection'     => array( true ),
 			'non-public collection' => array( false ),
@@ -256,7 +256,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 66087
 	 *
-	 * @dataProvider data_non_boolean_public_properties
+	 * @dataProvider data_register_collection_rejects_non_boolean_public_property
 	 *
 	 * @covers ::register
 	 *
@@ -282,7 +282,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_non_boolean_public_properties() {
+	public static function data_register_collection_rejects_non_boolean_public_property() {
 		return array(
 			'string'  => array( 'false' ),
 			'integer' => array( 0 ),

@@ -116,7 +116,7 @@ class Tests_Category_GetTags extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_fields_argument
+	 * @dataProvider data_supports_fields_argument
 	 *
 	 * @param string $fields Fields argument value.
 	 */
@@ -146,7 +146,7 @@ class Tests_Category_GetTags extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_fields_argument() {
+	public static function data_supports_fields_argument() {
 		return array(
 			'ids'   => array( 'ids' ),
 			'names' => array( 'names' ),

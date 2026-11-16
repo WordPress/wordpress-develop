@@ -168,7 +168,7 @@ class Tests_Admin_wpPluginsListTableSearchBox extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Plugins_List_Table::_order_callback
 	 *
-	 * @dataProvider data_orders
+	 * @dataProvider data_order_callback_should_compare_by_field
 	 *
 	 * @param string $order    The sort order.
 	 * @param string $a        The first value.
@@ -198,7 +198,7 @@ class Tests_Admin_wpPluginsListTableSearchBox extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_orders() {
+	public static function data_order_callback_should_compare_by_field() {
 		return array(
 			'equal values'                 => array( 'ASC', 'Alpha', 'Alpha', 0 ),
 			'ascending'                    => array( 'ASC', 'Alpha', 'beta', -1 ),

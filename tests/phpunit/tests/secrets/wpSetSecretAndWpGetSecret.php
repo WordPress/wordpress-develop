@@ -380,7 +380,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 *
 	 * @requires PHP 8.2
 	 *
-	 * @dataProvider data_parameters_that_receive_a_secret_value
+	 * @dataProvider data_parameters_that_receive_a_secret_value_are_sensitive
 	 *
 	 * @param callable-string|array{0: class-string, 1: string} $target    The function or method.
 	 * @param string                                             $parameter The parameter name.
@@ -403,7 +403,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: callable-string|array{0: class-string, 1: string}, 1: string}>
 	 */
-	public static function data_parameters_that_receive_a_secret_value(): array {
+	public static function data_parameters_that_receive_a_secret_value_are_sensitive(): array {
 		return array(
 			'wp_set_secret()'                              => array( 'wp_set_secret', 'value' ),
 			'wp_set_network_secret()'                      => array( 'wp_set_network_secret', 'value' ),

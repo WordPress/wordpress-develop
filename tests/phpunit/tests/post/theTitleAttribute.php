@@ -90,7 +90,7 @@ class Tests_Post_TheTitleAttribute extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_echo_false_arguments
+	 * @dataProvider data_returns_title_when_echo_is_false
 	 *
 	 * @param array|string $echo_arg Arguments disabling echo.
 	 */
@@ -114,7 +114,7 @@ class Tests_Post_TheTitleAttribute extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_echo_false_arguments() {
+	public static function data_returns_title_when_echo_is_false() {
 		return array(
 			'array with boolean false' => array( array( 'echo' => false ) ),
 			'query string with echo=0' => array( 'echo=0' ),

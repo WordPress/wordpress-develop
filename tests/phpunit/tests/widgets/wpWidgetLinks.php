@@ -191,7 +191,7 @@ class Tests_Widgets_wpWidgetLinks extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Links::widget
 	 *
-	 * @dataProvider data_widget_links_args
+	 * @dataProvider data_widget_applies_widget_links_args_filter
 	 *
 	 * @param array $instance      Widget instance settings.
 	 * @param array $expected_args Expected arguments passed to wp_list_bookmarks().
@@ -226,7 +226,7 @@ class Tests_Widgets_wpWidgetLinks extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_widget_links_args() {
+	public static function data_widget_applies_widget_links_args_filter() {
 		return array(
 			'default instance'       => array(
 				array(),

@@ -29,7 +29,7 @@ class Tests_Load_WpGetEnvironmentType extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_valid_environment_types
+	 * @dataProvider data_returns_valid_environment_type_from_constant
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -47,7 +47,7 @@ class Tests_Load_WpGetEnvironmentType extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_valid_environment_types(): array {
+	public static function data_returns_valid_environment_type_from_constant(): array {
 		return array(
 			'local'       => array( 'local' ),
 			'development' => array( 'development' ),

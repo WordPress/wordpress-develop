@@ -319,7 +319,7 @@ class Tests_Privacy_wpPrivacyPolicyContentGetSuggestedPolicyText extends WP_Unit
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_incomplete_entries
+	 * @dataProvider data_leaves_out_incomplete_entries
 	 *
 	 * @param bool  $is_registered Whether the entry is registered by a plugin, rather than stored.
 	 * @param array $entry         Incomplete entry.
@@ -340,7 +340,7 @@ class Tests_Privacy_wpPrivacyPolicyContentGetSuggestedPolicyText extends WP_Unit
 	 *
 	 * @return array[]
 	 */
-	public static function data_incomplete_entries() {
+	public static function data_leaves_out_incomplete_entries() {
 		$no_name = array(
 			'plugin_name' => '',
 			'policy_text' => '<p>My policy.</p>',

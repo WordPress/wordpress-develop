@@ -104,7 +104,7 @@ class Tests_Category_SanitizeCategoryField extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_raw_contexts
+	 * @dataProvider data_raw_context_returns_value_unfiltered
 	 *
 	 * @param string $context Raw context variation.
 	 */
@@ -120,7 +120,7 @@ class Tests_Category_SanitizeCategoryField extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_raw_contexts() {
+	public static function data_raw_context_returns_value_unfiltered() {
 		return array(
 			'lowercase raw' => array( 'raw' ),
 			'uppercase RAW' => array( 'RAW' ),

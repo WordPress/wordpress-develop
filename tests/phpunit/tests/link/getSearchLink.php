@@ -29,7 +29,7 @@ class Tests_Link_GetSearchLink extends WP_UnitTestCase {
 	 * Tests get_search_link() with plain permalinks and explicit query.
 	 *
 	 * @ticket 65819
-	 * @dataProvider data_plain_permastruct_queries
+	 * @dataProvider data_get_search_link_plain_permastruct
 	 *
 	 * @param string $query    Search query string.
 	 * @param string $expected Expected query parameter.
@@ -45,7 +45,7 @@ class Tests_Link_GetSearchLink extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public static function data_plain_permastruct_queries() {
+	public static function data_get_search_link_plain_permastruct() {
 		return array(
 			'special characters'     => array( 'core & test', 'core+%26+test' ),
 			'slashes to be stripped' => array( "single\'quote", 'single%27quote' ),
@@ -56,7 +56,7 @@ class Tests_Link_GetSearchLink extends WP_UnitTestCase {
 	 * Tests get_search_link() with pretty permalinks.
 	 *
 	 * @ticket 65819
-	 * @dataProvider data_pretty_permastruct_queries
+	 * @dataProvider data_get_search_link_pretty_permastruct
 	 *
 	 * @param string $query    Search query string.
 	 * @param string $expected Expected path relative to home_url().
@@ -70,7 +70,7 @@ class Tests_Link_GetSearchLink extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public static function data_pretty_permastruct_queries() {
+	public static function data_get_search_link_pretty_permastruct() {
 		return array(
 			'words with spaces'  => array( 'hello world', '/search/hello+world/' ),
 			'forward slash kept' => array( 'tag/subtag', '/search/tag/subtag/' ),

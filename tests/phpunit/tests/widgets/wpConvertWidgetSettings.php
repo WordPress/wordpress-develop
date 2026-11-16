@@ -64,7 +64,7 @@ class Tests_Widgets_wpConvertWidgetSettings extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_multi_widget_settings
+	 * @dataProvider data_keeps_multi_widget_settings
 	 *
 	 * @param array $settings Widget settings.
 	 */
@@ -79,7 +79,7 @@ class Tests_Widgets_wpConvertWidgetSettings extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_multi_widget_settings() {
+	public static function data_keeps_multi_widget_settings() {
 		return array(
 			'numbered instances'            => array(
 				array(
@@ -106,7 +106,7 @@ class Tests_Widgets_wpConvertWidgetSettings extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_single_widget_settings
+	 * @dataProvider data_converts_single_widget_settings_on_front_end
 	 *
 	 * @param mixed $settings Widget settings.
 	 */
@@ -133,7 +133,7 @@ class Tests_Widgets_wpConvertWidgetSettings extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_single_widget_settings() {
+	public static function data_converts_single_widget_settings_on_front_end() {
 		return array(
 			'single widget settings' => array( array( 'title' => 'Search' ) ),
 			'mixed keys'             => array(

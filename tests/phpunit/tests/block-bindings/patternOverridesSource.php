@@ -55,7 +55,7 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	 *
 	 * @covers ::_block_bindings_pattern_overrides_get_value
 	 *
-	 * @dataProvider data_empty_metadata_names
+	 * @dataProvider data_get_value_returns_null_when_metadata_name_empty
 	 *
 	 * @param array $attributes Block attributes.
 	 */
@@ -79,7 +79,7 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_empty_metadata_names() {
+	public static function data_get_value_returns_null_when_metadata_name_empty() {
 		return array(
 			'empty attributes'     => array( array() ),
 			'empty metadata array' => array( array( 'metadata' => array() ) ),
@@ -194,7 +194,7 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	 *
 	 * @covers ::_block_bindings_pattern_overrides_get_value
 	 *
-	 * @dataProvider data_override_values_and_types
+	 * @dataProvider data_get_value_handles_different_data_types
 	 *
 	 * @param mixed $expected Expected value.
 	 */
@@ -224,7 +224,7 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_override_values_and_types() {
+	public static function data_get_value_handles_different_data_types() {
 		return array(
 			'empty string'  => array( '' ),
 			'zero integer'  => array( 0 ),

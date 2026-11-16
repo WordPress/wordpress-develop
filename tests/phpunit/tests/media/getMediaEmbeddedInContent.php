@@ -11,7 +11,7 @@ class Tests_Media_GetMediaEmbeddedInContent extends WP_UnitTestCase {
 	/**
 	 * @ticket 65931
 	 *
-	 * @dataProvider data_content
+	 * @dataProvider data_returns_expected_media
 	 *
 	 * @param string        $content  Content to search for media elements.
 	 * @param string[]|null $types    Media types to limit the search to.
@@ -26,7 +26,7 @@ class Tests_Media_GetMediaEmbeddedInContent extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_content() {
+	public static function data_returns_expected_media() {
 		$audio  = '<audio preload="none"><source /></audio>';
 		$video  = '<video preload="none"><source /></video>';
 		$iframe = '<iframe src="https://example.com/embed" width="700"></iframe>';

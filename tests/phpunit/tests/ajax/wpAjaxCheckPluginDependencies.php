@@ -129,7 +129,7 @@ class Tests_Ajax_wpAjaxCheckPluginDependencies extends WP_Ajax_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_empty_slugs
+	 * @dataProvider data_should_return_error_without_slug
 	 *
 	 * @param string|null $slug The slug, or null to leave it out.
 	 */
@@ -159,7 +159,7 @@ class Tests_Ajax_wpAjaxCheckPluginDependencies extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_empty_slugs() {
+	public static function data_should_return_error_without_slug() {
 		return array(
 			'missing slug' => array( null ),
 			'empty string' => array( '' ),

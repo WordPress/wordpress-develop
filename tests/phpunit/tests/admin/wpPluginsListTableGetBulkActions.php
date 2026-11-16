@@ -91,7 +91,7 @@ class Tests_Admin_wpPluginsListTableGetBulkActions extends WP_UnitTestCase {
 	 *
 	 * @group ms-excluded
 	 *
-	 * @dataProvider data_statuses
+	 * @dataProvider data_should_return_bulk_actions_for_status
 	 *
 	 * @param string   $status   The plugin status.
 	 * @param string[] $expected The expected bulk action names.
@@ -107,7 +107,7 @@ class Tests_Admin_wpPluginsListTableGetBulkActions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_statuses() {
+	public static function data_should_return_bulk_actions_for_status() {
 		$all = array(
 			'activate-selected',
 			'deactivate-selected',

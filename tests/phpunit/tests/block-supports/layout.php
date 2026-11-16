@@ -99,7 +99,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 * @ticket 66263
 	 * @ticket 66427
 	 *
-	 * @dataProvider data_sanitize_block_gap_value
+	 * @dataProvider data_sanitize_block_gap_value_normalizes_zero_and_rejects_other_non_string_values
 	 *
 	 * @covers ::wp_sanitize_block_gap_value
 	 */
@@ -112,7 +112,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @return array[] Test data.
 	 */
-	public static function data_sanitize_block_gap_value() {
+	public static function data_sanitize_block_gap_value_normalizes_zero_and_rejects_other_non_string_values() {
 		return array(
 			'string value'                         => array( '1rem', '1rem' ),
 			'empty string'                         => array( '', null ),

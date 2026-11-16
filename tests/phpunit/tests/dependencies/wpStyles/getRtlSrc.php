@@ -215,6 +215,18 @@ class Tests_Dependencies_WpStyles_GetRtlSrc extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider for {@see self::test_matches_printed_href()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: true|'replace', 1: positive-int }>
+	 */
+	public static function data_matches_printed_href(): array {
+		return array(
+			'alongside' => array( true, 2 ),
+			'replacing' => array( 'replace', 1 ),
+		);
+	}
+
+	/**
 	 * Tests that printing a right-to-left stylesheet sanitizes its URL only once, so the
 	 * {@see 'clean_url'} filter runs once for it, as it did before get_rtl_src() was introduced.
 	 *
@@ -243,18 +255,6 @@ class Tests_Dependencies_WpStyles_GetRtlSrc extends WP_UnitTestCase {
 				},
 				$filter->get_args()
 			)
-		);
-	}
-
-	/**
-	 * Data provider for {@see self::test_matches_printed_href()}.
-	 *
-	 * @return array<non-falsy-string, array{ 0: true|'replace', 1: positive-int }>
-	 */
-	public static function data_matches_printed_href(): array {
-		return array(
-			'alongside' => array( true, 2 ),
-			'replacing' => array( 'replace', 1 ),
 		);
 	}
 }

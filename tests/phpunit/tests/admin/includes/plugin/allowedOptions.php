@@ -325,7 +325,7 @@ class Tests_Admin_Includes_Plugin_AllowedOptions extends WP_UnitTestCase {
 	 *
 	 * @covers ::option_update_filter
 	 *
-	 * @dataProvider data_new_allowed_options_without_additions
+	 * @dataProvider data_option_update_filter_returns_options_unchanged_without_new_allowed_options
 	 *
 	 * @param mixed $new_allowed_options Value of the $new_allowed_options global.
 	 */
@@ -342,7 +342,7 @@ class Tests_Admin_Includes_Plugin_AllowedOptions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_new_allowed_options_without_additions() {
+	public static function data_option_update_filter_returns_options_unchanged_without_new_allowed_options() {
 		return array(
 			'null'        => array( null ),
 			'string'      => array( 'my_option' ),

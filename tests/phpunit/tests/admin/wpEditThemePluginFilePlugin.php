@@ -154,7 +154,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_incomplete_requests
+	 * @dataProvider data_should_reject_incomplete_request
 	 *
 	 * @param array  $args The arguments, merged over a valid request.
 	 * @param string $code The expected error code.
@@ -180,7 +180,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_incomplete_requests() {
+	public static function data_should_reject_incomplete_request() {
 		return array(
 			'no file'                  => array( array( 'file' => null ), 'missing_file' ),
 			'empty file'               => array( array( 'file' => '' ), 'missing_file' ),
@@ -329,7 +329,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_files
+	 * @dataProvider data_should_save_file_of_inactive_plugin
 	 *
 	 * @param string $file The file, relative to the plugin directory.
 	 */
@@ -344,7 +344,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_files() {
+	public static function data_should_save_file_of_inactive_plugin() {
 		return array(
 			'text file'        => array( 'readme.txt' ),
 			'main plugin file' => array( self::SLUG . '.php' ),
@@ -450,7 +450,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_failed_loopbacks
+	 * @dataProvider data_should_revert_php_file_of_active_plugin_when_loopback_fails
 	 *
 	 * @param array    $scrape_results The scrape results of the loopback requests.
 	 * @param string   $message        The expected error message.
@@ -478,7 +478,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_failed_loopbacks() {
+	public static function data_should_revert_php_file_of_active_plugin_when_loopback_fails() {
 		$loopback_failed = 'Unable to communicate back with site to check for fatal errors, so the PHP change was reverted. You will need to upload your PHP file change by some other means, such as by using SFTP.';
 		$editor_path     = wp_parse_url( admin_url( 'plugin-editor.php' ), PHP_URL_PATH );
 		$home_path       = wp_parse_url( home_url( '/' ), PHP_URL_PATH );

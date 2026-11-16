@@ -2749,7 +2749,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 *
 	 * @ticket 65781
 	 *
-	 * @dataProvider data_support_check_methods
+	 * @dataProvider data_support_check_methods_return_false_when_builder_throws
 	 *
 	 * @param string $method         The support check method on the wrapper.
 	 * @param string $wrapped_method The matching method on the wrapped builder.
@@ -2785,7 +2785,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: string}> Support check method names, keyed by the method on the wrapper.
 	 */
-	public static function data_support_check_methods(): array {
+	public static function data_support_check_methods_return_false_when_builder_throws(): array {
 		return array(
 			'is_supported'                               => array( 'is_supported', 'isSupported' ),
 			'is_supported_for_text_generation'           => array( 'is_supported_for_text_generation', 'isSupportedForTextGeneration' ),

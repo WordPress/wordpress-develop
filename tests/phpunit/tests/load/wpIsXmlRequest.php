@@ -69,7 +69,7 @@ class Tests_Load_WpIsXmlRequest extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_xml_accept_headers
+	 * @dataProvider data_returns_true_for_xml_accept_header
 	 *
 	 * @param string $accept Accept header value.
 	 */
@@ -85,7 +85,7 @@ class Tests_Load_WpIsXmlRequest extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_xml_accept_headers() {
+	public static function data_returns_true_for_xml_accept_header() {
 		return array(
 			'text/xml'                 => array( 'text/xml' ),
 			'application/rss+xml'      => array( 'application/rss+xml' ),
@@ -102,7 +102,7 @@ class Tests_Load_WpIsXmlRequest extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_xml_content_types
+	 * @dataProvider data_returns_true_for_xml_content_type
 	 *
 	 * @param string $content_type Content-Type header value.
 	 */
@@ -118,7 +118,7 @@ class Tests_Load_WpIsXmlRequest extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_xml_content_types() {
+	public static function data_returns_true_for_xml_content_type() {
 		return array(
 			'text/xml'               => array( 'text/xml' ),
 			'application/rss+xml'    => array( 'application/rss+xml' ),

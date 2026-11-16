@@ -72,6 +72,35 @@ class Tests_wp_ajax_time_format extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * Data provider for test_time_format.
+	 *
+	 * @return array<string, array{
+	 *     payload: array{
+	 *         date: string,
+	 *     },
+	 * }>
+	 */
+	public static function data_time_format(): array {
+		return array(
+			'standard_time' => array(
+				'payload' => array(
+					'date' => 'H:i',
+				),
+			),
+			'custom_time'   => array(
+				'payload' => array(
+					'date' => 'g:i a',
+				),
+			),
+			'empty_time'    => array(
+				'payload' => array(
+					'date' => '',
+				),
+			),
+		);
+	}
+
+	/**
 	 * Tests time format validation (sanitize_option).
 	 *
 	 * @ticket 65228
@@ -129,34 +158,5 @@ class Tests_wp_ajax_time_format extends WP_Ajax_UnitTestCase {
 		}
 
 		$this->assertSame( date_i18n( 'H:i' ), $this->_last_response );
-	}
-
-	/**
-	 * Data provider for test_time_format.
-	 *
-	 * @return array<string, array{
-	 *     payload: array{
-	 *         date: string,
-	 *     },
-	 * }>
-	 */
-	public static function data_time_format(): array {
-		return array(
-			'standard_time' => array(
-				'payload' => array(
-					'date' => 'H:i',
-				),
-			),
-			'custom_time'   => array(
-				'payload' => array(
-					'date' => 'g:i a',
-				),
-			),
-			'empty_time'    => array(
-				'payload' => array(
-					'date' => '',
-				),
-			),
-		);
 	}
 }

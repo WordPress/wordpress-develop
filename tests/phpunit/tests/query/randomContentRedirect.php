@@ -929,7 +929,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	/**
 	 * Ensure unpublished and password protected posts are not selected, even for administrators.
 	 *
-	 * @dataProvider data_ineligible_posts
+	 * @dataProvider data_random_redirect_excludes_ineligible_posts
 	 *
 	 * @param array<string, string> $args Post arguments.
 	 */
@@ -949,7 +949,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: array<non-falsy-string, string> }>
 	 */
-	public static function data_ineligible_posts(): array {
+	public static function data_random_redirect_excludes_ineligible_posts(): array {
 		return array(
 			'draft'              => array( array( 'post_status' => 'draft' ) ),
 			'pending'            => array( array( 'post_status' => 'pending' ) ),
@@ -1082,7 +1082,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	/**
 	 * Ensure feeds do not redirect with the random query variable.
 	 *
-	 * @dataProvider data_feed_urls
+	 * @dataProvider data_no_redirect_for_feeds
 	 *
 	 * @param string $path Feed path.
 	 */
@@ -1098,7 +1098,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
-	public static function data_feed_urls(): array {
+	public static function data_no_redirect_for_feeds(): array {
 		return array(
 			'site feed'     => array( '/feed/?random' ),
 			'category feed' => array( '/category/arts/feed/?random' ),
@@ -1158,7 +1158,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	/**
 	 * Ensure requests using HTTP methods other than GET or HEAD do not redirect.
 	 *
-	 * @dataProvider data_non_redirecting_http_methods
+	 * @dataProvider data_no_redirect_for_non_get_requests
 	 *
 	 * @param string $method HTTP request method.
 	 */
@@ -1175,7 +1175,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
-	public static function data_non_redirecting_http_methods(): array {
+	public static function data_no_redirect_for_non_get_requests(): array {
 		return array(
 			'POST'    => array( 'POST' ),
 			'PUT'     => array( 'PUT' ),
@@ -1198,7 +1198,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	/**
 	 * Ensure GET and HEAD requests redirect, regardless of case.
 	 *
-	 * @dataProvider data_redirecting_http_methods
+	 * @dataProvider data_redirect_for_get_and_head_requests
 	 *
 	 * @param string $method HTTP request method.
 	 */
@@ -1215,7 +1215,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
-	public static function data_redirecting_http_methods(): array {
+	public static function data_redirect_for_get_and_head_requests(): array {
 		return array(
 			'GET'            => array( 'GET' ),
 			'HEAD'           => array( 'HEAD' ),
@@ -1388,7 +1388,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	/**
 	 * Ensure random content redirects resume once a page named "random" no longer conflicts.
 	 *
-	 * @dataProvider data_page_named_random_changes
+	 * @dataProvider data_random_content_redirects_resume_when_the_page_no_longer_conflicts
 	 *
 	 * @param callable $change Callback to change the page so it no longer conflicts.
 	 */
@@ -1414,7 +1414,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: Closure(int): void }>
 	 */
-	public static function data_page_named_random_changes(): array {
+	public static function data_random_content_redirects_resume_when_the_page_no_longer_conflicts(): array {
 		return array(
 			'renamed'     => array(
 				static function ( int $page_id ): void {
@@ -2187,7 +2187,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	/**
 	 * Ensure the random query selects a single post when a theme overrides the limit.
 	 *
-	 * @dataProvider data_query_vars_overriding_the_limit
+	 * @dataProvider data_random_query_is_limited_to_one_post_when_a_theme_overrides_the_limit
 	 *
 	 * @param string $path      Request path.
 	 * @param string $query_var Query variable set by a theme.
@@ -2218,7 +2218,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ path: non-falsy-string, query_var: non-falsy-string, value: bool|int }>
 	 */
-	public static function data_query_vars_overriding_the_limit(): array {
+	public static function data_random_query_is_limited_to_one_post_when_a_theme_overrides_the_limit(): array {
 		$overrides = array(
 			'nopaging'               => array( 'nopaging', true ),
 			'posts_per_archive_page' => array( 'posts_per_archive_page', 10 ),
@@ -2401,7 +2401,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	/**
 	 * Ensure the enabled filter value is cast to a boolean.
 	 *
-	 * @dataProvider data_enabled_filter_values
+	 * @dataProvider data_wp_is_random_content_redirect_enabled_returns_a_boolean
 	 *
 	 * @param mixed $value    Value returned by the filter.
 	 * @param bool  $expected Expected result.
@@ -2422,7 +2422,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed, 1: bool }>
 	 */
-	public static function data_enabled_filter_values(): array {
+	public static function data_wp_is_random_content_redirect_enabled_returns_a_boolean(): array {
 		return array(
 			'default true' => array( true, true ),
 			'false'        => array( false, false ),
@@ -2594,7 +2594,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	/**
 	 * Ensure paths beneath the random base without random rules do not redirect.
 	 *
-	 * @dataProvider data_unsupported_random_paths
+	 * @dataProvider data_no_redirect_for_paths_without_random_rules
 	 *
 	 * @global WP $wp Current WordPress environment instance.
 	 *
@@ -2614,7 +2614,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
-	public static function data_unsupported_random_paths(): array {
+	public static function data_no_redirect_for_paths_without_random_rules(): array {
 		return array(
 			'pagination' => array( '/random/page/2/' ),
 			'feed'       => array( '/random/feed/' ),
@@ -2688,7 +2688,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	/**
 	 * Ensure the main query is only run once for random content requests.
 	 *
-	 * @dataProvider data_random_requests
+	 * @dataProvider data_main_query_is_run_once_for_random_requests
 	 *
 	 * @param string $path Path to request.
 	 */
@@ -2706,7 +2706,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
-	public static function data_random_requests(): array {
+	public static function data_main_query_is_run_once_for_random_requests(): array {
 		return array(
 			'random post'          => array( '/random/' ),
 			'random empty archive' => array( '/random/category/empty/' ),

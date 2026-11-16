@@ -150,7 +150,7 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_core_updates_that_cannot_run
+	 * @dataProvider data_sends_core_notification_when_core_cannot_be_updated
 	 *
 	 * @param bool $credentials_available Whether filesystem credentials are available.
 	 * @param bool $is_vcs_checkout       Whether the site is a version-controlled checkout.
@@ -170,7 +170,7 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_core_updates_that_cannot_run() {
+	public static function data_sends_core_notification_when_core_cannot_be_updated() {
 		return array(
 			'no filesystem credentials' => array( false, false ),
 			'version-controlled site'   => array( true, true ),
@@ -182,7 +182,7 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_relaxed_file_ownership
+	 * @dataProvider data_allows_relaxed_file_ownership_only_for_core_without_new_files
 	 *
 	 * @param string $type     Update type.
 	 * @param object $item     Update offer.
@@ -201,7 +201,7 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_relaxed_file_ownership() {
+	public static function data_allows_relaxed_file_ownership_only_for_core_without_new_files() {
 		return array(
 			'core without new files'          => array( 'core', self::core_offer( array( 'new_files' => false ) ), true ),
 			'core with new files'             => array( 'core', self::core_offer( array( 'new_files' => true ) ), false ),
@@ -305,7 +305,7 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_filter_values
+	 * @dataProvider data_auto_update_filter
 	 *
 	 * @param mixed $filtered Value returned by the filter.
 	 * @param bool  $expected Whether the item should be updated.
@@ -332,7 +332,7 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_filter_values() {
+	public static function data_auto_update_filter() {
 		return array(
 			'true'         => array( true, true ),
 			'false'        => array( false, false ),
@@ -358,7 +358,7 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_core_update_policy
+	 * @dataProvider data_core_update_follows_core_update_policy
 	 *
 	 * @param bool $allow_major Whether the core update policy allows major updates.
 	 * @param bool $expected    Whether core should be updated.
@@ -375,7 +375,7 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_core_update_policy() {
+	public static function data_core_update_follows_core_update_policy() {
 		return array(
 			'policy allows the update' => array( true, true ),
 			'policy denies the update' => array( false, false ),
@@ -387,7 +387,7 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_core_requirements
+	 * @dataProvider data_core_update_requirements
 	 *
 	 * @param array $fields   Fields of the update offer.
 	 * @param bool  $expected Whether core should be updated.
@@ -403,7 +403,7 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_core_requirements() {
+	public static function data_core_update_requirements() {
 		return array(
 			'requirements met'      => array( array(), true ),
 			'PHP version too old'   => array( array( 'php_version' => '99.0' ), false ),

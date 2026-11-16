@@ -310,7 +310,7 @@ class Tests_Widgets_wpWidgetTagCloud extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Widget_Tag_Cloud::widget
 	 *
-	 * @dataProvider data_widget_tag_cloud_args
+	 * @dataProvider data_widget_applies_widget_tag_cloud_args_filter
 	 *
 	 * @param array  $instance   Widget instance.
 	 * @param string $taxonomy   Expected taxonomy argument.
@@ -342,7 +342,7 @@ class Tests_Widgets_wpWidgetTagCloud extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_widget_tag_cloud_args() {
+	public static function data_widget_applies_widget_tag_cloud_args_filter() {
 		return array(
 			'defaults'         => array( array(), 'post_tag', false ),
 			'count'            => array( array( 'count' => 1 ), 'post_tag', true ),

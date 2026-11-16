@@ -521,7 +521,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 *
 	 * @ticket 65945
 	 *
-	 * @dataProvider data_unusable_sitemap_query_vars
+	 * @dataProvider data_unusable_sitemap_query_var_should_return_404
 	 *
 	 * @param non-falsy-string $query_string Query string to append to a nonexistent URL.
 	 */
@@ -545,7 +545,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public static function data_unusable_sitemap_query_vars(): array {
+	public static function data_unusable_sitemap_query_var_should_return_404(): array {
 		return array(
 			'value stripped by sanitizing' => array( '?sitemap=<>' ),
 			'array sitemap value'          => array( '?sitemap[]=index' ),

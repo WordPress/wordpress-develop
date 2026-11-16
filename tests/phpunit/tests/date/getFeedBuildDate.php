@@ -135,7 +135,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	 * Cold ID-only and partial results must retain the feed's latest date.
 	 *
 	 * @ticket 59956
-	 * @dataProvider data_cold_post_query_fields
+	 * @dataProvider data_should_return_correct_build_date_for_cold_query_fields
 	 *
 	 * @param non-falsy-string $fields Fields arg.
 	 */
@@ -178,7 +178,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public static function data_cold_post_query_fields(): array {
+	public static function data_should_return_correct_build_date_for_cold_query_fields(): array {
 		return array(
 			'IDs'     => array( 'ids' ),
 			'partial' => array( 'id=>parent' ),

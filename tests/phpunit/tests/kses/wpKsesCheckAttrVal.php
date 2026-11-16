@@ -14,7 +14,7 @@ class Tests_Kses_wpKsesCheckAttrVal extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_attribute_value_checks
+	 * @dataProvider data_wp_kses_check_attr_val
 	 *
 	 * @param string $value      Attribute value.
 	 * @param string $vless      Whether the attribute is valueless, 'y' or 'n'.
@@ -31,7 +31,7 @@ class Tests_Kses_wpKsesCheckAttrVal extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_attribute_value_checks() {
+	public static function data_wp_kses_check_attr_val() {
 		return array(
 			// maxlen.
 			'maxlen: shorter value'                   => array( 'ab', 'n', 'maxlen', 3, true ),

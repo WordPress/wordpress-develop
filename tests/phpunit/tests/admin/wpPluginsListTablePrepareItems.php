@@ -285,7 +285,7 @@ class Tests_Admin_wpPluginsListTablePrepareItems extends WP_UnitTestCase {
 	 *
 	 * @group ms-required
 	 *
-	 * @dataProvider data_show_network_active
+	 * @dataProvider data_should_list_network_active_plugins_on_site_when_allowed
 	 *
 	 * @param bool $show Whether network-active plugins are shown.
 	 */
@@ -304,7 +304,7 @@ class Tests_Admin_wpPluginsListTablePrepareItems extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_show_network_active() {
+	public static function data_should_list_network_active_plugins_on_site_when_allowed() {
 		return array(
 			'shown'  => array( true ),
 			'hidden' => array( false ),

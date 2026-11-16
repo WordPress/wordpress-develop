@@ -44,7 +44,7 @@ class Tests_Load_WpIsFileModAllowed extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_contexts
+	 * @dataProvider data_passes_context_to_filter
 	 *
 	 * @param string $context Context passed to the function.
 	 */
@@ -67,7 +67,7 @@ class Tests_Load_WpIsFileModAllowed extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_contexts(): array {
+	public static function data_passes_context_to_filter(): array {
 		return array(
 			'install_plugins'   => array( 'install_plugins' ),
 			'automatic_updater' => array( 'automatic_updater' ),

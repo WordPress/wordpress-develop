@@ -329,7 +329,7 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 	 * @covers ::handle_error
 	 * @covers ::get_extension_for_error
 	 *
-	 * @dataProvider data_errors_without_extension
+	 * @dataProvider data_handle_error_returns_invalid_source_without_extension
 	 *
 	 * @param array $error Error details.
 	 */
@@ -347,7 +347,7 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_errors_without_extension() {
+	public static function data_handle_error_returns_invalid_source_without_extension() {
 		return array(
 			'empty error'             => array( array() ),
 			'missing file'            => array(
@@ -593,7 +593,7 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 	 *
 	 * @covers ::handle_exit_recovery_mode
 	 *
-	 * @dataProvider data_non_exit_actions
+	 * @dataProvider data_handle_exit_recovery_mode_ignores_other_actions
 	 *
 	 * @param array $query Query arguments.
 	 */
@@ -617,7 +617,7 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_non_exit_actions() {
+	public static function data_handle_exit_recovery_mode_ignores_other_actions() {
 		return array(
 			'no action'       => array( array() ),
 			'empty action'    => array( array( 'action' => '' ) ),
@@ -634,7 +634,7 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 	 *
 	 * @covers ::handle_exit_recovery_mode
 	 *
-	 * @dataProvider data_invalid_exit_nonces
+	 * @dataProvider data_handle_exit_recovery_mode_dies_on_invalid_nonce
 	 *
 	 * @param array $query Query arguments.
 	 */
@@ -666,7 +666,7 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_invalid_exit_nonces() {
+	public static function data_handle_exit_recovery_mode_dies_on_invalid_nonce() {
 		return array(
 			'missing nonce' => array( array( 'action' => 'exit_recovery_mode' ) ),
 			'empty nonce'   => array(

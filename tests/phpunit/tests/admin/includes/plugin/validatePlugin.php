@@ -112,7 +112,7 @@ class Tests_Admin_Includes_Plugin_ValidatePlugin extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_invalid_plugin_paths
+	 * @dataProvider data_validate_plugin_returns_error_for_invalid_path
 	 *
 	 * @param string $invalid_path Invalid plugin file path.
 	 */
@@ -128,7 +128,7 @@ class Tests_Admin_Includes_Plugin_ValidatePlugin extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_invalid_plugin_paths() {
+	public static function data_validate_plugin_returns_error_for_invalid_path() {
 		return array(
 			'directory traversal at start' => array( '../outside/plugin.php' ),
 			'nested directory traversal'   => array( 'dir/../../file.php' ),

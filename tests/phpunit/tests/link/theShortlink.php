@@ -64,7 +64,7 @@ class Tests_Link_TheShortlink extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_custom_text
+	 * @dataProvider data_the_shortlink_custom_text
 	 *
 	 * @param string $text Custom link text.
 	 */
@@ -74,6 +74,17 @@ class Tests_Link_TheShortlink extends WP_UnitTestCase {
 
 		$this->expectOutputString( $expected );
 		the_shortlink( $text );
+	}
+
+	/**
+	 * Data provider of custom text values.
+	 *
+	 * @return array[]
+	 */
+	public static function data_the_shortlink_custom_text() {
+		return array(
+			'html text' => array( '<span>Shortlink</span>' ),
+		);
 	}
 
 	/**
@@ -171,16 +182,5 @@ class Tests_Link_TheShortlink extends WP_UnitTestCase {
 		the_shortlink( 'Shortlink', '', '<p>', '</p>' );
 
 		remove_filter( 'pre_get_shortlink', $filter );
-	}
-
-	/**
-	 * Data provider of custom text values.
-	 *
-	 * @return array[]
-	 */
-	public static function data_custom_text() {
-		return array(
-			'html text' => array( '<span>Shortlink</span>' ),
-		);
 	}
 }

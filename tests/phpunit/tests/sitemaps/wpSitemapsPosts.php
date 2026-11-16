@@ -186,7 +186,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Sitemaps_Posts::get_url_list
 	 *
-	 * @dataProvider data_unsupported_post_types
+	 * @dataProvider data_get_url_list_returns_empty_array_for_unsupported_post_type
 	 *
 	 * @param string $post_type Post type.
 	 */
@@ -215,7 +215,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_unsupported_post_types() {
+	public static function data_get_url_list_returns_empty_array_for_unsupported_post_type() {
 		return array(
 			'empty post type'        => array( '' ),
 			'attachment'             => array( 'attachment' ),
@@ -561,7 +561,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Sitemaps_Posts::get_max_num_pages
 	 *
-	 * @dataProvider data_show_on_front
+	 * @dataProvider data_get_max_num_pages_without_posts_depends_on_show_on_front
 	 *
 	 * @param string $show_on_front Value of the show_on_front option.
 	 * @param string $post_type     Post type.
@@ -580,7 +580,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_show_on_front() {
+	public static function data_get_max_num_pages_without_posts_depends_on_show_on_front() {
 		return array(
 			'pages, homepage shows latest posts' => array( 'posts', 'page', 1 ),
 			'pages, homepage shows a page'       => array( 'page', 'page', 0 ),

@@ -119,7 +119,7 @@ class Tests_Admin_Includes_Plugin_GetPluginDataMarkupTranslate extends WP_UnitTe
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_empty_markup_fields
+	 * @dataProvider data_should_skip_markup_for_empty_fields
 	 *
 	 * @param array $fields   The plugin data fields.
 	 * @param array $expected The expected Title, Author and Description.
@@ -142,7 +142,7 @@ class Tests_Admin_Includes_Plugin_GetPluginDataMarkupTranslate extends WP_UnitTe
 	 *
 	 * @return array[]
 	 */
-	public static function data_empty_markup_fields() {
+	public static function data_should_skip_markup_for_empty_fields() {
 		return array(
 			'no plugin URI' => array(
 				array(
@@ -266,7 +266,7 @@ class Tests_Admin_Includes_Plugin_GetPluginDataMarkupTranslate extends WP_UnitTe
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_plugins_without_text_domain
+	 * @dataProvider data_should_handle_plugin_without_text_domain
 	 *
 	 * @param string $plugin_file The plugin file, relative to the plugins directory.
 	 * @param array  $expected    The expected translate() calls.
@@ -289,7 +289,7 @@ class Tests_Admin_Includes_Plugin_GetPluginDataMarkupTranslate extends WP_UnitTe
 	 *
 	 * @return array[]
 	 */
-	public static function data_plugins_without_text_domain() {
+	public static function data_should_handle_plugin_without_text_domain() {
 		return array(
 			'Hello Dolly uses the default text domain' => array(
 				'hello.php',
@@ -311,7 +311,7 @@ class Tests_Admin_Includes_Plugin_GetPluginDataMarkupTranslate extends WP_UnitTe
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_text_domain_paths
+	 * @dataProvider data_should_load_text_domain_from_plugin_directory
 	 *
 	 * @param string $domain_path   The Domain Path header.
 	 * @param string $expected_path The expected path, relative to the plugins directory.
@@ -342,7 +342,7 @@ class Tests_Admin_Includes_Plugin_GetPluginDataMarkupTranslate extends WP_UnitTe
 	 *
 	 * @return array[]
 	 */
-	public static function data_text_domain_paths() {
+	public static function data_should_load_text_domain_from_plugin_directory() {
 		return array(
 			'no domain path' => array( '', 'my-plugin' ),
 			'domain path'    => array( '/languages', 'my-plugin/languages' ),

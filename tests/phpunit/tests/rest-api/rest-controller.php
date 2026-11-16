@@ -442,20 +442,6 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Data provider for test_get_fields_for_response_respects_data_processing().
-	 *
-	 * @return array<string, array{0: mixed, 1: bool}>
-	 */
-	public static function data_get_fields_for_response_respects_data_processing(): array {
-		return array(
-			'false'        => array( false, false ),
-			'fields false' => array( array( 'fields' => false ), false ),
-			'links false'  => array( array( 'links' => false ), true ),
-			'true'         => array( true, true ),
-		);
-	}
-
-	/**
 	 * @ticket 66372
 	 * @dataProvider data_get_fields_for_response_respects_data_processing
 	 *
@@ -476,6 +462,20 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			$this->assertContains( 'someinteger', $fields, 'The _fields parameter should be ignored when the fields processing is off.' );
 			$this->assertContains( '_links', $fields, 'The _fields parameter should be ignored when the fields processing is off.' );
 		}
+	}
+
+	/**
+	 * Data provider for test_get_fields_for_response_respects_data_processing().
+	 *
+	 * @return array<string, array{0: mixed, 1: bool}>
+	 */
+	public static function data_get_fields_for_response_respects_data_processing(): array {
+		return array(
+			'false'        => array( false, false ),
+			'fields false' => array( array( 'fields' => false ), false ),
+			'links false'  => array( array( 'links' => false ), true ),
+			'true'         => array( true, true ),
+		);
 	}
 
 	public function test_get_fields_for_response_filters_by_context() {

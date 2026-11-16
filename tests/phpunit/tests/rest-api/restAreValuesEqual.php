@@ -81,7 +81,7 @@ class Tests_REST_API_RestAreValuesEqual extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_unequal_values
+	 * @dataProvider data_returns_false_for_unequal_values
 	 *
 	 * @param mixed $value1 First value.
 	 * @param mixed $value2 Second value.
@@ -95,7 +95,7 @@ class Tests_REST_API_RestAreValuesEqual extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_unequal_values() {
+	public static function data_returns_false_for_unequal_values() {
 		return array(
 			'different strings'    => array( 'hello', 'world' ),
 			'string and integer'   => array( '1', 1 ),

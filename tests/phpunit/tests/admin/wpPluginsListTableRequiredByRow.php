@@ -106,7 +106,7 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_single_file_plugins
+	 * @dataProvider data_should_match_single_file_dependency_by_slug
 	 *
 	 * @param string $plugin_file The plugin file.
 	 * @param string $slug        The slug that dependents require.
@@ -122,7 +122,7 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 	 *
 	 * @return array[]
 	 */
-	public static function data_single_file_plugins() {
+	public static function data_should_match_single_file_dependency_by_slug() {
 		return array(
 			'single-file plugin' => array( 'my-plugin.php', 'my-plugin' ),
 			'Hello Dolly'        => array( 'hello.php', 'hello-dolly' ),

@@ -122,7 +122,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @dataProvider data_editor_destinations
+	 * @dataProvider data_login_prefetches_editor_assets_for_editor_destination
 	 *
 	 * @param string $redirect_to Where the login redirects to.
 	 * @param bool   $is_editor   Whether that is the block editor.
@@ -146,7 +146,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string, 1: bool }>
 	 */
-	public static function data_editor_destinations(): array {
+	public static function data_login_prefetches_editor_assets_for_editor_destination(): array {
 		return array(
 			'Dashboard'                    => array( '/wp-admin/', false ),
 			'Dashboard, no trailing slash' => array( '/wp-admin', false ),
@@ -182,7 +182,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @dataProvider data_editor_destinations_by_post_type
+	 * @dataProvider data_login_checks_block_editor_for_post_type
 	 *
 	 * @param non-falsy-string $redirect_to Where the login redirects to.
 	 * @param bool             $is_editor   Whether that is expected to be the block editor.
@@ -213,7 +213,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: bool }>
 	 */
-	public static function data_editor_destinations_by_post_type(): array {
+	public static function data_login_checks_block_editor_for_post_type(): array {
 		return array(
 			'new post'               => array( '/wp-admin/post-new.php', true ),
 			'new page'               => array( '/wp-admin/post-new.php?post_type=page', false ),
@@ -246,7 +246,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @dataProvider data_login_screens
+	 * @dataProvider data_login_prefetches_on_every_login_screen
 	 *
 	 * @param array<string, string> $request Request parameters of the login screen.
 	 */
@@ -261,7 +261,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: array<string, string> }>
 	 */
-	public static function data_login_screens(): array {
+	public static function data_login_prefetches_on_every_login_screen(): array {
 		return array(
 			'login form'           => array( array() ),
 			'lost password'        => array( array( 'action' => 'lostpassword' ) ),
@@ -296,7 +296,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @dataProvider data_login_requests_not_leading_to_admin
+	 * @dataProvider data_login_prints_nothing_when_not_leading_to_admin
 	 *
 	 * @param array<string, string> $request Request parameters of the login screen.
 	 */
@@ -312,7 +312,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: array<string, string> }>
 	 */
-	public static function data_login_requests_not_leading_to_admin(): array {
+	public static function data_login_prints_nothing_when_not_leading_to_admin(): array {
 		return array(
 			'front end redirect'                 => array( array( 'redirect_to' => '/hello-world/' ) ),
 			'lookalike admin path'               => array( array( 'redirect_to' => '/wp-admin-lookalike/' ) ),
@@ -480,7 +480,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @dataProvider data_admin_screens_leading_to_editor
+	 * @dataProvider data_admin_screen_prefetches_editor_assets
 	 *
 	 * @param string $screen    Screen ID.
 	 * @param string $post_type Post type of the editor expected to be prefetched for.
@@ -503,7 +503,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string, 1: string }>
 	 */
-	public static function data_admin_screens_leading_to_editor(): array {
+	public static function data_admin_screen_prefetches_editor_assets(): array {
 		return array(
 			'Dashboard'  => array( 'dashboard', 'post' ),
 			'Posts list' => array( 'edit', 'post' ),
@@ -516,7 +516,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @dataProvider data_other_admin_screens
+	 * @dataProvider data_other_admin_screen_prints_nothing
 	 *
 	 * @param string $screen Screen ID.
 	 */
@@ -531,7 +531,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string }>
 	 */
-	public static function data_other_admin_screens(): array {
+	public static function data_other_admin_screen_prints_nothing(): array {
 		return array(
 			'Plugins'                 => array( 'plugins' ),
 			'Network Admin Dashboard' => array( 'dashboard-network' ),
@@ -930,7 +930,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @dataProvider data_filter_turning_off
+	 * @dataProvider data_filter_can_turn_off_prefetching
 	 *
 	 * @param mixed $filtered Value the filter returns.
 	 */
@@ -943,6 +943,18 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( '', $this->get_login_footer_output() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_filter_can_turn_off_prefetching()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed }>
+	 */
+	public static function data_filter_can_turn_off_prefetching(): array {
+		return array(
+			'empty array'  => array( array() ),
+			'not an array' => array( null ),
+		);
 	}
 
 	/**
@@ -972,18 +984,6 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		$this->assertSame( 0, $links_after_js, 'Expected the script to follow all of the prefetch links.' );
 		$this->assertStringContainsString( 'link[rel~="prefetch"]', $scripts[0] );
 		$this->assertStringContainsString( '//# sourceURL=wp_prefetch_admin_assets', $scripts[0] );
-	}
-
-	/**
-	 * Data provider for {@see self::test_filter_can_turn_off_prefetching()}.
-	 *
-	 * @return array<non-falsy-string, array{ 0: mixed }>
-	 */
-	public static function data_filter_turning_off(): array {
-		return array(
-			'empty array'  => array( array() ),
-			'not an array' => array( null ),
-		);
 	}
 
 	/**

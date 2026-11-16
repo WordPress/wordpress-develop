@@ -860,33 +860,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns `show_in_abilities` values other than `true`.
-	 *
-	 * @return array<string, array{value: mixed}> Non-boolean `show_in_abilities` test cases.
-	 */
-	public static function data_show_in_abilities_values_other_than_true(): array {
-		return array(
-			'false'               => array(
-				'value' => false,
-			),
-			'array of operations' => array(
-				'value' => array( 'create' ),
-			),
-			'string "false"'      => array(
-				'value' => 'false',
-			),
-			'integer 1'           => array(
-				'value' => 1,
-			),
-		);
-	}
-
-	/**
 	 * Only a `show_in_abilities` value of `true` exposes a post type, so other values, such as
 	 * arrays, can be given a meaning later.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_show_in_abilities_values_other_than_true
+	 * @dataProvider data_does_not_expose_a_post_type_with_a_show_in_abilities_value_other_than_true
 	 * @since 7.2.0
 	 *
 	 * @param mixed $value The `show_in_abilities` value to register the post type with.
@@ -926,6 +904,28 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 		$this->assertWPError( $result, 'A post of the post type should not be readable by ID.' );
 		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'A query of the post type should fail validation.' );
+	}
+
+	/**
+	 * Returns `show_in_abilities` values other than `true`.
+	 *
+	 * @return array<string, array{value: mixed}> Non-boolean `show_in_abilities` test cases.
+	 */
+	public static function data_does_not_expose_a_post_type_with_a_show_in_abilities_value_other_than_true(): array {
+		return array(
+			'false'               => array(
+				'value' => false,
+			),
+			'array of operations' => array(
+				'value' => array( 'create' ),
+			),
+			'string "false"'      => array(
+				'value' => 'false',
+			),
+			'integer 1'           => array(
+				'value' => 1,
+			),
+		);
 	}
 
 	/**
@@ -1139,12 +1139,31 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A query whose IDs or slugs match no post of the post type returns the empty result,
+	 * rather than an error.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_ids_or_slugs_that_match_no_post_return_the_empty_result
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $where The `where` value to send.
+	 */
+	public function test_ids_or_slugs_that_match_no_post_return_the_empty_result( array $where ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'where' => $where ) );
+
+		$this->assertSame( self::EMPTY_RESULT, $result, 'A query whose IDs or slugs match no post should return the empty result.' );
+	}
+
+	/**
 	 * Returns `where` values whose IDs or slugs match no post of the post type: a missing ID
 	 * and a slug that no post has.
 	 *
 	 * @return array<string, array{where: array<string, mixed>}> The `where` values.
 	 */
-	public static function data_where_values_that_match_no_post(): array {
+	public static function data_ids_or_slugs_that_match_no_post_return_the_empty_result(): array {
 		return array(
 			'missing ID'            => array(
 				'where' => array(
@@ -1159,25 +1178,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				),
 			),
 		);
-	}
-
-	/**
-	 * A query whose IDs or slugs match no post of the post type returns the empty result,
-	 * rather than an error.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_where_values_that_match_no_post
-	 * @since 7.2.0
-	 *
-	 * @param array<string, mixed> $where The `where` value to send.
-	 */
-	public function test_ids_or_slugs_that_match_no_post_return_the_empty_result( array $where ): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute( array( 'where' => $where ) );
-
-		$this->assertSame( self::EMPTY_RESULT, $result, 'A query whose IDs or slugs match no post should return the empty result.' );
 	}
 
 	/**
@@ -1233,39 +1233,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns `where` filters that name a post in the publicly viewable `public_archive` status.
-	 *
-	 * @return array<string, array{where: array<string, mixed>}> Filter test cases.
-	 */
-	public static function data_filters_naming_a_post_in_a_viewable_custom_status(): array {
-		return array(
-			'ids'    => array(
-				'where' => array(
-					'type' => 'post',
-					'ids'  => array( self::IMPORTED_POST_ID ),
-				),
-			),
-			'slugs'  => array(
-				'where' => array(
-					'type'  => 'post',
-					'slugs' => array( 'public-archive-post' ),
-				),
-			),
-			'status' => array(
-				'where' => array(
-					'type'   => 'post',
-					'status' => array( 'public_archive' ),
-				),
-			),
-		);
-	}
-
-	/**
 	 * A post in a publicly viewable custom status is returned to a subscriber, who cannot edit
 	 * it, whether the query names it by ID, by slug or by status.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_filters_naming_a_post_in_a_viewable_custom_status
+	 * @dataProvider data_viewable_custom_status_is_readable_by_subscribers
 	 * @since 7.2.0
 	 *
 	 * @param array<string, mixed> $where The `where` filters.
@@ -1310,6 +1282,34 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			),
 			$result,
 			'A subscriber should get the post in a publicly viewable custom status.'
+		);
+	}
+
+	/**
+	 * Returns `where` filters that name a post in the publicly viewable `public_archive` status.
+	 *
+	 * @return array<string, array{where: array<string, mixed>}> Filter test cases.
+	 */
+	public static function data_viewable_custom_status_is_readable_by_subscribers(): array {
+		return array(
+			'ids'    => array(
+				'where' => array(
+					'type' => 'post',
+					'ids'  => array( self::IMPORTED_POST_ID ),
+				),
+			),
+			'slugs'  => array(
+				'where' => array(
+					'type'  => 'post',
+					'slugs' => array( 'public-archive-post' ),
+				),
+			),
+			'status' => array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 'public_archive' ),
+				),
+			),
 		);
 	}
 
@@ -1887,25 +1887,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns a role that cannot read another user's draft and a role that can, with the posts
-	 * that share a slug that each role gets, newest first.
-	 *
-	 * @return array<string, array{role: string, expected: list<string>}> Role test cases.
-	 */
-	public static function data_roles_with_and_without_access_to_others_drafts(): array {
-		return array(
-			'subscriber' => array(
-				'role'     => 'subscriber',
-				'expected' => array( 'published' ),
-			),
-			'editor'     => array(
-				'role'     => 'editor',
-				'expected' => array( 'draft', 'published' ),
-			),
-		);
-	}
-
-	/**
 	 * A newer draft that shares a published post's slug comes back next to the published post
 	 * for a role that can read the draft, and is withheld from a role that cannot.
 	 *
@@ -1913,7 +1894,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * drafts, while an editor's do.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_roles_with_and_without_access_to_others_drafts
+	 * @dataProvider data_slugs_return_a_newer_draft_sharing_the_slug_only_to_roles_that_can_read_it
 	 * @since 7.2.0
 	 *
 	 * @param string       $role     The role to query the slug as.
@@ -1968,6 +1949,25 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns a role that cannot read another user's draft and a role that can, with the posts
+	 * that share a slug that each role gets, newest first.
+	 *
+	 * @return array<string, array{role: string, expected: list<string>}> Role test cases.
+	 */
+	public static function data_slugs_return_a_newer_draft_sharing_the_slug_only_to_roles_that_can_read_it(): array {
+		return array(
+			'subscriber' => array(
+				'role'     => 'subscriber',
+				'expected' => array( 'published' ),
+			),
+			'editor'     => array(
+				'role'     => 'editor',
+				'expected' => array( 'draft', 'published' ),
+			),
+		);
+	}
+
+	/**
 	 * An unknown requested field path fails schema validation.
 	 *
 	 * Unlike fields a post type does not support, which are omitted per post, a field path
@@ -1995,11 +1995,41 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A sub-field path returns only that sub-field, inside its object.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_sub_field_path_returns_only_that_sub_field
+	 * @since 7.2.0
+	 *
+	 * @param string $field The field path to request, such as `title.rendered`.
+	 */
+	public function test_sub_field_path_returns_only_that_sub_field( string $field ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		list( $object, $key ) = explode( '.', $field );
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( self::$post_ids['limited_role_content'] ),
+				),
+				'fields' => array( $field ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The query should succeed.' );
+		$this->assertSameSets( array( 'id', $object ), array_keys( $result['items'][0] ), 'Only the ID and the object that holds the sub-field should be returned.' );
+		$this->assertSame( array( $key ), array_keys( $result['items'][0][ $object ] ), 'The object should hold only the requested sub-field.' );
+	}
+
+	/**
 	 * Returns field paths that each name one sub-field.
 	 *
 	 * @return array<string, array{field: string}> Field path test cases.
 	 */
-	public static function data_sub_field_paths(): array {
+	public static function data_sub_field_path_returns_only_that_sub_field(): array {
 		return array(
 			'title.rendered'    => array(
 				'field' => 'title.rendered',
@@ -2029,19 +2059,18 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A sub-field path returns only that sub-field, inside its object.
+	 * A whole object returns every key it holds to a user who can edit the post.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_sub_field_paths
+	 * @dataProvider data_whole_object_returns_every_key_to_a_user_who_can_edit_the_post
 	 * @since 7.2.0
 	 *
-	 * @param string $field The field path to request, such as `title.rendered`.
+	 * @param string       $field The object field to request.
+	 * @param list<string> $keys  The keys the object should hold, in order.
 	 */
-	public function test_sub_field_path_returns_only_that_sub_field( string $field ): void {
+	public function test_whole_object_returns_every_key_to_a_user_who_can_edit_the_post( string $field, array $keys ): void {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
-
-		list( $object, $key ) = explode( '.', $field );
 
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
@@ -2054,8 +2083,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result, 'The query should succeed.' );
-		$this->assertSameSets( array( 'id', $object ), array_keys( $result['items'][0] ), 'Only the ID and the object that holds the sub-field should be returned.' );
-		$this->assertSame( array( $key ), array_keys( $result['items'][0][ $object ] ), 'The object should hold only the requested sub-field.' );
+		$this->assertSame( array( 'id', $field ), array_keys( $result['items'][0] ), 'Only the ID and the requested object should be returned.' );
+		$this->assertSame( $keys, array_keys( $result['items'][0][ $field ] ), 'The object should hold every key, in order.' );
 	}
 
 	/**
@@ -2063,7 +2092,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{field: string, keys: list<string>}> Object field test cases.
 	 */
-	public static function data_object_fields(): array {
+	public static function data_whole_object_returns_every_key_to_a_user_who_can_edit_the_post(): array {
 		return array(
 			'title'    => array(
 				'field' => 'title',
@@ -2090,35 +2119,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'keys'  => array( 'id', 'name', 'slug' ),
 			),
 		);
-	}
-
-	/**
-	 * A whole object returns every key it holds to a user who can edit the post.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_object_fields
-	 * @since 7.2.0
-	 *
-	 * @param string       $field The object field to request.
-	 * @param list<string> $keys  The keys the object should hold, in order.
-	 */
-	public function test_whole_object_returns_every_key_to_a_user_who_can_edit_the_post( string $field, array $keys ): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where'  => array(
-					'type' => 'post',
-					'ids'  => array( self::$post_ids['limited_role_content'] ),
-				),
-				'fields' => array( $field ),
-			)
-		);
-
-		$this->assertIsArray( $result, 'The query should succeed.' );
-		$this->assertSame( array( 'id', $field ), array_keys( $result['items'][0] ), 'Only the ID and the requested object should be returned.' );
-		$this->assertSame( $keys, array_keys( $result['items'][0][ $field ] ), 'The object should hold every key, in order.' );
 	}
 
 	/**
@@ -2406,7 +2406,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @ticket 66268
 	 * @since 7.2.0
 	 *
-	 * @dataProvider data_author_visibility
+	 * @dataProvider data_author_name_and_slug_are_returned_to_users_who_may_see_the_author
 	 *
 	 * @param string $role              The role that reads the post, or `self` for the author.
 	 * @param string $post_status       The status of the author's only post.
@@ -2484,7 +2484,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{role: string, post_status: string, expected_visible: bool}>
 	 */
-	public static function data_author_visibility(): array {
+	public static function data_author_name_and_slug_are_returned_to_users_who_may_see_the_author(): array {
 		return array(
 			'editor, pending post'         => array(
 				'role'             => 'editor',
@@ -2912,31 +2912,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns statuses that are neither publicly viewable nor `private`: a draft, a public status
-	 * that is not viewable, and a custom status flagged private, which WP_Query does not narrow
-	 * to the current user's own posts as it does `private`.
-	 *
-	 * @return array<string, array{status: string}> Status test cases.
-	 */
-	public static function data_statuses_that_require_edit_access(): array {
-		return array(
-			'draft'                         => array(
-				'status' => 'draft',
-			),
-			'public status, not viewable'   => array(
-				'status' => 'public_hidden',
-			),
-			'custom status flagged private' => array(
-				'status' => 'members_only',
-			),
-		);
-	}
-
-	/**
 	 * Subscribers cannot request posts in a status that requires edit access.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_statuses_that_require_edit_access
+	 * @dataProvider data_subscriber_cannot_request_statuses_that_require_edit_access
 	 * @since 7.2.0
 	 *
 	 * @param string $status The status to request.
@@ -2972,6 +2951,27 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'Subscribers should not be allowed to query posts in a status that requires edit access.' );
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'A subscriber query for a status that requires edit access should return a permission error.' );
+	}
+
+	/**
+	 * Returns statuses that are neither publicly viewable nor `private`: a draft, a public status
+	 * that is not viewable, and a custom status flagged private, which WP_Query does not narrow
+	 * to the current user's own posts as it does `private`.
+	 *
+	 * @return array<string, array{status: string}> Status test cases.
+	 */
+	public static function data_subscriber_cannot_request_statuses_that_require_edit_access(): array {
+		return array(
+			'draft'                         => array(
+				'status' => 'draft',
+			),
+			'public status, not viewable'   => array(
+				'status' => 'public_hidden',
+			),
+			'custom status flagged private' => array(
+				'status' => 'members_only',
+			),
+		);
 	}
 
 	/**
@@ -3297,39 +3297,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns roles with the posts that a query by ID without a status returns to them, and the
-	 * total they get.
-	 *
-	 * The posts are named by status and by owner: the `own_` posts belong to the `author` role,
-	 * and the published post and the `other_` posts to another author.
-	 *
-	 * The total counts the posts that the query covers, including withheld ones. Another user's
-	 * private post is only covered with `read_private_posts`, so the subscriber's and the
-	 * author's totals leave it out while the editor's counts it.
-	 *
-	 * @return array<string, array{role: string, expected: list<string>, total: int}> Role test cases.
-	 */
-	public static function data_default_statuses_with_ids_by_role(): array {
-		return array(
-			'subscriber' => array(
-				'role'     => 'subscriber',
-				'expected' => array( 'publish' ),
-				'total'    => 1,
-			),
-			'author'     => array(
-				'role'     => 'author',
-				'expected' => array( 'publish', 'own_draft', 'own_pending', 'own_future', 'own_private' ),
-				'total'    => 8,
-			),
-			'editor'     => array(
-				'role'     => 'editor',
-				'expected' => array( 'publish', 'own_draft', 'own_pending', 'own_future', 'own_private', 'other_draft', 'other_pending', 'other_future', 'other_private' ),
-				'total'    => 9,
-			),
-		);
-	}
-
-	/**
 	 * A query by ID without a status covers every status that the current user may query, and
 	 * returns the posts in them that the user may read.
 	 *
@@ -3340,7 +3307,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * posts in every status.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_default_statuses_with_ids_by_role
+	 * @dataProvider data_ids_without_a_status_cover_the_statuses_each_role_may_query
 	 * @since 7.2.0
 	 *
 	 * @param string       $role     The role to query as.
@@ -3397,6 +3364,39 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			'The query should return the posts the role may read, in the statuses the role may query.'
 		);
 		$this->assertSame( $total, $result['pagination']['total'], 'The total should count every post the query covers, including withheld ones.' );
+	}
+
+	/**
+	 * Returns roles with the posts that a query by ID without a status returns to them, and the
+	 * total they get.
+	 *
+	 * The posts are named by status and by owner: the `own_` posts belong to the `author` role,
+	 * and the published post and the `other_` posts to another author.
+	 *
+	 * The total counts the posts that the query covers, including withheld ones. Another user's
+	 * private post is only covered with `read_private_posts`, so the subscriber's and the
+	 * author's totals leave it out while the editor's counts it.
+	 *
+	 * @return array<string, array{role: string, expected: list<string>, total: int}> Role test cases.
+	 */
+	public static function data_ids_without_a_status_cover_the_statuses_each_role_may_query(): array {
+		return array(
+			'subscriber' => array(
+				'role'     => 'subscriber',
+				'expected' => array( 'publish' ),
+				'total'    => 1,
+			),
+			'author'     => array(
+				'role'     => 'author',
+				'expected' => array( 'publish', 'own_draft', 'own_pending', 'own_future', 'own_private' ),
+				'total'    => 8,
+			),
+			'editor'     => array(
+				'role'     => 'editor',
+				'expected' => array( 'publish', 'own_draft', 'own_pending', 'own_future', 'own_private', 'other_draft', 'other_pending', 'other_future', 'other_private' ),
+				'total'    => 9,
+			),
+		);
 	}
 
 	/**
@@ -4472,28 +4472,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns the posts whose `the_post` callbacks throw: the requested post, as it is set
-	 * up, and the surrounding post, as it is set up again afterwards.
-	 *
-	 * @return array<string, array{throwing_post: string}> Throwing post test cases.
-	 */
-	public static function data_posts_whose_the_post_callbacks_throw(): array {
-		return array(
-			'requested post'   => array(
-				'throwing_post' => 'limited_role_content',
-			),
-			'surrounding post' => array(
-				'throwing_post' => 'published',
-			),
-		);
-	}
-
-	/**
 	 * A `the_post` callback that throws fails the query without leaving the requested post
 	 * in the loop globals.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_posts_whose_the_post_callbacks_throw
+	 * @dataProvider data_post_context_is_restored_when_a_the_post_callback_throws
 	 * @since 7.2.0
 	 *
 	 * @param string $throwing_post The fixture name of the post whose `the_post` callback throws.
@@ -4539,6 +4522,23 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertWPError( $result, 'A throwing the_post callback should fail the query.' );
 		$this->assertSame( 'ability_callback_exception', $result->get_error_code(), 'A throwing the_post callback should return the callback exception error.' );
 		$this->assertSame( $surrounding_globals, $this->get_loop_globals(), 'The surrounding loop globals should be restored as they were.' );
+	}
+
+	/**
+	 * Returns the posts whose `the_post` callbacks throw: the requested post, as it is set
+	 * up, and the surrounding post, as it is set up again afterwards.
+	 *
+	 * @return array<string, array{throwing_post: string}> Throwing post test cases.
+	 */
+	public static function data_post_context_is_restored_when_a_the_post_callback_throws(): array {
+		return array(
+			'requested post'   => array(
+				'throwing_post' => 'limited_role_content',
+			),
+			'surrounding post' => array(
+				'throwing_post' => 'published',
+			),
+		);
 	}
 
 	/**
@@ -4682,21 +4682,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns whole numbers that the integer schema accepts but that are not PHP integers,
-	 * as a page, a page size, and a page past the last one.
-	 *
-	 * @return array<string, array{0: float|string, 1: float|string, 2: float|string}> The values to send.
-	 */
-	public static function data_whole_numbers_that_are_not_integers(): array {
-		return array(
-			'floats'               => array( 2.0, 2.0, 99.0 ),
-			'decimal strings'      => array( '2.0', '2.0', '99.0' ),
-			'signed strings'       => array( '+2', '+2', '+99' ),
-			'strings with a space' => array( ' 2', ' 2', ' 99' ),
-		);
-	}
-
-	/**
 	 * A `pagination.page` and `pagination.per_page` that the integer schema accepts are honored
 	 * even when they are not PHP integers, as when the MCP adapter passes the 2.0 a JSON encoder
 	 * produced.
@@ -4706,7 +4691,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * a page past the last one.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_whole_numbers_that_are_not_integers
+	 * @dataProvider data_query_honors_a_page_and_per_page_that_are_not_integers
 	 * @since 7.2.0
 	 *
 	 * @param float|string $page      The page to request.
@@ -4736,6 +4721,21 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'A page past the last one should still fail.' );
 		$this->assertSame( 'content_invalid_page_number', $result->get_error_code(), 'A page past the last one should report the out-of-range error.' );
+	}
+
+	/**
+	 * Returns whole numbers that the integer schema accepts but that are not PHP integers,
+	 * as a page, a page size, and a page past the last one.
+	 *
+	 * @return array<string, array{0: float|string, 1: float|string, 2: float|string}> The values to send.
+	 */
+	public static function data_query_honors_a_page_and_per_page_that_are_not_integers(): array {
+		return array(
+			'floats'               => array( 2.0, 2.0, 99.0 ),
+			'decimal strings'      => array( '2.0', '2.0', '99.0' ),
+			'signed strings'       => array( '+2', '+2', '+99' ),
+			'strings with a space' => array( ' 2', ' 2', ' 99' ),
+		);
 	}
 
 	/**
@@ -4876,26 +4876,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns page sizes that a query filter can set, with the pages they make of five posts.
-	 *
-	 * @return array<string, array{posts_per_page: int, total_pages: int, last_page_count: int}> Page size test cases.
-	 */
-	public static function data_page_sizes_set_by_a_query_filter(): array {
-		return array(
-			'smaller page size' => array(
-				'posts_per_page'  => 2,
-				'total_pages'     => 3,
-				'last_page_count' => 1,
-			),
-			'no paging'         => array(
-				'posts_per_page'  => -1,
-				'total_pages'     => 1,
-				'last_page_count' => 5,
-			),
-		);
-	}
-
-	/**
 	 * A query counts the pages with the page size it ran with.
 	 *
 	 * WP_Query treats the ability's query as the blog home, so a `pre_get_posts` callback
@@ -4904,7 +4884,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * hold posts or serve the same posts again.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_page_sizes_set_by_a_query_filter
+	 * @dataProvider data_query_counts_pages_with_the_page_size_the_query_ran_with
 	 * @since 7.2.0
 	 *
 	 * @param int $posts_per_page  The page size the query filter sets.
@@ -4953,6 +4933,26 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns page sizes that a query filter can set, with the pages they make of five posts.
+	 *
+	 * @return array<string, array{posts_per_page: int, total_pages: int, last_page_count: int}> Page size test cases.
+	 */
+	public static function data_query_counts_pages_with_the_page_size_the_query_ran_with(): array {
+		return array(
+			'smaller page size' => array(
+				'posts_per_page'  => 2,
+				'total_pages'     => 3,
+				'last_page_count' => 1,
+			),
+			'no paging'         => array(
+				'posts_per_page'  => -1,
+				'total_pages'     => 1,
+				'last_page_count' => 5,
+			),
+		);
+	}
+
+	/**
 	 * IDs return every requested post when `pagination.per_page` is omitted.
 	 *
 	 * Without this the default page size silently truncates a batch load: a caller asking
@@ -4988,29 +4988,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns the field paths that request a rendered excerpt or content, either directly or
-	 * through the whole object.
-	 *
-	 * @return array<string, array{field: string}> Post meta priming test cases.
-	 */
-	public static function data_fields_that_prime_post_meta(): array {
-		return array(
-			'content.rendered' => array(
-				'field' => 'content.rendered',
-			),
-			'excerpt.rendered' => array(
-				'field' => 'excerpt.rendered',
-			),
-			'whole content'    => array(
-				'field' => 'content',
-			),
-			'whole excerpt'    => array(
-				'field' => 'excerpt',
-			),
-		);
-	}
-
-	/**
 	 * Requesting rendered fields primes the post meta cache for the whole page.
 	 *
 	 * The rendered filter chains may read post meta, so priming avoids one lazy meta
@@ -5018,7 +4995,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * its rendered value.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_fields_that_prime_post_meta
+	 * @dataProvider data_query_rendered_fields_prime_the_post_meta_cache
 	 * @since 7.2.0
 	 *
 	 * @param string $field The field path to request.
@@ -5052,6 +5029,29 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		 * row lazily primes its own meta, which is one query per returned post.
 		 */
 		$this->assertSame( 1, $postmeta_queries, 'Rendered field requests should prime post meta with a single batched query, not one per returned post.' );
+	}
+
+	/**
+	 * Returns the field paths that request a rendered excerpt or content, either directly or
+	 * through the whole object.
+	 *
+	 * @return array<string, array{field: string}> Post meta priming test cases.
+	 */
+	public static function data_query_rendered_fields_prime_the_post_meta_cache(): array {
+		return array(
+			'content.rendered' => array(
+				'field' => 'content.rendered',
+			),
+			'excerpt.rendered' => array(
+				'field' => 'excerpt.rendered',
+			),
+			'whole content'    => array(
+				'field' => 'content',
+			),
+			'whole excerpt'    => array(
+				'field' => 'excerpt',
+			),
+		);
 	}
 
 	/**
@@ -5545,34 +5545,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for date field paths.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @return array<string, array{field: string, column: string}>
-	 */
-	public static function data_date_fields(): array {
-		return array(
-			'date.site'     => array(
-				'field'  => 'date.site',
-				'column' => 'post_date',
-			),
-			'date.gmt'      => array(
-				'field'  => 'date.gmt',
-				'column' => 'post_date_gmt',
-			),
-			'modified.site' => array(
-				'field'  => 'modified.site',
-				'column' => 'post_modified',
-			),
-			'modified.gmt'  => array(
-				'field'  => 'modified.gmt',
-				'column' => 'post_modified_gmt',
-			),
-		);
-	}
-
-	/**
 	 * A malformed stored date reports null instead of failing output validation.
 	 *
 	 * A zero month still parses, but formats with a negative year, which the `date-time`
@@ -5581,7 +5553,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @ticket 66268
 	 * @since 7.2.0
 	 *
-	 * @dataProvider data_date_fields
+	 * @dataProvider data_malformed_date_is_null
 	 *
 	 * @param string $field  The field path to request, such as `date.site`.
 	 * @param string $column The cached post column to corrupt.
@@ -5612,6 +5584,67 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider for date field paths.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, array{field: string, column: string}>
+	 */
+	public static function data_malformed_date_is_null(): array {
+		return array(
+			'date.site'     => array(
+				'field'  => 'date.site',
+				'column' => 'post_date',
+			),
+			'date.gmt'      => array(
+				'field'  => 'date.gmt',
+				'column' => 'post_date_gmt',
+			),
+			'modified.site' => array(
+				'field'  => 'modified.site',
+				'column' => 'post_modified',
+			),
+			'modified.gmt'  => array(
+				'field'  => 'modified.gmt',
+				'column' => 'post_modified_gmt',
+			),
+		);
+	}
+
+	/**
+	 * Called directly, an author filter that is not an object holding an ID or a slug is
+	 * rejected rather than dropped, which would widen the query to every author's posts.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_execute_callback_rejects_an_author_filter_without_an_id_or_a_slug
+	 * @since 7.2.0
+	 *
+	 * @param mixed $author The `where.author` value to send.
+	 */
+	public function test_execute_callback_rejects_an_author_filter_without_an_id_or_a_slug( $author ): void {
+		$this->login_as( 'administrator' );
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute(
+			array(
+				'where' => array(
+					'type'   => 'post',
+					'author' => $author,
+				),
+			)
+		);
+
+		$this->assertWPError( $result, 'An author filter without an ID or a slug must not silently widen the query to all authors.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An author filter without an ID or a slug should fail as an invalid filter.' );
+		$this->assertSame(
+			array( 'where[author]' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the malformed author filter to the error message.'
+		);
+		$this->assertSame( 400, $result->get_error_data()['status'], 'The malformed author filter should be reported as a bad request.' );
+	}
+
+	/**
 	 * Returns `where.author` values that are not an object holding an ID or a slug: values
 	 * that are not objects, empty values, and objects with an unknown property.
 	 *
@@ -5619,7 +5652,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{author: mixed}> The `where.author` values.
 	 */
-	public static function data_author_filters_without_an_id_or_a_slug(): array {
+	public static function data_execute_callback_rejects_an_author_filter_without_an_id_or_a_slug(): array {
 		return array(
 			'string'                          => array(
 				'author' => 'author-slug',
@@ -5658,77 +5691,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Called directly, an author filter that is not an object holding an ID or a slug is
-	 * rejected rather than dropped, which would widen the query to every author's posts.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_author_filters_without_an_id_or_a_slug
-	 * @since 7.2.0
-	 *
-	 * @param mixed $author The `where.author` value to send.
-	 */
-	public function test_execute_callback_rejects_an_author_filter_without_an_id_or_a_slug( $author ): void {
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$result = $execute(
-			array(
-				'where' => array(
-					'type'   => 'post',
-					'author' => $author,
-				),
-			)
-		);
-
-		$this->assertWPError( $result, 'An author filter without an ID or a slug must not silently widen the query to all authors.' );
-		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An author filter without an ID or a slug should fail as an invalid filter.' );
-		$this->assertSame(
-			array( 'where[author]' => $result->get_error_message() ),
-			$result->get_error_data()['params'],
-			'The error data should map the malformed author filter to the error message.'
-		);
-		$this->assertSame( 400, $result->get_error_data()['status'], 'The malformed author filter should be reported as a bad request.' );
-	}
-
-	/**
-	 * Returns `where.author.id` values that are not a positive integer.
-	 *
-	 * Schema validation rejects them all, so the test calls the execute callback directly.
-	 *
-	 * @return array<string, array{id: mixed}> The `where.author.id` values.
-	 */
-	public static function data_author_ids_that_are_not_positive_integers(): array {
-		return array(
-			'zero'             => array(
-				'id' => 0,
-			),
-			'negative number'  => array(
-				'id' => -5,
-			),
-			'fraction'         => array(
-				'id' => 2.5,
-			),
-			'non-digit string' => array(
-				'id' => 'abc',
-			),
-			'true'             => array(
-				'id' => true,
-			),
-			'false'            => array(
-				'id' => false,
-			),
-			'null'             => array(
-				'id' => null,
-			),
-		);
-	}
-
-	/**
 	 * Called directly, an author ID that is not a positive integer is rejected rather than
 	 * coerced, which could match another user's posts or every author's posts.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_author_ids_that_are_not_positive_integers
+	 * @dataProvider data_execute_callback_rejects_an_author_id_that_is_not_a_positive_integer
 	 * @since 7.2.0
 	 *
 	 * @param mixed $id The `where.author.id` value to send.
@@ -5757,17 +5724,34 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns the scalar types, other than integer, that carry a whole number.
+	 * Returns `where.author.id` values that are not a positive integer.
 	 *
-	 * @return array<string, array{type: string}> The type names, as `settype()` takes them.
+	 * Schema validation rejects them all, so the test calls the execute callback directly.
+	 *
+	 * @return array<string, array{id: mixed}> The `where.author.id` values.
 	 */
-	public static function data_author_id_whole_number_types(): array {
+	public static function data_execute_callback_rejects_an_author_id_that_is_not_a_positive_integer(): array {
 		return array(
-			'string of digits' => array(
-				'type' => 'string',
+			'zero'             => array(
+				'id' => 0,
 			),
-			'whole float'      => array(
-				'type' => 'float',
+			'negative number'  => array(
+				'id' => -5,
+			),
+			'fraction'         => array(
+				'id' => 2.5,
+			),
+			'non-digit string' => array(
+				'id' => 'abc',
+			),
+			'true'             => array(
+				'id' => true,
+			),
+			'false'            => array(
+				'id' => false,
+			),
+			'null'             => array(
+				'id' => null,
 			),
 		);
 	}
@@ -5777,7 +5761,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * like a `parent` ID, and names the user with that ID.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_author_id_whole_number_types
+	 * @dataProvider data_execute_callback_accepts_an_author_id_given_as_a_whole_number
 	 * @since 7.2.0
 	 *
 	 * @param string $type The type to give the ID as.
@@ -5817,12 +5801,61 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns the scalar types, other than integer, that carry a whole number.
+	 *
+	 * @return array<string, array{type: string}> The type names, as `settype()` takes them.
+	 */
+	public static function data_execute_callback_accepts_an_author_id_given_as_a_whole_number(): array {
+		return array(
+			'string of digits' => array(
+				'type' => 'string',
+			),
+			'whole float'      => array(
+				'type' => 'float',
+			),
+		);
+	}
+
+	/**
+	 * Called directly, an author filter with several problems reports the first one found:
+	 * the object's shape, then the ID, then the slug.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_execute_callback_reports_the_first_problem_of_an_author_filter
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $author The `where.author` value to send.
+	 * @param string               $param  The parameter the error should name.
+	 */
+	public function test_execute_callback_reports_the_first_problem_of_an_author_filter( array $author, string $param ): void {
+		$this->login_as( 'administrator' );
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute(
+			array(
+				'where' => array(
+					'type'   => 'post',
+					'author' => $author,
+				),
+			)
+		);
+
+		$this->assertWPError( $result, 'An author filter with several problems should be rejected.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An author filter with several problems should fail as an invalid filter.' );
+		$this->assertSame(
+			array( $param => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should name the first problem found in the author filter.'
+		);
+	}
+
+	/**
 	 * Returns author filters with more than one problem, with the parameter the error
 	 * should name: the object's shape is checked before its ID, and the ID before its slug.
 	 *
 	 * @return array<string, array{author: array<string, mixed>, param: string}> The filters and parameters.
 	 */
-	public static function data_author_filters_with_several_problems(): array {
+	public static function data_execute_callback_reports_the_first_problem_of_an_author_filter(): array {
 		return array(
 			'unknown property next to a bad id' => array(
 				'author' => array(
@@ -5856,74 +5889,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Called directly, an author filter with several problems reports the first one found:
-	 * the object's shape, then the ID, then the slug.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_author_filters_with_several_problems
-	 * @since 7.2.0
-	 *
-	 * @param array<string, mixed> $author The `where.author` value to send.
-	 * @param string               $param  The parameter the error should name.
-	 */
-	public function test_execute_callback_reports_the_first_problem_of_an_author_filter( array $author, string $param ): void {
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$result = $execute(
-			array(
-				'where' => array(
-					'type'   => 'post',
-					'author' => $author,
-				),
-			)
-		);
-
-		$this->assertWPError( $result, 'An author filter with several problems should be rejected.' );
-		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An author filter with several problems should fail as an invalid filter.' );
-		$this->assertSame(
-			array( $param => $result->get_error_message() ),
-			$result->get_error_data()['params'],
-			'The error data should name the first problem found in the author filter.'
-		);
-	}
-
-	/**
-	 * Returns `where.author.slug` values that are not a non-empty string.
-	 *
-	 * Schema validation rejects them all, so the test calls the execute callback directly.
-	 *
-	 * @return array<string, array{slug: mixed}> The `where.author.slug` values.
-	 */
-	public static function data_author_slugs_that_are_not_non_empty_strings(): array {
-		return array(
-			'integer'      => array(
-				'slug' => 5,
-			),
-			'boolean'      => array(
-				'slug' => true,
-			),
-			'list'         => array(
-				'slug' => array( 'author-slug' ),
-			),
-			'object'       => array(
-				'slug' => (object) array( 'slug' => 'author-slug' ),
-			),
-			'null'         => array(
-				'slug' => null,
-			),
-			'empty string' => array(
-				'slug' => '',
-			),
-		);
-	}
-
-	/**
 	 * Called directly, an author slug that is not a string, or is empty, is rejected rather
 	 * than silently dropped, which would widen the query to every author's posts.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_author_slugs_that_are_not_non_empty_strings
+	 * @dataProvider data_execute_callback_rejects_an_author_slug_that_is_not_a_non_empty_string
 	 * @since 7.2.0
 	 *
 	 * @param mixed $slug The `where.author.slug` value to send.
@@ -5949,6 +5919,36 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			'The error data should map the malformed author slug to the error message.'
 		);
 		$this->assertSame( 400, $result->get_error_data()['status'], 'The malformed author slug should be reported as a bad request.' );
+	}
+
+	/**
+	 * Returns `where.author.slug` values that are not a non-empty string.
+	 *
+	 * Schema validation rejects them all, so the test calls the execute callback directly.
+	 *
+	 * @return array<string, array{slug: mixed}> The `where.author.slug` values.
+	 */
+	public static function data_execute_callback_rejects_an_author_slug_that_is_not_a_non_empty_string(): array {
+		return array(
+			'integer'      => array(
+				'slug' => 5,
+			),
+			'boolean'      => array(
+				'slug' => true,
+			),
+			'list'         => array(
+				'slug' => array( 'author-slug' ),
+			),
+			'object'       => array(
+				'slug' => (object) array( 'slug' => 'author-slug' ),
+			),
+			'null'         => array(
+				'slug' => null,
+			),
+			'empty string' => array(
+				'slug' => '',
+			),
+		);
 	}
 
 	/**
@@ -6105,32 +6105,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns `where.ids` values that hold no valid ID: no item is a whole number of at least
-	 * 1 within the integer range.
-	 *
-	 * @return array<string, array{ids: mixed}> The `where.ids` values.
-	 */
-	public static function data_ids_with_no_valid_ids(): array {
-		return array(
-			'zero'                     => array(
-				'ids' => array( 0 ),
-			),
-			'fraction'                 => array(
-				'ids' => array( 2.5 ),
-			),
-			'negative number'          => array(
-				'ids' => array( -5 ),
-			),
-			'non-numeric string'       => array(
-				'ids' => 'abc',
-			),
-			'beyond the integer range' => array(
-				'ids' => array( 2 ** 64 + self::ALIASED_POST_ID ),
-			),
-		);
-	}
-
-	/**
 	 * An ids filter that parses to no valid IDs is rejected rather than returning an
 	 * unrestricted result set.
 	 *
@@ -6140,7 +6114,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * published post whose ID it aliases.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_ids_with_no_valid_ids
+	 * @dataProvider data_execute_callback_rejects_ids_with_no_valid_ids
 	 * @since 7.2.0
 	 *
 	 * @param mixed $ids The `where.ids` value to send.
@@ -6171,6 +6145,32 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			array( 'where[ids]' => $result->get_error_message() ),
 			$result->get_error_data()['params'],
 			'The error data should map the ids filter to the error message.'
+		);
+	}
+
+	/**
+	 * Returns `where.ids` values that hold no valid ID: no item is a whole number of at least
+	 * 1 within the integer range.
+	 *
+	 * @return array<string, array{ids: mixed}> The `where.ids` values.
+	 */
+	public static function data_execute_callback_rejects_ids_with_no_valid_ids(): array {
+		return array(
+			'zero'                     => array(
+				'ids' => array( 0 ),
+			),
+			'fraction'                 => array(
+				'ids' => array( 2.5 ),
+			),
+			'negative number'          => array(
+				'ids' => array( -5 ),
+			),
+			'non-numeric string'       => array(
+				'ids' => 'abc',
+			),
+			'beyond the integer range' => array(
+				'ids' => array( 2 ** 64 + self::ALIASED_POST_ID ),
+			),
 		);
 	}
 
@@ -6224,33 +6224,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns `where.slugs` values in which no slug is left after normalization.
-	 *
-	 * Schema validation rejects the empty ones, so the test calls the execute callback
-	 * directly.
-	 *
-	 * @return array<string, array{slugs: mixed}> The `where.slugs` values.
-	 */
-	public static function data_slugs_with_no_slug_left(): array {
-		return array(
-			'empty slug'         => array(
-				'slugs' => array( '' ),
-			),
-			'empty string'       => array(
-				'slugs' => '',
-			),
-			'punctuation string' => array(
-				'slugs' => '!!!',
-			),
-		);
-	}
-
-	/**
 	 * Called directly, a slugs filter with no slug left after normalization is rejected rather
 	 * than widened to every post.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_slugs_with_no_slug_left
+	 * @dataProvider data_execute_callback_rejects_slugs_with_no_slug_left
 	 * @since 7.2.0
 	 *
 	 * @param mixed $slugs The `where.slugs` value to send.
@@ -6280,13 +6258,65 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns `where.slugs` values in which no slug is left after normalization.
+	 *
+	 * Schema validation rejects the empty ones, so the test calls the execute callback
+	 * directly.
+	 *
+	 * @return array<string, array{slugs: mixed}> The `where.slugs` values.
+	 */
+	public static function data_execute_callback_rejects_slugs_with_no_slug_left(): array {
+		return array(
+			'empty slug'         => array(
+				'slugs' => array( '' ),
+			),
+			'empty string'       => array(
+				'slugs' => '',
+			),
+			'punctuation string' => array(
+				'slugs' => '!!!',
+			),
+		);
+	}
+
+	/**
+	 * Called directly, a status filter with a status that is not registered, or is internal, or
+	 * with no status left in it, is rejected rather than queried.
+	 *
+	 * WP_Query ignores a status that is not registered, and with no status left it covers every
+	 * status, including `trash`. A list that is given but empty would fall through to the default
+	 * statuses instead, which with `ids` or `slugs` cover every status the user may query.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_execute_callback_rejects_statuses_that_cannot_be_queried
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $where The `where` filters to send.
+	 */
+	public function test_execute_callback_rejects_statuses_that_cannot_be_queried( array $where ): void {
+		$this->login_as( 'administrator' );
+
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute( array( 'where' => $where ) );
+
+		$this->assertWPError( $result, 'A status filter with a status that cannot be queried must not run the query.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'A status that cannot be queried should fail as an invalid filter.' );
+		$this->assertSame(
+			array( 'where[status]' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the status filter to the error message.'
+		);
+	}
+
+	/**
 	 * Returns `where` filters with a status that is not registered, or is internal, which reach
 	 * the execute callback when it is called directly, or when the input schema lists a status
 	 * that is not registered when the query runs.
 	 *
 	 * @return array<string, array{where: array<string, mixed>}> The `where` filters.
 	 */
-	public static function data_where_filters_with_statuses_that_cannot_be_queried(): array {
+	public static function data_execute_callback_rejects_statuses_that_cannot_be_queried(): array {
 		return array(
 			'empty status list'                   => array(
 				'where' => array(
@@ -6331,36 +6361,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'status' => array( 'inherit' ),
 				),
 			),
-		);
-	}
-
-	/**
-	 * Called directly, a status filter with a status that is not registered, or is internal, or
-	 * with no status left in it, is rejected rather than queried.
-	 *
-	 * WP_Query ignores a status that is not registered, and with no status left it covers every
-	 * status, including `trash`. A list that is given but empty would fall through to the default
-	 * statuses instead, which with `ids` or `slugs` cover every status the user may query.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_where_filters_with_statuses_that_cannot_be_queried
-	 * @since 7.2.0
-	 *
-	 * @param array<string, mixed> $where The `where` filters to send.
-	 */
-	public function test_execute_callback_rejects_statuses_that_cannot_be_queried( array $where ): void {
-		$this->login_as( 'administrator' );
-
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$result = $execute( array( 'where' => $where ) );
-
-		$this->assertWPError( $result, 'A status filter with a status that cannot be queried must not run the query.' );
-		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'A status that cannot be queried should fail as an invalid filter.' );
-		$this->assertSame(
-			array( 'where[status]' => $result->get_error_message() ),
-			$result->get_error_data()['params'],
-			'The error data should map the status filter to the error message.'
 		);
 	}
 

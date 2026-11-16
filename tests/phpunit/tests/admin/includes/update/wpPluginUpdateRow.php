@@ -241,7 +241,7 @@ class Tests_Admin_Includes_Update_WpPluginUpdateRow extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_details_urls
+	 * @dataProvider data_should_choose_details_url
 	 *
 	 * @param array  $response    The update response fields.
 	 * @param string $slug        The expected plugin slug.
@@ -267,7 +267,7 @@ class Tests_Admin_Includes_Update_WpPluginUpdateRow extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_details_urls() {
+	public static function data_should_choose_details_url() {
 		return array(
 			'update URL' => array(
 				array(
@@ -347,7 +347,7 @@ class Tests_Admin_Includes_Update_WpPluginUpdateRow extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_no_update_rows
+	 * @dataProvider data_update_rows_should_not_hook_rows
 	 *
 	 * @param string $user     The user, 'admin' or 'subscriber'.
 	 * @param mixed  $response The response of the update transient, or false for no transient.
@@ -369,7 +369,7 @@ class Tests_Admin_Includes_Update_WpPluginUpdateRow extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_no_update_rows() {
+	public static function data_update_rows_should_not_hook_rows() {
 		return array(
 			'user who cannot update plugins' => array( 'subscriber', array( self::FILE => (object) array( 'slug' => 'my-plugin' ) ) ),
 			'no update transient'            => array( 'admin', false ),

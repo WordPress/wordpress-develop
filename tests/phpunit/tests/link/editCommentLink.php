@@ -93,7 +93,7 @@ class Tests_Link_EditCommentLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_before_and_after_markup
+	 * @dataProvider data_should_prepend_and_append_markup
 	 *
 	 * @param string $before The markup to prepend.
 	 * @param string $after  The markup to append.
@@ -112,7 +112,7 @@ class Tests_Link_EditCommentLink extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array<string>>
 	 */
-	public static function data_before_and_after_markup() {
+	public static function data_should_prepend_and_append_markup() {
 		return array(
 			'paragraph tags' => array( '<p>', '</p>' ),
 		);

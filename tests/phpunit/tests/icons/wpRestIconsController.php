@@ -697,7 +697,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 66087
 	 *
-	 * @dataProvider data_icon_visibility_searches
+	 * @dataProvider data_get_items_omits_icons_in_non_public_collections
 	 *
 	 * @covers ::get_items
 	 *
@@ -724,7 +724,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @return array[]
 	 */
-	public static function data_icon_visibility_searches() {
+	public static function data_get_items_omits_icons_in_non_public_collections() {
 		return array(
 			'all icons'    => array( '' ),
 			'search icons' => array( 'visibility' ),
@@ -759,7 +759,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @ticket 66087
 	 *
-	 * @dataProvider data_non_public_collection_requests
+	 * @dataProvider data_get_items_returns_404_for_non_public_collection
 	 *
 	 * @covers ::get_items
 	 *
@@ -783,7 +783,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @return array[]
 	 */
-	public static function data_non_public_collection_requests() {
+	public static function data_get_items_returns_404_for_non_public_collection() {
 		return array(
 			'collection route' => array( '/wp/v2/icons/rest-visibility-private', array() ),
 			'collection query' => array( '/wp/v2/icons', array( 'collection' => 'rest-visibility-private' ) ),

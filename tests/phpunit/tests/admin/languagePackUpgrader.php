@@ -78,7 +78,7 @@ class Tests_Admin_LanguagePackUpgrader extends WP_UnitTestCase {
 	 * Tests that only successfully installed translations lose their deferrals.
 	 *
 	 * @ticket 42281
-	 * @dataProvider data_bulk_upgrade_results
+	 * @dataProvider data_bulk_upgrade_should_clear_only_successful_deferrals
 	 * @covers Language_Pack_Upgrader::bulk_upgrade
 	 *
 	 * @param string[] $outcomes  Results returned by successive package attempts.
@@ -105,7 +105,7 @@ class Tests_Admin_LanguagePackUpgrader extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_bulk_upgrade_results() {
+	public static function data_bulk_upgrade_should_clear_only_successful_deferrals() {
 		return array(
 			'all package types succeed'             => array(
 				array( 'success', 'success', 'success' ),

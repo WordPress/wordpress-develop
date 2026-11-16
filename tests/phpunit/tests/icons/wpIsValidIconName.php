@@ -15,7 +15,7 @@ class Tests_Icons_WpIsValidIconName extends WP_UnitTestCase {
 	/**
 	 * @ticket 65089
 	 *
-	 * @dataProvider data_icon_names
+	 * @dataProvider data_returns_true_for_namespaced_icon_names
 	 *
 	 * @param mixed $value The value to check.
 	 */
@@ -28,7 +28,7 @@ class Tests_Icons_WpIsValidIconName extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
 	 */
-	public static function data_icon_names(): array {
+	public static function data_returns_true_for_namespaced_icon_names(): array {
 		return array(
 			'core icon'                   => array( 'core/plus' ),
 			'hyphens'                     => array( 'core-admin/chart-bar' ),
@@ -41,7 +41,7 @@ class Tests_Icons_WpIsValidIconName extends WP_UnitTestCase {
 	/**
 	 * @ticket 65089
 	 *
-	 * @dataProvider data_values_that_are_not_icon_names
+	 * @dataProvider data_returns_false_for_other_values
 	 *
 	 * @param mixed $value The value to check.
 	 */
@@ -54,7 +54,7 @@ class Tests_Icons_WpIsValidIconName extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed }>
 	 */
-	public static function data_values_that_are_not_icon_names(): array {
+	public static function data_returns_false_for_other_values(): array {
 		return array(
 			'Dashicons class'          => array( 'dashicons-admin-post' ),
 			'none'                     => array( 'none' ),

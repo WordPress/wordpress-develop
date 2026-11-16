@@ -14,7 +14,7 @@ class Tests_General_wpGetCodeEditorSettings extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_mime_types
+	 * @dataProvider data_codemirror_settings_for_mime_type
 	 *
 	 * @param string $type     MIME type.
 	 * @param array  $expected Expected CodeMirror settings, in addition to the defaults.
@@ -47,7 +47,7 @@ class Tests_General_wpGetCodeEditorSettings extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_mime_types() {
+	public static function data_codemirror_settings_for_mime_type() {
 		$css = array(
 			'lint'              => false,
 			'autoCloseBrackets' => true,
@@ -171,7 +171,7 @@ class Tests_General_wpGetCodeEditorSettings extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_file_names
+	 * @dataProvider data_codemirror_mode_for_file
 	 *
 	 * @param string       $file     File name.
 	 * @param string|array $mode     Expected CodeMirror mode.
@@ -185,7 +185,7 @@ class Tests_General_wpGetCodeEditorSettings extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_file_names() {
+	public static function data_codemirror_mode_for_file() {
 		return array(
 			// Extensions known to wp_get_mime_types().
 			'CSS file'                     => array( 'style.css', 'text/css' ),
@@ -254,7 +254,7 @@ class Tests_General_wpGetCodeEditorSettings extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_module_files
+	 * @dataProvider data_jshint_module_for_mjs_files
 	 *
 	 * @param array $args     Arguments.
 	 * @param bool  $expected Whether the script should be parsed as a module.
@@ -268,7 +268,7 @@ class Tests_General_wpGetCodeEditorSettings extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_module_files() {
+	public static function data_jshint_module_for_mjs_files() {
 		return array(
 			'.mjs file' => array( array( 'file' => 'module.mjs' ), true ),
 			'.js file'  => array( array( 'file' => 'script.js' ), false ),
@@ -282,7 +282,7 @@ class Tests_General_wpGetCodeEditorSettings extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_unfiltered_html
+	 * @dataProvider data_htmlhint_kses_rules_for_html
 	 *
 	 * @param bool $can_use_unfiltered_html Whether the user can use unfiltered HTML.
 	 */
@@ -304,7 +304,7 @@ class Tests_General_wpGetCodeEditorSettings extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_unfiltered_html() {
+	public static function data_htmlhint_kses_rules_for_html() {
 		return array(
 			'user can use unfiltered HTML'    => array( true ),
 			'user cannot use unfiltered HTML' => array( false ),

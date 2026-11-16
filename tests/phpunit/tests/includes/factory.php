@@ -72,7 +72,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	 *
 	 * @ticket 66111
 	 *
-	 * @dataProvider data_non_positive_object_ids
+	 * @dataProvider data_create_should_throw_an_exception_when_a_non_positive_id_is_returned
 	 *
 	 * @param int $object_id The invalid ID returned by create_object().
 	 */
@@ -90,7 +90,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{int}>
 	 */
-	public static function data_non_positive_object_ids() {
+	public static function data_create_should_throw_an_exception_when_a_non_positive_id_is_returned() {
 		return array(
 			'zero'          => array( 0 ),
 			'a negative ID' => array( -1 ),
@@ -284,7 +284,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	 *
 	 * @ticket 66111
 	 *
-	 * @dataProvider data_term_taxonomy_sources
+	 * @dataProvider data_term_factory_should_apply_an_after_create_callback
 	 *
 	 * @param non-falsy-string $taxonomy       The taxonomy the term is created in.
 	 * @param bool             $in_definitions Whether the taxonomy is given in the generation definitions
@@ -321,7 +321,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ non-falsy-string, bool }>
 	 */
-	public static function data_term_taxonomy_sources(): array {
+	public static function data_term_factory_should_apply_an_after_create_callback(): array {
 		return array(
 			'factory taxonomy, in the args' => array( 'post_tag', false ),
 			'another taxonomy, in the args' => array( 'category', false ),
@@ -446,7 +446,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	 *
 	 * @ticket 66111
 	 *
-	 * @dataProvider data_legacy_retrieval_failures
+	 * @dataProvider data_create_and_get_should_throw_an_exception_when_a_legacy_factory_cannot_retrieve
 	 *
 	 * @param WP_Error|null|false $retrieved The value the legacy get_object_by_id() returns.
 	 * @param string              $message   The expected exception message.
@@ -465,7 +465,7 @@ class TestFactoryFor extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{WP_Error|null|false, string}>
 	 */
-	public static function data_legacy_retrieval_failures(): array {
+	public static function data_create_and_get_should_throw_an_exception_when_a_legacy_factory_cannot_retrieve(): array {
 		return array(
 			'null'     => array( null, 'Unable to retrieve the object with ID 5. Args: []' ),
 			'false'    => array( false, 'Unable to retrieve the object with ID 5. Args: []' ),

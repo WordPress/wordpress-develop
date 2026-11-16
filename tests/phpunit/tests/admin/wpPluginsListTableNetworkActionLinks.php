@@ -317,7 +317,7 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_network_active_states
+	 * @dataProvider data_should_not_add_links_for_user_without_network_capabilities
 	 *
 	 * @param bool $network_active Whether the plugin is network active.
 	 */
@@ -336,7 +336,7 @@ class Tests_Admin_wpPluginsListTableNetworkActionLinks extends WP_PluginDependen
 	 *
 	 * @return array[]
 	 */
-	public static function data_network_active_states() {
+	public static function data_should_not_add_links_for_user_without_network_capabilities() {
 		return array(
 			'network-active plugin' => array( true ),
 			'inactive plugin'       => array( false ),

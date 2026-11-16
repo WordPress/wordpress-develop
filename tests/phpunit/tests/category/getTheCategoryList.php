@@ -87,7 +87,7 @@ class Tests_Category_GetTheCategoryList extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_parents_in_list
+	 * @dataProvider data_builds_unordered_list_without_separator
 	 *
 	 * @param string $parents  How to display the category parents.
 	 * @param string $expected Expected list, with %child%, %parent% and %other% placeholders for the links.
@@ -107,7 +107,7 @@ class Tests_Category_GetTheCategoryList extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_parents_in_list() {
+	public static function data_builds_unordered_list_without_separator() {
 		return array(
 			'without parents'         => array(
 				'',
@@ -152,7 +152,7 @@ class Tests_Category_GetTheCategoryList extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_parents_with_separator
+	 * @dataProvider data_joins_links_with_separator
 	 *
 	 * @param string $parents  How to display the category parents.
 	 * @param string $expected Expected list, with %child%, %parent% and %other% placeholders for the links.
@@ -172,7 +172,7 @@ class Tests_Category_GetTheCategoryList extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_parents_with_separator() {
+	public static function data_joins_links_with_separator() {
 		return array(
 			'without parents'         => array(
 				'',

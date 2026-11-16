@@ -157,7 +157,7 @@ class Tests_Widgets_wpNavMenuWidget extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Nav_Menu_Widget::widget
 	 *
-	 * @dataProvider data_widget_invalid_nav_menu
+	 * @dataProvider data_widget_outputs_nothing_without_valid_menu
 	 *
 	 * @param array $instance Widget instance.
 	 */
@@ -170,7 +170,7 @@ class Tests_Widgets_wpNavMenuWidget extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_widget_invalid_nav_menu() {
+	public static function data_widget_outputs_nothing_without_valid_menu() {
 		return array(
 			'missing nav_menu'     => array( array() ),
 			'nonexistent nav_menu' => array( array( 'nav_menu' => 999999 ) ),
@@ -324,7 +324,7 @@ class Tests_Widgets_wpNavMenuWidget extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Nav_Menu_Widget::widget
 	 *
-	 * @dataProvider data_widget_nav_menu_args
+	 * @dataProvider data_widget_applies_widget_nav_menu_args_filter
 	 *
 	 * @param string $format        Navigation widgets format.
 	 * @param string $title         Widget title setting.
@@ -362,7 +362,7 @@ class Tests_Widgets_wpNavMenuWidget extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_widget_nav_menu_args() {
+	public static function data_widget_applies_widget_nav_menu_args_filter() {
 		return array(
 			'html5 format' => array(
 				'html5',

@@ -80,7 +80,7 @@ class Tests_Load_WpIsJsonpRequest extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_invalid_jsonp_callbacks
+	 * @dataProvider data_returns_false_for_invalid_jsonp_callback
 	 *
 	 * @param mixed $callback Invalid callback value.
 	 */
@@ -95,7 +95,7 @@ class Tests_Load_WpIsJsonpRequest extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_invalid_jsonp_callbacks() {
+	public static function data_returns_false_for_invalid_jsonp_callback() {
 		return array(
 			'parentheses' => array( 'alert(1)' ),
 			'spaces'      => array( 'my callback' ),

@@ -256,7 +256,7 @@ class Tests_Error_Protection_wpRecoveryModeCookieService extends WP_UnitTestCase
 	 *
 	 * @covers WP_Recovery_Mode_Cookie_Service::validate_cookie
 	 *
-	 * @dataProvider data_filtered_cookie_lengths
+	 * @dataProvider data_validate_cookie_uses_filtered_cookie_length
 	 *
 	 * @param int         $age           Age of the cookie in seconds.
 	 * @param int         $cookie_length Filtered cookie length in seconds.
@@ -291,7 +291,7 @@ class Tests_Error_Protection_wpRecoveryModeCookieService extends WP_UnitTestCase
 	 *
 	 * @return array[]
 	 */
-	public static function data_filtered_cookie_lengths() {
+	public static function data_validate_cookie_uses_filtered_cookie_length() {
 		return array(
 			'shorter length expires a recent cookie' => array( 2 * HOUR_IN_SECONDS, HOUR_IN_SECONDS, 'expired' ),
 			'zero length expires any older cookie'   => array( MINUTE_IN_SECONDS, 0, 'expired' ),
@@ -350,7 +350,7 @@ class Tests_Error_Protection_wpRecoveryModeCookieService extends WP_UnitTestCase
 	 *
 	 * @covers WP_Recovery_Mode_Cookie_Service::get_session_id_from_cookie
 	 *
-	 * @dataProvider data_cookies_with_invalid_format
+	 * @dataProvider data_get_session_id_from_cookie_returns_wp_error_if_invalid_format
 	 *
 	 * @param string $cookie Cookie value.
 	 */
@@ -367,7 +367,7 @@ class Tests_Error_Protection_wpRecoveryModeCookieService extends WP_UnitTestCase
 	 *
 	 * @return array[]
 	 */
-	public static function data_cookies_with_invalid_format() {
+	public static function data_get_session_id_from_cookie_returns_wp_error_if_invalid_format() {
 		return array(
 			'not base64 encoded' => array( 'gibberish' ),
 			'too few parts'      => array( base64_encode( 'recovery_mode|1234567890|abcdefghij0123456789' ) ),

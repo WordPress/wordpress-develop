@@ -110,7 +110,7 @@ class Tests_Admin_WPPluginDependencies_DisplayAdminNotices extends WP_PluginDepe
 	 *
 	 * @group ms-required
 	 *
-	 * @dataProvider data_network_users
+	 * @dataProvider data_unmet_notice_on_multisite
 	 *
 	 * @param bool   $super_admin Whether the user is a super admin.
 	 * @param string $suffix      The expected text after the message.
@@ -137,7 +137,7 @@ class Tests_Admin_WPPluginDependencies_DisplayAdminNotices extends WP_PluginDepe
 	 *
 	 * @return array[]
 	 */
-	public static function data_network_users() {
+	public static function data_unmet_notice_on_multisite() {
 		return array(
 			'super admin'        => array( true, '<a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/network/plugins.php">Manage plugins</a>.' ),
 			'site administrator' => array( false, 'Please contact your network administrator.' ),

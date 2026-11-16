@@ -57,7 +57,7 @@ class Tests_Admin_PluginInstallerSkinDoOverwrite extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_not_an_overwrite
+	 * @dataProvider data_should_return_false_when_not_overwriting
 	 *
 	 * @param string $type       The skin type.
 	 * @param string $error_code The result error code, or an empty string for a successful result.
@@ -76,7 +76,7 @@ class Tests_Admin_PluginInstallerSkinDoOverwrite extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_not_an_overwrite() {
+	public static function data_should_return_false_when_not_overwriting() {
 		return array(
 			'web install'        => array( 'web', 'folder_exists' ),
 			'successful upload'  => array( 'upload', '' ),

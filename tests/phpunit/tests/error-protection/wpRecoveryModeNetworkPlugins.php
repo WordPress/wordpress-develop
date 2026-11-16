@@ -16,7 +16,7 @@ class Tests_Error_Protection_wpRecoveryModeNetworkPlugins extends WP_UnitTestCas
 	 *
 	 * @ticket 66328
 	 *
-	 * @dataProvider data_network_activated_plugins
+	 * @dataProvider data_handle_error_rejects_error_from_network_activated_plugin
 	 *
 	 * @param string $plugin     Plugin basename to network-activate.
 	 * @param string $error_file Path of the file that caused the error, relative to the plugins directory.
@@ -43,7 +43,7 @@ class Tests_Error_Protection_wpRecoveryModeNetworkPlugins extends WP_UnitTestCas
 	 *
 	 * @return array[]
 	 */
-	public static function data_network_activated_plugins() {
+	public static function data_handle_error_rejects_error_from_network_activated_plugin() {
 		return array(
 			'plugin in a directory, main file'  => array(
 				'custom-internationalized-plugin/custom-internationalized-plugin.php',
@@ -65,7 +65,7 @@ class Tests_Error_Protection_wpRecoveryModeNetworkPlugins extends WP_UnitTestCas
 	 *
 	 * @ticket 66328
 	 *
-	 * @dataProvider data_plugins_that_are_not_network_activated
+	 * @dataProvider data_handle_error_does_not_reject_error_from_other_plugin
 	 *
 	 * @param string $network_plugin Plugin basename to network-activate.
 	 * @param string $error_file     Path of the file that caused the error, relative to the plugins directory.
@@ -92,7 +92,7 @@ class Tests_Error_Protection_wpRecoveryModeNetworkPlugins extends WP_UnitTestCas
 	 *
 	 * @return array[]
 	 */
-	public static function data_plugins_that_are_not_network_activated() {
+	public static function data_handle_error_does_not_reject_error_from_other_plugin() {
 		return array(
 			'other directory plugin' => array(
 				'custom-internationalized-plugin/custom-internationalized-plugin.php',

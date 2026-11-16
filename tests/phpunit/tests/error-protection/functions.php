@@ -203,7 +203,7 @@ class Tests_Error_Protection_Functions extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_is_fatal_error_handler_enabled
 	 *
-	 * @dataProvider data_disable_fatal_error_handler_constant
+	 * @dataProvider data_wp_is_fatal_error_handler_enabled_respects_constant
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -226,7 +226,7 @@ class Tests_Error_Protection_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_disable_fatal_error_handler_constant() {
+	public static function data_wp_is_fatal_error_handler_enabled_respects_constant() {
 		return array(
 			'constant is true'  => array( true, false ),
 			'constant is false' => array( false, true ),

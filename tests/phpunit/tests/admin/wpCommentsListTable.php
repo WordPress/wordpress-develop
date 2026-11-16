@@ -221,7 +221,7 @@ OPTIONS;
 	 * @ticket 64474
 	 * @ticket 64638
 	 *
-	 * @dataProvider data_comment_type
+	 * @dataProvider data_comments_list_table_does_not_show_internal_comment_types
 	 *
 	 * @param string $comment_type The comment_type parameter value to test.
 	 */
@@ -272,7 +272,7 @@ OPTIONS;
 	 *
 	 * @return array<string, string[]>
 	 */
-	public static function data_comment_type(): array {
+	public static function data_comments_list_table_does_not_show_internal_comment_types(): array {
 		return array(
 			'note type explicitly requested'     => array( 'note' ),
 			'reaction type explicitly requested' => array( 'reaction' ),

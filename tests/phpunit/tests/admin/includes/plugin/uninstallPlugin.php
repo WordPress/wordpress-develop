@@ -154,7 +154,7 @@ class Tests_Admin_Includes_Plugin_UninstallPlugin extends WP_UnitTestCase {
 	 *
 	 * @covers ::uninstall_plugin
 	 *
-	 * @dataProvider data_plugins_for_pre_uninstall_action
+	 * @dataProvider data_uninstall_plugin_fires_pre_uninstall_action
 	 *
 	 * @param string $plugin Plugin passed to uninstall_plugin().
 	 */
@@ -176,7 +176,7 @@ class Tests_Admin_Includes_Plugin_UninstallPlugin extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_plugins_for_pre_uninstall_action() {
+	public static function data_uninstall_plugin_fires_pre_uninstall_action() {
 		return array(
 			'plugin with an uninstall callback'   => array( 'hello.php' ),
 			'plugin without an uninstall routine' => array( 'other-plugin/other.php' ),

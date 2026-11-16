@@ -272,7 +272,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 *
 	 * @covers ::url_to_postid
 	 *
-	 * @dataProvider data_url_to_postid_host_matching
+	 * @dataProvider data_url_to_postid_matches_www_prefix_only
 	 *
 	 * @param string $host     Host of the URL to resolve.
 	 * @param bool   $is_local Whether the host should be treated as this site.
@@ -293,7 +293,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_url_to_postid_host_matching() {
+	public static function data_url_to_postid_matches_www_prefix_only() {
 		return array(
 			'the site host'              => array( 'example.com', true ),
 			'the site host with www'     => array( 'www.example.com', true ),

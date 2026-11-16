@@ -71,7 +71,7 @@ class Tests_Admin_wpSiteHealthGetTestPluginVersion extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_active_plugins
+	 * @dataProvider data_should_report_active_plugins_up_to_date
 	 *
 	 * @param int    $count    The number of installed, active plugins.
 	 * @param string $sentence The expected sentence.
@@ -100,7 +100,7 @@ class Tests_Admin_wpSiteHealthGetTestPluginVersion extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_active_plugins() {
+	public static function data_should_report_active_plugins_up_to_date() {
 		return array(
 			'one plugin'  => array( 1, 'Your site has 1 active plugin, and it is up to date.' ),
 			'two plugins' => array( 2, 'Your site has 2 active plugins, and they are all up to date.' ),
@@ -112,7 +112,7 @@ class Tests_Admin_wpSiteHealthGetTestPluginVersion extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_outdated_plugins
+	 * @dataProvider data_should_report_outdated_plugins
 	 *
 	 * @param int    $outdated The number of plugins with an update.
 	 * @param string $sentence The expected sentence.
@@ -138,7 +138,7 @@ class Tests_Admin_wpSiteHealthGetTestPluginVersion extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_outdated_plugins() {
+	public static function data_should_report_outdated_plugins() {
 		return array(
 			'one outdated plugin'  => array( 1, 'Your site has 1 plugin waiting to be updated.' ),
 			'two outdated plugins' => array( 2, 'Your site has 2 plugins waiting to be updated.' ),
@@ -170,7 +170,7 @@ class Tests_Admin_wpSiteHealthGetTestPluginVersion extends WP_UnitTestCase {
 	 *
 	 * @group ms-excluded
 	 *
-	 * @dataProvider data_inactive_plugins
+	 * @dataProvider data_should_recommend_removing_inactive_plugins
 	 *
 	 * @param int    $total    The number of installed plugins.
 	 * @param int    $active   The number of active plugins.
@@ -200,7 +200,7 @@ class Tests_Admin_wpSiteHealthGetTestPluginVersion extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_inactive_plugins() {
+	public static function data_should_recommend_removing_inactive_plugins() {
 		return array(
 			'one inactive plugin'  => array( 2, 1, 'Your site has 1 inactive plugin.' ),
 			'two inactive plugins' => array( 3, 1, 'Your site has 2 inactive plugins.' ),

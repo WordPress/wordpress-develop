@@ -2355,22 +2355,10 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides representative inputs for execution lifecycle integration.
-	 *
-	 * @return array
-	 */
-	public static function data_input_coercion(): array {
-		return array_intersect_key(
-			self::data_input_is_coerced(),
-			array_flip( array( 'integer number', 'stdClass object input', 'default', 'text-field format' ) )
-		);
-	}
-
-	/**
 	 * Tests coercion after validation and consistent input throughout execution.
 	 *
 	 * @ticket 66383
-	 * @dataProvider data_input_coercion
+	 * @dataProvider data_execute_coerces_validated_input
 	 *
 	 * @param array $schema   Input schema.
 	 * @param mixed $input    Original input.
@@ -2427,39 +2415,14 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides top-level and nested collisions introduced by sanitization.
+	 * Provides representative inputs for execution lifecycle integration.
 	 *
 	 * @return array
 	 */
-	public static function data_input_sanitization_errors(): array {
-		$unique = array(
-			'type'        => 'array',
-			'items'       => array( 'type' => 'integer' ),
-			'uniqueItems' => true,
-		);
-		$object = array(
-			'type'       => 'object',
-			'properties' => array(
-				'flag' => array( 'type' => 'boolean' ),
-				'ids'  => $unique,
-			),
-		);
-		$input  = array(
-			'flag' => 'false',
-			'ids'  => '1,01',
-		);
-
-		return array(
-			'top-level array' => array( $unique, array( '1', '01' ), 'input' ),
-			'nested object'   => array( $object, $input, 'input[ids]' ),
-			'object in list'  => array(
-				array(
-					'type'  => 'array',
-					'items' => $object,
-				),
-				array( $input ),
-				'input[0][ids]',
-			),
+	public static function data_execute_coerces_validated_input(): array {
+		return array_intersect_key(
+			self::data_input_is_coerced(),
+			array_flip( array( 'integer number', 'stdClass object input', 'default', 'text-field format' ) )
 		);
 	}
 
@@ -2494,6 +2457,43 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertStringContainsString( $path . ' has duplicate items.', $error->get_error_message() );
 		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $error, $ability->execute( $input ), 'Execution should propagate the sanitization error.' );
+	}
+
+	/**
+	 * Provides top-level and nested collisions introduced by sanitization.
+	 *
+	 * @return array
+	 */
+	public static function data_input_sanitization_errors(): array {
+		$unique = array(
+			'type'        => 'array',
+			'items'       => array( 'type' => 'integer' ),
+			'uniqueItems' => true,
+		);
+		$object = array(
+			'type'       => 'object',
+			'properties' => array(
+				'flag' => array( 'type' => 'boolean' ),
+				'ids'  => $unique,
+			),
+		);
+		$input  = array(
+			'flag' => 'false',
+			'ids'  => '1,01',
+		);
+
+		return array(
+			'top-level array' => array( $unique, array( '1', '01' ), 'input' ),
+			'nested object'   => array( $object, $input, 'input[ids]' ),
+			'object in list'  => array(
+				array(
+					'type'  => 'array',
+					'items' => $object,
+				),
+				array( $input ),
+				'input[0][ids]',
+			),
+		);
 	}
 
 	/**
@@ -2576,18 +2576,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for required capabilities that default to an empty array.
-	 *
-	 * @return array<string, array{0: array<string, mixed>}>
-	 */
-	public static function data_required_capabilities_default_to_empty_array(): array {
-		return array(
-			'not set' => array( array() ),
-			'null'    => array( array( 'required_capabilities' => null ) ),
-		);
-	}
-
-	/**
 	 * Tests that required capabilities default to an empty array.
 	 *
 	 * @ticket 66325
@@ -2603,6 +2591,18 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability = new WP_Ability( self::$test_ability_name, array_merge( self::$test_ability_properties, $overrides ) );
 
 		$this->assertSame( array(), $ability->get_required_capabilities() );
+	}
+
+	/**
+	 * Data provider for required capabilities that default to an empty array.
+	 *
+	 * @return array<string, array{0: array<string, mixed>}>
+	 */
+	public static function data_required_capabilities_default_to_empty_array(): array {
+		return array(
+			'not set' => array( array() ),
+			'null'    => array( array( 'required_capabilities' => null ) ),
+		);
 	}
 
 	/**
@@ -2654,32 +2654,13 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for invalid required capabilities.
-	 *
-	 * @return array<string, array{0: mixed}>
-	 */
-	public static function data_invalid_required_capabilities(): array {
-		return array(
-			'string'           => array( 'manage_options' ),
-			'empty string'     => array( array( '' ) ),
-			'whitespace only'  => array( array( " \t" ) ),
-			'non-string'       => array( array( 'read', 1 ) ),
-			'associative'      => array( array( 'cap' => 'manage_options' ) ),
-			'non-sequential'   => array( array( 1 => 'manage_options' ) ),
-			'nested array'     => array( array( array( 'manage_options' ) ) ),
-			'boolean'          => array( true ),
-			'null in the list' => array( array( null ) ),
-		);
-	}
-
-	/**
 	 * Tests that invalid required capabilities throw an exception.
 	 *
 	 * @ticket 66325
 	 *
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @dataProvider data_invalid_required_capabilities
+	 * @dataProvider data_invalid_required_capabilities_throw_exception
 	 *
 	 * @param mixed $capabilities The invalid required capabilities.
 	 */
@@ -2694,15 +2675,21 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for permission checks based on required capabilities.
+	 * Data provider for invalid required capabilities.
 	 *
-	 * @return array<string, array{0: string, 1: bool}>
+	 * @return array<string, array{0: mixed}>
 	 */
-	public static function data_check_permissions_with_required_capabilities(): array {
+	public static function data_invalid_required_capabilities_throw_exception(): array {
 		return array(
-			'user has all capabilities'    => array( 'administrator', true ),
-			'user misses one capability'   => array( 'editor', false ),
-			'user misses all capabilities' => array( 'subscriber', false ),
+			'string'           => array( 'manage_options' ),
+			'empty string'     => array( array( '' ) ),
+			'whitespace only'  => array( array( " \t" ) ),
+			'non-string'       => array( array( 'read', 1 ) ),
+			'associative'      => array( array( 'cap' => 'manage_options' ) ),
+			'non-sequential'   => array( array( 1 => 'manage_options' ) ),
+			'nested array'     => array( array( array( 'manage_options' ) ) ),
+			'boolean'          => array( true ),
+			'null in the list' => array( array( null ) ),
 		);
 	}
 
@@ -2727,6 +2714,19 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $ability->check_permissions() );
+	}
+
+	/**
+	 * Data provider for permission checks based on required capabilities.
+	 *
+	 * @return array<string, array{0: string, 1: bool}>
+	 */
+	public static function data_check_permissions_with_required_capabilities(): array {
+		return array(
+			'user has all capabilities'    => array( 'administrator', true ),
+			'user misses one capability'   => array( 'editor', false ),
+			'user misses all capabilities' => array( 'subscriber', false ),
+		);
 	}
 
 	/**
@@ -2808,6 +2808,27 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that check_permissions() returns an error when a custom class has no valid
+	 * permission callback, even if the user has all required capabilities.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::check_permissions
+	 *
+	 * @dataProvider data_check_permissions_custom_class_without_valid_permission_check
+	 *
+	 * @param array<string, mixed> $overrides The properties to merge into the test ability properties.
+	 */
+	public function test_check_permissions_custom_class_without_valid_permission_check( array $overrides ) {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$result = $this->create_custom_class_ability( array_merge( self::$test_ability_properties, $overrides ) )->check_permissions();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permission_callback', $result->get_error_code() );
+	}
+
+	/**
 	 * Data provider for custom class abilities without a valid permission check.
 	 *
 	 * @return array<string, array{0: array<string, mixed>}>
@@ -2827,27 +2848,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				),
 			),
 		);
-	}
-
-	/**
-	 * Tests that check_permissions() returns an error when a custom class has no valid
-	 * permission callback, even if the user has all required capabilities.
-	 *
-	 * @ticket 66325
-	 *
-	 * @covers WP_Ability::check_permissions
-	 *
-	 * @dataProvider data_check_permissions_custom_class_without_valid_permission_check
-	 *
-	 * @param array<string, mixed> $overrides The properties to merge into the test ability properties.
-	 */
-	public function test_check_permissions_custom_class_without_valid_permission_check( array $overrides ) {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$result = $this->create_custom_class_ability( array_merge( self::$test_ability_properties, $overrides ) )->check_permissions();
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'ability_invalid_permission_callback', $result->get_error_code() );
 	}
 
 	/**

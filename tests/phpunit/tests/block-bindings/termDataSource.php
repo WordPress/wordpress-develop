@@ -151,7 +151,7 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 	 *
 	 * @covers ::_block_bindings_term_data_get_value
 	 *
-	 * @dataProvider data_missing_or_empty_context
+	 * @dataProvider data_get_value_returns_null_when_context_empty
 	 *
 	 * @param array $context Context array.
 	 */
@@ -166,7 +166,7 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public static function data_missing_or_empty_context() {
+	public static function data_get_value_returns_null_when_context_empty() {
 		return array(
 			'missing taxonomy' => array( array( 'termId' => 123 ) ),
 			'missing termId'   => array( array( 'taxonomy' => 'category' ) ),
@@ -241,7 +241,7 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 	 *
 	 * @covers ::_block_bindings_term_data_get_value
 	 *
-	 * @dataProvider data_supported_fields
+	 * @dataProvider data_get_value_returns_supported_fields
 	 *
 	 * @param string $field    Field name.
 	 * @param string $expected Expected field value.
@@ -263,7 +263,7 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public static function data_supported_fields() {
+	public static function data_get_value_returns_supported_fields() {
 		return array(
 			'name'        => array( 'name', 'Test Category' ),
 			'slug'        => array( 'slug', 'test-category' ),

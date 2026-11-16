@@ -11,7 +11,7 @@ class Tests_Feed_FeedContentType extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_known_feed_content_types
+	 * @dataProvider data_returns_content_type_for_known_feed_types
 	 *
 	 * @param string $type     Feed type.
 	 * @param string $expected Expected content type.
@@ -25,7 +25,7 @@ class Tests_Feed_FeedContentType extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_known_feed_content_types() {
+	public static function data_returns_content_type_for_known_feed_types() {
 		return array(
 			'rss'      => array( 'rss', 'application/rss+xml' ),
 			'rss2'     => array( 'rss2', 'application/rss+xml' ),

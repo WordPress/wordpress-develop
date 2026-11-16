@@ -35,7 +35,7 @@ class Tests_Theme_LocateTemplate extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_template_names_with_parent_directory_segment
+	 * @dataProvider data_should_restrict_template_names_with_parent_directory_segment
 	 *
 	 * @param string          $stylesheet     Stylesheet of the theme to switch to.
 	 * @param string|string[] $template_names Template file(s) to search for.
@@ -52,7 +52,7 @@ class Tests_Theme_LocateTemplate extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_template_names_with_parent_directory_segment() {
+	public static function data_should_restrict_template_names_with_parent_directory_segment() {
 		$themes       = DIR_TESTDATA . '/themedir1';
 		$theme_compat = ABSPATH . WPINC . '/theme-compat';
 

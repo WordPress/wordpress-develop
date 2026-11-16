@@ -103,7 +103,7 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 	 *
 	 * @covers ::start_el
 	 *
-	 * @dataProvider data_list_only_items
+	 * @dataProvider data_start_el_in_list_only_mode
 	 *
 	 * @param array  $args     Arguments passed to the walker.
 	 * @param string $expected Expected list item, without the leading newline.
@@ -124,7 +124,7 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_list_only_items() {
+	public static function data_start_el_in_list_only_mode() {
 		$unselected = '<div class="category" data-term-id=5 tabindex="0" role="checkbox" aria-checked="false">News</div>';
 		$selected   = '<div class="category selected" data-term-id=5 tabindex="0" role="checkbox" aria-checked="true">News</div>';
 
@@ -153,7 +153,7 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 	 *
 	 * @covers ::start_el
 	 *
-	 * @dataProvider data_checkbox_items
+	 * @dataProvider data_start_el_generates_checkbox
 	 *
 	 * @param array       $args        Arguments passed to the walker.
 	 * @param string      $name        Expected name of the checkbox.
@@ -188,7 +188,7 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_checkbox_items() {
+	public static function data_start_el_generates_checkbox() {
 		return array(
 			'default arguments'              => array( array(), 'post_category[]', 'in-category-5-', false, false, null ),
 			'empty taxonomy'                 => array( array( 'taxonomy' => '' ), 'post_category[]', 'in-category-5-', false, false, null ),
@@ -225,7 +225,7 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 	 *
 	 * @covers ::start_el
 	 *
-	 * @dataProvider data_list_only_modes
+	 * @dataProvider data_start_el_filters_and_escapes_category_name
 	 *
 	 * @param bool $list_only Whether to generate the list-only markup.
 	 */
@@ -256,7 +256,7 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_list_only_modes() {
+	public static function data_start_el_filters_and_escapes_category_name() {
 		return array(
 			'checkbox markup'  => array( false ),
 			'list-only markup' => array( true ),

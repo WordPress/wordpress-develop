@@ -2902,7 +2902,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 66263
 	 *
-	 * @dataProvider data_get_stylesheet_with_axial_block_gap
+	 * @dataProvider data_get_stylesheet_generates_layout_styles_with_axial_block_gap
 	 *
 	 * @param array  $block_gap           Block gap value.
 	 * @param string $expected_row_gap    Expected row gap value.
@@ -2943,7 +2943,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array[] Test data.
 	 */
-	public static function data_get_stylesheet_with_axial_block_gap() {
+	public static function data_get_stylesheet_generates_layout_styles_with_axial_block_gap() {
 		return array(
 			'different row and column gaps' => array(
 				array(

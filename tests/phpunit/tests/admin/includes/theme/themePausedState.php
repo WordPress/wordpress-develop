@@ -354,7 +354,7 @@ class Tests_Admin_Includes_Theme_ThemePausedState extends WP_UnitTestCase {
 	 *
 	 * @covers ::resume_theme
 	 *
-	 * @dataProvider data_resume_theme_redirects
+	 * @dataProvider data_resume_theme_redirects_and_loads_functions_file
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -404,7 +404,7 @@ class Tests_Admin_Includes_Theme_ThemePausedState extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_resume_theme_redirects() {
+	public static function data_resume_theme_redirects_and_loads_functions_file() {
 		return array(
 			'theme is the active stylesheet' => array( '/themedir1/sandbox', '/themedir1/default' ),
 			'theme is the active template'   => array( '/themedir1/default', '/themedir1/sandbox' ),

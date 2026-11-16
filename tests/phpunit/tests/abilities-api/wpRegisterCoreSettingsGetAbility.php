@@ -514,7 +514,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 *
 	 * @ticket 64605
 	 *
-	 * @dataProvider data_stored_values
+	 * @dataProvider data_core_settings_get_reads_stored_values
 	 *
 	 * @param string      $type     The setting type.
 	 * @param mixed       $stored   The stored option value.
@@ -553,7 +553,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 *
 	 * @return array<string, array{0: string, 1: mixed, 2: string|null, 3?: array<string, mixed>}> Stored values, and the JSON they are read as.
 	 */
-	public static function data_stored_values(): array {
+	public static function data_core_settings_get_reads_stored_values(): array {
 		return array(
 			'"false" for a boolean'               => array( 'boolean', 'false', 'false' ),
 			'an empty string for a boolean'       => array( 'boolean', '', 'false' ),
@@ -586,7 +586,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 *
 	 * @ticket 64605
 	 *
-	 * @dataProvider data_never_saved_settings
+	 * @dataProvider data_core_settings_get_reads_a_setting_that_was_never_saved
 	 *
 	 * @param array       $args     The setting registration arguments.
 	 * @param string|null $expected The value as JSON, or null when it is left out.
@@ -614,7 +614,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 *
 	 * @return array<string, array{0: array<string, mixed>, 1: string|null}> Registration arguments, and the JSON the setting is read as.
 	 */
-	public static function data_never_saved_settings(): array {
+	public static function data_core_settings_get_reads_a_setting_that_was_never_saved(): array {
 		return array(
 			'a boolean without a default'       => array( array( 'type' => 'boolean' ), null ),
 			'an array without a default'        => array( array( 'type' => 'array' ), null ),

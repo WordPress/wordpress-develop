@@ -108,7 +108,7 @@ class Tests_Post_PrependAttachment extends WP_UnitTestCase {
 	 *
 	 * @covers ::prepend_attachment
 	 *
-	 * @dataProvider data_not_an_attachment
+	 * @dataProvider data_returns_content_unchanged_when_not_an_attachment
 	 *
 	 * @param bool $has_post Whether a regular post is the global post.
 	 */
@@ -123,7 +123,7 @@ class Tests_Post_PrependAttachment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_not_an_attachment() {
+	public static function data_returns_content_unchanged_when_not_an_attachment() {
 		return array(
 			'regular post' => array( true ),
 			'no post'      => array( false ),
@@ -154,7 +154,7 @@ class Tests_Post_PrependAttachment extends WP_UnitTestCase {
 	 *
 	 * @covers ::prepend_attachment
 	 *
-	 * @dataProvider data_video_metadata
+	 * @dataProvider data_prepends_video_shortcode
 	 *
 	 * @param array $metadata   Attachment metadata.
 	 * @param array $dimensions Expected width and height attributes.
@@ -175,7 +175,7 @@ class Tests_Post_PrependAttachment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_video_metadata() {
+	public static function data_prepends_video_shortcode() {
 		return array(
 			'width and height as strings' => array(
 				array(

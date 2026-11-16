@@ -86,7 +86,7 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_admin_page_parent
 	 *
-	 * @dataProvider data_explicit_parent_pages
+	 * @dataProvider data_get_admin_page_parent_returns_explicit_parent_page
 	 *
 	 * @param string $parent_page Parent page passed to the function.
 	 * @param string $expected    Expected parent.
@@ -104,7 +104,7 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_explicit_parent_pages() {
+	public static function data_get_admin_page_parent_returns_explicit_parent_page() {
 		return array(
 			'core parent page'            => array( 'options-general.php', 'options-general.php' ),
 			'parent page that is unknown' => array( 'does-not-exist', 'does-not-exist' ),
@@ -119,7 +119,7 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_admin_page_parent
 	 *
-	 * @dataProvider data_detected_parent_pages
+	 * @dataProvider data_get_admin_page_parent_detects_parent_of_current_page
 	 *
 	 * @param array  $globals     Globals describing the current request, keyed by name.
 	 * @param string $parent_page Parent page passed to the function.
@@ -140,7 +140,7 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_detected_parent_pages() {
+	public static function data_get_admin_page_parent_detects_parent_of_current_page() {
 		return array(
 			'top-level plugin page'                    => array(
 				array(
@@ -234,7 +234,7 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_admin_page_parent
 	 *
-	 * @dataProvider data_pages_without_parent
+	 * @dataProvider data_get_admin_page_parent_returns_empty_string_without_parent
 	 *
 	 * @param array $globals Globals describing the current request, keyed by name.
 	 */
@@ -252,7 +252,7 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_pages_without_parent() {
+	public static function data_get_admin_page_parent_returns_empty_string_without_parent() {
 		return array(
 			'page that is not in a submenu' => array( array( 'pagenow' => 'profile.php' ) ),
 			'unknown plugin page'           => array(
@@ -284,7 +284,7 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_admin_page_parent
 	 *
-	 * @dataProvider data_pages_without_parent_with_parent_file
+	 * @dataProvider data_get_admin_page_parent_preserves_existing_parent_file
 	 *
 	 * @param string $pagenow Current admin page.
 	 */
@@ -301,7 +301,7 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_pages_without_parent_with_parent_file() {
+	public static function data_get_admin_page_parent_preserves_existing_parent_file() {
 		return array(
 			'page that is not in a submenu' => array( 'profile.php' ),
 			'submenu page when the parent file has a query' => array( 'edit.php' ),

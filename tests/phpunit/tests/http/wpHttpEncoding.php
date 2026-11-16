@@ -76,7 +76,7 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 * @covers ::decompress
 	 * @covers ::compatible_gzinflate
 	 *
-	 * @dataProvider data_compressed_content
+	 * @dataProvider data_decompress
 	 *
 	 * @requires function gzdeflate
 	 * @requires function gzinflate
@@ -101,7 +101,7 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_compressed_content() {
+	public static function data_decompress() {
 		return array(
 			'raw deflate'                     => array( 'gzdeflate', array( self::CONTENT ) ),
 			'raw deflate without compression' => array( 'gzdeflate', array( self::CONTENT, 0 ) ),
@@ -118,7 +118,7 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 *
 	 * @covers ::decompress
 	 *
-	 * @dataProvider data_content_that_is_not_compressed
+	 * @dataProvider data_decompress_returns_uncompressed_content_unchanged
 	 *
 	 * @requires function gzinflate
 	 * @requires function gzuncompress
@@ -134,7 +134,7 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_content_that_is_not_compressed() {
+	public static function data_decompress_returns_uncompressed_content_unchanged() {
 		return array(
 			'plain text'   => array( self::CONTENT ),
 			'empty string' => array( '' ),
@@ -149,7 +149,7 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 *
 	 * @covers ::compatible_gzinflate
 	 *
-	 * @dataProvider data_gzip_streams
+	 * @dataProvider data_compatible_gzinflate_decodes_gzip_streams
 	 *
 	 * @requires function gzdeflate
 	 * @requires function gzinflate
@@ -172,7 +172,7 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_gzip_streams() {
+	public static function data_compatible_gzinflate_decodes_gzip_streams() {
 		$build = array( self::class, 'build_gzip_stream' );
 
 		return array(
@@ -193,7 +193,7 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 *
 	 * @covers ::compatible_gzinflate
 	 *
-	 * @dataProvider data_invalid_gzip_streams
+	 * @dataProvider data_compatible_gzinflate_returns_false_for_invalid_data
 	 *
 	 * @requires function gzinflate
 	 *
@@ -208,7 +208,7 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_invalid_gzip_streams() {
+	public static function data_compatible_gzinflate_returns_false_for_invalid_data() {
 		return array(
 			'plain text'                  => array( self::CONTENT ),
 			'empty string'                => array( '' ),

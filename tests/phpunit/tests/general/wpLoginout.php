@@ -27,7 +27,7 @@ class Tests_General_WpLoginout extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_loginout
 	 *
-	 * @dataProvider data_login_link
+	 * @dataProvider data_login_link_when_logged_out
 	 *
 	 * @param string $redirect Redirect path passed to the function.
 	 * @param string $expected Expected markup after the host.
@@ -41,7 +41,7 @@ class Tests_General_WpLoginout extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_login_link() {
+	public static function data_login_link_when_logged_out() {
 		return array(
 			'no redirect'   => array( '', '/wp-login.php">Log in</a>' ),
 			'with redirect' => array( '/sample-page/', '/wp-login.php?redirect_to=%2Fsample-page%2F">Log in</a>' ),
@@ -55,7 +55,7 @@ class Tests_General_WpLoginout extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_loginout
 	 *
-	 * @dataProvider data_logout_link
+	 * @dataProvider data_logout_link_when_logged_in
 	 *
 	 * @param string $redirect Redirect path passed to the function.
 	 * @param string $query    Expected query string before the nonce.
@@ -74,7 +74,7 @@ class Tests_General_WpLoginout extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_logout_link() {
+	public static function data_logout_link_when_logged_in() {
 		return array(
 			'no redirect'   => array( '', 'action=logout' ),
 			'with redirect' => array( '/sample-page/', 'action=logout&#038;redirect_to=%2Fsample-page%2F' ),
@@ -119,7 +119,7 @@ class Tests_General_WpLoginout extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_loginout
 	 *
-	 * @dataProvider data_display
+	 * @dataProvider data_loginout_filter
 	 *
 	 * @param bool $display Whether to echo the link.
 	 */
@@ -152,7 +152,7 @@ class Tests_General_WpLoginout extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_display() {
+	public static function data_loginout_filter() {
 		return array(
 			'echo'   => array( true ),
 			'return' => array( false ),

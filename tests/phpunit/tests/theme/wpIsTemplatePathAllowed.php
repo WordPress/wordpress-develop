@@ -14,7 +14,7 @@ class Tests_Theme_wpIsTemplatePathAllowed extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_paths_without_parent_directory_segment
+	 * @dataProvider data_should_allow_path_without_parent_directory_segment
 	 *
 	 * @param string $path Path to check.
 	 */
@@ -29,7 +29,7 @@ class Tests_Theme_wpIsTemplatePathAllowed extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_paths_without_parent_directory_segment() {
+	public static function data_should_allow_path_without_parent_directory_segment() {
 		return array(
 			'an empty string'                  => array( '' ),
 			'a string zero'                    => array( '0' ),
@@ -48,7 +48,7 @@ class Tests_Theme_wpIsTemplatePathAllowed extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_paths_with_parent_directory_segment
+	 * @dataProvider data_should_resolve_path_with_parent_directory_segment
 	 *
 	 * @param string $stylesheet Stylesheet of the theme to switch to.
 	 * @param string $path       Path to check.
@@ -65,7 +65,7 @@ class Tests_Theme_wpIsTemplatePathAllowed extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_paths_with_parent_directory_segment() {
+	public static function data_should_resolve_path_with_parent_directory_segment() {
 		$themes       = DIR_TESTDATA . '/themedir1';
 		$theme_compat = ABSPATH . WPINC . '/theme-compat';
 
@@ -148,7 +148,7 @@ class Tests_Theme_wpIsTemplatePathAllowed extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_themes_in_subdirectory
+	 * @dataProvider data_should_allow_parent_directory_of_theme_in_subdirectory
 	 *
 	 * @param string $stylesheet Stylesheet of the child theme.
 	 * @param string $template   Stylesheet of the parent theme.
@@ -168,7 +168,7 @@ class Tests_Theme_wpIsTemplatePathAllowed extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_themes_in_subdirectory() {
+	public static function data_should_allow_parent_directory_of_theme_in_subdirectory() {
 		$themes = DIR_TESTDATA . '/themedir1';
 
 		return array(

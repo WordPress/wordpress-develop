@@ -190,7 +190,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @group ms-required
 	 *
-	 * @dataProvider data_set_blog_on_multisite
+	 * @dataProvider data_set_blog_switches_to_blog_on_multisite
 	 *
 	 * @param string $blog Blog ID placeholder or URL passed to set_blog().
 	 */
@@ -218,7 +218,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_set_blog_on_multisite() {
+	public static function data_set_blog_switches_to_blog_on_multisite() {
 		return array(
 			'numeric ID'         => array( '%id%' ),
 			'URL with scheme'    => array( 'https://importer.example.org/target/' ),
@@ -282,7 +282,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 * @covers WP_Importer::get_page
 	 * @covers WP_Importer::bump_request_timeout
 	 *
-	 * @dataProvider data_get_page_requests
+	 * @dataProvider data_get_page_request
 	 *
 	 * @param string      $username         Username.
 	 * @param string      $password         Password.
@@ -336,7 +336,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_get_page_requests() {
+	public static function data_get_page_request() {
 		return array(
 			'GET without credentials' => array( '', '', false, 'GET', null ),
 			'HEAD request'            => array( '', '', true, 'HEAD', null ),
@@ -369,7 +369,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @group ms-required
 	 *
-	 * @dataProvider data_quota_usage
+	 * @dataProvider data_is_user_over_quota_on_multisite
 	 *
 	 * @param int    $space_used Space used, in megabytes.
 	 * @param bool   $expected   Whether the user should be over quota.
@@ -401,7 +401,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_quota_usage() {
+	public static function data_is_user_over_quota_on_multisite() {
 		return array(
 			'under quota' => array( 5, false, '' ),
 			'over quota'  => array( 20, true, 'Sorry, you have used your space allocation of 10 MB. Please delete some files to upload more files.' ),

@@ -261,7 +261,7 @@ class Tests_Admin_wpDebugDataPlugins extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_update_items
+	 * @dataProvider data_plugins_should_pass_update_item_to_auto_update_filter
 	 *
 	 * @param string $transient_list The transient list holding the plugin, or an empty string for none.
 	 * @param string $new_version The expected new version of the item.
@@ -295,7 +295,7 @@ class Tests_Admin_wpDebugDataPlugins extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_update_items() {
+	public static function data_plugins_should_pass_update_item_to_auto_update_filter() {
 		return array(
 			'available update' => array( 'response', '2.0', '' ),
 			'no update'        => array( 'no_update', '2.0', '' ),

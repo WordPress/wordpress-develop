@@ -315,7 +315,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 66138
 	 *
-	 * @dataProvider data_terminal_non_delimiter_comments
+	 * @dataProvider data_preserves_terminal_non_delimiter_comments_as_html
 	 *
 	 * @param string $html Input ending in a non-delimiter HTML comment.
 	 */
@@ -354,7 +354,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public static function data_terminal_non_delimiter_comments(): array {
+	public static function data_preserves_terminal_non_delimiter_comments_as_html(): array {
 		return array(
 			'Ordinary comment'           => array( 'content<!-- x -->' ),
 			'Abrupt empty comment'       => array( 'content<!-->' ),
@@ -429,7 +429,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 66138
 	 *
-	 * @dataProvider data_documents_ending_in_a_partial_delimiter
+	 * @dataProvider data_reports_no_delimiter_for_partial_delimiter_at_end_of_document
 	 *
 	 * @covers ::next_token()
 	 *
@@ -463,7 +463,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: string[], 2: string|null}>
 	 */
-	public static function data_documents_ending_in_a_partial_delimiter(): array {
+	public static function data_reports_no_delimiter_for_partial_delimiter_at_end_of_document(): array {
 		return array(
 			// Documents ending in a partial delimiter with no earlier delimiter.
 			'Ends in <'                   => array( 'text<', array(), WP_Block_Processor::INCOMPLETE_INPUT ),
@@ -602,7 +602,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 66138
 	 *
-	 * @dataProvider data_delimiters_and_comment_endings
+	 * @dataProvider data_delimiter_does_not_span_a_comment_ending
 	 *
 	 * @param string   $html        Document to scan.
 	 * @param string[] $block_types Printable block type of every delimiter in the document, in order.
@@ -623,32 +623,11 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Verifies that a comment ended by `--!>` at the end of the document is not
-	 * reported as incomplete input: the comment is closed, so no delimiter could
-	 * be completed by further input.
-	 *
-	 * @ticket 66138
-	 */
-	public function test_exclamation_ending_at_end_of_document_is_not_incomplete_input(): void {
-		$processor = new WP_Block_Processor( '<!-- wp:a {"k":"x --!>' );
-
-		$this->assertFalse(
-			$processor->next_delimiter(),
-			"Should have found no delimiter but found a '{$processor->get_block_type()}' instead."
-		);
-
-		$this->assertNull(
-			$processor->get_last_error(),
-			'Should have completed without reporting an error.'
-		);
-	}
-
-	/**
 	 * Data provider.
 	 *
 	 * @return array<string, array{0: string, 1: string[]}>
 	 */
-	public static function data_delimiters_and_comment_endings(): array {
+	public static function data_delimiter_does_not_span_a_comment_ending(): array {
 		return array(
 			// The comment ended at `--!>`, so the later `-->` is not the delimiter's end.
 			'Spans an exclamation ending'      => array( '<!-- wp:a {"k":"x --!><!-- y"} -->', array() ),
@@ -675,6 +654,27 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that a comment ended by `--!>` at the end of the document is not
+	 * reported as incomplete input: the comment is closed, so no delimiter could
+	 * be completed by further input.
+	 *
+	 * @ticket 66138
+	 */
+	public function test_exclamation_ending_at_end_of_document_is_not_incomplete_input(): void {
+		$processor = new WP_Block_Processor( '<!-- wp:a {"k":"x --!>' );
+
+		$this->assertFalse(
+			$processor->next_delimiter(),
+			"Should have found no delimiter but found a '{$processor->get_block_type()}' instead."
+		);
+
+		$this->assertNull(
+			$processor->get_last_error(),
+			'Should have completed without reporting an error.'
+		);
+	}
+
+	/**
 	 * Verifies that a comment whose JSON attributes are rejected is skipped whole.
 	 *
 	 * A block delimiter is a single HTML comment. When the content after the JSON
@@ -684,7 +684,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 66138
 	 *
-	 * @dataProvider data_comments_with_rejected_json_attributes
+	 * @dataProvider data_skips_the_whole_comment_when_the_json_attributes_are_rejected
 	 *
 	 * @param string   $html        Document to scan.
 	 * @param string[] $block_types Printable block type of every delimiter in the document, in order.
@@ -709,7 +709,7 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string, 1: string[]}>
 	 */
-	public static function data_comments_with_rejected_json_attributes(): array {
+	public static function data_skips_the_whole_comment_when_the_json_attributes_are_rejected(): array {
 		return array(
 			// A `<!--` inside the comment's text does not start a delimiter.
 			'Opening inside the comment'      => array( '<!-- wp:a {x <!-- wp:b -->', array() ),
@@ -1553,7 +1553,7 @@ HTML
 	 *
 	 * @ticket 64537
 	 *
-	 * @dataProvider data_various_block_posts
+	 * @dataProvider data_extracts_equivalent_parses_as_parse_blocks
 	 *
 	 * @param string $test_document An HTML document to parse as blocks.
 	 */
@@ -1573,80 +1573,11 @@ HTML
 	}
 
 	/**
-	 * Ensures that block extraction stops on the closing delimiter of a block with inner
-	 * content, on freeform HTML, or on the token following a void block.
-	 *
-	 * @ticket 66138
-	 *
-	 * @dataProvider data_extraction_stop_tokens
-	 *
-	 * @param string      $test_document An HTML document containing blocks.
-	 * @param string      $block_type    Block type at which to start extraction.
-	 * @param string|null $stop_token    Token on which extraction should stop, or null if
-	 *                                   extraction should reach the end of the document.
-	 */
-	public function test_extraction_stops_on_expected_token( string $test_document, string $block_type, ?string $stop_token ): void {
-		$processor = new WP_Block_Processor( $test_document );
-		$this->assertTrue(
-			$processor->next_block( $block_type ),
-			"Failed to find a block of type '{$block_type}'."
-		);
-
-		$processor->extract_full_block_and_advance();
-		$span = $processor->get_span();
-
-		$this->assertSame(
-			$stop_token,
-			isset( $span ) ? substr( $test_document, $span->start, $span->length ) : null,
-			'Stopped on the wrong token after extracting a block.'
-		);
-	}
-
-	/**
-	 * Ensures that inner HTML at the end of incomplete input appears only in the block containing it.
-	 *
-	 * @ticket 66138
-	 */
-	public function test_extraction_does_not_copy_incomplete_inner_html_into_parent_block(): void {
-		$processor = new WP_Block_Processor( '<!-- wp:g --><!-- wp:p -->y<' );
-		$this->assertTrue( $processor->next_block( 'g' ), "Failed to find a block of type 'g'." );
-		$group = $processor->extract_full_block_and_advance();
-		$this->assertIsArray( $group );
-		$this->assertGreaterThan( 0, count( $group['innerBlocks'] ) );
-		$this->assertIsArray( $group['innerBlocks'][0] );
-
-		$this->assertSame( array( null ), $group['innerContent'], 'Copied inner HTML into the parent block.' );
-		$this->assertSame( array( 'y' ), $group['innerBlocks'][0]['innerContent'], 'Failed to extract inner HTML of the inner block.' );
-		$this->assertSame( WP_Block_Processor::INCOMPLETE_INPUT, $processor->get_last_error(), 'Failed to report incomplete input.' );
-		$this->assertSame( 'y', $processor->get_html_content(), 'Stopped on the wrong token after extracting a block from incomplete input.' );
-	}
-
-	/**
-	 * Data provider for {@see self::test_extraction_stops_on_expected_token()}.
-	 *
-	 * @return array<truthy-string, array{ 0: string, 1: lowercase-string&truthy-string, 2: non-empty-string|null }>
-	 */
-	public static function data_extraction_stop_tokens(): array {
-		return array(
-			'Block with inner content'                  => array( '<!-- wp:a -->x<!-- /wp:a -->y', 'a', '<!-- /wp:a -->' ),
-			'Block ending in void inner block'          => array( '<!-- wp:g --><!-- wp:v /--><!-- /wp:g -->x', 'g', '<!-- /wp:g -->' ),
-			'Void block'                                => array( '<!-- wp:a /--><!-- wp:b /-->', 'a', '<!-- wp:a /-->' ),
-			'Void block before freeform HTML'           => array( '<!-- wp:a /-->x', 'a', '<!-- wp:a /-->' ),
-			'Void block at end of document'             => array( '<!-- wp:a /-->', 'a', '<!-- wp:a /-->' ),
-			'Inner void block'                          => array( '<!-- wp:g --><!-- wp:v /--><!-- wp:w /--><!-- /wp:g -->', 'v', '<!-- wp:v /-->' ),
-			'Freeform HTML'                             => array( 'x<!-- wp:a /-->', 'freeform', 'x' ),
-			'Unclosed block'                            => array( '<!-- wp:a -->x', 'a', null ),
-			'Unclosed block ending in void inner block' => array( '<!-- wp:g --><!-- wp:v /-->', 'g', null ),
-			'Incomplete input after void inner block'   => array( '<!-- wp:g --><!-- wp:v /-->x<', 'g', 'x' ),
-		);
-	}
-
-	/**
 	 * Data provider.
 	 *
 	 * @return Generator
 	 */
-	public static function data_various_block_posts() {
+	public static function data_extracts_equivalent_parses_as_parse_blocks() {
 		yield 'Empty post' => array( '' );
 
 		yield 'Void block' => array( '<!-- wp:void /-->' );
@@ -1742,6 +1673,75 @@ HTML
 HTML
 			,
 		);
+	}
+
+	/**
+	 * Ensures that block extraction stops on the closing delimiter of a block with inner
+	 * content, on freeform HTML, or on the token following a void block.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_extraction_stops_on_expected_token
+	 *
+	 * @param string      $test_document An HTML document containing blocks.
+	 * @param string      $block_type    Block type at which to start extraction.
+	 * @param string|null $stop_token    Token on which extraction should stop, or null if
+	 *                                   extraction should reach the end of the document.
+	 */
+	public function test_extraction_stops_on_expected_token( string $test_document, string $block_type, ?string $stop_token ): void {
+		$processor = new WP_Block_Processor( $test_document );
+		$this->assertTrue(
+			$processor->next_block( $block_type ),
+			"Failed to find a block of type '{$block_type}'."
+		);
+
+		$processor->extract_full_block_and_advance();
+		$span = $processor->get_span();
+
+		$this->assertSame(
+			$stop_token,
+			isset( $span ) ? substr( $test_document, $span->start, $span->length ) : null,
+			'Stopped on the wrong token after extracting a block.'
+		);
+	}
+
+	/**
+	 * Data provider for {@see self::test_extraction_stops_on_expected_token()}.
+	 *
+	 * @return array<truthy-string, array{ 0: string, 1: lowercase-string&truthy-string, 2: non-empty-string|null }>
+	 */
+	public static function data_extraction_stops_on_expected_token(): array {
+		return array(
+			'Block with inner content'                  => array( '<!-- wp:a -->x<!-- /wp:a -->y', 'a', '<!-- /wp:a -->' ),
+			'Block ending in void inner block'          => array( '<!-- wp:g --><!-- wp:v /--><!-- /wp:g -->x', 'g', '<!-- /wp:g -->' ),
+			'Void block'                                => array( '<!-- wp:a /--><!-- wp:b /-->', 'a', '<!-- wp:a /-->' ),
+			'Void block before freeform HTML'           => array( '<!-- wp:a /-->x', 'a', '<!-- wp:a /-->' ),
+			'Void block at end of document'             => array( '<!-- wp:a /-->', 'a', '<!-- wp:a /-->' ),
+			'Inner void block'                          => array( '<!-- wp:g --><!-- wp:v /--><!-- wp:w /--><!-- /wp:g -->', 'v', '<!-- wp:v /-->' ),
+			'Freeform HTML'                             => array( 'x<!-- wp:a /-->', 'freeform', 'x' ),
+			'Unclosed block'                            => array( '<!-- wp:a -->x', 'a', null ),
+			'Unclosed block ending in void inner block' => array( '<!-- wp:g --><!-- wp:v /-->', 'g', null ),
+			'Incomplete input after void inner block'   => array( '<!-- wp:g --><!-- wp:v /-->x<', 'g', 'x' ),
+		);
+	}
+
+	/**
+	 * Ensures that inner HTML at the end of incomplete input appears only in the block containing it.
+	 *
+	 * @ticket 66138
+	 */
+	public function test_extraction_does_not_copy_incomplete_inner_html_into_parent_block(): void {
+		$processor = new WP_Block_Processor( '<!-- wp:g --><!-- wp:p -->y<' );
+		$this->assertTrue( $processor->next_block( 'g' ), "Failed to find a block of type 'g'." );
+		$group = $processor->extract_full_block_and_advance();
+		$this->assertIsArray( $group );
+		$this->assertGreaterThan( 0, count( $group['innerBlocks'] ) );
+		$this->assertIsArray( $group['innerBlocks'][0] );
+
+		$this->assertSame( array( null ), $group['innerContent'], 'Copied inner HTML into the parent block.' );
+		$this->assertSame( array( 'y' ), $group['innerBlocks'][0]['innerContent'], 'Failed to extract inner HTML of the inner block.' );
+		$this->assertSame( WP_Block_Processor::INCOMPLETE_INPUT, $processor->get_last_error(), 'Failed to report incomplete input.' );
+		$this->assertSame( 'y', $processor->get_html_content(), 'Stopped on the wrong token after extracting a block from incomplete input.' );
 	}
 
 	/**

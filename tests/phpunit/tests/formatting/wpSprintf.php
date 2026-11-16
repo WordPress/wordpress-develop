@@ -82,7 +82,7 @@ class Tests_Formatting_wpSprintf extends WP_UnitTestCase {
 	 * @covers ::wp_sprintf
 	 * @covers ::wp_sprintf_l
 	 *
-	 * @dataProvider data_wp_sprintf_l
+	 * @dataProvider data_wp_sprintf_formats_lists
 	 *
 	 * @param string $pattern  Pattern.
 	 * @param mixed  $items    Items passed for the %l specifier.
@@ -97,7 +97,7 @@ class Tests_Formatting_wpSprintf extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_wp_sprintf_l() {
+	public static function data_wp_sprintf_formats_lists() {
 		return array(
 			'one item'                 => array( 'Tags: %l.', array( 'one' ), 'Tags: one.' ),
 			'two items'                => array( 'Tags: %l.', array( 'one', 'two' ), 'Tags: one and two.' ),
@@ -114,7 +114,7 @@ class Tests_Formatting_wpSprintf extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_sprintf_l
 	 *
-	 * @dataProvider data_wp_sprintf_l_patterns
+	 * @dataProvider data_wp_sprintf_l
 	 *
 	 * @param string $pattern  Pattern.
 	 * @param array  $items    Items.
@@ -129,7 +129,7 @@ class Tests_Formatting_wpSprintf extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_wp_sprintf_l_patterns() {
+	public static function data_wp_sprintf_l() {
 		return array(
 			'list specifier with a suffix' => array( '%l!', array( 'a', 'b', 'c' ), 'a, b, and c!' ),
 			'other specifier'              => array( '%s', array( 'a', 'b' ), '%s' ),

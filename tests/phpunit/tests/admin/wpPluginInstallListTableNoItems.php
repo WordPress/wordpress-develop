@@ -70,7 +70,7 @@ class Tests_Admin_wpPluginInstallListTableNoItems extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Plugin_Install_List_Table::display_tablenav
 	 *
-	 * @dataProvider data_positions
+	 * @dataProvider data_display_tablenav_should_output_nothing_on_featured_tab
 	 *
 	 * @param string $which The navigation position.
 	 */
@@ -85,7 +85,7 @@ class Tests_Admin_wpPluginInstallListTableNoItems extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_positions() {
+	public static function data_display_tablenav_should_output_nothing_on_featured_tab() {
 		return array(
 			'top'    => array( 'top' ),
 			'bottom' => array( 'bottom' ),

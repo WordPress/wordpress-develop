@@ -45,7 +45,7 @@ class Tests_Admin_Includes_AjaxActions_saveUserColorScheme extends WP_Ajax_UnitT
 	/**
 	 * @ticket 65252
 	 *
-	 * @dataProvider data_color_schemes
+	 * @dataProvider data_save_user_color_scheme_saves_scheme
 	 *
 	 * @param string $color_scheme Posted color scheme.
 	 * @param string $expected     Expected saved color scheme.
@@ -76,7 +76,7 @@ class Tests_Admin_Includes_AjaxActions_saveUserColorScheme extends WP_Ajax_UnitT
 	 *
 	 * @return array<string, array{ 0: string, 1: string }>
 	 */
-	public static function data_color_schemes(): array {
+	public static function data_save_user_color_scheme_saves_scheme(): array {
 		return array(
 			'light'                  => array( 'light', 'light' ),
 			'coffee'                 => array( 'coffee', 'coffee' ),

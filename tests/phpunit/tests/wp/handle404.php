@@ -28,7 +28,7 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	 *
 	 * @ticket 65945
 	 *
-	 * @dataProvider data_sitemap_requests
+	 * @dataProvider data_sitemap_requests_should_not_be_404ed_by_an_empty_main_query
 	 *
 	 * @param non-falsy-string $url Sitemap URL to request.
 	 */
@@ -44,7 +44,7 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public static function data_sitemap_requests(): array {
+	public static function data_sitemap_requests_should_not_be_404ed_by_an_empty_main_query(): array {
 		return array(
 			'index'                     => array( '/?sitemap=index' ),
 			'posts provider'            => array( '/?sitemap=posts&sitemap-subtype=post' ),

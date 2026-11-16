@@ -6283,7 +6283,7 @@ EOF;
 	 * Test AVIF quality filters for both Imagick and GD when AVIF support is available.
 	 *
 	 * @ticket 61614
-	 * @dataProvider data_test_quality_with_avif_conversion_file_sizes
+	 * @dataProvider data_quality_with_avif_conversion_file_sizes
 	 */
 	public function test_quality_with_avif_conversion_file_sizes( string $editor_class ): void {
 		// Set the engine for this test.
@@ -6349,7 +6349,7 @@ EOF;
 	 *
 	 * @return array<string, array{0: class-string<WP_Image_Editor>}> Array of arrays, each containing an editor class name.
 	 */
-	public static function data_test_quality_with_avif_conversion_file_sizes(): array {
+	public static function data_quality_with_avif_conversion_file_sizes(): array {
 		return array(
 			'Imagick' => array( 'WP_Image_Editor_Imagick' ),
 			'GD'      => array( 'WP_Image_Editor_GD' ),

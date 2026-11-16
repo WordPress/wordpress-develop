@@ -96,7 +96,7 @@ class Tests_Sitemaps_wpSitemapsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Sitemaps_Registry::add_provider
 	 *
-	 * @dataProvider data_invalid_sitemap_providers
+	 * @dataProvider data_add_provider_filter_rejects_non_provider
 	 *
 	 * @param mixed $invalid_provider Invalid provider value.
 	 */
@@ -121,7 +121,7 @@ class Tests_Sitemaps_wpSitemapsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public static function data_invalid_sitemap_providers() {
+	public static function data_add_provider_filter_rejects_non_provider() {
 		return array(
 			'false'    => array( false ),
 			'stdClass' => array( new stdClass() ),

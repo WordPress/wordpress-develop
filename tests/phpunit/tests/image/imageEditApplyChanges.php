@@ -81,7 +81,7 @@ class Tests_Image_ImageEditApplyChanges extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_changes_that_are_not_an_array
+	 * @dataProvider data_returns_image_unchanged_when_changes_are_not_an_array
 	 *
 	 * @param mixed $changes Changes.
 	 */
@@ -101,7 +101,7 @@ class Tests_Image_ImageEditApplyChanges extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_changes_that_are_not_an_array() {
+	public static function data_returns_image_unchanged_when_changes_are_not_an_array() {
 		return array(
 			'null'   => array( null ),
 			'object' => array( (object) array( 'r' => 90 ) ),
@@ -113,7 +113,7 @@ class Tests_Image_ImageEditApplyChanges extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @dataProvider data_changes
+	 * @dataProvider data_applies_changes_to_editor
 	 *
 	 * @param array[] $changes  Change operations.
 	 * @param array[] $expected Expected editor calls, each as the method name followed by its arguments.
@@ -130,7 +130,7 @@ class Tests_Image_ImageEditApplyChanges extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_changes() {
+	public static function data_applies_changes_to_editor() {
 		return array(
 			'no changes'                               => array( array(), array() ),
 			'rotate'                                   => array(
