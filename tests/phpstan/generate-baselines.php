@@ -400,15 +400,6 @@ if ( 0 !== $exit_code || ! is_file( $temp_baseline ) ) {
 	exit( 1 );
 }
 
-/*
- * A configuration that turns off `reportUnmatchedIgnoredErrors` would also stop
- * reporting the entries of its own baselines once they are stale, so each entry
- * written for it turns that back on for itself. phpstan-level-10.neon.dist does
- * so, because it drops the errors outside its strict paths before the ignores are
- * matched against them.
- */
-$report_unmatched = ! reports_unmatched_ignored_errors( $repo_root, $config_path, $memory_limit );
-
 /**
  * The entries of each error, grouped by the identifier of the error it suppresses.
  *
@@ -430,7 +421,7 @@ if ( $combined ) {
 	foreach ( $grouped as $entries ) {
 		$all = array_merge( $all, $entries );
 	}
-	echo build_baseline( $all, $output_dir, "# Every identifier, combined.\n", $report_unmatched );
+	echo build_baseline( $all, $output_dir, "# Every identifier, combined.\n" );
 	exit( 0 );
 }
 
@@ -481,7 +472,7 @@ if ( ( DEFAULT_CONFIGS[ $config_relative ] ?? DEFAULT_OUTPUT_DIR ) !== trim( nor
 foreach ( $grouped as $identifier => $entries ) {
 	$written = file_put_contents(
 		$output_dir . '/' . $identifier . '.neon',
-		build_baseline( $entries, $output_dir, build_baseline_header( $identifier, $regenerate_options ), $report_unmatched )
+		build_baseline( $entries, $output_dir, build_baseline_header( $identifier, $regenerate_options ) )
 	);
 
 	if ( false === $written ) {
@@ -842,55 +833,18 @@ function count_errors( array $entries ): int {
 }
 
 /**
- * Determines whether a configuration reports ignores that no longer match an error.
- *
- * The parameter is read from what PHPStan resolves, so that it reflects every
- * file the configuration includes. Only its line is matched, rather than decoding
- * the whole dump, because the JSON PHPStan prints can be invalid: it writes the
- * `\<` in a message pattern as is, which is not a valid JSON escape.
- *
- * @param non-empty-string $repo_root    Absolute path to the repository root.
- * @param non-empty-string $config_path  Absolute path to the configuration file.
- * @param string           $memory_limit Memory limit passed to PHPStan.
- * @return bool Whether `reportUnmatchedIgnoredErrors` is on.
- */
-function reports_unmatched_ignored_errors( string $repo_root, string $config_path, string $memory_limit ): bool {
-	$command = sprintf(
-		'%s dump-parameters --configuration=%s --json --memory-limit=%s',
-		escapeshellarg( $repo_root . '/vendor/bin/phpstan' ),
-		escapeshellarg( $config_path ),
-		escapeshellarg( $memory_limit )
-	);
-
-	$output    = array();
-	$exit_code = 0;
-	exec( $command, $output, $exit_code );
-
-	foreach ( $output as $line ) {
-		if ( 1 === preg_match( '/^\s*"reportUnmatchedIgnoredErrors": (true|false),?$/', $line, $matches ) ) {
-			return 'true' === $matches[1];
-		}
-	}
-
-	fwrite( STDERR, "Could not read reportUnmatchedIgnoredErrors from the configuration (exit status $exit_code).\n" );
-	exit( 1 );
-}
-
-/**
  * Builds a baseline file in PHPStan's NEON format.
  *
  * The entry layout matches what PHPStan itself writes, so a regenerated file can
  * be diffed against one it produced. Paths are rewritten relative to the file's
  * own directory, since that is what a NEON `path` resolves against.
  *
- * @param list<array{message: string, identifier: non-falsy-string, count: int<0, max>, path: non-empty-string}> $entries          Baseline entries.
- * @param non-empty-string                                                                                       $output_dir       Directory the file is written to.
- * @param string                                                                                                 $header           Comment block, or an empty string.
- * @param bool                                                                                                   $report_unmatched Whether each entry sets `reportUnmatched: true`, for a
- *                                                                                                                                 configuration that does not report unmatched ignores.
+ * @param list<array{message: string, identifier: non-falsy-string, count: int<0, max>, path: non-empty-string}> $entries    Baseline entries.
+ * @param non-empty-string                                                                                       $output_dir Directory the file is written to.
+ * @param string                                                                                                 $header     Comment block, or an empty string.
  * @return non-falsy-string Baseline file contents.
  */
-function build_baseline( array $entries, string $output_dir, string $header, bool $report_unmatched ): string {
+function build_baseline( array $entries, string $output_dir, string $header ): string {
 	$contents = ( '' === $header ? '' : $header . "\n" ) . "parameters:\n\tignoreErrors:\n";
 
 	foreach ( $entries as $entry ) {
@@ -898,8 +852,7 @@ function build_baseline( array $entries, string $output_dir, string $header, boo
 			. "\t\t\tmessage: " . quote_neon_value( $entry['message'] ) . "\n"
 			. "\t\t\tidentifier: " . $entry['identifier'] . "\n"
 			. "\t\t\tcount: " . $entry['count'] . "\n"
-			. "\t\t\tpath: " . get_relative_path( $output_dir, $entry['path'] ) . "\n"
-			. ( $report_unmatched ? "\t\t\treportUnmatched: true\n" : '' );
+			. "\t\t\tpath: " . get_relative_path( $output_dir, $entry['path'] ) . "\n";
 	}
 
 	return $contents;

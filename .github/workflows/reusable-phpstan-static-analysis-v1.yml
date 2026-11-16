@@ -22,9 +22,7 @@ jobs:
   # Runs PHP static analysis tests.
   #
   # Core is analyzed twice, in parallel: the whole codebase with phpstan.neon.dist, and the paths held to rule level 10
-  # with phpstan-level-10.neon.dist. The second analyzes every path too, since narrowing them would change the types
-  # the WordPress-specific extensions derive, and reports only the errors in its strict paths. See
-  # tests/phpstan/README.md.
+  # with phpstan-level-10.neon.dist. See tests/phpstan/README.md.
   #
   # Violations are reported inline with annotations. For pull requests, the results of each analysis are also uploaded
   # as an artifact, and the PHPStan Pull Request Comments workflow combines them in a comment.

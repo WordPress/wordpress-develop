@@ -23,4 +23,3 @@ parameters:
 			identifier: cast.int
 			count: 1
 			path: ../../../src/wp-includes/class-wp-post.php
-			reportUnmatched: true

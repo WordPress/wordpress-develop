@@ -23,64 +23,53 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/abilities-api/class-wp-abilities-registry.php
-			reportUnmatched: true
 		-
 			message: '#^Parameter \#1 \$args of function wp_parse_args expects array\<string, mixed\>\|object\|string, mixed given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/abilities-api/class-wp-ability.php
-			reportUnmatched: true
 		-
 			message: '#^Parameter \#1 \$name of method WordPress\\AiClientDependencies\\Psr\\Http\\Message\\MessageInterface\:\:withHeader\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/ai-client/adapters/class-wp-ai-client-http-client.php
-			reportUnmatched: true
 		-
 			message: '#^Parameter \#1 \$wp_response of method WP_AI_Client_HTTP_Client\:\:create_psr_response\(\) expects array\<string, mixed\>, array given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/ai-client/adapters/class-wp-ai-client-http-client.php
-			reportUnmatched: true
 		-
 			message: '#^Parameter \#2 \$value of method WordPress\\AiClientDependencies\\Psr\\Http\\Message\\MessageInterface\:\:withHeader\(\) expects array\<string\>\|string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/ai-client/adapters/class-wp-ai-client-http-client.php
-			reportUnmatched: true
 		-
 			message: '#^Parameter \#1 \$query of method wpdb\:\:query\(\) expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/secrets/class-wp-secrets-key-manager.php
-			reportUnmatched: true
 		-
 			message: '#^Parameter \#1 \$table of method wpdb\:\:delete\(\) expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/secrets/class-wp-secrets-key-manager.php
-			reportUnmatched: true
 		-
 			message: '#^Parameter \#1 \$table of method wpdb\:\:insert\(\) expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/secrets/class-wp-secrets-key-manager.php
-			reportUnmatched: true
 		-
 			message: '#^Parameter \#4 \$options of static method WP_Style_Engine_CSS_Declarations\:\:filter_declaration\(\) expects array\{important\?\: bool, \.\.\.\}, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-css-declarations.php
-			reportUnmatched: true
 		-
 			message: '#^Parameter \#3 \$options of method WP_Style_Engine_CSS_Declarations\:\:add_declaration\(\) expects array\{important\?\: bool, \.\.\.\}, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-css-rule.php
-			reportUnmatched: true
 		-
 			message: '#^Parameter \#1 \$should_prettify of method WP_Style_Engine_CSS_Rule\:\:get_css\(\) expects bool, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-processor.php
-			reportUnmatched: true

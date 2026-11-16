@@ -23,22 +23,18 @@ parameters:
 			identifier: missingType.return
 			count: 1
 			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-css-rules-store.php
-			reportUnmatched: true
 		-
 			message: '#^Method WP_Style_Engine_CSS_Rules_Store\:\:remove_rule\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
 			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-css-rules-store.php
-			reportUnmatched: true
 		-
 			message: '#^Method WP_Style_Engine_CSS_Rules_Store\:\:set_name\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
 			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-css-rules-store.php
-			reportUnmatched: true
 		-
 			message: '#^Method WP_Style_Engine_Processor\:\:combine_rules_selectors\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
 			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-processor.php
-			reportUnmatched: true

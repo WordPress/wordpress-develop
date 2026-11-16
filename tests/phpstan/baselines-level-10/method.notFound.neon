@@ -23,4 +23,3 @@ parameters:
 			identifier: method.notFound
 			count: 1
 			path: ../../../src/wp-includes/ai-client/class-wp-ai-client-builder.php
-			reportUnmatched: true

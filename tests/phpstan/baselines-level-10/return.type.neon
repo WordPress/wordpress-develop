@@ -23,4 +23,3 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: ../../../src/wp-includes/abilities-api/class-wp-ability-categories-registry.php
-			reportUnmatched: true

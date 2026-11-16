@@ -23,40 +23,33 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: ../../../src/wp-includes/abilities-api.php
-			reportUnmatched: true
 		-
 			message: '#^Function _wp_get_abilities_match_meta\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: ../../../src/wp-includes/abilities-api.php
-			reportUnmatched: true
 		-
 			message: '#^Function wp_get_abilities\(\) has parameter \$args with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: ../../../src/wp-includes/abilities-api.php
-			reportUnmatched: true
 		-
 			message: '#^Function wp_ai_client_embedding\(\) has parameter \$input with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: ../../../src/wp-includes/ai-client.php
-			reportUnmatched: true
 		-
 			message: '#^Function wp_ai_client_prompt\(\) has parameter \$prompt with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: ../../../src/wp-includes/ai-client.php
-			reportUnmatched: true
 		-
 			message: '#^Method WP_Style_Engine_CSS_Declarations\:\:get_declaration_options\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-css-declarations.php
-			reportUnmatched: true
 		-
 			message: '#^Property WP_Style_Engine_CSS_Declarations\:\:\$declaration_options type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-css-declarations.php
-			reportUnmatched: true

@@ -23,16 +23,13 @@ parameters:
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: ../../../src/wp-includes/abilities-api/class-wp-ability.php
-			reportUnmatched: true
 		-
 			message: '#^Cannot access offset ''public'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: ../../../src/wp-includes/abilities-api/class-wp-ability.php
-			reportUnmatched: true
 		-
 			message: '#^Cannot access offset ''show_in_rest'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: ../../../src/wp-includes/abilities-api/class-wp-ability.php
-			reportUnmatched: true

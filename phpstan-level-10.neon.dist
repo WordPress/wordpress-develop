@@ -1,13 +1,13 @@
 # PHPStan configuration holding selected parts of WordPress Core to rule level 10.
 #
-# phpstan.neon.dist analyzes the whole codebase at a lower rule level. This analyzes it at level 10, and reports
-# only the errors in the paths listed under `strictPaths` below, so that code which already meets the stricter
-# level, mostly code added in recent releases, keeps meeting it. `composer phpstan` runs both analyses.
+# phpstan.neon.dist analyzes the whole codebase at a lower rule level. This analyzes only the paths listed under
+# `paths!` below, at level 10, so that code which already meets the stricter level, mostly code added in recent
+# releases, keeps meeting it. `composer phpstan` runs both analyses.
 #
-# The analysis covers every path phpstan.neon.dist does, rather than only the strict paths, and filters the errors
-# afterward. The WordPress-specific parser node visitors in tests/phpstan only rewrite the docblocks of the files
-# that are analyzed, so narrowing the analyzed paths would read every function outside them without the types those
-# visitors derive, such as the array shapes from hash notation. See tests/phpstan/README.md.
+# The rest of core is scanned rather than analyzed, so that what the strict paths use is known. A scanned file is read
+# with the same WordPress-specific parser node visitors as an analyzed one (see the redefinition of
+# `currentPhpVersionSimpleParser` in tests/phpstan/base.neon), so a function outside the strict paths has the same
+# types here, such as the array shapes from hash notation, as in the analysis of the whole codebase.
 #
 # To override this configuration, create a phpstan-level-10.neon which includes this file, in the same way as
 # phpstan.neon overrides phpstan.neon.dist.
@@ -16,7 +16,9 @@
 
 includes:
 	# Everything phpstan.neon.dist enforces: the base configuration, the strict rules, the errors ignored as not
-	# actionable, and its baselines. An error that both analyses report is baselined once, by phpstan.neon.dist.
+	# actionable, and its baselines. An error that both analyses report is baselined once, by phpstan.neon.dist. The
+	# entries for files this does not analyze are not reported as unmatched, since PHPStan only reports an entry when
+	# what it ignores is within the analysis.
 	- phpstan.neon.dist
 
 	# Preexisting errors at this level in the strict paths, beyond those baselined by phpstan.neon.dist. They are
@@ -32,45 +34,26 @@ includes:
 	- tests/phpstan/baselines-level-10/return.type.neon
 	# phpstan:baselines end
 
-services:
-	# Drops every error reported outside the strict paths.
-	# See tests/phpstan/StrictPathsIgnoreErrorExtension.php.
-	-
-		class: WordPress\PHPStan\StrictPathsIgnoreErrorExtension
-		arguments:
-			paths: %strictPaths%
-		tags:
-			- phpstan.ignoreErrorExtension
-
-parametersSchema:
-	strictPaths: listOf(string())
-
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
 	level: 10
 
-	# The two analyses share the cache of what PHPStan reads from each file, since both parse every file the same way,
-	# but each needs its own result cache. Its metadata includes the rule level, so a shared one would be discarded by
-	# every run of the other analysis.
+	# The two analyses share the cache of what PHPStan reads from each file, since both read every file the same way,
+	# but each needs its own result cache. Its metadata includes the rule level and the paths analyzed, so a shared one
+	# would be discarded by every run of the other analysis.
 	resultCachePath: %tmpDir%/resultCache-level-10.php
 
-	# The errors outside the strict paths are dropped before the ignores are matched against them, so every
-	# `@phpstan-ignore` comment and baseline entry outside the strict paths would be reported as unmatched. Those are
-	# checked by phpstan.neon.dist instead. The entries of this configuration's own baselines each set
-	# `reportUnmatched: true`, which overrides this, so a stale one is still reported.
-	reportUnmatchedIgnoredErrors: false
-
-	# The paths held to this rule level, relative to the repository root. A path ending in a slash is a directory, and
-	# covers every file below it. Any other path is a file. Each path must exist.
+	# The paths held to this rule level, replacing those analyzed by phpstan.neon.dist. A directory covers every file
+	# below it.
 	#
 	# Before adding a path, fix the errors this analysis reports in it, or baseline those that cannot be fixed yet.
-	strictPaths:
+	paths!:
 		- src/wp-admin/includes/class-wp-filesystem-base.php
 		- src/wp-admin/includes/class-wp-filesystem-direct.php
 		- src/wp-admin/includes/class-wp-filesystem-ssh2.php
-		- src/wp-includes/abilities-api/
+		- src/wp-includes/abilities-api
 		- src/wp-includes/abilities-api.php
-		- src/wp-includes/ai-client/
+		- src/wp-includes/ai-client
 		- src/wp-includes/ai-client.php
 		- src/wp-includes/class-wp-block-styles-registry.php
 		- src/wp-includes/class-wp-block-template.php
@@ -89,9 +72,29 @@ parameters:
 		- src/wp-includes/html-api/class-wp-html-token.php
 		- src/wp-includes/html-api/class-wp-html-unsupported-exception.php
 		- src/wp-includes/l10n/class-wp-translations.php
-		- src/wp-includes/secrets/
+		- src/wp-includes/secrets
 		- src/wp-includes/secrets.php
 		- src/wp-includes/sitemaps.php
 		- src/wp-includes/speculative-loading.php
-		- src/wp-includes/style-engine/
-		- tests/phpstan/
+		- src/wp-includes/style-engine
+		- tests/phpstan
+
+	# The code outside the strict paths that they can use. The bundled themes are left out, since nothing in core uses
+	# them. The files in the root are scanned for the constants they define, such as WPINC in wp-settings.php.
+	scanDirectories:
+		- src/wp-admin
+		- src/wp-includes
+	scanFiles:
+		- src/index.php
+		- src/wp-activate.php
+		- src/wp-blog-header.php
+		- src/wp-comments-post.php
+		- src/wp-cron.php
+		- src/wp-links-opml.php
+		- src/wp-load.php
+		- src/wp-login.php
+		- src/wp-mail.php
+		- src/wp-settings.php
+		- src/wp-signup.php
+		- src/wp-trackback.php
+		- src/xmlrpc.php
