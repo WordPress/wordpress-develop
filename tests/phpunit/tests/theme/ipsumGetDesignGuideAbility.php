@@ -37,6 +37,13 @@ class Tests_Theme_IpsumGetDesignGuideAbility extends WP_UnitTestCase {
 	 */
 	private $original_stylesheet;
 
+	/**
+	 * Whether the current test made the administrator a super admin.
+	 *
+	 * @var bool
+	 */
+	private $granted_super_admin = false;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
@@ -106,6 +113,12 @@ class Tests_Theme_IpsumGetDesignGuideAbility extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		if ( $this->granted_super_admin ) {
+			revoke_super_admin( self::$admin_id );
+			kses_init();
+			$this->granted_super_admin = false;
+		}
+
 		if ( get_stylesheet() !== $this->original_stylesheet ) {
 			switch_theme( $this->original_stylesheet );
 		}
@@ -346,6 +359,17 @@ class Tests_Theme_IpsumGetDesignGuideAbility extends WP_UnitTestCase {
 		// Saved styles key the palette by origin.
 		$user_styles['settings']['color']['palette'] = array( 'theme' => $variation['settings']['color']['palette'] );
 		unset( $user_styles['settings']['color']['duotone'] );
+
+		/*
+		 * On multisite, only super admins have `unfiltered_html`. For everyone else, saving global
+		 * styles keeps only the presets, which drops `settings.custom.controlScheme`. Save them as
+		 * a single site administrator does.
+		 */
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+			$this->granted_super_admin = true;
+			kses_init();
+		}
 
 		self::factory()->post->create(
 			array(
