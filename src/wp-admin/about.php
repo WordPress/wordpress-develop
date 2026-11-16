@@ -14,7 +14,10 @@ require_once __DIR__ . '/admin.php';
 $title = _x( 'About', 'page title' );
 
 list( $display_version ) = explode( '-', wp_get_wp_version() );
-$display_major_version   = '7.1';
+
+// Release this page describes. Bump this in the same commit as the copy, images,
+// and documentation links. Prerelease and minor versions keep this value.
+$display_major_version = '7.1';
 
 $release_notes_url = sprintf(
 	/* translators: %s: WordPress version number. */
