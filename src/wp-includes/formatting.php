@@ -5256,6 +5256,7 @@ function sanitize_option( $option, $value ) {
  * This is similar to `array_walk_recursive()` but acts upon objects too.
  *
  * @since 4.4.0
+ * @since 7.2.0 Added support for ArrayObject entries.
  *
  * @param mixed    $value    The array, object, or scalar.
  * @param callable $callback The function to map onto $value.
@@ -5271,6 +5272,13 @@ function map_deep( $value, $callback ) {
 			$value[ $index ] = map_deep( $item, $callback );
 		}
 	} elseif ( is_object( $value ) ) {
+		// get_object_vars() does not include ArrayObject entries on PHP 7.4 and later.
+		if ( $value instanceof ArrayObject && ! ( $value->getFlags() & ArrayObject::STD_PROP_LIST ) ) {
+			foreach ( $value->getArrayCopy() as $index => $item ) {
+				$value[ $index ] = map_deep( $item, $callback );
+			}
+		}
+
 		$object_vars = get_object_vars( $value );
 		foreach ( $object_vars as $property_name => $property_value ) {
 			$value->$property_name = map_deep( $property_value, $callback );
