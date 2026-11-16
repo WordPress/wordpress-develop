@@ -92,6 +92,8 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * @since 5.2.0
 	 */
 	public function tear_down() {
+		set_current_screen( 'front' );
+		$this->restore_site_locale();
 		$this->remove_exports_dir();
 		error_reporting( $this->orig_error_level );
 		parent::tear_down();
@@ -670,5 +672,176 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		fclose( $file );
 
 		return array( $value );
+	}
+
+	/**
+	 * The export file should be generated in the requester's locale, not in the locale
+	 * of the administrator generating it.
+	 *
+	 * @ticket 44084
+	 * @group l10n
+	 */
+	public function test_should_generate_export_file_in_requester_locale() {
+		$requester  = self::factory()->user->create(
+			array(
+				'user_email' => 'requester-with-locale@example.com',
+				'locale'     => 'es_ES',
+			)
+		);
+		$request_id = wp_create_user_request( 'requester-with-locale@example.com', 'export_personal_data' );
+		update_post_meta( $request_id, '_export_data_grouped', array() );
+
+		$this->assertSame( $requester, (int) wp_get_user_request( $request_id )->user_id, 'The request should belong to the requester.' );
+
+		$this->set_up_admin_with_locale( 'de_DE' );
+
+		$report_dir = $this->setup_locale_test( $request_id );
+
+		$this->assertStringContainsString( '<h1 id="top">[es_ES] Personal Data Export</h1>', file_get_contents( $report_dir . 'index.html' ) );
+	}
+
+	/**
+	 * The export file should be generated in the site's locale when the requester
+	 * does not have a user account.
+	 *
+	 * @ticket 44084
+	 * @group l10n
+	 */
+	public function test_should_generate_export_file_in_site_locale_for_requester_without_account() {
+		$this->set_site_locale( 'es_ES' );
+
+		$request_id = wp_create_user_request( 'visitor-without-account@example.com', 'export_personal_data' );
+		update_post_meta( $request_id, '_export_data_grouped', array() );
+
+		$this->set_up_admin_with_locale( 'de_DE' );
+
+		$report_dir = $this->setup_locale_test( $request_id );
+
+		$this->assertStringContainsString( '<h1 id="top">[es_ES] Personal Data Export</h1>', file_get_contents( $report_dir . 'index.html' ) );
+	}
+
+	/**
+	 * The locale should be restored after the export file has been generated.
+	 *
+	 * @ticket 44084
+	 * @group l10n
+	 */
+	public function test_should_restore_locale_after_generating_export_file() {
+		self::factory()->user->create(
+			array(
+				'user_email' => 'requester-restore-locale@example.com',
+				'locale'     => 'es_ES',
+			)
+		);
+		$request_id = wp_create_user_request( 'requester-restore-locale@example.com', 'export_personal_data' );
+		update_post_meta( $request_id, '_export_data_grouped', array() );
+
+		$this->set_up_admin_with_locale( 'de_DE' );
+
+		$this->expectOutputString( '' );
+		wp_privacy_generate_personal_data_export_file( $request_id );
+
+		$this->assertSame( 'de_DE', determine_locale() );
+	}
+
+	/**
+	 * Logs in an administrator using the given locale on an admin screen, so that
+	 * WordPress uses that locale the same way it does in the admin.
+	 *
+	 * @param string $locale Administrator's locale.
+	 */
+	private function set_up_admin_with_locale( $locale ) {
+		wp_set_current_user(
+			self::factory()->user->create(
+				array(
+					'role'   => 'administrator',
+					'locale' => $locale,
+				)
+			)
+		);
+		set_current_screen( 'dashboard' );
+
+		$this->assertSame( $locale, determine_locale(), 'The administrator locale should be active.' );
+	}
+
+	/**
+	 * Generates the export file for the given request with the locale marker filter
+	 * applied, and extracts it.
+	 *
+	 * @param int $request_id Request ID.
+	 * @return string Path to the directory with the extracted export files.
+	 */
+	private function setup_locale_test( $request_id ) {
+		add_filter( 'gettext', array( $this, 'filter_gettext_add_locale_marker' ), 10, 2 );
+
+		$this->expectOutputString( '' );
+		wp_privacy_generate_personal_data_export_file( $request_id );
+
+		remove_filter( 'gettext', array( $this, 'filter_gettext_add_locale_marker' ), 10 );
+
+		$this->assertFileExists( $this->export_file_name );
+
+		$report_dir = trailingslashit( self::$exports_dir . 'test_locale' );
+		mkdir( $report_dir );
+
+		$zip = new ZipArchive();
+		$this->assertTrue( $zip->open( $this->export_file_name ) );
+		$zip->extractTo( $report_dir );
+		$zip->close();
+
+		return $report_dir;
+	}
+
+	/**
+	 * Prefixes the report heading with the locale active when it was translated.
+	 *
+	 * @param string $translation Translated text.
+	 * @param string $text        Text to translate.
+	 * @return string Filtered text.
+	 */
+	public function filter_gettext_add_locale_marker( $translation, $text ) {
+		if ( 'Personal Data Export' === $text ) {
+			return '[' . determine_locale() . '] ' . $translation;
+		}
+
+		return $translation;
+	}
+
+	/**
+	 * Original value of the cached site locale global, if it was changed by a test.
+	 *
+	 * @var string|null|false
+	 */
+	private $orig_site_locale = false;
+
+	/**
+	 * Sets the site's default locale and clears the locale cached by `get_locale()`.
+	 *
+	 * @param string $locale Site locale.
+	 */
+	private function set_site_locale( $locale ) {
+		$this->orig_site_locale = isset( $GLOBALS['locale'] ) ? $GLOBALS['locale'] : null;
+
+		update_option( 'WPLANG', $locale );
+		unset( $GLOBALS['locale'] );
+
+		$this->assertSame( $locale, get_locale(), 'The site locale should be updated.' );
+	}
+
+	/**
+	 * Restores the cached site locale global if it was changed by a test.
+	 */
+	private function restore_site_locale() {
+		if ( false === $this->orig_site_locale ) {
+			return;
+		}
+
+		if ( null === $this->orig_site_locale ) {
+			unset( $GLOBALS['locale'] );
+		} else {
+			$GLOBALS['locale'] = $this->orig_site_locale;
+		}
+
+		$this->orig_site_locale = false;
 	}
 }
