@@ -262,7 +262,10 @@ jobs:
 
             // GitHub shows only the first few annotations of each kind from a step on the page of the workflow run, so
             // errors left out of a table are pointed to in the log of the step that reported them, which has them all.
-            const where = `the log of the [workflow run](${ run.html_url }), in the “Report the analysis results” step`;
+            // Each analysis runs in a job of its own, and an error found only at level 10 is only in that job's log.
+            const where = level10Only.length > 0
+              ? `the log of the [workflow run](${ run.html_url }), in the “Report the analysis results” step of each of its jobs (level 10 errors are only in the “level 10 paths” job)`
+              : `the log of the [workflow run](${ run.html_url }), in the “Report the analysis results” step`;
             const table = ( rows, rowLimit, { withResolution = false } = {} ) => {
               const shown = rows.slice( 0, rowLimit );
               if ( shown.length === 0 ) {

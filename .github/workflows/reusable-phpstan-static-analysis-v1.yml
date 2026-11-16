@@ -236,6 +236,7 @@ jobs:
               fs.writeFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, JSON.stringify( {
                 pull_request: context.payload.pull_request.number,
                 analysis,
+                // Keep this list in step with the `analysis` values of the job's matrix.
                 ...( analysis === 'level-5' ? { analyses: [ 'level-5', 'level-10' ] } : {} ),
                 changed_in_base: changedInBase,
                 errors: errors.map( ( { tip, fixable, ...error } ) => error ),
