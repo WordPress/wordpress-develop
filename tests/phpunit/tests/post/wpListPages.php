@@ -293,7 +293,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_list_pages_id_list_callbacks
 	 *
-	 * @param callable(int): (int|numeric-string) $callback Callback to cast each page ID with.
+	 * @param callable(int): (int|decimal-int-string) $callback Callback to cast each page ID with.
 	 */
 	public function test_wp_list_pages_exclude_should_accept_an_array_of_ids( callable $callback ): void {
 		$args = array(
@@ -307,7 +307,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 
 		$this->assertSameIgnoreEOL(
 			$expected,
-			wp_list_pages( $args ) // @phpstan-ignore argument.type (Back-compat: numeric-string IDs are still accepted.)
+			wp_list_pages( $args ) // @phpstan-ignore argument.type (Back-compat: decimal-int-string IDs are still accepted.)
 		);
 	}
 
@@ -351,7 +351,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<non-falsy-string, array{ 0: callable(int): (int|numeric-string) }>
+	 * @return array<non-falsy-string, array{ 0: callable(int): (int|decimal-int-string) }>
 	 */
 	public function data_wp_list_pages_id_list_callbacks(): array {
 		return array(
@@ -395,7 +395,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_page_menu_exclude_formats
 	 *
-	 * @param callable(int[]): (int[]|numeric-string[]|string) $format Callback to format the array of page IDs to exclude.
+	 * @param callable(int[]): (int[]|decimal-int-string[]|string) $format Callback to format the array of page IDs to exclude.
 	 */
 	public function test_wp_page_menu_should_exclude_front_page_with_exclude_arg( callable $format ): void {
 		update_option( 'show_on_front', 'page' );
@@ -539,7 +539,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<non-falsy-string, array{ 0: callable(int[]): (int[]|numeric-string[]|string) }>
+	 * @return array<non-falsy-string, array{ 0: callable(int[]): (int[]|decimal-int-string[]|string) }>
 	 */
 	public function data_wp_page_menu_exclude_formats(): array {
 		return array(
@@ -711,7 +711,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_list_pages_id_list_callbacks
 	 *
-	 * @param callable(int): (int|numeric-string) $callback Callback to cast each page ID with.
+	 * @param callable(int): (int|decimal-int-string) $callback Callback to cast each page ID with.
 	 */
 	public function test_wp_list_pages_include_should_accept_an_array_of_ids( callable $callback ): void {
 		$args = array(
@@ -725,7 +725,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 
 		$this->assertSameIgnoreEOL(
 			$expected,
-			wp_list_pages( $args ) // @phpstan-ignore argument.type (Back-compat: numeric-string IDs are still accepted.)
+			wp_list_pages( $args ) // @phpstan-ignore argument.type (Back-compat: decimal-int-string IDs are still accepted.)
 		);
 	}
 
