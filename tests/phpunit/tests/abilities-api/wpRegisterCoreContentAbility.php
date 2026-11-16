@@ -12,6 +12,15 @@ declare( strict_types=1 );
 class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 	/**
+	 * The content abilities, which every test unregisters before and after it runs.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var list<string>
+	 */
+	private const CONTENT_ABILITIES = array( 'core/content-query', 'core/content-create', 'core/content-update', 'core/content-delete' );
+
+	/**
 	 * Globals that rendering a post changes: the global post and the globals that
 	 * setup_postdata() populates.
 	 *
@@ -142,7 +151,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		foreach ( array( 'core/content-query', 'core/content-create', 'core/content-update', 'core/content-delete' ) as $ability_name ) {
+		foreach ( self::CONTENT_ABILITIES as $ability_name ) {
 			if ( wp_has_ability( $ability_name ) ) {
 				wp_unregister_ability( $ability_name );
 			}
@@ -162,12 +171,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Removes the ability and its category, and resets the post types, after each test.
+	 * Removes the content abilities and their category, and resets the post types, after each test.
 	 *
 	 * @since 7.2.0
 	 */
 	public function tear_down(): void {
-		foreach ( array( 'core/content-query', 'core/content-create', 'core/content-update', 'core/content-delete' ) as $ability_name ) {
+		foreach ( self::CONTENT_ABILITIES as $ability_name ) {
 			if ( wp_has_ability( $ability_name ) ) {
 				wp_unregister_ability( $ability_name );
 			}
@@ -190,7 +199,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Registers the core/content-query ability inside a faked init action.
+	 * Registers the content abilities inside a faked init action.
 	 *
 	 * @since 7.2.0
 	 */
@@ -5694,6 +5703,41 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A stored date at the Unix epoch is returned: a timestamp of zero is a date, not a
+	 * date that could not be parsed.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_date_fields
+	 * @since 7.3.0
+	 *
+	 * @param string $field  The field path to request, such as `date.site`.
+	 * @param string $column The cached post column to set to the Unix epoch.
+	 */
+	public function test_date_at_the_unix_epoch_is_returned( string $field, string $column ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$this->replace_cached_post_date_columns( $post_id, array( $column => '1970-01-01 00:00:00' ) );
+
+		list( $object, $key ) = explode( '.', $field );
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( $post_id ),
+				),
+				'fields' => array( 'id', $field ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'A date at the Unix epoch should pass output validation.' );
+		$this->assertSame( '1970-01-01T00:00:00+00:00', $result['items'][0][ $object ][ $key ] ?? null, 'A date at the Unix epoch should be returned.' );
+	}
+
+	/**
 	 * Returns `where.author` values that are not an object holding an ID or a slug: values
 	 * that are not objects, empty values, and objects with an unknown property.
 	 *
@@ -6850,7 +6894,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Queries trashed posts and returns the IDs of the items.
+	 * Runs a query and returns the IDs of the items.
 	 *
 	 * @since 7.3.0
 	 *
@@ -6873,10 +6917,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * `trash` requested by name returns the trashed posts to roles that may edit them.
 	 *
-	 * Covers S14.
-	 *
-	 * @dataProvider data_roles_with_edit_access_to_other_users_posts
 	 * @ticket 66706
+	 * @dataProvider data_roles_with_edit_access_to_other_users_posts
 	 * @since 7.3.0
 	 *
 	 * @param string $role The role to query as.
@@ -6901,8 +6943,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 	/**
 	 * `trash` can be requested next to another status.
-	 *
-	 * Covers S14.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -6969,8 +7009,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Querying `trash` needs `edit_posts`.
 	 *
-	 * Covers S14.
-	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
@@ -7009,10 +7047,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Trashed rows pass the per-post read check: a role that edits only its own posts gets its
 	 * own trashed post and not the trashed post of another user.
 	 *
-	 * Covers S14.
-	 *
-	 * @dataProvider data_roles_that_edit_only_their_own_trashed_posts
 	 * @ticket 66706
+	 * @dataProvider data_roles_that_edit_only_their_own_trashed_posts
 	 * @since 7.3.0
 	 *
 	 * @param string $role The role to query as.

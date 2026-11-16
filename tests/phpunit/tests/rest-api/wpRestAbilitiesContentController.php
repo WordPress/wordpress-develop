@@ -494,7 +494,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 
 		$data = $response->get_data();
 
-		$this->assertSame( array( 'id', 'status', 'title' ), array_keys( $data ), 'The created post should be returned in the chosen fields.' );
+		$this->assertSameSets( array( 'id', 'status', 'title' ), array_keys( $data ), 'The created post should be returned in the chosen fields.' );
 		$this->assertSame( 'draft', $data['status'], 'The created post should be a draft.' );
 		$this->assertSame( 'Over the run route', get_post( $data['id'] )->post_title, 'The created post should be stored.' );
 	}
@@ -579,9 +579,8 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * `permanent` in the query string is read as a boolean.
 	 *
-	 * @dataProvider data_permanent_query_string_values
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_permanent_query_string_values
 	 * @since 7.3.0
 	 *
 	 * @param string $permanent The value in the query string.
@@ -634,11 +633,8 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	 * A `permanent` value in the query string that is not a boolean fails input validation, and
 	 * the post is unchanged.
 	 *
-	 * Covers S12 (C5).
-	 *
-	 * @dataProvider data_permanent_query_string_values_that_are_not_booleans
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_permanent_query_string_values_that_are_not_booleans
 	 * @since 7.3.0
 	 *
 	 * @param string $permanent The value in the query string.
@@ -668,8 +664,6 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * A create sent with POST but with the input in the query string fails input validation.
 	 *
-	 * Covers C5.
-	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
@@ -695,8 +689,6 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 
 	/**
 	 * A delete sent with DELETE but with the input in a JSON body fails input validation.
-	 *
-	 * Covers C5.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -745,9 +737,8 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * A write ability called with a method it does not take is rejected and writes nothing.
 	 *
-	 * @dataProvider data_wrong_methods_for_write_abilities
-	 *
 	 * @ticket 66706
+	 * @dataProvider data_wrong_methods_for_write_abilities
 	 * @since 7.3.0
 	 *
 	 * @param string $ability The ability name.
@@ -771,12 +762,12 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 				),
 			),
 		);
-		$before  = get_post( $post_id )->to_array();
+		$before  = $this->snapshot( $post_id );
 
 		$response = $this->server->dispatch( $this->write_request( $method, $ability, $inputs[ $ability ] ) );
 
 		$this->assert_error_response( $response, 405, 'rest_ability_invalid_method', 'A wrong method' );
-		$this->assertSame( $before, get_post( $post_id )->to_array(), 'The post should not change.' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
 	/**
@@ -919,7 +910,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		);
 
 		$this->assert_error_response( $response, 400, 'content_invalid_attribute', 'A create with an unsupported attribute' );
-		$this->assertSame( array( 'data[parent]' => 'The post type is not hierarchical.' ), $response->get_data()['data']['params'] ?? null, 'The params should reach the response.' );
+		$this->assertSame( array( 'data[parent]' => 'The parent attribute is only supported for hierarchical post types.' ), $response->get_data()['data']['params'] ?? null, 'The params should reach the response.' );
 		$this->assertSame( $before, $this->snapshot(), 'A create with an unsupported attribute should write nothing.' );
 	}
 
