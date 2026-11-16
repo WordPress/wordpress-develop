@@ -72,7 +72,7 @@ class WP_Privacy_Data_Removal_Requests_List_Table extends WP_Privacy_Requests_Ta
 			$row_actions['remove-data'] = $remove_data_markup;
 		}
 
-		if ( 'request-completed' !== $status ) {
+		if ( ! in_array( $status, array( 'request-completed', 'request-archived' ), true ) ) {
 			$complete_request_markup  = '<span>';
 			$complete_request_markup .= sprintf(
 				'<a href="%s" class="complete-request" aria-label="%s">%s</a>',
@@ -149,18 +149,41 @@ class WP_Privacy_Data_Removal_Requests_List_Table extends WP_Privacy_Requests_Ta
 				echo '<button type="submit" class="button-link" name="privacy_action_email_retry[' . $item->ID . ']" id="privacy_action_email_retry[' . $item->ID . ']">' . __( 'Retry' ) . '</button>';
 				break;
 			case 'request-completed':
-				echo '<a href="' . esc_url(
-					wp_nonce_url(
-						add_query_arg(
-							array(
-								'action'     => 'delete',
-								'request_id' => array( $item->ID ),
-							),
-							admin_url( 'erase-personal-data.php' )
-						),
-						'bulk-privacy_requests'
-					)
-				) . '">' . esc_html__( 'Remove request' ) . '</a>';
+				printf(
+					'<a href="%s" aria-label="%s">%s</a>',
+					esc_url( $this->get_request_action_url( 'archive', $item->ID ) ),
+					esc_attr(
+						sprintf(
+							/* translators: %s: Request email. */
+							__( 'Archive request for &#8220;%s&#8221;' ),
+							$item->email
+						)
+					),
+					esc_html__( 'Archive request' )
+				);
+				break;
+			case 'request-archived':
+				printf(
+					'<a href="%s" aria-label="%s">%s</a> | <a href="%s" class="submitdelete" aria-label="%s">%s</a>',
+					esc_url( $this->get_request_action_url( 'unarchive', $item->ID ) ),
+					esc_attr(
+						sprintf(
+							/* translators: %s: Request email. */
+							__( 'Restore request for &#8220;%s&#8221;' ),
+							$item->email
+						)
+					),
+					esc_html__( 'Restore' ),
+					esc_url( $this->get_request_action_url( 'delete', $item->ID ) ),
+					esc_attr(
+						sprintf(
+							/* translators: %s: Request email. */
+							__( 'Delete request for &#8220;%s&#8221; permanently' ),
+							$item->email
+						)
+					),
+					esc_html__( 'Delete permanently' )
+				);
 				break;
 		}
 	}

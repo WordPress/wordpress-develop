@@ -153,7 +153,16 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		$statuses       = _wp_privacy_statuses();
 		$views          = array();
 		$counts         = $this->get_request_counts();
-		$total_requests = absint( array_sum( (array) $counts ) );
+		$total_requests = 0;
+
+		// Statuses excluded from search (e.g. archived) are not part of the "All" view.
+		foreach ( (array) $counts as $status => $count ) {
+			$post_status = get_post_status_object( $status );
+
+			if ( $post_status && empty( $post_status->exclude_from_search ) ) {
+				$total_requests += absint( $count );
+			}
+		}
 
 		// Normalized admin URL.
 		$admin_url = $this->get_admin_url();
@@ -208,14 +217,47 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * Gets bulk actions.
 	 *
 	 * @since 4.9.6
+	 * @since 7.3.0 Added the `archive` and `unarchive` actions.
 	 *
 	 * @return array Array of bulk action labels keyed by their action.
 	 */
 	protected function get_bulk_actions() {
+		$current_status = isset( $_REQUEST['filter-status'] ) ? sanitize_text_field( $_REQUEST['filter-status'] ) : '';
+
+		if ( 'request-archived' === $current_status ) {
+			return array(
+				'unarchive' => __( 'Restore requests' ),
+				'delete'    => __( 'Delete requests permanently' ),
+			);
+		}
+
 		return array(
 			'resend'   => __( 'Resend confirmation requests' ),
 			'complete' => __( 'Mark requests as completed' ),
+			'archive'  => __( 'Archive requests' ),
 			'delete'   => __( 'Delete requests' ),
+		);
+	}
+
+	/**
+	 * Returns the URL that performs a single-request action on the current screen.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $action     The bulk action to perform, e.g. 'archive'.
+	 * @param int    $request_id Request ID.
+	 * @return string Nonced action URL.
+	 */
+	protected function get_request_action_url( $action, $request_id ) {
+		return wp_nonce_url(
+			add_query_arg(
+				array(
+					'action'     => $action,
+					'request_id' => array( $request_id ),
+				),
+				$this->get_admin_url()
+			),
+			'bulk-privacy_requests'
 		);
 	}
 
@@ -224,6 +266,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @since 4.9.6
 	 * @since 5.6.0 Added support for the `complete` action.
+	 * @since 7.3.0 Added support for the `archive` and `unarchive` actions.
 	 */
 	public function process_bulk_action() {
 		$action      = $this->current_action();
@@ -309,6 +352,100 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 					),
 					'success'
 				);
+				break;
+
+			case 'archive':
+				foreach ( $request_ids as $request_id ) {
+					$result = _wp_privacy_archive_request( $request_id );
+
+					if ( $result && ! is_wp_error( $result ) ) {
+						++$count;
+					} else {
+						++$failures;
+					}
+				}
+
+				if ( $failures ) {
+					add_settings_error(
+						'bulk_action',
+						'bulk_action',
+						sprintf(
+							/* translators: %d: Number of requests. */
+							_n(
+								'%d request could not be archived. Only completed or failed requests can be archived.',
+								'%d requests could not be archived. Only completed or failed requests can be archived.',
+								$failures
+							),
+							$failures
+						),
+						'error'
+					);
+				}
+
+				if ( $count ) {
+					add_settings_error(
+						'bulk_action',
+						'bulk_action',
+						sprintf(
+							/* translators: %d: Number of requests. */
+							_n(
+								'%d request archived.',
+								'%d requests archived.',
+								$count
+							),
+							$count
+						),
+						'success'
+					);
+				}
+
+				break;
+
+			case 'unarchive':
+				foreach ( $request_ids as $request_id ) {
+					$result = _wp_privacy_unarchive_request( $request_id );
+
+					if ( $result && ! is_wp_error( $result ) ) {
+						++$count;
+					} else {
+						++$failures;
+					}
+				}
+
+				if ( $failures ) {
+					add_settings_error(
+						'bulk_action',
+						'bulk_action',
+						sprintf(
+							/* translators: %d: Number of requests. */
+							_n(
+								'%d request failed to restore.',
+								'%d requests failed to restore.',
+								$failures
+							),
+							$failures
+						),
+						'error'
+					);
+				}
+
+				if ( $count ) {
+					add_settings_error(
+						'bulk_action',
+						'bulk_action',
+						sprintf(
+							/* translators: %d: Number of requests. */
+							_n(
+								'%d request restored.',
+								'%d requests restored.',
+								$count
+							),
+							$count
+						),
+						'success'
+					);
+				}
+
 				break;
 
 			case 'delete':
@@ -454,6 +591,9 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 				break;
 			case 'request-completed':
 				$timestamp = $item->completed_timestamp;
+				break;
+			case 'request-archived':
+				$timestamp = $item->archived_timestamp;
 				break;
 		}
 

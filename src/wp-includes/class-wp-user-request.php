@@ -82,6 +82,14 @@ final class WP_User_Request {
 	public $completed_timestamp = null;
 
 	/**
+	 * Timestamp this request was archived.
+	 *
+	 * @since 7.3.0
+	 * @var int|null
+	 */
+	public $archived_timestamp = null;
+
+	/**
 	 * Misc data assigned to this request.
 	 *
 	 * @since 4.9.6
@@ -116,6 +124,7 @@ final class WP_User_Request {
 		$this->modified_timestamp  = strtotime( $post->post_modified_gmt );
 		$this->confirmed_timestamp = (int) get_post_meta( $post->ID, '_wp_user_request_confirmed_timestamp', true );
 		$this->completed_timestamp = (int) get_post_meta( $post->ID, '_wp_user_request_completed_timestamp', true );
+		$this->archived_timestamp  = (int) get_post_meta( $post->ID, '_wp_user_request_archived_timestamp', true );
 		$this->request_data        = json_decode( $post->post_content, true );
 		$this->confirm_key         = $post->post_password;
 	}
