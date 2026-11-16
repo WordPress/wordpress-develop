@@ -7,9 +7,6 @@
  * @since 5.2.0
  */
 
-
-require_once __DIR__ . '/secrets-site-health.php';
-
 #[AllowDynamicProperties]
 class WP_Site_Health {
 	private static $instance = null;
