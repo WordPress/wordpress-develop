@@ -1372,6 +1372,50 @@ function wp_filter_default_autoload_value_via_option_size( $autoload, $option, $
 }
 
 /**
+ * Determines whether a transient name is a non-empty string.
+ *
+ * Names consisting solely of whitespace are considered empty.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param mixed $transient Transient name to validate.
+ * @return bool True if the transient name is a non-empty string, false otherwise.
+ */
+function _wp_is_valid_transient_name( $transient ) {
+	return is_string( $transient ) && '' !== trim( $transient );
+}
+
+/**
+ * Determines whether a transient name fits within a maximum length.
+ *
+ * Transients are stored in `option_name`, a VARCHAR(191) column. Site transients
+ * share that limit, since they are stored there on single site installations.
+ * The longest key written is the timeout, so the name must leave room for the
+ * `_transient_timeout_` (19 characters) or `_site_transient_timeout_` (24 characters)
+ * prefix: 191 - 19 = 172 and 191 - 24 = 167.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param string $transient  Transient name.
+ * @param int    $max_length Maximum number of characters: 172 for transients,
+ *                           167 for site transients.
+ * @return bool True if the transient name is within the limit, false otherwise.
+ */
+function _wp_is_valid_transient_name_length( $transient, $max_length ) {
+	/*
+	 * VARCHAR lengths count characters, not bytes. strlen() can only overcount a
+	 * multibyte string, so the slower mb_strlen() is only needed when it exceeds the limit.
+	 */
+	if ( strlen( $transient ) <= $max_length ) {
+		return true;
+	}
+
+	return mb_strlen( $transient, 'UTF-8' ) <= $max_length;
+}
+
+/**
  * Deletes a transient.
  *
  * @since 2.8.0
@@ -1426,11 +1470,17 @@ function delete_transient( $transient ) {
  * then the return value will be false.
  *
  * @since 2.8.0
+ * @since 7.3.0 Returns false if the transient name is not a non-empty string.
  *
  * @param string $transient Transient name. Expected to not be SQL-escaped.
  * @return mixed Value of transient.
  */
 function get_transient( $transient ) {
+
+	if ( ! _wp_is_valid_transient_name( $transient ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Transient names must be non-empty strings.' ), '7.3.0' );
+		return false;
+	}
 
 	/**
 	 * Filters the value of an existing transient before it is retrieved.
@@ -1500,6 +1550,7 @@ function get_transient( $transient ) {
  * then it will be serialized before it is set.
  *
  * @since 2.8.0
+ * @since 7.3.0 Returns false if the transient name is invalid.
  *
  * @param string $transient  Transient name. Expected to not be SQL-escaped.
  *                           Must be 172 characters or fewer in length.
@@ -1509,6 +1560,24 @@ function get_transient( $transient ) {
  * @return bool True if the value was set, false otherwise.
  */
 function set_transient( $transient, $value, $expiration = 0 ) {
+
+	if ( ! _wp_is_valid_transient_name( $transient ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Transient names must be non-empty strings.' ), '7.3.0' );
+		return false;
+	}
+
+	if ( ! _wp_is_valid_transient_name_length( $transient, 172 ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %d: Maximum number of characters in a transient name. */
+				__( 'Transient names must be %d characters or fewer.' ),
+				172
+			),
+			'7.3.0'
+		);
+		return false;
+	}
 
 	$expiration = (int) $expiration;
 
@@ -2559,6 +2628,7 @@ function delete_site_transient( $transient ) {
  * then the return value will be false.
  *
  * @since 2.9.0
+ * @since 7.3.0 Returns false if the transient name is not a non-empty string.
  *
  * @see get_transient()
  *
@@ -2566,6 +2636,11 @@ function delete_site_transient( $transient ) {
  * @return mixed Value of transient.
  */
 function get_site_transient( $transient ) {
+
+	if ( ! _wp_is_valid_transient_name( $transient ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Transient names must be non-empty strings.' ), '7.3.0' );
+		return false;
+	}
 
 	/**
 	 * Filters the value of an existing site transient before it is retrieved.
@@ -2633,6 +2708,7 @@ function get_site_transient( $transient ) {
  * then it will be serialized before it is set.
  *
  * @since 2.9.0
+ * @since 7.3.0 Returns false if the transient name is invalid.
  *
  * @see set_transient()
  *
@@ -2643,6 +2719,24 @@ function get_site_transient( $transient ) {
  * @return bool True if the value was set, false otherwise.
  */
 function set_site_transient( $transient, $value, $expiration = 0 ) {
+
+	if ( ! _wp_is_valid_transient_name( $transient ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Transient names must be non-empty strings.' ), '7.3.0' );
+		return false;
+	}
+
+	if ( ! _wp_is_valid_transient_name_length( $transient, 167 ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %d: Maximum number of characters in a transient name. */
+				__( 'Transient names must be %d characters or fewer.' ),
+				167
+			),
+			'7.3.0'
+		);
+		return false;
+	}
 
 	/**
 	 * Filters the value of a specific site transient before it is set.
