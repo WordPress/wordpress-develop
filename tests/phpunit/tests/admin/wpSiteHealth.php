@@ -163,6 +163,44 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66407
+	 * @covers ::__construct()
+	 * @covers ::has_late_cron()
+	 * @covers ::has_missed_cron()
+	 * @covers ::get_test_scheduled_events()
+	 * @dataProvider data_system_cron_interval
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_system_cron_interval( $interval, $offset, $expected_late, $expected_missed ) {
+		define( 'WP_SYSTEM_CRON_INTERVAL', $interval );
+		_set_cron_array( array() );
+		wp_schedule_single_event( time() - $offset, 'test_event' );
+		$health = new WP_Site_Health();
+		$result = $health->get_test_scheduled_events();
+
+		$this->assertSame( $expected_late, $health->has_late_cron() );
+		$this->assertSame( $expected_missed, $health->has_missed_cron() );
+		$this->assertSame( $expected_late || $expected_missed ? 'recommended' : 'good', $result['status'] );
+	}
+
+	/**
+	 * Data provider for external cron interval thresholds.
+	 *
+	 * @return array
+	 */
+	public static function data_system_cron_interval() {
+		return array(
+			'within interval'       => array( DAY_IN_SECONDS, DAY_IN_SECONDS - 60, false, false ),
+			'late after interval'   => array( DAY_IN_SECONDS, DAY_IN_SECONDS + 30 * MINUTE_IN_SECONDS, true, false ),
+			'missed after interval' => array( DAY_IN_SECONDS, DAY_IN_SECONDS + 2 * HOUR_IN_SECONDS, false, true ),
+			'zero interval'         => array( 0, 30 * MINUTE_IN_SECONDS, true, false ),
+			'negative interval'     => array( - HOUR_IN_SECONDS, 30 * MINUTE_IN_SECONDS, true, false ),
+			'invalid interval'      => array( 'invalid', 2 * HOUR_IN_SECONDS, false, true ),
+		);
+	}
+
+	/**
 	 * @ticket 56041
 	 * @dataProvider data_get_page_cache
 	 * @covers ::get_test_page_cache()
