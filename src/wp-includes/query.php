@@ -1173,6 +1173,9 @@ function wp_old_slug_redirect() {
 /**
  * Find the post ID for redirecting an old slug.
  *
+ * Posts currently using the requested slug are excluded, as redirecting
+ * to them would point back to the requested URL.
+ *
  * @since 4.9.3
  * @access private
  *
@@ -1185,7 +1188,7 @@ function wp_old_slug_redirect() {
 function _find_post_by_old_slug( $post_type ) {
 	global $wpdb;
 
-	$query = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_slug' AND meta_value = %s", $post_type, get_query_var( 'name' ) );
+	$query = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_slug' AND meta_value = %s AND post_name != %s", $post_type, get_query_var( 'name' ), get_query_var( 'name' ) );
 
 	/*
 	 * If year, monthnum, or day have been specified, make our query more precise
@@ -1218,6 +1221,9 @@ function _find_post_by_old_slug( $post_type ) {
 /**
  * Find the post ID for redirecting an old date.
  *
+ * Posts currently using the requested slug and date are excluded, as
+ * redirecting to them would point back to the requested URL.
+ *
  * @since 4.9.3
  * @access private
  *
@@ -1230,19 +1236,25 @@ function _find_post_by_old_slug( $post_type ) {
 function _find_post_by_old_date( $post_type ) {
 	global $wpdb;
 
-	$date_query = '';
+	$date_query         = '';
+	$current_date_query = '';
 	if ( get_query_var( 'year' ) ) {
-		$date_query .= $wpdb->prepare( ' AND YEAR(pm_date.meta_value) = %d', get_query_var( 'year' ) );
+		$date_query         .= $wpdb->prepare( ' AND YEAR(pm_date.meta_value) = %d', get_query_var( 'year' ) );
+		$current_date_query .= $wpdb->prepare( ' AND YEAR(post_date) = %d', get_query_var( 'year' ) );
 	}
 	if ( get_query_var( 'monthnum' ) ) {
-		$date_query .= $wpdb->prepare( ' AND MONTH(pm_date.meta_value) = %d', get_query_var( 'monthnum' ) );
+		$date_query         .= $wpdb->prepare( ' AND MONTH(pm_date.meta_value) = %d', get_query_var( 'monthnum' ) );
+		$current_date_query .= $wpdb->prepare( ' AND MONTH(post_date) = %d', get_query_var( 'monthnum' ) );
 	}
 	if ( get_query_var( 'day' ) ) {
-		$date_query .= $wpdb->prepare( ' AND DAYOFMONTH(pm_date.meta_value) = %d', get_query_var( 'day' ) );
+		$date_query         .= $wpdb->prepare( ' AND DAYOFMONTH(pm_date.meta_value) = %d', get_query_var( 'day' ) );
+		$current_date_query .= $wpdb->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
 	}
 
 	$id = 0;
 	if ( $date_query ) {
+		// Exclude posts whose current slug and date match the request.
+		$date_query  .= ' AND NOT ( ' . $wpdb->prepare( 'post_name = %s', get_query_var( 'name' ) ) . $current_date_query . ' )';
 		$query        = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta AS pm_date, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_date' AND post_name = %s" . $date_query, $post_type, get_query_var( 'name' ) );
 		$key          = md5( $query );
 		$last_changed = wp_cache_get_last_changed( 'posts' );
