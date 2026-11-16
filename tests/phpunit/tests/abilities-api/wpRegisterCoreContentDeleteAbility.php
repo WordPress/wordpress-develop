@@ -263,6 +263,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$this->assertSame( array( 'outcome' ), $schema['required'], 'The output should require the outcome.' );
 		$this->assertSame( array( 'outcome' ), array_keys( $schema['properties'] ), 'The output should hold the outcome only.' );
 		$this->assertSame( 'string', $schema['properties']['outcome']['type'], 'The outcome should be a string.' );
+		$this->assertSame( array( 'trashed', 'deleted' ), $schema['properties']['outcome']['enum'], 'The outcome should be one of trashed and deleted.' );
 	}
 
 	/**
@@ -879,7 +880,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$result = $this->run_ability( $this->delete_input( $post_id ) );
 
 		$this->assert_error( $result, 'content_trash_not_supported', 501, 'Trashing a post without Trash support' );
-		$this->assertSame( 'The post does not support trashing. Set "permanent" to delete it.', $result->get_error_message(), 'The message should ask for a permanent delete.' );
+		$this->assertSame( 'The post does not support trashing. Set `permanent` to true to delete it.', $result->get_error_message(), 'The message should ask for a permanent delete.' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'A post without Trash support should be left as it was.' );
 
 		$this->assert_deleted( $this->run_ability( $this->delete_input( $post_id, true ) ), $post_id, 'Deleting a post without Trash support permanently' );

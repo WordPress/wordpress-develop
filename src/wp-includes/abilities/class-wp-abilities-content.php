@@ -98,7 +98,8 @@ final class WP_Abilities_Content {
 	/**
 	 * The `data` attributes the create and update abilities can write.
 	 *
-	 * Only these reach the save, each mapped to one post field. Other keys are never written.
+	 * An update must send at least one of them. {@see self::prepare_post_data()} maps each
+	 * one that is sent to a post field.
 	 *
 	 * @since 7.3.0
 	 * @var list<string>
@@ -119,7 +120,7 @@ final class WP_Abilities_Content {
 	 * Must run on the `wp_abilities_api_init` hook.
 	 *
 	 * @since 7.2.0
-	 * @since 7.3.0 Registers the `core/content-create`, `core/content-update`, and `core/content-delete` abilities.
+	 * @since 7.3.0 Added the `core/content-create`, `core/content-update`, and `core/content-delete` abilities.
 	 */
 	public function register(): void {
 		/*
@@ -132,8 +133,8 @@ final class WP_Abilities_Content {
 			return;
 		}
 
-		// The statuses that can be set: the ones the query accepts, other than `trash`.
-		$statuses = array_values( array_diff( $this->get_queryable_statuses(), array( 'trash' ) ) );
+		// The statuses that can be set: the ones that are not internal.
+		$statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
 
 		$this->register_content_query( $post_types );
 		$this->register_content_create( $post_types, $statuses );
@@ -145,7 +146,7 @@ final class WP_Abilities_Content {
 	 * Registers the read-only `core/content-query` ability.
 	 *
 	 * @since 7.2.0
-	 * @since 7.3.0 Added the `$post_types` parameter.
+	 * @since 7.3.0 Added the `$post_types` parameter and support for `trash` in the `where.status` filter.
 	 *
 	 * @param list<string> $post_types Exposed post type names.
 	 */
@@ -201,10 +202,10 @@ final class WP_Abilities_Content {
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_create_input_schema( $post_types, $statuses ),
 				'output_schema'       => $this->get_content_output_schema(),
-				'execute_callback'    => function ( $input = array() ) {
+				'execute_callback'    => function ( $input ) {
 					return $this->execute_content_create( $input );
 				},
-				'permission_callback' => function ( $input = array() ): bool {
+				'permission_callback' => function ( $input ): bool {
 					return $this->check_create_permission( $input );
 				},
 				'meta'                => array(
@@ -236,10 +237,10 @@ final class WP_Abilities_Content {
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_update_input_schema( $post_types, $statuses ),
 				'output_schema'       => $this->get_content_output_schema(),
-				'execute_callback'    => function ( $input = array() ) {
+				'execute_callback'    => function ( $input ) {
 					return $this->execute_content_update( $input );
 				},
-				'permission_callback' => function ( $input = array() ): bool {
+				'permission_callback' => function ( $input ): bool {
 					return $this->check_post_permission( $input, 'edit_post' );
 				},
 				'meta'                => array(
@@ -270,10 +271,10 @@ final class WP_Abilities_Content {
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_delete_input_schema( $post_types ),
 				'output_schema'       => $this->get_content_delete_output_schema(),
-				'execute_callback'    => function ( $input = array() ) {
+				'execute_callback'    => function ( $input ) {
 					return $this->execute_content_delete( $input );
 				},
-				'permission_callback' => function ( $input = array() ): bool {
+				'permission_callback' => function ( $input ): bool {
 					return $this->check_post_permission( $input, 'delete_post' );
 				},
 				'meta'                => array(
@@ -335,15 +336,14 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param mixed $input Optional. The ability input. Default empty array.
+	 * @param mixed $input The unprepared ability input.
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
-	private function check_create_permission( $input = array() ): bool {
+	private function check_create_permission( $input ): bool {
 		if ( ! is_user_logged_in() ) {
 			return false;
 		}
 
-		// The input is read defensively: WP_Ability::check_permissions() does not prepare it.
 		$data             = $this->get_input_object( rest_sanitize_object( $input ), 'data' ) ?? array();
 		$post_type_object = $this->get_exposed_post_type( $data['type'] ?? null );
 
@@ -360,7 +360,7 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param mixed  $input      The ability input.
+	 * @param mixed  $input      The unprepared ability input.
 	 * @param string $capability The capability required on the post: `edit_post` or `delete_post`.
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
@@ -369,7 +369,6 @@ final class WP_Abilities_Content {
 			return false;
 		}
 
-		// The input is read defensively: WP_Ability::check_permissions() does not prepare it.
 		$where = $this->get_input_object( rest_sanitize_object( $input ), 'where' ) ?? array();
 		if ( ! $this->get_exposed_post_type( $where['type'] ?? null ) ) {
 			return false;
@@ -892,6 +891,7 @@ final class WP_Abilities_Content {
 			return $this->not_found_error();
 		}
 
+		// Checked again after the permission callback, whose result a filter can change.
 		if ( ! current_user_can( $post_type_object->cap->create_posts ) ) {
 			return new WP_Error(
 				'content_cannot_create',
@@ -905,7 +905,7 @@ final class WP_Abilities_Content {
 			return $postarr;
 		}
 
-		return $this->save_post( $postarr, $this->normalize_fields( $input ) );
+		return $this->persist_post( $postarr, $this->normalize_fields( $input ) );
 	}
 
 	/**
@@ -956,7 +956,7 @@ final class WP_Abilities_Content {
 			return $postarr;
 		}
 
-		return $this->save_post( $postarr, $this->normalize_fields( $input ) );
+		return $this->persist_post( $postarr, $this->normalize_fields( $input ) );
 	}
 
 	/**
@@ -999,7 +999,7 @@ final class WP_Abilities_Content {
 		if ( ! $this->can_trash( $post ) ) {
 			return new WP_Error(
 				'content_trash_not_supported',
-				__( 'The post does not support trashing. Set "permanent" to delete it.' ),
+				__( 'The post does not support trashing. Set `permanent` to true to delete it.' ),
 				array( 'status' => 501 )
 			);
 		}
@@ -1155,7 +1155,7 @@ final class WP_Abilities_Content {
 		foreach ( $features as $attribute => $feature ) {
 			if ( array_key_exists( $attribute, $data ) && ! post_type_supports( $post_type, $feature ) ) {
 				return $this->invalid_attribute_error(
-					$attribute,
+					"data[{$attribute}]",
 					/* translators: 1: Attribute name, such as "content", 2: Post type feature, such as "editor". */
 					sprintf( __( 'The %1$s attribute is only supported for post types that support the %2$s feature.' ), $attribute, $feature )
 				);
@@ -1163,7 +1163,7 @@ final class WP_Abilities_Content {
 		}
 
 		if ( array_key_exists( 'parent', $data ) && ! is_post_type_hierarchical( $post_type ) ) {
-			return $this->invalid_attribute_error( 'parent', __( 'The parent attribute is only supported for hierarchical post types.' ) );
+			return $this->invalid_attribute_error( 'data[parent]', __( 'The parent attribute is only supported for hierarchical post types.' ) );
 		}
 
 		return null;
@@ -1193,7 +1193,7 @@ final class WP_Abilities_Content {
 		 * not even when the post already has them.
 		 */
 		if ( ! $status_object instanceof stdClass || ! empty( $status_object->internal ) ) {
-			return $this->invalid_attribute_error( 'status', __( 'The status must be a registered post status that is not internal.' ) );
+			return $this->invalid_attribute_error( 'data[status]', __( 'The status must be a registered post status that is not internal.' ) );
 		}
 
 		// Keeping the stored status changes nothing.
@@ -1239,7 +1239,7 @@ final class WP_Abilities_Content {
 
 		$author_id = $this->parse_filter_int( $data['author'], 1 );
 		if ( null === $author_id ) {
-			return $this->invalid_attribute_error( 'author', __( 'The author must be a user ID.' ) );
+			return $this->invalid_attribute_error( 'data[author]', __( 'The author must be a user ID.' ) );
 		}
 
 		// Keeping the stored author changes nothing.
@@ -1263,7 +1263,7 @@ final class WP_Abilities_Content {
 
 		// Intentionally strict: the author must be an existing user who belongs to this site.
 		if ( ! get_userdata( $author_id ) || ( is_multisite() && ! is_user_member_of_blog( $author_id ) ) ) {
-			return $this->invalid_attribute_error( 'author', __( 'The author must be an existing user of this site.' ) );
+			return $this->invalid_attribute_error( 'data[author]', __( 'The author must be an existing user of this site.' ) );
 		}
 
 		return $author_id;
@@ -1289,7 +1289,7 @@ final class WP_Abilities_Content {
 		$reason    = __( 'The parent must be 0, or a readable post of the same post type that is neither the post itself nor one of its descendants.' );
 		$parent_id = $this->parse_filter_int( $data['parent'], 0 );
 		if ( null === $parent_id ) {
-			return $this->invalid_attribute_error( 'parent', $reason );
+			return $this->invalid_attribute_error( 'data[parent]', $reason );
 		}
 
 		// Keeping the stored parent changes nothing.
@@ -1307,11 +1307,11 @@ final class WP_Abilities_Content {
 		 */
 		$parent = get_post( $parent_id );
 		if ( ! $parent instanceof WP_Post || $post_type !== $parent->post_type || ! $this->check_read_permission( $parent ) ) {
-			return $this->invalid_attribute_error( 'parent', $reason );
+			return $this->invalid_attribute_error( 'data[parent]', $reason );
 		}
 
 		if ( $post && ( $post->ID === $parent->ID || in_array( $post->ID, get_post_ancestors( $parent ), true ) ) ) {
-			return $this->invalid_attribute_error( 'parent', $reason );
+			return $this->invalid_attribute_error( 'data[parent]', $reason );
 		}
 
 		return $parent_id;
@@ -1346,7 +1346,7 @@ final class WP_Abilities_Content {
 		}
 
 		if ( null === $dates ) {
-			return $this->invalid_attribute_error( 'date', __( 'The date must be an object with a valid `site` or `gmt` date.' ) );
+			return $this->invalid_attribute_error( 'data[date]', __( 'The date must be an object with a valid `site` or `gmt` date.' ) );
 		}
 
 		$fields = array(
@@ -1412,7 +1412,7 @@ final class WP_Abilities_Content {
 				? current_user_can( 'publish_post', $post->ID )
 				: current_user_can( $post_type_object->cap->publish_posts );
 			if ( ! $can_publish ) {
-				return $this->invalid_attribute_error( 'slug', __( 'The slug of a pending post can only be set by a user who can publish the post.' ) );
+				return $this->invalid_attribute_error( 'data[slug]', __( 'The slug of a pending post can only be set by a user who can publish the post.' ) );
 			}
 		}
 
@@ -1420,7 +1420,7 @@ final class WP_Abilities_Content {
 
 		// Intentionally strict: a slug that sanitizes to nothing is an error.
 		if ( '' === $slug ) {
-			return $this->invalid_attribute_error( 'slug', __( 'The slug must contain characters that are valid in a slug.' ) );
+			return $this->invalid_attribute_error( 'data[slug]', __( 'The slug must contain characters that are valid in a slug.' ) );
 		}
 
 		/*
@@ -1450,7 +1450,7 @@ final class WP_Abilities_Content {
 	 * @return array<string, mixed>|WP_Error The saved post, only its ID when the current user
 	 *                                       may not read it, or a WP_Error on failure.
 	 */
-	private function save_post( array $postarr, array $fields ) {
+	private function persist_post( array $postarr, array $fields ) {
 		$postarr = wp_slash( $postarr );
 		$post_id = isset( $postarr['ID'] ) ? wp_update_post( $postarr, true ) : wp_insert_post( $postarr, true );
 
@@ -2280,6 +2280,7 @@ final class WP_Abilities_Content {
 			'properties'           => array(
 				'outcome' => array(
 					'type'        => 'string',
+					'enum'        => array( 'trashed', 'deleted' ),
 					'description' => __( 'What happened to the post: `trashed` when it was moved to the Trash, `deleted` when it was deleted permanently.' ),
 				),
 			),
@@ -2870,19 +2871,16 @@ final class WP_Abilities_Content {
 	/**
 	 * Builds the error for a `data` attribute that cannot be applied.
 	 *
-	 * The error data maps the attribute's input path, such as `data[title]`, to the message
-	 * under `params`, so callers can tell which attribute failed without parsing the
-	 * translated message.
+	 * The error data maps the attribute's input path to the message under `params`, so
+	 * callers can tell which attribute failed without parsing the translated message.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param string $attribute The attribute name, such as `title`, or `data` for the whole object.
-	 * @param string $message   The error message.
+	 * @param string $param   The attribute's input path, such as `data[title]`.
+	 * @param string $message The error message.
 	 * @return WP_Error The invalid attribute error.
 	 */
-	private function invalid_attribute_error( string $attribute, string $message ): WP_Error {
-		$param = 'data' === $attribute ? 'data' : "data[{$attribute}]";
-
+	private function invalid_attribute_error( string $param, string $message ): WP_Error {
 		return new WP_Error(
 			'content_invalid_attribute',
 			$message,
