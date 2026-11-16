@@ -16,6 +16,8 @@ npm run typecheck:php
 
 which will run PHPStan in the Docker container.
 
+This runs two analyses, one after the other: the whole codebase with [`phpstan.neon.dist`](../../phpstan.neon.dist), and then the paths held to a stricter rule level with [`phpstan-level-10.neon.dist`](../../phpstan-level-10.neon.dist), as described in [Stricter analysis of selected paths](#stricter-analysis-of-selected-paths). The command fails when either of them reports an error.
+
 Additional flags supported by PHPStan can be passed by passing `--` followed by the flags themselves. For example, 
 
 ```bash
@@ -41,14 +43,16 @@ composer run phpstan -- -vvv --debug
 
 Note the `--` in each of those. Composer needs it in order to pass the flags on to PHPStan rather than reading them as its own, and without it they are discarded silently. The npm script supplies it, which is why only one is needed there.
 
+The flags are passed to both analyses. To run only one of them, as CI does, use `composer phpstan:level-5` or `composer phpstan:level-10`, or name a configuration with `--configuration`.
+
 For available flags, see https://phpstan.org/user-guide/command-line-usage.
 
 ## Results on pull requests
 
-The analysis also runs on every pull request that changes PHP files or the PHPStan configuration. The errors it reports are shown in two places:
+Both analyses also run on every pull request that changes PHP files or the PHPStan configuration, as two jobs. The errors they report are shown in two places:
 
 - As annotations on the changed files. Most errors are annotated as warnings, which do not fail the check.
-- In a comment on the pull request, which lists every error in a table along with the commit it was first reported for. The comment is updated as new commits are pushed, moving each error that a commit resolves into a collapsed list of resolved errors, which also names that commit. Once all of the errors are resolved, the comment is marked as resolved and collapsed.
+- In a comment on the pull request, which lists every error in a table along with the commit it was first reported for. The comment is updated as new commits are pushed, moving each error that a commit resolves into a collapsed list of resolved errors, which also names that commit. Once all of the errors are resolved, the comment is marked as resolved and collapsed. The comment combines both analyses: an error reported by both is listed once, and when an error is only reported at level 10, the table gains a Level column saying so.
 
 Some errors cannot be ignored, and so cannot be reported as warnings either. These fail the check. The most common is an [out-of-date baseline](#removing-stale-entries-with---fix), which is reported when an error recorded in a baseline was fixed without the baseline being updated. Such an error is reported against a file rather than a line in it, so its annotation does not appear alongside the changes, and it would easily go unnoticed if the check passed.
 
@@ -103,6 +107,24 @@ includes:
 parameters:
 	ignoreErrors!: []
 ```
+
+### Stricter analysis of selected paths
+
+`phpstan.neon.dist` holds the whole codebase to a low rule level, since most of it does not yet meet a higher one. Some of it already does, mostly code added in recent releases, such as the Secrets API, the AI client, and the Abilities API. [`phpstan-level-10.neon.dist`](../../phpstan-level-10.neon.dist) holds those paths to rule level 10, so that they keep meeting it.
+
+It includes `phpstan.neon.dist`, so everything that enforces still applies, and replaces the paths analyzed with the ones it lists under `paths!`. The rest of core is scanned instead, so that what those paths use is known. A scanned file gets the same [WordPress-specific extensions](#wordpress-specific-extensions) as an analyzed one, because `base.neon` has every parse run them, so the types of the code outside the strict paths are the same as in the analysis of the whole codebase.
+
+Errors are baselined in two layers. An error that the analysis of the whole codebase reports is baselined in [`baselines/`](baselines), as usual, and stays baselined there for the level 10 analysis. What level 10 adds in the strict paths is baselined in [`baselines-level-10/`](baselines-level-10), in the same way, and included through its own [`loader.php`](baselines-level-10/loader.php). `composer phpstan:baselines` and `composer phpstan:fix` maintain both.
+
+To hold another path to level 10:
+
+1. Add it to `paths!` in `phpstan-level-10.neon.dist`.
+2. Run `composer phpstan:level-10`, and fix the errors it reports.
+3. Baseline any that cannot be fixed yet with `composer phpstan:baselines`.
+
+In the strict paths, **do not add an `@phpstan-ignore` comment for an error that only levels 6 to 10 report**. The analysis of the whole codebase does not report that error, so it reports the comment as ignoring nothing, and `composer phpstan:fix` would remove it. Fix the error, or baseline it instead.
+
+A local `phpstan-level-10.neon` overrides `phpstan-level-10.neon.dist`, the same way `phpstan.neon` overrides `phpstan.neon.dist`. When a local `phpstan.neon` already analyzes everything at level 10, `composer phpstan` skips the second analysis, since it could only repeat part of the first.
 
 For more information about configuring PHPStan, see the [PHPStan documentation's Config reference](https://phpstan.org/config-reference).
 
@@ -234,16 +256,15 @@ or, outside the Docker environment:
 composer phpstan:fix
 ```
 
-This runs three steps, each only when the one before it succeeds:
+This runs three steps:
 
-1. PHPStan with its `--fix` option, which lowers the count of the entry, or removes the entry, leaving the rest of the baseline as it was. It is usually much faster than regenerating, since it reuses the result cache of the run that reported the errors. Unlike regenerating, it also removes an `@phpstan-ignore` comment that no longer matches.
+1. PHPStan with its `--fix` option, once with `phpstan.neon.dist` and once with `phpstan-level-10.neon.dist`. It lowers the count of the entry, or removes the entry, leaving the rest of the baseline as it was. It is usually much faster than regenerating, since it reuses the result cache of the run that reported the errors. Unlike regenerating, it also removes an `@phpstan-ignore` comment that no longer matches. PHPStan says `No fixable errors found` for a configuration with nothing to fix, which does not stop the other steps.
 2. `composer phpstan:baselines -- --prune`, which deletes any baseline left with no entries. Removing the last entry of a baseline leaves the file behind, as `ignoreErrors: []`. Pruning analyzes nothing, so it can also be run on its own.
-3. The analysis once more, which reuses the result cache and so is quick. PHPStan's `--fix` reports only what it fixed, and succeeds even when other errors remain, so this is what shows the errors that are left.
+3. Both analyses once more, which reuse the result cache and so are quick. PHPStan's `--fix` reports only what it fixed, and succeeds even when other errors remain, so this is what shows the errors that are left.
 
 Keep in mind:
 
-- **It fails when nothing is fixable.** PHPStan then says `No fixable errors found` and stops the script there, so run `composer phpstan` to see whether any errors remain.
-- **It always analyzes the whole tree with `phpstan.neon.dist`**, whatever a local `phpstan.neon` says. PHPStan only reports stale ignores when it analyzes every path, and a configuration at another rule level can report a baselined error with a different message, in which case `--fix` would remove an entry that the default configuration still needs.
+- **It always analyzes with the two `.dist` configurations**, whatever a local `phpstan.neon` or `phpstan-level-10.neon` says. A configuration at another rule level can report a baselined error with a different message, in which case `--fix` would remove an entry that the default configuration still needs.
 - **It fixes every fixable error the run reports**, not only stale ignores. A few other errors can also be fixed automatically, such as a [useless cast](https://phpstan.org/error-identifiers/cast.useless), so check the diff before committing it.
 - PHPStan's `--fix-ignored`, run as `composer phpstan -- --fix-ignored`, goes further and also fixes the fixable errors which a baseline currently ignores. That is a way to work through a baseline, but expect larger diffs, and follow it with `composer phpstan:baselines -- --prune`.
 
@@ -293,6 +314,8 @@ composer phpstan:baselines -- --help
 Note the `--` in each of those. Composer needs it in order to pass the flags on to the script rather than reading them as its own, and without it they are discarded silently, so `composer phpstan:baselines --identifier=variable.undefined` regenerates every baseline rather than that one. The npm script supplies it, which is why only one is needed there.
 
 A run also deletes any baseline whose identifier no longer reports anything. Since the baselines are included through [`baselines/loader.php`](baselines/loader.php), adding a newly split out baseline, and retiring one that has reached zero, need no edit of the configuration.
+
+Each run regenerates both sets of baselines: those of `phpstan.neon.dist` in [`baselines/`](baselines), and then those of `phpstan-level-10.neon.dist` in [`baselines-level-10/`](baselines-level-10). The order matters, since the level 10 configuration includes the other one along with its baselines, so its own are only what is left over. The options apply to both, except `--combined`, which only prints the baseline of `phpstan.neon.dist`. To regenerate one set, name its configuration with `--config`, such as `--config=phpstan-level-10.neon.dist`.
 
 PHPStan's own `--generate-baseline` is deliberately not used directly. It captures every error a run reports, with no way to restrict it to one identifier, so it cannot refresh a single baseline without sweeping every other kind of error into it.
 
