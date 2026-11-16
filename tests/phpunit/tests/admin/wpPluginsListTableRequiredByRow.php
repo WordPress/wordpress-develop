@@ -62,11 +62,12 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 	 * @ticket 65819
 	 * @group ms-required
 	 *
-	 * @dataProvider data_network_admin_permissions
+	 * @dataProvider data_should_show_network_deletion_notice_only_to_super_admins
 	 *
 	 * @param bool $is_super_admin Whether the current user is a super admin.
 	 */
 	public function test_should_show_network_deletion_notice_only_to_super_admins( $is_super_admin ) {
+		$this->skipWithoutMultisite();
 		$this->set_dependencies( array( 'dependent/dependent.php' => array( 'dependency' ) ) );
 		wp_set_current_user( self::$admin_id );
 
@@ -93,7 +94,7 @@ class Tests_Admin_wpPluginsListTableRequiredByRow extends WP_PluginDependencies_
 	 *
 	 * @return array[]
 	 */
-	public static function data_network_admin_permissions() {
+	public static function data_should_show_network_deletion_notice_only_to_super_admins() {
 		return array(
 			'site administrator' => array( false ),
 			'super admin'        => array( true ),
