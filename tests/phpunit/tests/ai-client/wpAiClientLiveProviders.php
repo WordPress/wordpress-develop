@@ -2,10 +2,14 @@
 /**
  * Tests that live AI providers can call the core abilities through the AI Client.
  *
- * These tests send real requests. The tests of a provider only run when its API key is in
- * the `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY` or `OPENAI_API_KEY` environment variable:
+ * These tests send real requests. The tests of a provider only run when its API key is in the
+ * `WP_TESTS_AI_ANTHROPIC_API_KEY`, `WP_TESTS_AI_GOOGLE_API_KEY` or `WP_TESTS_AI_OPENAI_API_KEY`
+ * environment variable:
  *
- *     ANTHROPIC_API_KEY=… vendor/bin/phpunit --group external-http --filter Tests_AI_Client_LiveProviders
+ *     WP_TESTS_AI_ANTHROPIC_API_KEY=… vendor/bin/phpunit --group external-http --filter Tests_AI_Client_LiveProviders
+ *
+ * The provider tools and the Connectors read other names, such as `ANTHROPIC_API_KEY`, so a key
+ * set for them does not start these tests, and a key set for these tests is not used by a site.
  *
  * A provider uses its default model, unless a `WP_TESTS_AI_{PROVIDER}_MODEL` environment
  * variable, such as `WP_TESTS_AI_GOOGLE_MODEL`, names another one.
@@ -20,10 +24,14 @@
 
 use WordPress\AiClient\Messages\DTO\MessagePart;
 use WordPress\AiClient\Messages\DTO\UserMessage;
+use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\Exception\ClientException;
 use WordPress\AiClient\Providers\Http\Exception\NetworkException;
 use WordPress\AiClient\Providers\Http\Exception\ServerException;
 use WordPress\AiClient\Providers\ProviderRegistry;
+use WordPress\AnthropicAiProvider\Provider\AnthropicProvider;
+use WordPress\GoogleAiProvider\Provider\GoogleProvider;
+use WordPress\OpenAiAiProvider\Provider\OpenAiProvider;
 
 class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 
@@ -31,9 +39,9 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	 * Provider classes keyed by provider ID.
 	 */
 	private const PROVIDERS = array(
-		'anthropic' => 'WordPress\AnthropicAiProvider\Provider\AnthropicProvider',
-		'google'    => 'WordPress\GoogleAiProvider\Provider\GoogleProvider',
-		'openai'    => 'WordPress\OpenAiAiProvider\Provider\OpenAiProvider',
+		'anthropic' => AnthropicProvider::class,
+		'google'    => GoogleProvider::class,
+		'openai'    => OpenAiProvider::class,
 	);
 
 	/**
@@ -49,6 +57,11 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	);
 
 	/**
+	 * How many requests a model may take to answer.
+	 */
+	private const MAX_ROUNDS = 6;
+
+	/**
 	 * ID of the administrator who asks the questions.
 	 *
 	 * @var int
@@ -61,6 +74,8 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	 * @param WP_UnitTest_Factory $factory Factory instance.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
+		global $wp_current_filter;
+
 		self::$admin_id = $factory->user->create(
 			array(
 				'role'         => 'administrator',
@@ -82,9 +97,8 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		);
 		$factory->post->create(
 			array(
-				'post_author' => self::$admin_id,
-				'post_name'   => 'live-provider-post',
-				'post_title'  => 'Quokka Lighthouse Notes',
+				'post_name'  => 'live-provider-post',
+				'post_title' => 'Quokka Lighthouse Notes',
 			)
 		);
 
@@ -95,23 +109,14 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
 
-		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
+		// The core abilities can only be registered while their registration actions run.
+		$wp_current_filter[] = 'wp_abilities_api_categories_init';
+		wp_register_core_ability_categories();
+		array_pop( $wp_current_filter );
 
-		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-		do_action( 'wp_abilities_api_categories_init' );
-		do_action( 'wp_abilities_api_init' );
-
-		/*
-		 * Restore the hooks right away instead of after the class. The first test of a run
-		 * snapshots the hooks and every test resets them to that snapshot, so changes left
-		 * here would leak into every later test whenever this class runs first.
-		 */
-		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
+		$wp_current_filter[] = 'wp_abilities_api_init';
+		wp_register_core_abilities();
+		array_pop( $wp_current_filter );
 	}
 
 	/**
@@ -156,15 +161,16 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	 */
 	public function test_provider_answers_with_core_abilities( string $provider, array $abilities ): void {
 		$questions = array_intersect_key( self::QUESTIONS, array_flip( $abilities ) );
-		$called    = array();
-		$answer    = $this->ask( $provider, $abilities, implode( ' ', array_column( $questions, 0 ) ), $called );
+
+		list( $answer, $called, $model ) = $this->ask( $provider, $abilities, implode( ' ', array_column( $questions, 0 ) ) );
 
 		// A model may quote a value as it is in the JSON it received, where slashes are escaped.
 		$answer  = str_replace( '\/', '/', $answer );
 		$missing = array_filter( array_column( $questions, 1 ), static fn ( $value ) => false === stripos( $answer, $value ) );
+		$context = "Model: $model. Answer: $answer";
 
-		$this->assertSameSets( $abilities, array_unique( $called ), 'The model should call every ability it is given.' );
-		$this->assertSame( array(), array_values( $missing ), "The answer should contain every expected value. Answer: $answer" );
+		$this->assertSameSets( $abilities, $called, "Every ability given to the model should run without an error. $context" );
+		$this->assertSame( array(), $missing, "The answer should contain every expected value. $context" );
 	}
 
 	/**
@@ -196,21 +202,26 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	 * @param string   $provider  Provider ID.
 	 * @param string[] $abilities Names of the abilities given to the model.
 	 * @param string   $question  The question.
-	 * @param string[] $called    Receives the name of the ability of each call.
-	 * @return string The answer.
+	 * @return array{0: string, 1: string[], 2: string} The answer, the names of the abilities
+	 *                                                  that ran without an error and the model ID.
 	 */
-	private function ask( string $provider, array $abilities, string $question, array &$called ): string {
-		$key_name = strtoupper( $provider ) . '_API_KEY';
-		if ( ! getenv( $key_name ) ) {
+	private function ask( string $provider, array $abilities, string $question ): array {
+		$provider_class = self::PROVIDERS[ $provider ];
+		$key_name       = 'WP_TESTS_AI_' . strtoupper( $provider ) . '_API_KEY';
+		$model_name     = 'WP_TESTS_AI_' . strtoupper( $provider ) . '_MODEL';
+		$api_key        = getenv( $key_name );
+		$model          = getenv( $model_name );
+
+		if ( ! $api_key ) {
 			$this->markTestSkipped( "The $key_name environment variable is not set." );
 		}
-		if ( ! class_exists( self::PROVIDERS[ $provider ] ) ) {
+		if ( ! class_exists( $provider_class ) ) {
 			$this->markTestSkipped( 'The AI provider packages are not installed. Run `composer update`.' );
 		}
 
-		// A registry of its own keeps the provider out of the default registry other tests use.
 		$registry = new ProviderRegistry();
-		$registry->registerProvider( self::PROVIDERS[ $provider ] );
+		$registry->registerProvider( $provider_class );
+		$registry->setProviderRequestAuthentication( $provider, new ApiKeyRequestAuthentication( $api_key ) );
 
 		/*
 		 * The AI Client reports a provider whose models cannot be listed as one without models,
@@ -218,26 +229,31 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		 * Any other exception, such as a response the provider changed, is an error of the test.
 		 */
 		try {
-			self::PROVIDERS[ $provider ]::modelMetadataDirectory()->listModelMetadata();
+			$models = $provider_class::modelMetadataDirectory()->listModelMetadata();
 		} catch ( NetworkException | ServerException $e ) {
 			$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
 		} catch ( ClientException $e ) {
 			if ( 429 === $e->getCode() ) {
 				$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
 			}
-			$this->fail( "The provider rejected the $key_name: " . $e->getMessage() );
+			$this->fail( "The model list request failed, check the $key_name: " . $e->getMessage() );
+		}
+
+		// A model preference that matches no model would fall back to another model without an error.
+		if ( $model && ! in_array( $model, array_map( static fn ( $metadata ) => $metadata->getId(), $models ), true ) ) {
+			$this->fail( "The provider has no \"$model\" model, check the $model_name." );
 		}
 
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( ...$abilities );
 		$messages = array( new UserMessage( array( new MessagePart( $question ) ) ) );
+		$called   = array();
 
-		for ( $round = 0; $round < 6; $round++ ) {
+		for ( $round = 0; $round < self::MAX_ROUNDS; $round++ ) {
 			$builder = ( new WP_AI_Client_Prompt_Builder( $registry, $messages ) )
 				->using_provider( $provider )
 				->using_system_instruction( 'Answer every question with the abilities. Quote the values they return unchanged.' )
 				->using_abilities( ...$abilities );
 
-			$model = getenv( 'WP_TESTS_AI_' . strtoupper( $provider ) . '_MODEL' );
 			if ( $model ) {
 				$builder->using_model_preference( $model );
 			}
@@ -245,40 +261,42 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 			$result = $builder->generate_text_result();
 
 			if ( is_wp_error( $result ) ) {
-				$status  = $result->get_error_data()['status'] ?? 0;
-				$message = "($status): " . $result->get_error_message();
+				$status = $result->get_error_data()['status'] ?? 0;
+				$error  = "($status): " . $result->get_error_message();
 
 				// Only a rate limit, a server error of the provider and a network error skip the test.
 				if ( 429 === $status || in_array( $result->get_error_code(), array( 'prompt_network_error', 'prompt_upstream_server_error' ), true ) ) {
-					$this->markTestSkipped( "The provider is unavailable $message" );
+					$this->markTestSkipped( "The provider is unavailable $error" );
 				}
-				$this->fail( "The request failed $message" );
+				$this->fail( "The request failed $error" );
 			}
 
-			// OpenAI returns each function call as its own candidate, so keep them all, not just toMessage().
+			// OpenAI returns each function call as its own candidate, so keep the message of each one.
 			$has_calls = false;
-			foreach ( $result->getCandidates() as $candidate ) {
-				$message    = $candidate->getMessage();
+			foreach ( $result->toMessages() as $message ) {
 				$messages[] = $message;
 
 				if ( ! $resolver->has_ability_calls( $message ) ) {
 					continue;
 				}
 
-				foreach ( $message->getParts() as $part ) {
-					if ( $part->getFunctionCall() ) {
-						$called[] = WP_AI_Client_Ability_Function_Resolver::function_name_to_ability_name( $part->getFunctionCall()->getName() );
+				// Only an ability that ran without an error counts as called.
+				$response = $resolver->execute_abilities( $message );
+				foreach ( $response->getParts() as $part ) {
+					$data = $part->getFunctionResponse()->getResponse();
+					if ( ! is_array( $data ) || ! isset( $data['error'] ) ) {
+						$called[] = WP_AI_Client_Ability_Function_Resolver::function_name_to_ability_name( $part->getFunctionResponse()->getName() );
 					}
 				}
-				$messages[] = $resolver->execute_abilities( $message );
+				$messages[] = $response;
 				$has_calls  = true;
 			}
 
 			if ( ! $has_calls ) {
-				return implode( "\n", $result->toTexts() );
+				return array( implode( "\n", $result->toTexts() ), array_unique( $called ), $result->getModelMetadata()->getId() );
 			}
 		}
 
-		$this->fail( 'The model kept calling abilities without answering.' );
+		$this->fail( 'The model kept calling abilities without answering. Abilities that ran: ' . implode( ', ', array_unique( $called ) ) );
 	}
 }
