@@ -457,7 +457,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A post the user cannot edit is the edit error.
+	 * A post the user cannot edit is refused by the permission callback.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -471,20 +471,29 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->update_post( $post_id, array( 'title' => 'Launch notes' ) );
 
-		$this->assertWPError( $result, 'Updating a post of another user should fail.' );
-		$this->assertSame(
-			array(
-				'code'    => 'content_cannot_edit',
-				'message' => 'Sorry, you are not allowed to edit this post.',
-				'data'    => array( 'status' => 403 ),
-			),
-			array(
-				'code'    => $result->get_error_code(),
-				'message' => $result->get_error_message(),
-				'data'    => $result->get_error_data(),
-			),
-			'The error should be the edit error.'
-		);
+		$this->assert_refused( $result, 'Updating a post of another user' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * A permission result that a filter turned into a grant does not skip the capability check
+	 * on the post.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_granted_permission_result_does_not_skip_the_capability_check(): void {
+		$post_id = self::$post_ids['admin_post'];
+
+		$this->login_as( 'contributor' );
+		$this->register_abilities();
+		add_filter( 'wp_ability_permission_result', '__return_true' );
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, array( 'title' => 'Granted by a filter' ) );
+
+		$this->assert_error( $result, 'content_cannot_edit', 403, 'An update granted by a filter' );
+		$this->assertSame( 'Sorry, you are not allowed to edit this post.', $result->get_error_message(), 'The message should be the edit message.' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
@@ -561,14 +570,40 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * The permission callback is only a coarse gate: it lets a logged-in subscriber through, and
-	 * the execute callback decides on the post.
+	 * The permission callback returns false for a post the user cannot edit, in every form the
+	 * post can be named in input that was not prepared.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_unprepared_where_forms
+	 * @since 7.3.0
+	 *
+	 * @param string $id_type   The type to send the ID as.
+	 * @param bool   $as_object Whether to send `where` as an object.
+	 */
+	public function test_permission_callback_returns_false_for_a_post_the_user_cannot_edit( string $id_type, bool $as_object ): void {
+		$this->login_as( 'contributor' );
+
+		$permission = $this->get_ability_callbacks()['permission_callback'];
+
+		$this->assertFalse(
+			$permission(
+				array(
+					'where' => $this->build_unprepared_where( self::$post_ids['admin_post'], $id_type, $as_object ),
+					'data'  => array( 'title' => 'x' ),
+				)
+			),
+			'The permission callback should return false.'
+		);
+	}
+
+	/**
+	 * The permission callback returns true for a post the user can edit.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
-	public function test_permission_callback_returns_true_for_a_logged_in_user_and_an_exposed_type(): void {
-		$this->login_as( 'subscriber' );
+	public function test_permission_callback_returns_true_for_a_post_the_user_can_edit(): void {
+		$this->login_as( 'author' );
 
 		$permission = $this->get_ability_callbacks()['permission_callback'];
 
@@ -577,13 +612,36 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 				array(
 					'where' => array(
 						'type' => 'post',
-						'id'   => self::$post_ids['admin_post'],
+						'id'   => self::$post_ids['author:draft'],
 					),
 					'data'  => array( 'title' => 'x' ),
 				)
 			),
 			'The permission callback should return true.'
 		);
+	}
+
+	/**
+	 * The permission callback lets a post that does not exist through, so that the call returns
+	 * the not-found error, also for a user who may edit nothing.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_permission_callback_lets_a_missing_post_through(): void {
+		$this->login_as( 'subscriber' );
+
+		$permission = $this->get_ability_callbacks()['permission_callback'];
+		$input      = array(
+			'where' => array(
+				'type' => 'post',
+				'id'   => self::MISSING_ID,
+			),
+			'data'  => array( 'title' => 'x' ),
+		);
+
+		$this->assertTrue( $permission( $input ), 'The permission callback should return true.' );
+		$this->assert_not_found( $this->run_ability( $input ), 'A missing post' );
 	}
 
 	/**
@@ -875,8 +933,8 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Each role may update the posts it may edit, in any status, and gets the 403 error for the
-	 * others, whatever their status.
+	 * Each role may update the posts it may edit, in any status, and is refused for the others,
+	 * whatever their status.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_update_matrix
@@ -898,7 +956,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$result = $this->update_post( $post_id, array( 'title' => 'Matrix update' ), array( 'status', 'title.rendered' ) );
 
 		if ( ! $allowed ) {
-			$this->assert_error( $result, 'content_cannot_edit', 403, 'Updating a post the role may not edit' );
+			$this->assert_refused( $result, 'Updating a post the role may not edit' );
 			$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 			return;
 		}
@@ -2989,7 +3047,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$other_before = $this->snapshot( $other_id );
 		$other        = $this->update_post( $other_id, array( 'title' => 'Not granted' ) );
 
-		$this->assert_error( $other, 'content_cannot_edit', 403, 'Updating a post that is not granted' );
+		$this->assert_refused( $other, 'Updating a post that is not granted' );
 		$this->assertSame( $other_before, $this->snapshot( $other_id ), 'Nothing should be written for the post that is not granted.' );
 
 		$before  = $this->snapshot( $post_id );
@@ -3009,7 +3067,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 			)
 		);
 
-		$this->assert_error( $delete, 'content_cannot_delete', 403, 'Deleting the granted post' );
+		$this->assert_refused( $delete, 'Deleting the granted post' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written for the refused delete.' );
 	}
 
@@ -3056,7 +3114,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->update_post( $post_id, array( 'title' => 'Privacy' ) );
 
-		$this->assert_error( $result, 'content_cannot_edit', 403, 'An editor updating the privacy policy page' );
+		$this->assert_refused( $result, 'An editor updating the privacy policy page' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 

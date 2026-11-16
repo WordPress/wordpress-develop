@@ -259,6 +259,19 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Asserts that a result is the error of a call that the permission callback refused.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed  $result  The ability result.
+	 * @param string $context What the call was, for the assertion messages.
+	 */
+	protected function assert_refused( $result, string $context ): void {
+		$this->assertWPError( $result, "{$context}: the call should fail." );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), "{$context}: the permission callback should refuse the call." );
+	}
+
+	/**
 	 * Asserts that a result is the invalid attribute error for the given attribute.
 	 *
 	 * @since 7.3.0
@@ -305,6 +318,43 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 		}
 
 		return $schema;
+	}
+
+	/**
+	 * Returns the forms a `where` can take in input that was not prepared.
+	 *
+	 * @return array<string, array{id_type: string, as_object: bool}> The type of the ID, and
+	 *                                                                 whether `where` is an object.
+	 */
+	public static function data_unprepared_where_forms(): array {
+		return array(
+			'integer ID'              => array( 'integer', false ),
+			'integer string ID'       => array( 'string', false ),
+			'float ID'                => array( 'float', false ),
+			'where that is an object' => array( 'integer', true ),
+		);
+	}
+
+	/**
+	 * Builds a `where` for a post in one of the forms of unprepared input.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int    $post_id   The post ID.
+	 * @param string $id_type   The type to send the ID as.
+	 * @param bool   $as_object Whether to send `where` as an object.
+	 * @return array<string, mixed>|stdClass The `where`.
+	 */
+	protected function build_unprepared_where( int $post_id, string $id_type, bool $as_object ) {
+		$id = $post_id;
+		settype( $id, $id_type );
+
+		$where = array(
+			'type' => get_post_type( $post_id ),
+			'id'   => $id,
+		);
+
+		return $as_object ? (object) $where : $where;
 	}
 
 	/**
