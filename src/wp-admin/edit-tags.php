@@ -185,10 +185,16 @@ switch ( $wp_list_table->current_action() ) {
 		if ( $ret && ! is_wp_error( $ret ) ) {
 			$location = add_query_arg( 'message', 3, $referer );
 		} else {
+			$message_id = 5;
+
+			if ( is_wp_error( $ret ) && 'duplicate_term_slug' === $ret->get_error_code() ) {
+				$message_id = 7;
+			}
+
 			$location = add_query_arg(
 				array(
 					'error'   => true,
-					'message' => 5,
+					'message' => $message_id,
 				),
 				$referer
 			);
