@@ -178,6 +178,7 @@ class WP_Query {
 	 *
 	 * @since 2.1.0
 	 * @var int
+	 * @phpstan-var int<0, max>
 	 */
 	public $found_posts = 0;
 
@@ -793,7 +794,7 @@ class WP_Query {
 	 *                                                   exclude posts matching that term. Eg, 'pillow -sofa' will
 	 *                                                   return posts containing 'pillow' but not 'sofa'. The
 	 *                                                   character used for exclusion can be modified using the
-	 *                                                   the 'wp_query_search_exclusion_prefix' filter.
+	 *                                                   'wp_query_search_exclusion_prefix' filter.
 	 *     @type string[]        $search_columns         Array of column names to be searched. Accepts 'post_title',
 	 *                                                   'post_excerpt' and 'post_content'. Default empty array.
 	 *     @type int             $second                 Second of the minute. Default empty. Accepts numbers 0-59.
@@ -1905,6 +1906,11 @@ class WP_Query {
 	 *
 	 * There are a few filters and actions that can be used to modify the post
 	 * database query.
+	 *
+	 * When a WP_Query instance is constructed with non-empty query arguments,
+	 * this method is called and the retrieved posts are stored in the `posts`
+	 * property. To access those results, use the property instead of calling
+	 * this method again, which reprocesses the query and may change its results.
 	 *
 	 * @since 1.5.0
 	 *
@@ -3709,7 +3715,7 @@ class WP_Query {
 			 */
 			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) );
 
-			$this->found_posts = (int) $wpdb->get_var( $found_posts_query );
+			$this->found_posts = max( 0, (int) $wpdb->get_var( $found_posts_query ) );
 		} else {
 			if ( is_array( $this->posts ) ) {
 				$this->found_posts = count( $this->posts );
@@ -3726,11 +3732,15 @@ class WP_Query {
 		 * Filters the number of found posts for the query.
 		 *
 		 * @since 2.1.0
+		 * @since 7.2.0 A negative return value is clamped to zero, as is a negative count from the
+		 *              {@see 'found_posts_query'} query before it is passed to this filter.
 		 *
 		 * @param int      $found_posts The number of posts found.
 		 * @param WP_Query $query       The WP_Query instance (passed by reference).
+		 *
+		 * @phpstan-param int<0, max> $found_posts
 		 */
-		$this->found_posts = (int) apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) );
+		$this->found_posts = max( 0, (int) apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) ) );
 
 		if ( ! empty( $limits ) ) {
 			$this->max_num_pages = max( 0, (int) ceil( $this->found_posts / (int) $query_vars['posts_per_page'] ) );

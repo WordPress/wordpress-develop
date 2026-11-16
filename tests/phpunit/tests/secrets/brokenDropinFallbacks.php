@@ -11,12 +11,12 @@
 class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 
 	/**
-	 * Ensure that WP_Secrets_Broken_Store implements the WP_Secrets_Store interface.
+	 * Ensure that WP_Secrets_Broken_Store extends WP_Secrets_Store.
 	 *
 	 * @coversNothing
 	 */
-	public function test_broken_store_implements_the_interface(): void {
-		$this->assertInstanceOf( WP_Secrets_Store::class, new WP_Secrets_Broken_Store(), 'WP_Secrets_Broken_Store should implement WP_Secrets_Store.' ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally checking the class against its interface at runtime.)
+	public function test_broken_store_extends_the_class(): void {
+		$this->assertInstanceOf( WP_Secrets_Store::class, new WP_Secrets_Broken_Store(), 'WP_Secrets_Broken_Store should extend WP_Secrets_Store.' ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally checking the class against its parent at runtime.)
 	}
 
 	/**
@@ -68,12 +68,12 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that WP_Secrets_Broken_Keyring implements the WP_Secrets_Keyring interface.
+	 * Ensure that WP_Secrets_Broken_Keyring extends WP_Secrets_Keyring.
 	 *
 	 * @coversNothing
 	 */
-	public function test_broken_keyring_implements_the_interface(): void {
-		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Broken_Keyring(), 'WP_Secrets_Broken_Keyring should implement WP_Secrets_Keyring.' ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally checking the class against its interface at runtime.)
+	public function test_broken_keyring_extends_the_class(): void {
+		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Broken_Keyring(), 'WP_Secrets_Broken_Keyring should extend WP_Secrets_Keyring.' ); // @phpstan-ignore method.alreadyNarrowedType (Intentionally checking the class against its parent at runtime.)
 	}
 
 	/**

@@ -253,7 +253,7 @@ function wp_secrets_validate_name( string $name ) {
 		);
 	}
 
-	$segment_pattern = '/^[a-z0-9]([a-z0-9_-]*[a-z0-9])?$/';
+	$segment_pattern = '/^[a-z0-9]([a-z0-9_-]*[a-z0-9])?\z/';
 
 	if ( 0 === $slashes ) {
 		if ( ! preg_match( $segment_pattern, $name ) ) {
@@ -317,6 +317,7 @@ function wp_secrets_validate_name( string $name ) {
  * be the exact silent downgrade this API refuses to make.
  *
  * @since 7.2.0
+ * @access private
  *
  * @global bool             $wp_secrets_dropin_broken Whether the secrets.php drop-in failed to load cleanly.
  * @global WP_Secrets_Store $wp_secrets_store         Optional. Store override set by the drop-in.
@@ -356,6 +357,7 @@ function _wp_secrets_get_store(): WP_Secrets_Store {
  * fails closed (WP_Secrets_Broken_Keyring) rather than falling back to the default.
  *
  * @since 7.2.0
+ * @access private
  *
  * @global bool               $wp_secrets_dropin_broken Whether the secrets.php drop-in failed to load cleanly.
  * @global WP_Secrets_Keyring $wp_secrets_keyring       Optional. Keyring override set by the drop-in.
@@ -417,7 +419,11 @@ function wp_using_secrets_dropin(): bool {
  * @param string $value The plaintext value to store.
  * @return true|WP_Error
  */
-function wp_set_secret( string $name, $value ) {
+function wp_set_secret(
+	string $name,
+	#[\SensitiveParameter]
+	$value
+) {
 	return _wp_secrets_set( $name, $value, false );
 }
 
@@ -544,7 +550,11 @@ function wp_list_secrets( string $namespace = '' ) { // phpcs:ignore Universal.N
  * @param string $value The plaintext value to store.
  * @return true|WP_Error
  */
-function wp_set_network_secret( string $name, $value ) {
+function wp_set_network_secret(
+	string $name,
+	#[\SensitiveParameter]
+	$value
+) {
 	return _wp_secrets_set( $name, $value, true );
 }
 
@@ -624,6 +634,7 @@ function wp_list_network_secrets( string $namespace = '' ) { // phpcs:ignore Uni
  * to be empty.
  *
  * @since 7.2.0
+ * @access private
  *
  * @global bool                $wp_secrets_dropin_broken Whether the secrets.php drop-in failed to load cleanly.
  * @global WP_Secrets_Provider $wp_secrets_provider      Optional. Provider override set by the drop-in.
@@ -686,6 +697,77 @@ function wp_secrets_provider_is_writable(): bool {
 }
 
 /**
+ * Whether the Secrets API can store and read secrets on this site.
+ *
+ * A plugin can check this before it moves a credential into the Secrets API, and
+ * keep its existing storage while it returns false:
+ *
+ *     if ( wp_is_secrets_api_available() ) {
+ *         // Move the credential, then use wp_set_secret() and wp_get_secret().
+ *     } else {
+ *         // Keep using the existing storage.
+ *     }
+ *
+ * Returns false when the secrets.php drop-in failed to load, when the default
+ * keyring has no usable WP_SECRETS_KEY, or when WP_SECRETS_KEY cannot unwrap the
+ * stored root key. The last happens when a site that already stored secrets adds
+ * or changes the key without re-wrapping the root key.
+ *
+ * A provider or keyring from a working drop-in manages its own keys, so it is
+ * reported as available. Its backend can still be unreachable on a given request,
+ * which each call reports as a WP_Error.
+ *
+ * Whether the provider accepts writes is a separate question. See
+ * wp_secrets_provider_is_writable().
+ *
+ * @since 7.2.0
+ *
+ * @global WP_Secrets_Provider $wp_secrets_provider Optional. Provider override set by the drop-in.
+ *
+ * @return bool
+ */
+function wp_is_secrets_api_available(): bool {
+	if ( _wp_secrets_get_provider() instanceof WP_Secrets_Broken_Provider ) {
+		return false;
+	}
+
+	if ( isset( $GLOBALS['wp_secrets_provider'] ) ) {
+		return true;
+	}
+
+	$keyring = _wp_secrets_get_key_manager()->get_keyring();
+
+	if ( $keyring instanceof WP_Secrets_Broken_Keyring ) {
+		return false;
+	}
+
+	if ( $keyring instanceof WP_Secrets_Config_Key_Provider ) {
+		$is_usable = in_array(
+			$keyring->get_key_status(),
+			array( WP_Secrets_Config_Key_Provider::KEY_STATUS_BASE64, WP_Secrets_Config_Key_Provider::KEY_STATUS_LEGACY ),
+			true
+		);
+
+		if ( ! $is_usable ) {
+			return false;
+		}
+
+		$root_key = _wp_secrets_get_key_manager()->get_root_key( false );
+
+		if ( ! is_wp_error( $root_key ) ) {
+			wp_secrets_memzero( $root_key );
+
+			return true;
+		}
+
+		// With no root key stored yet, the first write creates one under this key.
+		return false === get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+	}
+
+	return true;
+}
+
+/**
  * A human-readable description of what is protecting this site's secrets.
  *
  * For Site Health and a future admin screen. Never key material, never a value.
@@ -702,6 +784,7 @@ function wp_secrets_provider_label(): string {
  * Shared implementation behind wp_set_secret() and wp_set_network_secret().
  *
  * @since 7.2.0
+ * @access private
  *
  * @param string      $name            The secret's name.
  * @param string      $value           The plaintext value.
@@ -711,7 +794,14 @@ function wp_secrets_provider_label(): string {
  *                                     wp_secret_changed.
  * @return true|WP_Error
  */
-function _wp_secrets_set( string $name, $value, bool $network, bool $needs_rotation = false, ?string $action_override = null ) {
+function _wp_secrets_set(
+	string $name,
+	#[\SensitiveParameter]
+	$value,
+	bool $network,
+	bool $needs_rotation = false,
+	?string $action_override = null
+) {
 	return _wp_secrets_get_provider()->set( $name, $value, $network, $needs_rotation, $action_override );
 }
 
@@ -719,6 +809,7 @@ function _wp_secrets_set( string $name, $value, bool $network, bool $needs_rotat
  * Shared implementation behind wp_get_secret() and wp_get_network_secret().
  *
  * @since 7.2.0
+ * @access private
  *
  * @param string $name    The secret's name.
  * @param string $version A WP_Secret_Version constant.
@@ -754,6 +845,7 @@ function _wp_secrets_get( string $name, string $version, bool $network ) {
  * Shared implementation behind wp_delete_secret() and wp_delete_network_secret().
  *
  * @since 7.2.0
+ * @access private
  *
  * @param string $name    The secret's name.
  * @param bool   $network Whether this is a network-scope secret.
@@ -767,6 +859,7 @@ function _wp_secrets_delete( string $name, bool $network ) {
  * Shared implementation behind wp_retire_secret_version() and its network twin.
  *
  * @since 7.2.0
+ * @access private
  *
  * @param string $name    The secret's name.
  * @param bool   $network Whether this is a network-scope secret.
@@ -780,6 +873,7 @@ function _wp_secrets_retire( string $name, bool $network ) {
  * Shared implementation behind wp_list_secrets() and wp_list_network_secrets().
  *
  * @since 7.2.0
+ * @access private
  *
  * @param string $name_prefix Restrict to names beginning with this prefix.
  * @param bool   $network     Whether to list network-scope secrets.

@@ -50,7 +50,7 @@ The analysis also runs on every pull request that changes PHP files or the PHPSt
 - As annotations on the changed files. Most errors are annotated as warnings, which do not fail the check.
 - In a comment on the pull request, which lists every error in a table along with the commit it was first reported for. The comment is updated as new commits are pushed, moving each error that a commit resolves into a collapsed list of resolved errors, which also names that commit. Once all of the errors are resolved, the comment is marked as resolved and collapsed.
 
-Some errors cannot be ignored, and so cannot be reported as warnings either. These fail the check. The most common is an [out-of-date baseline](#regenerating-the-baselines), which is reported when an error recorded in a baseline was fixed without the baseline being regenerated. Such an error is reported against a file rather than a line in it, so its annotation does not appear alongside the changes, and it would easily go unnoticed if the check passed.
+Some errors cannot be ignored, and so cannot be reported as warnings either. These fail the check. The most common is an [out-of-date baseline](#removing-stale-entries-with---fix), which is reported when an error recorded in a baseline was fixed without the baseline being updated. Such an error is reported against a file rather than a line in it, so its annotation does not appear alongside the changes, and it would easily go unnoticed if the check passed.
 
 ## The PHPStan configuration
 
@@ -216,11 +216,40 @@ Every entry is scoped to the file the error occurs in and carries an exact occur
 
 Both the path and the count matter. A new occurrence of an already baselined error does not match the entry, even in a file that is already listed, and is reported as a new error. That is the point of recording them this way: the baselines describe exactly what exists today, so nothing new slips in behind them.
 
-The consequence is that **fixing a baselined error means regenerating its baseline as part of the same change**, because the count no longer matches. A count that no longer matches is reported as an `ignore.count` error, which PHPStan does not allow to be ignored or baselined.
+The consequence is that **fixing a baselined error means updating its baseline as part of the same change**, because the count no longer matches. A count that no longer matches is reported as an `ignore.count` error, and an entry that matches nothing at all as an `ignore.unmatched` error, neither of which PHPStan allows to be ignored or baselined. Either [remove the stale entries with `--fix`](#removing-stale-entries-with---fix), or [regenerate the baselines](#regenerating-the-baselines).
+
+### Removing stale entries with `--fix`
+
+PHPStan marks an error it can fix automatically with 🔧, and ends its report by saying how many there are. Stale ignores are among them: a baseline entry whose count is now too high, or that matches nothing at all, and an `@phpstan-ignore` comment that no longer ignores anything. Fix them in place with:
+
+```bash
+npm run typecheck:php:fix
+```
+
+or, outside the Docker environment:
+
+```bash
+composer phpstan:fix
+```
+
+This runs three steps, each only when the one before it succeeds:
+
+1. PHPStan with its `--fix` option, which lowers the count of the entry, or removes the entry, leaving the rest of the baseline as it was. It is usually much faster than regenerating, since it reuses the result cache of the run that reported the errors. Unlike regenerating, it also removes an `@phpstan-ignore` comment that no longer matches.
+2. `composer phpstan:baselines -- --prune`, which deletes any baseline left with no entries, along with its `includes` entry in `phpstan.neon.dist`. Removing the last entry of a baseline leaves the file behind, as `ignoreErrors: []`. Pruning analyzes nothing, so it can also be run on its own.
+3. The analysis once more, which reuses the result cache and so is quick. PHPStan's `--fix` reports only what it fixed, and succeeds even when other errors remain, so this is what shows the errors that are left.
+
+Keep in mind:
+
+- **It fails when nothing is fixable.** PHPStan then says `No fixable errors found` and stops the script there, so run `composer phpstan` to see whether any errors remain.
+- **It always analyzes the whole tree with `phpstan.neon.dist`**, whatever a local `phpstan.neon` says. PHPStan only reports stale ignores when it analyzes every path, and a configuration at another rule level can report a baselined error with a different message, in which case `--fix` would remove an entry that the default configuration still needs.
+- **It fixes every fixable error the run reports**, not only stale ignores. A few other errors can also be fixed automatically, such as a [useless cast](https://phpstan.org/error-identifiers/cast.useless), so check the diff before committing it.
+- PHPStan's `--fix-ignored`, run as `composer phpstan -- --fix-ignored`, goes further and also fixes the fixable errors which a baseline currently ignores. That is a way to work through a baseline, but expect larger diffs, and follow it with `composer phpstan:baselines -- --prune`.
+
+The feature is marked experimental in PHPStan. See [the PHPStan documentation](https://phpstan.org/user-guide/command-line-usage) for details.
 
 ### Regenerating the baselines
 
-The baselines are generated, and should not be edited by hand. Regenerate them with:
+The baselines are generated, and should not be edited by hand, other than by `--fix` as described [above](#removing-stale-entries-with---fix). Regenerate them with:
 
 ```bash
 npm run typecheck:php:baselines
@@ -241,6 +270,9 @@ npm run typecheck:php:baselines -- --identifier=isset.variable --identifier=empt
 # print every error as one baseline, writing nothing:
 npm run typecheck:php:baselines -- --combined
 
+# without analyzing anything, delete the baselines that list no entries:
+npm run typecheck:php:baselines -- --prune
+
 # the remaining options:
 npm run typecheck:php:baselines -- --help
 ```
@@ -252,6 +284,7 @@ composer phpstan:baselines
 
 composer phpstan:baselines -- --identifier=variable.undefined
 composer phpstan:baselines -- --combined
+composer phpstan:baselines -- --prune
 composer phpstan:baselines -- --help
 ```
 

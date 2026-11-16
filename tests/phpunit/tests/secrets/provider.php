@@ -16,7 +16,7 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	 * @return WP_Secrets_Provider
 	 */
 	private function read_only_provider() {
-		return new class() implements WP_Secrets_Provider {
+		return new class() extends WP_Secrets_Provider {
 			/**
 			 * @param string $name    The secret's name.
 			 * @param string $version A WP_Secret_Version constant.

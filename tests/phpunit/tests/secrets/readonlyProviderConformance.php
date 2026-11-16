@@ -21,7 +21,7 @@ class Tests_Secrets_ReadOnlyProviderConformance extends WP_Secrets_Provider_Conf
 	 * @return WP_Secrets_Provider
 	 */
 	protected function provider() {
-		return new class() implements WP_Secrets_Provider {
+		return new class() extends WP_Secrets_Provider {
 			/**
 			 * @param string $name    The secret's name.
 			 * @param string $version A WP_Secret_Version constant.

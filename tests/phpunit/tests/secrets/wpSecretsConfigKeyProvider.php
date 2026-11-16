@@ -3,11 +3,9 @@
  * Tests for WP_Secrets_Config_Key_Provider.
  *
  * Constants (WP_SECRETS_KEY, WP_SECRETS_KEY_PREVIOUS) that this class reads can only
- * be defined once per PHP process, so any test that needs a specific value for them
- * runs in a separate process. LOGGED_IN_KEY/LOGGED_IN_SALT are already defined by the
- * WordPress test suite's own bootstrap before any test of ours can run, in every
- * process including an isolated one, so the salt-fallback path is exercised against
- * whatever the ambient harness defines them as rather than a value this suite picks.
+ * be defined once per PHP process, so any test that needs a specific value for them,
+ * or needs them undefined, runs in a separate process. The test bootstrap defines
+ * WP_SECRETS_KEY only outside separate processes.
  *
  * @ticket 66187
  *
@@ -33,12 +31,12 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring.
+	 * Ensure that WP_Secrets_Config_Key_Provider extends WP_Secrets_Keyring.
 	 *
 	 * @coversNothing
 	 */
-	public function test_implements_the_keyring_interface(): void {
-		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Config_Key_Provider(), 'WP_Secrets_Config_Key_Provider should implement WP_Secrets_Keyring.' ); // @phpstan-ignore method.alreadyNarrowedType (Pins the interface the class declares, so removing it fails a test.)
+	public function test_extends_the_keyring_class(): void {
+		$this->assertInstanceOf( WP_Secrets_Keyring::class, new WP_Secrets_Config_Key_Provider(), 'WP_Secrets_Config_Key_Provider should extend WP_Secrets_Keyring.' ); // @phpstan-ignore method.alreadyNarrowedType (Pins the class it extends, so removing it fails a test.)
 	}
 
 	/**
@@ -150,22 +148,59 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that the key source names LOGGED_IN_KEY when WP_SECRETS_KEY is not defined.
+	 * Ensure that the key status and source report an undefined WP_SECRETS_KEY.
+	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_status
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_get_key_status_reports_an_undefined_key(): void {
+		$provider = new WP_Secrets_Config_Key_Provider();
+
+		$this->assertSame( WP_Secrets_Config_Key_Provider::KEY_STATUS_UNDEFINED, $provider->get_key_status(), 'The key status should be undefined without WP_SECRETS_KEY.' );
+		$this->assertStringContainsString( 'not defined', $provider->get_key_source(), 'The key source should say that WP_SECRETS_KEY is not defined.' );
+	}
+
+	/**
+	 * Ensure that the key source is translated.
 	 *
 	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
-	public function test_get_key_source_reports_the_salt_fallback_when_wp_secrets_key_is_unset(): void {
-		if ( 'put your unique phrase here' === LOGGED_IN_KEY || 'put your unique phrase here' === LOGGED_IN_SALT ) {
-			$this->markTestSkipped( 'Needs real LOGGED_IN_KEY and LOGGED_IN_SALT values; wp-tests-config-sample.php ships placeholders.' );
-		}
-
-		if ( defined( 'WP_SECRETS_KEY' ) ) {
-			$this->markTestSkipped( 'Needs WP_SECRETS_KEY to be undefined; it is defined in this process.' );
-		}
+	public function test_get_key_source_is_translated(): void {
+		add_filter(
+			'gettext',
+			static function ( $translation, $text ) {
+				return '%s is not defined' === $text ? '%s ist nicht definiert' : $translation;
+			},
+			10,
+			2
+		);
 
 		$provider = new WP_Secrets_Config_Key_Provider();
 
-		$this->assertStringContainsString( 'LOGGED_IN_KEY', $provider->get_key_source(), 'The key source should name LOGGED_IN_KEY when WP_SECRETS_KEY is unset.' );
+		$this->assertSame( 'WP_SECRETS_KEY ist nicht definiert', $provider->get_key_source(), 'The key source should use the translated text.' );
+	}
+
+	/**
+	 * Ensure that there is no site key without WP_SECRETS_KEY, whatever the salts are.
+	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_an_undefined_wp_secrets_key_is_unavailable(): void {
+		$provider = new WP_Secrets_Config_Key_Provider();
+		$result   = $this->invoke_private( $provider, 'get_site_key' );
+
+		$this->assertWPError( $result, 'An undefined WP_SECRETS_KEY should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'An undefined WP_SECRETS_KEY should return the key unavailable error code.' );
+		$this->assertStringContainsString( 'WP_SECRETS_KEY', $result->get_error_message(), 'The error message should name WP_SECRETS_KEY.' );
 	}
 
 	/**
@@ -200,34 +235,76 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that salt values are rejected when missing, empty, non-string or the sample placeholder.
+	 * Ensure that a key value is rejected when empty, non-string, the sample placeholder or equal to a key or salt.
 	 *
-	 * @covers WP_Secrets_Config_Key_Provider::are_usable_salt_values
+	 * @covers WP_Secrets_Config_Key_Provider::is_usable_key_value
 	 *
-	 * @dataProvider data_are_usable_salt_values
+	 * @dataProvider data_is_usable_key_value
 	 *
-	 * @param string|int|null $key      Candidate LOGGED_IN_KEY value.
-	 * @param string          $salt     Candidate LOGGED_IN_SALT value.
-	 * @param bool            $expected Whether the pair is usable as key material.
+	 * @param string|int|null $value       Candidate WP_SECRETS_KEY value.
+	 * @param string[]        $auth_values Values of the authentication keys and salts.
+	 * @param bool            $expected    Whether the value is usable as key material.
 	 */
-	public function test_are_usable_salt_values( $key, $salt, $expected ): void {
+	public function test_is_usable_key_value( $value, array $auth_values, bool $expected ): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 
-		$this->assertSame( $expected, $this->invoke_private( $provider, 'are_usable_salt_values', array( $key, $salt ) ), 'are_usable_salt_values() should return the expected result for this pair.' );
+		$this->assertSame( $expected, $this->invoke_private( $provider, 'is_usable_key_value', array( $value, $auth_values ) ), 'is_usable_key_value() should return the expected result for this value.' );
 	}
 
 	/**
-	 * @return array<string, array{0: string|int|null, 1: string, 2: bool}>
+	 * @return array<string, array{0: string|int|null, 1: string[], 2: bool}>
 	 */
-	public static function data_are_usable_salt_values(): array {
+	public static function data_is_usable_key_value(): array {
+		$translated = 'mettez une phrase unique ici';
+
 		return array(
-			'both usable'             => array( 'a real key', 'a real salt', true ),
-			'key is the placeholder'  => array( 'put your unique phrase here', 'a real salt', false ),
-			'salt is the placeholder' => array( 'a real key', 'put your unique phrase here', false ),
-			'key is null (undefined)' => array( null, 'a real salt', false ),
-			'salt is empty'           => array( 'a real key', '', false ),
-			'key is not a string'     => array( 12345, 'a real salt', false ),
+			'a real key'                    => array( 'a real key', array( 'a real salt', 'another salt' ), true ),
+			'the placeholder'               => array( 'put your unique phrase here', array( 'a real salt' ), false ),
+			'the value of a key or salt'    => array( 'a real salt', array( 'a real salt', 'another salt' ), false ),
+			'a translated, unfilled sample' => array( $translated, array_fill( 0, 8, $translated ), false ),
+			'empty'                         => array( '', array(), false ),
+			'empty when trimmed'            => array( '   ', array(), false ),
+			'null (undefined)'              => array( null, array(), false ),
+			'not a string'                  => array( 12345, array(), false ),
 		);
+	}
+
+	/**
+	 * Ensure that the wp-config-sample.php placeholder is not usable as WP_SECRETS_KEY.
+	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_status
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_the_placeholder_is_unavailable(): void {
+		define( 'WP_SECRETS_KEY', 'put your unique phrase here' );
+
+		$provider = new WP_Secrets_Config_Key_Provider();
+		$result   = $this->invoke_private( $provider, 'get_site_key' );
+
+		$this->assertWPError( $result, 'The placeholder should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'The placeholder should return the key unavailable error code.' );
+		$this->assertSame( WP_Secrets_Config_Key_Provider::KEY_STATUS_UNUSABLE, $provider->get_key_status(), 'The key status should be unusable for the placeholder.' );
+	}
+
+	/**
+	 * Ensure that the value of an authentication salt is not usable as WP_SECRETS_KEY.
+	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_the_value_of_a_salt_is_unavailable(): void {
+		define( 'WP_SECRETS_KEY', LOGGED_IN_SALT );
+
+		$provider = new WP_Secrets_Config_Key_Provider();
+		$result   = $this->invoke_private( $provider, 'get_site_key' );
+
+		$this->assertWPError( $result, 'The value of LOGGED_IN_SALT should return a WP_Error.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code(), 'The value of LOGGED_IN_SALT should return the key unavailable error code.' );
 	}
 
 	/**
@@ -315,34 +392,38 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that the key source identifies a canonical base64 WP_SECRETS_KEY.
+	 * Ensure that the key status and source identify a canonical base64 WP_SECRETS_KEY.
 	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_status
 	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_get_key_source_reports_base64_form(): void {
+	public function test_get_key_status_reports_base64_form(): void {
 		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'A', 32 ) ) );
 
 		$provider = new WP_Secrets_Config_Key_Provider();
 
+		$this->assertSame( WP_Secrets_Config_Key_Provider::KEY_STATUS_BASE64, $provider->get_key_status(), 'The key status should identify a canonical base64 WP_SECRETS_KEY.' );
 		$this->assertStringContainsString( 'base64', $provider->get_key_source(), 'The key source should identify a canonical base64 WP_SECRETS_KEY.' );
 	}
 
 	/**
-	 * Ensure that the key source identifies a WP_SECRETS_KEY using the legacy interpretation.
+	 * Ensure that the key status and source identify a WP_SECRETS_KEY using the legacy interpretation.
 	 *
+	 * @covers WP_Secrets_Config_Key_Provider::get_key_status
 	 * @covers WP_Secrets_Config_Key_Provider::get_key_source
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_get_key_source_reports_legacy_form(): void {
+	public function test_get_key_status_reports_legacy_form(): void {
 		define( 'WP_SECRETS_KEY', 'not-base64-32!!' );
 
 		$provider = new WP_Secrets_Config_Key_Provider();
 
+		$this->assertSame( WP_Secrets_Config_Key_Provider::KEY_STATUS_LEGACY, $provider->get_key_status(), 'The key status should identify a legacy WP_SECRETS_KEY.' );
 		$this->assertStringContainsString( 'legacy', $provider->get_key_source(), 'The key source should identify a legacy WP_SECRETS_KEY.' );
 	}
 
@@ -364,8 +445,7 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Defining only the previous-key constant must not affect the current-key
-	 * provider: it should still fall through to the salt fallback.
+	 * Ensure that defining only the previous-key constant does not give the current-key provider a key.
 	 *
 	 * @covers WP_Secrets_Config_Key_Provider::get_site_key
 	 *
@@ -373,22 +453,13 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 	 * @preserveGlobalState disabled
 	 */
 	public function test_previous_key_constant_does_not_leak_into_the_current_key_path(): void {
-		if ( 'put your unique phrase here' === LOGGED_IN_KEY || 'put your unique phrase here' === LOGGED_IN_SALT ) {
-			$this->markTestSkipped( 'Needs real LOGGED_IN_KEY and LOGGED_IN_SALT values; wp-tests-config-sample.php ships placeholders.' );
-		}
-
 		define( 'WP_SECRETS_KEY_PREVIOUS', base64_encode( str_repeat( 'C', 32 ) ) );
 
 		$provider = new WP_Secrets_Config_Key_Provider( false );
 		$key      = $this->invoke_private( $provider, 'get_site_key' );
 
-		$this->assertNotWPError( $key, 'The current-key provider should derive a site key from the salts.' );
-		$this->assertNotSame( str_repeat( 'C', 32 ), $key, 'The current-key provider should not use WP_SECRETS_KEY_PREVIOUS.' );
-		$this->assertSame(
-			sodium_crypto_generichash( LOGGED_IN_KEY . LOGGED_IN_SALT, '', SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES ),
-			$key,
-			'The current-key provider should use the key derived from LOGGED_IN_KEY and LOGGED_IN_SALT.'
-		);
+		$this->assertWPError( $key, 'The current-key provider should have no key without WP_SECRETS_KEY.' );
+		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $key->get_error_code(), 'The current-key provider should return the key unavailable error code.' );
 	}
 
 	/**
