@@ -97,12 +97,7 @@ final class WP_Secret implements JsonSerializable {
 	 * @throws InvalidArgumentException If $name or $fingerprint is empty, or if $value
 	 *                                  is not a string. $value may be empty.
 	 */
-	public function __construct(
-		string $name,
-		#[\SensitiveParameter]
-		$value,
-		string $fingerprint
-	) {
+	public function __construct( string $name, $value, string $fingerprint ) {
 		if ( '' === $name ) {
 			throw new InvalidArgumentException( 'WP_Secret requires a non-empty name.' );
 		}
