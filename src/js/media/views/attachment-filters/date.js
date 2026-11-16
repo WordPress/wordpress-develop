@@ -29,8 +29,8 @@ DateFilter = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Att
 		filters.all = {
 			text:  l10n.allDates,
 			props: {
-				monthnum: false,
-				year:  false
+				monthnum: null,
+				year:  null
 			},
 			priority: 10
 		};
