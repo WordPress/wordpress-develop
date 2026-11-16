@@ -542,7 +542,12 @@
 }
 
 .community-events-toggle-location {
-	vertical-align: middle;
+	vertical-align: baseline;
+}
+
+/* Center the icon on the label so the button lines up with the text before it. */
+.community-events-toggle-location .dashicons {
+	vertical-align: -5px;
 }
 
 /* Needs higher specificity than #dashboard-widgets .button-link */
