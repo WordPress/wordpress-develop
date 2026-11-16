@@ -1019,10 +1019,12 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	font-size: 12px;
 	background-color: rgba(255, 255, 255, 0.8);
 	color: #1d2327;
-	max-height: 3rem;
+	line-height: 1.75;
+	/* Overflow clips at the padding box, so vertical padding would expose part of a third line. */
+	max-height: calc( 2 * 1.75em );
 	overflow: hidden;
 	text-align: start;
-	padding: 5px 10px;
+	padding: 0 10px;
 	word-wrap: break-word;
 	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
 	box-sizing: border-box;
