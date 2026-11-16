@@ -43,7 +43,7 @@ composer run phpstan -- -vvv --debug
 
 Note the `--` in each of those. Composer needs it in order to pass the flags on to PHPStan rather than reading them as its own, and without it they are discarded silently. The npm script supplies it, which is why only one is needed there.
 
-The flags are passed to both analyses. To run only one of them, as CI does, use `composer phpstan:level-5` or `composer phpstan:level-10`, or name a configuration with `--configuration`.
+The flags are passed to both analyses, except that paths, `--configuration`, `--level`, `--error-format`, `--generate-baseline`, and `--fix-ignored` run only the first, since each only makes sense for one. To run only one of them, as CI does, use `composer phpstan:level-5` or `composer phpstan:level-10`. Those always use the `.dist` configurations, ignoring a local override.
 
 For available flags, see https://phpstan.org/user-guide/command-line-usage.
 
@@ -118,9 +118,10 @@ Errors are baselined in two layers. An error that the analysis of the whole code
 
 To hold another path to level 10:
 
-1. Add it to `paths!` in `phpstan-level-10.neon.dist`.
-2. Run `composer phpstan:level-10`, and fix the errors it reports.
-3. Baseline any that cannot be fixed yet with `composer phpstan:baselines`.
+1. Make sure no entry in [`baselines/`](baselines) is for a file in the path. Both analyses enforce those entries, but each may report a different number of the errors one ignores, and then no count satisfies both. Fix those errors first.
+2. Add the path to `paths!` in `phpstan-level-10.neon.dist`.
+3. Run `composer phpstan:level-10`, and fix the errors it reports.
+4. Baseline any that cannot be fixed yet with `composer phpstan:baselines`.
 
 In the strict paths, **do not add an `@phpstan-ignore` comment for an error that only levels 6 to 10 report**. The analysis of the whole codebase does not report that error, so it reports the comment as ignoring nothing, and `composer phpstan:fix` would remove it. Fix the error, or baseline it instead.
 
