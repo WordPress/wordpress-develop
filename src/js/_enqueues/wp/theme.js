@@ -8,13 +8,12 @@ window.wp = window.wp || {};
 ( function($) {
 
 // Set up our namespace...
-var themes, l10n;
+var themes;
 themes = wp.themes = wp.themes || {};
 
 // Store the theme data and settings for organized and quick access.
-// themes.data.settings, themes.data.themes, themes.data.l10n.
+// themes.data.settings, themes.data.themes.
 themes.data = _wpThemeSettings;
-l10n = themes.data.l10n;
 
 /**
  * Announces to screen readers the theme shown after previous/next navigation.
@@ -37,7 +36,8 @@ themes.announceThemeDebounced = _.debounce( function( model ) {
 		return;
 	}
 
-	wp.a11y.speak( l10n.themeViewed.replace( '%s', name ) );
+	/* translators: %s: Theme name. */
+	wp.a11y.speak( wp.i18n.sprintf( wp.i18n.__( 'Theme details: %s' ), name ) );
 }, 500 );
 
 // Shortcut for isInstall check.
@@ -143,7 +143,7 @@ themes.view.Appearance = wp.Backbone.View.extend({
 		view.render();
 		this.searchContainer
 			.find( '.search-box' )
-			.append( $.parseHTML( '<label for="wp-filter-search-input">' + l10n.search + '</label>' ) )
+			.append( $.parseHTML( '<label for="wp-filter-search-input">' + ( themes.isInstall ? wp.i18n.__( 'Search Themes' ) : wp.i18n.__( 'Search installed themes' ) ) + '</label>' ) )
 			.append( view.el );
 
 		this.searchContainer.on( 'submit', function( event ) {
@@ -480,7 +480,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			return;
 		}
 
-		// Set focused theme to current element.
+		// Store the theme that had focus when expand is called.
 		themes.focusedTheme = this.$el;
 
 		this.trigger( 'theme:expand', self.model.cid );
@@ -520,7 +520,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 
 		event = event || window.event;
 
-		// Set focus to current theme.
+		// Store the theme that had focus when preview is called.
 		themes.focusedTheme = this.$el;
 
 		// Construct a new Preview view.
@@ -620,18 +620,16 @@ themes.view.Theme = wp.Backbone.View.extend({
 		if ( 0 === this.model.collection.indexOf( current ) ) {
 			previousThemeButton
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
-
-			nextThemeButton.trigger( 'focus' );
+				.attr( 'aria-disabled', true )
+				.trigger( 'focus' );
 		}
 
 		// Disable next if the next model is undefined.
 		if ( _.isUndefined( this.model.collection.at( this.model.collection.indexOf( current ) + 1 ) ) ) {
 			nextThemeButton
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
-
-			previousThemeButton.trigger( 'focus' );
+				.attr( 'aria-disabled', true )
+				.trigger( 'focus' );
 		}
 	},
 
@@ -725,11 +723,14 @@ themes.view.Details = wp.Backbone.View.extend({
 
 	// Set initial focus and constrain tabbing within the theme browser modal.
 	containFocus: function( $el ) {
+		// Set initial focus on the theme overlay modal dialog, only on first render.
+		var $themeOverlay = $( '.theme-overlay' );
+		if ( $themeOverlay.hasClass( 'theme-overlay-initial' ) ) {
+			_.delay( function() {
+				$themeOverlay.trigger( 'focus' ).removeClass( 'theme-overlay-initial' );
+			}, 100 );
+		}
 
-		// Set initial focus on the primary action control.
-		_.delay( function() {
-			$( '.theme-overlay' ).trigger( 'focus' );
-		}, 100 );
 
 		// Constrain tabbing within the modal.
 		$el.on( 'keydown.wp-themes', function( event ) {
@@ -785,10 +786,13 @@ themes.view.Details = wp.Backbone.View.extend({
 				// Restore scroll position.
 				document.body.scrollTop = scroll;
 
-				// Return focus to the theme div.
+				// Return focus to the opener theme 'more-details' button.
 				if ( themes.focusedTheme ) {
-					themes.focusedTheme.find('.more-details').trigger( 'focus' );
+					themes.focusedTheme.find( '.more-details' ).trigger( 'focus' );
 				}
+
+				// Add back the `theme-overlay-initial` class for the theme overlay.
+				$( '.theme-overlay' ).addClass( 'theme-overlay-initial' );
 			});
 		}
 
@@ -803,12 +807,12 @@ themes.view.Details = wp.Backbone.View.extend({
 		if ( this.model.cid === this.model.collection.at(0).cid ) {
 			this.$el.find( '.left' )
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
+				.attr( 'aria-disabled', true );
 		}
 		if ( this.model.cid === this.model.collection.at( this.model.collection.length - 1 ).cid ) {
 			this.$el.find( '.right' )
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
+				.attr( 'aria-disabled', true );
 		}
 	},
 
@@ -911,6 +915,10 @@ themes.view.Details = wp.Backbone.View.extend({
 		var screenshot, image;
 
 		screenshot = el.find( '.screenshot img' );
+		if ( ! screenshot.length ) {
+			return;
+		}
+
 		image = new Image();
 		image.src = screenshot.attr( 'src' );
 
@@ -960,6 +968,8 @@ themes.view.Preview = themes.view.Details.extend({
 
 		this.$el.fadeIn( 200, function() {
 			$body.addClass( 'theme-installer-active full-overlay-active' );
+			// Set initial focus on the theme installer overlay modal dialog.
+			self.$el.trigger( 'focus' );
 		});
 
 		this.$el.find( 'iframe' ).one( 'load', function() {
@@ -976,9 +986,9 @@ themes.view.Preview = themes.view.Details.extend({
 		this.$el.fadeOut( 200, function() {
 			$( 'body' ).removeClass( 'theme-installer-active full-overlay-active' );
 
-			// Return focus to the theme div.
+			// Return focus to the opener theme 'more-details' button.
 			if ( themes.focusedTheme ) {
-				themes.focusedTheme.find('.more-details').trigger( 'focus' );
+				themes.focusedTheme.find( '.more-details' ).trigger( 'focus' );
 			}
 		}).removeClass( 'iframe-ready' );
 
@@ -1001,9 +1011,9 @@ themes.view.Preview = themes.view.Details.extend({
 	collapse: function( event ) {
 		var $button = $( event.currentTarget );
 		if ( 'true' === $button.attr( 'aria-expanded' ) ) {
-			$button.attr({ 'aria-expanded': 'false', 'aria-label': l10n.expandSidebar });
+			$button.attr({ 'aria-expanded': 'false', 'aria-label': wp.i18n.__( 'Expand Sidebar' ) });
 		} else {
-			$button.attr({ 'aria-expanded': 'true', 'aria-label': l10n.collapseSidebar });
+			$button.attr({ 'aria-expanded': 'true', 'aria-label': wp.i18n.__( 'Collapse Sidebar' ) });
 		}
 
 		this.$el.toggleClass( 'collapsed' ).toggleClass( 'expanded' );
@@ -1253,7 +1263,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 		// 'Add new theme' element shown at the end of the grid.
 		if ( ! themes.isInstall && themes.data.settings.canInstall ) {
-			this.$el.append( '<div class="theme add-new-theme"><a href="' + themes.data.settings.installURI + '"><div class="theme-screenshot"><span aria-hidden="true"></span></div><h2 class="theme-name">' + l10n.addNew + '</h2></a></div>' );
+			this.$el.append( '<div class="theme add-new-theme"><a href="' + themes.data.settings.installURI + '"><div class="theme-screenshot"><span aria-hidden="true"></span></div><h2 class="theme-name">' + wp.i18n.__( 'Add Theme' ) + '</h2></a></div>' );
 		}
 
 		this.parent.page++;
@@ -1309,7 +1319,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 				$modal.find( '.notice-warning' )
 					.removeClass( 'notice-large' )
 					.addClass( 'updating-message' )
-					.find( 'p' ).text( wp.updates.l10n.updating );
+					.find( 'p' ).text( wp.i18n.__( 'Updating...' ) );
 			} else if ( $card.find( '.notice-error' ).length ) {
 				$modal.find( '.notice-warning' ).remove();
 			}
@@ -1354,6 +1364,8 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', nextModel.cid );
+			// Set focus again to the 'Next' navigation button after the view fully re-renders.
+			$( '.theme-header .right' ).trigger( 'focus' );
 			themes.announceThemeDebounced( nextModel );
 		}
 	},
@@ -1389,6 +1401,8 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', previousModel.cid );
+			// Set focus again to the 'Previous' navigation button after the view fully re-renders.
+			$( '.theme-header .left' ).trigger( 'focus' );
 			themes.announceThemeDebounced( previousModel );
 		}
 	},
@@ -1396,9 +1410,10 @@ themes.view.Themes = wp.Backbone.View.extend({
 	// Dispatch audible search results feedback message.
 	announceSearchResults: function( count ) {
 		if ( 0 === count ) {
-			wp.a11y.speak( l10n.noThemesFound );
+			wp.a11y.speak( wp.i18n.__( 'No themes found. Try a different search.' ) );
 		} else {
-			wp.a11y.speak( l10n.themesFound.replace( '%d', count ) );
+			/* translators: %d: Number of themes. */
+			wp.a11y.speak( wp.i18n.sprintf( wp.i18n.__( 'Number of Themes found: %d' ), count ) );
 		}
 	}
 });
@@ -1716,7 +1731,8 @@ themes.view.Installer = themes.view.Appearance.extend({
 		this.listenTo( this.collection, 'query:fail', function() {
 			$( 'body' ).removeClass( 'loading-content' );
 			$( '.theme-browser' ).find( 'div.error' ).remove();
-			$( '.theme-browser' ).find( 'div.themes' ).before( '<div class="notice notice-error"><p>' + l10n.error + '</p><p><button class="button try-again">' + l10n.tryAgain + '</button></p></div>' );
+			/* translators: %s: Support forums URL. */
+			$( '.theme-browser' ).find( 'div.themes' ).before( '<div class="notice notice-error"><p>' + wp.i18n.sprintf( wp.i18n.__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ), wp.i18n.__( 'https://wordpress.org/support/forums/' ) ) + '</p><p><button class="button try-again">' + wp.i18n.__( 'Try Again' ) + '</button></p></div>' );
 			$( '.theme-browser .error .try-again' ).on( 'click', function( e ) {
 				e.preventDefault();
 				$( 'input.wp-filter-search' ).trigger( 'input' );
@@ -1848,7 +1864,8 @@ themes.view.Installer = themes.view.Appearance.extend({
 		}
 
 		if ( ! tags ) {
-			wp.a11y.speak( l10n.selectFeatureFilter );
+			/* translators: Hidden accessibility text. */
+			wp.a11y.speak( wp.i18n.__( 'Select one or more Theme features to filter by' ) );
 			return;
 		}
 

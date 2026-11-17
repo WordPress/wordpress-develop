@@ -58,7 +58,7 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ result: mixed }>
 	 */
-	public function data_results_that_should_print_nothing(): array {
+	public static function data_results_that_should_print_nothing(): array {
 		return array(
 			'a false result'         => array( 'result' => false ),
 			'a WP_Error result'      => array( 'result' => new WP_Error( 'test_error' ) ),
@@ -113,7 +113,7 @@ class Tests_Admin_WpUpgraderSkin extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ type: non-falsy-string }>
 	 */
-	public function data_update_types(): array {
+	public static function data_update_types(): array {
 		return array(
 			'a plugin type'      => array( 'type' => 'plugin' ),
 			'a theme type'       => array( 'type' => 'theme' ),
