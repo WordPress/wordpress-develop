@@ -40,11 +40,11 @@ if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
  * }
  * @phpstan-type Prepared_Request array{
  *     url: string,
- *     headers: array<string, string|string[]>,
+ *     headers: array<array-key, mixed>,
  *     data: mixed,
- *     type: string,
+ *     type: mixed,
  *     options: array<string, mixed>,
- *     args: array<string, mixed>,
+ *     args: array<array-key, mixed>,
  * }
  */
 #[AllowDynamicProperties]
@@ -491,6 +491,7 @@ class WP_Http {
 		 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
 		 * @param array                $parsed_args HTTP request arguments.
 		 * @param string               $url         The request URL.
+		 * @phpstan-param false|Response|WP_Error $response
 		 */
 		$pre = apply_filters( 'pre_http_request', false, $parsed_args, $url );
 
@@ -648,7 +649,7 @@ class WP_Http {
 	 *
 	 * @param \WpOrg\Requests\Response|\WpOrg\Requests\Exception|WP_Error $response    The response, or the error the
 	 *                                                                                 request failed with.
-	 * @param array<string, mixed>                                        $parsed_args The parsed request arguments, as
+	 * @param array<array-key, mixed>                                     $parsed_args The parsed request arguments, as
 	 *                                                                                 returned by {@see WP_Http::prepare_request()}.
 	 * @param string                                                      $url         The request URL.
 	 * @return array|WP_Error The response array, or a WP_Error on failure. See {@see WP_Http::request()}.
