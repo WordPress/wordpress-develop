@@ -3027,17 +3027,17 @@ HTML;
 	}
 
 	/**
-	 * Tests that opening square brackets inside allowed `<code>` elements remain encoded.
+	 * Tests that escaped HTML character references in text nodes remain escaped.
 	 *
 	 * @ticket 66673
 	 *
-	 * @dataProvider data_wp_kses_escapes_opening_brackets_in_code_elements
+	 * @dataProvider data_wp_kses_preserves_escaped_character_references
 	 *
 	 * @param string     $input        HTML to sanitize.
 	 * @param string     $expected     Expected sanitized HTML.
 	 * @param array|null $allowed_html Optional. Allowed HTML configuration. Default `wp_kses_post()`.
 	 */
-	public function test_wp_kses_escapes_opening_brackets_in_code_elements( string $input, string $expected, ?array $allowed_html = null ): void {
+	public function test_wp_kses_preserves_escaped_character_references( string $input, string $expected, ?array $allowed_html = null ): void {
 		$actual = null === $allowed_html
 			? wp_kses_post( $input )
 			: wp_kses( $input, $allowed_html );
@@ -3045,49 +3045,61 @@ HTML;
 		$this->assertSame(
 			$expected,
 			$actual,
-			'Opening square brackets inside allowed <code> elements should remain encoded as &#91;.'
+			'Escaped character references in text nodes should remain escaped.'
 		);
 	}
 
 	/**
-	 * Data provider for test_wp_kses_escapes_opening_brackets_in_code_elements().
+	 * Data provider for test_wp_kses_preserves_escaped_character_references().
 	 *
 	 * @return array[]
 	 */
-	public static function data_wp_kses_escapes_opening_brackets_in_code_elements(): array {
+	public static function data_wp_kses_preserves_escaped_character_references(): array {
 		return array(
-			'code block with decimal entity'     => array(
+			'code block with decimal entity'          => array(
 				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
 				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
 			),
-			'code block with hexadecimal entity' => array(
+			'code block with hexadecimal entity'      => array(
+				'<pre class="wp-block-code"><code>&#x5b;audio src="https://example.com/a.mp3"]</code></pre>',
 				'<pre class="wp-block-code"><code>&#x5B;audio src="https://example.com/a.mp3"]</code></pre>',
-				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
 			),
-			'code block with named entity'       => array(
+			'code block with named entity'            => array(
 				'<pre class="wp-block-code"><code>&lbrack;audio src="https://example.com/a.mp3"]</code></pre>',
-				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
+				'<pre class="wp-block-code"><code>&lbrack;audio src="https://example.com/a.mp3"]</code></pre>',
 			),
-			'code block with nested formatting'  => array(
-				'<pre class="wp-block-code"><code><strong>&#91;audio]</strong> &#91;video]</code></pre>',
-				'<pre class="wp-block-code"><code><strong>&#91;audio]</strong> &#91;video]</code></pre>',
+			'leading zeros and missing semicolon'     => array(
+				'<code>&#0091;gallery]</code> and <p>&#91gallery]</p>',
+				'<code>&#91;gallery]</code> and <p>&#91;gallery]</p>',
 			),
-			'inline code and shortcode outside'  => array(
-				'<code>&#91;gallery]</code> and <p>[gallery]</p>',
-				'<code>&#91;gallery]</code> and <p>[gallery]</p>',
+			'literal brackets remain unescaped'       => array(
+				'<code>[gallery]</code> and <p>[gallery]</p>',
+				'<code>[gallery]</code> and <p>[gallery]</p>',
 			),
-			'nested code elements'               => array(
-				'<code>outer <code>inner &#91;a]</code> still code &#91;b]</code> outside [c]',
-				'<code>outer <code>inner &#91;a]</code> still code &#91;b]</code> outside [c]',
-			),
-			'unmatched closing code tag'         => array(
-				'</code>[gallery] <code>&#91;gallery]</code> [gallery]',
-				'</code>[gallery] <code>&#91;gallery]</code> [gallery]',
-			),
-			'disallowed code element'            => array(
+			'disallowed code element keeps entity'    => array(
 				'<code>&#91;gallery]</code>',
-				'[gallery]',
+				'&#91;gallery]',
 				array( 'p' => array() ),
+			),
+			'syntax numeric entities become named'    => array(
+				'<p>&#60;tag&#x3e; &#38; &#34;quote&#x27;</p>',
+				'<p>&lt;tag&gt; &amp; &quot;quote&apos;</p>',
+			),
+			'unhidden ASCII letters and digits'       => array(
+				'<p>&#x61;&#x000033;&#58;</p>',
+				'<p>a3:</p>',
+			),
+			'non-syntax named entities stay escaped'  => array(
+				'<p>&nbsp;&mdash;&copy</p>',
+				'<p>&nbsp;&mdash;&copy;</p>',
+			),
+			'null numeric entity becomes replacement' => array(
+				'<p>&#0;</p>',
+				"<p>\u{FFFD}</p>",
+			),
+			'stray ampersand is escaped'              => array(
+				'<p>AT&T & co</p>',
+				'<p>AT&amp;T &amp; co</p>',
 			),
 		);
 	}

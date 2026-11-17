@@ -1393,7 +1393,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		 */
 		public function sanitize() {
 			$template_depth            = 0;
-			$code_depth                = 0;
 			$output                    = '';
 			$special_newline_at        = PHP_INT_MIN;
 			$foreign_content_starts_at = PHP_INT_MAX;
@@ -1496,7 +1495,9 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				 * occur here but a browser will still do so; this sanitizer is generally
 				 * unaware of nesting structure.
 				 */
-				if ( $is_in_text_integration_point && '#text' === $token_type ) {
+				if ( '#text' === $token_type ) {
+					$text = '';
+				} elseif ( $is_in_text_integration_point ) {
 					$this->change_parsing_namespace( 'html' );
 					$text = $this->get_modifiable_text();
 					$this->change_parsing_namespace( $namespace );
@@ -1577,34 +1578,19 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							break;
 						}
 
-						$needs_special_newline = (
-							strlen( $output ) === $special_newline_at &&
-							1 === strspn( $text, "\n\r", 0, 1 )
-						);
-
-						$text = strtr(
-							$text,
-							$code_depth > 0
-								? array(
-									"\r" => '&#xD;',
-									'<'  => '&lt;',
-									'&'  => '&amp;',
-									'>'  => '&gt;',
-									'['  => '&#91;',
-								)
-								: array(
-									"\r" => '&#xD;',
-									'<'  => '&lt;',
-									'&'  => '&amp;',
-									'>'  => '&gt;',
-								)
-						);
-
-						if ( $needs_special_newline ) {
-							$output .= "\n{$text}";
-						} else {
-							$output .= $text;
+						$raw_text = '';
+						if ( $this->set_bookmark( 'text' ) ) {
+							$span     = $this->bookmarks['text'];
+							$raw_text = substr( $this->html, $span->start, $span->length );
+							$this->release_bookmark( 'text' );
 						}
+
+						$raw_text = str_replace( array( "\r\n", "\r" ), "\n", $raw_text );
+						$raw_text = ( 'html' === $namespace || $is_in_text_integration_point )
+							? str_replace( "\x00", '', $raw_text )
+							: str_replace( "\x00", "\u{FFFD}", $raw_text );
+
+						$output .= $this->normalize_escaped_text( $raw_text );
 						break;
 
 					/*
@@ -1792,15 +1778,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						if ( $is_closer ) {
-							if ( 'code' === $tag_name && 'html' === $namespace && $code_depth > 0 ) {
-								--$code_depth;
-							}
 							$output .= "</{$tag_name}>";
 							break;
-						}
-
-						if ( 'code' === $tag_name && 'html' === $namespace ) {
-							++$code_depth;
 						}
 
 						$is_special_atomic_element = (
@@ -2060,6 +2039,132 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			}
 
 			return $sanitized;
+		}
+
+		/**
+		 * Normalizes escaped HTML character references in a text node while leaving
+		 * non-syntax escaped characters escaped.
+		 *
+		 * @param string $text Raw preprocessed HTML text node content.
+		 * @return string Normalized text node content safe for output.
+		 */
+		private function normalize_escaped_text( string $text ): string {
+			$normalized   = array();
+			$end          = strlen( $text );
+			$at           = 0;
+			$was_at       = 0;
+			$token_length = 0;
+
+			while ( $at < $end ) {
+				$next_character_reference_at = strpos( $text, '&', $at );
+				if ( false === $next_character_reference_at ) {
+					break;
+				}
+
+				$character_reference = WP_HTML_Decoder::read_character_reference( 'data', $text, $next_character_reference_at, $token_length );
+
+				// Unescaped ampersand character: encode it.
+				if ( ! isset( $character_reference ) ) {
+					$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . '&amp;';
+					$at           = $next_character_reference_at + 1;
+					$was_at       = $at;
+					continue;
+				}
+
+				// Unhide ASCII letters, digits, and colon so they remain visible plaintext.
+				if ( 1 === strspn( $character_reference, '0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' ) ) {
+					$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . $character_reference;
+					$at           = $next_character_reference_at + $token_length;
+					$was_at       = $at;
+					continue;
+				}
+
+				// Normalize numeric references for HTML syntax characters to named forms.
+				if ( '#' === $text[ $next_character_reference_at + 1 ] && 1 === strspn( $character_reference, '&"\'<>' ) ) {
+					$named_form   = strtr(
+						$character_reference,
+						array(
+							'&' => '&amp;',
+							'"' => '&quot;',
+							"'" => '&apos;',
+							'<' => '&lt;',
+							'>' => '&gt;',
+						)
+					);
+					$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . $named_form;
+					$at           = $next_character_reference_at + $token_length;
+					$was_at       = $at;
+					continue;
+				}
+
+				$needs_semicolon = ';' !== $text[ $next_character_reference_at + $token_length - 1 ];
+
+				// Named character reference.
+				if ( '#' !== $text[ $next_character_reference_at + 1 ] ) {
+					if ( ! $needs_semicolon ) {
+						$at = $next_character_reference_at + $token_length;
+						continue;
+					}
+
+					$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at + $token_length ) . ';';
+					$at           = $next_character_reference_at + $token_length;
+					$was_at       = $at;
+					continue;
+				}
+
+				// Numeric character reference: normalize hex case, leading zeros, and trailing semicolon.
+				$is_small_hex  = 'x' === $text[ $next_character_reference_at + 2 ];
+				$is_big_hex    = 'X' === $text[ $next_character_reference_at + 2 ];
+				$is_hex        = $is_small_hex || $is_big_hex;
+				$digits_at     = $next_character_reference_at + ( $is_hex ? 3 : 2 );
+				$leading_zeros = '0' === $text[ $digits_at ] ? strspn( $text, '0', $digits_at ) : 0;
+
+				if ( ! $needs_semicolon && ! $is_hex && 0 === $leading_zeros ) {
+					$at = $next_character_reference_at + $token_length;
+					continue;
+				}
+
+				$nonzero_at   = $digits_at + $leading_zeros;
+				$digit_length = $next_character_reference_at + $token_length - $digits_at - $leading_zeros - ( $needs_semicolon ? 0 : 1 );
+				if ( 0 === $digit_length ) {
+					$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . "\u{FFFD}";
+					$at           = $next_character_reference_at + $token_length;
+					$was_at       = $at;
+					continue;
+				}
+
+				if ( $is_hex ) {
+					$all_uppercase = strspn( $text, '0123456789ABCDEF', $nonzero_at, $digit_length ) === $digit_length;
+					if ( $is_small_hex && $all_uppercase && ! $needs_semicolon && 0 === $leading_zeros ) {
+						$at = $next_character_reference_at + $token_length;
+						continue;
+					}
+
+					$digits       = strtoupper( substr( $text, $nonzero_at, $digit_length ) );
+					$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . "&#x{$digits};";
+				} else {
+					$digits       = substr( $text, $nonzero_at, $digit_length );
+					$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . "&#{$digits};";
+				}
+
+				$at     = $next_character_reference_at + $token_length;
+				$was_at = $at;
+			}
+
+			if ( 0 === $was_at ) {
+				$normalized_text = $text;
+			} else {
+				$normalized[]    = substr( $text, $was_at, $end - $was_at );
+				$normalized_text = implode( '', $normalized );
+			}
+
+			return strtr(
+				$normalized_text,
+				array(
+					'<' => '&lt;',
+					'>' => '&gt;',
+				)
+			);
 		}
 	};
 
