@@ -1172,8 +1172,12 @@ class Tests_Functions extends WP_UnitTestCase {
 			unlink( $invalid_json_file );
 		}
 
+		// The error message varies between PHP versions, e.g. PHP 8.6 appends the error location.
+		json_decode( '{ invalid json }' );
+		$expected_message = "Error when decoding a JSON file at path {$invalid_json_file}: " . json_last_error_msg();
+
 		$this->assertNull( $result );
-		$this->assertSame( array( "Error when decoding a JSON file at path {$invalid_json_file}: Syntax error" ), $messages );
+		$this->assertSame( array( $expected_message ), $messages );
 	}
 
 	/**
