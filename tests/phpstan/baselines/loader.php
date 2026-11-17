@@ -2,10 +2,13 @@
 /**
  * Includes every PHPStan baseline in this directory.
  *
- * `phpstan.neon.dist` includes this file rather than listing the baselines one by
+ * A configuration includes this file rather than listing the baselines one by
  * one, so that adding a baseline, or deleting one that has reached zero, needs no
  * edit of the configuration. A NEON configuration can only include files by name,
  * but a PHP one returns the same structure and can find them itself.
+ *
+ * `composer phpstan:baselines` copies this file into any other directory it is
+ * told to write baselines to, so nothing here is specific to one directory.
  *
  * PHPStan keys its cache of the configuration on the files it includes, so a
  * baseline added or deleted here takes effect on the next run.
@@ -14,7 +17,7 @@
  * it analyzes, so that the errors the baselines suppress are reported again for
  * it to write back out. Checking it here suppresses them however the
  * configuration includes this file, even through another configuration that
- * includes `phpstan.neon.dist`. Any other value, such as 0 or an empty string,
+ * includes the one that includes it. Any other value, such as 0 or an empty string,
  * leaves the baselines in force, so that a variable left set by mistake cannot
  * silently drop them all.
  *
