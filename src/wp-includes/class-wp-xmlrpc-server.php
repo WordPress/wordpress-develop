@@ -1720,7 +1720,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 					$term_names = $post_data['terms_names'][ $taxonomy ];
 					if ( ! is_array( $term_names ) ) {
-						return new IXR_Error( 401, __( 'Invalid term name.' ) );
+						return new IXR_Error( 400, __( 'Invalid term name.' ) );
 					}
 
 					foreach ( $term_names as $term_name ) {

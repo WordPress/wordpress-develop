@@ -417,9 +417,9 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	 */
 	public function data_terms_not_array(): array {
 		return array(
-			'terms string'       => array( 'terms', '1', 403, 'Invalid term ID.' ),
-			'terms integer'      => array( 'terms', 1, 403, 'Invalid term ID.' ),
-			'terms_names string' => array( 'terms_names', 'foo', 401, 'Invalid term name.' ),
+			'terms string'       => array( 'terms', '1', 400, 'Invalid term ID.' ),
+			'terms integer'      => array( 'terms', 1, 400, 'Invalid term ID.' ),
+			'terms_names string' => array( 'terms_names', 'foo', 400, 'Invalid term name.' ),
 		);
 	}
 
