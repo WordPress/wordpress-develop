@@ -1666,7 +1666,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 					$term_ids = $post_data['terms'][ $taxonomy ];
 					if ( ! is_array( $term_ids ) ) {
-						return new IXR_Error( 403, __( 'Invalid term ID.' ) );
+						return new IXR_Error( 400, __( 'Invalid term ID.' ) );
 					}
 
 					$terms[ $taxonomy ] = array();
