@@ -18,6 +18,8 @@
 
 namespace WordPress\PHPStan;
 
+use RuntimeException;
+
 /**
  * Environment variable that tells a baselines loader to include nothing.
  *
@@ -60,13 +62,13 @@ const BASELINE_FILE_PATTERN = '/^[a-zA-Z0-9](?:[a-zA-Z0-9.]*[a-zA-Z0-9])?\.neon\
  * @param non-empty-string $directory Absolute path to the baseline directory.
  * @return list<non-empty-string> File names, sorted.
  *
- * @throws \RuntimeException When the directory cannot be listed.
+ * @throws RuntimeException When the directory cannot be listed.
  */
 function find_baselines( string $directory ): array {
 	$entries = is_dir( $directory ) ? scandir( $directory ) : false;
 
 	if ( false === $entries ) {
-		throw new \RuntimeException( "Could not list the PHPStan baselines in $directory." );
+		throw new RuntimeException( "Could not list the PHPStan baselines in $directory." );
 	}
 
 	$names = array();
@@ -92,7 +94,7 @@ function find_baselines( string $directory ): array {
  * @param non-empty-string $directory The loader's directory, as its __DIR__.
  * @return array{includes: list<non-empty-string>} Configuration.
  *
- * @throws \RuntimeException When the directory cannot be listed.
+ * @throws RuntimeException When the directory cannot be listed.
  */
 function get_baseline_includes( string $directory ): array {
 	if ( getenv( GENERATING_BASELINES_ENV ) === $directory ) {
