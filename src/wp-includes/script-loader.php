@@ -3888,6 +3888,23 @@ function wp_enqueue_command_palette_assets() {
 		return trim( implode( '', $text_parts ) );
 	};
 
+	/**
+	 * Gets the URL of an admin menu or submenu item from its slug.
+	 *
+	 * @ignore
+	 * @param string $slug Menu or submenu slug.
+	 * @return string URL of the menu item, or an empty string if none could be determined.
+	 */
+	$get_menu_item_url = static function ( string $slug ): string {
+		if ( preg_match( '/\.php($|\?)/', $slug ) || wp_http_validate_url( $slug ) ) {
+			return $slug;
+		}
+
+		$url = menu_page_url( $slug, false );
+
+		return $url ? WP_HTML_Decoder::decode_attribute( $url ) : '';
+	};
+
 	if ( $menu ) {
 		$menu_commands = array();
 		foreach ( $menu as $menu_item ) {
@@ -3899,10 +3916,26 @@ function wp_enqueue_command_palette_assets() {
 			$menu_url   = '';
 			$menu_slug  = $menu_item[2];
 
-			if ( preg_match( '/\.php($|\?)/', $menu_slug ) || wp_http_validate_url( $menu_slug ) ) {
-				$menu_url = $menu_slug;
-			} elseif ( ! empty( menu_page_url( $menu_slug, false ) ) ) {
-				$menu_url = WP_HTML_Decoder::decode_attribute( menu_page_url( $menu_slug, false ) );
+			if (
+				! empty( $submenu[ $menu_slug ] ) &&
+				! preg_match( '/\.php($|\?)/', $menu_slug ) &&
+				! wp_http_validate_url( $menu_slug ) &&
+				! get_plugin_page_hook( $menu_slug, 'admin.php' )
+			) {
+				/*
+				 * A top-level page registered without a callback has nothing to load at its own URL,
+				 * so link to its first accessible submenu page instead, as _wp_menu_output() does.
+				 */
+				foreach ( $submenu[ $menu_slug ] as $submenu_item ) {
+					if ( ! empty( $submenu_item[1] ) && ! current_user_can( $submenu_item[1] ) ) {
+						continue;
+					}
+
+					$menu_url = $get_menu_item_url( $submenu_item[2] );
+					break;
+				}
+			} else {
+				$menu_url = $get_menu_item_url( $menu_slug );
 			}
 
 			if ( $menu_url ) {
@@ -3920,14 +3953,8 @@ function wp_enqueue_command_palette_assets() {
 					}
 
 					$submenu_label = $extract_root_text( $submenu_item[0] );
-					$submenu_url   = '';
-					$submenu_slug  = $submenu_item[2];
+					$submenu_url   = $get_menu_item_url( $submenu_item[2] );
 
-					if ( preg_match( '/\.php($|\?)/', $submenu_slug ) || wp_http_validate_url( $submenu_slug ) ) {
-						$submenu_url = $submenu_slug;
-					} elseif ( ! empty( menu_page_url( $submenu_slug, false ) ) ) {
-						$submenu_url = WP_HTML_Decoder::decode_attribute( menu_page_url( $submenu_slug, false ) );
-					}
 					if ( $submenu_url ) {
 						$menu_commands[] = array(
 							'label' => sprintf(
