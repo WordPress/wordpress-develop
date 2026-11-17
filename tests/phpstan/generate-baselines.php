@@ -51,13 +51,6 @@ require_once __DIR__ . '/baseline-includes.php';
 const DEFAULT_OUTPUT_DIR = 'tests/phpstan/baselines';
 
 /**
- * The statement every loader this script writes ends in.
- *
- * build_loader() writes it, and is_generated_loader() looks for it.
- */
-const LOADER_RETURN = 'return \WordPress\PHPStan\get_baseline_includes( __DIR__ );';
-
-/**
  * The configuration analyzed when `--config` does not name one.
  *
  * Relative to the repository root.
@@ -170,20 +163,14 @@ if ( $prune ) {
 	$pruned = 0;
 
 	// A directory not written to yet has no baselines to prune.
-	foreach ( is_dir( $output_dir ) ? list_baselines( $output_dir ) : array() as $name ) {
+	foreach ( is_dir( $output_dir ) ? find_baselines( $output_dir ) : array() as $name ) {
 		$identifier = basename( $name, '.neon' );
 
 		if ( $only_identifiers && ! in_array( $identifier, $only_identifiers, true ) ) {
 			continue;
 		}
 
-		$file = $output_dir . '/' . $name;
-
-		if ( ! is_generated_baseline( $file, $identifier ) ) {
-			fwrite( STDERR, sprintf( "%s: not a baseline written by this script, left untouched.\n", $output_option . '/' . $name ) );
-			continue;
-		}
-
+		$file     = $output_dir . '/' . $name;
 		$is_empty = is_empty_baseline( read_file( $file ) );
 
 		if ( null === $is_empty ) {
@@ -209,40 +196,6 @@ if ( $prune ) {
 	}
 
 	exit( 0 );
-}
-
-/*
- * A directory holding a `.neon` file named like a baseline that this script did
- * not write is not a baselines directory, such as `tests/phpstan` with its
- * `base.neon`. Its loader would include that file as a baseline, and a reported
- * identifier of the same name would overwrite it, so the run stops before any
- * analysis rather than writing there. So it does for a `loader.php` that is not
- * one this script writes, such as another tool's bootstrap, which writing the
- * loader would replace.
- */
-if ( is_dir( $output_dir ) ) {
-	$foreign = array();
-	foreach ( list_baselines( $output_dir ) as $name ) {
-		if ( ! is_generated_baseline( $output_dir . '/' . $name, basename( $name, '.neon' ) ) ) {
-			$foreign[] = $name;
-		}
-	}
-
-	if ( is_file( $output_dir . '/loader.php' ) && ! is_generated_loader( read_file( $output_dir . '/loader.php' ) ) ) {
-		$foreign[] = 'loader.php';
-	}
-
-	if ( $foreign ) {
-		fwrite(
-			STDERR,
-			sprintf(
-				"%s holds files named like baselines, or a loader, that this script did not write: %s\nChoose a directory of its own for --output-dir.\n",
-				$output_option,
-				implode( ', ', $foreign )
-			)
-		);
-		exit( 1 );
-	}
 }
 
 /*
@@ -351,16 +304,19 @@ $command = sprintf(
 fwrite( STDERR, "Analyzing with $config_option, baselines in $output_option suppressed...\n" );
 
 /*
- * PHPStan inherits it, as do the worker processes it starts. An output directory
- * not created yet holds no loader to match, so it is not set at all then. It is
- * cleared first either way, so that a value exported in the shell, perhaps naming
- * another directory, cannot switch off baselines this run means to keep.
+ * PHPStan inherits it, as do the worker processes it starts. It is the real path,
+ * since that is what the loader's __DIR__ is. An output directory not created yet
+ * holds no loader to match, so it is not set at all then. It is cleared first
+ * either way, so that a value exported in the shell, perhaps naming another
+ * directory, cannot switch off baselines this run means to keep.
  */
 putenv( GENERATING_BASELINES_ENV );
 $resolved_output_dir = realpath( $output_dir );
 if ( false !== $resolved_output_dir ) {
 	putenv( GENERATING_BASELINES_ENV . '=' . $resolved_output_dir );
 }
+
+$is_default_output_dir = DEFAULT_OUTPUT_DIR === trim( normalize_path( $output_option ), '/' );
 
 /*
  * The baselines in any other directory the configuration includes stay in force,
@@ -369,9 +325,8 @@ if ( false !== $resolved_output_dir ) {
  * default directory's, so that is the one combination with nothing to say. Any
  * other, whether a configuration including the default one alongside a loader of
  * its own, or a directory other than the default, may well leave some in force.
- * The directories are compared as the loader compares them.
  */
-if ( DEFAULT_CONFIG !== $config_relative || ! is_same_directory( $repo_root . '/' . DEFAULT_OUTPUT_DIR, $output_dir ) ) {
+if ( DEFAULT_CONFIG !== $config_relative || ! $is_default_output_dir ) {
 	fwrite( STDERR, "Baselines in any other directory the configuration includes stay in force, so only the errors they leave are written.\n" );
 }
 
@@ -444,10 +399,10 @@ if ( $loader !== $loader_contents ) {
  */
 $regenerate_options = '';
 if ( DEFAULT_CONFIG !== $config_relative ) {
-	$regenerate_options .= ' --config=' . quote_shell_argument( $config_option );
+	$regenerate_options .= ' --config=' . $config_option;
 }
-if ( ! is_same_directory( $repo_root . '/' . DEFAULT_OUTPUT_DIR, $output_dir ) ) {
-	$regenerate_options .= ' --output-dir=' . quote_shell_argument( $output_option );
+if ( ! $is_default_output_dir ) {
+	$regenerate_options .= ' --output-dir=' . $output_option;
 }
 
 foreach ( $grouped as $identifier => $entries ) {
@@ -481,7 +436,7 @@ foreach ( $grouped as $identifier => $entries ) {
 $retired = $only_identifiers;
 
 if ( ! $only_identifiers ) {
-	foreach ( list_baselines( $output_dir ) as $name ) {
+	foreach ( find_baselines( $output_dir ) as $name ) {
 		$retired[] = basename( $name, '.neon' );
 	}
 }
@@ -491,7 +446,6 @@ foreach ( $retired as $identifier ) {
 		continue;
 	}
 
-	// Every file here was checked to be one this script wrote before the analysis.
 	$file = $output_dir . '/' . $identifier . '.neon';
 	if ( is_file( $file ) && unlink( $file ) ) {
 		printf( "%s: no errors remain, file deleted.\n", $output_option . '/' . $identifier . '.neon' );
@@ -562,63 +516,6 @@ function get_usage(): string {
 		    composer phpstan:baselines -- --prune
 
 		TEXT;
-}
-
-/**
- * Determines whether a file is a baseline this script wrote.
- *
- * A file is only written, retired, or pruned when it starts with the header this
- * script writes for its identifier: a run stops before its analysis when the
- * output directory holds any other, and `--prune` leaves any other in place. Any
- * `.neon` file whose name passes for an identifier would otherwise be deleted
- * when that identifier reports nothing, such as `base.neon` with
- * `--output-dir=tests/phpstan`, or the root `phpstan.neon` with `--output-dir=.`.
- *
- * Only the first line is read, and compared without its line ending, so that a
- * checkout converting line endings to CRLF, as Git does on Windows with
- * `core.autocrlf`, still recognizes every baseline.
- *
- * @param non-empty-string $file       Absolute path to the file.
- * @param string           $identifier Identifier the file is named for.
- * @return bool Whether the file starts with the header for that identifier.
- */
-function is_generated_baseline( string $file, string $identifier ): bool {
-	// Neither can name a baseline, nor have a header built for it.
-	if ( '' === $identifier || '0' === $identifier ) {
-		return false;
-	}
-
-	$header = build_baseline_header( $identifier );
-	$first  = substr( $header, 0, (int) strpos( $header, "\n" ) );
-
-	$handle = fopen( $file, 'r' );
-	if ( false === $handle ) {
-		fwrite( STDERR, "Could not read $file\n" );
-		exit( 1 );
-	}
-
-	$line = fgets( $handle );
-	fclose( $handle );
-
-	return false !== $line && rtrim( $line, "\r\n" ) === $first;
-}
-
-/**
- * Lists the baselines in a directory, stopping the run if it cannot be listed.
- *
- * find_baselines() throws, which stops PHPStan when a loader calls it. Here the
- * same failure is reported the way the rest of this script reports one.
- *
- * @param non-empty-string $output_dir Absolute path to the baseline directory.
- * @return list<non-empty-string> File names, sorted.
- */
-function list_baselines( string $output_dir ): array {
-	try {
-		return find_baselines( $output_dir );
-	} catch ( \RuntimeException $e ) {
-		fwrite( STDERR, $e->getMessage() . "\n" );
-		exit( 1 );
-	}
 }
 
 /**
@@ -712,17 +609,10 @@ function read_baseline( string $path ): array {
  * there, so a fix to that reaches every directory's loader alike.
  * `baselines/loader.php` is the one this builds for the default directory.
  *
- * The relative path is worked out between the resolved directories, since that is
- * how the loader's __DIR__ is resolved when the path is followed. Worked out from
- * the directory as given, a symbolic link in it would send the loader looking
+ * The relative path is worked out between the real paths, since that is how the
+ * loader's __DIR__ is resolved when the path is followed. Worked out from the
+ * directory as given, a symbolic link in it would send the loader looking
  * somewhere else.
- *
- * Their common ancestor is found with is_same_directory() rather than by
- * comparing the paths as strings, since realpath() keeps the case it was given.
- * On a case-insensitive file system, `--output-dir=Tests/PHPStan/Baselines`
- * would otherwise share no ancestor with `tests/phpstan` short of the repository
- * root, and the loader written for the default directory would change with the
- * spelling of the option.
  *
  * @param non-empty-string $output_dir Absolute path to the baseline directory, which exists.
  * @return non-falsy-string Loader contents.
@@ -733,30 +623,6 @@ function build_loader( string $output_dir ): string {
 
 	if ( false === $from || false === $to ) {
 		fwrite( STDERR, "Could not resolve $output_dir or the shared baseline includes.\n" );
-		exit( 1 );
-	}
-
-	$relative = null;
-	$ups      = 0;
-	for ( $dir = $from; null === $relative; $dir = dirname( $dir ), $ups++ ) {
-		for ( $base = dirname( $to ); null === $relative; $base = dirname( $base ) ) {
-			if ( is_same_directory( $dir, $base ) ) {
-				// substr() gives false on PHP < 8 when $to is no longer than $base, which a directory's own path cannot be.
-				$relative = str_repeat( '../', $ups ) . ltrim( (string) substr( $to, strlen( $base ) ), '/' );
-			}
-
-			if ( dirname( $base ) === $base ) {
-				break;
-			}
-		}
-
-		if ( dirname( $dir ) === $dir ) {
-			break;
-		}
-	}
-
-	if ( null === $relative ) {
-		fwrite( STDERR, "Could not relate $output_dir to the shared baseline includes.\n" );
 		exit( 1 );
 	}
 
@@ -777,26 +643,11 @@ function build_loader( string $output_dir ): string {
 
 		require_once __DIR__ . %s;
 
-		%s
+		return \WordPress\PHPStan\get_baseline_includes( __DIR__ );
 
 		PHP,
-		var_export( '/' . $relative, true ),
-		LOADER_RETURN
+		var_export( '/' . get_relative_path( $from, $to ), true )
 	);
-}
-
-/**
- * Determines whether a file's contents are a loader this script wrote.
- *
- * Every loader build_loader() writes ends in LOADER_RETURN, whatever the path it
- * requires the shared file by, so a `loader.php` without it belongs to something
- * else, and is not to be replaced.
- *
- * @param string $contents Contents of a `loader.php`.
- * @return bool Whether it is a loader this script wrote.
- */
-function is_generated_loader( string $contents ): bool {
-	return false !== strpos( $contents, LOADER_RETURN );
 }
 
 /**
@@ -950,23 +801,7 @@ function quote_neon_value( string $value ): string {
 }
 
 /**
- * Quotes a command-line argument for the regenerate command in a header.
- *
- * A value of only the characters a path is usually made of is left as it is,
- * so that the command reads naturally. Anything else is quoted for the shell.
- *
- * @param string $value Argument value.
- * @return string Value, quoted where needed.
- */
-function quote_shell_argument( string $value ): string {
-	return 1 === preg_match( '#^[A-Za-z0-9_./-]+$#', $value ) ? $value : escapeshellarg( $value );
-}
-
-/**
  * Builds the header comment for a per-identifier baseline.
- *
- * The first line names only the identifier, so that is_generated_baseline() can
- * recognize the file whatever options it was generated with.
  *
  * @param non-falsy-string $identifier Error identifier, a group followed by a code.
  * @param string           $options    Options other than `--identifier` the

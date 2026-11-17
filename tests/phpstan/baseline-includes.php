@@ -23,9 +23,9 @@ namespace WordPress\PHPStan;
  *
  * `composer phpstan:baselines` sets it to the directory it is writing baselines
  * to while it analyzes, so that the errors those baselines suppress are reported
- * again for it to write back out. Each loader compares it with its own directory,
- * with is_same_directory(), so this works however the directory is spelled, and
- * however the configuration includes the loader, even through another
+ * again for it to write back out. It is the directory's real path, which is what
+ * each loader's __DIR__ is, and each loader compares it with its own, so this
+ * works however the configuration includes the loader, even through another
  * configuration that includes the one that includes it.
  *
  * The baselines in any other directory stay in force. Those regenerated are then
@@ -80,42 +80,6 @@ function find_baselines( string $directory ): array {
 }
 
 /**
- * Determines whether two paths name the same directory.
- *
- * They are compared by the device and inode the file system reports, not by how
- * they are spelled. realpath() resolves symbolic links but keeps the case it was
- * given, so on a case-insensitive file system `Tests/PHPStan/Baselines` and
- * `tests/phpstan/baselines` resolve to two strings naming one directory. Were
- * the loader's check to miss that, the baselines being regenerated would stay in
- * force, report nothing, and all be retired.
- *
- * A file system that reports no inode, as some on Windows do, falls back to
- * comparing the resolved paths.
- *
- * @param string $a A path.
- * @param string $b Another path.
- * @return bool Whether both are directories, and the same one.
- */
-function is_same_directory( string $a, string $b ): bool {
-	if ( '' === $a || '' === $b || ! is_dir( $a ) || ! is_dir( $b ) ) {
-		return false;
-	}
-
-	$stat_a = stat( $a );
-	$stat_b = stat( $b );
-
-	if ( false === $stat_a || false === $stat_b ) {
-		return false;
-	}
-
-	if ( 0 === $stat_a['ino'] || 0 === $stat_b['ino'] ) {
-		return realpath( $a ) === realpath( $b );
-	}
-
-	return $stat_a['dev'] === $stat_b['dev'] && $stat_a['ino'] === $stat_b['ino'];
-}
-
-/**
  * Returns the configuration a baselines loader hands to PHPStan.
  *
  * Each baseline is included by its bare file name, which PHPStan resolves against
@@ -131,8 +95,7 @@ function is_same_directory( string $a, string $b ): bool {
  * @throws \RuntimeException When the directory cannot be listed.
  */
 function get_baseline_includes( string $directory ): array {
-	$generating = getenv( GENERATING_BASELINES_ENV );
-	if ( false !== $generating && is_same_directory( $generating, $directory ) ) {
+	if ( getenv( GENERATING_BASELINES_ENV ) === $directory ) {
 		return array( 'includes' => array() );
 	}
 
