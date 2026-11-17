@@ -702,7 +702,8 @@ function build_loader( string $output_dir ): string {
 	for ( $dir = $from; null === $relative; $dir = dirname( $dir ), $ups++ ) {
 		for ( $base = dirname( $to ); null === $relative; $base = dirname( $base ) ) {
 			if ( is_same_directory( $dir, $base ) ) {
-				$relative = str_repeat( '../', $ups ) . ltrim( substr( $to, strlen( $base ) ), '/' );
+				// substr() gives false on PHP < 8 when $to is no longer than $base, which a directory's own path cannot be.
+				$relative = str_repeat( '../', $ups ) . ltrim( (string) substr( $to, strlen( $base ) ), '/' );
 			}
 
 			if ( dirname( $base ) === $base ) {
