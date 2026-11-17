@@ -205,6 +205,34 @@ if ( $prune ) {
 }
 
 /*
+ * A directory holding a `.neon` file named like a baseline that this script did
+ * not write is not a baselines directory, such as `tests/phpstan` with its
+ * `base.neon`. Its loader would include that file as a baseline, and a reported
+ * identifier of the same name would overwrite it, so the run stops before any
+ * analysis rather than writing there.
+ */
+if ( is_dir( $output_dir ) ) {
+	$foreign = array();
+	foreach ( list_baselines( $output_dir ) as $name ) {
+		if ( ! is_generated_baseline( $output_dir . '/' . $name, basename( $name, '.neon' ) ) ) {
+			$foreign[] = $name;
+		}
+	}
+
+	if ( $foreign ) {
+		fwrite(
+			STDERR,
+			sprintf(
+				"%s holds files named like baselines that this script did not write: %s\nChoose a directory of its own for --output-dir.\n",
+				$output_option,
+				implode( ', ', $foreign )
+			)
+		);
+		exit( 1 );
+	}
+}
+
+/*
  * Both temporary files sit beside the configuration, and so inside the
  * repository, for two separate reasons.
  *
