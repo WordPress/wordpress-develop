@@ -435,10 +435,11 @@ class WP_REST_Server {
 		 * header.
 		 */
 		$method_overridden = false;
+		$method_error      = null;
 		if ( isset( $_GET['_method'] ) ) {
-			$request->set_method( $_GET['_method'] );
+			$method_error = $this->apply_method_override( $request, $_GET['_method'], '_method' );
 		} elseif ( isset( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ) ) {
-			$request->set_method( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] );
+			$method_error      = $this->apply_method_override( $request, $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'], 'X-HTTP-Method-Override' );
 			$method_overridden = true;
 		}
 
@@ -486,7 +487,7 @@ class WP_REST_Server {
 		$result = $this->check_authentication();
 
 		if ( ! is_wp_error( $result ) ) {
-			$result = $this->dispatch( $request );
+			$result = $method_error ?? $this->dispatch( $request );
 		}
 
 		// Normalize to either WP_Error or WP_REST_Response...
@@ -616,6 +617,34 @@ class WP_REST_Server {
 			}
 		}
 
+		return null;
+	}
+
+	/**
+	 * Validates an HTTP method override and, if it is valid, sets it as the request method.
+	 *
+	 * Accepts only ASCII letters, underscores, and hyphens. The pattern ends with `\z`
+	 * because `$` also matches before a trailing newline.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_REST_Request                    $request Request to override the method of.
+	 * @param mixed                              $method  Slashed method override value.
+	 * @param '_method'|'X-HTTP-Method-Override' $source  Name of the query parameter or header the value came from.
+	 * @return WP_Error|null Error naming the source if the value is invalid, null otherwise.
+	 */
+	private function apply_method_override( WP_REST_Request $request, $method, string $source ): ?WP_Error {
+		$method = wp_unslash( $method );
+		if ( ! is_string( $method ) || ! preg_match( '/^[a-zA-Z_-]+\z/', $method ) ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				/* translators: %s: List of invalid parameters. */
+				sprintf( __( 'Invalid parameter(s): %s' ), $source ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$request->set_method( $method );
 		return null;
 	}
 
