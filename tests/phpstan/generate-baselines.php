@@ -99,9 +99,22 @@ foreach ( $args as $arg ) {
 	if ( 1 === preg_match( '/^--identifier=(.+)$/', $arg, $matches ) ) {
 		foreach ( explode( ',', $matches[1] ) as $identifier ) {
 			$identifier = trim( $identifier );
-			if ( '' !== $identifier ) {
-				$only_identifiers[] = $identifier;
+			if ( '' === $identifier ) {
+				continue;
 			}
+
+			/*
+			 * The identifier names the file a baseline is written to and retired
+			 * from, so one that is not an identifier, such as `../../../phpstan`,
+			 * could name a file outside the baselines, which would be deleted when
+			 * no such identifier is reported.
+			 */
+			if ( 1 !== preg_match( BASELINE_FILE_PATTERN, $identifier . '.neon' ) ) {
+				fwrite( STDERR, "Not an error identifier: $identifier\n" );
+				exit( 1 );
+			}
+
+			$only_identifiers[] = $identifier;
 		}
 		continue;
 	}
