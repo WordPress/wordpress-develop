@@ -426,8 +426,10 @@ class WP_Query {
 	/**
 	 * Signifies whether the current query is for random content.
 	 *
-	 * True for a blog home, archive or search request that includes the `random`
-	 * query variable, for example `example.com/random/` or `example.com/?s=foo&random`.
+	 * True for a blog home or archive request that includes the `random` query
+	 * variable, for example `example.com/random/` or `example.com/random/category/news/`.
+	 * Search, feed, trackback, robots.txt, favicon and sitemap requests are never for
+	 * random content.
 	 *
 	 * @since 7.2.0
 	 */
@@ -794,7 +796,7 @@ class WP_Query {
 	 *                                                   exclude posts matching that term. Eg, 'pillow -sofa' will
 	 *                                                   return posts containing 'pillow' but not 'sofa'. The
 	 *                                                   character used for exclusion can be modified using the
-	 *                                                   the 'wp_query_search_exclusion_prefix' filter.
+	 *                                                   'wp_query_search_exclusion_prefix' filter.
 	 *     @type string[]        $search_columns         Array of column names to be searched. Accepts 'post_title',
 	 *                                                   'post_excerpt' and 'post_content'. Default empty array.
 	 *     @type int             $second                 Second of the minute. Default empty. Accepts numbers 0-59.
@@ -1167,7 +1169,12 @@ class WP_Query {
 
 		$this->is_random = isset( $query_vars['random'] )
 			&& ! $this->is_feed
-			&& ( $this->is_home || $this->is_archive || $this->is_search );
+			&& ! $this->is_search
+			&& ! $this->is_robots
+			&& ! $this->is_favicon
+			&& ! $this->is_sitemap
+			&& ! $this->is_trackback
+			&& ( $this->is_home || $this->is_archive );
 
 		$this->query_vars_hash    = md5( serialize( $this->query_vars ) );
 		$this->query_vars_changed = false;
@@ -1906,6 +1913,11 @@ class WP_Query {
 	 *
 	 * There are a few filters and actions that can be used to modify the post
 	 * database query.
+	 *
+	 * When a WP_Query instance is constructed with non-empty query arguments,
+	 * this method is called and the retrieved posts are stored in the `posts`
+	 * property. To access those results, use the property instead of calling
+	 * this method again, which reprocesses the query and may change its results.
 	 *
 	 * @since 1.5.0
 	 *
