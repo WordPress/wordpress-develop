@@ -1294,6 +1294,7 @@ function wp_removable_query_args() {
 		'skipped',
 		'spammed',
 		'trashed',
+		'translation_updates',
 		'unspammed',
 		'untrashed',
 		'update',
