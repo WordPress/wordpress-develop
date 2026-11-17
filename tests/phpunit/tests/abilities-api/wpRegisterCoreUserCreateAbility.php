@@ -58,7 +58,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * The ability is registered in the user category with its label and annotations.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_registers_the_ability(): void {
@@ -69,7 +69,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * The input schema takes the attributes in `data`, with the username and the email
 	 * required, and the fields of core/users-query.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_input_schema(): void {
@@ -106,7 +106,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * The output schema is the core/users-query user item.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_output_schema(): void {
@@ -117,7 +117,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * A user is created with the given attributes and roles, and the output holds
 	 * exactly the requested fields.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_creates_a_user_with_chosen_fields(): void {
@@ -157,7 +157,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * the username, gives the default role, sends the two mails without the password,
 	 * and sets a generated password.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_creates_a_user_from_the_minimum_input(): void {
@@ -206,7 +206,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * On multisite the network admin also gets Core's notice when it is on.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -231,7 +231,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * The user ends with exactly the given roles, in the given order, also when they are
 	 * sent as a comma-separated string.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_role_lists
@@ -278,7 +278,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * A caller without `create_users` is refused by the permission check, and gets the
 	 * schema error for invalid input.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_callers_without_create_users
@@ -317,7 +317,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * On multisite a site administrator cannot create users while the network does not
 	 * let site administrators add users.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -337,7 +337,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * The callback checks `create_users` again, whatever the input holds.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_callers_and_inputs_behind_the_gate
@@ -382,7 +382,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * A role that was removed after the ability was registered is refused.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_refuses_a_role_removed_after_registration(): void {
@@ -406,7 +406,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * A role that is not editable is refused, also next to an editable one.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_roles_with_one_not_editable
@@ -457,7 +457,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * Attributes that cannot be applied are refused before the save or the signup
 	 * validation runs.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_attributes_refused_on_create
@@ -523,7 +523,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * and with the error about the value when validation is skipped, before the save or
 	 * the signup validation runs.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_values_over_the_length_limits
@@ -555,7 +555,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * The role checks run before the attribute checks, and the attribute checks run in
 	 * order; the first failure is the error.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_inputs_with_two_failures
@@ -656,7 +656,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * Values at the length limits are accepted and stored.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_accepts_values_at_the_length_limits(): void {
@@ -686,7 +686,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * Quotes and backslashes in text values are stored as given.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_stores_quotes_and_backslashes(): void {
@@ -709,7 +709,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * On multisite a site administrator who may add users reads back the public fields
 	 * of the new user only.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -735,7 +735,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * A caller who may create users but neither edit nor list them reads back the ID only.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_caller_without_list_users_reads_back_the_id_only(): void {
@@ -762,7 +762,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * On multisite the new user becomes a member of the current site only.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -787,7 +787,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * On multisite what Core's signup validation refuses is refused with its message,
 	 * before the save runs.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -858,7 +858,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * On multisite, when adding the new user to the site fails, the user is deleted again
 	 * and the error is returned.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -911,7 +911,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * A save that fails refuses the call, and nothing is created or mailed.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_failing_saves
@@ -957,7 +957,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * A mail that cannot be sent does not change the result.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_succeeds_when_a_mail_cannot_be_sent(): void {
@@ -975,7 +975,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * Input that the schema refuses gets the schema error, and nothing changes.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_inputs_the_schema_refuses
@@ -1043,7 +1043,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	/**
 	 * With schema validation skipped, the callback refuses what the schema would.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_inputs_checked_when_validation_is_skipped
@@ -1089,7 +1089,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * Keys outside the attributes never reach the save, when validation is skipped and
 	 * when the callback is called directly.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_ways_past_the_schema
@@ -1143,7 +1143,7 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 	 * Core's user hooks fire as the caller, and the hooks of the other ways of creating
 	 * users do not.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_fires_core_hooks_only(): void {

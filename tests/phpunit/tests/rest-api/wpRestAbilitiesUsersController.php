@@ -559,7 +559,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	/**
 	 * A user is created through the run route with a POST request.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_creates_a_user_with_a_post_request(): void {
@@ -588,7 +588,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	/**
 	 * A user is updated through the run route with a POST request.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_updates_a_user_with_a_post_request(): void {
@@ -615,7 +615,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	 * A user is deleted through the run route with a POST request that carries the input
 	 * in its body.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_deletes_a_user_with_a_post_request(): void {
@@ -642,7 +642,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	 * Each user write ability takes POST requests only: a GET request and a DELETE
 	 * request, with the input in the query string, are refused.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_wrong_methods
@@ -699,7 +699,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	/**
 	 * Refused calls of the user write abilities carry their status.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_refused_calls
@@ -793,7 +793,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	 * ID are taken, as a boolean or an integer and as a string, and every other value is
 	 * refused without deleting anything.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_reassign_values_in_the_body

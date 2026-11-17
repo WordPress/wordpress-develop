@@ -59,7 +59,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * The ability is registered in the user category with its label and annotations.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_registers_the_ability(): void {
@@ -70,7 +70,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * The input schema takes `where` with the ID, the attributes in `data` without the
 	 * username, and the fields of core/users-query.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_input_schema(): void {
@@ -100,7 +100,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * The output schema is the core/users-query user item.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_output_schema(): void {
@@ -110,7 +110,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * The roles and the biography are changed, and the output shows the new state.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_updates_roles_and_description(): void {
@@ -142,7 +142,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * Every attribute is stored, the output shows the stored user, and the username and
 	 * password stay.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_updates_every_attribute(): void {
@@ -188,7 +188,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * The previous address is told about a changed email only, also when only the
 	 * letter case changed, and no password mail is sent.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_email_changes
@@ -251,7 +251,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * The roles are replaced by exactly the given ones, in order, also when they equal
 	 * the current ones, without a profile save.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_role_replacements
@@ -296,7 +296,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * Nobody logged in is refused by the permission check, and by the callback with a
 	 * 401 before the user is looked up, whatever `data` holds.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_updates_while_logged_out
@@ -334,7 +334,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * An ID that no user has is the not-found error.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_ids_of_no_user
@@ -383,7 +383,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * On multisite a user who is not a member of the current site is not found, for
 	 * every caller.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -423,7 +423,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * A caller without the capability the keys of `data` need is refused before
 	 * anything else is checked.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_updates_without_the_capability
@@ -478,7 +478,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * An editor changes the letter case of their own email, which applies at once, but
 	 * cannot take the email of another user in another case.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_editor_updates_their_own_email(): void {
@@ -516,7 +516,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * An administrator who is not a super admin cannot give themself a role without
 	 * `edit_users`, also next to a role with it.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_own_roles_without_edit_users
@@ -550,7 +550,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * An administrator who is not a super admin keeps their own role when they set it
 	 * again, since it lets them edit users.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_administrator_sets_their_own_role_again(): void {
@@ -579,7 +579,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * On multisite a super admin can lower their own role.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -607,7 +607,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * A role that is not editable is refused.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_ways_a_role_is_not_editable
@@ -654,7 +654,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * A role that was removed after the ability was registered is refused.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_refuses_a_role_removed_after_registration(): void {
@@ -680,7 +680,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * Attributes that cannot be applied are refused before the save runs.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_profile_attributes_refused
@@ -713,7 +713,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * An email of 101 characters and a name of 251 characters are refused by the schema,
 	 * and with the error about the value when validation is skipped, before the save runs.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_values_over_the_length_limits
@@ -746,7 +746,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * An email of 100 characters and a name of 250 characters are accepted and stored.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_accepts_values_at_the_length_limits(): void {
@@ -769,7 +769,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * Quotes and backslashes in text values are stored as given.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_stores_quotes_and_backslashes(): void {
@@ -786,7 +786,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * The locale is stored, and the output shows the locale the user gets.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_locales
@@ -828,7 +828,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * An empty URL clears the URL, and the user's own slug can be sent again.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_clears_the_url_and_keeps_the_slug(): void {
@@ -864,7 +864,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * A caller who may only change roles reads back the ID only, or the public fields
 	 * when they may list users.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_callers_who_may_only_change_roles
@@ -902,7 +902,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * On multisite a site administrator changes the roles of a super admin and reads
 	 * back the public fields only.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -926,7 +926,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * On multisite profile attributes of another member need the network capability,
 	 * and those of a super admin need a super admin.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -977,7 +977,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * A save that fails refuses the call, and the roles stay.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_failing_saves
@@ -1029,7 +1029,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * Input that the schema refuses gets the schema error, and nothing changes.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_inputs_the_schema_refuses
@@ -1154,7 +1154,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	/**
 	 * With schema validation skipped, the callback refuses what the schema would.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_inputs_checked_when_validation_is_skipped
@@ -1197,7 +1197,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * Keys outside the attributes never reach the save, when validation is skipped and
 	 * when the callback is called directly; the username and password stay.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_ways_past_the_schema
@@ -1266,7 +1266,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * Core's user hooks fire as the caller, and the hooks of the other ways of updating
 	 * users do not.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_fires_core_hooks_only(): void {

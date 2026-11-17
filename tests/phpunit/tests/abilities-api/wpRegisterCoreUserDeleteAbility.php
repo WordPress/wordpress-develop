@@ -149,7 +149,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * The ability is registered in the user category with its label and annotations.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_registers_the_ability(): void {
@@ -159,7 +159,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * The input schema takes `where` with the ID and a required `reassign`.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_input_schema(): void {
@@ -186,7 +186,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * The output schema is an object with the outcome only.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_output_schema(): void {
@@ -210,7 +210,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	 * The user is deleted, or on multisite removed from the current site, and a second
 	 * call finds no user.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_deletes_the_user_once(): void {
@@ -230,7 +230,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	 * Without reassignment the posts of a deleted user go to the trash and their links
 	 * are deleted; on multisite, where the user is only removed, they keep their author.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_no_reassignment
@@ -279,7 +279,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	 * already in the trash and an attachment are deleted permanently, and a pattern stays
 	 * with its author.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-excluded
@@ -352,7 +352,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	 * The posts and links of a deleted user go to the user given in `reassign`, given as
 	 * a number or as text; on multisite, the posts of the current site.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_reassign_ids
@@ -399,7 +399,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	 * Every value that names no usable user to reassign to gives the same error, and
 	 * nothing changes.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_unusable_reassign_values
@@ -475,7 +475,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * With validation skipped, input without `reassign` gives the reassign error.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_refuses_a_missing_reassign_when_validation_is_skipped(): void {
@@ -494,7 +494,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * Input the schema refuses changes nothing.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_inputs_the_schema_refuses
@@ -566,7 +566,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * A caller without the capability to delete users is refused, and nothing changes.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_callers_without_the_capability
@@ -605,7 +605,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	 * The callback checks the capability again, with a status that tells a logged-out
 	 * caller apart.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_callers_behind_the_gate
@@ -639,7 +639,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	 * The callback checks the capability to delete users apart from the capability on
 	 * the target: a caller granted only the capability on the target is refused.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_checks_the_capability_apart_from_the_one_on_the_user(): void {
@@ -676,7 +676,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * An ID that no user has is the not-found error.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_ids_of_no_user
@@ -715,7 +715,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * A capability filter that denies deleting the target is respected.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_respects_a_denied_capability_for_the_user(): void {
@@ -746,7 +746,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * On a single site the last administrator may delete themself.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-excluded
@@ -765,7 +765,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * On multisite only a super admin may remove themself from the site.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -810,7 +810,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	 * On multisite a site administrator removes a super admin from the site only: the
 	 * account, the super admin status and the other memberships stay.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -835,7 +835,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	 * On multisite a user who is not a member of the current site is not found, for
 	 * every caller.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -871,7 +871,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * A user that is still stored after the deletion is the delete error.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-excluded
@@ -903,7 +903,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	/**
 	 * On multisite a user who is still a member after the removal is the delete error.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 *
 	 * @group ms-required
@@ -935,7 +935,7 @@ class Tests_Abilities_API_WpRegisterCoreUserDeleteAbility extends WP_Abilities_U
 	 * Core's user hook fires once, as the caller, and the hook of the other ways of
 	 * deleting users does not.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 66720
 	 * @since 7.3.0
 	 */
 	public function test_fires_core_hooks_only(): void {
