@@ -23,8 +23,24 @@ if ( false !== getenv( 'WP_PHPSTAN_GENERATING_BASELINES' ) ) {
 	return array( 'includes' => array() );
 }
 
-$baselines = glob( __DIR__ . '/*.neon' );
+$found = glob( __DIR__ . '/*.neon' );
+if ( false === $found ) {
+	$found = array();
+}
+
+/*
+ * Only a file named for an error identifier is a baseline, matched with the
+ * pattern PHPStan validates identifiers with, so that a stray file such as a
+ * merge tool's `argument.type_BACKUP_1234.neon` is not loaded along with the
+ * real one. find_baselines() in `generate-baselines.php` matches the same names.
+ */
+$baselines = array();
+foreach ( $found as $file ) {
+	if ( 1 === preg_match( '/^[a-zA-Z0-9](?:[a-zA-Z0-9.]*[a-zA-Z0-9])?\.neon$/', basename( $file ) ) ) {
+		$baselines[] = $file;
+	}
+}
 
 return array(
-	'includes' => false === $baselines ? array() : $baselines,
+	'includes' => $baselines,
 );

@@ -50,6 +50,15 @@ namespace WordPress\PHPStan;
 const GENERATING_BASELINES_ENV = 'WP_PHPSTAN_GENERATING_BASELINES';
 
 /**
+ * Pattern matching the file name of a baseline.
+ *
+ * The name is the error identifier, matched as PHPStan validates identifiers,
+ * followed by `.neon`. `baselines/loader.php` matches the same names, and the two
+ * have to stay in sync.
+ */
+const BASELINE_FILE_PATTERN = '/^[a-zA-Z0-9](?:[a-zA-Z0-9.]*[a-zA-Z0-9])?\.neon$/';
+
+/**
  * The configuration analyzed when `--config` does not name one.
  *
  * Relative to the repository root.
@@ -596,9 +605,14 @@ function find_baselines( string $output_dir ): array {
 
 	sort( $found );
 
+	/*
+	 * Only a file named for an error identifier is a baseline. The loader matches
+	 * the same names, so a stray file such as a merge tool's backup is neither
+	 * loaded nor retired here.
+	 */
 	$files = array();
 	foreach ( $found as $file ) {
-		if ( '' !== $file ) {
+		if ( '' !== $file && 1 === preg_match( BASELINE_FILE_PATTERN, basename( $file ) ) ) {
 			$files[] = $file;
 		}
 	}
