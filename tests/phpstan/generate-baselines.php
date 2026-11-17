@@ -457,11 +457,10 @@ function get_usage(): string {
 		                       root. Default: phpstan.neon.dist
 		  --output-dir=<path>  Where the per-identifier baselines are written, relative
 		                       to the repository root. Paths inside them are written
-		                       relative to this directory. A loader is written
-		                       there too, which the configuration has to
-		                       include. Baselines in other directories
-		                       stay in force, so only the errors they leave are
-		                       written.
+		                       relative to this directory. A loader is written there
+		                       too, which the configuration has to include. Baselines
+		                       in other directories stay in force, so only the errors
+		                       they leave are written.
 		                       Default: tests/phpstan/baselines
 		  --combined           Print one combined baseline to stdout instead of writing
 		                       per-identifier files. Nothing is written to disk.
