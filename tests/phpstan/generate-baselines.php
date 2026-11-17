@@ -192,12 +192,11 @@ if ( $prune ) {
 }
 
 /*
- * All three temporary files sit beside the configuration, and so inside the
+ * Both temporary files sit beside the configuration, and so inside the
  * repository, for two separate reasons.
  *
- * A neon file's `includes` resolve relative to its own directory, so the copy of
- * the configuration, and the wrapper including it, have to live where the
- * original did.
+ * A neon file's `includes` resolve relative to its own directory, so the wrapper
+ * including the configuration has to live where the configuration does.
  *
  * PHPStan writes a PHP baseline's paths as __DIR__ followed by a relative chain,
  * which it can only produce when the baseline shares an ancestry with the files
@@ -207,20 +206,17 @@ if ( $prune ) {
  */
 $temp_prefix   = dirname( $config_path ) . '/.phpstan-baselines-' . getmypid();
 $temp_config   = $temp_prefix . '.neon';
-$temp_stripped = $temp_prefix . '-stripped.neon';
 $temp_baseline = $temp_prefix . '.php';
 
 register_shutdown_function(
-	static function () use ( $temp_config, $temp_stripped, $temp_baseline ): void {
-		foreach ( array( $temp_config, $temp_stripped, $temp_baseline ) as $file ) {
+	static function () use ( $temp_config, $temp_baseline ): void {
+		foreach ( array( $temp_config, $temp_baseline ) as $file ) {
 			if ( is_file( $file ) ) {
 				unlink( $file );
 			}
 		}
 	}
 );
-
-file_put_contents( $temp_stripped, strip_baseline_includes( $config_path, $output_dir ) );
 
 /*
  * The analysis gets a scratch directory of its own, rather than the `tmpDir` that
@@ -262,11 +258,13 @@ if ( DEFAULT_CONFIG !== $config_relative ) {
 }
 
 /*
- * `tmpDir` is set in a wrapper including the stripped copy, rather than in the
- * copy itself, because neon rejects a duplicated key and the copy already carries
- * the `parameters` section it was made from. A file's own parameters win over
- * those of the files it includes, so the wrapper's `tmpDir` is the one that takes
+ * `tmpDir` is set in a wrapper including the configuration, so that the
+ * configuration itself is left untouched. A file's own parameters win over those
+ * of the files it includes, so the wrapper's `tmpDir` is the one that takes
  * effect.
+ *
+ * The baselines need no removing from the configuration: GENERATING_BASELINES_ENV
+ * is set for the analysis, and every loader includes nothing while it is.
  */
 file_put_contents(
 	$temp_config,
@@ -277,7 +275,7 @@ file_put_contents(
 		parameters:
 			tmpDir: %s
 		NEON,
-		basename( $temp_stripped ),
+		basename( $config_path ),
 		quote_neon_value( $analysis_tmp_dir )
 	)
 );
@@ -534,60 +532,6 @@ function read_baseline( string $path ): array {
 	}
 
 	return $entries;
-}
-
-/**
- * Returns the configuration with the baseline `includes` removed.
- *
- * Those files suppress the very errors being regenerated, so they have to be out
- * of the way for the analysis to report anything.
- *
- * The baselines included through a loader are already out of the way, since the
- * loader includes nothing while GENERATING_BASELINES_ENV is set. What is dropped
- * here is any include in the configuration that resolves inside the output
- * directory, such as a loader written there for a directory other than the
- * default, so that the baselines about to be rewritten are suppressed too.
- *
- * Both are needed for `--output-dir`. Were only the output directory considered,
- * writing somewhere other than the default would leave the baselines already in
- * force active, and the analysis would report just the errors they do not cover:
- * a differential baseline rather than a complete one.
- *
- * @param non-falsy-string $config_path Absolute path to the configuration file.
- * @param non-falsy-string $output_dir  Absolute path to the baseline directory.
- * @return string Configuration contents.
- */
-function strip_baseline_includes( string $config_path, string $output_dir ): string {
-	$config_dir    = dirname( $config_path );
-	$output_prefix = normalize_path( $output_dir ) . '/';
-	$in_block      = false;
-	$kept          = array();
-
-	foreach ( explode( "\n", read_file( $config_path ) ) as $line ) {
-		if ( 1 === preg_match( '/^includes:/', $line ) ) {
-			$in_block = true;
-			$kept[]   = $line;
-			continue;
-		}
-
-		// A non-indented, non-blank line ends the block.
-		if ( $in_block && '' !== trim( $line ) && 1 !== preg_match( '/^\s/', $line ) ) {
-			$in_block = false;
-		}
-
-		if ( $in_block && 1 === preg_match( '/^\s*-\s*(\S+)\s*$/', $line, $matches ) ) {
-			$included = $matches[1];
-			$absolute = normalize_path( ( '/' === $included[0] ) ? $included : $config_dir . '/' . $included );
-
-			if ( 0 === strpos( $absolute, $output_prefix ) ) {
-				continue;
-			}
-		}
-
-		$kept[] = $line;
-	}
-
-	return implode( "\n", $kept );
 }
 
 /**
