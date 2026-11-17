@@ -269,7 +269,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/privacy-tools.php
 		-
-			message: '#^Parameter \#2 \$user_id of function get_the_author_meta expects int\|false, ''''\|numeric\-string given\.$#'
+			message: '#^Parameter \#2 \$user_id of function get_the_author_meta expects int\|false, ''''\|decimal\-int\-string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/revision.php
@@ -1009,7 +1009,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/post-template.php
 		-
-			message: '#^Parameter \#2 \$user_id of function get_the_author_meta expects int\|false, ''''\|numeric\-string given\.$#'
+			message: '#^Parameter \#2 \$user_id of function get_the_author_meta expects int\|false, ''''\|decimal\-int\-string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/post-template.php
@@ -1024,7 +1024,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/post.php
 		-
-			message: '#^Parameter \#1 \$post of function get_post expects int\|numeric\-string\|WP_Post\|null, stdClass given\.$#'
+			message: '#^Parameter \#1 \$post of function get_post expects int\|decimal\-int\-string\|WP_Post\|null, stdClass given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/post.php
