@@ -24,7 +24,7 @@ class Tests_Functions_wpIsNumericArray extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_is_numeric_array() {
+	public static function data_wp_is_numeric_array() {
 		return array(
 			'no index'                             => array(
 				'test_array' => array( 'www', 'eee' ),

@@ -33,7 +33,7 @@ class Tests_Formatting_wpRelUgc extends WP_UnitTestCase {
 		$this->assertEqualHTML( $output, stripslashes( wp_rel_ugc( $input ) ) );
 	}
 
-	public function data_wp_rel_ugc() {
+	public static function data_wp_rel_ugc() {
 		$home_url_http  = set_url_scheme( home_url(), 'http' );
 		$home_url_https = set_url_scheme( home_url(), 'https' );
 

@@ -17,6 +17,9 @@ class WP_HTML_Decoder {
 	 * of how it might be encoded in HTML. For instance, `http:` could be represented as `http:`
 	 * or as `http&colon;` or as `&#x68;ttp:` or as `h&#116;tp&colon;`, or in many other ways.
 	 *
+	 * This is equivalent to a byte-prefix test against the decoded attribute value, without
+	 * the need to allocate and decode the full string.
+	 *
 	 * Example:
 	 *
 	 *     $value = 'http&colon;//wordpress.org/';
@@ -53,24 +56,71 @@ class WP_HTML_Decoder {
 				return false;
 			}
 
-			// If there's no character reference but the character do match, then it could still match.
+			// If there's no character reference but the characters do match, then it could still match.
 			if ( null === $next_chunk && $chars_match ) {
 				++$haystack_at;
 				++$search_at;
 				continue;
 			}
 
-			// If there is a character reference, then the decoded value must exactly match what follows in the search string.
-			if ( 0 !== substr_compare( $search_text, $next_chunk, $search_at, strlen( $next_chunk ), $loose_case ) ) {
+			/**
+			 * The decoded character reference in `$next_chunk` must be compared with the
+			 * corresponding `$search_text` bytes checking for matching prefixes. The remaining
+			 * search text may be shorter than the decoded chunk, in which case a partial match
+			 * satisfies the prefix. Otherwise, if the decoded chunk is fully matched, the
+			 * comparison must continue after advancing the appropriate byte lengths: the character
+			 * reference token length in the haystack and the decoded chunk length in the
+			 * search text.
+			 *
+			 * For example, consider searches that have reached the character reference
+			 * `&fjlig;` (7 bytes), decoded into the 2-byte chunk `fj`:
+			 *
+			 *                       $haystack_at
+			 *                       │
+			 *                       │      ┌─after matching `fj` continue here
+			 *                       │      │ (advance by $token_length, 7 bytes)
+			 *                       ↓      ↓
+			 *     Haystack:    start&fjlig;ord
+			 *                       ╰──┬──╯
+			 *                          fj - the decoded chunk, tested against the search text.
+			 *
+			 *                       $search_at
+			 *                       │
+			 *                       │ ┌─after matching `fj` continue here
+			 *                       │ │ (advance by $match_length, 2 bytes)
+			 *                       ↓ ↓
+			 *     Search A:    startfjord      Compare 2 bytes: `fj` matches,
+			 *                                  continue matching at `o`.
+			 *
+			 *                       $search_at
+			 *                       ↓
+			 *     Search B:    startf          Compare 1 byte: `f` matches and the
+			 *                                  search text is exhausted — prefix confirmed.
+			 *
+			 *                       $search_at
+			 *                       ↓
+			 *     Search C:    startfr         Compare 2 bytes: `fj` differs
+			 *                                  from `fr`, no match is possible.
+			 *
+			 * The `min()` is required in both directions: Search A fails if the
+			 * comparison length comes from the search text, Search B if it comes
+			 * from the chunk.
+			 *
+			 * After a match each cursor must advance by the appropriate length, the haystack
+			 * cursor by the character reference token length, and the search cursor by the
+			 * matched length.
+			 */
+			$match_length = min( strlen( $next_chunk ), $search_length - $search_at );
+			if ( 0 !== substr_compare( $search_text, $next_chunk, $search_at, $match_length, $loose_case ) ) {
 				return false;
 			}
 
 			// The character reference matched, so continue checking.
 			$haystack_at += $token_length;
-			$search_at   += strlen( $next_chunk );
+			$search_at   += $match_length;
 		}
 
-		return true;
+		return $search_at === $search_length;
 	}
 
 	/**
@@ -155,7 +205,7 @@ class WP_HTML_Decoder {
 				continue;
 			}
 
-			++$at;
+			$at = $next_character_reference_at + 1;
 		}
 
 		if ( 0 === $was_at ) {
@@ -295,7 +345,7 @@ class WP_HTML_Decoder {
 			 * This comment is here to note and explain why there's no check to
 			 * remove these characters or replace them.
 			 *
-			 * @see https://infra.spec.whatwg.org/#noncharacter
+			 * @link https://infra.spec.whatwg.org/#noncharacter
 			 */
 
 			/*
@@ -361,7 +411,7 @@ class WP_HTML_Decoder {
 
 		$name_length = 0;
 		$replacement = $html5_named_character_references->read_token( $text, $name_at, $name_length );
-		if ( false === $replacement ) {
+		if ( null === $replacement ) {
 			return null;
 		}
 
@@ -406,8 +456,8 @@ class WP_HTML_Decoder {
 		 * `/?random&amp;degree&amp;gt=0&amp;lt=360&amp;not=90` produces the intended
 		 * value regardless of the following character.)
 		 *
-		 * @see https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
-		 * @see https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
+		 * @link https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
+		 * @link https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
 		 */
 		if ( 'attribute' !== $context || ';' === $text[ $after_name - 1 ] || $after_name >= $length ) {
 			$match_byte_length = $after_name - $at;
@@ -444,7 +494,7 @@ class WP_HTML_Decoder {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @see https://www.rfc-editor.org/rfc/rfc3629 For the UTF-8 standard.
+	 * @link https://www.rfc-editor.org/rfc/rfc3629 For the UTF-8 standard.
 	 *
 	 * @param int $code_point Which code point to convert.
 	 * @return string Converted code point, or `�` if invalid.

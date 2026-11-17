@@ -35,7 +35,7 @@ final class WP_Internal_Pointers {
 	 * @param string $hook_suffix The current admin page.
 	 */
 	public static function enqueue_scripts( $hook_suffix ) {
-		/*
+		/**
 		 * Register feature pointers
 		 *
 		 * Format:
@@ -47,6 +47,8 @@ final class WP_Internal_Pointers {
 		 *     array(
 		 *         'themes.php' => 'wp390_widgets'
 		 *     )
+		 *
+		 * @var array<string, string|string[]> $registered_pointers
 		 */
 		$registered_pointers = array(
 			// None currently.
@@ -59,7 +61,7 @@ final class WP_Internal_Pointers {
 
 		$pointers = (array) $registered_pointers[ $hook_suffix ];
 
-		/*
+		/**
 		 * Specify required capabilities for feature pointers
 		 *
 		 * Format:
@@ -71,6 +73,8 @@ final class WP_Internal_Pointers {
 		 *     array(
 		 *         'wp390_widgets' => array( 'edit_theme_options' )
 		 *     )
+		 *
+		 * @var array<string, string[]> $caps_required
 		 */
 		$caps_required = array(
 			// None currently.
@@ -109,8 +113,8 @@ final class WP_Internal_Pointers {
 	 * @since 3.3.0
 	 *
 	 * @param string $pointer_id The pointer ID.
-	 * @param string $selector The HTML elements, on which the pointer should be attached.
-	 * @param array  $args Arguments to be passed to the pointer JS (see wp-pointer.js).
+	 * @param string $selector   The HTML elements, on which the pointer should be attached.
+	 * @param array  $args       Arguments to be passed to the pointer JS (see wp-pointer.js).
 	 */
 	private static function print_js( $pointer_id, $selector, $args ) {
 		if ( empty( $pointer_id ) || empty( $selector ) || empty( $args ) || empty( $args['content'] ) ) {

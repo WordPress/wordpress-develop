@@ -913,7 +913,10 @@ final class _WP_Editors {
 
 		self::enqueue_scripts( true );
 
-		// Also add wp-includes/css/editor.css.
+		/*
+		 * Also add wp-includes/css/editor.css. It is prefetched for the block editor by
+		 * wp_prefetch_admin_assets(), which needs updating if this changes.
+		 */
 		wp_enqueue_style( 'editor-buttons' );
 
 		if ( is_admin() ) {
@@ -1364,7 +1367,7 @@ final class _WP_Editors {
 				/* translators: Word count. */
 				'Words: {0}'                           => sprintf( __( 'Words: %s' ), '{0}' ),
 				'Paste is now in plain text mode. Contents will now be pasted as plain text until you toggle this option off.' =>
-					__( 'Paste is now in plain text mode. Contents will now be pasted as plain text until you toggle this option off.' ) . "\n\n" .
+					__( 'Paste is now in plain text mode. Contents will now be pasted as plain text until you turn this option off.' ) . "\n\n" .
 					__( 'If you are looking to paste rich content from Microsoft Word, try turning this option off. The editor will clean up text pasted from Word automatically.' ),
 				'Rich Text Area. Press ALT-F9 for menu. Press ALT-F10 for toolbar. Press ALT-0 for help' =>
 					__( 'Rich Text Area. Press Alt-Shift-H for help.' ),
@@ -1384,7 +1387,7 @@ final class _WP_Editors {
 				'Format'                               => _x( 'Format', 'TinyMCE menu' ),
 
 				// WordPress strings.
-				'Toolbar Toggle'                       => array( __( 'Toolbar Toggle' ), 'accessZ' ),
+				'Toolbar Toggle'                       => array( __( 'Extended Toolbar' ), 'accessZ' ),
 				'Insert Read More tag'                 => array( __( 'Insert Read More tag' ), 'accessT' ),
 				'Insert Page Break tag'                => array( __( 'Insert Page Break tag' ), 'accessP' ),
 				'Read more...'                         => __( 'Read more...' ), // Title on the placeholder inside the editor (no ellipsis).
@@ -1516,9 +1519,10 @@ final class _WP_Editors {
 	/**
 	 * Force uncompressed TinyMCE when a custom theme has been defined.
 	 *
-	 * The compressed TinyMCE file cannot deal with custom themes, so this makes
-	 * sure that WordPress uses the uncompressed TinyMCE file if a theme is defined.
-	 * Even if the website is running on a production environment.
+	 * The `wp-tinymce.js` bundle cannot deal with custom themes. Core registers
+	 * the separate TinyMCE files, but a site can still register the bundle under
+	 * the `wp-tinymce` handle, so this makes sure that the separate files are used
+	 * if a theme is defined.
 	 *
 	 * @since 5.0.0
 	 */
@@ -1538,28 +1542,20 @@ final class _WP_Editors {
 		$wp_scripts = wp_scripts();
 
 		$wp_scripts->remove( 'wp-tinymce' );
-		wp_register_tinymce_scripts( $wp_scripts, true );
+		wp_register_tinymce_scripts( $wp_scripts );
 	}
 
 	/**
 	 * Print (output) the main TinyMCE scripts.
 	 *
 	 * @since 4.8.0
-	 *
-	 * @global bool $concatenate_scripts
 	 */
 	public static function print_tinymce_scripts() {
-		global $concatenate_scripts;
-
 		if ( self::$tinymce_scripts_printed ) {
 			return;
 		}
 
 		self::$tinymce_scripts_printed = true;
-
-		if ( ! isset( $concatenate_scripts ) ) {
-			script_concat_settings();
-		}
 
 		wp_print_scripts( array( 'wp-tinymce' ) );
 
@@ -1766,7 +1762,7 @@ final class _WP_Editors {
 	 *     @type int    $pagenum Page number. Default 1.
 	 *     @type string $s       Search keywords.
 	 * }
-	 * @return array|false $results {
+	 * @return array|false {
 	 *     An array of associative arrays of query results, false if there are none.
 	 *
 	 *     @type array ...$0 {
