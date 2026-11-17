@@ -1726,7 +1726,7 @@ class wp_xmlrpc_server extends IXR_Server {
 					foreach ( $term_names as $term_name ) {
 						// Numeric names may arrive as <int> or <double> values.
 						if ( ! ( is_string( $term_name ) || is_int( $term_name ) || is_float( $term_name ) ) ) {
-							return new IXR_Error( 401, __( 'Invalid term name.' ) );
+							return new IXR_Error( 400, __( 'Invalid term name.' ) );
 						}
 
 						if ( in_array( $term_name, $ambiguous_terms, true ) ) {
