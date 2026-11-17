@@ -40,11 +40,18 @@ if ( false === $found ) {
  * pattern PHPStan validates identifiers with, so that a stray file such as a
  * merge tool's `argument.type_BACKUP_1234.neon` is not loaded along with the
  * real one. find_baselines() in `generate-baselines.php` matches the same names.
+ *
+ * Each is included by its bare file name, which PHPStan resolves against this
+ * file's path as the configuration reached it. __DIR__ is the real path, with any
+ * symbolic link resolved, so an absolute path built from it would place the
+ * baselines, and the paths their entries name relative to themselves, outside a
+ * checkout reached through a link, where they match none of the analyzed files.
  */
 $baselines = array();
 foreach ( $found as $file ) {
-	if ( 1 === preg_match( '/^[a-zA-Z0-9](?:[a-zA-Z0-9.]*[a-zA-Z0-9])?\.neon$/', basename( $file ) ) ) {
-		$baselines[] = $file;
+	$name = basename( $file );
+	if ( 1 === preg_match( '/^[a-zA-Z0-9](?:[a-zA-Z0-9.]*[a-zA-Z0-9])?\.neon$/', $name ) ) {
+		$baselines[] = $name;
 	}
 }
 
