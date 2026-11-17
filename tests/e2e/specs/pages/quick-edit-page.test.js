@@ -1,41 +1,23 @@
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../../fixtures';
 
 test.describe( 'Quick Edit page', () => {
-	let pageIds;
-
-	test.beforeEach( () => {
-		pageIds = [];
-	} );
-
-	test.afterEach( async ( { requestUtils } ) => {
-		for ( const pageId of pageIds.reverse() ) {
-			await requestUtils.rest( {
-				method: 'DELETE',
-				path: `/wp/v2/pages/${ pageId }`,
-				params: { force: true },
-			} );
-		}
-	} );
-
 	test( 'saves a page parent using Quick Edit', async ( {
 		page,
 		admin,
-		requestUtils,
+		postFactory,
 	} ) => {
-		const parentPage = await requestUtils.createPage( {
+		const parentPage = await postFactory.createPage( {
 			title: 'Quick Edit parent',
 			status: 'publish',
 		} );
-		pageIds.push( parentPage.id );
-		const createdPage = await requestUtils.createPage( {
+		const createdPage = await postFactory.createPage( {
 			title: 'Quick Edit page',
 			status: 'publish',
 		} );
 		const pageId = createdPage.id;
-		pageIds.push( pageId );
 
 		await admin.visitAdminPage( 'edit.php?post_type=page' );
 		const row = page.locator( `#post-${ pageId }` );

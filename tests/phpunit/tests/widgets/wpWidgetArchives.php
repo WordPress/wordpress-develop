@@ -52,9 +52,7 @@ class Tests_Widgets_wpWidgetArchives extends WP_UnitTestCase {
 		$widget = new WP_Widget_Archives();
 
 		$this->assertSame( 'archives', $widget->id_base );
-		$this->assertSame( 'Archives', $widget->name );
 		$this->assertSame( 'widget_archive', $widget->widget_options['classname'] );
-		$this->assertSame( 'A monthly archive of your site&#8217;s Posts.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 	}

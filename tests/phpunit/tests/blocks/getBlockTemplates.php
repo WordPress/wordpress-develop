@@ -186,7 +186,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_block_templates_returns_unique_entities() {
+	public static function data_get_block_templates_returns_unique_entities() {
 		return array(
 			'wp_template template type'      => array(
 				'template_type'        => 'wp_template',
@@ -226,7 +226,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_block_templates_should_respect_posttypes_property() {
+	public static function data_get_block_templates_should_respect_posttypes_property() {
 		return array(
 			'post' => array(
 				'post_type' => 'post',
@@ -284,7 +284,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_block_templates_should_not_leak_plugin_registered_templates_with_default_post_type_slugs() {
+	public static function data_get_block_templates_should_not_leak_plugin_registered_templates_with_default_post_type_slugs() {
 		return array(
 			'post' => array(
 				'template_slug' => 'single',

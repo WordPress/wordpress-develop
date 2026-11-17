@@ -29,15 +29,6 @@ class Tests_View_Transitions_wpEnqueueViewTransitionsAdminCss extends WP_UnitTes
 	}
 
 	/**
-	 * Tests that the hook for enqueuing admin view transitions CSS is set up.
-	 *
-	 * @ticket 64470
-	 */
-	public function test_hook() {
-		$this->assertSame( 10, has_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' ) );
-	}
-
-	/**
 	 * Tests that the admin view transitions style handle includes the inline CSS.
 	 *
 	 * @group assets

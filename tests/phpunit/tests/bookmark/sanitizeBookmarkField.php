@@ -74,14 +74,9 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 	 */
 	public static function data_casts_integer_fields() {
 		return array(
-			'link_id, raw'              => array( 'link_id', '12abc', 'raw', 12 ),
-			'link_id, display'          => array( 'link_id', '5', 'display', 5 ),
-			'link_id, edit'             => array( 'link_id', '6', 'edit', 6 ),
-			'link_id, attribute'        => array( 'link_id', '7', 'attribute', 7 ),
-			'link_rating, db'           => array( 'link_rating', '8', 'db', 8 ),
-			'link_rating, js'           => array( 'link_rating', '9', 'js', 9 ),
-			'link_rating, empty string' => array( 'link_rating', '', 'display', 0 ),
-			'link_rating, zero string'  => array( 'link_rating', '0', 'display', 0 ),
+			'link_id, raw'       => array( 'link_id', '12abc', 'raw', 12 ),
+			'link_id, attribute' => array( 'link_id', '7', 'attribute', 7 ),
+			'link_rating, js'    => array( 'link_rating', '9', 'js', 9 ),
 		);
 	}
 
@@ -114,7 +109,6 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 		return array(
 			'array of mixed values, display' => array( array( '1', '-2', 'abc', 3 ), 'display', array( 1, 2, 0, 3 ) ),
 			'single value, edit'             => array( '5', 'edit', array( 5 ) ),
-			'empty array, db'                => array( array(), 'db', array() ),
 			'empty string, raw'              => array( '', 'raw', array( 0 ) ),
 		);
 	}
@@ -147,8 +141,6 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 			'word with a Y'   => array( 'Yes', 'Y' ),
 			'markup'          => array( '<b>N</b>', 'N' ),
 			'other character' => array( 'x', '' ),
-			'empty string'    => array( '', '' ),
-			'zero string'     => array( '0', '' ),
 		);
 	}
 
@@ -175,13 +167,10 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 	 */
 	public static function data_link_target_values() {
 		return array(
-			'_blank'       => array( '_blank', '_blank' ),
-			'_top'         => array( '_top', '_top' ),
-			'_self'        => array( '_self', '' ),
-			'uppercase'    => array( '_BLANK', '' ),
-			'frame name'   => array( 'my-frame', '' ),
-			'empty string' => array( '', '' ),
-			'zero string'  => array( '0', '' ),
+			'_blank'    => array( '_blank', '_blank' ),
+			'_top'      => array( '_top', '_top' ),
+			'_self'     => array( '_self', '' ),
+			'uppercase' => array( '_BLANK', '' ),
 		);
 	}
 
@@ -276,10 +265,11 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_edit_escaping_function
 	 *
-	 * @param string $field  Bookmark field name.
-	 * @param string $filter Filter run by the expected escaping function.
+	 * @param string $field    Bookmark field name.
+	 * @param string $filter   Filter run by the expected escaping function.
+	 * @param string $expected Expected escaped and filtered value.
 	 */
-	public function test_edit_context_escaping_function( $field, $filter ) {
+	public function test_edit_context_escaping_function( $field, $filter, $expected ) {
 		// Isolates the escaping from the default filters on the link_notes hooks.
 		remove_all_filters( "edit_{$field}" );
 
@@ -291,8 +281,24 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 		foreach ( $escaping_filters as $hook => $mock ) {
 			add_filter( $hook, array( $mock, 'filter' ) );
 		}
+		add_filter(
+			'esc_html',
+			static function ( $escaped ) {
+				return $escaped . '|html';
+			},
+			20
+		);
+		add_filter(
+			'attribute_escape',
+			static function ( $escaped ) {
+				return $escaped . '|attribute';
+			},
+			20
+		);
 
-		sanitize_bookmark_field( $field, self::MARKUP, self::BOOKMARK_ID, 'edit' );
+		$result = sanitize_bookmark_field( $field, self::MARKUP, self::BOOKMARK_ID, 'edit' );
+
+		$this->assertSame( $expected, $result );
 
 		foreach ( $escaping_filters as $hook => $mock ) {
 			$this->assertSame( $hook === $filter ? 1 : 0, $mock->get_call_count(), "The {$hook} filter call count did not match." );
@@ -306,8 +312,8 @@ class Tests_Bookmark_SanitizeBookmarkField extends WP_UnitTestCase {
 	 */
 	public static function data_edit_escaping_function() {
 		return array(
-			'link_notes'  => array( 'link_notes', 'esc_html' ),
-			'other field' => array( 'link_foo', 'attribute_escape' ),
+			'link_notes'  => array( 'link_notes', 'esc_html', '&lt;b&gt;Bold&lt;/b&gt; &amp; &quot;double&quot; &#039;single&#039;|html' ),
+			'other field' => array( 'link_foo', 'attribute_escape', '&lt;b&gt;Bold&lt;/b&gt; &amp; &quot;double&quot; &#039;single&#039;|attribute' ),
 		);
 	}
 

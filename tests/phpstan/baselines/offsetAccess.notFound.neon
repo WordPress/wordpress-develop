@@ -19,7 +19,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Offset float does not exist on list\<float\>\.$#'
+			message: '#^Offset float\<0\.0, max\> does not exist on list\<float\>\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-site-health.php

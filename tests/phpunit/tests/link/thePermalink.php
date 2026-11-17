@@ -56,6 +56,8 @@ class Tests_Link_ThePermalink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_echoes_permalink_for_global_post() {
+		$this->set_permalink_structure( '' );
+
 		$output = get_echo( 'the_permalink' );
 
 		$this->assertSame( get_permalink( self::$post_id ), $output );
@@ -68,6 +70,8 @@ class Tests_Link_ThePermalink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_accepts_explicit_post_id() {
+		$this->set_permalink_structure( '' );
+
 		$other_post_id = self::factory()->post->create(
 			array(
 				'post_title'  => 'Other Post',
@@ -87,6 +91,8 @@ class Tests_Link_ThePermalink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_accepts_explicit_post_object() {
+		$this->set_permalink_structure( '' );
+
 		$other_post = self::factory()->post->create_and_get(
 			array(
 				'post_title'  => 'Other Post Object',
@@ -106,12 +112,8 @@ class Tests_Link_ThePermalink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_echoes_pretty_permalink_when_enabled() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%postname%/' );
-
 		$output   = get_echo( 'the_permalink' );
 		$expected = get_permalink( self::$post_id );
-
-		$this->set_permalink_structure( '' );
 
 		$this->assertSame( $expected, $output );
 		$this->assertStringContainsString( '/test-post/', $output );

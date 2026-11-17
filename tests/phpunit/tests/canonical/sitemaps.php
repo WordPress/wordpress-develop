@@ -15,13 +15,11 @@ class Tests_Canonical_Sitemaps extends WP_Canonical_UnitTestCase {
 	}
 
 	public function test_remove_trailing_slashes_for_sitemap_index_requests() {
-		$this->set_permalink_structure( '/%postname%/' );
 		$this->assertCanonical( '/wp-sitemap.xml', '/wp-sitemap.xml' );
 		$this->assertCanonical( '/wp-sitemap.xml/', '/wp-sitemap.xml' );
 	}
 
 	public function test_remove_trailing_slashes_for_sitemap_requests() {
-		$this->set_permalink_structure( '/%postname%/' );
 		$this->assertCanonical( '/wp-sitemap-posts-post-1.xml', '/wp-sitemap-posts-post-1.xml' );
 		$this->assertCanonical( '/wp-sitemap-posts-post-1.xml/', '/wp-sitemap-posts-post-1.xml' );
 		$this->assertCanonical( '/wp-sitemap-users-1.xml', '/wp-sitemap-users-1.xml' );

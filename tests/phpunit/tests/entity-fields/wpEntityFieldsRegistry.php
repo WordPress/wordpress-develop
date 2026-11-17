@@ -129,7 +129,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 		$this->assertArrayHasKey( 'color', $fields, 'The rest of the fields of the call are registered.' );
 		$this->assertSame( 'Author', $fields['author']['label'], 'The registered field is left untouched.' );
 		$this->assertSame( 'core', $fields['author']['origin']['registeredBy'] );
-		$this->assertSame( array( 'color' ), wp_get_registered_entity_field_modules( 'postType', 'page' )['plugin/fields'], 'The script module only applies to the fields registered.' );
+		$this->assertSame( array( 'color' ), array_column( wp_get_registered_entity_field_modules( 'postType', 'page' ), 'fields', 'id' )['plugin/fields'], 'The script module only applies to the fields registered.' );
 		$this->assertCount( 1, $reported );
 		$this->assertStringContainsString( 'postType "page"', $reported[0], 'The notice names the entity.' );
 		$this->assertStringContainsString( 'already registered: author', $reported[0], 'The notice names the field that is already registered, not the others of the call.' );
@@ -217,9 +217,31 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 		$this->assertSame( array( 'color' ), array_column( $result['unregistered'], 'id' ), 'Unregistering the first entity only removes its own field.' );
 		$this->assertSame( array(), wp_get_registered_entity_fields( 'a/b', 'c' ) );
 		$this->assertSame( array( 'color', 'size' ), array_column( wp_get_registered_entity_fields( 'a', 'b/c' ), 'id' ), 'The second entity keeps its fields.' );
-		$this->assertSame( array( 'plugin/second' => array( 'color', 'size' ) ), wp_get_registered_entity_field_modules( 'a', 'b/c' ), 'The second entity keeps only its own module.' );
+		$this->assertSame(
+			array(
+				array(
+					'id'     => 'plugin/second',
+					'fields' => array( 'color', 'size' ),
+				),
+			),
+			wp_get_registered_entity_field_modules( 'a', 'b/c' ),
+			'The second entity keeps only its own module.'
+		);
 		$this->assertSame( array( 'b/c' => array( 'plugin/second' ) ), wp_get_all_registered_entity_field_modules()['a'], 'Only the second entity has modules under its kind.' );
 		$this->assertArrayNotHasKey( 'a/b', wp_get_all_registered_entity_field_modules(), 'The kind of the first entity, emptied, is forgotten.' );
+	}
+
+	/**
+	 * A numeric module id is listed as a string, as it was registered, not
+	 * as the integer its array key becomes.
+	 *
+	 * @ticket 66229
+	 */
+	public function test_all_registered_field_modules_lists_a_numeric_module_id_as_a_string() {
+		$this->register_fields( 'postType', 'post', array( $this->field( 'color' ) ), '42' );
+
+		$this->assertSame( array( '42' ), wp_get_all_registered_entity_field_modules()['postType']['post'] );
+		$this->assertSame( array( '42' ), array_column( wp_get_registered_entity_field_modules( 'postType', 'post' ), 'id' ) );
 	}
 
 	/**
@@ -322,7 +344,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 			),
 			$fields[0]['origin']
 		);
-		$modules = wp_get_registered_entity_field_modules( 'postType', 'page' );
+		$modules = array_column( wp_get_registered_entity_field_modules( 'postType', 'page' ), 'fields', 'id' );
 		$this->assertContains( 'author', $modules['test/defaults'], 'The field keeps its modules.' );
 		$this->assertSame( array( 'author' ), $modules['plugin/author'], 'The module applies to the field.' );
 	}
@@ -396,7 +418,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 		$this->assertArrayNotHasKey( 'color', $fields, 'The field is not registered.' );
 		$this->assertSame( 'Writer', $fields['author']['label'], 'The rest of the fields of the call are updated.' );
 		$this->assertSame( array( 'test-plugin' ), $fields['author']['origin']['updatedBy'] );
-		$this->assertSame( array( 'author' ), wp_get_registered_entity_field_modules( 'postType', 'page' )['plugin/fields'], 'The script module only applies to the fields updated.' );
+		$this->assertSame( array( 'author' ), array_column( wp_get_registered_entity_field_modules( 'postType', 'page' ), 'fields', 'id' )['plugin/fields'], 'The script module only applies to the fields updated.' );
 		$this->assertCount( 1, $reported );
 		$this->assertStringContainsString( 'postType "page"', $reported[0], 'The notice names the entity.' );
 		$this->assertStringContainsString( 'not registered: color', $reported[0], 'The notice names only the field that is not registered.' );
@@ -430,6 +452,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 							'label' => 'Numeric id',
 						),
 						$this->field( 'weight' ),
+						$this->field( '0' ),
 					)
 				);
 				$updated    = wp_update_entity_fields(
@@ -442,15 +465,20 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 							'id'    => 'color',
 							'label' => 'Colour',
 						),
+						array(
+							'id'    => '0',
+							'label' => 'Zero',
+						),
 					)
 				);
 			}
 		);
 
-		$this->assertSame( array( 'color', 'weight' ), $registered, 'The valid definitions are registered.' );
-		$this->assertSame( array( 'color' ), $updated, 'The valid definitions are updated.' );
+		$this->assertSame( array( 'color', 'weight', '0' ), $registered, 'The valid definitions are registered, `0` included.' );
+		$this->assertSame( array( 'color', '0' ), $updated, 'The valid definitions are updated, `0` included.' );
 		$fields = array_column( wp_get_registered_entity_fields( 'postType', 'page' ), null, 'id' );
 		$this->assertSame( 'Colour', $fields['color']['label'] );
+		$this->assertSame( 'Zero', $fields['0']['label'] );
 		$this->assertArrayHasKey( 'weight', $fields );
 		$this->assertCount( 1, $reported );
 		$this->assertStringContainsString( 'postType "page"', $reported[0], 'The notice names the entity.' );
@@ -557,7 +585,7 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 		$this->assertSame( array(), wp_register_entity_fields( 'test-plugin', 'postType', 'page', array( $this->field( 'color' ) ), 'plugin/color' ) );
 		$this->assertSame( $fired, did_action( 'wp_entity_fields_api_init' ), 'Refusing does not fire the action.' );
 		$this->assertNotContains( 'color', array_column( wp_get_registered_entity_fields( 'postType', 'page' ), 'id' ) );
-		$this->assertArrayNotHasKey( 'plugin/color', wp_get_registered_entity_field_modules( 'postType', 'page' ) );
+		$this->assertNotContains( 'plugin/color', array_column( wp_get_registered_entity_field_modules( 'postType', 'page' ), 'id' ) );
 	}
 
 	/**

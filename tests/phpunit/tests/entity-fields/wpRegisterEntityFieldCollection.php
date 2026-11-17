@@ -100,7 +100,16 @@ class Tests_Entity_Fields_WpRegisterEntityFieldCollection extends WP_Entity_Fiel
 		$book = wp_get_registered_entity_fields( 'postType', 'test_book' );
 		$this->assertSame( array( 'subtitle', 'isbn' ), array_column( $book, 'id' ), 'The fields registered first come first: the fixture collections run at priority 0.' );
 		$this->assertSame( 'fixture', $book[0]['origin']['registeredBy'], 'The fields carry the origin of their collection.' );
-		$this->assertSame( array( 'fixture/book' => array( 'subtitle' ) ), wp_get_registered_entity_field_modules( 'postType', 'test_book' ), 'Each field is registered with the module of its collection.' );
+		$this->assertSame(
+			array(
+				array(
+					'id'     => 'fixture/book',
+					'fields' => array( 'subtitle' ),
+				),
+			),
+			wp_get_registered_entity_field_modules( 'postType', 'test_book' ),
+			'Each field is registered with the module of its collection.'
+		);
 
 		$this->assertSame( array( 'issue' ), array_column( wp_get_registered_entity_fields( 'postType', 'test_magazine' ), 'id' ) );
 		$this->assertSame( array(), wp_get_registered_entity_field_modules( 'postType', 'test_magazine' ), 'A collection without module registers none.' );

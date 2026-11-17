@@ -8,7 +8,7 @@
  * @group testsuite
  */
 class Tests_Build_Equivalent_HTML_Semantic_Tree extends WP_UnitTestCase {
-	public function data_build_equivalent_html_semantic_tree() {
+	public static function data_build_equivalent_html_semantic_tree() {
 		$block_markup = <<<'HTML'
 <!-- wp:separator {"className":"is-style-default has-custom-classname","style":{"spacing":{"margin":{"top":"50px","bottom":"50px"}}},"backgroundColor":"accent-1"} -->
   <hr class="wp-block-separator is-style-default has-custom-classname" style="margin-top: 50px; margin-bottom: 50px" />
@@ -100,7 +100,7 @@ TREE;
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_build_equivalent_html_semantic_tree_with_equivalent_html() {
+	public static function data_build_equivalent_html_semantic_tree_with_equivalent_html() {
 		return array(
 			'Different attribute order'                => array(
 				'<img src="wp.png" alt="The WordPress logo">',
@@ -151,7 +151,7 @@ TREE;
 		$this->assertSame( $tree_expected, $tree_actual );
 	}
 
-	public function data_build_equivalent_html_semantic_tree_with_non_equivalent_html() {
+	public static function data_build_equivalent_html_semantic_tree_with_non_equivalent_html() {
 		return array(
 			'Different attributes'             => array(
 				'<img src="wp.png" alt="The WordPress logo">',
