@@ -10,8 +10,18 @@
  * PHPStan keys its cache of the configuration on the files it includes, so a
  * baseline added or deleted here takes effect on the next run.
  *
+ * `composer phpstan:baselines` sets WP_PHPSTAN_GENERATING_BASELINES while it
+ * analyzes, so that the errors the baselines suppress are reported again for it
+ * to write back out. Checking it here suppresses them however the configuration
+ * includes this file, even through another configuration that includes
+ * `phpstan.neon.dist`.
+ *
  * @package WordPress
  */
+
+if ( false !== getenv( 'WP_PHPSTAN_GENERATING_BASELINES' ) ) {
+	return array( 'includes' => array() );
+}
 
 $baselines = glob( __DIR__ . '/*.neon' );
 

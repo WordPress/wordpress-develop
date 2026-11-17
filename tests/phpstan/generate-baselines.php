@@ -41,12 +41,13 @@
 namespace WordPress\PHPStan;
 
 /**
- * The file that includes every baseline in its directory.
+ * Environment variable that tells `baselines/loader.php` to include nothing.
  *
- * Relative to the repository root. The configuration includes the baselines
- * through it, and it is suppressed while the analysis runs.
+ * It is set while the analysis runs, so that the baselines in force do not
+ * suppress the errors being regenerated. The loader checks it itself, so this
+ * works however the configuration includes the loader.
  */
-const BASELINES_LOADER = 'tests/phpstan/baselines/loader.php';
+const GENERATING_BASELINES_ENV = 'WP_PHPSTAN_GENERATING_BASELINES';
 
 /**
  * The configuration analyzed when `--config` does not name one.
@@ -210,7 +211,7 @@ register_shutdown_function(
 	}
 );
 
-file_put_contents( $temp_stripped, strip_baseline_includes( $config_path, $output_dir, $repo_root . '/' . BASELINES_LOADER ) );
+file_put_contents( $temp_stripped, strip_baseline_includes( $config_path, $output_dir ) );
 
 /*
  * The analysis gets a scratch directory of its own, rather than the `tmpDir` that
@@ -286,6 +287,9 @@ $command = sprintf(
 );
 
 fwrite( STDERR, "Analyzing with $config_option, existing baselines suppressed...\n" );
+
+// PHPStan inherits it, as do the worker processes it starts.
+putenv( GENERATING_BASELINES_ENV . '=1' );
 
 $exit_code = 0;
 passthru( $command, $exit_code );
@@ -510,22 +514,22 @@ function read_baseline( string $path ): array {
  * Those files suppress the very errors being regenerated, so they have to be out
  * of the way for the analysis to report anything.
  *
- * Two kinds of include are dropped. The loader goes, because every baseline in
- * force is included through it. Any other include resolving inside the output
- * directory goes as well, so that a baseline included by hand rather than through
- * the loader is still suppressed when it is about to be rewritten.
+ * The baselines included through a loader are already out of the way, since the
+ * loader includes nothing while GENERATING_BASELINES_ENV is set. What is dropped
+ * here is any include in the configuration that resolves inside the output
+ * directory, such as a loader written there for a directory other than the
+ * default, so that the baselines about to be rewritten are suppressed too.
  *
- * The distinction matters to `--output-dir`. Were only the output directory
- * considered, writing somewhere other than the default would leave the baselines
- * already in force active, and the analysis would report just the errors they do
- * not cover: a differential baseline rather than a complete one.
+ * Both are needed for `--output-dir`. Were only the output directory considered,
+ * writing somewhere other than the default would leave the baselines already in
+ * force active, and the analysis would report just the errors they do not cover:
+ * a differential baseline rather than a complete one.
  *
  * @param non-falsy-string $config_path Absolute path to the configuration file.
  * @param non-falsy-string $output_dir  Absolute path to the baseline directory.
- * @param non-falsy-string $loader_path Absolute path to the loader of the baselines.
  * @return string Configuration contents.
  */
-function strip_baseline_includes( string $config_path, string $output_dir, string $loader_path ): string {
+function strip_baseline_includes( string $config_path, string $output_dir ): string {
 	$config_dir = dirname( $config_path );
 	$in_block   = false;
 	$kept       = array();
@@ -545,10 +549,6 @@ function strip_baseline_includes( string $config_path, string $output_dir, strin
 		if ( $in_block && 1 === preg_match( '/^\s*-\s*(\S+)\s*$/', $line, $matches ) ) {
 			$included = $matches[1];
 			$absolute = normalize_path( ( '/' === $included[0] ) ? $included : $config_dir . '/' . $included );
-
-			if ( normalize_path( $loader_path ) === $absolute ) {
-				continue;
-			}
 
 			if ( 0 === strpos( $absolute, normalize_path( $output_dir ) . '/' ) ) {
 				continue;
