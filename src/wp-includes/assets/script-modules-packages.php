@@ -294,7 +294,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'a18070ac45d386810812'
+		'version' => '1c6e0a53a90f773f7bcf'
 	),
 	'core-fields/page.js' => array(
 		'dependencies' => array(
@@ -331,6 +331,7 @@
 			'wp-data',
 			'wp-date',
 			'wp-element',
+			'wp-hooks',
 			'wp-html-entities',
 			'wp-i18n',
 			'wp-media-utils',
@@ -348,7 +349,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '9a5e94c52cfc7769eb34'
+		'version' => '2aa2fe44937a04cb98c7'
 	),
 	'core-fields/root_site.js' => array(
 		'dependencies' => array(
@@ -465,7 +466,7 @@
 		'dependencies' => array(
 			
 		),
-		'version' => 'c030c90d503985d55ec2'
+		'version' => 'b2185b9b3c06dcd1869d'
 	),
 	'interactivity-router/full-page.js' => array(
 		'dependencies' => array(
@@ -493,7 +494,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '3e7d4036443ac65e34a4'
+		'version' => 'c0110eac0afb41d3f204'
 	),
 	'latex-to-mathml/index.js' => array(
 		'dependencies' => array(
