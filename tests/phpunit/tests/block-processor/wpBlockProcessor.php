@@ -484,6 +484,57 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that a `!--` which does not follow a `<` opens no comment.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_exclamation_marks_outside_of_comment_openers
+	 *
+	 * @covers ::next_token()
+	 *
+	 * @param string   $html        Input document.
+	 * @param string[] $block_types Printable block type of every delimiter in the document, in order.
+	 */
+	public function test_finds_delimiters_around_exclamation_marks( string $html, array $block_types ): void {
+		$processor = new WP_Block_Processor( $html );
+
+		$found = array();
+		while ( $processor->next_delimiter() ) {
+			$found[] = $processor->get_printable_block_type();
+		}
+
+		$this->assertSame(
+			$block_types,
+			$found,
+			'Should have found every delimiter in the document.'
+		);
+
+		$this->assertNull(
+			$processor->get_last_error(),
+			'Should have reached the end of the document without an error.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string[]}>
+	 */
+	public static function data_exclamation_marks_outside_of_comment_openers(): array {
+		return array(
+			'Document starts with !--'     => array( '!--<!-- wp:a /-->', array( 'core/a' ) ),
+			'!-- in text before a block'   => array( 'Wow!-- <!-- wp:a /-->', array( 'core/a' ) ),
+			'!-- inside of a block'        => array( '<!-- wp:a -->Hi!!--!<!-- /wp:a -->', array( 'core/a', 'core/a' ) ),
+			'<! immediately before opener' => array( '<!<!-- wp:a /-->', array( 'core/a' ) ),
+			'Doctype before a block'       => array( '<!DOCTYPE html><!-- wp:a /-->', array( 'core/a' ) ),
+			'!-- right after a delimiter'  => array( '<!-- wp:a /-->!--<!-- wp:b /-->', array( 'core/a', 'core/b' ) ),
+			'< right after a delimiter'    => array( '<!-- wp:a /--><!-- wp:b /-->', array( 'core/a', 'core/b' ) ),
+			'Only exclamation marks'       => array( '!!--!-- !', array() ),
+			'!-- at the end of a document' => array( '<!-- wp:a /-->x!--', array( 'core/a' ) ),
+		);
+	}
+
+	/**
 	 * Verifies that block delimiters are matched even with malformed
 	 * JSON attributes as long as they start and end with curly brackets.
 	 *
@@ -671,6 +722,18 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 			'Dashes before the closer'         => array( '<!-- wp:a {"k":"x--"} -->', array( 'core/a' ) ),
 			'Dash run before a space closer'   => array( '<!-- wp:a {"k":"x"} --- -->', array() ),
 			'Delimiter after a closed comment' => array( '<!-- x --!><!-- wp:a {"k":1} -->', array( 'core/a' ) ),
+
+			// Only a `>` after `--` or `--!` ends the comment.
+			'Greater-than in the attributes'   => array( '<!-- wp:a {"k":"a>b"} -->', array( 'core/a' ) ),
+			'Dash, greater-than in attributes' => array( '<!-- wp:a {"k":"->"} -->', array( 'core/a' ) ),
+			'Bang, greater-than in attributes' => array( '<!-- wp:a {"k":"-!>"} /-->', array( 'core/a' ) ),
+			'Comment ends in the attributes'   => array( '<!-- wp:a {"k":"-->"} -->', array() ),
+
+			// Dashes in the block type do not end the comment.
+			'Dash run inside the block name'   => array( '<!-- wp:a--b -->', array( 'core/a--b' ) ),
+			'Block type ends in dash runs'     => array( '<!-- wp:my--ns/a-- {"k":1} /-->', array( 'my--ns/a--' ) ),
+			'Comment ends after the name'      => array( '<!-- wp:a--><!-- wp:b -->', array( 'core/b' ) ),
+			'Bang ending after the name'       => array( '<!-- wp:a--!><!-- wp:b -->', array( 'core/b' ) ),
 		);
 	}
 
@@ -825,6 +888,51 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 		$this->assertNull(
 			$processor->get_delimiter_type(),
 			'Should not have returned a delimiter type before matching any delimiters.'
+		);
+	}
+
+	/**
+	 * Verifies that no block type is reported unless matched on a token.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_unmatched_processor_positions
+	 *
+	 * @covers ::get_block_type
+	 * @covers ::get_printable_block_type
+	 *
+	 * @param string $html        Input document.
+	 * @param int    $token_count How many times to call next_token() before checking.
+	 */
+	public function test_reports_no_block_type_when_not_matched( string $html, int $token_count ): void {
+		$processor = new WP_Block_Processor( $html );
+
+		for ( $i = 0; $i < $token_count; $i++ ) {
+			$processor->next_token();
+		}
+
+		$this->assertNull(
+			$processor->get_block_type(),
+			'Should not have returned a block type.'
+		);
+
+		$this->assertNull(
+			$processor->get_printable_block_type(),
+			'Should not have returned a printable block type.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: int}>
+	 */
+	public static function data_unmatched_processor_positions(): array {
+		return array(
+			'Before scanning'               => array( '<!-- wp:any/content -->', 0 ),
+			'After the last delimiter'      => array( '<!-- wp:any/content -->', 2 ),
+			'After the last HTML span'      => array( '<!-- wp:paragraph -->text', 3 ),
+			'After an incomplete delimiter' => array( '<!-- wp:incomplete/blo', 1 ),
 		);
 	}
 
@@ -1546,6 +1654,90 @@ HTML
 			$processor->get_printable_block_type(),
 			'Scanned to token of wrong block type.'
 		);
+	}
+
+	/**
+	 * Verifies that next_delimiter() visits the same tokens, with the same state,
+	 * as calling next_token() and skipping tokens which don't match.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_documents_and_delimiter_searches
+	 *
+	 * @covers ::next_delimiter
+	 *
+	 * @param string      $html       Input document.
+	 * @param string|null $block_type Block type to search for, or `null` for any delimiter.
+	 */
+	public function test_next_delimiter_visits_same_tokens_as_next_token( string $html, ?string $block_type ): void {
+		$describe = static function ( WP_Block_Processor $processor ) {
+			$span = $processor->get_span();
+
+			return array(
+				'span'        => isset( $span ) ? array( $span->start, $span->length ) : null,
+				'type'        => $processor->get_delimiter_type(),
+				'block_type'  => $processor->get_printable_block_type(),
+				'attributes'  => $processor->allocate_and_return_parsed_attributes(),
+				'depth'       => $processor->get_depth(),
+				'breadcrumbs' => $processor->get_breadcrumbs(),
+				'last_error'  => $processor->get_last_error(),
+			);
+		};
+
+		$processor = new WP_Block_Processor( $html );
+		$expected  = array();
+		while ( $processor->next_token() ) {
+			if ( isset( $block_type ) ? $processor->is_block_type( $block_type ) : ! $processor->is_html() ) {
+				$expected[] = $describe( $processor );
+			}
+		}
+		$expected[] = $describe( $processor );
+
+		$processor = new WP_Block_Processor( $html );
+		$actual    = array();
+		while ( $processor->next_delimiter( $block_type ) ) {
+			$actual[] = $describe( $processor );
+		}
+		$actual[] = $describe( $processor );
+
+		$this->assertSame(
+			$expected,
+			$actual,
+			'Should have visited the same tokens as next_token(), and stopped in the same state.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string|null}>
+	 */
+	public static function data_documents_and_delimiter_searches(): array {
+		$documents = array(
+			'Empty'                 => '',
+			'Only HTML'             => '<p>Not a block.</p>',
+			'Basic block'           => '<!-- wp:paragraph --><p>Text</p><!-- /wp:paragraph -->',
+			'Nested blocks'         => "\n<!-- wp:group -->\n<div><!-- wp:paragraph -->\n<p>Text</p>\n<!-- /wp:paragraph --><!-- wp:my/block {\"a\":1} /--></div>\n<!-- /wp:group -->\ntrailing",
+			'HTML comments'         => '<!-- x --><!-- wp:my/block {"a":1} /--><!-- y -->tail',
+			'Unclosed block'        => '<!-- wp:paragraph -->unclosed',
+			'Ends in <!-'           => 'text<!-',
+			'Block, then ends in <' => '<!-- wp:group -->text<',
+			'Ends in delimiter'     => 'text<!-- wp:paragraph /-->',
+			'Explicit namespaces'   => '<!-- wp:core/paragraph --><!-- wp:paragraph /--><!-- wp:my/paragraph /--><!-- /wp:core/paragraph -->',
+		);
+
+		$block_types = array( null, 'paragraph', 'core/paragraph', 'core/group', 'my/block', 'my/paragraph', '*', 'freeform', 'core/freeform', 'core/', 'core/my/paragraph' );
+
+		$data = array();
+		foreach ( $documents as $document_name => $html ) {
+			foreach ( $block_types as $block_type ) {
+				$block_type_name = $block_type ?? 'any delimiter';
+
+				$data[ "{$document_name}: {$block_type_name}" ] = array( $html, $block_type );
+			}
+		}
+
+		return $data;
 	}
 
 	/**
