@@ -1480,7 +1480,7 @@ function wp_random_content_post_limits( $limits, WP_Query $query ): string {
  * selected by the random content query are cached here for an hour. Each request
  * selects a post from the pool at random, so the database only orders the eligible
  * posts randomly when the pool is not cached. The cache is invalidated when posts
- * change.
+ * change, or for archives filtered by taxonomy, when terms change.
  *
  * The pool is selected by an ID query, set by {@see wp_random_content_pre_get_posts()},
  * so only the selected post is loaded.
@@ -1507,8 +1507,14 @@ function wp_random_content_posts_pre_query( $posts, WP_Query $query ) {
 
 	// The placeholder escape differs between requests, see wpdb::placeholder_escape().
 	$cache_key    = 'wp_random_content:' . md5( $wpdb->remove_placeholder_escape( $query->request ) );
-	$last_changed = wp_cache_get_last_changed( 'posts' );
-	$post_ids     = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
+	$last_changed = (array) wp_cache_get_last_changed( 'posts' );
+
+	// Term relationships can change without changing the posts, as in WP_Query::get_posts().
+	if ( ! empty( $query->tax_query->queries ) ) {
+		$last_changed[] = wp_cache_get_last_changed( 'terms' );
+	}
+
+	$post_ids = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 
 	if ( ! is_array( $post_ids ) ) {
 		$post_ids = array_map( 'intval', $wpdb->get_col( $query->request ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query is prepared by WP_Query.

@@ -193,6 +193,60 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure the cached pool for a taxonomy archive is invalidated when the terms of a post change.
+	 *
+	 * Changing the terms of a post updates the last changed time of terms, but not posts.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_cached_taxonomy_archive_pool_is_invalidated_when_post_terms_change(): void {
+		$category = self::factory()->category->create( array( 'slug' => 'pool' ) );
+		$post_ids = self::factory()->post->create_many( 2 );
+		wp_set_object_terms( $post_ids[0], array( $category ), 'category' );
+
+		$this->handle_random(
+			array(
+				'random'        => '',
+				'category_name' => 'pool',
+			)
+		);
+
+		$this->assertSame( $post_ids[0], $GLOBALS['wp_the_query']->post->ID, 'The only post in the category should be selected.' );
+
+		wp_set_object_terms( $post_ids[0], array(), 'category' );
+		wp_set_object_terms( $post_ids[1], array( $category ), 'category' );
+
+		$this->handle_random(
+			array(
+				'random'        => '',
+				'category_name' => 'pool',
+			)
+		);
+
+		$this->assertSame( $post_ids[1], $GLOBALS['wp_the_query']->post->ID, 'The post added to the category should be selected after the terms change.' );
+	}
+
+	/**
+	 * Ensure the cached pool for an archive not filtered by taxonomy is kept when terms change.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_cached_pool_without_taxonomy_query_is_kept_when_terms_change(): void {
+		$this->handle_random( array( 'random' => '' ) );
+
+		wp_set_object_terms( $GLOBALS['wp_the_query']->post->ID, array( self::factory()->category->create() ), 'category' );
+
+		$queries = new MockAction();
+		add_filter( 'query', array( $queries, 'filter' ) );
+
+		$this->handle_random( array( 'random' => '' ) );
+
+		$random_queries = preg_grep( '/RAND\(\)/', array_column( $queries->get_args(), 0 ) );
+
+		$this->assertCount( 0, $random_queries, 'The cached pool should be used after terms change.' );
+	}
+
+	/**
 	 * Ensure random content requests for different archives use different pools.
 	 *
 	 * @ticket 66654
@@ -202,10 +256,11 @@ class Tests_WP_HandleRandom extends WP_UnitTestCase {
 		add_filter( 'query', array( $queries, 'filter' ) );
 
 		$this->handle_random( array( 'random' => '' ) );
+		// The shared post fixtures are in the default category.
 		$this->handle_random(
 			array(
-				'random' => '',
-				's'      => 'Post',
+				'random'        => '',
+				'category_name' => 'uncategorized',
 			)
 		);
 
