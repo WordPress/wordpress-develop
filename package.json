@@ -49,7 +49,7 @@
 		"@types/espree": "10.1.0",
 		"@types/htmlhint": "1.1.5",
 		"@types/jquery": "3.5.34",
-		"@types/node": "20.19.43",
+		"@types/node": "24.19.2",
 		"@types/underscore": "1.13.0",
 		"@wordpress/e2e-test-utils-playwright": "1.51.0",
 		"@wordpress/prettier-config": "4.51.0",
