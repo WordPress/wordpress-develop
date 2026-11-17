@@ -788,7 +788,11 @@ function twentyten_block_editor_styles() {
 	// Block styles.
 	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20240703' );
 }
-add_action( 'enqueue_block_editor_assets', 'twentyten_block_editor_styles' );
+if ( is_admin() && version_compare( $GLOBALS['wp_version'], '6.3', '>=' ) ) {
+	add_action( 'enqueue_block_assets', 'twentyten_block_editor_styles', 1, 1 );
+} else {
+	add_action( 'enqueue_block_editor_assets', 'twentyten_block_editor_styles', 1, 1 );
+}
 
 /**
  * Registers block patterns and pattern categories.
