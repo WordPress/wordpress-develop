@@ -178,7 +178,7 @@ final class WP_Taxonomy {
 	 * Rewrites information for this taxonomy.
 	 *
 	 * @since 4.7.0
-	 * @var array|false
+	 * @var array|bool
 	 */
 	public $rewrite;
 

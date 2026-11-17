@@ -296,7 +296,7 @@ function get_plugins( $plugin_folder = '' ) {
 	}
 
 	if ( array_key_exists( $plugin_folder, $cache_plugins ) ) {
-		$wp_plugins = _wp_merge_extra_plugin_headers(
+		$wp_plugins = wp_merge_extra_plugin_headers(
 			$cache_plugins[ $plugin_folder ],
 			$extra_headers,
 			$plugin_folder
@@ -395,7 +395,7 @@ function get_plugins( $plugin_folder = '' ) {
 
 	uasort( $wp_plugins, '_sort_uname_callback' );
 
-	$wp_plugins = _wp_merge_extra_plugin_headers(
+	$wp_plugins = wp_merge_extra_plugin_headers(
 		$wp_plugins,
 		$extra_headers,
 		$plugin_folder
@@ -421,7 +421,7 @@ function get_plugins( $plugin_folder = '' ) {
  * @param string   $plugin_folder Folder argument as passed to get_plugins().
  * @return array Plugin data with extra headers merged in.
  */
-function _wp_merge_extra_plugin_headers( $wp_plugins, $extra_headers, $plugin_folder = '' ) {
+function wp_merge_extra_plugin_headers( array $wp_plugins, array $extra_headers, string $plugin_folder = '' ): array {
 
 	if ( ! $extra_headers || ! $wp_plugins ) {
 		return $wp_plugins;
