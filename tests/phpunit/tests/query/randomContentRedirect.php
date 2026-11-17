@@ -2015,6 +2015,51 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure saving a post that can never be at the random base does not read the random base,
+	 * since reading it can switch the locale.
+	 */
+	public function test_saving_posts_that_cannot_be_at_the_random_base_does_not_read_the_random_base(): void {
+		$reads = new MockAction();
+		add_filter(
+			'gettext_with_context_default',
+			static function ( $translation, $text, $context ) use ( $reads ) {
+				if ( 'random content permalink base' === $context ) {
+					$reads->filter( $translation );
+				}
+				return $translation;
+			},
+			10,
+			3
+		);
+
+		$parent = $this->create_post( array( 'post_type' => 'page' ) );
+		$reads->reset();
+
+		$this->create_post(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'random',
+				'post_parent' => $parent,
+			)
+		);
+		$this->create_post(
+			array(
+				'post_type' => 'attachment',
+				'post_name' => 'random',
+			)
+		);
+		$this->create_post(
+			array(
+				'post_type'   => 'revision',
+				'post_name'   => 'random',
+				'post_parent' => $parent,
+			)
+		);
+
+		$this->assertSame( 0, $reads->get_call_count(), 'Only top-level pages and posts should read the random base.' );
+	}
+
+	/**
 	 * @dataProvider data_invalid_arguments
 	 *
 	 * @param array<int, mixed> $args The arguments to call the function with.

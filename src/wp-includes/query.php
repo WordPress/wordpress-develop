@@ -1918,15 +1918,21 @@ function wp_random_content_flush_rewrite_rules_for_post( $post_id, $post = null,
 	}
 
 	foreach ( $posts as $page ) {
+		/*
+		 * Check the post type and parent first. Reading the random base can switch the
+		 * locale, which is too costly to do for every revision, autosave or menu item.
+		 */
 		if (
-			$wp_rewrite->get_random_base() === $page->post_name
-			&& (
-				( 'page' === $page->post_type && 0 === (int) $page->post_parent )
-				|| ( 'post' === $page->post_type && $wp_rewrite->post_permalinks_share_random_base() )
-			)
+			( 'page' === $page->post_type && 0 === (int) $page->post_parent )
+			|| 'post' === $page->post_type
 		) {
-			flush_rewrite_rules( false );
-			return;
+			if (
+				$wp_rewrite->get_random_base() === $page->post_name
+				&& ( 'page' === $page->post_type || $wp_rewrite->post_permalinks_share_random_base() )
+			) {
+				flush_rewrite_rules( false );
+				return;
+			}
 		}
 	}
 }
