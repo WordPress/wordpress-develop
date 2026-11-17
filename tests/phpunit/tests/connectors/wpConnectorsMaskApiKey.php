@@ -29,7 +29,7 @@ class Tests_Connectors_WpConnectorsMaskApiKey extends WP_UnitTestCase {
 	 *     @type string $expected Expected masked result.
 	 * }
 	 */
-	public function data_mask_api_key(): array {
+	public static function data_mask_api_key(): array {
 		$bullet = "\u{2022}";
 
 		return array(

@@ -149,7 +149,7 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 		$this->assertSame( 'foo', $actual );
 	}
 
-	public function data_allowed_post_statuses_should_not_be_forced_to_be_unique() {
+	public static function data_allowed_post_statuses_should_not_be_forced_to_be_unique() {
 		return array(
 			array( 'draft' ),
 			array( 'pending' ),
@@ -300,8 +300,6 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	 * @ticket 5305
 	 */
 	public function test_daylike_slugs_should_not_be_suffixed_if_permalink_structure_does_not_result_in_a_clash_with_day_archives() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$p = self::factory()->post->create(
 			array(
 				'post_type' => 'post',
@@ -334,8 +332,6 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	 * @ticket 34971
 	 */
 	public function test_embed_slug_should_be_suffixed_for_posts() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$p = self::factory()->post->create(
 			array(
 				'post_type' => 'post',
@@ -351,8 +347,6 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	 * @ticket 34971
 	 */
 	public function test_embed_slug_should_be_suffixed_for_pages() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$p = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
@@ -368,8 +362,6 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	 * @ticket 34971
 	 */
 	public function test_embed_slug_should_be_suffixed_for_attachments() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$p = self::factory()->post->create(
 			array(
 				'post_type' => 'attachment',

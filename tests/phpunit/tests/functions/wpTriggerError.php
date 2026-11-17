@@ -80,7 +80,7 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_trigger_error() {
+	public static function data_should_trigger_error() {
 		return array(
 			'function name and message are given'          => array(
 				'function_name'    => 'some_function',
