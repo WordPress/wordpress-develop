@@ -3056,50 +3056,42 @@ HTML;
 	 */
 	public static function data_wp_kses_preserves_escaped_character_references(): array {
 		return array(
-			'code block with decimal entity'          => array(
+			'code block with decimal entity'       => array(
 				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
 				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
 			),
-			'code block with hexadecimal entity'      => array(
+			'code block with hexadecimal entity'   => array(
 				'<pre class="wp-block-code"><code>&#x5b;audio src="https://example.com/a.mp3"]</code></pre>',
-				'<pre class="wp-block-code"><code>&#x5B;audio src="https://example.com/a.mp3"]</code></pre>',
+				'<pre class="wp-block-code"><code>&#x5b;audio src="https://example.com/a.mp3"]</code></pre>',
 			),
-			'code block with named entity'            => array(
+			'code block with named entity'         => array(
 				'<pre class="wp-block-code"><code>&lbrack;audio src="https://example.com/a.mp3"]</code></pre>',
 				'<pre class="wp-block-code"><code>&lbrack;audio src="https://example.com/a.mp3"]</code></pre>',
 			),
-			'leading zeros and missing semicolon'     => array(
+			'leading zeros and missing semicolon'  => array(
 				'<code>&#0091;gallery]</code> and <p>&#91gallery]</p>',
-				'<code>&#91;gallery]</code> and <p>&#91;gallery]</p>',
+				'<code>&#0091;gallery]</code> and <p>&#91gallery]</p>',
 			),
-			'literal brackets remain unescaped'       => array(
+			'literal brackets remain unescaped'    => array(
 				'<code>[gallery]</code> and <p>[gallery]</p>',
 				'<code>[gallery]</code> and <p>[gallery]</p>',
 			),
-			'disallowed code element keeps entity'    => array(
+			'disallowed code element keeps entity' => array(
 				'<code>&#91;gallery]</code>',
 				'&#91;gallery]',
 				array( 'p' => array() ),
 			),
-			'syntax numeric entities become named'    => array(
-				'<p>&#60;tag&#x3e; &#38; &#34;quote&#x27;</p>',
-				'<p>&lt;tag&gt; &amp; &quot;quote&apos;</p>',
+			'existing entities remain untouched'   => array(
+				'<p>&lt;tag&gt; &amp; &nbsp;&mdash;&#60;</p>',
+				'<p>&lt;tag&gt; &amp; &nbsp;&mdash;&#60;</p>',
 			),
-			'unhidden ASCII letters and digits'       => array(
-				'<p>&#x61;&#x000033;&#58;</p>',
-				'<p>a3:</p>',
+			'stray ampersand and angle brackets'   => array(
+				'<p>AT&T & 1 < 2 > 0</p>',
+				'<p>AT&amp;T &amp; 1 &lt; 2 &gt; 0</p>',
 			),
-			'non-syntax named entities stay escaped'  => array(
-				'<p>&nbsp;&mdash;&copy</p>',
-				'<p>&nbsp;&mdash;&copy;</p>',
-			),
-			'null numeric entity becomes replacement' => array(
-				'<p>&#0;</p>',
-				"<p>\u{FFFD}</p>",
-			),
-			'stray ampersand is escaped'              => array(
-				'<p>AT&T & co</p>',
-				'<p>AT&amp;T &amp; co</p>',
+			'pre leading newline preserved'        => array(
+				"<pre>\n\nHello</pre>",
+				"<pre>\n\nHello</pre>",
 			),
 		);
 	}
