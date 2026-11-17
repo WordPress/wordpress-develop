@@ -548,6 +548,10 @@ function get_usage(): string {
  * `base.neon` with `--output-dir=tests/phpstan`, or the root `phpstan.neon` with
  * `--output-dir=.`.
  *
+ * Only the first line is read, and compared without its line ending, so that a
+ * checkout converting line endings to CRLF, as Git does on Windows with
+ * `core.autocrlf`, still recognizes every baseline.
+ *
  * @param non-empty-string $file       Absolute path to the file.
  * @param string           $identifier Identifier the file is named for.
  * @return bool Whether the file starts with the header for that identifier.
@@ -559,9 +563,18 @@ function is_generated_baseline( string $file, string $identifier ): bool {
 	}
 
 	$header = build_baseline_header( $identifier );
-	$first  = substr( $header, 0, (int) strpos( $header, "\n" ) + 1 );
+	$first  = substr( $header, 0, (int) strpos( $header, "\n" ) );
 
-	return 0 === strpos( read_file( $file ), $first );
+	$handle = fopen( $file, 'r' );
+	if ( false === $handle ) {
+		fwrite( STDERR, "Could not read $file\n" );
+		exit( 1 );
+	}
+
+	$line = fgets( $handle );
+	fclose( $handle );
+
+	return false !== $line && rtrim( $line, "\r\n" ) === $first;
 }
 
 /**
