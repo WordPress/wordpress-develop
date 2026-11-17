@@ -3910,3 +3910,49 @@ function wp_should_upgrade_global_tables() {
 	 */
 	return apply_filters( 'wp_should_upgrade_global_tables', $should_upgrade );
 }
+
+/**
+ * Parses and validates secret keys returned by the WordPress.org secret-key API.
+ *
+ * Ensures the response contains exactly the eight expected `define()` lines with
+ * 64-character printable ASCII values that exclude single quotes and backslashes,
+ * preventing malformed or tampered responses from breaking `wp-config.php`.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $body Raw response body from `https://api.wordpress.org/secret-key/1.1/salt/`.
+ * @return string[]|null Array of eight validated 64-character secret keys, or null if invalid.
+ */
+function _wp_parse_secret_keys_response( $body ) {
+	if ( ! is_string( $body ) || '' === $body ) {
+		return null;
+	}
+
+	$lines = explode( "\n", trim( $body, "\r\n" ) );
+	if ( 8 !== count( $lines ) ) {
+		return null;
+	}
+
+	$expected_constants = array(
+		'AUTH_KEY',
+		'SECURE_AUTH_KEY',
+		'LOGGED_IN_KEY',
+		'NONCE_KEY',
+		'AUTH_SALT',
+		'SECURE_AUTH_SALT',
+		'LOGGED_IN_SALT',
+		'NONCE_SALT',
+	);
+
+	$keys = array();
+	foreach ( $lines as $index => $line ) {
+		$pattern = '/\Adefine\(\'' . $expected_constants[ $index ] . '\',\s+\'([\x20-\x26\x28-\x5B\x5D-\x7E]{64})\'\);\r?\z/';
+		if ( 1 !== preg_match( $pattern, $line, $matches ) ) {
+			return null;
+		}
+		$keys[] = $matches[1];
+	}
+
+	return $keys;
+}
