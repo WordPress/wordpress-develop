@@ -65,7 +65,16 @@
 		<script src="../../node_modules/sinon/pkg/sinon.js"></script>
 		<script src="../../node_modules/sinon-test/dist/sinon-test.js"></script>
 		<script>
-			var qTest = QUnit.test, sTest = sinonTest( sinon );
+			/*
+			 * `Intl` is excluded from the fake timers applied to every test. When faked, the global `Intl`
+			 * object is replaced with one that cannot be stubbed (`Intl.hasOwnProperty` is overwritten
+			 * with a boolean), and its formatters do not inherit from `Intl.DateTimeFormat.prototype`.
+			 */
+			var qTest = QUnit.test, sTest = sinonTest( sinon, {
+				useFakeTimers: {
+					toNotFake: [ 'Intl' ]
+				}
+			} );
 
 			QUnit.config.hidepassed = false;
 
