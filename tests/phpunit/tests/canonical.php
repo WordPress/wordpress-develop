@@ -738,4 +738,23 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that a paged singular request without a queried object does not throw PHP warnings.
+	 *
+	 * @ticket 63522
+	 *
+	 * @covers ::redirect_canonical
+	 */
+	public function test_paged_singular_request_without_queried_object() {
+		add_filter( 'pre_handle_404', '__return_true' );
+
+		$url = home_url( '/?pagename=non-existent-page&page=2' );
+		$this->go_to( $url );
+
+		$this->assertTrue( is_singular(), 'The request should be singular.' );
+		$this->assertNull( get_queried_object(), 'The queried object should be null.' );
+
+		$this->assertNull( redirect_canonical( $url, false ), 'There should be no redirect without a queried object.' );
+	}
 }
