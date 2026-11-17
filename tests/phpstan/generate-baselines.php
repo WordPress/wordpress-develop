@@ -889,7 +889,8 @@ function build_baseline_header( string $identifier ): string {
 		#
 		#     composer phpstan:baselines -- --identifier=$identifier
 		#
-		# which reruns the analysis with this file suppressed so the errors surface again.
+		# which reruns the analysis with the baselines in this directory suppressed, so
+		# that their errors surface again, and rewrites only this file.
 
 		TEXT;
 }
