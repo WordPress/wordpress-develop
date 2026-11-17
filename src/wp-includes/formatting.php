@@ -26,6 +26,7 @@
  * Do not use this function before the {@see 'init'} action hook; everything will break.
  *
  * @since 0.71
+ * @since 7.3.0 Rebuilds its quote and dash replacements after the locale changes.
  *
  * @global array $wp_cockneyreplace Array of formatted entities for certain common phrases.
  * @global array $shortcode_tags
@@ -50,6 +51,7 @@ function wptexturize( $text, $reset = false ) {
 		$closing_quote                   = null,
 		$opening_single_quote            = null,
 		$closing_single_quote            = null,
+		$locale_changes                  = null,
 		$open_q_flag                     = '<!--oq-->',
 		$open_sq_flag                    = '<!--osq-->',
 		$apos_flag                       = '<!--apos-->';
@@ -59,26 +61,35 @@ function wptexturize( $text, $reset = false ) {
 		return $text;
 	}
 
-	// Set up static variables. Run once only.
-	if ( $reset || ! isset( $static_characters ) ) {
-		/**
-		 * Filters whether to skip running wptexturize().
-		 *
-		 * Returning false from the filter will effectively short-circuit wptexturize()
-		 * and return the original text passed to the function instead.
-		 *
-		 * The filter runs only once, the first time wptexturize() is called.
-		 *
-		 * @since 4.0.0
-		 *
-		 * @see wptexturize()
-		 *
-		 * @param bool $run_texturize Whether to short-circuit wptexturize().
-		 */
-		$run_texturize = apply_filters( 'run_wptexturize', $run_texturize );
-		if ( false === $run_texturize ) {
-			return $text;
+	/*
+	 * Set up static variables. Run once, and again after switch_to_locale() or
+	 * restore_previous_locale() fires 'change_locale', so that text rendered in
+	 * another locale uses that locale's quotes and dashes.
+	 */
+	$current_locale_changes = did_action( 'change_locale' );
+	if ( $reset || ! isset( $static_characters ) || $locale_changes !== $current_locale_changes ) {
+		if ( $reset || ! isset( $static_characters ) ) {
+			/**
+			 * Filters whether to skip running wptexturize().
+			 *
+			 * Returning false from the filter will effectively short-circuit wptexturize()
+			 * and return the original text passed to the function instead.
+			 *
+			 * The filter runs only once, the first time wptexturize() is called.
+			 *
+			 * @since 4.0.0
+			 *
+			 * @see wptexturize()
+			 *
+			 * @param bool $run_texturize Whether to short-circuit wptexturize().
+			 */
+			$run_texturize = apply_filters( 'run_wptexturize', $run_texturize );
+			if ( false === $run_texturize ) {
+				return $text;
+			}
 		}
+
+		$locale_changes = $current_locale_changes;
 
 		/* translators: Opening curly double quote. */
 		$opening_quote = _x( '&#8220;', 'opening curly double quote' );
