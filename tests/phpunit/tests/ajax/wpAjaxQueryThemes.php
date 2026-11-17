@@ -5,6 +5,8 @@
 require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 /**
+ * Testing the Ajax handler for querying themes.
+ *
  * @group ajax
  * @group themes
  * @covers ::wp_ajax_query_themes
@@ -16,7 +18,7 @@ class Tests_Ajax_wpAjaxQueryThemes extends WP_Ajax_UnitTestCase {
 	 *
 	 * @dataProvider data_theme_names
 	 *
-	 * @param string $name     Theme name from the Themes API.
+	 * @param string $name     Theme or author name from the Themes API.
 	 * @param string $expected Plain-text name for the installer.
 	 */
 	public function test_theme_names_are_returned_as_plain_text( $name, $expected ) {
@@ -35,7 +37,7 @@ class Tests_Ajax_wpAjaxQueryThemes extends WP_Ajax_UnitTestCase {
 						(object) array(
 							'slug'         => 'example-theme',
 							'name'         => $name,
-							'author'       => array( 'display_name' => 'Example Author' ),
+							'author'       => array( 'display_name' => $name ),
 							'version'      => '1.0',
 							'description'  => 'An example theme.',
 							'rating'       => 0,
@@ -61,6 +63,7 @@ class Tests_Ajax_wpAjaxQueryThemes extends WP_Ajax_UnitTestCase {
 
 		$this->assertTrue( $response['success'] );
 		$this->assertSame( $expected, $response['data']['themes'][0]['name'] );
+		$this->assertSame( $expected, $response['data']['themes'][0]['author'] );
 	}
 
 	/**
