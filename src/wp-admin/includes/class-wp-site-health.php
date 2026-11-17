@@ -2375,6 +2375,106 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Tests if the server can process WebP images.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_webp_support() {
+		$result = array(
+			'label'       => __( 'Your server can process WebP images' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'The WebP image format produces images that are usually smaller than JPEG and PNG images, which can reduce page load time and consume less bandwidth.' )
+			),
+			'actions'     => '',
+			'test'        => 'webp_support',
+		);
+
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			return $result;
+		}
+
+		$result['status'] = 'recommended';
+		$result['label']  = __( 'Your server cannot process WebP images' );
+
+		if ( wp_is_client_side_media_processing_enabled() ) {
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				__( 'WordPress cannot create image sizes for WebP images on the server. Supported browsers create them during upload instead, but WebP uploads from other browsers will fail.' )
+			);
+		} else {
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				__( 'WordPress cannot create image sizes for WebP images on the server, so WebP images cannot be uploaded.' )
+			);
+		}
+
+		$result['actions'] = sprintf(
+			'<p>%s</p>',
+			__( 'WebP support on the server can only be enabled by your hosting provider, so contact them for more information.' )
+		);
+
+		return $result;
+	}
+
+	/**
+	 * Tests if the server can process AVIF images.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_avif_support() {
+		$result = array(
+			'label'       => __( 'Your server can process AVIF images' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'The AVIF image format generally produces images that are smaller than WebP, JPEG, and PNG images, which can reduce page load time and consume less bandwidth.' )
+			),
+			'actions'     => '',
+			'test'        => 'avif_support',
+		);
+
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
+			return $result;
+		}
+
+		$result['status'] = 'recommended';
+		$result['label']  = __( 'Your server cannot process AVIF images' );
+
+		if ( wp_is_client_side_media_processing_enabled() ) {
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				__( 'WordPress cannot create image sizes for AVIF images on the server. Supported browsers create them during upload instead, but AVIF uploads from other browsers will fail.' )
+			);
+		} else {
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				__( 'WordPress cannot create image sizes for AVIF images on the server, so AVIF images cannot be uploaded.' )
+			);
+		}
+
+		$result['actions'] = sprintf(
+			'<p>%s</p>',
+			__( 'AVIF support on the server can only be enabled by your hosting provider, so contact them for more information.' )
+		);
+
+		return $result;
+	}
+
+	/**
 	 * Tests if the Authorization header has the expected values.
 	 *
 	 * @since 5.6.0
@@ -2906,6 +3006,14 @@ class WP_Site_Health {
 				'file_uploads'                 => array(
 					'label' => __( 'File uploads' ),
 					'test'  => 'file_uploads',
+				),
+				'webp_supported'               => array(
+					'label' => __( 'WebP support' ),
+					'test'  => 'webp_support',
+				),
+				'avif_supported'               => array(
+					'label' => __( 'AVIF support' ),
+					'test'  => 'avif_support',
 				),
 				'plugin_theme_auto_updates'    => array(
 					'label' => __( 'Plugin and theme auto-updates' ),
