@@ -242,7 +242,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$menu_items = wp_get_nav_menu_items( $this->menu_id );
 		$this->assertSame( $term->name, $menu_items[0]->title );
-		$this->assertEquals( $t, $menu_items[0]->object_id );
+		$this->assertSame( (string) $t, $menu_items[0]->object_id );
 	}
 
 	/**
@@ -748,19 +748,19 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		 * Remove test filters.
 		 */
 		// In function.
-		remove_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		remove_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ) );
+		remove_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ) );
+		remove_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ) );
 
 		// In walker.
 		remove_filter( 'nav_menu_item_args', array( $this, 'confirm_nav_menu_item_args_object' ) );
 
-		remove_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ) );
 
-		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ), 10, 4 );
+		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ) );
 	}
 
 	/**
@@ -951,6 +951,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 * @ticket 39800
 	 */
 	public function test_parent_ancestor_for_post_archive() {
+		$this->set_permalink_structure( '' );
 
 		register_post_type(
 			'books',
@@ -1065,7 +1066,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Provides IRI matching data for _wp_menu_item_classes_by_context() test.
 	 */
-	public function data_iri_current_menu_item() {
+	public static function data_iri_current_menu_item() {
 		return array(
 			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ) ),
 			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ) ),
@@ -1164,7 +1165,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Provides data for test_trim_url_for_custom_item().
 	 */
-	public function data_trim_url_for_custom_item() {
+	public static function data_trim_url_for_custom_item() {
 		return array(
 			array( 'https://wordpress.org ', 'https://wordpress.org' ),
 			array( ' https://wordpress.org', 'https://wordpress.org' ),

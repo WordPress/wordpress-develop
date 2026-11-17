@@ -122,6 +122,8 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		// Second call shouldn't require a database query.
 		$term_b = get_term( $term_id, 'wptests_tax' );
 		$this->assertSame( $num_queries, get_num_queries() );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term_a, $term_b );
 	}
 

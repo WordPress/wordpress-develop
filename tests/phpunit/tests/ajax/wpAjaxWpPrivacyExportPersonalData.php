@@ -204,7 +204,6 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 	 * Unset a specified key in the test exporter array.
 	 *
 	 * @param array $exporters List of data exporters.
-	 *
 	 * @return array List of data exporters.
 	 */
 	public function filter_unset_exporter_key( $exporters ) {
@@ -579,7 +578,6 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 	 *
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
-	 *
 	 * @return array Export data.
 	 */
 	public function callback_missing_data_response( $email_address, $page = 1 ) {
@@ -615,7 +613,6 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 	 *
 	 * @param  string $email_address The requester's email address.
 	 * @param  int    $page          Page number.
-	 *
 	 * @return array Export data.
 	 */
 	public function callback_missing_data_array_response( $email_address, $page = 1 ) {
@@ -650,7 +647,6 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 	 *
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
-	 *
 	 * @return array Export data.
 	 */
 	public function callback_missing_done_response( $email_address, $page = 1 ) {
@@ -729,7 +725,6 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 	 * @param int    $request_id      The privacy request post ID associated with this request.
 	 * @param bool   $send_as_email   Whether the final results of the export should be emailed to the user.
 	 * @param string $exporter_key    The key (slug) of the exporter that provided this data.
-	 *
 	 * @return array The personal data for the given exporter and page.
 	 */
 	public function filter_exporter_data_response( $response, $exporter_index, $email_address, $page, $request_id, $send_as_email, $exporter_key ) {
@@ -757,7 +752,6 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 	 * @since 5.2.0
 	 *
 	 * @param array $exporters An array of personal data exporters.
-	 *
 	 * @return array An array of personal data exporters.
 	 */
 	public function filter_register_custom_personal_data_exporter( $exporters ) {
@@ -775,7 +769,6 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 	 *
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
-	 *
 	 * @return array Export data response.
 	 */
 	public function callback_custom_personal_data_exporter( $email_address, $page = 1 ) {

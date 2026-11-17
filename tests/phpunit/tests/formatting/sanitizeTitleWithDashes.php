@@ -180,7 +180,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_removes_non_visible_characters_without_width() {
+	public static function data_removes_non_visible_characters_without_width() {
 		return array(
 			// Only the non-visible characters.
 			'only %e2%80%8b'     => array( '%e2%80%8b' ),
@@ -233,7 +233,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_non_visible_characters_without_width_when_not_save() {
+	public static function data_non_visible_characters_without_width_when_not_save() {
 		return array(
 			// Just the non-visible characters.
 			'only %e2%80%8b'     => array( '%e2%80%8b', '%e2%80%8b' ),
@@ -285,7 +285,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_converts_non_visible_characters_with_width_to_hyphen() {
+	public static function data_converts_non_visible_characters_with_width_to_hyphen() {
 		return array(
 			// Only the non-visible characters.
 			'only %e2%80%80'     => array( '%e2%80%80' ),
@@ -343,7 +343,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_non_visible_characters_with_width_to_hyphen_when_not_save() {
+	public static function data_non_visible_characters_with_width_to_hyphen_when_not_save() {
 		return array(
 			// Just the non-visible characters.
 			'only %e2%80%8b'     => array( '%e2%80%8b', '%e2%80%8b' ),
