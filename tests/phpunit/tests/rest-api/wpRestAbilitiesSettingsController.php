@@ -3,7 +3,7 @@
 declare( strict_types=1 );
 
 /**
- * Tests for running the core/settings-get ability through the REST API.
+ * Tests for running the settings abilities through the REST API.
  *
  * @covers WP_Abilities_Settings
  *
@@ -38,7 +38,14 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 *
 	 * @var string
 	 */
-	const RUN_ROUTE = '/wp-abilities/v1/abilities/core/settings-get/run';
+	const GET_RUN_ROUTE = '/wp-abilities/v1/abilities/core/settings-get/run';
+
+	/**
+	 * The run route for the core/settings-update ability.
+	 *
+	 * @var string
+	 */
+	const UPDATE_RUN_ROUTE = '/wp-abilities/v1/abilities/core/settings-update/run';
 
 	/**
 	 * Sets up users and registers the core abilities.
@@ -129,8 +136,28 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 * @return WP_REST_Request The request.
 	 */
 	private function run_request( array $input ): WP_REST_Request {
-		$request = new WP_REST_Request( 'GET', self::RUN_ROUTE );
+		$request = new WP_REST_Request( 'GET', self::GET_RUN_ROUTE );
 		$request->set_query_params( array( 'input' => $input ) );
+		return $request;
+	}
+
+	/**
+	 * Builds a run request for core/settings-update with the given ability input.
+	 *
+	 * A POST request carries the input in a JSON body, any other method in the query string.
+	 *
+	 * @param string               $method The HTTP method.
+	 * @param array<string, mixed> $input  The ability input.
+	 * @return WP_REST_Request The request.
+	 */
+	private function update_request( string $method, array $input ): WP_REST_Request {
+		$request = new WP_REST_Request( $method, self::UPDATE_RUN_ROUTE );
+		if ( 'POST' === $method ) {
+			$request->set_header( 'Content-Type', 'application/json' );
+			$request->set_body( wp_json_encode( array( 'input' => $input ) ) );
+		} else {
+			$request->set_query_params( array( 'input' => $input ) );
+		}
 		return $request;
 	}
 
@@ -209,7 +236,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 			),
 		);
 
-		$this->server->serve_request( self::RUN_ROUTE );
+		$this->server->serve_request( self::GET_RUN_ROUTE );
 
 		$this->assertSame( 200, $this->server->status, 'Filters that match no setting should be accepted.' );
 		$this->assertSame( '{}', $this->server->sent_body, 'The empty result should be served as an empty object.' );
@@ -229,7 +256,7 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 	 * @ticket 64605
 	 */
 	public function test_wrong_http_method_returns_405(): void {
-		$request = new WP_REST_Request( 'POST', self::RUN_ROUTE );
+		$request = new WP_REST_Request( 'POST', self::GET_RUN_ROUTE );
 		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( array( 'input' => array( 'group' => 'reading' ) ) ) );
 
@@ -237,5 +264,145 @@ class Tests_REST_API_WpRestAbilitiesSettingsController extends WP_UnitTestCase {
 
 		$this->assertSame( 405, $response->get_status(), 'A POST request to the read-only ability should be rejected.' );
 		$this->assertSame( 'rest_ability_invalid_method', $response->get_data()['code'], 'The error should identify the invalid HTTP method.' );
+	}
+
+	/**
+	 * Users who cannot manage options cannot update settings, and nothing is written.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_update_refused_users
+	 *
+	 * @param string $user   The user: 'logged out' or 'subscriber'.
+	 * @param int    $status The expected status.
+	 */
+	public function test_update_refused_for_users_without_manage_options( string $user, int $status ): void {
+		wp_set_current_user( 'subscriber' === $user ? self::$subscriber_id : 0 );
+		$before = get_option( 'blogname' );
+
+		$response = $this->server->dispatch( $this->update_request( 'POST', array( 'data' => array( 'title' => 'Changed title' ) ) ) );
+
+		$this->assertSame( $status, $response->get_status(), 'The update should be refused with the expected status.' );
+		$this->assertSame( 'rest_ability_cannot_execute', $response->get_data()['code'], 'The error should identify the refused permission.' );
+		$this->assertSame( $before, get_option( 'blogname' ), 'The site title should not change.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: int}> Users and the expected status.
+	 */
+	public static function data_update_refused_users(): array {
+		return array(
+			'logged out' => array( 'logged out', 401 ),
+			'subscriber' => array( 'subscriber', 403 ),
+		);
+	}
+
+	/**
+	 * The update runs only through POST.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_update_wrong_methods
+	 *
+	 * @param string $method The HTTP method.
+	 */
+	public function test_update_wrong_http_method_returns_405( string $method ): void {
+		$before = get_option( 'blogname' );
+
+		$response = $this->server->dispatch( $this->update_request( $method, array( 'data' => array( 'title' => 'Changed title' ) ) ) );
+
+		$this->assertSame( 405, $response->get_status(), 'The update should be rejected for this method.' );
+		$this->assertSame( 'rest_ability_invalid_method', $response->get_data()['code'], 'The error should identify the invalid HTTP method.' );
+		$this->assertSame( $before, get_option( 'blogname' ), 'The site title should not change.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}> HTTP methods other than POST.
+	 */
+	public static function data_update_wrong_methods(): array {
+		return array(
+			'GET'    => array( 'GET' ),
+			'DELETE' => array( 'DELETE' ),
+		);
+	}
+
+	/**
+	 * Invalid update input is refused, and nothing is written.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_update_invalid_input_receives_400(): void {
+		$before = get_option( 'blogname' );
+
+		$response = $this->server->dispatch(
+			$this->update_request(
+				'POST',
+				array(
+					'data' => array(
+						'title'          => 'Changed title',
+						'posts_per_page' => 'abc',
+					),
+				)
+			)
+		);
+
+		$this->assertSame( 400, $response->get_status(), 'Invalid input should be refused.' );
+		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'], 'The error should identify the invalid input.' );
+		$this->assertSame( $before, get_option( 'blogname' ), 'The site title should not change.' );
+	}
+
+	/**
+	 * An administrator updates settings and receives the saved values.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_update_admin_receives_saved_settings(): void {
+		$response = $this->server->dispatch(
+			$this->update_request(
+				'POST',
+				array(
+					'data' => array(
+						'title'          => 'Updated Site',
+						'posts_per_page' => '12',
+					),
+				)
+			)
+		);
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'An administrator should update the settings.' );
+		$this->assertSameSets( array( 'title', 'posts_per_page' ), array_keys( $data ), 'Only the updated settings should be returned.' );
+		$this->assertSame( 'Updated Site', $data['title'], 'The saved site title should be returned.' );
+		$this->assertSame( 12, $data['posts_per_page'], 'The saved number of posts per page should be returned as an integer.' );
+		$this->assertSame( 'Updated Site', get_option( 'blogname' ), 'The site title should be saved.' );
+	}
+
+	/**
+	 * A deleted setting without a default is left out, and the empty result is sent as an object.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_update_null_without_default_returns_an_empty_object(): void {
+		update_option( 'blogname', 'Site to reset' );
+
+		$response = $this->server->dispatch( $this->update_request( 'POST', array( 'data' => array( 'title' => null ) ) ) );
+
+		$this->assertSame( 200, $response->get_status(), 'An administrator should delete the stored value.' );
+		$this->assertSame( '{}', wp_json_encode( $response->get_data() ), 'The empty result should be sent as an empty object.' );
+		$this->assertFalse( get_option( 'blogname' ), 'The stored site title should be deleted.' );
 	}
 }

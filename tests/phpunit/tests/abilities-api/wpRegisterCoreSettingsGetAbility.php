@@ -2,6 +2,8 @@
 
 declare( strict_types=1 );
 
+require_once __DIR__ . '/testcase-settings-ability.php';
+
 /**
  * Tests for the core/settings-get ability shipped with the Abilities API.
  *
@@ -11,32 +13,14 @@ declare( strict_types=1 );
  *
  * @group abilities-api
  */
-class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCase {
+class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_Abilities_Settings_UnitTestCase {
 
 	/**
-	 * Backup of the `$wp_registered_settings` global, restored after the class.
+	 * Registers a non-core setting flagged for the Abilities API before the abilities register.
 	 *
-	 * @var array|null
+	 * @since 7.3.0
 	 */
-	private static $registered_settings_backup;
-
-	/**
-	 * Registers the core abilities before the class.
-	 *
-	 * The ability is registered under the ordering that used to break it: no settings
-	 * registered yet and `rest_api_init` never fired, as on cron, WP-CLI, or any request
-	 * that uses the Abilities API before the REST server loads. Core must register its
-	 * initial settings when abilities initialize (see _wp_register_initial_settings_for_abilities()).
-	 *
-	 * @since 7.2.0
-	 */
-	public static function wpSetUpBeforeClass(): void {
-		global $wp_registered_settings, $wp_actions;
-		self::$registered_settings_backup = $wp_registered_settings;
-		$rest_api_init_count              = $wp_actions['rest_api_init'] ?? null;
-		$wp_registered_settings           = array();
-		unset( $wp_actions['rest_api_init'] );
-
+	protected static function register_test_settings(): void {
 		// A non-core setting flagged for the Abilities API, to verify that any registered
 		// setting (not just the core ones) is exposed by the ability.
 		register_setting(
@@ -50,70 +34,15 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 				'default'           => 42,
 			)
 		);
-
-		// Temporarily remove the unhook functions so we can register core abilities.
-		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
-
-		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-		do_action( 'wp_abilities_api_categories_init' );
-		do_action( 'wp_abilities_api_init' );
-
-		/*
-		 * Restore the hooks and the `rest_api_init` count right away instead of after the class.
-		 * The first test of a run snapshots the hooks and every test resets them to that snapshot,
-		 * so changes left here would leak into every later test whenever this class runs first.
-		 */
-		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
-		if ( null !== $rest_api_init_count ) {
-			$wp_actions['rest_api_init'] = $rest_api_init_count;
-		}
 	}
 
 	/**
-	 * Cleans up registered abilities, categories and settings after the class.
+	 * Unregisters the setting registered by register_test_settings().
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 */
-	public static function wpTearDownAfterClass(): void {
-		foreach ( wp_get_abilities() as $ability ) {
-			wp_unregister_ability( $ability->get_name() );
-		}
-		foreach ( wp_get_ability_categories() as $ability_category ) {
-			wp_unregister_ability_category( $ability_category->get_slug() );
-		}
-
+	protected static function unregister_test_settings(): void {
 		unregister_setting( 'general', 'core_settings_get_ability_test_option' );
-
-		global $wp_registered_settings;
-		$wp_registered_settings = self::$registered_settings_backup;
-	}
-
-	/**
-	 * Registers the core/settings-get ability again inside a faked init action.
-	 *
-	 * The class setup has already registered it through wp_register_core_abilities(), so
-	 * the existing copy is unregistered first.
-	 */
-	private function register_ability(): void {
-		if ( wp_has_ability( 'core/settings-get' ) ) {
-			wp_unregister_ability( 'core/settings-get' );
-		}
-
-		global $wp_current_filter;
-		$wp_current_filter[] = 'wp_abilities_api_init'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Faking the action context to register within it.
-		( new WP_Abilities_Settings() )->register();
-	}
-
-	/**
-	 * Logs in as an administrator so abilities gated behind `manage_options` can run.
-	 */
-	private function become_admin(): void {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 	}
 
 	/**
@@ -144,8 +73,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	public function test_register_preserves_new_allowed_options(): void {
 		global $new_allowed_options;
 
-		$prev_actions_count  = $GLOBALS['wp_actions']['rest_api_init'] ?? null;
-		$prev_allowed_backup = $new_allowed_options;
 		unset( $GLOBALS['wp_actions']['rest_api_init'] );
 
 		// Simulate an existing custom setting already in $new_allowed_options.
@@ -153,21 +80,12 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 			'general' => array( 'my_custom_option' ),
 		);
 
-		try {
-			_wp_register_initial_settings_for_abilities();
+		_wp_register_initial_settings_for_abilities();
 
-			// 'admin_email' must NOT be in $new_allowed_options['general'].
-			$this->assertNotContains( 'admin_email', $new_allowed_options['general'], 'Registering the initial settings for abilities should not allow admin_email on the general options screen.' );
-			// Prior allowed options must be preserved.
-			$this->assertContains( 'my_custom_option', $new_allowed_options['general'], 'The options allowed before should still be allowed.' );
-		} finally {
-			$new_allowed_options = $prev_allowed_backup;
-			if ( null === $prev_actions_count ) {
-				unset( $GLOBALS['wp_actions']['rest_api_init'] );
-			} else {
-				$GLOBALS['wp_actions']['rest_api_init'] = $prev_actions_count;
-			}
-		}
+		// 'admin_email' must NOT be in $new_allowed_options['general'].
+		$this->assertNotContains( 'admin_email', $new_allowed_options['general'], 'Registering the initial settings for abilities should not allow admin_email on the general options screen.' );
+		// Prior allowed options must be preserved.
+		$this->assertContains( 'my_custom_option', $new_allowed_options['general'], 'The options allowed before should still be allowed.' );
 	}
 
 	/**
@@ -178,19 +96,10 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	public function test_settings_abilities_are_not_registered_without_exposed_settings(): void {
 		global $wp_registered_settings;
 
-		$registered_settings_backup = $wp_registered_settings;
-		$wp_registered_settings     = array();
+		$wp_registered_settings = array();
+		$this->register_ability();
 
-		try {
-			$this->register_ability();
-
-			$this->assertFalse( wp_has_ability( 'core/settings-get' ), 'The settings ability should not be registered when no setting is exposed.' );
-		} finally {
-			$wp_registered_settings = $registered_settings_backup;
-
-			// Register the ability again for the tests that follow.
-			$this->register_ability();
-		}
+		$this->assertFalse( wp_has_ability( 'core/settings-get' ), 'The settings ability should not be registered when no setting is exposed.' );
 	}
 
 	/**
@@ -263,18 +172,12 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 			)
 		);
 
-		try {
-			$this->register_ability();
-			$properties = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'];
+		$this->register_ability();
+		$properties = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'];
 
-			$this->assertSame( array( 'a', 'b' ), $properties['inherited_name']['enum'], 'A setting exposed with true should reuse its REST API schema.' );
-			$this->assertArrayHasKey( 'ability_name', $properties, 'A setting exposed with an array should use the name from that array.' );
-			$this->assertArrayNotHasKey( 'rest_name', $properties, 'A setting exposed with an array should not use its REST API name.' );
-		} finally {
-			unregister_setting( 'general', 'core_settings_get_inherit_test_option' );
-			unregister_setting( 'general', 'core_settings_get_override_test_option' );
-			$this->register_ability();
-		}
+		$this->assertSame( array( 'a', 'b' ), $properties['inherited_name']['enum'], 'A setting exposed with true should reuse its REST API schema.' );
+		$this->assertArrayHasKey( 'ability_name', $properties, 'A setting exposed with an array should use the name from that array.' );
+		$this->assertArrayNotHasKey( 'rest_name', $properties, 'A setting exposed with an array should not use its REST API name.' );
 	}
 
 	/**
@@ -302,16 +205,10 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 			)
 		);
 
-		try {
-			$this->register_ability();
-			$properties = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'];
+		$this->register_ability();
+		$properties = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'];
 
-			$this->assertSame( 'integer', $properties['core_settings_get_ability_duplicate_name']['type'], 'The setting registered later should be the one exposed under the shared name.' );
-		} finally {
-			unregister_setting( 'general', 'core_settings_get_ability_duplicate_test_option_a' );
-			unregister_setting( 'general', 'core_settings_get_ability_duplicate_test_option_b' );
-			$this->register_ability();
-		}
+		$this->assertSame( 'integer', $properties['core_settings_get_ability_duplicate_name']['type'], 'The setting registered later should be the one exposed under the shared name.' );
 	}
 
 	/**
@@ -480,14 +377,9 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 			)
 		);
 
-		try {
-			$this->register_ability();
+		$this->register_ability();
 
-			$this->assertArrayNotHasKey( $option, wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'], 'A setting only shown in the REST API should not be exposed.' );
-		} finally {
-			unregister_setting( 'general', $option );
-			$this->register_ability();
-		}
+		$this->assertArrayNotHasKey( $option, wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'], 'A setting only shown in the REST API should not be exposed.' );
 	}
 
 	/**
@@ -535,15 +427,10 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		);
 		update_option( $option, $stored );
 
-		try {
-			$this->register_ability();
-			$this->become_admin();
+		$this->register_ability();
+		$this->become_admin();
 
-			$result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $option ) ) );
-		} finally {
-			unregister_setting( 'general', $option );
-			$this->register_ability();
-		}
+		$result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $option ) ) );
 
 		$this->assertSame( $expected, isset( $result[ $option ] ) ? wp_json_encode( $result[ $option ] ) : null, 'The stored value should be read as expected, or left out.' );
 	}
@@ -596,15 +483,10 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 
 		register_setting( 'general', $option, $args + array( 'show_in_abilities' => true ) );
 
-		try {
-			$this->register_ability();
-			$this->become_admin();
+		$this->register_ability();
+		$this->become_admin();
 
-			$result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $option ) ) );
-		} finally {
-			unregister_setting( 'general', $option );
-			$this->register_ability();
-		}
+		$result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $option ) ) );
 
 		$this->assertSame( $expected, isset( $result[ $option ] ) ? wp_json_encode( $result[ $option ] ) : null, 'The setting should read as its registered default, or be left out.' );
 	}
@@ -646,17 +528,12 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		);
 		update_option( $option, 'value' );
 
-		try {
-			$this->register_ability();
-			$this->become_admin();
+		$this->register_ability();
+		$this->become_admin();
 
-			$ability = wp_get_ability( 'core/settings-get' );
+		$ability = wp_get_ability( 'core/settings-get' );
 
-			$this->assertArrayNotHasKey( $option, $ability->get_output_schema()['properties'], 'A setting of an unsupported type should not be described in the output schema.' );
-			$this->assertArrayNotHasKey( $option, $ability->execute( array() ), 'A setting of an unsupported type should not be returned.' );
-		} finally {
-			unregister_setting( 'general', $option );
-			$this->register_ability();
-		}
+		$this->assertArrayNotHasKey( $option, $ability->get_output_schema()['properties'], 'A setting of an unsupported type should not be described in the output schema.' );
+		$this->assertArrayNotHasKey( $option, $ability->execute( array() ), 'A setting of an unsupported type should not be returned.' );
 	}
 }
