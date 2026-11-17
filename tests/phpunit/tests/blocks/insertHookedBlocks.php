@@ -9,6 +9,8 @@
  *
  * @group blocks
  * @group block-hooks
+ *
+ * @covers ::insert_hooked_blocks
  */
 class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	const ANCHOR_BLOCK_TYPE       = 'tests/anchor-block';
@@ -26,8 +28,6 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	 * @ticket 59572
 	 * @ticket 60126
 	 * @ticket 60506
-	 *
-	 * @covers ::insert_hooked_blocks
 	 */
 	public function test_insert_hooked_blocks_returns_correct_markup() {
 		$anchor_block = array(
@@ -46,8 +46,6 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	 * @ticket 59572
 	 * @ticket 60126
 	 * @ticket 60506
-	 *
-	 * @covers ::insert_hooked_blocks
 	 */
 	public function test_insert_hooked_blocks_if_block_is_ignored() {
 		$anchor_block = array(
@@ -71,8 +69,6 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	 * @ticket 59572
 	 * @ticket 60126
 	 * @ticket 60506
-	 *
-	 * @covers ::insert_hooked_blocks
 	 */
 	public function test_insert_hooked_blocks_if_other_block_is_ignored() {
 		$anchor_block = array(
@@ -96,8 +92,6 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	 * @ticket 59572
 	 * @ticket 60126
 	 * @ticket 60506
-	 *
-	 * @covers ::insert_hooked_blocks
 	 */
 	public function test_insert_hooked_blocks_filter_can_set_attributes() {
 		$anchor_block = array(
@@ -139,8 +133,6 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	 * @ticket 59572
 	 * @ticket 60126
 	 * @ticket 60506
-	 *
-	 * @covers ::insert_hooked_blocks
 	 */
 	public function test_insert_hooked_blocks_filter_can_wrap_block() {
 		$anchor_block = array(
@@ -184,7 +176,6 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	/**
 	 * @ticket 60580
 	 *
-	 * @covers ::insert_hooked_blocks
 	 */
 	public function test_insert_hooked_blocks_filter_can_suppress_hooked_block() {
 		$anchor_block = array(

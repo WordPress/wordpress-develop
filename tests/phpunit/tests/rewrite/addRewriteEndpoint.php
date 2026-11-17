@@ -2,6 +2,8 @@
 
 /**
  * @group rewrite
+ *
+ * @covers ::add_rewrite_endpoint
  */
 class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 	private $qvs;
@@ -19,8 +21,6 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		$this->qvs = $GLOBALS['wp']->public_query_vars;
 	}

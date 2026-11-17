@@ -75,7 +75,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	/**
 	 * Path 1 data provider, i.e. when given empty bookmark.
 	 */
-	public function data_when_empty_bookmark() {
+	public static function data_when_empty_bookmark() {
 		return array(
 			// Unhappy path.
 			'with bookmark type mismatch'        => array(
@@ -143,13 +143,15 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( $bookmark->link_id, 'bookmark' );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $bookmark, $actual_cache );
 	}
 
 	/**
 	 * Path 2 data provider, i.e. when bookmark instance is given.
 	 */
-	public function data_when_instance_bookmark() {
+	public static function data_when_instance_bookmark() {
 		return array(
 			// Unhappy path.
 			'with incomplete bookmark data'      => array(
@@ -232,6 +234,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		 * will have the same property values but will be a different object than the expected object.
 		 */
 		if ( is_object( $expected ) ) {
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $expected, $actual_bookmark );
 		} else {
 			$this->assertSameSets( $expected, $actual_bookmark );
@@ -239,6 +242,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( self::$bookmark->link_id, 'bookmark' );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( self::$bookmark, $actual_cache );
 	}
 
@@ -290,6 +295,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		 * will have the same property values but will be a different object than the expected object.
 		 */
 		if ( is_object( $expected ) ) {
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $expected, $actual_bookmark );
 		} else {
 			$this->assertSameSets( $expected, $actual_bookmark );
@@ -297,6 +303,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( self::$bookmark->link_id, 'bookmark' );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( self::$bookmark, $actual_cache );
 	}
 
@@ -304,7 +312,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * Path 3's data provider which covers the "else" branch, i.e. when the bookmark argument is not empty and
 	 * not an object.
 	 */
-	public function data_when_else() {
+	public static function data_when_else() {
 		return array(
 			// Unhappy path.
 			'with invalid output'                => array(

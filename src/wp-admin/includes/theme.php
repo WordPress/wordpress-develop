@@ -40,7 +40,7 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
-		return;
+		return null;
 	}
 
 	if ( ! WP_Filesystem( $credentials ) ) {
@@ -55,7 +55,7 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
-		return;
+		return null;
 	}
 
 	if ( ! is_object( $wp_filesystem ) ) {
@@ -157,7 +157,7 @@ function get_page_templates( $post = null, $post_type = 'page' ) {
  * @since 2.9.0
  * @access private
  *
- * @param string $fullpath Full path to the theme file
+ * @param string $fullpath         Full path to the theme file
  * @param string $containingfolder Path of the theme parent folder
  * @return string
  */
@@ -494,18 +494,11 @@ function themes_api( $action, $args = array() ) {
 	}
 
 	if ( 'query_themes' === $action ) {
-		if ( ! isset( $args->per_page ) ) {
-			$args->per_page = 24;
-		}
+		$args->per_page ??= 24;
 	}
 
-	if ( ! isset( $args->locale ) ) {
-		$args->locale = get_user_locale();
-	}
-
-	if ( ! isset( $args->wp_version ) ) {
-		$args->wp_version = substr( wp_get_wp_version(), 0, 3 ); // x.y
-	}
+	$args->locale     ??= get_user_locale();
+	$args->wp_version ??= substr( wp_get_wp_version(), 0, 3 ); // x.y
 
 	/**
 	 * Filters arguments used to query for installer pages from the WordPress.org Themes API.
@@ -828,13 +821,13 @@ function customize_themes_print_templates() {
 				<button type="button" class="left dashicons dashicons-no"><span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. */
-					_e( 'Show previous theme' );
+					_ex( 'Previous', 'theme' );
 					?>
 				</span></button>
 				<button type="button" class="right dashicons dashicons-no"><span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. */
-					_e( 'Show next theme' );
+					_ex( 'Next', 'theme' );
 					?>
 				</span></button>
 				<button type="button" class="close dashicons dashicons-no"><span class="screen-reader-text">

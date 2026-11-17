@@ -70,7 +70,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				if ( 'publish' === $post->post_status ) {
 					$preview_button_text = __( 'Preview Changes' );
 				} else {
-					$preview_button_text = __( 'Preview' );
+					$preview_button_text = _x( 'Preview', 'verb' );
 				}
 
 				$preview_button = sprintf(
@@ -96,7 +96,6 @@ function post_submit_meta_box( $post, $args = array() ) {
 		 */
 		do_action( 'post_submitbox_minor_actions', $post );
 		?>
-		<div class="clear"></div>
 	</div>
 
 	<div id="misc-publishing-actions">
@@ -644,18 +643,18 @@ function post_categories_meta_box( $post, $box ) {
 	$taxonomy    = get_taxonomy( $parsed_args['taxonomy'] );
 	?>
 	<div id="taxonomy-<?php echo $tax_name; ?>" class="categorydiv">
-		<ul id="<?php echo $tax_name; ?>-tabs" class="category-tabs">
-			<li class="tabs"><a href="#<?php echo $tax_name; ?>-all"><?php echo $taxonomy->labels->all_items; ?></a></li>
-			<li class="hide-if-no-js"><a href="#<?php echo $tax_name; ?>-pop"><?php echo esc_html( $taxonomy->labels->most_used ); ?></a></li>
+		<ul id="<?php echo $tax_name; ?>-tabs" class="category-tabs" role="tablist">
+			<li class="tabs"><a href="#<?php echo $tax_name; ?>-all" role="tab" aria-selected="true" aria-controls="<?php echo $tax_name; ?>-all"><?php echo $taxonomy->labels->all_items; ?></a></li>
+			<li class="hide-if-no-js"><a href="#<?php echo $tax_name; ?>-pop" role="tab" aria-controls="<?php echo $tax_name; ?>-pop"><?php echo esc_html( $taxonomy->labels->most_used ); ?></a></li>
 		</ul>
 
-		<div id="<?php echo $tax_name; ?>-pop" class="tabs-panel" style="display: none;">
+		<div id="<?php echo $tax_name; ?>-pop" class="tabs-panel" style="display: none;" role="tabpanel">
 			<ul id="<?php echo $tax_name; ?>checklist-pop" class="categorychecklist form-no-clear" >
 				<?php $popular_ids = wp_popular_terms_checklist( $tax_name ); ?>
 			</ul>
 		</div>
 
-		<div id="<?php echo $tax_name; ?>-all" class="tabs-panel">
+		<div id="<?php echo $tax_name; ?>-all" class="tabs-panel" role="tabpanel">
 			<?php
 			$name = ( 'category' === $tax_name ) ? 'post_category' : 'tax_input[' . $tax_name . ']';
 			// Allows for an empty term set to be sent. 0 is an invalid term ID and will be ignored by empty() checks.
@@ -1114,7 +1113,6 @@ function link_submit_meta_box( $link ) {
 	<a class="preview button" href="<?php echo $link->link_url; ?>" target="_blank"><?php _e( 'Visit Link' ); ?></a>
 <?php } ?>
 </div>
-<div class="clear"></div>
 </div>
 
 <div id="misc-publishing-actions">
@@ -1176,12 +1174,12 @@ function link_submit_meta_box( $link ) {
 function link_categories_meta_box( $link ) {
 	?>
 <div id="taxonomy-linkcategory" class="categorydiv">
-	<ul id="category-tabs" class="category-tabs">
-		<li class="tabs"><a href="#categories-all"><?php _e( 'All categories' ); ?></a></li>
-		<li class="hide-if-no-js"><a href="#categories-pop"><?php _ex( 'Most Used', 'categories' ); ?></a></li>
+	<ul id="category-tabs" class="category-tabs" role="tablist">
+		<li class="tabs"><a href="#categories-all" role="tab" aria-controls="categories-all" aria-selected="true"><?php _e( 'All categories' ); ?></a></li>
+		<li class="hide-if-no-js"><a href="#categories-pop" role="tab" aria-controls="categories-pop"><?php _ex( 'Most Used', 'categories' ); ?></a></li>
 	</ul>
 
-	<div id="categories-all" class="tabs-panel">
+	<div id="categories-all" class="tabs-panel" role="tabpanel">
 		<ul id="categorychecklist" data-wp-lists="list:category" class="categorychecklist form-no-clear">
 			<?php
 			if ( isset( $link->link_id ) ) {
@@ -1193,7 +1191,7 @@ function link_categories_meta_box( $link ) {
 		</ul>
 	</div>
 
-	<div id="categories-pop" class="tabs-panel" style="display: none;">
+	<div id="categories-pop" class="tabs-panel" style="display: none;" role="tabpanel">
 		<ul id="categorychecklist-pop" class="categorychecklist form-no-clear">
 			<?php wp_popular_terms_checklist( 'link_category' ); ?>
 		</ul>
@@ -1257,6 +1255,8 @@ function link_target_meta_box( $link ) {
  *                                 if it matches the current link's relationship.
  *                                 Default empty string.
  * @param mixed  $deprecated       Deprecated. Not used.
+ *
+ * @phpstan-param '' $deprecated
  */
 function xfn_check( $xfn_relationship, $xfn_value = '', $deprecated = '' ) {
 	global $link;
@@ -1453,7 +1453,14 @@ function link_advanced_meta_box( $link ) {
 		<td><input name="link_rss" class="code" type="text" id="rss_uri" maxlength="255" value="<?php echo ( isset( $link->link_rss ) ? esc_attr( $link->link_rss ) : '' ); ?>" /></td>
 	</tr>
 	<tr>
-		<th scope="row"><label for="link_notes"><?php _e( 'Notes' ); ?></label></th>
+		<th scope="row">
+			<label for="link_notes">
+				<?php
+				/* translators: Label for the Notes textarea in the Link Manager edit screen. */
+				_ex( 'Notes', 'Link manager notes field label' );
+				?>
+			</label>
+		</th>
 		<td><textarea name="link_notes" id="link_notes" rows="10"><?php echo $link->link_notes ?? ''; // textarea_escaped ?></textarea></td>
 	</tr>
 	<tr>

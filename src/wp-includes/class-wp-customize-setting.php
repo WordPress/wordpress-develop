@@ -9,7 +9,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 /**
@@ -68,7 +68,7 @@ class WP_Customize_Setting {
 	 * The default value for the setting.
 	 *
 	 * @since 3.4.0
-	 * @var string
+	 * @var mixed
 	 */
 	public $default = '';
 
@@ -168,7 +168,7 @@ class WP_Customize_Setting {
 	 *     @type string          $type                 Type of the setting. Default 'theme_mod'.
 	 *     @type string          $capability           Capability required for the setting. Default 'edit_theme_options'
 	 *     @type string|string[] $theme_supports       Theme features required to support the panel. Default is none.
-	 *     @type string          $default              Default value for the setting. Default is empty string.
+	 *     @type mixed           $default              Default value for the setting. Default is empty string.
 	 *     @type string          $transport            Options for rendering the live preview of changes in Customizer.
 	 *                                                 Using 'refresh' makes the change visible by reloading the whole preview.
 	 *                                                 Using 'postMessage' allows a custom JavaScript to handle live changes.
@@ -178,7 +178,7 @@ class WP_Customize_Setting {
 	 *     @type callable        $sanitize_js_callback Callback to convert a Customize PHP setting value to a value that is
 	 *                                                 JSON serializable.
 	 *     @type bool            $dirty                Whether or not the setting is initially dirty when created.
-	 * }
+	 *                                                 }
 	 */
 	public function __construct( $manager, $id, $args = array() ) {
 		$keys = array_keys( get_object_vars( $this ) );
@@ -248,9 +248,7 @@ class WP_Customize_Setting {
 	 */
 	protected function aggregate_multidimensional() {
 		$id_base = $this->id_data['base'];
-		if ( ! isset( self::$aggregated_multidimensionals[ $this->type ] ) ) {
-			self::$aggregated_multidimensionals[ $this->type ] = array();
-		}
+		self::$aggregated_multidimensionals[ $this->type ] ??= array();
 		if ( ! isset( self::$aggregated_multidimensionals[ $this->type ][ $id_base ] ) ) {
 			self::$aggregated_multidimensionals[ $this->type ][ $id_base ] = array(
 				'previewed_instances'       => array(), // Calling preview() will add the $setting to the array.
@@ -856,7 +854,7 @@ class WP_Customize_Setting {
 	 * @param array $root
 	 * @param array $keys
 	 * @param bool  $create Default false.
-	 * @return array|void Keys are 'root', 'node', and 'key'.
+	 * @return array|null Keys are 'root', 'node', and 'key'.
 	 */
 	final protected function multidimensional( &$root, $keys, $create = false ) {
 		if ( $create && empty( $root ) ) {
@@ -864,7 +862,7 @@ class WP_Customize_Setting {
 		}
 
 		if ( ! isset( $root ) || empty( $keys ) ) {
-			return;
+			return null;
 		}
 
 		$last = array_pop( $keys );
@@ -876,7 +874,7 @@ class WP_Customize_Setting {
 			}
 
 			if ( ! is_array( $node ) || ! isset( $node[ $key ] ) ) {
-				return;
+				return null;
 			}
 
 			$node = &$node[ $key ];
@@ -887,13 +885,11 @@ class WP_Customize_Setting {
 				// Account for an array overriding a string or object value.
 				$node = array();
 			}
-			if ( ! isset( $node[ $last ] ) ) {
-				$node[ $last ] = array();
-			}
+			$node[ $last ] ??= array();
 		}
 
 		if ( ! isset( $node[ $last ] ) ) {
-			return;
+			return null;
 		}
 
 		return array(

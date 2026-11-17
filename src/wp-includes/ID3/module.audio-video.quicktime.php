@@ -153,7 +153,7 @@ class getid3_quicktime extends getid3_handler
 			foreach ($info['quicktime']['comments']['location.ISO6709'] as $ISO6709string) {
 				$ISO6709parsed = array('latitude'=>false, 'longitude'=>false, 'altitude'=>false);
 				if (preg_match('#^([\\+\\-])([0-9]{2}|[0-9]{4}|[0-9]{6})(\\.[0-9]+)?([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?(([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?)?/$#', $ISO6709string, $matches)) {
-					@list($dummy, $lat_sign, $lat_deg, $lat_deg_dec, $lon_sign, $lon_deg, $lon_deg_dec, $dummy, $alt_sign, $alt_deg, $alt_deg_dec) = $matches;
+					list($dummy, $lat_sign, $lat_deg, $lat_deg_dec, $lon_sign, $lon_deg, $lon_deg_dec, $dummy, $alt_sign, $alt_deg, $alt_deg_dec) = array_pad($matches, 11, '');
 
 					if (strlen($lat_deg) == 2) {        // [+-]DD.D
 						$ISO6709parsed['latitude'] = (($lat_sign == '-') ? -1 : 1) * (float) (ltrim($lat_deg, '0').$lat_deg_dec);
@@ -190,6 +190,7 @@ class getid3_quicktime extends getid3_handler
 				}
 				if ($ISO6709parsed['latitude'] === false) {
 					$this->warning('location.ISO6709 string not parsed correctly: "'.$ISO6709string.'", please submit as a bug');
+					unset($info['quicktime']['comments']['location.ISO6709']);
 				}
 				break;
 			}
@@ -317,7 +318,7 @@ $this->error('HEIF files not currently supported');
 						// some "ilst" atoms contain data atoms that have a numeric name, and the data is far more accessible if the returned array is compacted
 						$allnumericnames = true;
 						foreach ($atom_structure['subatoms'] as $subatomarray) {
-							if (!is_integer($subatomarray['name']) || (count($subatomarray['subatoms']) != 1)) {
+							if (!is_int($subatomarray['name']) || (count($subatomarray['subatoms']) != 1)) {
 								$allnumericnames = false;
 								break;
 							}
@@ -472,6 +473,9 @@ $this->error('HEIF files not currently supported');
 					} else {
 						// Apple item list box atom handler
 						$atomoffset = 0;
+// todo (2025-10-16): 0x10B5 is probably Packed ISO639-2/T language code so this code block is likely incorrect
+// need to locate sample file to figure out what is going on here and why this code was written as such
+// https://developer.apple.com/documentation/quicktime-file-format/language_code_values
 						if (substr($atom_data, 2, 2) == "\x10\xB5") {
 							// not sure what it means, but observed on iPhone4 data.
 							// Each $atom_data has 2 bytes of datasize, plus 0x10B5, then data
@@ -643,7 +647,9 @@ $this->error('HEIF files not currently supported');
 							}
 						}
 					}
-					$this->CopyToAppropriateCommentsSection($atomname, $atom_structure['data'], $atom_structure['name']);
+					if (!empty($atom_structure['data'])) { // https://github.com/JamesHeinrich/getID3/issues/477#issuecomment-3723356688
+						$this->CopyToAppropriateCommentsSection($atomname, $atom_structure['data'], $atom_structure['name']);
+					}
 					break;
 
 
@@ -821,6 +827,12 @@ $this->error('HEIF files not currently supported');
 						}
 					}
 
+					// prevent memory exhaustion from crafted files: each "stsd" entry is at least 16 bytes (4 size + 4 data_format + 6 reserved + 2 reference_index)
+					$max_entries = (int) floor(max(0, strlen($atom_data) - 8) / 16);
+					if ($atom_structure['number_entries'] > $max_entries) {
+						$this->warning('QuickTime atom "stsd" claims '.$atom_structure['number_entries'].' entries but only has data for '.$max_entries.', truncating');
+						$atom_structure['number_entries'] = $max_entries;
+					}
 					$stsdEntriesDataOffset = 8;
 					for ($i = 0; $i < (int) $atom_structure['number_entries']; $i++) {
 						$atom_structure['sample_description_table'][$i]['size']             = getid3_lib::BigEndian2Int(substr($atom_data, $stsdEntriesDataOffset, 4));
@@ -904,7 +916,7 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 										$info['fileformat'] = 'mp4';
 										$info['video']['fourcc'] = $atom_structure['sample_description_table'][$i]['data_format'];
 										if ($this->QuicktimeVideoCodecLookup($info['video']['fourcc'])) {
-											$info['video']['fourcc_lookup'] = $this->QuicktimeVideoCodecLookup($info['video']['fourcc']);
+											$info['video']['codec'] = $this->QuicktimeVideoCodecLookup($info['video']['fourcc']);
 										}
 
 										// https://www.getid3.org/phpBB3/viewtopic.php?t=1550
@@ -954,6 +966,11 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 									default:
 										break;
 								}
+								break;
+
+							case 'keys':
+								// 2025-Oct-17 probably something to do with this but I haven't found clear documentation explaining what I'm seeing, ignoring for now
+								// https://developer.apple.com/documentation/quicktime-file-format/metadata_key_declaration_atom/
 								break;
 
 							default:
@@ -1169,6 +1186,12 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 					$atom_structure['version']        = getid3_lib::BigEndian2Int(substr($atom_data,  0, 1));
 					$atom_structure['flags_raw']      = getid3_lib::BigEndian2Int(substr($atom_data,  1, 3)); // hardcoded: 0x0000
 					$atom_structure['number_entries'] = getid3_lib::BigEndian2Int(substr($atom_data,  4, 4));
+					// prevent memory exhaustion from crafted files: each "dref" entry is at least 12 bytes (4 size + 4 type + 1 version + 3 flags)
+					$max_entries = (int) floor(max(0, strlen($atom_data) - 8) / 12);
+					if ($atom_structure['number_entries'] > $max_entries) {
+						$this->warning('QuickTime atom "dref" claims '.$atom_structure['number_entries'].' entries but only has data for '.$max_entries.', truncating');
+						$atom_structure['number_entries'] = $max_entries;
+					}
 					$drefDataOffset = 8;
 					for ($i = 0; $i < $atom_structure['number_entries']; $i++) {
 						$atom_structure['data_references'][$i]['size']                    = getid3_lib::BigEndian2Int(substr($atom_data, $drefDataOffset, 4));
@@ -1307,6 +1330,12 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 					$atom_structure['version']        = getid3_lib::BigEndian2Int(substr($atom_data,  0, 1));
 					$atom_structure['flags_raw']      = getid3_lib::BigEndian2Int(substr($atom_data,  1, 3)); // hardcoded: 0x0000
 					$atom_structure['number_entries'] = getid3_lib::BigEndian2Int(substr($atom_data,  4, 4));
+					// prevent memory exhaustion from crafted files: each "elst" entry is at least 12 bytes (4 track_duration + 4 media_time + 4 media_rate)
+					$max_entries = (int) floor(max(0, strlen($atom_data) - 8) / 12);
+					if ($atom_structure['number_entries'] > $max_entries) {
+						$this->warning('QuickTime atom "elst" claims '.$atom_structure['number_entries'].' entries but only has data for '.$max_entries.', truncating');
+						$atom_structure['number_entries'] = $max_entries;
+					}
 					for ($i = 0; $i < $atom_structure['number_entries']; $i++ ) {
 						$atom_structure['edit_list'][$i]['track_duration'] =   getid3_lib::BigEndian2Int(substr($atom_data, 8 + ($i * 12) + 0, 4));
 						$atom_structure['edit_list'][$i]['media_time']     =   getid3_lib::BigEndian2Int(substr($atom_data, 8 + ($i * 12) + 4, 4));
@@ -1670,10 +1699,10 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 				case "\xA9".'xyz':  // GPS latitude+longitude+altitude
 					$atom_structure['data'] = $atom_data;
 					if (preg_match('#([\\+\\-][0-9\\.]+)([\\+\\-][0-9\\.]+)([\\+\\-][0-9\\.]+)?/$#i', $atom_data, $matches)) {
-						@list($all, $latitude, $longitude, $altitude) = $matches;
+						list($all, $latitude, $longitude, $altitude) = array_pad($matches, 4, '');
 						$info['quicktime']['comments']['gps_latitude'][]  = floatval($latitude);
 						$info['quicktime']['comments']['gps_longitude'][] = floatval($longitude);
-						if (!empty($altitude)) { // @phpstan-ignore-line
+						if (!empty($altitude)) {
 							$info['quicktime']['comments']['gps_altitude'][] = floatval($altitude);
 						}
 					} else {
@@ -1753,16 +1782,27 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 					break;
 
 				case 'data': // metaDATA atom
-					// seems to be 2 bytes language code (ASCII), 2 bytes unknown (set to 0x10B5 in sample I have), remainder is useful data
-					$atom_structure['language'] =                           substr($atom_data, 4 + 0, 2);
-					$atom_structure['unknown']  = getid3_lib::BigEndian2Int(substr($atom_data, 4 + 2, 2));
-					$atom_structure['data']     =                           substr($atom_data, 4 + 4);
+					// seems to be 2 bytes language code (ASCII), 2 bytes language code (probably packed ISO639-2/T), remainder is useful data
+					$atom_structure['lang2']    =                                                          substr($atom_data, 4 + 0, 2);
+					$atom_structure['lang3']    = $this->QuicktimeLanguageLookup(getid3_lib::BigEndian2Int(substr($atom_data, 4 + 2, 2)));
+					$atom_structure['data']     =                                                          substr($atom_data, 4 + 4);
 					$atom_structure['key_name'] = (isset($info['quicktime']['temp_meta_key_names'][$this->metaDATAkey]) ? $info['quicktime']['temp_meta_key_names'][$this->metaDATAkey] : '');
 					$this->metaDATAkey++;
 
 					switch ($atom_structure['key_name']) {
 						case 'com.android.capture.fps':
+						case 'com.apple.quicktime.live-photo.vitality-score':
 							$atom_structure['data'] = getid3_lib::BigEndian2Float($atom_structure['data']);
+							break;
+						case 'com.apple.quicktime.camera.focal_length.35mm_equivalent':
+						case 'com.apple.quicktime.live-photo.auto':
+						case 'com.apple.quicktime.live-photo.vitality-scoring-version':
+						case 'com.apple.quicktime.full-frame-rate-playback-intent':
+							$atom_structure['data'] = getid3_lib::BigEndian2Int($atom_structure['data']);
+							break;
+
+						case 'com.apple.quicktime.location.accuracy.horizontal':
+							$atom_structure['data'] = (float) $atom_structure['data']; // string representing float value e.g. "14.989691"
 							break;
 					}
 
@@ -1778,14 +1818,22 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 					$atom_structure['version']       = getid3_lib::BigEndian2Int(substr($atom_data,  0, 1));
 					$atom_structure['flags_raw']     = getid3_lib::BigEndian2Int(substr($atom_data,  1, 3));
 					$atom_structure['entry_count']   = getid3_lib::BigEndian2Int(substr($atom_data,  4, 4));
+					// prevent memory exhaustion from crafted files: each "keys" entry is at least 8 bytes (4 key_size + 4 key_namespace)
+					$max_entries = (int) floor(max(0, strlen($atom_data) - 8) / 8);
+					if ($atom_structure['entry_count'] > $max_entries) {
+						$this->warning('QuickTime atom "keys" claims '.$atom_structure['entry_count'].' entries but only has data for '.$max_entries.', truncating');
+						$atom_structure['entry_count'] = $max_entries;
+					}
 					$keys_atom_offset = 8;
-					for ($i = 1; $i <= $atom_structure['entry_count']; $i++) {
-						$atom_structure['keys'][$i]['key_size']      = getid3_lib::BigEndian2Int(substr($atom_data, $keys_atom_offset + 0, 4));
-						$atom_structure['keys'][$i]['key_namespace'] =                           substr($atom_data, $keys_atom_offset + 4, 4);
-						$atom_structure['keys'][$i]['key_value']     =                           substr($atom_data, $keys_atom_offset + 8, $atom_structure['keys'][$i]['key_size'] - 8);
-						$keys_atom_offset += $atom_structure['keys'][$i]['key_size']; // key_size includes the 4+4 bytes for key_size and key_namespace
 
-						$info['quicktime']['temp_meta_key_names'][$i] = $atom_structure['keys'][$i]['key_value'];
+					$keys_index_base = (!empty($info['quicktime']['temp_meta_key_names']) ? count($info['quicktime']['temp_meta_key_names']) : 0); // file may contain multiple "keys" entries, starting index should be culmulative not reset to 1 on each set; https://github.com/JamesHeinrich/getID3/issues/452
+					for ($i = 1; $i <= $atom_structure['entry_count']; $i++) {
+						$atom_structure['keys'][($keys_index_base + $i)]['key_size']      = getid3_lib::BigEndian2Int(substr($atom_data, $keys_atom_offset + 0, 4));
+						$atom_structure['keys'][($keys_index_base + $i)]['key_namespace'] =                           substr($atom_data, $keys_atom_offset + 4, 4);
+						$atom_structure['keys'][($keys_index_base + $i)]['key_value']     =                           substr($atom_data, $keys_atom_offset + 8, $atom_structure['keys'][($keys_index_base + $i)]['key_size'] - 8);
+						$keys_atom_offset += $atom_structure['keys'][($keys_index_base + $i)]['key_size']; // key_size includes the 4+4 bytes for key_size and key_namespace
+
+						$info['quicktime']['temp_meta_key_names'][($keys_index_base + $i)] = $atom_structure['keys'][($keys_index_base + $i)]['key_value'];
 					}
 					break;
 
@@ -2231,6 +2279,34 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 					$esds_offset += $atom_structure['ES_SLConfigDescrTagSize'];
 					break;
 
+				case 'sgpd': // https://developer.apple.com/documentation/quicktime-file-format/sample_group_description_atom
+					$atom_structure['version']   = getid3_lib::BigEndian2Int(substr($atom_data,  0, 1)); // hardcoded: 0x00
+					$atom_structure['flags_raw'] = getid3_lib::BigEndian2Int(substr($atom_data,  1, 3)); // hardcoded: 0x000000
+					$sgpd_offset = 4;
+
+					$atom_structure['grouping_type'] = getid3_lib::BigEndian2Int(substr($atom_data, $sgpd_offset, 4));
+					$sgpd_offset += 4;
+					$atom_structure['default_length'] = getid3_lib::BigEndian2Int(substr($atom_data, $sgpd_offset, 4));
+					$sgpd_offset += 4;
+					$atom_structure['entry_count'] = getid3_lib::BigEndian2Int(substr($atom_data, $sgpd_offset, 4));
+					$sgpd_offset += 4;
+					$atom_structure['payload_data_raw'] = substr($atom_data, $sgpd_offset);
+					break;
+
+				case 'sbgp': // https://developer.apple.com/documentation/quicktime-file-format/sample-to-group_atom
+					$atom_structure['version']   = getid3_lib::BigEndian2Int(substr($atom_data,  0, 1)); // hardcoded: 0x00
+					$atom_structure['flags_raw'] = getid3_lib::BigEndian2Int(substr($atom_data,  1, 3)); // hardcoded: 0x000000
+					$sbgp_offset = 4;
+
+					$atom_structure['grouping_type'] = getid3_lib::BigEndian2Int(substr($atom_data, $sbgp_offset, 4));
+					$sbgp_offset += 4;
+					$atom_structure['default_length'] = getid3_lib::BigEndian2Int(substr($atom_data, $sbgp_offset, 4));
+					$sbgp_offset += 4;
+					$atom_structure['entry_count'] = getid3_lib::BigEndian2Int(substr($atom_data, $sbgp_offset, 4));
+					$sbgp_offset += 4;
+					$atom_structure['table_data_raw'] = substr($atom_data, $sbgp_offset);
+					break;
+
 // AVIF-related - https://docs.rs/avif-parse/0.13.2/src/avif_parse/boxes.rs.html
 				case 'pitm': // Primary ITeM
 				case 'iloc': // Item LOCation
@@ -2319,6 +2395,9 @@ $this->error('fragmented mp4 files not currently supported');
 		$num_bytes = 0;
 		$length    = 0;
 		do {
+			if ($offset >= strlen($data)) { // https://github.com/JamesHeinrich/getID3/issues/477#issuecomment-4351311805
+				break;
+			}
 			$b = ord(substr($data, $offset++, 1));
 			$length = ($length << 7) | ($b & 0x7F);
 		} while (($b & 0x80) && ($num_bytes++ < 4));
@@ -2332,6 +2411,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 */
 	public function QuicktimeLanguageLookup($languageid) {
 		// http://developer.apple.com/library/mac/#documentation/QuickTime/QTFF/QTFFChap4/qtff4.html#//apple_ref/doc/uid/TP40000939-CH206-34353
+		// https://developer.apple.com/documentation/quicktime-file-format/language_code_values
 		static $QuicktimeLanguageLookup = array();
 		if (empty($QuicktimeLanguageLookup)) {
 			$QuicktimeLanguageLookup[0]     = 'English';
@@ -3047,11 +3127,13 @@ $this->error('fragmented mp4 files not currently supported');
 	public function MaybePascal2String($pascalstring) {
 		// Pascal strings have 1 unsigned byte at the beginning saying how many chars (1-255) are in the string
 		// Check if string actually is in this format or written incorrectly, straight string, or null-terminated string
-		if (ord(substr($pascalstring, 0, 1)) == (strlen($pascalstring) - 1)) {
-			return substr($pascalstring, 1);
-		} elseif (substr($pascalstring, -1, 1) == "\x00") {
-			// appears to be null-terminated instead of Pascal-style
-			return substr($pascalstring, 0, -1);
+		if (strlen($pascalstring) > 0) {
+			if (ord(substr($pascalstring, 0, 1)) == (strlen($pascalstring) - 1)) {
+				return substr($pascalstring, 1);
+			} elseif (substr($pascalstring, -1, 1) == "\x00") {
+				// appears to be null-terminated instead of Pascal-style
+				return substr($pascalstring, 0, -1);
+			}
 		}
 		return $pascalstring;
 	}

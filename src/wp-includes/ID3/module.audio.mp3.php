@@ -748,6 +748,7 @@ class getid3_mp3 extends getid3_handler
 						$thisfile_mpeg_audio_lame['numeric_version'] = $matches[1];
 					}
 					if (strlen($thisfile_mpeg_audio_lame['numeric_version']) > 0) {
+						$thisfile_mpeg_audio_lame['integer_version'] = array(0, 0); // initialize to prevent undefined array keys later in case of malformed numeric_version -- https://github.com/JamesHeinrich/getID3/issues/477
 						foreach (explode('.', $thisfile_mpeg_audio_lame['numeric_version']) as $key => $number) {
 							$thisfile_mpeg_audio_lame['integer_version'][$key] = intval($number);
 						}
@@ -1178,7 +1179,7 @@ class getid3_mp3 extends getid3_handler
 
 			$nextframetestarray = array('error' => array(), 'warning' => array(), 'avdataend' => $info['avdataend'], 'avdataoffset'=>$info['avdataoffset']);
 			if ($this->decodeMPEGaudioHeader($nextframetestoffset, $nextframetestarray, false)) {
-				getid3_lib::safe_inc($info['mp3_validity_check_bitrates'][$nextframetestarray['mpeg']['audio']['bitrate']]);
+				getid3_lib::safe_inc($info['mp3_validity_check_bitrates'][intval($nextframetestarray['mpeg']['audio']['bitrate'])]);
 				if ($ScanAsCBR) {
 					// force CBR mode, used for trying to pick out invalid audio streams with valid(?) VBR headers, or VBR streams with no VBR header
 					if (!isset($nextframetestarray['mpeg']['audio']['bitrate']) || !isset($firstframetestarray['mpeg']['audio']['bitrate']) || ($nextframetestarray['mpeg']['audio']['bitrate'] != $firstframetestarray['mpeg']['audio']['bitrate'])) {

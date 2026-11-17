@@ -334,7 +334,7 @@ function iis7_save_url_rewrite_rules() {
  *
  * @since 1.5.0
  *
- * @param string $file
+ * @param string $file Path to the recently edited file.
  */
 function update_recently_edited( $file ) {
 	$oldfiles = (array) get_option( 'recently_edited' );
@@ -563,8 +563,8 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
  *
  * @since 2.1.0
  *
- * @param string $old_value
- * @param string $value
+ * @param string $old_value The old value of the option. Unused.
+ * @param string $value     The new value of the option. Unused.
  */
 function update_home_siteurl( $old_value, $value ) {
 	if ( wp_installing() ) {
@@ -608,7 +608,7 @@ function wp_reset_vars( $vars ) {
  *
  * @since 2.1.0
  *
- * @param string|WP_Error $message
+ * @param string|WP_Error $message The message to display, or a WP_Error object.
  */
 function show_message( $message ) {
 	if ( is_wp_error( $message ) ) {
@@ -625,9 +625,11 @@ function show_message( $message ) {
 }
 
 /**
+ * Parses the PHP content and finds function calls to be used for documentation linking.
+ *
  * @since 2.8.0
  *
- * @param string $content
+ * @param string $content The PHP content to parse.
  * @return string[] Array of function names.
  */
 function wp_doc_link_parse( $content ) {
@@ -831,7 +833,6 @@ function iis7_rewrite_rule_exists( $filename ) {
 	}
 
 	$doc = new DOMDocument();
-
 	if ( $doc->load( $filename ) === false ) {
 		return false;
 	}
@@ -978,8 +979,8 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
  *
  * @since 2.8.0
  *
- * @param DOMDocument $doc
- * @param string      $filename
+ * @param DOMDocument $doc      The DOMDocument object to save.
+ * @param string      $filename The file path to save the XML document to.
  */
 function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$config = $doc->saveXML();
@@ -1032,9 +1033,10 @@ function admin_color_scheme_picker( $user_id ) {
 
 			?>
 			<div class="color-option <?php echo ( $color === $current_color ) ? 'selected' : ''; ?>">
-				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" class="tog" <?php checked( $color, $current_color ); ?> />
+				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" <?php checked( $color, $current_color ); ?> />
 				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
 				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
+				<input type="hidden" class="menu_icon_styles" value="<?php echo esc_attr( _wp_get_color_scheme_menu_icon_styles( $color ) ); ?>" />
 				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
 				<div class="color-palette">
 				<?php
@@ -1055,6 +1057,7 @@ function admin_color_scheme_picker( $user_id ) {
 }
 
 /**
+ * Outputs the JavaScript for the admin color scheme settings.
  *
  * @since 3.8.0
  *
@@ -1077,13 +1080,81 @@ function wp_color_scheme_settings() {
 	} else {
 		// Fall back to the default set of icon colors if the default scheme is missing.
 		$icon_colors = array(
-			'base'    => '#a7aaad',
+			'base'    => '#c3c4c7',
 			'focus'   => '#72aee6',
 			'current' => '#fff',
 		);
 	}
 
 	echo '<script>var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
+}
+
+/**
+ * Colors inline SVG admin menu icons with the icon colors of the current admin color scheme.
+ *
+ * These are the colors a scheme registers through the `$icons` argument of
+ * wp_admin_css_color(). svg-painter.js applies the same colors to menu icons
+ * given as base64-encoded SVG; this does it for inline SVG icons, with CSS.
+ *
+ * The rules are printed before the stylesheet of the scheme, so a scheme
+ * that colors the icon element itself overrides them.
+ *
+ * @since 7.2.0
+ *
+ * @see wp_color_scheme_settings()
+ */
+function wp_color_scheme_menu_icon_styles() {
+	$styles = _wp_get_color_scheme_menu_icon_styles( get_user_option( 'admin_color' ) );
+
+	if ( '' !== $styles ) {
+		wp_add_inline_style( 'admin-menu', $styles );
+	}
+}
+
+/**
+ * Returns the CSS that colors inline SVG admin menu icons with the icon colors of an admin color scheme.
+ *
+ * A scheme without icon colors gets CSS that makes the icons follow the
+ * text color of the menu links instead.
+ *
+ * The color scheme picker also passes it to user-profile.js, which applies
+ * it when another scheme is selected.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global array $_wp_admin_css_colors
+ *
+ * @param string $color_scheme The name of the color scheme.
+ * @return string The CSS, or an empty string if the scheme needs none.
+ */
+function _wp_get_color_scheme_menu_icon_styles( $color_scheme ) {
+	global $_wp_admin_css_colors;
+
+	if ( empty( $_wp_admin_css_colors[ $color_scheme ] ) ) {
+		return '';
+	}
+
+	// The core schemes have no stylesheet of their own, or one from the core colors directory.
+	$url = $_wp_admin_css_colors[ $color_scheme ]->url;
+	if ( ! is_string( $url ) || '' === $url || str_starts_with( $url, admin_url( 'css/colors/' ) ) ) {
+		return '';
+	}
+
+	$base_selector    = '#adminmenu div.wp-menu-image';
+	$focus_selector   = '#adminmenu li:hover div.wp-menu-image,#adminmenu li a:focus div.wp-menu-image,#adminmenu li.opensub div.wp-menu-image';
+	$current_selector = '#adminmenu li.wp-has-current-submenu div.wp-menu-image,#adminmenu li.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.current:hover div.wp-menu-image,#adminmenu li.current div.wp-menu-image,#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image,#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image';
+
+	$icon_colors = array_map( 'sanitize_hex_color', wp_parse_args( (array) $_wp_admin_css_colors[ $color_scheme ]->icon_colors, array_fill_keys( array( 'base', 'focus', 'current' ), '' ) ) );
+
+	// Without icon colors, the icons follow the text color that the scheme gives to the menu links.
+	if ( ! $icon_colors['base'] || ! $icon_colors['focus'] || ! $icon_colors['current'] ) {
+		return "$base_selector,$focus_selector,$current_selector{color:inherit}";
+	}
+
+	return "$base_selector{color:{$icon_colors['base']}}" .
+		"$focus_selector{color:{$icon_colors['focus']}}" .
+		"$current_selector{color:{$icon_colors['current']}}";
 }
 
 /**
@@ -1567,12 +1638,14 @@ function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
  * @return array|false {
  *     Array of PHP version data. False on failure.
  *
- *     @type string $recommended_version The PHP version recommended by WordPress.
- *     @type string $minimum_version     The minimum required PHP version.
- *     @type bool   $is_supported        Whether the PHP version is actively supported.
- *     @type bool   $is_secure           Whether the PHP version receives security updates.
- *     @type bool   $is_acceptable       Whether the PHP version is still acceptable or warnings
- *                                       should be shown and an update recommended.
+ *     @type string $recommended_version          The PHP version recommended by WordPress.
+ *     @type string $minimum_version              The minimum required PHP version.
+ *     @type bool   $is_supported                 Whether the PHP version is actively supported.
+ *     @type bool   $is_secure                    Whether the PHP version receives security updates.
+ *     @type bool   $is_acceptable                Whether the PHP version is still acceptable or warnings
+ *                                                should be shown and an update recommended.
+ *     @type bool   $is_lower_than_future_minimum Whether the PHP version is lower than the minimum PHP
+ *                                                version WordPress will require in a future release.
  * }
  */
 function wp_check_php_version() {

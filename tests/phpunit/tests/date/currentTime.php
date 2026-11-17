@@ -145,7 +145,7 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_timezones() {
+	public static function data_timezones() {
 		return array(
 			array( 'Europe/Helsinki' ),
 			array( 'Indian/Antananarivo' ),
@@ -242,7 +242,7 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 		 * Adjust for daylight saving time.
 		 *
 		 * DST adds an hour to the offset, the partial hour offset
-		 * is set the the standard time offset so this removes the
+		 * is set to the standard time offset, so this removes the
 		 * DST offset to avoid false negatives.
 		 */
 		$offset -= $dst_offset;
@@ -255,7 +255,7 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_partial_hour_timezones_with_timestamp() {
+	public static function data_partial_hour_timezones_with_timestamp() {
 		return array(
 			'+12:45' => array( 12.75, 'Pacific/Chatham' ), // New Zealand, Chatham Islands.
 			'+9:30'  => array( 9.5, 'Australia/Darwin' ), // Australian Northern Territory.
