@@ -51,6 +51,13 @@ require_once __DIR__ . '/baseline-includes.php';
 const DEFAULT_OUTPUT_DIR = 'tests/phpstan/baselines';
 
 /**
+ * The statement every loader this script writes ends in.
+ *
+ * build_loader() writes it, and is_generated_loader() looks for it.
+ */
+const LOADER_RETURN = 'return \WordPress\PHPStan\get_baseline_includes( __DIR__ );';
+
+/**
  * The configuration analyzed when `--config` does not name one.
  *
  * Relative to the repository root.
@@ -209,7 +216,9 @@ if ( $prune ) {
  * not write is not a baselines directory, such as `tests/phpstan` with its
  * `base.neon`. Its loader would include that file as a baseline, and a reported
  * identifier of the same name would overwrite it, so the run stops before any
- * analysis rather than writing there.
+ * analysis rather than writing there. So it does for a `loader.php` that is not
+ * one this script writes, such as another tool's bootstrap, which writing the
+ * loader would replace.
  */
 if ( is_dir( $output_dir ) ) {
 	$foreign = array();
@@ -219,11 +228,15 @@ if ( is_dir( $output_dir ) ) {
 		}
 	}
 
+	if ( is_file( $output_dir . '/loader.php' ) && ! is_generated_loader( read_file( $output_dir . '/loader.php' ) ) ) {
+		$foreign[] = 'loader.php';
+	}
+
 	if ( $foreign ) {
 		fwrite(
 			STDERR,
 			sprintf(
-				"%s holds files named like baselines that this script did not write: %s\nChoose a directory of its own for --output-dir.\n",
+				"%s holds files named like baselines, or a loader, that this script did not write: %s\nChoose a directory of its own for --output-dir.\n",
 				$output_option,
 				implode( ', ', $foreign )
 			)
@@ -751,11 +764,26 @@ function build_loader( string $output_dir ): string {
 
 		require_once __DIR__ . %s;
 
-		return \WordPress\PHPStan\get_baseline_includes( __DIR__ );
+		%s
 
 		PHP,
-		var_export( '/' . $relative, true )
+		var_export( '/' . $relative, true ),
+		LOADER_RETURN
 	);
+}
+
+/**
+ * Determines whether a file's contents are a loader this script wrote.
+ *
+ * Every loader build_loader() writes ends in LOADER_RETURN, whatever the path it
+ * requires the shared file by, so a `loader.php` without it belongs to something
+ * else, and is not to be replaced.
+ *
+ * @param string $contents Contents of a `loader.php`.
+ * @return bool Whether it is a loader this script wrote.
+ */
+function is_generated_loader( string $contents ): bool {
+	return false !== strpos( $contents, LOADER_RETURN );
 }
 
 /**
