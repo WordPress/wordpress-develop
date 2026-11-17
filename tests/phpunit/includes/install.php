@@ -93,11 +93,17 @@ add_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
 
 wp_install( WP_TESTS_TITLE, 'admin', WP_TESTS_EMAIL, true, '', 'password' );
 
-// Delete dummy permalink structure, as prefilled above.
-if ( ! is_multisite() ) {
+remove_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
+
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
+	$wp_rewrite->init();
+	$wp_rewrite->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+	create_initial_taxonomies();
+	$wp_rewrite->flush_rules();
+} elseif ( ! is_multisite() ) {
+	// Delete dummy permalink structure, as prefilled above.
 	delete_option( 'permalink_structure' );
 }
-remove_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
 
 if ( $multisite ) {
 	echo 'Installing network...' . PHP_EOL;
@@ -114,5 +120,12 @@ if ( $multisite ) {
 		wp_die( $error );
 	}
 
-	$wp_rewrite->set_permalink_structure( '' );
+	if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
+		$wp_rewrite->init();
+		$wp_rewrite->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
+		create_initial_taxonomies();
+		$wp_rewrite->flush_rules();
+	} else {
+		$wp_rewrite->set_permalink_structure( '' );
+	}
 }

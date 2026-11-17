@@ -87,6 +87,47 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	}
 
 	/**
+	 * Moves to the matching closer tag of the current opener tag and replaces
+	 * the content between them.
+	 *
+	 * The matching closer tag is found as in
+	 * {@see WP_Interactivity_API_Directives_Processor::next_balanced_tag_closer_tag()}.
+	 * The new content is written as given. Unlike
+	 * {@see WP_Interactivity_API_Directives_Processor::set_content_between_balanced_tags()},
+	 * it neither applies the pending updates nor seeks back to the opener tag,
+	 * so it can be called any number of times on the same processor.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @access private
+	 *
+	 * @param string $new_content The markup to replace the content between the matching tags with.
+	 * @return bool Whether the matching closer tag was found. When it is not found, the cursor is at the end
+	 *              of the HTML and nothing is replaced.
+	 */
+	public function skip_to_balanced_tag_closer( string $new_content ): bool {
+		$bookmarks = $this->get_balanced_tag_bookmarks();
+		if ( ! $bookmarks ) {
+			return false;
+		}
+		list( $opener_tag, $closer_tag ) = $bookmarks;
+
+		$after_opener_tag  = $this->bookmarks[ $opener_tag ]->start + $this->bookmarks[ $opener_tag ]->length;
+		$before_closer_tag = $this->bookmarks[ $closer_tag ]->start;
+
+		$this->release_bookmark( $opener_tag );
+		$this->release_bookmark( $closer_tag );
+
+		$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+			$after_opener_tag,
+			$before_closer_tag - $after_opener_tag,
+			$new_content
+		);
+
+		return true;
+	}
+
+	/**
 	 * Appends content after the closing tag of a template tag.
 	 *
 	 * It positions the cursor in the closer tag of the balanced template tag,

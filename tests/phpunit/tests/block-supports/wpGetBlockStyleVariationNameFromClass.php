@@ -33,7 +33,7 @@ class Tests_Block_Supports_WpGetBlockStyleVariationNameFromClass extends WP_Unit
 	 *
 	 * @return array
 	 */
-	public function data_block_style_variation_name_extraction() {
+	public static function data_block_style_variation_name_extraction() {
 		return array(
 			// @ticket 61312
 			'missing class string' => array(

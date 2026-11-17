@@ -78,7 +78,7 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 		unregister_block_type( 'test/block' );
 	}
 
-	public function data_update_block_with_value_from_source() {
+	public static function data_update_block_with_value_from_source() {
 		return array(
 			'paragraph block' => array(
 				'content',
@@ -180,20 +180,14 @@ HTML
 		);
 	}
 
-	public function data_different_get_value_callbacks() {
+	public static function data_different_get_value_callbacks() {
 		return array(
-			'pass arguments to source'        => array(
+			'pass arguments to source' => array(
 				function ( $source_args, $block_instance, $attribute_name ) {
 					$value = $source_args['key'];
 					return "The attribute name is '$attribute_name' and its binding has argument 'key' with value '$value'.";
 				},
 				"<p class=\"wp-block-paragraph\">The attribute name is 'content' and its binding has argument 'key' with value 'test'.</p>",
-			),
-			'unsafe HTML should be sanitized' => array(
-				function () {
-					return '<script>alert("Unsafe HTML")</script>';
-				},
-				'<p class="wp-block-paragraph"></p>',
 			),
 			'symbols and numbers should be rendered correctly' => array(
 				function () {
@@ -240,6 +234,38 @@ HTML;
 			'<body>',
 			'The block content should be updated with the value returned by the source.'
 		);
+	}
+
+	/**
+	 * Tests that unsafe HTML returned by the source is sanitized.
+	 *
+	 * @ticket 60651
+	 * @ticket 66208
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_unsafe_html_from_source_is_sanitized() {
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => function () {
+					return '<script>alert("Unsafe HTML")</script>';
+				},
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source"}}}} -->
+<p>This should not appear</p>
+<!-- /wp:paragraph -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		$processor = new WP_HTML_Tag_Processor( $result );
+		$this->assertFalse( $processor->next_tag( 'SCRIPT' ), 'The SCRIPT element should be removed.' );
 	}
 
 	/**
@@ -507,7 +533,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_rich_text_binding_preserves_nested_inner_blocks() {
+	public static function data_rich_text_binding_preserves_nested_inner_blocks() {
 		$child_list = self::build_list_block(
 			array(
 				self::build_list_item_block( 'Nested child' ),
