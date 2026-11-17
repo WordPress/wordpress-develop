@@ -7,7 +7,7 @@
  * refreshing one baseline among several: rerunning it would sweep every other
  * kind of error into the same file.
  *
- * This wrapper runs the analysis with the existing per-identifier baselines
+ * This wrapper runs the analysis with the baselines being regenerated
  * suppressed, so their errors surface again, then splits the result by
  * identifier and writes one file per kind. Each file is self-describing and is
  * meant to shrink to nothing and then be deleted.
