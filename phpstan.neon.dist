@@ -18,7 +18,7 @@ includes:
 
 	# Preexisting errors that should be ignored, one baseline per error identifier
 	# so that the remaining work on each is visible as a single shrinking file.
-	# Each is meant to reach zero and be deleted, taking its line below with it.
+	# Each is meant to reach zero and be deleted.
 	# https://phpstan.org/user-guide/baseline
 	#
 	# Regenerate with `composer phpstan:baselines`, which rewrites both the files
