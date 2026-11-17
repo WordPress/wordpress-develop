@@ -695,13 +695,17 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			/*
 			 * To be more efficient, resample large images to 5x the destination size before resizing
 			 * whenever the output size is less that 1/3 of the original image size (1/3^2 ~= .111),
-			 * unless we would be resampling to a scale smaller than 128x128.
+			 * unless we would be resampling to a scale smaller than 128x128, or the resampled
+			 * dimensions would be larger than or equal to the current image dimensions.
 			 */
 			if ( is_callable( array( $this->image, 'sampleImage' ) ) ) {
 				$resize_ratio  = ( $dst_w / $this->size['width'] ) * ( $dst_h / $this->size['height'] );
 				$sample_factor = 5;
 
-				if ( $resize_ratio < .111 && ( $dst_w * $sample_factor > 128 && $dst_h * $sample_factor > 128 ) ) {
+				if ( $resize_ratio < .111
+					&& ( $dst_w * $sample_factor > 128 && $dst_h * $sample_factor > 128 )
+					&& ( $dst_w * $sample_factor < $this->size['width'] && $dst_h * $sample_factor < $this->size['height'] )
+				) {
 					$this->image->sampleImage( $dst_w * $sample_factor, $dst_h * $sample_factor );
 				}
 			}
@@ -928,6 +932,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		try {
 			$this->image->cropImage( $src_w, $src_h, $src_x, $src_y );
 			$this->image->setImagePage( $src_w, $src_h, 0, 0 );
+			$this->update_size( $src_w, $src_h );
 
 			if ( $dst_w || $dst_h ) {
 				/*
