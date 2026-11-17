@@ -289,6 +289,15 @@ $command = sprintf(
 fwrite( STDERR, "Analyzing with $config_option, baselines in $output_option suppressed...\n" );
 
 /*
+ * Writing anywhere but the default leaves the default baselines in force, so a
+ * run expecting every error, rather than those the others leave, would come up
+ * short with nothing to say why.
+ */
+if ( DEFAULT_OUTPUT_DIR !== trim( normalize_path( $output_option ), '/' ) ) {
+	fwrite( STDERR, "Baselines in other directories stay in force, so only the errors they leave are written.\n" );
+}
+
+/*
  * PHPStan inherits it, as do the worker processes it starts. The loader compares
  * it with its __DIR__, which PHP resolves to a real path, so it is resolved the
  * same way. An output directory not created yet holds no loader to match.
