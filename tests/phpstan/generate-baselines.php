@@ -306,10 +306,13 @@ fwrite( STDERR, "Analyzing with $config_option, baselines in $output_option supp
 /*
  * PHPStan inherits it, as do the worker processes it starts. The loader compares
  * it with its __DIR__, which PHP resolves to a real path, so it is resolved the
- * same way. An output directory not created yet holds no loader to match.
+ * same way. An output directory not created yet holds no loader to match, so it
+ * is not set at all then.
  */
 $resolved_output_dir = realpath( $output_dir );
-putenv( GENERATING_BASELINES_ENV . '=' . ( false !== $resolved_output_dir ? $resolved_output_dir : $output_dir ) );
+if ( false !== $resolved_output_dir ) {
+	putenv( GENERATING_BASELINES_ENV . '=' . $resolved_output_dir );
+}
 
 /*
  * The baselines in any other directory the configuration includes stay in force,
