@@ -1263,6 +1263,14 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	padding: 12px 16px;
 }
 
+.media-modal .attachments-browser .media-toolbar {
+	height: 60px;
+}
+
+.media-modal .attachments-browser .media-toolbar-secondary {
+	grid-template-rows: min-content min-content;
+}
+
 .attachments-browser.hide-sidebar .media-toolbar {
 	right: 0;
 }
@@ -1292,6 +1300,12 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 
 .attachments-browser .uploader-inline.hidden {
 	display: none;
+}
+
+.media-modal .attachments-browser:not(.has-load-more) .attachments,
+.media-modal .attachments-browser.has-load-more .attachments-wrapper,
+.media-modal .attachments-browser .uploader-inline {
+	top: 84px;
 }
 
 .attachments-browser .media-toolbar-primary {
@@ -2652,11 +2666,21 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 		height: 117px;
 	}
 
+	.media-modal .attachments-browser .media-toolbar {
+		height: 136px;
+	}
+
 	.attachments-browser .attachments,
 	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.media-frame-content .attachments-browser .attachments-wrapper {
 		top: 131px;
+	}
+
+	.media-modal .attachments-browser:not(.has-load-more) .attachments,
+	.media-modal .attachments-browser.has-load-more .attachments-wrapper,
+	.media-modal .attachments-browser .uploader-inline {
+		top: 160px;
 	}
 
 	.media-sidebar .setting,
