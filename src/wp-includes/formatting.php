@@ -317,7 +317,8 @@ function wptexturize( $text, $reset = false ) {
 
 			$inline_apostrophe    = false;
 			$inline_quote_context = 0;
-			if ( null !== $inline_start && ( "'" === $curl[0] || '"' === $curl[0] ) ) {
+			// A static replacement may have emptied the token.
+			if ( null !== $inline_start && '' !== $curl && ( "'" === $curl[0] || '"' === $curl[0] ) ) {
 				$context = _wptexturize_get_text_context( $last_text, $closing_quotes );
 				for ( $index = $inline_start; $context && $index < $key; ++$index ) {
 					$inline_tag           = _wptexturize_get_inline_tag_type( $textarr[ $index ] );
@@ -396,7 +397,7 @@ function wptexturize( $text, $reset = false ) {
 /**
  * Classifies the trailing text context used at inline HTML boundaries.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  *
  * @param string   $text           Formatted text token.
@@ -436,7 +437,7 @@ function _wptexturize_get_text_context( $text, $closing_quotes ) {
 /**
  * Classifies an inline HTML delimiter without parsing its attribute values.
  *
- * @since 7.2.0
+ * @since 7.3.0
  * @access private
  *
  * @param string $text HTML delimiter token.

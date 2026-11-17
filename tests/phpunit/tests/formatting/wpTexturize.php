@@ -237,6 +237,25 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $expected, wptexturize( $input ) );
 	}
 
+	/**
+	 * A text token emptied by a static replacement inside an inline tag must not
+	 * be read as a quote boundary.
+	 *
+	 * @ticket 18549
+	 */
+	public function test_inline_context_with_emptied_token() {
+		global $wp_cockneyreplace;
+
+		$original          = $wp_cockneyreplace ?? null;
+		$wp_cockneyreplace = array( 'remove' => '' );
+		try {
+			$this->assertSame( 'word<em></em>', wptexturize( 'word<em>remove</em>', true ) );
+		} finally {
+			$wp_cockneyreplace = $original;
+			wptexturize( 'reset', true );
+		}
+	}
+
 	public function data_inline_word_context() {
 		return array(
 			'opening contraction'     => array( "I<strong>'ve been</strong>", 'I<strong>&#8217;ve been</strong>' ),
@@ -256,6 +275,10 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			'self closing boundary'   => array( "word<span/><em>'Hello'</em>", 'word<span/><em>&#8216;Hello&#8217;</em>' ),
 			'opaque code'             => array( "word<code><em>'Hello'</em></code>", "word<code><em>'Hello'</em></code>" ),
 			'opaque boundary'         => array( "word<code>x</code><em>'Hello'</em>", 'word<code>x</code><em>&#8216;Hello&#8217;</em>' ),
+			// From PR #12645 (props irozum).
+			'closing contraction'     => array( "That<em>'s</em> right.", 'That<em>&#8217;s</em> right.' ),
+			'space before inline tag' => array( "word <strong>'ve been</strong>", 'word <strong>&#8216;ve been</strong>' ),
+			'block tag after word'    => array( "word<div>'ve been</div>", 'word<div>&#8216;ve been</div>' ),
 		);
 	}
 
