@@ -289,21 +289,25 @@ $command = sprintf(
 fwrite( STDERR, "Analyzing with $config_option, baselines in $output_option suppressed...\n" );
 
 /*
- * Writing anywhere but the default leaves the default baselines in force, so a
- * run expecting every error, rather than those the others leave, would come up
- * short with nothing to say why.
- */
-if ( DEFAULT_OUTPUT_DIR !== trim( normalize_path( $output_option ), '/' ) ) {
-	fwrite( STDERR, "Baselines in other directories stay in force, so only the errors they leave are written.\n" );
-}
-
-/*
  * PHPStan inherits it, as do the worker processes it starts. The loader compares
  * it with its __DIR__, which PHP resolves to a real path, so it is resolved the
  * same way. An output directory not created yet holds no loader to match.
  */
 $resolved_output_dir = realpath( $output_dir );
 putenv( GENERATING_BASELINES_ENV . '=' . ( false !== $resolved_output_dir ? $resolved_output_dir : $output_dir ) );
+
+/*
+ * The baselines in any other directory the configuration includes stay in force,
+ * so a run expecting every error, rather than those the others leave, would come
+ * up short with nothing to say why. The default configuration includes only the
+ * default directory's, so that is the one combination with nothing to say. Any
+ * other, whether a configuration including the default one alongside a loader of
+ * its own, or a directory other than the default, may well leave some in force.
+ * The directories are compared as resolved, as the loader does.
+ */
+if ( DEFAULT_CONFIG !== $config_relative || realpath( $repo_root . '/' . DEFAULT_OUTPUT_DIR ) !== $resolved_output_dir ) {
+	fwrite( STDERR, "Baselines in any other directory the configuration includes stay in force, so only the errors they leave are written.\n" );
+}
 
 $exit_code = 0;
 passthru( $command, $exit_code );
