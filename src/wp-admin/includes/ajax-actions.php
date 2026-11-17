@@ -3705,7 +3705,7 @@ function wp_ajax_query_themes() {
 			);
 		}
 
-		$theme->name        = wp_kses( $theme->name, $themes_allowedtags );
+		$theme->name        = html_entity_decode( wp_strip_all_tags( $theme->name ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 		$theme->author      = wp_kses( $theme->author['display_name'], $themes_allowedtags );
 		$theme->version     = wp_kses( $theme->version, $themes_allowedtags );
 		$theme->description = wp_kses( $theme->description, $themes_allowedtags );
