@@ -4810,7 +4810,6 @@ function wp_check_jsonp_callback( $callback ) {
  *               `null` is returned if the file is not found, or its content can't be decoded.
  */
 function wp_json_file_decode( $filename, $options = array() ) {
-
 	$normalized_filename = wp_normalize_path( realpath( $filename ) );
 
 	if ( ! $normalized_filename ) {
