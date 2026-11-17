@@ -3,58 +3,13 @@
  * Includes every PHPStan baseline in this directory.
  *
  * A configuration includes this file rather than listing the baselines one by
- * one, so that adding a baseline, or deleting one that has reached zero, needs no
- * edit of the configuration. A NEON configuration can only include files by name,
- * but a PHP one returns the same structure and can find them itself.
+ * one.
  *
- * `composer phpstan:baselines` copies this file into any other directory it is
- * told to write baselines to, so nothing here is specific to one directory.
- *
- * PHPStan keys its cache of the configuration on the files it includes, so a
- * baseline added or deleted here takes effect on the next run.
- *
- * `composer phpstan:baselines` sets WP_PHPSTAN_GENERATING_BASELINES to the
- * directory it is writing baselines to while it analyzes, so that the errors
- * those baselines suppress are reported again for it to write back out.
- * Checking it here suppresses them however the configuration includes this file,
- * even through another configuration that includes the one that includes it.
- *
- * Only the loader in that directory includes nothing. Baselines elsewhere stay
- * in force, so that the regenerated ones hold only the errors those leave, and
- * any other value, such as a variable left set by mistake, matches no directory.
+ * @see \WordPress\PHPStan\get_baseline_includes()
  *
  * @package WordPress
  */
 
-if ( getenv( 'WP_PHPSTAN_GENERATING_BASELINES' ) === __DIR__ ) {
-	return array( 'includes' => array() );
-}
+require_once __DIR__ . '/../baseline-includes.php';
 
-$found = glob( __DIR__ . '/*.neon' );
-if ( false === $found ) {
-	$found = array();
-}
-
-/*
- * Only a file named for an error identifier is a baseline, matched with the
- * pattern PHPStan validates identifiers with, so that a stray file such as a
- * merge tool's `argument.type_BACKUP_1234.neon` is not loaded along with the
- * real one. find_baselines() in `generate-baselines.php` matches the same names.
- *
- * Each is included by its bare file name, which PHPStan resolves against this
- * file's path as the configuration reached it. __DIR__ is the real path, with any
- * symbolic link resolved, so an absolute path built from it would place the
- * baselines, and the paths their entries name relative to themselves, outside a
- * checkout reached through a link, where they match none of the analyzed files.
- */
-$baselines = array();
-foreach ( $found as $file ) {
-	$name = basename( $file );
-	if ( 1 === preg_match( '/^[a-zA-Z0-9](?:[a-zA-Z0-9.]*[a-zA-Z0-9])?\.neon$/', $name ) ) {
-		$baselines[] = $name;
-	}
-}
-
-return array(
-	'includes' => $baselines,
-);
+return \WordPress\PHPStan\get_baseline_includes( __DIR__ );

@@ -40,29 +40,15 @@
 
 namespace WordPress\PHPStan;
 
-/**
- * Environment variable that tells a baselines loader to include nothing.
- *
- * It is set to the output directory while the analysis runs, so that the
- * baselines being regenerated do not suppress their own errors. Each loader
- * compares it with its own directory, so this works however the configuration
- * includes the loader, and only the loader in the output directory is affected.
- *
- * The baselines in any other directory stay in force. Those regenerated are
- * then only the errors the others leave, so that an error is baselined once:
- * the baselines of a stricter configuration that includes `phpstan.neon.dist`
- * hold what its baselines do not.
- */
-const GENERATING_BASELINES_ENV = 'WP_PHPSTAN_GENERATING_BASELINES';
+// GENERATING_BASELINES_ENV and find_baselines(), shared with the loaders.
+require_once __DIR__ . '/baseline-includes.php';
 
 /**
- * Pattern matching the file name of a baseline.
+ * The directory baselines are written to when `--output-dir` does not name one.
  *
- * The name is the error identifier, matched as PHPStan validates identifiers,
- * followed by `.neon`. `baselines/loader.php` matches the same names, and the two
- * have to stay in sync.
+ * Relative to the repository root.
  */
-const BASELINE_FILE_PATTERN = '/^[a-zA-Z0-9](?:[a-zA-Z0-9.]*[a-zA-Z0-9])?\.neon$/';
+const DEFAULT_OUTPUT_DIR = 'tests/phpstan/baselines';
 
 /**
  * The configuration analyzed when `--config` does not name one.
@@ -88,7 +74,7 @@ foreach ( (array) ( $_SERVER['argv'] ?? array() ) as $arg ) {
 array_shift( $args );
 
 $config_option    = DEFAULT_CONFIG;
-$output_option    = 'tests/phpstan/baselines';
+$output_option    = DEFAULT_OUTPUT_DIR;
 $memory_limit     = '2G';
 $only_identifiers = array();
 $combined         = false;
@@ -350,11 +336,11 @@ if ( ! is_dir( $output_dir ) && ! mkdir( $output_dir, 0755, true ) ) {
 
 /*
  * The baselines only take effect through a loader in their own directory, which
- * the default one already has. A directory given with `--output-dir` gets a copy,
+ * the default one already has. A directory given with `--output-dir` gets one,
  * but nothing includes it yet, so say so.
  */
 if ( ! is_file( $output_dir . '/loader.php' ) ) {
-	if ( ! copy( __DIR__ . '/baselines/loader.php', $output_dir . '/loader.php' ) ) {
+	if ( false === file_put_contents( $output_dir . '/loader.php', build_loader( $output_dir ) ) ) {
 		fwrite( STDERR, "Could not write $output_option/loader.php\n" );
 		exit( 1 );
 	}
@@ -436,8 +422,8 @@ function get_usage(): string {
 		                       root. Default: phpstan.neon.dist
 		  --output-dir=<path>  Where the per-identifier baselines are written, relative
 		                       to the repository root. Paths inside them are written
-		                       relative to this directory. A copy of the loader is
-		                       written there if it has none, which the configuration
+		                       relative to this directory. A loader is written
+		                       there if it has none, which the configuration
 		                       then has to include. Baselines in other directories
 		                       stay in force, so only the errors they leave are
 		                       written.
@@ -558,33 +544,38 @@ function read_baseline( string $path ): array {
 }
 
 /**
- * Lists the per-identifier baselines present on disk.
+ * Builds the loader for a baselines directory.
+ *
+ * The loader holds no logic of its own. It requires `baseline-includes.php`, by a
+ * path relative to its directory, and returns what get_baseline_includes() finds
+ * there, so a fix to that reaches every directory's loader alike.
+ * `baselines/loader.php` is the one this builds for the default directory.
  *
  * @param non-empty-string $output_dir Absolute path to the baseline directory.
- * @return list<non-empty-string> Absolute paths, sorted by name.
+ * @return non-falsy-string Loader contents.
  */
-function find_baselines( string $output_dir ): array {
-	$found = glob( $output_dir . '/*.neon' );
+function build_loader( string $output_dir ): string {
+	return sprintf(
+		<<<'PHP'
+		<?php
+		/**
+		 * Includes every PHPStan baseline in this directory.
+		 *
+		 * A configuration includes this file rather than listing the baselines one by
+		 * one.
+		 *
+		 * @see \WordPress\PHPStan\get_baseline_includes()
+		 *
+		 * @package WordPress
+		 */
 
-	if ( false === $found ) {
-		return array();
-	}
+		require_once __DIR__ . %s;
 
-	sort( $found );
+		return \WordPress\PHPStan\get_baseline_includes( __DIR__ );
 
-	/*
-	 * Only a file named for an error identifier is a baseline. The loader matches
-	 * the same names, so a stray file such as a merge tool's backup is neither
-	 * loaded nor retired here.
-	 */
-	$files = array();
-	foreach ( $found as $file ) {
-		if ( '' !== $file && 1 === preg_match( BASELINE_FILE_PATTERN, basename( $file ) ) ) {
-			$files[] = $file;
-		}
-	}
-
-	return $files;
+		PHP,
+		var_export( '/' . get_relative_path( $output_dir, __DIR__ . '/baseline-includes.php' ), true )
+	);
 }
 
 /**
