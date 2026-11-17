@@ -87,4 +87,36 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 		$this->assertSame( $width, $detected_width );
 		$this->assertSame( $height, $detected_height );
 	}
+
+	/**
+	 * Gets the value of a protected or private property from an image editor instance.
+	 *
+	 * @param WP_Image_Editor|object $editor        The image editor instance.
+	 * @param string                 $property_name Optional. The property name. Default 'image'.
+	 * @return mixed The value of the property.
+	 */
+	protected function get_property_value( $editor, $property_name = 'image' ) {
+		$property = new ReflectionProperty( $editor, $property_name );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
+
+		return $property->getValue( $editor );
+	}
+
+	/**
+	 * Sets the value of a protected or private property on an image editor instance.
+	 *
+	 * @param WP_Image_Editor|object $editor        The image editor instance.
+	 * @param string                 $property_name The property name.
+	 * @param mixed                  $value         The value to set.
+	 */
+	protected function set_property_value( $editor, $property_name, $value ) {
+		$property = new ReflectionProperty( $editor, $property_name );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
+
+		$property->setValue( $editor, $value );
+	}
 }

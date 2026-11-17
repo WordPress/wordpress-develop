@@ -39,7 +39,7 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ input_list: mixed[]|string|int, expected: array<string> }>
 	 */
-	public function data_wp_parse_slug_list(): array {
+	public static function data_wp_parse_slug_list(): array {
 		return array(
 			'regular'                    => array(
 				'input_list' => 'apple,banana,carrot,dog',
@@ -107,7 +107,7 @@ class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ input_list: mixed[]|string|int, expected: array<string> }>
 	 */
-	public function data_unexpected_input(): array {
+	public static function data_unexpected_input(): array {
 		return array(
 			'string with commas' => array(
 				'input_list' => '1,2,string with spaces',

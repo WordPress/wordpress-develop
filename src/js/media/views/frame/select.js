@@ -169,7 +169,7 @@ Select = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Select.prototype 
 	 *
 	 * @param {Object} toolbar      The toolbar object for the `select` mode.
 	 * @param {Object} [options={}] The options for creating the select toolbar view.
-	 * @this wp.media.controller.Region
+	 * @this {wp.media.controller.Region}
 	 */
 	createSelectToolbar: function( toolbar, options ) {
 		options = options || this.options.button || {};

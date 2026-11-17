@@ -276,7 +276,7 @@ wp.mediaWidgets = ( function( $ ) {
 					 *
 					 * Overrides the {EmbedLink#renderFail()} method to prevent showing the "Link Text" field.
 					 * The element is getting display:none in the stylesheet, but the underlying method uses
-					 * uses {jQuery.fn.show()} which adds an inline style. This avoids the need for !important.
+					 * {jQuery.fn.show()} which adds an inline style. This avoids the need for !important.
 					 *
 					 * @return {void}
 					 */
@@ -375,7 +375,7 @@ wp.mediaWidgets = ( function( $ ) {
 				 *
 				 * @ignore
 				 *
-				 * @fires wp.media.controller.State#insert()
+				 * @fires wp.media.controller.State#insert
 				 * @return {void}
 				 */
 				click: function onClick() {

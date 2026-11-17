@@ -9,6 +9,12 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/**
+ * @global wpdb $wpdb    WordPress database abstraction object.
+ * @global int  $blog_id The current site (blog) ID on multisite.
+ */
+global $wpdb, $blog_id;
+
 if ( is_multisite() ) {
 	if ( ! current_user_can( 'create_users' ) && ! current_user_can( 'promote_users' ) ) {
 		wp_die(

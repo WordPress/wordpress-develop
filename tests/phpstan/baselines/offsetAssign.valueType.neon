@@ -21,5 +21,5 @@ parameters:
 		-
 			message: '#^WpOrg\\Requests\\Cookie\\Jar does not accept WpOrg\\Requests\\Cookie\.$#'
 			identifier: offsetAssign.valueType
-			count: 2
+			count: 1
 			path: ../../../src/wp-includes/class-wp-http.php
