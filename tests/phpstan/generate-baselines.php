@@ -305,8 +305,11 @@ fwrite( STDERR, "Analyzing with $config_option, baselines in $output_option supp
 
 /*
  * PHPStan inherits it, as do the worker processes it starts. An output directory
- * not created yet holds no loader to match, so it is not set at all then.
+ * not created yet holds no loader to match, so it is not set at all then. It is
+ * cleared first either way, so that a value exported in the shell, perhaps naming
+ * another directory, cannot switch off baselines this run means to keep.
  */
+putenv( GENERATING_BASELINES_ENV );
 $resolved_output_dir = realpath( $output_dir );
 if ( false !== $resolved_output_dir ) {
 	putenv( GENERATING_BASELINES_ENV . '=' . $resolved_output_dir );
