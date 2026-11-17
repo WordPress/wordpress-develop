@@ -343,7 +343,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'padding'  => true,
 			),
 			'transform'  => array(
-				'rotate' => true,
+				'rotate'    => true,
+				'translate' => true,
 			),
 			'typography' => array(
 				'lineHeight'  => true,
@@ -389,7 +390,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'padding'  => true,
 					),
 					'transform'  => array(
-						'rotate' => true,
+						'rotate'    => true,
+						'translate' => true,
 					),
 					'typography' => array(
 						'lineHeight'  => false,
@@ -3385,6 +3387,187 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							'transform'  => $rotate,
 							'variations' => array(
 								'tilted' => array( 'transform' => $rotate ),
+							),
+						),
+					),
+				),
+			),
+			$theme_json->get_raw_data()
+		);
+	}
+
+	/**
+	 * Tests that block offsets output the individual `translate` property, with
+	 * `0` for a missing axis, for block styles, states and style variations, and
+	 * combine with a rotation.
+	 *
+	 * @ticket 66467
+	 */
+	public function test_get_stylesheet_outputs_translate_for_block_styles_states_and_variations() {
+		register_block_type(
+			'test/translate-feature',
+			array(
+				'api_version' => 3,
+				'selectors'   => array(
+					'root'      => '.wp-block-test-translate-feature',
+					'transform' => '.wp-block-test-translate-feature img',
+				),
+			)
+		);
+		register_block_style(
+			'test/translate-feature',
+			array(
+				'name'  => 'raised',
+				'label' => 'Raised',
+			)
+		);
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'test/translate-feature' => array(
+							'transform'  => array(
+								'rotate'    => '5deg',
+								'translate' => array(
+									'x' => '10px',
+									'y' => '-50%',
+								),
+							),
+							'@mobile'    => array(
+								'transform' => array( 'translate' => array( 'x' => '0' ) ),
+							),
+							'variations' => array(
+								'raised' => array(
+									'transform' => array( 'translate' => array( 'y' => '-1rem' ) ),
+								),
+							),
+						),
+						'core/button'            => array(
+							':hover'  => array(
+								'transform' => array( 'translate' => array( 'y' => '-4px' ) ),
+							),
+							'@mobile' => array(
+								':hover' => array(
+									'transform' => array( 'translate' => array( 'x' => '2px' ) ),
+								),
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$css = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			null,
+			array(
+				'skip_root_layout_styles'        => true,
+				'include_block_style_variations' => true,
+			)
+		);
+		unregister_block_style( 'test/translate-feature', 'raised' );
+		unregister_block_type( 'test/translate-feature' );
+
+		$this->assertStringContainsString( ':root :where(.wp-block-test-translate-feature img){rotate: 5deg;translate: 10px -50%;}', $css );
+		$this->assertStringContainsString( '@media (width <= 480px){:root :where(.wp-block-test-translate-feature img){translate: 0 0;}}', $css );
+		$this->assertStringContainsString( ':root :where(.wp-block-test-translate-feature.is-style-raised img){translate: 0 -1rem;}', $css );
+		$this->assertStringContainsString( ':root :where(.wp-block-button .wp-block-button__link:hover){translate: 0 -4px;}', $css );
+		$this->assertStringContainsString( '@media (width <= 480px){:root :where(.wp-block-button .wp-block-button__link:hover){translate: 2px 0;}}', $css );
+		$this->assertStringNotContainsString( 'transform', $css );
+	}
+
+	/**
+	 * Tests that an offset with an axis that is not a single length or percentage is not output.
+	 *
+	 * @ticket 66467
+	 *
+	 * @dataProvider data_get_stylesheet_skips_invalid_translate_values
+	 *
+	 * @param mixed $translate Offset value.
+	 */
+	public function test_get_stylesheet_skips_invalid_translate_values( $translate ) {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'transform' => array( 'translate' => $translate ),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$this->assertStringNotContainsString( 'translate', $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_stylesheet_skips_invalid_translate_values() {
+		return array(
+			'string'      => array( '10px 20px' ),
+			'bare number' => array( array( 'x' => '10' ) ),
+			'calc()'      => array( array( 'x' => 'calc(1px + 2px)' ) ),
+			'var()'       => array( array( 'y' => 'var(--offset)' ) ),
+			'list'        => array( array( 'x' => '1px 2px' ) ),
+			'angle'       => array( array( 'x' => '5deg' ) ),
+			'number type' => array( array( 'x' => 10 ) ),
+			'z only'      => array( array( 'z' => '5px' ) ),
+		);
+	}
+
+	/**
+	 * Tests that sanitizing keeps the `x` and `y` offset axes only, and drops an
+	 * offset that is not an object.
+	 *
+	 * @ticket 66467
+	 */
+	public function test_sanitize_keeps_translate_axes_only() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'transform' => array( 'translate' => false ),
+				),
+				'styles'   => array(
+					'elements' => array(
+						'link' => array( 'transform' => array( 'translate' => array( 'x' => '1px' ) ) ),
+					),
+					'blocks'   => array(
+						'core/image' => array(
+							'transform' => array(
+								'translate' => array(
+									'x' => '10px',
+									'z' => '5px',
+								),
+							),
+						),
+						'core/group' => array(
+							'transform' => array( 'translate' => '10px 20px' ),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertEqualSetsWithIndex(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'transform' => array( 'translate' => false ),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/image' => array(
+							'transform' => array(
+								'translate' => array( 'x' => '10px' ),
 							),
 						),
 					),
@@ -10960,5 +11143,69 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			$reflection->setAccessible( true );
 		}
 		return $reflection->invoke( null, $block_type, $root_selector );
+	}
+
+	/**
+	 * Tests that removing insecure properties keeps a valid offset object, and
+	 * drops an offset with an invalid axis.
+	 *
+	 * @ticket 66467
+	 *
+	 * @dataProvider data_remove_insecure_properties_translate
+	 *
+	 * @param array      $translate Offset to save.
+	 * @param array|null $expected  Offset expected after removing insecure properties.
+	 */
+	public function test_remove_insecure_properties_keeps_valid_translate( $translate, $expected ) {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/heading' => array(
+							'transform' => array(
+								'rotate'    => '5deg',
+								'translate' => $translate,
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$transform = array( 'rotate' => '5deg' );
+		if ( null !== $expected ) {
+			$transform['translate'] = $expected;
+		}
+		$this->assertSame( $transform, $actual['styles']['blocks']['core/heading']['transform'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_remove_insecure_properties_translate() {
+		return array(
+			'one axis'     => array( array( 'x' => '3rem' ), array( 'x' => '3rem' ) ),
+			'two axes'     => array(
+				array(
+					'x' => '10px',
+					'y' => '-50%',
+				),
+				array(
+					'x' => '10px',
+					'y' => '-50%',
+				),
+			),
+			'calc() axis'  => array( array( 'x' => 'calc(1px + 2px)' ), null ),
+			'invalid axis' => array(
+				array(
+					'x' => '10px',
+					'y' => 'url(x)',
+				),
+				null,
+			),
+		);
 	}
 }

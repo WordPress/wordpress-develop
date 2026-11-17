@@ -261,7 +261,7 @@ class WP_Theme_JSON {
 	 *              Added `text-indent` property.
 	 * @since 7.1.0 Added `min-width` and `text-shadow`.
 	 * @since 7.2.0 Added `background-clip`.
-	 * @since 7.3.0 Added `rotate`.
+	 * @since 7.3.0 Added `rotate` and `translate`.
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -320,6 +320,7 @@ class WP_Theme_JSON {
 		'padding-bottom'                    => array( 'spacing', 'padding', 'bottom' ),
 		'padding-left'                      => array( 'spacing', 'padding', 'left' ),
 		'rotate'                            => array( 'transform', 'rotate' ),
+		'translate'                         => array( 'transform', 'translate' ),
 		'--wp--style--root--padding'        => array( 'spacing', 'padding' ),
 		'--wp--style--root--padding-top'    => array( 'spacing', 'padding', 'top' ),
 		'--wp--style--root--padding-right'  => array( 'spacing', 'padding', 'right' ),
@@ -437,7 +438,7 @@ class WP_Theme_JSON {
 	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
 	 * @since 7.2.0 Added support for `typography.textShadow`, `typography.textShadowPresets`,
 	 *              and `typography.defaultTextShadowPresets`.
-	 * @since 7.3.0 Added support for `transform.rotate`.
+	 * @since 7.3.0 Added support for `transform.rotate` and `transform.translate`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -516,7 +517,8 @@ class WP_Theme_JSON {
 			'defaultPresets' => null,
 		),
 		'transform'                     => array(
-			'rotate' => null,
+			'rotate'    => null,
+			'translate' => null,
 		),
 		'typography'                    => array(
 			'fluid'                    => null,
@@ -594,7 +596,7 @@ class WP_Theme_JSON {
 	 * @since 7.1.0 Added support for `background.gradient`,`dimensions.minWidth`,
 	 *              and `typography.textShadow`.
 	 * @since 7.2.0 Added support for `background.backgroundClip`.
-	 * @since 7.3.0 Added support for `transform.rotate`, for blocks and block style variations only.
+	 * @since 7.3.0 Added support for `transform.rotate` and `transform.translate`, for blocks and block style variations only.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
@@ -645,7 +647,11 @@ class WP_Theme_JSON {
 			'blockGap' => null,
 		),
 		'transform'  => array(
-			'rotate' => null,
+			'rotate'    => null,
+			'translate' => array(
+				'x' => null,
+				'y' => null,
+			),
 		),
 		'typography' => array(
 			'fontFamily'     => null,
@@ -1097,7 +1103,7 @@ class WP_Theme_JSON {
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
 	 * @since 7.1.0 Added `background.gradient`.
 	 *              Added `dimensions.minWidth`.
-	 * @since 7.3.0 Added `transform.rotate`.
+	 * @since 7.3.0 Added `transform.rotate` and `transform.translate`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
@@ -1122,6 +1128,7 @@ class WP_Theme_JSON {
 		array( 'spacing', 'margin' ),
 		array( 'spacing', 'padding' ),
 		array( 'transform', 'rotate' ),
+		array( 'transform', 'translate' ),
 		array( 'typography', 'lineHeight' ),
 		array( 'typography', 'textColumns' ),
 	);
@@ -5410,6 +5417,7 @@ class WP_Theme_JSON {
 	 * without the insecure styles.
 	 *
 	 * @since 5.9.0
+	 * @since 7.3.0 Keep the `transform.translate` axes when their declaration is safe.
 	 *
 	 * @param array $input Node to process.
 	 * @return array
@@ -5429,6 +5437,19 @@ class WP_Theme_JSON {
 				$value = _wp_array_get( $input, $path, array() );
 				if ( ! is_array( $value ) ) {
 					_wp_array_set( $output, $path, $value );
+				} elseif ( 'translate' === $declaration['name'] ) {
+					// The declaration only exists when every axis is valid.
+					_wp_array_set(
+						$output,
+						$path,
+						array_intersect_key(
+							$value,
+							array(
+								'x' => true,
+								'y' => true,
+							)
+						)
+					);
 				}
 			}
 		}
