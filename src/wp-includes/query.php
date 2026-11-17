@@ -1463,6 +1463,40 @@ function wp_get_random_content_post( WP_Query $query ): ?WP_Post {
 		unset( $query_vars['s'] );
 	}
 
+	/*
+	 * WP_Query::get_posts() sets the 'cat', 'category_name', 'tag_id', 'taxonomy',
+	 * 'term' and 'term_id' query variables from the queried terms, so parsing the
+	 * taxonomy query variables again would duplicate their clauses. The taxonomy
+	 * query parsed for the count is used instead.
+	 */
+	$taxonomy_query_vars = array(
+		'cat',
+		'category__and',
+		'category__in',
+		'category__not_in',
+		'tag_id',
+		'tag__and',
+		'tag__in',
+		'tag__not_in',
+		'tag_slug__and',
+		'tag_slug__in',
+		'taxonomy',
+		'term',
+		'term_id',
+	);
+
+	foreach ( get_taxonomies( array(), 'objects' ) as $taxonomy ) {
+		if ( $taxonomy->query_var ) {
+			$taxonomy_query_vars[] = $taxonomy->query_var;
+		}
+	}
+
+	foreach ( $taxonomy_query_vars as $taxonomy_query_var ) {
+		unset( $query_vars[ $taxonomy_query_var ] );
+	}
+
+	$query_vars['tax_query'] = $query->tax_query instanceof WP_Tax_Query ? $query->tax_query->queries : array();
+
 	// The single post, sticky post and cache priming settings are those of the count.
 	$selection_query = new WP_Query();
 	$posts           = $selection_query->query(

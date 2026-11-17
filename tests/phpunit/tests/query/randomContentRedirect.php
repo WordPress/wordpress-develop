@@ -2169,6 +2169,50 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure the selection query filters the posts by the same clauses as the count query.
+	 *
+	 * @ticket 66654
+	 *
+	 * @dataProvider data_selection_query_matches_the_count_query
+	 *
+	 * @param string $path Requested path.
+	 */
+	public function test_selection_query_matches_the_count_query( string $path ): void {
+		$this->go_to_and_record_queries( home_url( $path ) );
+
+		$this->assertNotNull( $this->redirect_location, 'The request did not redirect.' );
+
+		$count_queries     = array_values( preg_grep( '/SQL_CALC_FOUND_ROWS/', $this->queries ) );
+		$selection_queries = array_values( preg_grep( '/^(?!.*SQL_CALC_FOUND_ROWS).*LIMIT \d+, 1\s*$/s', $this->queries ) );
+		$this->assertCount( 1, $count_queries, "Exactly one count query should be made:\n" . implode( "\n", $this->queries ) );
+		$this->assertCount( 1, $selection_queries, "Exactly one selection query should be made:\n" . implode( "\n", $this->queries ) );
+
+		$normalize = static function ( string $sql ): string {
+			$sql = str_replace( 'SQL_CALC_FOUND_ROWS', '', $sql );
+			$sql = preg_replace( '/LIMIT \d+, 1\s*$/', '', $sql );
+			return trim( preg_replace( '/\s+/', ' ', $sql ) );
+		};
+
+		$this->assertSame( $normalize( $count_queries[0] ), $normalize( $selection_queries[0] ), 'The selection query should differ from the count query only by its limit.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_selection_query_matches_the_count_query(): array {
+		return array(
+			'random base'        => array( '/random/' ),
+			'category'           => array( '/random/category/arts/' ),
+			'tag'                => array( '/random/tag/impressionism/' ),
+			'category query var' => array( '/?random&category_name=arts' ),
+			'two categories'     => array( '/?random&category_name=arts,sport' ),
+			'category and tag'   => array( '/?random&category_name=arts&tag=impressionism' ),
+		);
+	}
+
+	/**
 	 * Ensure the selection offset is always within the number of eligible posts.
 	 *
 	 * @ticket 66654
