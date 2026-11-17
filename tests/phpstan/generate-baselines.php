@@ -329,6 +329,23 @@ if ( ! is_dir( $output_dir ) && ! mkdir( $output_dir, 0755, true ) ) {
 	exit( 1 );
 }
 
+/*
+ * The baselines only take effect through a loader in their own directory, which
+ * the default one already has. A directory given with `--output-dir` gets a copy,
+ * but nothing includes it yet, so say so.
+ */
+if ( ! is_file( $output_dir . '/loader.php' ) ) {
+	if ( ! copy( __DIR__ . '/baselines/loader.php', $output_dir . '/loader.php' ) ) {
+		fwrite( STDERR, "Could not write $output_option/loader.php\n" );
+		exit( 1 );
+	}
+
+	printf(
+		"%s: written. Include it in the configuration for these baselines to take effect.\n",
+		$output_option . '/loader.php'
+	);
+}
+
 foreach ( $grouped as $identifier => $entries ) {
 	file_put_contents(
 		$output_dir . '/' . $identifier . '.neon',
@@ -400,7 +417,9 @@ function get_usage(): string {
 		                       root. Default: phpstan.neon.dist
 		  --output-dir=<path>  Where the per-identifier baselines are written, relative
 		                       to the repository root. Paths inside them are written
-		                       relative to this directory.
+		                       relative to this directory. A copy of the loader is
+		                       written there if it has none, which the configuration
+		                       then has to include.
 		                       Default: tests/phpstan/baselines
 		  --combined           Print one combined baseline to stdout instead of writing
 		                       per-identifier files. Nothing is written to disk.
