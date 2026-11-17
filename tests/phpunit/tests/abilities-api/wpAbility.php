@@ -2897,10 +2897,11 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The primary error code should not change.' );
 
-		$message = $result->get_error_message();
-		$this->assertStringContainsString( 'title is a required property of input.', $message );
-		$this->assertStringContainsString( 'input[count] is not of type integer.', $message );
-		$this->assertStringContainsString( 'input[flag] is not of type boolean.', $message );
+		$this->assertSame(
+			'Ability "' . self::$test_ability_name . '" has invalid input. Reasons: title is a required property of input., input[count] is not of type integer., input[flag] is not of type boolean.',
+			$result->get_error_message(),
+			'The message should list every reason, separated by commas.'
+		);
 
 		$this->assertSame(
 			array( 'input[count]', 'input[flag]' ),

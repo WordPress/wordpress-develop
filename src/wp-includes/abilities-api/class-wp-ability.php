@@ -661,13 +661,18 @@ class WP_Ability {
 
 		$valid_input = rest_validate_value_from_schema( $input, $input_schema, 'input', true );
 		if ( is_wp_error( $valid_input ) ) {
-			$is_valid = new WP_Error(
+			$error_messages = $valid_input->get_error_messages();
+			$is_valid       = new WP_Error(
 				'ability_invalid_input',
 				sprintf(
-					/* translators: %1$s ability name, %2$s error message. */
-					__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
+					/* translators: 1: Ability name, 2: List of error messages. */
+					_n(
+						'Ability "%1$s" has invalid input. Reason: %2$s',
+						'Ability "%1$s" has invalid input. Reasons: %2$s',
+						count( $error_messages )
+					),
 					$this->name,
-					implode( ' ', $valid_input->get_error_messages() )
+					implode( wp_get_list_item_separator(), $error_messages )
 				)
 			);
 
