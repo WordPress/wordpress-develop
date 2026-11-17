@@ -426,17 +426,50 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( $method, '/wp/v2/users' );
 		$request->set_param( 'page', 100 );
 		$response = rest_get_server()->dispatch( $request );
-		$headers  = $response->get_headers();
-		$this->assertSame( $total_users, $headers['X-WP-Total'] );
-		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
-		$prev_link = add_query_arg(
-			array(
-				'page' => $total_pages,
-			),
-			rest_url( 'wp/v2/users' )
-		);
-		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
+		$this->assertErrorResponse( 'rest_user_invalid_page_number', $response, 400 );
+	}
+
+	/**
+	 * @ticket 39061
+	 */
+	public function test_get_items_invalid_max_pages() {
+		wp_set_current_user( self::$user );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'page', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_user_invalid_page_number', $response, 400 );
+	}
+
+	/**
+	 * Out-of-bounds 'page' is ignored when 'offset' is passed, since 'offset' takes priority.
+	 *
+	 * @ticket 39061
+	 */
+	public function test_get_items_out_of_bounds_page_with_offset() {
+		wp_set_current_user( self::$user );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'offset', 1 );
+		$request->set_param( 'page', 100 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * An out-of-bounds 'page' does not error when there are no matching items.
+	 *
+	 * @ticket 39061
+	 */
+	public function test_get_items_out_of_bounds_page_with_no_results() {
+		wp_set_current_user( self::$user );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'search', 'no-user-matches-this-39061' );
+		$request->set_param( 'page', 2 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array(), $response->get_data() );
 	}
 
 	public function test_get_items_per_page() {

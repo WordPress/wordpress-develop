@@ -362,6 +362,19 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$total_terms = 0;
 		}
 
+		// Store pagination values for headers.
+		$per_page  = (int) $prepared_args['number'];
+		$page      = (int) ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
+		$max_pages = (int) ceil( $total_terms / $per_page );
+
+		if ( empty( $request['offset'] ) && $page > $max_pages && $total_terms > 0 ) {
+			return new WP_Error(
+				'rest_term_invalid_page_number',
+				__( 'The page number requested is larger than the number of pages available.' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		if ( ! $is_head_request ) {
 			$response = array();
 			foreach ( $query_result as $term ) {
@@ -376,14 +389,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $response );
 
-		// Store pagination values for headers.
-		$per_page = (int) $prepared_args['number'];
-		$page     = (int) ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
-
 		$response->header( 'X-WP-Total', (int) $total_terms );
-
-		$max_pages = (int) ceil( $total_terms / $per_page );
-
 		$response->header( 'X-WP-TotalPages', $max_pages );
 
 		$request_params = $request->get_query_params();

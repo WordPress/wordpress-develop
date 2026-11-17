@@ -692,20 +692,44 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'page', 100 );
 		$response = rest_get_server()->dispatch( $request );
-		$headers  = $response->get_headers();
-		$this->assertSame( $total_categories, $headers['X-WP-Total'] );
-		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
-		if ( 'HEAD' !== $method ) {
-			$this->assertCount( 0, $response->get_data() );
-		}
-		$prev_link = add_query_arg(
-			array(
-				'page' => $total_pages,
-			),
-			rest_url( 'wp/v2/categories' )
-		);
-		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
-		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
+		$this->assertErrorResponse( 'rest_term_invalid_page_number', $response, 400 );
+	}
+
+	/**
+	 * @ticket 39061
+	 */
+	public function test_get_items_invalid_max_pages() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'page', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_term_invalid_page_number', $response, 400 );
+	}
+
+	/**
+	 * Out-of-bounds 'page' is ignored when 'offset' is passed, since 'offset' takes priority.
+	 *
+	 * @ticket 39061
+	 */
+	public function test_get_items_out_of_bounds_page_with_offset() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'offset', 1 );
+		$request->set_param( 'page', 100 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * An out-of-bounds 'page' does not error when there are no matching items.
+	 *
+	 * @ticket 39061
+	 */
+	public function test_get_items_out_of_bounds_page_with_no_results() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'search', 'no-category-matches-this-39061' );
+		$request->set_param( 'page', 2 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array(), $response->get_data() );
 	}
 
 	public function test_get_items_per_page_exceeds_number_of_items() {
@@ -723,10 +747,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'page', 2 );
 		$request->set_param( 'per_page', 100 );
 		$response = rest_get_server()->dispatch( $request );
-		$headers  = $response->get_headers();
-		$this->assertSame( self::$total_categories, $headers['X-WP-Total'] );
-		$this->assertSame( 1, $headers['X-WP-TotalPages'] );
-		$this->assertCount( 0, $response->get_data() );
+		$this->assertErrorResponse( 'rest_term_invalid_page_number', $response, 400 );
 	}
 
 	public function test_get_item() {

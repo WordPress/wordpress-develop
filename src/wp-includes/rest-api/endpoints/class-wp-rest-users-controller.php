@@ -395,8 +395,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $users );
-
 		// Store pagination values for headers then unset for count query.
 		$per_page = (int) $prepared_args['number'];
 		$page     = (int) ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
@@ -415,10 +413,19 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$total_users             = $count_query->get_total();
 		}
 
-		$response->header( 'X-WP-Total', (int) $total_users );
-
 		$max_pages = (int) ceil( $total_users / $per_page );
 
+		if ( empty( $request['offset'] ) && $page > $max_pages && $total_users > 0 ) {
+			return new WP_Error(
+				'rest_user_invalid_page_number',
+				__( 'The page number requested is larger than the number of pages available.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $users );
+
+		$response->header( 'X-WP-Total', (int) $total_users );
 		$response->header( 'X-WP-TotalPages', $max_pages );
 
 		$base = add_query_arg( urlencode_deep( $request->get_query_params() ), rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
