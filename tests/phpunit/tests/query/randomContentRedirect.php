@@ -2885,7 +2885,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_Query::class, $selection_query, 'The selection query was not run.' );
 
 		$main_query = $this->get_main_query();
-		foreach ( array( 'is_home', 'is_archive', 'is_category', 'is_search', 'is_random' ) as $flag ) {
+		foreach ( array( 'is_home', 'is_archive', 'is_category', 'is_tag', 'is_date', 'is_search', 'is_random' ) as $flag ) {
 			$this->assertSame( $main_query->$flag, $selection_query->$flag, "The selection query should match the main query for {$flag}." );
 		}
 	}
@@ -2899,7 +2899,8 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		return array(
 			'home'     => array( '/random/' ),
 			'category' => array( '/random/category/arts/' ),
-			'search'   => array( '/?s=Baseball&random' ),
+			'tag'      => array( '/random/tag/impressionism/' ),
+			'date'     => array( '/random/?m=1844' ),
 		);
 	}
 
