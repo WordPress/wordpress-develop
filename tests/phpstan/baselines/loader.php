@@ -13,18 +13,20 @@
  * PHPStan keys its cache of the configuration on the files it includes, so a
  * baseline added or deleted here takes effect on the next run.
  *
- * `composer phpstan:baselines` sets WP_PHPSTAN_GENERATING_BASELINES to 1 while
- * it analyzes, so that the errors the baselines suppress are reported again for
- * it to write back out. Checking it here suppresses them however the
- * configuration includes this file, even through another configuration that
- * includes the one that includes it. Any other value, such as 0 or an empty string,
- * leaves the baselines in force, so that a variable left set by mistake cannot
- * silently drop them all.
+ * `composer phpstan:baselines` sets WP_PHPSTAN_GENERATING_BASELINES to the
+ * directory it is writing baselines to while it analyzes, so that the errors
+ * those baselines suppress are reported again for it to write back out.
+ * Checking it here suppresses them however the configuration includes this file,
+ * even through another configuration that includes the one that includes it.
+ *
+ * Only the loader in that directory includes nothing. Baselines elsewhere stay
+ * in force, so that the regenerated ones hold only the errors those leave, and
+ * any other value, such as a variable left set by mistake, matches no directory.
  *
  * @package WordPress
  */
 
-if ( '1' === getenv( 'WP_PHPSTAN_GENERATING_BASELINES' ) ) {
+if ( getenv( 'WP_PHPSTAN_GENERATING_BASELINES' ) === __DIR__ ) {
 	return array( 'includes' => array() );
 }
 

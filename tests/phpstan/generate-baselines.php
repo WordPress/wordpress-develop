@@ -41,11 +41,17 @@
 namespace WordPress\PHPStan;
 
 /**
- * Environment variable that tells `baselines/loader.php` to include nothing.
+ * Environment variable that tells a baselines loader to include nothing.
  *
- * It is set to 1 while the analysis runs, so that the baselines in force do not
- * suppress the errors being regenerated. The loader checks it itself, ignoring
- * any other value, so this works however the configuration includes the loader.
+ * It is set to the output directory while the analysis runs, so that the
+ * baselines being regenerated do not suppress their own errors. Each loader
+ * compares it with its own directory, so this works however the configuration
+ * includes the loader, and only the loader in the output directory is affected.
+ *
+ * The baselines in any other directory stay in force. Those regenerated are
+ * then only the errors the others leave, so that an error is baselined once:
+ * the baselines of a stricter configuration that includes `phpstan.neon.dist`
+ * hold what its baselines do not.
  */
 const GENERATING_BASELINES_ENV = 'WP_PHPSTAN_GENERATING_BASELINES';
 
@@ -263,8 +269,9 @@ if ( DEFAULT_CONFIG !== $config_relative ) {
  * of the files it includes, so the wrapper's `tmpDir` is the one that takes
  * effect.
  *
- * The baselines need no removing from the configuration: GENERATING_BASELINES_ENV
- * is set to 1 for the analysis, and every loader includes nothing while it is.
+ * The baselines being regenerated need no removing from the configuration:
+ * GENERATING_BASELINES_ENV names their directory for the analysis, and the loader
+ * there includes nothing while it does.
  */
 file_put_contents(
 	$temp_config,
@@ -293,10 +300,15 @@ $command = sprintf(
 	escapeshellarg( $memory_limit )
 );
 
-fwrite( STDERR, "Analyzing with $config_option, existing baselines suppressed...\n" );
+fwrite( STDERR, "Analyzing with $config_option, baselines in $output_option suppressed...\n" );
 
-// PHPStan inherits it, as do the worker processes it starts.
-putenv( GENERATING_BASELINES_ENV . '=1' );
+/*
+ * PHPStan inherits it, as do the worker processes it starts. The loader compares
+ * it with its __DIR__, which PHP resolves to a real path, so it is resolved the
+ * same way. An output directory not created yet holds no loader to match.
+ */
+$resolved_output_dir = realpath( $output_dir );
+putenv( GENERATING_BASELINES_ENV . '=' . ( false !== $resolved_output_dir ? $resolved_output_dir : $output_dir ) );
 
 $exit_code = 0;
 passthru( $command, $exit_code );
@@ -426,7 +438,9 @@ function get_usage(): string {
 		                       to the repository root. Paths inside them are written
 		                       relative to this directory. A copy of the loader is
 		                       written there if it has none, which the configuration
-		                       then has to include.
+		                       then has to include. Baselines in other directories
+		                       stay in force, so only the errors they leave are
+		                       written.
 		                       Default: tests/phpstan/baselines
 		  --combined           Print one combined baseline to stdout instead of writing
 		                       per-identifier files. Nothing is written to disk.
@@ -489,7 +503,7 @@ function read_file( string $path ): string {
 function read_baseline( string $path ): array {
 	$data = require $path;
 
-	$parameters    = is_array( $data ) ? ( $data['parameters'] ?? null ) : null;
+	$parameters   = is_array( $data ) ? ( $data['parameters'] ?? null ) : null;
 	$ignore_errors = is_array( $parameters ) ? ( $parameters['ignoreErrors'] ?? null ) : null;
 
 	if ( ! is_array( $ignore_errors ) ) {
