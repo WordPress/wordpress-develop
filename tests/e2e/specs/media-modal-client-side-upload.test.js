@@ -1,17 +1,18 @@
 /**
- * WordPress dependencies
- */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
-
-/**
  * Internal dependencies
  */
+import { test, expect } from '../fixtures';
 import {
 	TEST_IMAGE_PATH,
 	SIMULATED_ERROR,
 	countUploadRequests,
+	expectCrossOriginIsolated,
 	failMediaCreate,
+	supportsDocumentIsolation,
 	tile,
+	titleOf,
+	trackUploads,
+	uniqueFile,
 } from '../utils/media-pipeline';
 
 // The plupload HTML5 runtime creates this hidden file input over the modal's
@@ -47,24 +48,23 @@ async function openModalFromImageBlock( page, editor ) {
 }
 
 test.describe( 'Media modal client-side uploads', () => {
-	test.beforeEach( async ( { admin } ) => {
-		await admin.createNewPost();
-	} );
+	test.skip(
+		( { browserName, browser } ) =>
+			! supportsDocumentIsolation( browserName, browser ),
+		'This browser does not support Document-Isolation-Policy'
+	);
 
-	test.afterEach( async ( { requestUtils } ) => {
-		await requestUtils.deleteAllMedia();
+	test.beforeEach( async ( { admin, postFactory } ) => {
+		const post = await postFactory.create( {
+			title: postFactory.uniqueTitle( 'Media modal' ),
+		} );
+		await admin.editPost( post.id );
 	} );
 
 	test( 'loads the media frame integration in the block editor', async ( {
 		page,
 	} ) => {
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		await expect(
 			page.locator( 'script[src*="media-frame-upload"]' )
@@ -74,13 +74,7 @@ test.describe( 'Media modal client-side uploads', () => {
 	test( 'leaves the upload-media store configured by the block editor', async ( {
 		page,
 	} ) => {
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// The editor's provider passes its own mediaUpload setting; a second
 		// provider from the media frame script would pass the raw media-utils one.
@@ -114,20 +108,13 @@ test.describe( 'Media modal client-side uploads', () => {
 	test( 'uploads an image from the media modal through the client-side pipeline', async ( {
 		page,
 		editor,
+		attachments,
 		requestUtils,
 	} ) => {
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		// In Chromium builds without Document-Isolation-Policy support,
-		// isolation is legitimately unavailable and the pipeline falls back
-		// to classic uploads. Only assert where isolation is real.
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		const counts = countUploadRequests( page );
+		const ids = trackUploads( page, attachments );
 		const modal = await openModalFromImageBlock( page, editor );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
@@ -145,7 +132,7 @@ test.describe( 'Media modal client-side uploads', () => {
 				),
 			{ timeout: 60_000 }
 		);
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( uniqueFile( TEST_IMAGE_PATH ) );
 		await finalized;
 
 		await expect( tile( modal, 'uploading…' ) ).toHaveCount( 0, {
@@ -161,9 +148,8 @@ test.describe( 'Media modal client-side uploads', () => {
 		expect( counts.asyncUpload ).toBe( 0 );
 
 		// The attachment carries the browser-generated sub-sizes.
-		const [ attachment ] = await requestUtils.rest( {
-			path: '/wp/v2/media',
-			params: { per_page: 1 },
+		const attachment = await requestUtils.rest( {
+			path: `/wp/v2/media/${ ids[ 0 ] }`,
 		} );
 		expect( Object.keys( attachment.media_details.sizes || {} ) ).toEqual(
 			expect.arrayContaining( [ 'thumbnail', 'medium' ] )
@@ -184,30 +170,25 @@ test.describe( 'Media modal client-side uploads', () => {
 		page,
 		editor,
 	} ) => {
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		await failMediaCreate( page );
 		const counts = countUploadRequests( page );
 		const modal = await openModalFromImageBlock( page, editor );
 
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 10_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 
 		// The modal's uploader status lists the error the same way it lists
 		// a classic upload error: file name and the server's message.
 		const error = modal
 			.locator( '.upload-error' )
-			.filter( { hasText: 'test-image.jpg' } );
+			.filter( { hasText: file.name } );
 		await expect( error ).toBeVisible( { timeout: 60_000 } );
 		await expect(
-			error.getByText( 'test-image.jpg', { exact: true } )
+			error.getByText( file.name, { exact: true } )
 		).toBeVisible();
 		await expect(
 			error.getByText( SIMULATED_ERROR.message, { exact: true } )
@@ -222,14 +203,9 @@ test.describe( 'Media modal client-side uploads', () => {
 	test( 'leaves an uploader that does not post attachments to plupload', async ( {
 		page,
 		editor,
+		attachments,
 	} ) => {
-		const isolated = await page.evaluate( () =>
-			Boolean( window.crossOriginIsolated )
-		);
-		test.skip(
-			! isolated,
-			'The client-side pipeline requires a cross-origin isolated context'
-		);
+		await expectCrossOriginIsolated( page );
 
 		// A plugin uploader with its own action: the pipeline must not take
 		// its files, even though it is a wp.Uploader on an isolated screen.
@@ -239,32 +215,37 @@ test.describe( 'Media modal client-side uploads', () => {
 		} );
 
 		const counts = countUploadRequests( page );
+		trackUploads( page, attachments );
 		await openModalFromImageBlock( page, editor );
 
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 10_000 } );
-		const classicUpload = page.waitForRequest(
-			( request ) =>
-				request.method() === 'POST' &&
-				request.url().includes( '/async-upload.php' ),
+		const classicUpload = page.waitForResponse(
+			( response ) =>
+				response.request().method() === 'POST' &&
+				response.url().includes( '/async-upload.php' ),
 			{ timeout: 30_000 }
 		);
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( uniqueFile( TEST_IMAGE_PATH ) );
 		await classicUpload;
 
 		expect( counts.create + counts.sideload + counts.finalize ).toBe( 0 );
 	} );
+} );
 
+test.describe( 'Media modal uploads without cross-origin isolation', () => {
 	test( 'falls back to the classic uploader when the editor is not isolated', async ( {
 		page,
 		editor,
 		admin,
+		attachments,
+		postFactory,
 	} ) => {
 		// Blocking the Document-Isolation-Policy header reproduces every
 		// browser that ignores it: the page is not isolated, the script
 		// must no-op, and classic plupload must still upload the file.
 		await page.route(
-			( url ) => url.pathname.endsWith( '/wp-admin/post-new.php' ),
+			( url ) => url.pathname.endsWith( '/wp-admin/post.php' ),
 			async ( route ) => {
 				const response = await route.fetch();
 				const headers = { ...response.headers() };
@@ -272,7 +253,10 @@ test.describe( 'Media modal client-side uploads', () => {
 				await route.fulfill( { response, headers } );
 			}
 		);
-		await admin.createNewPost();
+		const post = await postFactory.create( {
+			title: postFactory.uniqueTitle( 'Media modal' ),
+		} );
+		await admin.editPost( post.id );
 
 		const isolated = await page.evaluate( () =>
 			Boolean( window.crossOriginIsolated )
@@ -280,11 +264,13 @@ test.describe( 'Media modal client-side uploads', () => {
 		expect( isolated ).toBe( false );
 
 		const counts = countUploadRequests( page );
+		trackUploads( page, attachments );
 		const modal = await openModalFromImageBlock( page, editor );
 
+		const file = uniqueFile( TEST_IMAGE_PATH );
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
-		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await fileInput.setInputFiles( file );
 
 		await expect( tile( modal, 'uploading…' ) ).toHaveCount( 0, {
 			timeout: 60_000,
@@ -292,7 +278,7 @@ test.describe( 'Media modal client-side uploads', () => {
 		// The frame selects the file it just uploaded.
 		await expect(
 			modal.getByRole( 'checkbox', {
-				name: 'test-image',
+				name: titleOf( file ),
 				checked: true,
 				exact: true,
 			} )
