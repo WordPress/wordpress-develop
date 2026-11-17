@@ -3007,11 +3007,11 @@ class WP_Site_Health {
 					'label' => __( 'File uploads' ),
 					'test'  => 'file_uploads',
 				),
-				'webp_supported'               => array(
+				'webp_support'                 => array(
 					'label' => __( 'WebP support' ),
 					'test'  => 'webp_support',
 				),
-				'avif_supported'               => array(
+				'avif_support'                 => array(
 					'label' => __( 'AVIF support' ),
 					'test'  => 'avif_support',
 				),
