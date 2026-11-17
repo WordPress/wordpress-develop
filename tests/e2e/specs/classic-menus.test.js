@@ -12,7 +12,7 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
  * Internal dependencies
  */
 import { NAV_MENU_LOCATIONS } from '../utils/locks';
-import { adminNotice } from '../utils/list-table';
+import { adminNotice } from '../utils/admin';
 
 /**
  * The classic menus admin screen (nav-menus.php). Relies on Twenty

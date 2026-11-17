@@ -1,5 +1,5 @@
 /**
- * Locators for WP admin screens, mainly list tables.
+ * Locators for WP admin screens.
  *
  * These elements have no unique accessible name, or share it with a twin control
  * at the bottom of the table, so they are found by ID.

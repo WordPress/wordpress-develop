@@ -2,7 +2,7 @@
  * Internal dependencies
  */
 import { test, expect } from '../../fixtures';
-import { postRow } from '../../utils/list-table';
+import { postRow } from '../../utils/admin';
 
 test.describe( 'Quick Edit page', () => {
 	test( 'saves a page parent using Quick Edit', async ( {

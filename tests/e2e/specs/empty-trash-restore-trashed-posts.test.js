@@ -7,7 +7,7 @@ import {
 	bulkActionApply,
 	bulkActionSelect,
 	postRow,
-} from '../utils/list-table';
+} from '../utils/admin';
 
 test( 'Undo restores a trashed post to its published status', async ( {
 	page,

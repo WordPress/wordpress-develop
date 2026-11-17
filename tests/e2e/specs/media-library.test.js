@@ -17,7 +17,7 @@ import {
 	bulkActionApply,
 	bulkActionSelect,
 	postRow,
-} from '../utils/list-table';
+} from '../utils/admin';
 
 test.describe( 'Media library', () => {
 	let ids;

@@ -2,7 +2,7 @@
  * Internal dependencies
  */
 import { test, expect } from '../fixtures';
-import { adminNotice } from '../utils/list-table';
+import { adminNotice } from '../utils/admin';
 
 const POST_TITLE = 'Test Title';
 

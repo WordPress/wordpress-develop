@@ -6,7 +6,7 @@ import {
 	bulkActionApply,
 	bulkActionSelect,
 	commentRow,
-} from '../utils/list-table';
+} from '../utils/admin';
 
 /** The comment content used across tests. */
 const COMMENT_CONTENT = 'A comment awaiting moderation.';

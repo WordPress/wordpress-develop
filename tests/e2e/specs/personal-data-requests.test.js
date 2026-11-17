@@ -11,7 +11,7 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 /**
  * Internal dependencies
  */
-import { bulkActionApply, bulkActionSelect } from '../utils/list-table';
+import { bulkActionApply, bulkActionSelect } from '../utils/admin';
 
 for ( const { label, screen, confirmationLabel, usernamePrefix } of [
 	{

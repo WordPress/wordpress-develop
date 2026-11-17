@@ -12,7 +12,7 @@ import {
 	adminNotice,
 	bulkActionApply,
 	bulkActionSelect,
-} from '../utils/list-table';
+} from '../utils/admin';
 
 test.describe( 'User management', () => {
 	let prefix;

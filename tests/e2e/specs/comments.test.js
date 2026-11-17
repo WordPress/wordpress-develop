@@ -11,7 +11,7 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 /**
  * Internal dependencies
  */
-import { commentRow } from '../utils/list-table';
+import { commentRow } from '../utils/admin';
 
 test.describe( 'Front-end comments', () => {
 	let postId;

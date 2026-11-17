@@ -12,7 +12,7 @@ import {
 	bulkActionApply,
 	bulkActionSelect,
 	postRow,
-} from '../utils/list-table';
+} from '../utils/admin';
 
 test.describe( 'Edit Posts', () => {
 	async function visitPostList( admin, title ) {
