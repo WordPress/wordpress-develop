@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Variable \$pagenow might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
-			path: ../../../src/wp-admin/admin.php
-		-
 			message: '#^Variable \$wp_db_version might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -399,16 +394,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/theme-install.php
 		-
-			message: '#^Variable \$self might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/themes.php
-		-
-			message: '#^Variable \$submenu might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/themes.php
-		-
 			message: '#^Variable \$wp_version might not be defined\.$#'
 			identifier: variable.undefined
 			count: 3
@@ -704,11 +689,6 @@ parameters:
 			count: 3
 			path: ../../../src/wp-includes/ms-files.php
 		-
-			message: '#^Variable \$current_blog might not be defined\.$#'
-			identifier: variable.undefined
-			count: 7
-			path: ../../../src/wp-includes/ms-settings.php
-		-
 			message: '#^Variable \$table_prefix might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -718,11 +698,6 @@ parameters:
 			identifier: variable.undefined
 			count: 3
 			path: ../../../src/wp-includes/ms-settings.php
-		-
-			message: '#^Variable \$wp_template_path might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-includes/template.php
 		-
 			message: '#^Variable \$error might not be defined\.$#'
 			identifier: variable.undefined

@@ -877,8 +877,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @ticket 35227
 	 */
 	public function test_unregister_taxonomy_removes_permastruct() {
-		$this->set_permalink_structure( '/%postname%' );
-
 		global $wp_rewrite;
 
 		register_taxonomy(
@@ -899,8 +897,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @ticket 35227
 	 */
 	public function test_unregister_taxonomy_removes_rewrite_rules() {
-		$this->set_permalink_structure( '/%postname%' );
-
 		global $wp_rewrite;
 
 		register_taxonomy( 'foo', 'post', array( 'query_var' => 'bar' ) );

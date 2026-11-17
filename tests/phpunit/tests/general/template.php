@@ -688,9 +688,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_for_posts', self::$blog_page_id );
 
-		// Set up pretty permalinks.
-		$this->set_permalink_structure( '/%postname%/' );
-
 		// Set the custom logo.
 		$this->set_custom_logo();
 		$this->go_to( $url );
@@ -735,9 +732,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_for_posts', self::$blog_page_id );
 		update_option( 'page_on_front', self::$home_page_id );
-
-		// Set up pretty permalinks.
-		$this->set_permalink_structure( '/%postname%/' );
 
 		// Set the custom logo.
 		$this->set_custom_logo();

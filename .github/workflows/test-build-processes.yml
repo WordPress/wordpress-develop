@@ -77,12 +77,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'ubuntu-24.04' ]
+        os: [ 'ubuntu-26.04' ]
         directory: [ 'src', 'build' ]
         test-certificates: [ true ]
         include:
           # Only prepare artifacts for Playground once.
-          - os: 'ubuntu-24.04'
+          - os: 'ubuntu-26.04'
             directory: 'build'
             save-build: true
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
@@ -112,7 +112,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ 'macos-15', 'windows-2025' ]
+        os: [ 'macos-26', 'windows-2025' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -136,7 +136,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
