@@ -491,10 +491,9 @@ foreach ( $retired as $identifier ) {
 		continue;
 	}
 
+	// Every file here was checked to be one this script wrote before the analysis.
 	$file = $output_dir . '/' . $identifier . '.neon';
-	if ( is_file( $file ) && ! is_generated_baseline( $file, $identifier ) ) {
-		fwrite( STDERR, sprintf( "%s: not a baseline written by this script, left untouched.\n", $output_option . '/' . $identifier . '.neon' ) );
-	} elseif ( is_file( $file ) && unlink( $file ) ) {
+	if ( is_file( $file ) && unlink( $file ) ) {
 		printf( "%s: no errors remain, file deleted.\n", $output_option . '/' . $identifier . '.neon' );
 	} else {
 		printf( "%s: no errors reported.\n", $identifier );
@@ -568,11 +567,12 @@ function get_usage(): string {
 /**
  * Determines whether a file is a baseline this script wrote.
  *
- * A file is only retired or pruned when it starts with the header this script
- * writes for its identifier. Any `.neon` file whose name passes for an identifier
- * would otherwise be deleted when that identifier reports nothing, such as
- * `base.neon` with `--output-dir=tests/phpstan`, or the root `phpstan.neon` with
- * `--output-dir=.`.
+ * A file is only written, retired, or pruned when it starts with the header this
+ * script writes for its identifier: a run stops before its analysis when the
+ * output directory holds any other, and `--prune` leaves any other in place. Any
+ * `.neon` file whose name passes for an identifier would otherwise be deleted
+ * when that identifier reports nothing, such as `base.neon` with
+ * `--output-dir=tests/phpstan`, or the root `phpstan.neon` with `--output-dir=.`.
  *
  * Only the first line is read, and compared without its line ending, so that a
  * checkout converting line endings to CRLF, as Git does on Windows with
