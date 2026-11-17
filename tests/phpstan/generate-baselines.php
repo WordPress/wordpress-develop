@@ -397,10 +397,15 @@ if ( $loader !== $loader_contents ) {
 }
 
 foreach ( $grouped as $identifier => $entries ) {
-	file_put_contents(
+	$written = file_put_contents(
 		$output_dir . '/' . $identifier . '.neon',
 		build_baseline( $entries, $output_dir, build_baseline_header( $identifier ) )
 	);
+
+	if ( false === $written ) {
+		fwrite( STDERR, "Could not write $output_option/$identifier.neon\n" );
+		exit( 1 );
+	}
 
 	printf(
 		"%s: %d entries, %d errors\n",
