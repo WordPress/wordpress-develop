@@ -512,7 +512,7 @@ function read_baseline( string $path ): array {
 		return array();
 	}
 
-	$parameters  = is_array( $data ) ? ( $data['parameters'] ?? null ) : null;
+	$parameters    = is_array( $data ) ? ( $data['parameters'] ?? null ) : null;
 	$ignore_errors = is_array( $parameters ) ? ( $parameters['ignoreErrors'] ?? null ) : null;
 
 	if ( ! is_array( $ignore_errors ) ) {
