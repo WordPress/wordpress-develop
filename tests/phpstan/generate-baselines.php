@@ -503,7 +503,16 @@ function read_file( string $path ): string {
 function read_baseline( string $path ): array {
 	$data = require $path;
 
-	$parameters   = is_array( $data ) ? ( $data['parameters'] ?? null ) : null;
+	/*
+	 * PHPStan writes a baseline of no errors as an empty array, without the
+	 * `parameters` it otherwise has. That is the usual outcome for a directory
+	 * whose errors the baselines elsewhere already cover.
+	 */
+	if ( array() === $data ) {
+		return array();
+	}
+
+	$parameters  = is_array( $data ) ? ( $data['parameters'] ?? null ) : null;
 	$ignore_errors = is_array( $parameters ) ? ( $parameters['ignoreErrors'] ?? null ) : null;
 
 	if ( ! is_array( $ignore_errors ) ) {
