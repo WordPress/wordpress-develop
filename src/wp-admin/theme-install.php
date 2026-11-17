@@ -398,12 +398,12 @@ if ( $tab ) {
 	<div class="theme-author">
 		<?php
 		/* translators: %s: Theme author name. */
-		printf( __( 'By %s' ), '{{ data.author }}' );
+		printf( __( 'By %s' ), '{{{ data.author }}}' );
 		?>
 	</div>
 
 	<div class="theme-id-container">
-		<h3 class="theme-name">{{ data.name }}</h3>
+		<h3 class="theme-name">{{{ data.name }}}</h3>
 
 		<div class="theme-actions">
 			<# if ( data.installed ) { #>
@@ -510,11 +510,11 @@ if ( $tab ) {
 		</div>
 		<div class="wp-full-overlay-sidebar-content">
 			<div class="install-theme-info">
-				<h3 class="theme-name">{{ data.name }}</h3>
+				<h3 class="theme-name">{{{ data.name }}}</h3>
 					<span class="theme-by">
 						<?php
 						/* translators: %s: Theme author name. */
-						printf( __( 'By %s' ), '{{ data.author }}' );
+						printf( __( 'By %s' ), '{{{ data.author }}}' );
 						?>
 					</span>
 
