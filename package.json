@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "1b0dc90c700746b108e080263a4dc67707b750a1",
+		"sha": "61aba5422836aeed76a794f98d3fe0da3eb5f5d1",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
@@ -106,7 +106,7 @@
 		"imagesloaded": "5.0.0",
 		"jquery": "3.7.1",
 		"jquery-color": "3.0.0",
-		"jquery-form": "4.3.0",
+		"jquery-form": "4.4.0",
 		"jquery-hoverintent": "1.10.2",
 		"jquery-migrate": "3.6.0",
 		"jsonlint": "1.6.3",
