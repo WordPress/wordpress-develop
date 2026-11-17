@@ -2429,7 +2429,7 @@ function excerpt_remove_footnotes( $content ) {
 			continue;
 		}
 
-		// Skip an all-digit text node.
+		// Match an all-digit text node.
 		if ( ! $processor->next_token() || '#text' !== $processor->get_token_name() ) {
 			continue;
 		}
@@ -2464,7 +2464,6 @@ function excerpt_remove_footnotes( $content ) {
 
 		// Match the closing </sup> tag.
 		if (
-			! $processor->next_token() ||
 			'SUP' !== $processor->get_token_name() ||
 			! $processor->is_tag_closer()
 		) {
