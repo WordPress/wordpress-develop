@@ -549,6 +549,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.4.0
 	 * @since 6.9.0 Excludes the 'note' comment type, unless 'all' or the 'note' types are requested.
+	 * @since 7.2.0 Excludes the 'reaction' comment type, unless 'all' or the 'reaction' types are requested.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -699,11 +700,7 @@ class WP_Comment_Query {
 					}
 				}
 
-				// Default to DESC.
-				if ( ! $comment_id_order ) {
-					$comment_id_order = 'DESC';
-				}
-
+				// The logic above ensures $comment_id_order is set to 'ASC' or defaults to 'DESC'.
 				$orderby_array[] = "$wpdb->comments.comment_ID $comment_id_order";
 			}
 
@@ -784,13 +781,16 @@ class WP_Comment_Query {
 			'NOT IN' => (array) $this->query_vars['type__not_in'],
 		);
 
-		// Exclude the 'note' comment type, unless 'all' types or the 'note' type explicitly are requested.
-		if (
-			! in_array( 'all', $raw_types['IN'], true ) &&
-			! in_array( 'note', $raw_types['IN'], true ) &&
-			! in_array( 'note', $raw_types['NOT IN'], true )
-		) {
-			$raw_types['NOT IN'][] = 'note';
+		// Exclude the 'note' and 'reaction' comment types, unless 'all' types or that type explicitly are requested.
+		if ( ! in_array( 'all', $raw_types['IN'], true ) ) {
+			foreach ( array( 'note', 'reaction' ) as $excluded_type ) {
+				if (
+					! in_array( $excluded_type, $raw_types['IN'], true ) &&
+					! in_array( $excluded_type, $raw_types['NOT IN'], true )
+				) {
+					$raw_types['NOT IN'][] = $excluded_type;
+				}
+			}
 		}
 
 		$comment_types = array();

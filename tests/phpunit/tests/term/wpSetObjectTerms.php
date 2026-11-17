@@ -466,7 +466,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_empty_value_should_clear_terms() {
+	public static function data_empty_value_should_clear_terms() {
 		return array(
 			'(bool) false' => array( false ),
 			'null'         => array( null ),

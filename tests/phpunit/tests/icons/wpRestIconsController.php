@@ -375,11 +375,11 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'core/arrow-left', $data['name'] );
 		$this->assertSame( 'Arrow Left', $data['label'] );
 		$this->assertNotEmpty( $data['content'] );
-		$this->assertStringStartsWith(
-			'<svg xmlns="',
-			$data['content'],
-			'Icon content should match the actual SVG asset'
-		);
+
+		$processor = new WP_HTML_Tag_Processor( $data['content'] );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( 'SVG', $processor->get_tag(), 'Icon content should match the actual SVG asset' );
+		$this->assertSame( 'http://www.w3.org/2000/svg', $processor->get_attribute( 'xmlns' ), 'Icon content should match the actual SVG asset' );
 	}
 
 	/**
@@ -724,7 +724,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @return array[]
 	 */
-	public function data_icon_visibility_searches() {
+	public static function data_icon_visibility_searches() {
 		return array(
 			'all icons'    => array( '' ),
 			'search icons' => array( 'visibility' ),
@@ -783,7 +783,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	 *
 	 * @return array[]
 	 */
-	public function data_non_public_collection_requests() {
+	public static function data_non_public_collection_requests() {
 		return array(
 			'collection route' => array( '/wp/v2/icons/rest-visibility-private', array() ),
 			'collection query' => array( '/wp/v2/icons', array( 'collection' => 'rest-visibility-private' ) ),

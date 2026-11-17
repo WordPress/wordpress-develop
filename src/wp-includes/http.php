@@ -457,7 +457,7 @@ function wp_remote_retrieve_cookie_value( $response, $name ) {
 		return '';
 	}
 
-	return $cookie->value;
+	return $cookie->value ?? '';
 }
 
 /**
