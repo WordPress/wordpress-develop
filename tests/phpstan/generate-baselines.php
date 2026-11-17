@@ -12,17 +12,15 @@
  * identifier and writes one file per kind. Each file is self-describing and is
  * meant to shrink to nothing and then be deleted.
  *
- * Baselines whose identifier no longer reports anything are removed, and the
- * list of them between the `# phpstan:baselines` markers in the configuration's
- * `includes` is rewritten to match what is on disk. Adding a newly split out
- * baseline, and retiring one that has reached zero, therefore need no manual
- * edit of the configuration.
+ * Baselines whose identifier no longer reports anything are removed. The
+ * configuration includes them through `tests/phpstan/baselines/loader.php`, which
+ * includes every baseline in that directory, so adding a newly split out baseline,
+ * and retiring one that has reached zero, need no edit of the configuration.
  *
  * With `--prune`, nothing is analyzed: the baselines that no longer list any
- * entries are deleted, and the list in the configuration is updated to match. That
- * completes running PHPStan with `--fix`, which removes the entries of fixed
- * errors in place but leaves a baseline it has emptied behind, and so
- * `composer phpstan:fix` runs it with `--prune` after `--fix`.
+ * entries are deleted. That completes running PHPStan with `--fix`, which removes
+ * the entries of fixed errors in place but leaves a baseline it has emptied
+ * behind, and so `composer phpstan:fix` runs it with `--prune` after `--fix`.
  *
  * The intermediate baseline is generated in PHPStan's PHP format and read back
  * with `require`, so the entries arrive as an array. Nothing has to parse, or
@@ -43,17 +41,12 @@
 namespace WordPress\PHPStan;
 
 /**
- * Opening marker of the region of the configuration's `includes` this script owns.
+ * The file that includes every baseline in its directory.
  *
- * Everything between this and the closing marker is generated: it is rewritten to
- * match the baselines on disk, and suppressed while the analysis runs.
+ * Relative to the repository root. The configuration includes the baselines
+ * through it, and it is suppressed while the analysis runs.
  */
-const BASELINES_START_MARKER = '# phpstan:baselines start';
-
-/**
- * Closing marker of the region of the configuration's `includes` this script owns.
- */
-const BASELINES_END_MARKER = '# phpstan:baselines end';
+const BASELINES_LOADER = 'tests/phpstan/baselines/loader.php';
 
 /**
  * The configuration analyzed when `--config` does not name one.
@@ -143,8 +136,8 @@ if ( ! is_file( $config_path ) ) {
  * entries whose errors were fixed and removes those that no longer match, but when
  * it removes the last entry of a baseline it leaves the file behind, as
  * `ignoreErrors: []`. That file suppresses nothing, so all that remains is to
- * delete it and drop it from the configuration's `includes`, which is known from
- * the file alone.
+ * delete it, which is known from the file alone. The loader stops including it
+ * once it is gone.
  */
 if ( $prune ) {
 	if ( $combined ) {
@@ -185,7 +178,6 @@ if ( $prune ) {
 		echo "No empty baselines found.\n";
 	}
 
-	update_config_includes( $config_path, $config_option, $output_dir );
 	exit( 0 );
 }
 
@@ -218,7 +210,7 @@ register_shutdown_function(
 	}
 );
 
-file_put_contents( $temp_stripped, strip_baseline_includes( $config_path, $output_dir ) );
+file_put_contents( $temp_stripped, strip_baseline_includes( $config_path, $output_dir, $repo_root . '/' . BASELINES_LOADER ) );
 
 /*
  * The analysis gets a scratch directory of its own, rather than the `tmpDir` that
@@ -336,7 +328,7 @@ if ( ! is_dir( $output_dir ) && ! mkdir( $output_dir, 0755, true ) ) {
 foreach ( $grouped as $identifier => $entries ) {
 	file_put_contents(
 		$output_dir . '/' . $identifier . '.neon',
-		build_baseline( $entries, $output_dir, build_baseline_header( $identifier, $config_option ) )
+		build_baseline( $entries, $output_dir, build_baseline_header( $identifier ) )
 	);
 
 	printf(
@@ -377,8 +369,6 @@ foreach ( $retired as $identifier ) {
 	}
 }
 
-update_config_includes( $config_path, $config_option, $output_dir );
-
 /**
  * Returns the usage message.
  *
@@ -388,10 +378,10 @@ function get_usage(): string {
 	return <<<'TEXT'
 		Generates PHPStan baselines split by error identifier.
 
-		Writes one baseline per identifier, retires any whose identifier no longer
-		reports anything, and rewrites the list of them between the
-		`# phpstan:baselines` markers in the configuration's `includes`, so that
-		neither addition nor removal has to be done by hand.
+		Writes one baseline per identifier, and retires any whose identifier no
+		longer reports anything. The configuration includes every baseline through
+		tests/phpstan/baselines/loader.php, so neither addition nor removal needs an
+		edit of it.
 
 		Usage:
 		  composer phpstan:baselines [-- <options>]
@@ -412,8 +402,7 @@ function get_usage(): string {
 		                       per-identifier files. Nothing is written to disk.
 		  --prune              Without analyzing anything, delete the baselines that no
 		                       longer list any entries, such as one emptied by running
-		                       PHPStan with --fix, and update the configuration's
-		                       `includes` to match. With --identifier, only those
+		                       PHPStan with --fix. With --identifier, only those
 		                       baselines are considered.
 		  --memory-limit=<v>   Passed through to PHPStan. Default: 2G
 		  -h, --help           Show this message.
@@ -521,11 +510,10 @@ function read_baseline( string $path ): array {
  * Those files suppress the very errors being regenerated, so they have to be out
  * of the way for the analysis to report anything.
  *
- * Two kinds of include are dropped. Everything between the `# phpstan:baselines`
- * markers goes, whatever it points at, because that region is generated and every
- * baseline in force is listed there. Any other include resolving inside the output
- * directory goes as well, so that a baseline listed by hand outside the markers is
- * still suppressed when it is about to be rewritten.
+ * Two kinds of include are dropped. The loader goes, because every baseline in
+ * force is included through it. Any other include resolving inside the output
+ * directory goes as well, so that a baseline included by hand rather than through
+ * the loader is still suppressed when it is about to be rewritten.
  *
  * The distinction matters to `--output-dir`. Were only the output directory
  * considered, writing somewhere other than the default would leave the baselines
@@ -534,12 +522,12 @@ function read_baseline( string $path ): array {
  *
  * @param non-falsy-string $config_path Absolute path to the configuration file.
  * @param non-falsy-string $output_dir  Absolute path to the baseline directory.
+ * @param non-falsy-string $loader_path Absolute path to the loader of the baselines.
  * @return string Configuration contents.
  */
-function strip_baseline_includes( string $config_path, string $output_dir ): string {
+function strip_baseline_includes( string $config_path, string $output_dir, string $loader_path ): string {
 	$config_dir = dirname( $config_path );
 	$in_block   = false;
-	$in_managed = false;
 	$kept       = array();
 
 	foreach ( explode( "\n", read_file( $config_path ) ) as $line ) {
@@ -551,27 +539,18 @@ function strip_baseline_includes( string $config_path, string $output_dir ): str
 
 		// A non-indented, non-blank line ends the block.
 		if ( $in_block && '' !== trim( $line ) && 1 !== preg_match( '/^\s/', $line ) ) {
-			$in_block   = false;
-			$in_managed = false;
-		}
-
-		if ( $in_block ) {
-			if ( BASELINES_START_MARKER === trim( $line ) ) {
-				$in_managed = true;
-			} elseif ( BASELINES_END_MARKER === trim( $line ) ) {
-				$in_managed = false;
-			}
+			$in_block = false;
 		}
 
 		if ( $in_block && 1 === preg_match( '/^\s*-\s*(\S+)\s*$/', $line, $matches ) ) {
-			if ( $in_managed ) {
+			$included = $matches[1];
+			$absolute = normalize_path( ( '/' === $included[0] ) ? $included : $config_dir . '/' . $included );
+
+			if ( normalize_path( $loader_path ) === $absolute ) {
 				continue;
 			}
 
-			$included = $matches[1];
-			$absolute = ( '/' === $included[0] ) ? $included : $config_dir . '/' . $included;
-
-			if ( 0 === strpos( normalize_path( $absolute ), normalize_path( $output_dir ) . '/' ) ) {
+			if ( 0 === strpos( $absolute, normalize_path( $output_dir ) . '/' ) ) {
 				continue;
 			}
 		}
@@ -652,106 +631,6 @@ function is_empty_baseline( string $contents ): ?bool {
 	}
 
 	return null;
-}
-
-/**
- * Rewrites the managed region of the configuration's `includes` list.
- *
- * The region is delimited by marker comments, so the hand written entries around
- * it are never touched. Where the markers are absent they are appended to the end
- * of the `includes` block, which is what happens the first time this is run
- * against a configuration.
- *
- * @param non-falsy-string $config_path   Absolute path to the configuration file.
- * @param non-empty-string $config_option Configuration path, as passed on the command line.
- * @param non-empty-string $output_dir    Absolute path to the baseline directory.
- */
-function update_config_includes( string $config_path, string $config_option, string $output_dir ): void {
-	$start_marker = BASELINES_START_MARKER;
-	$end_marker   = BASELINES_END_MARKER;
-
-	$before = read_file( $config_path );
-	$lines  = explode( "\n", $before );
-
-	$start = null;
-	$end   = null;
-	foreach ( $lines as $i => $line ) {
-		if ( $start_marker === trim( $line ) ) {
-			$start = $i;
-		}
-		if ( $end_marker === trim( $line ) ) {
-			$end = $i;
-		}
-	}
-
-	$region = array( "\t" . $start_marker );
-	foreach ( find_baselines( $output_dir ) as $file ) {
-		$region[] = "\t- " . get_relative_path( dirname( $config_path ), $file );
-	}
-	$region[] = "\t" . $end_marker;
-
-	if ( null !== $start && null !== $end && $start < $end ) {
-		$updated = array_merge(
-			array_slice( $lines, 0, $start ),
-			$region,
-			array_slice( $lines, $end + 1 )
-		);
-	} else {
-		$insert = find_includes_end( $lines );
-
-		if ( null === $insert ) {
-			fwrite( STDERR, "No `includes` block found in $config_option, left untouched.\n" );
-			return;
-		}
-
-		$updated = array_merge(
-			array_slice( $lines, 0, $insert ),
-			array( '' ),
-			$region,
-			array_slice( $lines, $insert )
-		);
-	}
-
-	$after = implode( "\n", $updated );
-
-	if ( $before === $after ) {
-		return;
-	}
-
-	file_put_contents( $config_path, $after );
-	printf( "%s: `includes` updated.\n", $config_option );
-}
-
-/**
- * Finds where the `includes` block ends.
- *
- * @param list<string> $lines Configuration lines.
- * @return int|null Index of the first line after the block, or null when there is none.
- */
-function find_includes_end( array $lines ): ?int {
-	$in_block = false;
-	$last     = null;
-
-	foreach ( $lines as $i => $line ) {
-		if ( 1 === preg_match( '/^includes:/', $line ) ) {
-			$in_block = true;
-			$last     = $i;
-			continue;
-		}
-
-		if ( ! $in_block || '' === trim( $line ) ) {
-			continue;
-		}
-
-		// A non-indented line ends the block.
-		if ( 1 !== preg_match( '/^\s/', $line ) ) {
-			break;
-		}
-
-		$last = $i;
-	}
-
-	return null === $last ? null : $last + 1;
 }
 
 /**
@@ -861,10 +740,9 @@ function quote_neon_value( string $value ): string {
  * Builds the header comment for a per-identifier baseline.
  *
  * @param non-falsy-string $identifier Error identifier, a group followed by a code.
- * @param non-empty-string $config     Configuration path, as passed on the command line.
  * @return non-falsy-string Comment block.
  */
-function build_baseline_header( string $identifier, string $config ): string {
+function build_baseline_header( string $identifier ): string {
 	return <<<TEXT
 		# PHPStan baseline for the `$identifier` errors in WordPress core.
 		#
@@ -875,8 +753,7 @@ function build_baseline_header( string $identifier, string $config ): string {
 		# silently. Fixing an occurrence therefore means decrementing or removing its
 		# entry here as part of the same change.
 		#
-		# The goal is to empty this file and delete it, along with the `includes` entry
-		# for it in $config.
+		# The goal is to empty this file and delete it.
 		#
 		# Generated by `composer phpstan:baselines`. Do not edit by hand; regenerate with
 		#
