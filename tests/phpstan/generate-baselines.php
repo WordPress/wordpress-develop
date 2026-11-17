@@ -304,10 +304,8 @@ $command = sprintf(
 fwrite( STDERR, "Analyzing with $config_option, baselines in $output_option suppressed...\n" );
 
 /*
- * PHPStan inherits it, as do the worker processes it starts. The loader compares
- * it with its __DIR__, which PHP resolves to a real path, so it is resolved the
- * same way. An output directory not created yet holds no loader to match, so it
- * is not set at all then.
+ * PHPStan inherits it, as do the worker processes it starts. An output directory
+ * not created yet holds no loader to match, so it is not set at all then.
  */
 $resolved_output_dir = realpath( $output_dir );
 if ( false !== $resolved_output_dir ) {
@@ -321,9 +319,9 @@ if ( false !== $resolved_output_dir ) {
  * default directory's, so that is the one combination with nothing to say. Any
  * other, whether a configuration including the default one alongside a loader of
  * its own, or a directory other than the default, may well leave some in force.
- * The directories are compared as resolved, as the loader does.
+ * The directories are compared as the loader compares them.
  */
-if ( DEFAULT_CONFIG !== $config_relative || realpath( $repo_root . '/' . DEFAULT_OUTPUT_DIR ) !== $resolved_output_dir ) {
+if ( DEFAULT_CONFIG !== $config_relative || ! is_same_directory( $repo_root . '/' . DEFAULT_OUTPUT_DIR, $output_dir ) ) {
 	fwrite( STDERR, "Baselines in any other directory the configuration includes stay in force, so only the errors they leave are written.\n" );
 }
 
@@ -593,6 +591,13 @@ function read_baseline( string $path ): array {
  * the directory as given, a symbolic link in it would send the loader looking
  * somewhere else.
  *
+ * Their common ancestor is found with is_same_directory() rather than by
+ * comparing the paths as strings, since realpath() keeps the case it was given.
+ * On a case-insensitive file system, `--output-dir=Tests/PHPStan/Baselines`
+ * would otherwise share no ancestor with `tests/phpstan` short of the repository
+ * root, and the loader written for the default directory would change with the
+ * spelling of the option.
+ *
  * @param non-empty-string $output_dir Absolute path to the baseline directory, which exists.
  * @return non-falsy-string Loader contents.
  */
@@ -602,6 +607,29 @@ function build_loader( string $output_dir ): string {
 
 	if ( false === $from || false === $to ) {
 		fwrite( STDERR, "Could not resolve $output_dir or the shared baseline includes.\n" );
+		exit( 1 );
+	}
+
+	$relative = null;
+	$ups      = 0;
+	for ( $dir = $from; null === $relative; $dir = dirname( $dir ), $ups++ ) {
+		for ( $base = dirname( $to ); null === $relative; $base = dirname( $base ) ) {
+			if ( is_same_directory( $dir, $base ) ) {
+				$relative = str_repeat( '../', $ups ) . ltrim( substr( $to, strlen( $base ) ), '/' );
+			}
+
+			if ( dirname( $base ) === $base ) {
+				break;
+			}
+		}
+
+		if ( dirname( $dir ) === $dir ) {
+			break;
+		}
+	}
+
+	if ( null === $relative ) {
+		fwrite( STDERR, "Could not relate $output_dir to the shared baseline includes.\n" );
 		exit( 1 );
 	}
 
@@ -625,7 +653,7 @@ function build_loader( string $output_dir ): string {
 		return \WordPress\PHPStan\get_baseline_includes( __DIR__ );
 
 		PHP,
-		var_export( '/' . get_relative_path( $from, $to ), true )
+		var_export( '/' . $relative, true )
 	);
 }
 
