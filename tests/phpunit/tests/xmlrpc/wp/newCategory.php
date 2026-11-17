@@ -39,7 +39,7 @@ class Tests_XMLRPC_wp_newCategory extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_newCategory( array( 1, 'editor', 'editor', array( 'name' => $name ) ) );
 
 		$this->assertIXRError( $result );
-		$this->assertSame( 403, $result->code );
+		$this->assertSame( 400, $result->code );
 		$this->assertSame( 'Invalid term name.', $result->message );
 	}
 

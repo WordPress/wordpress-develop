@@ -72,7 +72,7 @@ class Tests_XMLRPC_wp_newTerm extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 		$this->assertIXRError( $result );
-		$this->assertSame( 403, $result->code );
+		$this->assertSame( 400, $result->code );
 		$this->assertSame( 'Invalid term name.', $result->message );
 	}
 

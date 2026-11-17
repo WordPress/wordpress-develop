@@ -2218,7 +2218,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$term_data = array();
 
 		if ( isset( $content_struct['name'] ) && ! ( is_string( $content_struct['name'] ) || is_int( $content_struct['name'] ) || is_float( $content_struct['name'] ) ) ) {
-			return new IXR_Error( 403, __( 'Invalid term name.' ) );
+			return new IXR_Error( 400, __( 'Invalid term name.' ) );
 		}
 
 		$term_data['name'] = trim( $content_struct['name'] );
@@ -2340,7 +2340,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		if ( isset( $content_struct['name'] ) ) {
 			if ( ! ( is_string( $content_struct['name'] ) || is_int( $content_struct['name'] ) || is_float( $content_struct['name'] ) ) ) {
-				return new IXR_Error( 403, __( 'Invalid term name.' ) );
+				return new IXR_Error( 400, __( 'Invalid term name.' ) );
 			}
 
 			$term_data['name'] = trim( $content_struct['name'] );
@@ -3569,7 +3569,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		if ( isset( $category['name'] ) && ! ( is_string( $category['name'] ) || is_int( $category['name'] ) || is_float( $category['name'] ) ) ) {
-			return new IXR_Error( 403, __( 'Invalid term name.' ) );
+			return new IXR_Error( 400, __( 'Invalid term name.' ) );
 		}
 
 		/*
