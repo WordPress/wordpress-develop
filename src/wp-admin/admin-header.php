@@ -103,6 +103,12 @@ wp_enqueue_style( 'colors' );
 wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
 
+/*
+ * View transitions animate the admin menu, so they are only enqueued on screens that print it.
+ * Iframe screens such as Thickbox modals do not load this header and so do not opt in.
+ */
+wp_enqueue_view_transitions_admin_css();
+
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 
 // Print the global admin inline scripts through the script tag API so the
@@ -243,6 +249,10 @@ $admin_body_class .= ' no-customize-support svg';
 
 if ( $current_screen->is_block_editor() ) {
 	$admin_body_class .= ' block-editor-page wp-embed-responsive';
+}
+
+if ( ! wp_is_meta_box_reordering_enabled() ) {
+	$admin_body_class .= ' meta-box-reordering-disabled';
 }
 
 $admin_body_class .= ' wp-theme-' . sanitize_html_class( get_template() );

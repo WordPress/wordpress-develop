@@ -397,6 +397,7 @@ function wp_favicon_request() {
  * the wp-content directory).
  *
  * @since 3.0.0
+ * @since 7.2.0 Added status, no-cache and retry-after headers before loading a custom `maintenance.php` drop-in.
  * @access private
  */
 function wp_maintenance() {
@@ -405,12 +406,16 @@ function wp_maintenance() {
 		return;
 	}
 
+	require_once ABSPATH . WPINC . '/functions.php';
+
 	if ( file_exists( WP_CONTENT_DIR . '/maintenance.php' ) ) {
+		status_header( 503 );
+		nocache_headers();
+		header( 'Retry-After: 600' );
 		require_once WP_CONTENT_DIR . '/maintenance.php';
 		die();
 	}
 
-	require_once ABSPATH . WPINC . '/functions.php';
 	wp_load_translations_early();
 
 	header( 'Retry-After: 600' );
@@ -1471,7 +1476,10 @@ function is_multisite() {
  *
  * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
  * @return int A non-negative integer.
- * @phpstan-return non-negative-int
+ *
+ * @phpstan-template T
+ * @phpstan-param T $maybeint
+ * @phpstan-return (T is non-negative-int ? T : non-negative-int)
  */
 function absint( $maybeint ): int {
 	if ( is_float( $maybeint ) ) {

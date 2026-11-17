@@ -6,6 +6,10 @@
  * handling (cookie normalization, redirect policy, response conversion)
  * without performing live network requests.
  *
+ * Intentionally does not reimplement Requests transport behaviors such as
+ * streaming to disk or response-size truncation. Those remain covered by the
+ * real-transport integration tests in WP_HTTP_UnitTestCase.
+ *
  * @package WordPress
  * @subpackage UnitTests
  * @since 7.2.0

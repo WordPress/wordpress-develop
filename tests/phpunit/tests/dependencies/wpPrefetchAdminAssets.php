@@ -2,10 +2,6 @@
 /**
  * Tests for {@see wp_prefetch_admin_assets()}.
  *
- * Prefetching only happens when concatenation is off. Each test turns it off with the
- * {@see 'wp_should_concatenate_admin_scripts'} filter, so that it does not depend on the
- * `CONCATENATE_SCRIPTS` and `SCRIPT_DEBUG` constants, which cannot be changed once defined.
- *
  * @package WordPress
  * @subpackage Script Loader
  *
@@ -31,8 +27,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	private $original_script_name;
 
 	/**
-	 * Gives each test fresh script and style registries, since several tests modify them, and turns
-	 * concatenation off.
+	 * Gives each test fresh script and style registries, since several tests modify them.
 	 */
 	public function set_up(): void {
 		parent::set_up();
@@ -43,8 +38,6 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		}
 
 		$this->original_script_name = $_SERVER['SCRIPT_NAME'] ?? null;
-
-		add_filter( 'wp_should_concatenate_admin_scripts', '__return_false' );
 	}
 
 	/**
@@ -69,65 +62,30 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that nothing is prefetched from the login screen when the admin concatenates its assets.
-	 *
-	 * @ticket 57548
-	 */
-	public function test_login_prints_nothing_when_admin_concatenates(): void {
-		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
-
-		$this->assertSame( array(), $this->get_prefetched_on_login() );
-	}
-
-	/**
-	 * Tests that the login screen predicts what the admin will do rather than reading the
-	 * `$concatenate_scripts` global, which script_concat_settings() may have settled on false before
-	 * 'login_init' fired.
+	 * Tests that the `$concatenate_scripts` global no longer stops prefetching from the login screen,
+	 * as nothing is concatenated.
 	 *
 	 * @ticket 57548
 	 */
 	public function test_login_ignores_concatenate_scripts_global(): void {
 		$GLOBALS['concatenate_scripts'] = true;
 
-		$this->assertNotSame( array(), $this->get_prefetched_on_login(), 'Expected prefetching when the admin will not concatenate.' );
-
-		$GLOBALS['concatenate_scripts'] = false;
-		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
-
-		$this->assertSame( array(), $this->get_prefetched_on_login(), 'Expected no prefetching when the admin will concatenate.' );
+		$this->assertNotSame( array(), $this->get_prefetched_on_login() );
 	}
 
 	/**
-	 * Tests that an admin screen goes by the `$concatenate_scripts` global, which has settled by the
-	 * time its head is printed, so a plugin setting the global is respected.
+	 * Tests that the `$concatenate_scripts` global no longer stops prefetching from an admin screen,
+	 * as nothing is concatenated.
 	 *
 	 * @ticket 57548
 	 */
-	public function test_admin_screen_uses_concatenate_scripts_global(): void {
+	public function test_admin_screen_ignores_concatenate_scripts_global(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		$GLOBALS['concatenate_scripts'] = true;
 
-		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ), 'Expected no prefetching when the global says to concatenate.' );
-
-		$GLOBALS['concatenate_scripts'] = false;
-		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
-
-		$this->assertNotSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ), 'Expected prefetching when the global says not to concatenate.' );
-	}
-
-	/**
-	 * Tests that an admin screen settles the `$concatenate_scripts` global with script_concat_settings()
-	 * when nothing has done so yet.
-	 *
-	 * @ticket 57548
-	 */
-	public function test_admin_screen_settles_concatenate_scripts_global(): void {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
-
-		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ) );
-		$this->assertTrue( $GLOBALS['concatenate_scripts'] );
+		$this->assertSame( 0, did_action( 'login_init' ), 'Expected the request not to be one for the login screen.' );
+		$this->assertNotSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ) );
 	}
 
 	/**
@@ -188,7 +146,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string, 1: bool }>
 	 */
-	public function data_editor_destinations(): array {
+	public static function data_editor_destinations(): array {
 		return array(
 			'Dashboard'                    => array( '/wp-admin/', false ),
 			'Dashboard, no trailing slash' => array( '/wp-admin', false ),
@@ -255,7 +213,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: bool }>
 	 */
-	public function data_editor_destinations_by_post_type(): array {
+	public static function data_editor_destinations_by_post_type(): array {
 		return array(
 			'new post'               => array( '/wp-admin/post-new.php', true ),
 			'new page'               => array( '/wp-admin/post-new.php?post_type=page', false ),
@@ -303,7 +261,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: array<string, string> }>
 	 */
-	public function data_login_screens(): array {
+	public static function data_login_screens(): array {
 		return array(
 			'login form'           => array( array() ),
 			'lost password'        => array( array( 'action' => 'lostpassword' ) ),
@@ -354,7 +312,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: array<string, string> }>
 	 */
-	public function data_login_requests_not_leading_to_admin(): array {
+	public static function data_login_requests_not_leading_to_admin(): array {
 		return array(
 			'front end redirect'                 => array( array( 'redirect_to' => '/hello-world/' ) ),
 			'lookalike admin path'               => array( array( 'redirect_to' => '/wp-admin-lookalike/' ) ),
@@ -545,7 +503,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string, 1: string }>
 	 */
-	public function data_admin_screens_leading_to_editor(): array {
+	public static function data_admin_screens_leading_to_editor(): array {
 		return array(
 			'Dashboard'  => array( 'dashboard', 'post' ),
 			'Posts list' => array( 'edit', 'post' ),
@@ -573,7 +531,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string }>
 	 */
-	public function data_other_admin_screens(): array {
+	public static function data_other_admin_screens(): array {
 		return array(
 			'Plugins'                 => array( 'plugins' ),
 			'Network Admin Dashboard' => array( 'dashboard-network' ),
@@ -698,10 +656,10 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 			if ( 'SCRIPT' === $processor->get_tag() ) {
 				$src = $processor->get_attribute( 'src' );
 				if ( is_string( $src ) && in_array( basename( (string) wp_parse_url( $src, PHP_URL_PATH ) ), array( 'jquery.js', 'jquery.min.js' ), true ) ) {
-					$jquery_index = $jquery_index ?? $tag_index;
+					$jquery_index ??= $tag_index;
 				}
 			} elseif ( 'LINK' === $processor->get_tag() && 'prefetch' === $processor->get_attribute( 'rel' ) ) {
-				$first_prefetch_index = $first_prefetch_index ?? $tag_index;
+				$first_prefetch_index ??= $tag_index;
 			}
 		}
 
@@ -1021,7 +979,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed }>
 	 */
-	public function data_filter_turning_off(): array {
+	public static function data_filter_turning_off(): array {
 		return array(
 			'empty array'  => array( array() ),
 			'not an array' => array( null ),

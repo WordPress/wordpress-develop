@@ -29,7 +29,7 @@ class Tests_Sitemaps_wpSitemapsStylesheet extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ method: 'get_sitemap_stylesheet'|'get_sitemap_index_stylesheet'|'get_stylesheet_css' }>
 	 */
-	public function data_deprecated_methods(): array {
+	public static function data_deprecated_methods(): array {
 		return array(
 			'sitemap stylesheet' => array( 'method' => 'get_sitemap_stylesheet' ),
 			'index stylesheet'   => array( 'method' => 'get_sitemap_index_stylesheet' ),

@@ -30,4 +30,35 @@ class Tests_Includes_Functions extends WP_UnitTestCase {
 		$this->assertFileDoesNotExist( $attachment_file );
 		$this->assertNull( get_post( $attachment_id ) );
 	}
+
+	/**
+	 * @ticket 66512
+	 *
+	 * @covers ::_test_filter_build_unique_id
+	 *
+	 * @dataProvider data_test_filter_build_unique_id_matches_core
+	 *
+	 * @param callable $callback The callback to build an ID for.
+	 */
+	public function test_test_filter_build_unique_id_matches_core( $callback ) {
+		$this->assertSame(
+			_wp_filter_build_unique_id( 'test_hook', $callback, 10 ),
+			_test_filter_build_unique_id( 'test_hook', $callback, 10 )
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_test_filter_build_unique_id_matches_core() {
+		return array(
+			'function name'        => array( '__return_true' ),
+			'static method string' => array( 'WP_Hook::build_preinitialized_hooks' ),
+			'static method array'  => array( array( 'WP_Hook', 'build_preinitialized_hooks' ) ),
+			'object method'        => array( array( new ArrayObject(), 'count' ) ),
+			'closure'              => array( static function () {} ),
+		);
+	}
 }
