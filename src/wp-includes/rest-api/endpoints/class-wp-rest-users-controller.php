@@ -203,6 +203,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Permissions check for getting all users.
 	 *
 	 * @since 4.7.0
+	 * @since 7.3.0 Allowed filtering by author capabilities without the `list_users` capability.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, otherwise WP_Error object.
@@ -217,8 +218,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Check if capabilities is specified in GET request and if user can list users.
-		if ( ! empty( $request['capabilities'] ) && ! current_user_can( 'list_users' ) ) {
+		// Without `list_users`, only capabilities of users the current user can assign as authors are allowed.
+		if (
+			! empty( $request['capabilities'] )
+			&& ! current_user_can( 'list_users' )
+			&& array_diff( $request['capabilities'], $this->get_author_capabilities() )
+		) {
 			return new WP_Error(
 				'rest_user_cannot_view',
 				__( 'Sorry, you are not allowed to filter users by capability.' ),
@@ -260,6 +265,30 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Gets the capabilities of users the current user can assign as post authors.
+	 *
+	 * Post type capability maps are trusted as registered, so a type mapping
+	 * `edit_others_posts` to a basic capability opens author lookups to its users.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return string[] The `edit_posts` capabilities of post types that support authors
+	 *                  and whose posts the current user can reassign.
+	 */
+	protected function get_author_capabilities() {
+		$capabilities = array();
+
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $type ) {
+			// Gate on `edit_others_posts`, since `edit_posts` may be mapped to a basic capability like `read`.
+			if ( post_type_supports( $type->name, 'author' ) && current_user_can( $type->cap->edit_others_posts ) ) {
+				$capabilities[] = $type->cap->edit_posts;
+			}
+		}
+
+		return $capabilities;
 	}
 
 	/**
@@ -327,7 +356,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		if ( isset( $registered['who'] ) && ! empty( $request['who'] ) && 'authors' === $request['who'] ) {
 			$prepared_args['who'] = 'authors';
-		} elseif ( ! current_user_can( 'list_users' ) ) {
+		} elseif ( empty( $prepared_args['capability__in'] ) && ! current_user_can( 'list_users' ) ) {
 			$prepared_args['has_published_posts'] = get_post_types( array( 'show_in_rest' => true ), 'names' );
 		}
 
@@ -477,6 +506,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Checks if a given request has access to read a user.
 	 *
 	 * @since 4.7.0
+	 * @since 7.3.0 Allowed viewing users who can be assigned as post authors.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
@@ -501,7 +531,22 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! current_user_can( 'edit_user', $user->ID ) && ! current_user_can( 'list_users' ) && ! count_user_posts( $user->ID, $types ) ) {
+		/*
+		 * Users who can assign authors can view them. Uses stored capabilities, like the collection's
+		 * capabilities query, which does not see ones added via 'map_meta_cap'. Unlike that query,
+		 * explicitly denied capabilities do not count.
+		 */
+		$is_assignable_author = (bool) array_intersect(
+			$this->get_author_capabilities(),
+			array_keys( array_filter( $user->allcaps ) )
+		);
+
+		if (
+			! current_user_can( 'edit_user', $user->ID )
+			&& ! current_user_can( 'list_users' )
+			&& ! $is_assignable_author
+			&& ! count_user_posts( $user->ID, $types )
+		) {
 			return new WP_Error(
 				'rest_user_cannot_view',
 				__( 'Sorry, you are not allowed to list users.' ),
