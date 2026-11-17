@@ -2390,10 +2390,13 @@ function excerpt_remove_footnotes( $content ) {
 		}
 	};
 
-	$output = '';
-	$at     = 0;
+	$output          = '';
+	$at              = 0;
+	$reprocess_token = false;
 
-	while ( $processor->next_token() ) {
+	while ( $reprocess_token || $processor->next_token() ) {
+		$reprocess_token = false;
+
 		// Match the <sup data-fn="..." class="..."> opening tag.
 		if (
 			$processor->is_tag_closer() ||
@@ -2413,6 +2416,7 @@ function excerpt_remove_footnotes( $content ) {
 		// Skip any whitespace-only text between the tags.
 		if ( '#text' === $processor->get_token_name() ) {
 			if ( ! $processor->is_whitespace_text_node() ) {
+				$reprocess_token = true;
 				continue;
 			}
 
@@ -2426,17 +2430,20 @@ function excerpt_remove_footnotes( $content ) {
 			null === $processor->get_attribute( 'href' ) ||
 			null === $processor->get_attribute( 'id' )
 		) {
+			$reprocess_token = true;
 			continue;
 		}
 
 		// Match an all-digit text node.
 		if ( ! $processor->next_token() || '#text' !== $processor->get_token_name() ) {
+			$reprocess_token = true;
 			continue;
 		}
 
 		$footnote_number = $processor->get_modifiable_text();
 		$digit_count     = strspn( $footnote_number, '0123456789' );
 		if ( 0 === $digit_count || strlen( $footnote_number ) !== $digit_count ) {
+			$reprocess_token = true;
 			continue;
 		}
 
@@ -2446,6 +2453,7 @@ function excerpt_remove_footnotes( $content ) {
 			'A' !== $processor->get_token_name() ||
 			! $processor->is_tag_closer()
 		) {
+			$reprocess_token = true;
 			continue;
 		}
 
@@ -2456,6 +2464,7 @@ function excerpt_remove_footnotes( $content ) {
 		// Skip any whitespace-only text between the tags.
 		if ( '#text' === $processor->get_token_name() ) {
 			if ( ! $processor->is_whitespace_text_node() ) {
+				$reprocess_token = true;
 				continue;
 			}
 
@@ -2467,13 +2476,14 @@ function excerpt_remove_footnotes( $content ) {
 			'SUP' !== $processor->get_token_name() ||
 			! $processor->is_tag_closer()
 		) {
+			$reprocess_token = true;
 			continue;
 		}
 
 		$footnote_closing = $processor->get_span();
 
 		// Remove the section and continue.
-		$output .= substr( $content, $at, $footnote_opening->start );
+		$output .= substr( $content, $at, $footnote_opening->start - $at );
 		$at      = $footnote_closing->start + $footnote_closing->length;
 	}
 
