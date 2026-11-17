@@ -302,4 +302,44 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		do_action( 'setup_theme' );
 		do_action( 'after_setup_theme' );
 	}
+
+	/**
+	 * Tests that a singular page request without a queried object does not throw PHP warnings.
+	 *
+	 * @ticket 63522
+	 */
+	public function test_singular_page_request_without_queried_object() {
+		add_filter( 'pre_handle_404', '__return_true' );
+
+		$this->go_to( home_url( '?pagename=non-existent-page' ) );
+
+		$this->assertTrue( is_singular(), 'The request should be singular.' );
+		$this->assertNull( get_queried_object(), 'The queried object should be null.' );
+
+		$classes = get_body_class();
+
+		$this->assertContains( 'wp-singular', $classes, 'The wp-singular class should be present.' );
+		$this->assertContains( 'page', $classes, 'The page class should be present.' );
+		$this->assertNotContains( 'page-id-0', $classes, 'A page ID class should not be added without a page.' );
+	}
+
+	/**
+	 * Tests that a singular post request without a queried object does not throw PHP warnings.
+	 *
+	 * @ticket 63522
+	 */
+	public function test_singular_post_request_without_queried_object() {
+		add_filter( 'pre_handle_404', '__return_true' );
+
+		$this->go_to( home_url( '?name=non-existent-post' ) );
+
+		$this->assertTrue( is_singular(), 'The request should be singular.' );
+		$this->assertNull( get_queried_object(), 'The queried object should be null.' );
+
+		$classes = get_body_class();
+
+		$this->assertContains( 'wp-singular', $classes, 'The wp-singular class should be present.' );
+		$this->assertContains( 'single', $classes, 'The single class should be present.' );
+		$this->assertNotContains( 'postid-0', $classes, 'A post ID class should not be added without a post.' );
+	}
 }
