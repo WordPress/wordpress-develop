@@ -188,6 +188,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme Deprecated Path',
 			'Block Theme Patterns',
 			'Block Theme Post Content Default',
+			'Block Theme Template Slugs',
 			'Block Theme with defined Typography Fonts',
 			'Block Theme with Hooked Blocks',
 			'Block Theme with Hooked Blocks Child Theme',
