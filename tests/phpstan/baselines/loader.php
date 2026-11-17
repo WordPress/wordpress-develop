@@ -3,7 +3,8 @@
  * Includes every PHPStan baseline in this directory.
  *
  * A configuration includes this file rather than listing the baselines one by
- * one.
+ * one. `composer phpstan:baselines` writes it on every run, so it is not to be
+ * edited by hand.
  *
  * @see \WordPress\PHPStan\get_baseline_includes()
  *

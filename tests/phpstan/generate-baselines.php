@@ -348,18 +348,25 @@ if ( ! is_dir( $output_dir ) && ! mkdir( $output_dir, 0755, true ) ) {
 }
 
 /*
- * The baselines only take effect through a loader in their own directory, which
- * the default one already has. A directory given with `--output-dir` gets one,
- * but nothing includes it yet, so say so.
+ * The baselines only take effect through a loader in their own directory. It is
+ * written on every run, so that the committed loader of the default directory, and
+ * that of any other, stay what build_loader() makes rather than drifting from it
+ * unnoticed. A directory given with `--output-dir` that had none is not included
+ * by anything yet, so say so.
  */
-if ( ! is_file( $output_dir . '/loader.php' ) ) {
-	if ( false === file_put_contents( $output_dir . '/loader.php', build_loader( $output_dir ) ) ) {
+$loader_path     = $output_dir . '/loader.php';
+$loader          = build_loader( $output_dir );
+$loader_existed  = is_file( $loader_path );
+$loader_contents = $loader_existed ? file_get_contents( $loader_path ) : false;
+
+if ( $loader !== $loader_contents ) {
+	if ( false === file_put_contents( $loader_path, $loader ) ) {
 		fwrite( STDERR, "Could not write $output_option/loader.php\n" );
 		exit( 1 );
 	}
 
 	printf(
-		"%s: written. Include it in the configuration for these baselines to take effect.\n",
+		$loader_existed ? "%s: rewritten.\n" : "%s: written. Include it in the configuration for these baselines to take effect.\n",
 		$output_option . '/loader.php'
 	);
 }
@@ -436,8 +443,8 @@ function get_usage(): string {
 		  --output-dir=<path>  Where the per-identifier baselines are written, relative
 		                       to the repository root. Paths inside them are written
 		                       relative to this directory. A loader is written
-		                       there if it has none, which the configuration
-		                       then has to include. Baselines in other directories
+		                       there too, which the configuration has to
+		                       include. Baselines in other directories
 		                       stay in force, so only the errors they leave are
 		                       written.
 		                       Default: tests/phpstan/baselines
@@ -588,7 +595,8 @@ function build_loader( string $output_dir ): string {
 		 * Includes every PHPStan baseline in this directory.
 		 *
 		 * A configuration includes this file rather than listing the baselines one by
-		 * one.
+		 * one. `composer phpstan:baselines` writes it on every run, so it is not to be
+		 * edited by hand.
 		 *
 		 * @see \WordPress\PHPStan\get_baseline_includes()
 		 *
