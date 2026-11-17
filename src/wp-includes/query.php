@@ -1418,6 +1418,8 @@ function wp_random_content_pre_get_posts( $query ): void {
 	$query->set( 'fields', 'ids' );
 	$query->set( 'no_found_rows', false );
 	$query->set( 'posts_per_page', 1 );
+	// The order of the posts does not affect the number found.
+	$query->set( 'orderby', 'none' );
 	$query->set( 'posts_per_archive_page', 0 );
 	$query->set( 'showposts', 0 );
 	$query->set( 'nopaging', false );

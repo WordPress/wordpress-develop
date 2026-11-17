@@ -1807,7 +1807,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure theme customizations of the archive limit do not apply to the count query.
+	 * Ensure theme customizations of the archive order and limit do not apply to the count query.
 	 *
 	 * @ticket 66654
 	 */
@@ -1828,7 +1828,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The customized archive query was not run.' );
-		$this->assertStringContainsString( 'ORDER BY wptests_posts.post_title ASC', $request, 'The archive order should apply to the count query.' );
+		$this->assertStringNotContainsString( 'ORDER BY', $request, 'The archive order should not apply to the count query.' );
 		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $request, 'The count query should select a single post when archive customizations set the number of posts.' );
 		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Archive customizations should not prevent the redirect.' );
 	}
@@ -2125,7 +2125,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$count_queries = array_values( preg_grep( '/SQL_CALC_FOUND_ROWS/', $this->queries ) );
 		$this->assertCount( 1, $count_queries, "Exactly one count query should be made:\n" . implode( "\n", $this->queries ) );
 		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+SQL_CALC_FOUND_ROWS\s+{$wpdb->posts}\.ID\s+FROM/", $count_queries[0], 'The count query should select post IDs only.' );
-		$this->assertStringContainsString( "ORDER BY {$wpdb->posts}.post_date DESC", $count_queries[0], 'The count query should use the archive order.' );
+		$this->assertStringNotContainsString( 'ORDER BY', $count_queries[0], 'The count query should not order the posts.' );
 		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $count_queries[0], 'The count query should select a single post.' );
 		$this->assertTrue( $this->get_main_query()->get( 'ignore_sticky_posts' ), 'The count query should ignore sticky posts.' );
 	}
