@@ -204,7 +204,7 @@ PHPStan errors can be ignored in the following ways:
 
 The baselines live in [`baselines/`](baselines), one file per error identifier, such as `variable.undefined.neon`. Splitting them this way keeps each kind of error visible as a single file that should shrink to nothing and then be deleted, rather than as part of one large file in which every kind is mixed together.
 
-[`phpstan.neon.dist`](../../phpstan.neon.dist) does not list the baselines one by one. It includes [`baselines/loader.php`](baselines/loader.php), which includes every `.neon` file in that directory, so a baseline takes effect as soon as it is added, and stops as soon as it is deleted, without an edit of the configuration.
+[`phpstan.neon.dist`](../../phpstan.neon.dist) does not list the baselines one by one. It includes [`baselines/loader.php`](baselines/loader.php), which includes every `.neon` file in that directory named for an error identifier, so a baseline takes effect as soon as it is added, and stops as soon as it is deleted, without an edit of the configuration.
 
 Every entry is scoped to the file the error occurs in and carries an exact occurrence count:
 
