@@ -1103,6 +1103,76 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests decoding a non-existent file.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_non_existent_file() {
+		$non_existent_file = DIR_TESTDATA . '/non-existent.json';
+		$this->expectNotice();
+		$this->expectNoticeMessage( "File {$non_existent_file} doesn't exist!" );
+		wp_json_file_decode( $non_existent_file );
+	}
+
+	/**
+	 * Tests decoding an unreadable file.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_unreadable_file() {
+		if ( ! function_exists( 'posix_getpwuid' ) || ! function_exists( 'posix_geteuid' ) ) {
+			$this->markTestSkipped( 'The POSIX extension is not available.' );
+		}
+
+		$pwuid = posix_getpwuid( posix_geteuid() );
+		if ( is_array( $pwuid ) && isset( $pwuid['name'] ) && 'root' === $pwuid['name'] ) {
+			$this->markTestSkipped( 'Cannot test unreadable file permissions when running as root.' );
+		}
+
+		$this->expectNotice();
+		$this->expectNoticeMessage( 'is not a readable file.' );
+
+		$unreadable_file = tempnam( sys_get_temp_dir(), 'unreadable-json' );
+		chmod( $unreadable_file, 0000 );
+		try {
+			wp_json_file_decode( $unreadable_file );
+		} finally {
+			chmod( $unreadable_file, 0644 );
+			unlink( $unreadable_file );
+		}
+	}
+
+	/**
+	 * Tests decoding a directory instead of a file.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_directory() {
+		$directory = DIR_TESTDATA . '/themedir1/block-theme';
+		$this->expectNotice();
+		$this->expectNoticeMessage( "{$directory} is not a readable file." );
+		wp_json_file_decode( $directory );
+	}
+
+	/**
+	 * Tests decoding a file with invalid JSON.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_invalid_json() {
+		$this->expectNotice();
+		$this->expectNoticeMessage( 'Error when decoding a JSON file' );
+
+		$invalid_json_file = tempnam( sys_get_temp_dir(), 'invalid-json' );
+		file_put_contents( $invalid_json_file, '{ invalid json }' );
+		try {
+			wp_json_file_decode( $invalid_json_file );
+		} finally {
+			unlink( $invalid_json_file );
+		}
+	}
+
+	/**
 	 * @ticket 36054
 	 * @dataProvider data_mysql_to_rfc3339
 	 */
