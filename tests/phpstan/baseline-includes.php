@@ -41,9 +41,10 @@ const GENERATING_BASELINES_ENV = 'WP_PHPSTAN_GENERATING_BASELINES';
  *
  * The name is the error identifier, matched as PHPStan validates identifiers,
  * followed by `.neon`, so that a stray file such as a merge tool's
- * `argument.type_BACKUP_1234.neon` is neither loaded nor retired.
+ * `argument.type_BACKUP_1234.neon` is neither loaded nor retired. It ends in `\z`
+ * rather than `$`, which would also match a name ending in a newline.
  */
-const BASELINE_FILE_PATTERN = '/^[a-zA-Z0-9](?:[a-zA-Z0-9.]*[a-zA-Z0-9])?\.neon$/';
+const BASELINE_FILE_PATTERN = '/^[a-zA-Z0-9](?:[a-zA-Z0-9.]*[a-zA-Z0-9])?\.neon\z/';
 
 /**
  * Lists the per-identifier baselines present on disk.
