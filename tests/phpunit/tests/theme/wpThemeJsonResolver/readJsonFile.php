@@ -180,6 +180,7 @@ class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
 	 */
 	public function test_read_json_file_with_invalid_json() {
 		$this->expectNotice();
+		$this->expectNoticeMessage( 'Error when decoding a JSON file' );
 
 		$invalid_json_file = tempnam( sys_get_temp_dir(), 'invalid-json' );
 		file_put_contents( $invalid_json_file, '{ invalid json }' );
