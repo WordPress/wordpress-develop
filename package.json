@@ -76,7 +76,7 @@
 		"grunt-webpack": "8.0.0",
 		"install-changed": "1.1.0",
 		"json2php": "0.0.12",
-		"minimizer-webpack-plugin": "5.6.1",
+		"minimizer-webpack-plugin": "5.14.0",
 		"php-array-reader": "2.1.4",
 		"postcss": "8.5.32",
 		"prettier": "npm:wp-prettier@3.0.3",
