@@ -989,18 +989,19 @@ function redirect_guess_404_permalink() {
 		}
 
 		// If any of post_type, year, monthnum, or day are set, use them to refine the query.
-		if ( get_query_var( 'post_type' ) ) {
-			if ( is_array( get_query_var( 'post_type' ) ) ) {
-				$post_types = array_intersect( get_query_var( 'post_type' ), $publicly_viewable_post_types );
+		$post_type = get_query_var( 'post_type' );
+		if ( $post_type ) {
+			if ( is_array( $post_type ) ) {
+				$post_types = array_intersect( $post_type, $publicly_viewable_post_types );
 				if ( empty( $post_types ) ) {
 					return false;
 				}
 				$where .= " AND post_type IN ('" . implode( "', '", esc_sql( $post_types ) ) . "')";
 			} else {
-				if ( ! in_array( get_query_var( 'post_type' ), $publicly_viewable_post_types, true ) ) {
+				if ( ! in_array( $post_type, $publicly_viewable_post_types, true ) ) {
 					return false;
 				}
-				$where .= $wpdb->prepare( ' AND post_type = %s', get_query_var( 'post_type' ) );
+				$where .= $wpdb->prepare( ' AND post_type = %s', $post_type );
 			}
 		} else {
 			$where .= " AND post_type IN ('" . implode( "', '", esc_sql( $publicly_viewable_post_types ) ) . "')";

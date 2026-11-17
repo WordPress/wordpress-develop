@@ -447,10 +447,11 @@ function wp_edit_theme_plugin_file( $args ) {
 			return new WP_Error( 'nonce_failure' );
 		}
 
-		if ( $theme->errors() && 'theme_no_stylesheet' === $theme->errors()->get_error_code() ) {
+		$theme_errors = $theme->errors();
+		if ( $theme_errors && 'theme_no_stylesheet' === $theme_errors->get_error_code() ) {
 			return new WP_Error(
 				'theme_no_stylesheet',
-				__( 'The requested theme does not exist.' ) . ' ' . $theme->errors()->get_error_message()
+				__( 'The requested theme does not exist.' ) . ' ' . $theme_errors->get_error_message()
 			);
 		}
 

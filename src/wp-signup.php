@@ -16,7 +16,8 @@ require __DIR__ . '/wp-blog-header.php';
 
 nocache_headers();
 
-if ( is_array( get_site_option( 'illegal_names' ) ) && isset( $_GET['new'] ) && in_array( $_GET['new'], get_site_option( 'illegal_names' ), true ) ) {
+$illegal_names = get_site_option( 'illegal_names' );
+if ( is_array( $illegal_names ) && isset( $_GET['new'] ) && in_array( $_GET['new'], $illegal_names, true ) ) {
 	wp_redirect( network_home_url() );
 	die();
 }
@@ -130,9 +131,10 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 		$errors = new WP_Error();
 	}
 
-	$current_network = get_network();
+	$current_network      = get_network();
+	$is_subdomain_install = is_subdomain_install();
 	// Site name.
-	if ( ! is_subdomain_install() ) {
+	if ( ! $is_subdomain_install ) {
 		echo '<label for="blogname">' . __( 'Site Name (subdirectory only)' ) . '</label>';
 	} else {
 		echo '<label for="blogname">' . __( 'Site Domain (subdomain only)' ) . '</label>';
@@ -145,7 +147,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 		echo '<p class="error" id="wp-signup-blogname-error">' . $errmsg_blogname . '</p>';
 	}
 
-	if ( ! is_subdomain_install() ) {
+	if ( ! $is_subdomain_install ) {
 		echo '<div class="wp-signup-blogname"><span class="prefix_address" id="prefix-address">' . $current_network->domain . $current_network->path . '</span><input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" autocomplete="off" required="required" aria-describedby="' . $errmsg_blogname_aria . 'prefix-address" /></div>';
 	} else {
 		$site_domain = preg_replace( '|^www\.|', '', $current_network->domain );
@@ -153,7 +155,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 	}
 
 	if ( ! is_user_logged_in() ) {
-		if ( ! is_subdomain_install() ) {
+		if ( ! $is_subdomain_install ) {
 			$site = $current_network->domain . $current_network->path . __( 'sitename' );
 		} else {
 			$site = __( 'domain' ) . '.' . $site_domain . $current_network->path;

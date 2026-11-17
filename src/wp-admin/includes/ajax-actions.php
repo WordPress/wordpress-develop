@@ -2301,9 +2301,10 @@ function wp_ajax_widgets_order() {
 
 	// Save widgets order for all sidebars.
 	if ( is_array( $_POST['sidebars'] ) ) {
-		$sidebars = array();
+		$sidebars        = array();
+		$posted_sidebars = wp_unslash( $_POST['sidebars'] );
 
-		foreach ( wp_unslash( $_POST['sidebars'] ) as $key => $val ) {
+		foreach ( $posted_sidebars as $key => $val ) {
 			$sidebar = array();
 
 			if ( ! empty( $val ) ) {

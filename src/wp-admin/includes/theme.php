@@ -690,9 +690,8 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		$slug         = $theme->get_stylesheet();
 		$encoded_slug = urlencode( $slug );
 
-		$parent = false;
-		if ( $theme->parent() ) {
-			$parent           = $theme->parent();
+		$parent = $theme->parent();
+		if ( $parent ) {
 			$parents[ $slug ] = $parent->get_stylesheet();
 			$parent           = $parent->display( 'Name' );
 		}

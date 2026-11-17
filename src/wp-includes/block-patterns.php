@@ -432,8 +432,10 @@ function _register_theme_block_patterns() {
 	$themes   = array();
 	$theme    = wp_get_theme();
 	$themes[] = $theme;
-	if ( $theme->parent() ) {
-		$themes[] = $theme->parent();
+
+	$parent_theme = $theme->parent();
+	if ( $parent_theme ) {
+		$themes[] = $parent_theme;
 	}
 	$registry = WP_Block_Patterns_Registry::get_instance();
 

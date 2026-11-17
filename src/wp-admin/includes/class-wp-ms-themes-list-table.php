@@ -139,6 +139,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			'broken'   => $this->is_site_themes ? array() : wp_get_themes( array( 'errors' => true ) ),
 		);
 
+		$auto_updates = array();
 		if ( $this->show_autoupdates ) {
 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
 
@@ -731,10 +732,11 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	public function column_description( $theme ) {
 		global $status, $totals;
 
-		if ( $theme->errors() ) {
+		$theme_errors = $theme->errors();
+		if ( $theme_errors ) {
 			$pre = 'broken' === $status ? '<strong class="error-message">' . __( 'Broken Theme:' ) . '</strong> ' : '';
 			wp_admin_notice(
-				$pre . $theme->errors()->get_error_message(),
+				$pre . $theme_errors->get_error_message(),
 				array(
 					'type'               => 'error',
 					'additional_classes' => array( 'inline' ),
@@ -779,11 +781,12 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( $theme->parent() ) {
+		$parent_theme = $theme->parent();
+		if ( $parent_theme ) {
 			$theme_meta[] = sprintf(
 				/* translators: %s: Theme name. */
 				__( 'Child theme of %s' ),
-				'<strong>' . $theme->parent()->display( 'Name' ) . '</strong>'
+				'<strong>' . $parent_theme->display( 'Name' ) . '</strong>'
 			);
 		}
 

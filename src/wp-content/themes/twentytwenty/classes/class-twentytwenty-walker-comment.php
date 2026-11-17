@@ -79,10 +79,11 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Comment' ) ) {
 								esc_html( $comment_timestamp )
 							);
 
-							if ( get_edit_comment_link() ) {
+							$edit_comment_link = get_edit_comment_link();
+							if ( $edit_comment_link ) {
 								printf(
 									' <span aria-hidden="true">&bull;</span> <a class="comment-edit-link" href="%s">%s</a>',
-									esc_url( get_edit_comment_link() ),
+									esc_url( $edit_comment_link ),
 									__( 'Edit', 'twentytwenty' )
 								);
 							}

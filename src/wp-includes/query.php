@@ -981,8 +981,6 @@ function is_main_query() {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @phpstan-impure
- *
  * @return bool True if posts are available, false if end of the loop.
  */
 function have_posts() {
@@ -1062,8 +1060,6 @@ function the_post() {
  * @since 2.2.0
  *
  * @global WP_Query $wp_query WordPress Query object.
- *
- * @phpstan-impure
  *
  * @return bool True if comments are available, false if no more comments.
  */

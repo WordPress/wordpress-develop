@@ -584,8 +584,9 @@ final class WP_Customize_Manager {
 			}
 
 			// If the theme has errors while loading, bail.
-			if ( $this->theme()->errors() ) {
-				$this->wp_die( -1, $this->theme()->errors()->get_error_message() );
+			$theme_errors = $this->theme()->errors();
+			if ( $theme_errors ) {
+				$this->wp_die( -1, $theme_errors->get_error_message() );
 			}
 
 			// If the theme isn't allowed per multisite settings, bail.
@@ -1211,8 +1212,9 @@ final class WP_Customize_Manager {
 			$starter_content = get_theme_starter_content();
 		}
 
-		$changeset_data = array();
-		if ( $this->changeset_post_id() ) {
+		$changeset_data    = array();
+		$changeset_post_id = $this->changeset_post_id();
+		if ( $changeset_post_id ) {
 			/*
 			 * Don't re-import starter content into a changeset saved persistently.
 			 * This will need to be revisited in the future once theme switching
@@ -1223,11 +1225,11 @@ final class WP_Customize_Manager {
 			 * flags, thus resulting in duplicates being created since they fail
 			 * to get re-used. See #40146.
 			 */
-			if ( 'auto-draft' !== get_post_status( $this->changeset_post_id() ) ) {
+			if ( 'auto-draft' !== get_post_status( $changeset_post_id ) ) {
 				return;
 			}
 
-			$changeset_data = $this->get_changeset_post_data( $this->changeset_post_id() );
+			$changeset_data = $this->get_changeset_post_data( $changeset_post_id );
 		}
 
 		$sidebars_widgets = isset( $starter_content['widgets'] ) && ! empty( $this->widgets ) ? $starter_content['widgets'] : array();
@@ -2565,10 +2567,11 @@ final class WP_Customize_Manager {
 				'message' => $r->get_error_message(),
 				'code'    => $r->get_error_code(),
 			);
-			if ( is_array( $r->get_error_data() ) ) {
-				$response = array_merge( $response, $r->get_error_data() );
+			$error_data = $r->get_error_data();
+			if ( is_array( $error_data ) ) {
+				$response = array_merge( $response, $error_data );
 			} else {
-				$response['data'] = $r->get_error_data();
+				$response['data'] = $error_data;
 			}
 		} else {
 			$response       = $r;
@@ -4886,8 +4889,8 @@ final class WP_Customize_Manager {
 		}
 
 		$lock_user_id = false;
-		if ( $this->changeset_post_id() ) {
-			$lock_user_id = wp_check_post_lock( $this->changeset_post_id() );
+		if ( $changeset_post_id ) {
+			$lock_user_id = wp_check_post_lock( $changeset_post_id );
 		}
 
 		$settings = array(

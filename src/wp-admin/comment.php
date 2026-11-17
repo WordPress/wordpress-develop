@@ -296,14 +296,18 @@ switch ( $action ) {
 			comment_footer_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 		}
 
-		if ( wp_get_referer() && ! $noredir && ! str_contains( wp_get_referer(), 'comment.php' ) ) {
-			$redir = wp_get_referer();
-		} elseif ( wp_get_original_referer() && ! $noredir ) {
-			$redir = wp_get_original_referer();
-		} elseif ( in_array( $action, array( 'approvecomment', 'unapprovecomment' ), true ) ) {
-			$redir = admin_url( 'edit-comments.php?p=' . absint( $comment->comment_post_ID ) );
+		$referer = wp_get_referer();
+		if ( $referer && ! $noredir && ! str_contains( $referer, 'comment.php' ) ) {
+			$redir = $referer;
 		} else {
-			$redir = admin_url( 'edit-comments.php' );
+			$original_referer = wp_get_original_referer();
+			if ( $original_referer && ! $noredir ) {
+				$redir = $original_referer;
+			} elseif ( in_array( $action, array( 'approvecomment', 'unapprovecomment' ), true ) ) {
+				$redir = admin_url( 'edit-comments.php?p=' . absint( $comment->comment_post_ID ) );
+			} else {
+				$redir = admin_url( 'edit-comments.php' );
+			}
 		}
 
 		$redir = remove_query_arg( array( 'spammed', 'unspammed', 'trashed', 'untrashed', 'deleted', 'ids', 'approved', 'unapproved' ), $redir );

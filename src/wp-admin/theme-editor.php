@@ -73,8 +73,9 @@ if ( ! $theme->exists() ) {
 	wp_die( __( 'The requested theme does not exist.' ) );
 }
 
-if ( $theme->errors() && 'theme_no_stylesheet' === $theme->errors()->get_error_code() ) {
-	wp_die( __( 'The requested theme does not exist.' ) . ' ' . $theme->errors()->get_error_message() );
+$theme_errors = $theme->errors();
+if ( $theme_errors && 'theme_no_stylesheet' === $theme_errors->get_error_code() ) {
+	wp_die( __( 'The requested theme does not exist.' ) . ' ' . $theme_errors->get_error_message() );
 }
 
 $allowed_files = array();
@@ -293,7 +294,8 @@ printf(
 		<select name="theme" id="theme">
 		<?php
 		foreach ( wp_get_themes( array( 'errors' => null ) ) as $a_stylesheet => $a_theme ) {
-			if ( $a_theme->errors() && 'theme_no_stylesheet' === $a_theme->errors()->get_error_code() ) {
+			$a_theme_errors = $a_theme->errors();
+			if ( $a_theme_errors && 'theme_no_stylesheet' === $a_theme_errors->get_error_code() ) {
 				continue;
 			}
 
@@ -309,20 +311,22 @@ printf(
 </div>
 
 <?php
-if ( $theme->errors() ) {
+if ( $theme_errors ) {
 	wp_admin_notice(
-		'<strong>' . __( 'This theme is broken.' ) . '</strong> ' . $theme->errors()->get_error_message(),
+		'<strong>' . __( 'This theme is broken.' ) . '</strong> ' . $theme_errors->get_error_message(),
 		array(
 			'additional_classes' => array( 'error' ),
 		)
 	);
 }
+
+$parent_theme = $theme->parent();
 ?>
 
 <div id="templateside">
 	<h2 id="theme-files-label"><?php _e( 'Theme Files' ); ?></h2>
 	<ul role="tree" aria-labelledby="theme-files-label">
-		<?php if ( $theme->parent() ) : ?>
+		<?php if ( $parent_theme ) : ?>
 			<li class="howto">
 				<?php
 				printf(
@@ -331,7 +335,7 @@ if ( $theme->errors() ) {
 					sprintf(
 						'<a href="%s">%s</a>',
 						self_admin_url( 'theme-editor.php?theme=' . urlencode( $theme->get_template() ) ),
-						$theme->parent()->display( 'Name' )
+						$parent_theme->display( 'Name' )
 					)
 				);
 				?>

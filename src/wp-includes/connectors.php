@@ -350,9 +350,8 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
 
 		$name        = $provider_metadata->getName();
 		$description = $provider_metadata->getDescription();
-		$logo_url    = $provider_metadata->getLogoPath()
-			? _wp_connectors_resolve_ai_provider_logo_url( $provider_metadata->getLogoPath() )
-			: null;
+		$logo_path   = $provider_metadata->getLogoPath();
+		$logo_url    = $logo_path ? _wp_connectors_resolve_ai_provider_logo_url( $logo_path ) : null;
 
 		if ( isset( $defaults[ $connector_id ] ) ) {
 			// Override fields with non-empty registry values.

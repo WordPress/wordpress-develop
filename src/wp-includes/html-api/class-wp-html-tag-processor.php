@@ -907,7 +907,6 @@ class WP_HTML_Tag_Processor {
 	 * @return bool Whether a tag was matched.
 	 *
 	 * @phpstan-param Query $query
-	 * @phpstan-impure
 	 */
 	public function next_tag( $query = null ): bool {
 		$this->parse_query( $query );

@@ -30,10 +30,12 @@ while ( have_posts() ) {
 				 */
 				$image_size = apply_filters( 'twenty_twenty_one_attachment_size', 'full' );
 				echo wp_get_attachment_image( get_the_ID(), $image_size );
+
+				$caption = wp_get_attachment_caption();
 				?>
 
-				<?php if ( wp_get_attachment_caption() ) : ?>
-					<figcaption class="wp-caption-text"><?php echo wp_kses_post( wp_get_attachment_caption() ); ?></figcaption>
+				<?php if ( $caption ) : ?>
+					<figcaption class="wp-caption-text"><?php echo wp_kses_post( $caption ); ?></figcaption>
 				<?php endif; ?>
 			</figure><!-- .wp-block-image -->
 
@@ -54,12 +56,13 @@ while ( have_posts() ) {
 		<footer class="entry-footer default-max-width">
 			<?php
 			// Check if there is a parent, then add the published in link.
-			if ( wp_get_post_parent_id( $post ) ) {
+			$parent_id = wp_get_post_parent_id( $post );
+			if ( $parent_id ) {
 				echo '<span class="posted-on">';
 				printf(
 					/* translators: %s: Parent post. */
 					esc_html__( 'Published in %s', 'twentytwentyone' ),
-					'<a href="' . esc_url( get_the_permalink( wp_get_post_parent_id( $post ) ) ) . '">' . esc_html( get_the_title( wp_get_post_parent_id( $post ) ) ) . '</a>'
+					'<a href="' . esc_url( get_the_permalink( $parent_id ) ) . '">' . esc_html( get_the_title( $parent_id ) ) . '</a>'
 				);
 				echo '</span>';
 			} else {

@@ -353,9 +353,10 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 
 $current_theme = wp_get_theme();
 
-if ( $current_theme->errors() && ( ! is_multisite() || current_user_can( 'manage_network_themes' ) ) ) {
+$current_theme_errors = $current_theme->errors();
+if ( $current_theme_errors && ( ! is_multisite() || current_user_can( 'manage_network_themes' ) ) ) {
 	wp_admin_notice(
-		'<strong>' . __( 'Error:' ) . '</strong> ' . $current_theme->errors()->get_error_message(),
+		'<strong>' . __( 'Error:' ) . '</strong> ' . $current_theme_errors->get_error_message(),
 		array(
 			'additional_classes' => array( 'error' ),
 		)

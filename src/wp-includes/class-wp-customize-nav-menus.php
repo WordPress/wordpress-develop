@@ -206,9 +206,10 @@ final class WP_Customize_Nav_Menus {
 			}
 
 			// Prepend posts with nav_menus_created_posts on first page.
-			$posts = array();
-			if ( 0 === $page && $this->manager->get_setting( 'nav_menus_created_posts' ) ) {
-				foreach ( $this->manager->get_setting( 'nav_menus_created_posts' )->value() as $post_id ) {
+			$posts                 = array();
+			$created_posts_setting = 0 === $page ? $this->manager->get_setting( 'nav_menus_created_posts' ) : null;
+			if ( $created_posts_setting ) {
+				foreach ( $created_posts_setting->value() as $post_id ) {
 					$auto_draft_post = get_post( $post_id );
 					if ( $post_type->name === $auto_draft_post->post_type ) {
 						$posts[] = $auto_draft_post;

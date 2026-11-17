@@ -133,8 +133,9 @@ class WP_Site_Health {
 						$test['test']
 					);
 
-					if ( method_exists( $this, $test_function ) && is_callable( array( $this, $test_function ) ) ) {
-						$health_check_js_variables['site_status']['direct'][] = $this->perform_test( array( $this, $test_function ) );
+					$test_callback = array( $this, $test_function );
+					if ( method_exists( $this, $test_function ) && is_callable( $test_callback ) ) {
+						$health_check_js_variables['site_status']['direct'][] = $this->perform_test( $test_callback );
 						continue;
 					}
 				}
@@ -621,7 +622,8 @@ class WP_Site_Health {
 		if ( $has_unused_themes && ! is_multisite() ) {
 
 			// This is a child theme, so we want to be a bit more explicit in our messages.
-			if ( $active_theme->parent() ) {
+			$parent_theme = $active_theme->parent();
+			if ( $parent_theme ) {
 				// Recommend removing inactive themes, except a default theme, your current one, and the parent theme.
 				$result['status'] = 'recommended';
 
@@ -643,7 +645,7 @@ class WP_Site_Health {
 							/* translators: 1: The currently active theme. 2: The active theme's parent theme. */
 							__( 'To enhance your site&#8217;s security, you should consider removing any themes you are not using. You should keep your active theme, %1$s, and %2$s, its parent theme.' ),
 							$active_theme->name,
-							$active_theme->parent()->name
+							$parent_theme->name
 						)
 					);
 				} else {
@@ -663,7 +665,7 @@ class WP_Site_Health {
 							__( 'To enhance your site&#8217;s security, you should consider removing any themes you are not using. You should keep %1$s, the default WordPress theme, %2$s, your active theme, and %3$s, its parent theme.' ),
 							$default_theme ? $default_theme->name : WP_DEFAULT_THEME,
 							$active_theme->name,
-							$active_theme->parent()->name
+							$parent_theme->name
 						)
 					);
 				}
@@ -1679,7 +1681,8 @@ class WP_Site_Health {
 
 		$this->wp_schedule_test_init();
 
-		if ( is_wp_error( $this->has_missed_cron() ) ) {
+		$has_missed_cron = $this->has_missed_cron();
+		if ( is_wp_error( $has_missed_cron ) ) {
 			$result['status'] = 'critical';
 
 			$result['label'] = __( 'It was not possible to check your scheduled events' );
@@ -1689,10 +1692,10 @@ class WP_Site_Health {
 				sprintf(
 					/* translators: %s: The error message returned while from the cron scheduler. */
 					__( 'While trying to test your site&#8217;s scheduled events, the following error was returned: %s' ),
-					$this->has_missed_cron()->get_error_message()
+					$has_missed_cron->get_error_message()
 				)
 			);
-		} elseif ( $this->has_missed_cron() ) {
+		} elseif ( $has_missed_cron ) {
 			$result['status'] = 'recommended';
 
 			$result['label'] = __( 'A scheduled event has failed' );
@@ -3379,8 +3382,9 @@ class WP_Site_Health {
 					$test['test']
 				);
 
-				if ( method_exists( $this, $test_function ) && is_callable( array( $this, $test_function ) ) ) {
-					$results[] = $this->perform_test( array( $this, $test_function ) );
+				$test_callback = array( $this, $test_function );
+				if ( method_exists( $this, $test_function ) && is_callable( $test_callback ) ) {
+					$results[] = $this->perform_test( $test_callback );
 					continue;
 				}
 			}

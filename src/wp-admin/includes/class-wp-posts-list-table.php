@@ -1815,9 +1815,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<?php endif; // $bulk ?>
 
 				<?php
+				$authors_dropdown = '';
 				if ( post_type_supports( $screen->post_type, 'author' ) ) {
-					$authors_dropdown = '';
-
 					if ( current_user_can( $post_type_object->cap->edit_others_posts ) ) {
 						$dropdown_name  = 'post_author';
 						$dropdown_class = 'authors';

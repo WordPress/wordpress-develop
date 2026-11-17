@@ -788,6 +788,7 @@ class WP_Block_Processor {
 		$this->state          = self::READY;
 		$after_prev_delimiter = $this->matched_delimiter_at + $this->matched_delimiter_length;
 		$at                   = $after_prev_delimiter;
+		$matched              = false;
 
 		while ( $at < $end ) {
 			/*
@@ -1023,6 +1024,7 @@ class WP_Block_Processor {
 				if ( $after_name_whitespace_at + $after_name_whitespace_length === $comment_closing_at - $void_flag_length ) {
 					// This must be a block delimiter!
 					$this->state = self::MATCHED;
+					$matched     = true;
 					break;
 				}
 
@@ -1072,11 +1074,12 @@ class WP_Block_Processor {
 
 			// This must be a block delimiter!
 			$this->state = self::MATCHED;
+			$matched     = true;
 			break;
 		}
 
 		// The end of the document was reached without a match.
-		if ( self::MATCHED !== $this->state ) {
+		if ( ! $matched ) {
 			// Stop at top-level free-form HTML at the end of the document.
 			if ( $after_prev_delimiter < $end ) {
 				$this->state                    = self::HTML_SPAN;
@@ -1639,8 +1642,6 @@ class WP_Block_Processor {
 	 * @see self::is_non_whitespace_html()
 	 *
 	 * @return bool Whether the processor is matched on an HTML span.
-	 *
-	 * @phpstan-impure
 	 */
 	public function is_html(): bool {
 		return self::HTML_SPAN === $this->state;

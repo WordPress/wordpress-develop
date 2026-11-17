@@ -334,8 +334,8 @@ class WP_REST_Response extends WP_HTTP_Response {
 
 		$error = new WP_Error();
 
-		if ( is_array( $this->get_data() ) ) {
-			$data = $this->get_data();
+		$data = $this->get_data();
+		if ( is_array( $data ) ) {
 			$error->add( $data['code'], $data['message'], $data['data'] );
 
 			if ( ! empty( $data['additional_errors'] ) ) {

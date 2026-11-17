@@ -1606,7 +1606,8 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	}
 
 	// If there's a post type archive.
-	if ( is_post_type_archive() ) {
+	$is_post_type_archive = is_post_type_archive();
+	if ( $is_post_type_archive ) {
 		$post_type = get_query_var( 'post_type' );
 		if ( is_array( $post_type ) ) {
 			$post_type = reset( $post_type );
@@ -1632,7 +1633,7 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	}
 
 	// If there's an author.
-	if ( is_author() && ! is_post_type_archive() ) {
+	if ( is_author() && ! $is_post_type_archive ) {
 		$author = get_queried_object();
 		if ( $author ) {
 			$title = $author->display_name;
@@ -1640,7 +1641,7 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	}
 
 	// Post type archives with has_archive should override terms.
-	if ( is_post_type_archive() && $post_type_object->has_archive ) {
+	if ( $is_post_type_archive && $post_type_object->has_archive ) {
 		$title = post_type_archive_title( '', false );
 	}
 

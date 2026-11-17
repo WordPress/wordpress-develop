@@ -131,9 +131,10 @@ if ( wp_using_themes() ) {
 
 		include $template;
 	} elseif ( current_user_can( 'switch_themes' ) ) {
-		$theme = wp_get_theme();
-		if ( $theme->errors() ) {
-			wp_die( $theme->errors() );
+		$theme        = wp_get_theme();
+		$theme_errors = $theme->errors();
+		if ( $theme_errors ) {
+			wp_die( $theme_errors );
 		}
 	}
 	return;

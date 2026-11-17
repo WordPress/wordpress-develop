@@ -46,9 +46,12 @@ if ( $doaction ) {
 		$doaction    = $_REQUEST['action'];
 	} elseif ( isset( $_REQUEST['ids'] ) ) {
 		$comment_ids = array_map( 'absint', explode( ',', $_REQUEST['ids'] ) );
-	} elseif ( wp_get_referer() ) {
-		wp_safe_redirect( wp_get_referer() );
-		exit;
+	} else {
+		$referer = wp_get_referer();
+		if ( $referer ) {
+			wp_safe_redirect( $referer );
+			exit;
+		}
 	}
 
 	$approved   = 0;

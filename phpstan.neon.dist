@@ -28,7 +28,6 @@ includes:
 	- tests/phpstan/baselines/argument.unresolvableType.neon
 	- tests/phpstan/baselines/assign.propertyType.neon
 	- tests/phpstan/baselines/binaryOp.invalid.neon
-	- tests/phpstan/baselines/booleanAnd.leftAlwaysTrue.neon
 	- tests/phpstan/baselines/booleanNot.alwaysTrue.neon
 	- tests/phpstan/baselines/class.notFound.neon
 	- tests/phpstan/baselines/deadCode.unreachable.neon
@@ -77,6 +76,16 @@ parameters:
 	level: 5
 	reportUnmatchedIgnoredErrors: true
 
+	# Do not assume that a function or method returns the same value each time it is called with the same
+	# arguments, unless it is marked `@phpstan-pure`. By default, PHPStan remembers the return value of any call
+	# not marked `@phpstan-impure`, so that checking it again, even after global state has changed (for example
+	# by `the_post()` or a filter), is reported as always true or always false. When that assumption is wrong,
+	# the natural way to silence the error is to delete a check that is in fact needed. With remembering
+	# disabled, the failure mode is conservative instead: a value read twice is not assumed to be the same, so
+	# the fix is to read it once into a variable. Few functions in core can be `@phpstan-pure`, since most read
+	# global state or apply filters.
+	# https://phpstan.org/blog/remembering-and-forgetting-returned-values
+	rememberPossiblyImpureFunctionValues: false
 
 	# The following ignored errors are not intended to be fixed, as distinct from the baselines
 	# included above.
@@ -176,19 +185,14 @@ parameters:
 			count: 1
 			path: src/wp-includes/html-api/class-wp-html-processor.php
 		-
-			message: '#^Left side of && is always true\.$#'
-			identifier: booleanAnd.leftAlwaysTrue
-			count: 1
-			path: src/wp-includes/html-api/class-wp-html-processor.php
-		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
-			count: 15
+			count: 14
 			path: src/wp-includes/html-api/class-wp-html-processor.php
 		-
 			message: '#^If condition is always true\.$#'
 			identifier: if.alwaysTrue
-			count: 2
+			count: 1
 			path: src/wp-includes/html-api/class-wp-html-processor.php
 		-
 			# The early return at the start of step() narrows $last_error to null, and PHPStan does not see that
