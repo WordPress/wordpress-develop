@@ -239,6 +239,10 @@ body.modal-open {
 	overflow: hidden;
 }
 
+body.modal-open .editor-post-excerpt__dropdown__content {
+	z-index: 99999;
+}
+
 body.mobile.modal-open #wpwrap {
 	overflow: hidden;
 	position: fixed;
@@ -998,15 +1002,32 @@ a#remove-post-thumbnail:hover,
 
 #minor-publishing-actions {
 	padding: 10px 10px 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+/* Prevent any legacy clearfix elements added by plugins from becoming active flex items. */
+#minor-publishing-actions .clear {
+	display: none;
+}
+
+#save-action {
+	display: flex;
+	align-items: center;
+}
+
+#save-action .spinner {
+	float: none;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+#preview-action {
 	text-align: right;
-}
-
-#save-post {
-	float: left;
-}
-
-.preview {
-	float: right;
+	margin-left: auto;
 }
 
 #sticky-span {

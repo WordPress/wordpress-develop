@@ -26,7 +26,7 @@ class Tests_Media_GetMediaEmbeddedInContent extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_content() {
+	public static function data_content() {
 		$audio  = '<audio preload="none"><source /></audio>';
 		$video  = '<video preload="none"><source /></video>';
 		$iframe = '<iframe src="https://example.com/embed" width="700"></iframe>';

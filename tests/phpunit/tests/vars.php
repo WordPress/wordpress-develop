@@ -34,7 +34,7 @@ class Tests_Vars extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function get_data_to_test_wp_is_mobile(): array {
+	public static function get_data_to_test_wp_is_mobile(): array {
 		return array(
 			'mobile client hint'                 => array(
 				'headers'  => array(

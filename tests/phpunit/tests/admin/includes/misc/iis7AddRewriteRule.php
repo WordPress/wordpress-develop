@@ -68,7 +68,7 @@ class Tests_iis7_add_rewrite_rule extends WP_UnitTestCase {
 	 *     expected_content: string,
 	 * }>
 	 */
-	public function data_iis7_add_rewrite_rule(): array {
+	public static function data_iis7_add_rewrite_rule(): array {
 		$rule = '<rule name="wordpress" patternSyntax="Wildcard"><match url="*" /><conditions><add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" /><add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" /></conditions><action type="Rewrite" url="index.php" /></rule>';
 
 		return array(

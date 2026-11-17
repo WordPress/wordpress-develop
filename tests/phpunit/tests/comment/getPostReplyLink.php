@@ -45,7 +45,7 @@ class Tests_Comment_GetPostReplyLink extends WP_UnitTestCase {
 	 * @return string Expected link markup.
 	 */
 	private function expected_link( $post_id, $text = 'Leave a Comment', $add_below = 'post', $respond_id = 'respond' ) {
-		return "<a rel='nofollow' class='comment-reply-link' href='http://" . WP_TESTS_DOMAIN . '/?p=' . $post_id . '#' . $respond_id . "'"
+		return "<a rel='nofollow' class='comment-reply-link' href='" . get_permalink( $post_id ) . '#' . $respond_id . "'"
 			. " onclick='return addComment.moveForm( \"" . $add_below . '-' . $post_id . '", "0", "' . $respond_id . '", "' . $post_id . "\" )'>"
 			. $text . '</a>';
 	}

@@ -56,7 +56,7 @@ class Tests_wp_list_bookmarks extends WP_UnitTestCase {
 	 *     expected: string[],
 	 * }>
 	 */
-	public function data_wp_list_bookmarks_categorized(): array {
+	public static function data_wp_list_bookmarks_categorized(): array {
 		return array(
 			'default categorized output'         => array(
 				'args'     => array(
@@ -148,7 +148,7 @@ class Tests_wp_list_bookmarks extends WP_UnitTestCase {
 	 *     not_expected: string[],
 	 * }>
 	 */
-	public function data_wp_list_bookmarks_uncategorized(): array {
+	public static function data_wp_list_bookmarks_uncategorized(): array {
 		return array(
 			'uncategorized with default title_li' => array(
 				'args'         => array(
