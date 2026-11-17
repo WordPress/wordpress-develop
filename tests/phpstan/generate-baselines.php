@@ -530,9 +530,10 @@ function read_baseline( string $path ): array {
  * @return string Configuration contents.
  */
 function strip_baseline_includes( string $config_path, string $output_dir ): string {
-	$config_dir = dirname( $config_path );
-	$in_block   = false;
-	$kept       = array();
+	$config_dir    = dirname( $config_path );
+	$output_prefix = normalize_path( $output_dir ) . '/';
+	$in_block      = false;
+	$kept          = array();
 
 	foreach ( explode( "\n", read_file( $config_path ) ) as $line ) {
 		if ( 1 === preg_match( '/^includes:/', $line ) ) {
@@ -550,7 +551,7 @@ function strip_baseline_includes( string $config_path, string $output_dir ): str
 			$included = $matches[1];
 			$absolute = normalize_path( ( '/' === $included[0] ) ? $included : $config_dir . '/' . $included );
 
-			if ( 0 === strpos( $absolute, normalize_path( $output_dir ) . '/' ) ) {
+			if ( 0 === strpos( $absolute, $output_prefix ) ) {
 				continue;
 			}
 		}
