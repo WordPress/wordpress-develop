@@ -47,26 +47,34 @@ const BASELINE_FILE_PATTERN = '/^[a-zA-Z0-9](?:[a-zA-Z0-9.]*[a-zA-Z0-9])?\.neon$
 /**
  * Lists the per-identifier baselines present on disk.
  *
+ * The directory is listed rather than globbed, since glob() would read any of its
+ * metacharacters in the directory's own path, such as the brackets of a checkout
+ * in `wp [old]/`, as a pattern, and match nothing.
+ *
+ * A directory that cannot be listed is an error rather than one with no
+ * baselines, since treating it as empty would drop every suppression at once,
+ * with nothing to say why.
+ *
  * @param non-empty-string $directory Absolute path to the baseline directory.
- * @return list<non-empty-string> Absolute paths, sorted by name.
+ * @return list<non-empty-string> File names, sorted.
+ *
+ * @throws \RuntimeException When the directory cannot be listed.
  */
 function find_baselines( string $directory ): array {
-	$found = glob( $directory . '/*.neon' );
+	$entries = is_dir( $directory ) ? scandir( $directory ) : false;
 
-	if ( false === $found ) {
-		return array();
+	if ( false === $entries ) {
+		throw new \RuntimeException( "Could not list the PHPStan baselines in $directory." );
 	}
 
-	sort( $found );
-
-	$files = array();
-	foreach ( $found as $file ) {
-		if ( '' !== $file && 1 === preg_match( BASELINE_FILE_PATTERN, basename( $file ) ) ) {
-			$files[] = $file;
+	$names = array();
+	foreach ( $entries as $name ) {
+		if ( '' !== $name && 1 === preg_match( BASELINE_FILE_PATTERN, $name ) ) {
+			$names[] = $name;
 		}
 	}
 
-	return $files;
+	return $names;
 }
 
 /**
@@ -80,17 +88,14 @@ function find_baselines( string $directory ): array {
  * of the analyzed files.
  *
  * @param non-empty-string $directory The loader's directory, as its __DIR__.
- * @return array{includes: list<string>} Configuration.
+ * @return array{includes: list<non-empty-string>} Configuration.
+ *
+ * @throws \RuntimeException When the directory cannot be listed.
  */
 function get_baseline_includes( string $directory ): array {
 	if ( getenv( GENERATING_BASELINES_ENV ) === $directory ) {
 		return array( 'includes' => array() );
 	}
 
-	$names = array();
-	foreach ( find_baselines( $directory ) as $file ) {
-		$names[] = basename( $file );
-	}
-
-	return array( 'includes' => $names );
+	return array( 'includes' => find_baselines( $directory ) );
 }

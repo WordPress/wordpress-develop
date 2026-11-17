@@ -149,17 +149,19 @@ if ( $prune ) {
 
 	$pruned = 0;
 
-	foreach ( find_baselines( $output_dir ) as $file ) {
-		$identifier = basename( $file, '.neon' );
+	// A directory not written to yet has no baselines to prune.
+	foreach ( is_dir( $output_dir ) ? find_baselines( $output_dir ) : array() as $name ) {
+		$identifier = basename( $name, '.neon' );
 
 		if ( $only_identifiers && ! in_array( $identifier, $only_identifiers, true ) ) {
 			continue;
 		}
 
+		$file     = $output_dir . '/' . $name;
 		$is_empty = is_empty_baseline( read_file( $file ) );
 
 		if ( null === $is_empty ) {
-			fwrite( STDERR, sprintf( "%s: no `ignoreErrors` list found, left untouched.\n", $output_option . '/' . basename( $file ) ) );
+			fwrite( STDERR, sprintf( "%s: no `ignoreErrors` list found, left untouched.\n", $output_option . '/' . $name ) );
 			continue;
 		}
 
@@ -168,11 +170,11 @@ if ( $prune ) {
 		}
 
 		if ( ! unlink( $file ) ) {
-			fwrite( STDERR, sprintf( "%s: could not be deleted.\n", $output_option . '/' . basename( $file ) ) );
+			fwrite( STDERR, sprintf( "%s: could not be deleted.\n", $output_option . '/' . $name ) );
 			exit( 1 );
 		}
 
-		printf( "%s: no entries remain, file deleted.\n", $output_option . '/' . basename( $file ) );
+		printf( "%s: no entries remain, file deleted.\n", $output_option . '/' . $name );
 		++$pruned;
 	}
 
@@ -397,8 +399,8 @@ foreach ( $grouped as $identifier => $entries ) {
 $retired = $only_identifiers;
 
 if ( ! $only_identifiers ) {
-	foreach ( find_baselines( $output_dir ) as $file ) {
-		$retired[] = basename( $file, '.neon' );
+	foreach ( find_baselines( $output_dir ) as $name ) {
+		$retired[] = basename( $name, '.neon' );
 	}
 }
 
