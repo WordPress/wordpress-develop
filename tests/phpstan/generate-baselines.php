@@ -163,7 +163,7 @@ if ( $prune ) {
 	$pruned = 0;
 
 	// A directory not written to yet has no baselines to prune.
-	foreach ( is_dir( $output_dir ) ? find_baselines( $output_dir ) : array() as $name ) {
+	foreach ( is_dir( $output_dir ) ? list_baselines( $output_dir ) : array() as $name ) {
 		$identifier = basename( $name, '.neon' );
 
 		if ( $only_identifiers && ! in_array( $identifier, $only_identifiers, true ) ) {
@@ -416,7 +416,7 @@ foreach ( $grouped as $identifier => $entries ) {
 $retired = $only_identifiers;
 
 if ( ! $only_identifiers ) {
-	foreach ( find_baselines( $output_dir ) as $name ) {
+	foreach ( list_baselines( $output_dir ) as $name ) {
 		$retired[] = basename( $name, '.neon' );
 	}
 }
@@ -496,6 +496,24 @@ function get_usage(): string {
 		    composer phpstan:baselines -- --prune
 
 		TEXT;
+}
+
+/**
+ * Lists the baselines in a directory, stopping the run if it cannot be listed.
+ *
+ * find_baselines() throws, which stops PHPStan when a loader calls it. Here the
+ * same failure is reported the way the rest of this script reports one.
+ *
+ * @param non-empty-string $output_dir Absolute path to the baseline directory.
+ * @return list<non-empty-string> File names, sorted.
+ */
+function list_baselines( string $output_dir ): array {
+	try {
+		return find_baselines( $output_dir );
+	} catch ( \RuntimeException $e ) {
+		fwrite( STDERR, $e->getMessage() . "\n" );
+		exit( 1 );
+	}
 }
 
 /**
