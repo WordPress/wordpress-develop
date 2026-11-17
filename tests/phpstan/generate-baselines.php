@@ -43,8 +43,8 @@ namespace WordPress\PHPStan;
 /**
  * Environment variable that tells `baselines/loader.php` to include nothing.
  *
- * It is set while the analysis runs, so that the baselines in force do not
- * suppress the errors being regenerated. The loader checks it itself, so this
+ * It is set to 1 while the analysis runs, so that the baselines in force do not
+ * suppress the errors being regenerated. The loader ignores any other value. The loader checks it itself, so this
  * works however the configuration includes the loader.
  */
 const GENERATING_BASELINES_ENV = 'WP_PHPSTAN_GENERATING_BASELINES';
@@ -264,7 +264,7 @@ if ( DEFAULT_CONFIG !== $config_relative ) {
  * effect.
  *
  * The baselines need no removing from the configuration: GENERATING_BASELINES_ENV
- * is set for the analysis, and every loader includes nothing while it is.
+ * is set to 1 for the analysis, and every loader includes nothing while it is.
  */
 file_put_contents(
 	$temp_config,
