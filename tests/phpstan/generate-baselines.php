@@ -170,7 +170,13 @@ if ( $prune ) {
 			continue;
 		}
 
-		$file     = $output_dir . '/' . $name;
+		$file = $output_dir . '/' . $name;
+
+		if ( ! is_generated_baseline( $file, $identifier ) ) {
+			fwrite( STDERR, sprintf( "%s: not a baseline written by this script, left untouched.\n", $output_option . '/' . $name ) );
+			continue;
+		}
+
 		$is_empty = is_empty_baseline( read_file( $file ) );
 
 		if ( null === $is_empty ) {
@@ -427,7 +433,9 @@ foreach ( $retired as $identifier ) {
 	}
 
 	$file = $output_dir . '/' . $identifier . '.neon';
-	if ( is_file( $file ) && unlink( $file ) ) {
+	if ( is_file( $file ) && ! is_generated_baseline( $file, $identifier ) ) {
+		fwrite( STDERR, sprintf( "%s: not a baseline written by this script, left untouched.\n", $output_option . '/' . $identifier . '.neon' ) );
+	} elseif ( is_file( $file ) && unlink( $file ) ) {
 		printf( "%s: no errors remain, file deleted.\n", $output_option . '/' . $identifier . '.neon' );
 	} else {
 		printf( "%s: no errors reported.\n", $identifier );
@@ -496,6 +504,31 @@ function get_usage(): string {
 		    composer phpstan:baselines -- --prune
 
 		TEXT;
+}
+
+/**
+ * Determines whether a file is a baseline this script wrote.
+ *
+ * A file is only retired or pruned when it starts with the header this script
+ * writes for its identifier. Any `.neon` file whose name passes for an identifier
+ * would otherwise be deleted when that identifier reports nothing, such as
+ * `base.neon` with `--output-dir=tests/phpstan`, or the root `phpstan.neon` with
+ * `--output-dir=.`.
+ *
+ * @param non-empty-string $file       Absolute path to the file.
+ * @param string           $identifier Identifier the file is named for.
+ * @return bool Whether the file starts with the header for that identifier.
+ */
+function is_generated_baseline( string $file, string $identifier ): bool {
+	// Neither can name a baseline, nor have a header built for it.
+	if ( '' === $identifier || '0' === $identifier ) {
+		return false;
+	}
+
+	$header = build_baseline_header( $identifier );
+	$first  = substr( $header, 0, (int) strpos( $header, "\n" ) + 1 );
+
+	return 0 === strpos( read_file( $file ), $first );
 }
 
 /**
