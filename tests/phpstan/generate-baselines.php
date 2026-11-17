@@ -560,10 +560,23 @@ function read_baseline( string $path ): array {
  * there, so a fix to that reaches every directory's loader alike.
  * `baselines/loader.php` is the one this builds for the default directory.
  *
- * @param non-empty-string $output_dir Absolute path to the baseline directory.
+ * The relative path is worked out between the resolved directories, since that is
+ * how the loader's __DIR__ is resolved when the path is followed. Worked out from
+ * the directory as given, a symbolic link in it would send the loader looking
+ * somewhere else.
+ *
+ * @param non-empty-string $output_dir Absolute path to the baseline directory, which exists.
  * @return non-falsy-string Loader contents.
  */
 function build_loader( string $output_dir ): string {
+	$from = realpath( $output_dir );
+	$to   = realpath( __DIR__ . '/baseline-includes.php' );
+
+	if ( false === $from || false === $to ) {
+		fwrite( STDERR, "Could not resolve $output_dir or the shared baseline includes.\n" );
+		exit( 1 );
+	}
+
 	return sprintf(
 		<<<'PHP'
 		<?php
@@ -583,7 +596,7 @@ function build_loader( string $output_dir ): string {
 		return \WordPress\PHPStan\get_baseline_includes( __DIR__ );
 
 		PHP,
-		var_export( '/' . get_relative_path( $output_dir, __DIR__ . '/baseline-includes.php' ), true )
+		var_export( '/' . get_relative_path( $from, $to ), true )
 	);
 }
 
