@@ -183,6 +183,36 @@ class WP_REST_Entity_Fields_Controller_Test extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * A taxonomy whose items are on the route keeps it: the route of the
+	 * fields is not registered, and that is reported.
+	 *
+	 * @covers ::register_routes
+	 * @covers ::is_route_of_entity_items
+	 *
+	 * @ticket 66229
+	 */
+	public function test_the_route_of_a_taxonomy_with_the_same_base_is_kept() {
+		global $wp_rest_server;
+		$this->setExpectedIncorrectUsage( 'WP_REST_Entity_Fields_Controller::is_route_of_entity_items' );
+		register_taxonomy( 'entity-fields', 'post', array( 'show_in_rest' => true ) );
+
+		try {
+			$wp_rest_server = null;
+			$handlers       = rest_get_server()->get_routes()[ self::ROUTE ];
+			$response       = rest_get_server()->dispatch( new WP_REST_Request( 'GET', self::ROUTE ) );
+		} finally {
+			unregister_taxonomy( 'entity-fields' );
+			$wp_rest_server = null;
+		}
+
+		$this->assertCount( 2, $handlers, 'Only the route of the terms is registered.' );
+		$this->assertInstanceOf( WP_REST_Terms_Controller::class, $handlers[0]['callback'][0] );
+		$this->assertArrayHasKey( 'POST', $handlers[1]['methods'], 'Terms can still be created.' );
+		$this->assertSame( 200, $response->get_status(), 'The terms are listed.' );
+		$this->assertSame( array(), $response->get_data() );
+	}
+
+	/**
 	 * Editors (with `edit_posts`) can read the fields.
 	 *
 	 * @covers ::get_items_permissions_check
@@ -405,6 +435,12 @@ class WP_REST_Entity_Fields_Controller_Test extends WP_Test_REST_TestCase {
 
 		$missing_kind = $this->dispatch_request( null, 'page' );
 		$this->assertErrorResponse( 'rest_missing_callback_param', $missing_kind, 400 );
+
+		$empty_kind = $this->dispatch_request( '', 'page' );
+		$this->assertErrorResponse( 'rest_invalid_param', $empty_kind, 400 );
+
+		$empty_name = $this->dispatch_request( 'postType', '' );
+		$this->assertErrorResponse( 'rest_invalid_param', $empty_name, 400 );
 	}
 
 	/**
