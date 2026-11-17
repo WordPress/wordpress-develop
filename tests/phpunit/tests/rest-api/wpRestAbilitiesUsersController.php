@@ -34,11 +34,46 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	protected static $subscriber_id;
 
 	/**
+	 * Administrator user ID, a super admin on multisite.
+	 *
+	 * @var int
+	 */
+	protected static $manager_id;
+
+	/**
+	 * Editor user ID.
+	 *
+	 * @var int
+	 */
+	protected static $editor_id;
+
+	/**
 	 * The run route for the core/users-query ability.
 	 *
 	 * @var string
 	 */
 	const RUN_ROUTE = '/wp-abilities/v1/abilities/core/users-query/run';
+
+	/**
+	 * The run route for the core/user-create ability.
+	 *
+	 * @var string
+	 */
+	const CREATE_ROUTE = '/wp-abilities/v1/abilities/core/user-create/run';
+
+	/**
+	 * The run route for the core/user-update ability.
+	 *
+	 * @var string
+	 */
+	const UPDATE_ROUTE = '/wp-abilities/v1/abilities/core/user-update/run';
+
+	/**
+	 * The run route for the core/user-delete ability.
+	 *
+	 * @var string
+	 */
+	const DELETE_ROUTE = '/wp-abilities/v1/abilities/core/user-delete/run';
 
 	/**
 	 * Sets up users and registers the core abilities.
@@ -50,6 +85,12 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( $factory ): void {
 		self::$admin_id      = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
+		self::$manager_id    = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$editor_id     = $factory->user->create( array( 'role' => 'editor' ) );
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$manager_id );
+		}
 
 		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
 		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
@@ -83,6 +124,10 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	 * @since 7.2.0
 	 */
 	public static function wpTearDownAfterClass(): void {
+		if ( is_multisite() ) {
+			revoke_super_admin( self::$manager_id );
+		}
+
 		foreach ( wp_get_abilities() as $ability ) {
 			wp_unregister_ability( $ability->get_name() );
 		}
@@ -460,5 +505,372 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 
 		$this->assertSame( 200, $response->get_status(), 'The string "true" should be accepted for has_published_posts.' );
 		$this->assertSame( array( $author_id ), wp_list_pluck( $data['items'], 'id' ), 'Only the included user with a published post should be returned.' );
+	}
+
+	/**
+	 * Builds a run request: a POST request carries the input in a JSON body, and other
+	 * requests carry it in the query string.
+	 *
+	 * @param string $method The HTTP method.
+	 * @param string $route  The run route.
+	 * @param mixed  $input  The ability input, or null to send none.
+	 * @return WP_REST_Request The request.
+	 */
+	private function write_request( string $method, string $route, $input ): WP_REST_Request {
+		$request = new WP_REST_Request( $method, $route );
+		$params  = null === $input ? array() : array( 'input' => $input );
+
+		if ( 'POST' === $method ) {
+			$request->set_header( 'Content-Type', 'application/json' );
+			$request->set_body( wp_json_encode( $params ) );
+		} else {
+			$request->set_query_params( $params );
+		}
+
+		return $request;
+	}
+
+	/**
+	 * Creates an author with a published post.
+	 *
+	 * @param string $login The username.
+	 * @return array{user: int, post: int} The IDs of the user and the post.
+	 */
+	private function create_author_with_post( string $login ): array {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'author',
+				'user_login' => $login,
+				'user_email' => "{$login}@example.test",
+			)
+		);
+
+		return array(
+			'user' => $user_id,
+			'post' => self::factory()->post->create(
+				array(
+					'post_author' => $user_id,
+					'post_status' => 'publish',
+				)
+			),
+		);
+	}
+
+	/**
+	 * A user is created through the run route with a POST request.
+	 *
+	 * @ticket XXXXX
+	 * @since 7.3.0
+	 */
+	public function test_creates_a_user_with_a_post_request(): void {
+		wp_set_current_user( self::$manager_id );
+
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'POST',
+				self::CREATE_ROUTE,
+				array(
+					'data'   => array(
+						'username' => 'uwtruncreated',
+						'email'    => 'uwt-run-created@example.test',
+					),
+					'fields' => array( 'id', 'username' ),
+				)
+			)
+		);
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'Creating a user should succeed.' );
+		$this->assertSame( 'uwtruncreated', $data['username'] ?? null, 'The output should hold the new username.' );
+		$this->assertSame( $data['id'] ?? null, get_user_by( 'login', 'uwtruncreated' )->ID ?? 0, 'The output ID should be the new user.' );
+	}
+
+	/**
+	 * A user is updated through the run route with a POST request.
+	 *
+	 * @ticket XXXXX
+	 * @since 7.3.0
+	 */
+	public function test_updates_a_user_with_a_post_request(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( self::$manager_id );
+
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'POST',
+				self::UPDATE_ROUTE,
+				array(
+					'where' => array( 'id' => $user_id ),
+					'data'  => array( 'name' => 'Updated By Run' ),
+				)
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status(), 'Updating a user should succeed.' );
+		$this->assertSame( $user_id, $response->get_data()['id'] ?? null, 'The output should hold the user ID.' );
+		$this->assertSame( 'Updated By Run', get_userdata( $user_id )->display_name, 'The name should be stored.' );
+	}
+
+	/**
+	 * A user is deleted through the run route with a POST request that carries the input
+	 * in its body.
+	 *
+	 * @ticket XXXXX
+	 * @since 7.3.0
+	 */
+	public function test_deletes_a_user_with_a_post_request(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( self::$manager_id );
+
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'POST',
+				self::DELETE_ROUTE,
+				array(
+					'where'    => array( 'id' => $user_id ),
+					'reassign' => false,
+				)
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status(), 'Deleting a user should succeed.' );
+		$this->assertSame( array( 'outcome' => is_multisite() ? 'removed' : 'deleted' ), $response->get_data(), 'The output should give the outcome.' );
+		$this->assertFalse( is_user_member_of_blog( $user_id, get_current_blog_id() ), 'The user should be gone from the site.' );
+	}
+
+	/**
+	 * Each user write ability takes POST requests only: a GET request and a DELETE
+	 * request, with the input in the query string, are refused.
+	 *
+	 * @ticket XXXXX
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_wrong_methods
+	 *
+	 * @param string $method The HTTP method.
+	 * @param string $route  The run route.
+	 */
+	public function test_wrong_method_returns_405( string $method, string $route ): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( self::$manager_id );
+
+		$inputs = array(
+			self::CREATE_ROUTE => array(
+				'data' => array(
+					'username' => 'uwtrunmethod',
+					'email'    => 'uwt-run-method@example.test',
+				),
+			),
+			self::UPDATE_ROUTE => array(
+				'where' => array( 'id' => $user_id ),
+				'data'  => array( 'name' => 'Wrong Method' ),
+			),
+			self::DELETE_ROUTE => array(
+				'where'    => array( 'id' => (string) $user_id ),
+				'reassign' => 'false',
+			),
+		);
+
+		$response = $this->server->dispatch( $this->write_request( $method, $route, $inputs[ $route ] ) );
+
+		$this->assertSame( 405, $response->get_status(), 'The method should be refused.' );
+		$this->assertSame( 'rest_ability_invalid_method', $response->get_data()['code'] ?? null, 'The error should identify the invalid HTTP method.' );
+		$this->assertFalse( get_user_by( 'login', 'uwtrunmethod' ), 'No user should be created.' );
+		$this->assertSame( 'author', get_userdata( $user_id )->roles[0] ?? null, 'The user should stay.' );
+		$this->assertNotSame( 'Wrong Method', get_userdata( $user_id )->display_name, 'The user should not be updated.' );
+	}
+
+	/**
+	 * Returns HTTP methods the user write abilities do not take.
+	 *
+	 * @return array<string, array{method: string, route: string}> The method and the route.
+	 */
+	public static function data_wrong_methods(): array {
+		return array(
+			'create with GET'    => array( 'GET', self::CREATE_ROUTE ),
+			'create with DELETE' => array( 'DELETE', self::CREATE_ROUTE ),
+			'update with GET'    => array( 'GET', self::UPDATE_ROUTE ),
+			'update with DELETE' => array( 'DELETE', self::UPDATE_ROUTE ),
+			'delete with GET'    => array( 'GET', self::DELETE_ROUTE ),
+			'delete with DELETE' => array( 'DELETE', self::DELETE_ROUTE ),
+		);
+	}
+
+	/**
+	 * Refused calls of the user write abilities carry their status.
+	 *
+	 * @ticket XXXXX
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_refused_calls
+	 *
+	 * @param string      $route      The run route.
+	 * @param string      $caller     The caller: `manager`, `editor`, `subscriber`, or an empty string to log out.
+	 * @param string      $input_name The input to send.
+	 * @param int         $status     The expected status.
+	 * @param string|null $code       The expected error code, or null for any.
+	 */
+	public function test_refused_calls_carry_their_status( string $route, string $caller, string $input_name, int $status, ?string $code ): void {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'author',
+				'user_login' => 'uwtruntaken',
+				'user_email' => 'uwt-run-taken@example.test',
+			)
+		);
+		$callers = array(
+			''           => 0,
+			'manager'    => self::$manager_id,
+			'editor'     => self::$editor_id,
+			'subscriber' => self::$subscriber_id,
+		);
+		$inputs  = array(
+			'new user'       => array(
+				'data' => array(
+					'username' => 'uwtrunrefused',
+					'email'    => 'uwt-run-refused@example.test',
+				),
+			),
+			'no email'       => array( 'data' => array( 'username' => 'uwtrunrefused' ) ),
+			'taken username' => array(
+				'data' => array(
+					'username' => 'uwtruntaken',
+					'email'    => 'uwt-run-other@example.test',
+				),
+			),
+			'missing user'   => array(
+				'where' => array( 'id' => 987654321 ),
+				'data'  => array( 'name' => 'Refused' ),
+			),
+			'author'         => array(
+				'where' => array( 'id' => $user_id ),
+				'data'  => array( 'name' => 'Refused' ),
+			),
+			'delete author'  => array(
+				'where'    => array( 'id' => $user_id ),
+				'reassign' => false,
+			),
+			'reassign true'  => array(
+				'where'    => array( 'id' => $user_id ),
+				'reassign' => 'true',
+			),
+		);
+
+		wp_set_current_user( $callers[ $caller ] );
+
+		$response = $this->server->dispatch( $this->write_request( 'POST', $route, $inputs[ $input_name ] ) );
+
+		$this->assertSame( $status, $response->get_status(), "The call should be refused with status {$status}." );
+		if ( null !== $code ) {
+			$this->assertSame( $code, $response->get_data()['code'] ?? null, "The error code should be {$code}." );
+		}
+		$this->assertFalse( get_user_by( 'login', 'uwtrunrefused' ), 'No user should be created.' );
+		$this->assertSame( 'uwtruntaken', get_userdata( $user_id )->user_login ?? null, 'The author should stay.' );
+		$this->assertNotSame( 'Refused', get_userdata( $user_id )->display_name, 'The author should not be updated.' );
+	}
+
+	/**
+	 * Returns calls of the user write abilities that are refused.
+	 *
+	 * @return array<string, array{route: string, caller: string, input_name: string, status: int, code: string|null}>
+	 *         The route, the caller, the input, the status and the error code.
+	 */
+	public static function data_refused_calls(): array {
+		return array(
+			'create while logged out'        => array( self::CREATE_ROUTE, '', 'new user', 401, 'rest_ability_cannot_execute' ),
+			'create by a subscriber'         => array( self::CREATE_ROUTE, 'subscriber', 'new user', 403, 'rest_ability_cannot_execute' ),
+			'create with invalid input'      => array( self::CREATE_ROUTE, 'manager', 'no email', 400, null ),
+			'create with a taken username'   => array( self::CREATE_ROUTE, 'manager', 'taken username', 400, 'user_exists' ),
+			'update of a missing user'       => array( self::UPDATE_ROUTE, 'manager', 'missing user', 404, 'user_not_found' ),
+			'update of another user'         => array( self::UPDATE_ROUTE, 'editor', 'author', 403, 'user_cannot_edit' ),
+			'delete by a subscriber'         => array( self::DELETE_ROUTE, 'subscriber', 'delete author', 403, 'rest_ability_cannot_execute' ),
+			'delete with reassign true text' => array( self::DELETE_ROUTE, 'manager', 'reassign true', 400, 'user_invalid_reassign' ),
+		);
+	}
+
+	/**
+	 * A POST request carries `reassign` in its JSON body with its type: false and a user
+	 * ID are taken, as a boolean or an integer and as a string, and every other value is
+	 * refused without deleting anything.
+	 *
+	 * @ticket XXXXX
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_reassign_values_in_the_body
+	 *
+	 * @param mixed       $reassign The reassign value; `heir` stands for the editor's ID,
+	 *                              `heir as text` for that ID as a string, and `absent`
+	 *                              sends none.
+	 * @param string|null $owner    Who owns the post afterwards: `heir`, `first` for user 1,
+	 *                              `nobody` when no one is reassigned, or null when refused.
+	 * @param string|null $code     The expected error code, or null when the user is deleted.
+	 */
+	public function test_delete_takes_reassign_from_the_json_body( $reassign, ?string $owner, ?string $code ): void {
+		$target = $this->create_author_with_post( 'uwt_run_reassign' );
+		$input  = array( 'where' => array( 'id' => $target['user'] ) );
+
+		if ( 'heir' === $reassign ) {
+			$input['reassign'] = self::$editor_id;
+		} elseif ( 'heir as text' === $reassign ) {
+			$input['reassign'] = (string) self::$editor_id;
+		} elseif ( 'absent' !== $reassign ) {
+			$input['reassign'] = $reassign;
+		}
+
+		wp_set_current_user( self::$manager_id );
+
+		$response = $this->server->dispatch( $this->write_request( 'POST', self::DELETE_ROUTE, $input ) );
+		$post     = get_post( $target['post'] );
+
+		if ( null === $owner ) {
+			$this->assertSame( 400, $response->get_status(), 'The reassign value should be refused.' );
+			$this->assertSame( $code, $response->get_data()['code'] ?? null, "The error code should be {$code}." );
+			$this->assertTrue( is_user_member_of_blog( $target['user'], get_current_blog_id() ), 'The user should stay.' );
+			$this->assertSame( $target['user'], (int) $post->post_author, 'The post should keep its author.' );
+			$this->assertSame( 'publish', $post->post_status, 'The post should stay published.' );
+			return;
+		}
+
+		$this->assertSame( 200, $response->get_status(), 'The user should be deleted.' );
+
+		$owners = array(
+			'heir'   => self::$editor_id,
+			'first'  => 1,
+			'nobody' => $target['user'],
+		);
+		if ( 'nobody' === $owner && ! is_multisite() ) {
+			$this->assertSame( 'trash', $post->post_status, 'The post should go to the trash.' );
+		} else {
+			$this->assertSame( $owners[ $owner ], (int) $post->post_author, 'The post should belong to the expected user.' );
+			$this->assertSame( 'publish', $post->post_status, 'The post should stay published.' );
+		}
+	}
+
+	/**
+	 * Returns reassign values as a JSON body carries them.
+	 *
+	 * @return array<string, array{reassign: mixed, owner: string|null, code: string|null}>
+	 *         The value, who owns the post afterwards, and the error code.
+	 */
+	public static function data_reassign_values_in_the_body(): array {
+		return array(
+			'false'         => array( false, 'nobody', null ),
+			'false as text' => array( 'false', 'nobody', null ),
+			'ID'            => array( 'heir', 'heir', null ),
+			'ID as text'    => array( 'heir as text', 'heir', null ),
+			'one'           => array( 1, 'first', null ),
+			'one as text'   => array( '1', 'first', null ),
+			'true'          => array( true, null, 'user_invalid_reassign' ),
+			'true as text'  => array( 'true', null, 'user_invalid_reassign' ),
+			'zero'          => array( 0, null, 'ability_invalid_input' ),
+			'zero as text'  => array( '0', null, 'ability_invalid_input' ),
+			'empty'         => array( '', null, 'ability_invalid_input' ),
+			'negative'      => array( -1, null, 'ability_invalid_input' ),
+			'fraction'      => array( 7.5, null, 'ability_invalid_input' ),
+			'text'          => array( 'abc', null, 'ability_invalid_input' ),
+			'null'          => array( null, null, 'ability_invalid_input' ),
+			'list'          => array( array( 1 ), null, 'ability_invalid_input' ),
+			'absent'        => array( 'absent', null, 'ability_invalid_input' ),
+		);
 	}
 }

@@ -17,12 +17,15 @@ declare( strict_types = 1 );
  * roles, or published-post authorship. Field-level access is enforced per user by
  * omitting fields the current user cannot view.
  *
+ * Also registers the `core/user-create`, `core/user-update`, and `core/user-delete`
+ * abilities, which write a single user through Core's regular user functions and
+ * return the written user in the same shape as `core/users-query`.
+ *
  * Unlike the core abilities registered directly in wp_register_core_abilities() as
- * self-contained closures, the users ability lives in a dedicated class
- * because its callbacks and schemas share helpers: the permission and execute
- * callbacks read the input through the same code, and the input schema, output
- * schema, and field normalization are built from the same field definitions.
- * Future write-oriented user abilities can reuse them as well.
+ * self-contained closures, the user abilities live in a dedicated class
+ * because their callbacks and schemas share helpers: the callbacks read the input
+ * through the same code, and the input schemas, output schemas, and field
+ * normalization are built from the same field definitions.
  *
  * Only register() is public. The ability callbacks are closures that call private
  * methods, so callers go through the Abilities API, such as
@@ -30,6 +33,7 @@ declare( strict_types = 1 );
  * checks permissions before running them.
  *
  * @since 7.2.0
+ * @since 7.3.0 Added the `core/user-create`, `core/user-update`, and `core/user-delete` abilities.
  *
  * @access private
  */
@@ -92,14 +96,37 @@ final class WP_Abilities_Users {
 	);
 
 	/**
+	 * The user data key each profile attribute of the write abilities is saved as.
+	 *
+	 * The username and the email are not listed: they are passed to the saves separately.
+	 *
+	 * @since 7.3.0
+	 * @var array<string, string>
+	 */
+	private const PROFILE_ATTRIBUTES = array(
+		'name'        => 'display_name',
+		'first_name'  => 'first_name',
+		'last_name'   => 'last_name',
+		'nickname'    => 'nickname',
+		'slug'        => 'user_nicename',
+		'description' => 'description',
+		'url'         => 'user_url',
+		'locale'      => 'locale',
+	);
+
+	/**
 	 * Registers all user abilities.
 	 *
 	 * Must run on the `wp_abilities_api_init` hook.
 	 *
 	 * @since 7.2.0
+	 * @since 7.3.0 Registers the `core/user-create`, `core/user-update`, and `core/user-delete` abilities.
 	 */
 	public function register(): void {
 		$this->register_users_query();
+		$this->register_user_create();
+		$this->register_user_update();
+		$this->register_user_delete();
 	}
 
 	/**
@@ -130,6 +157,110 @@ final class WP_Abilities_Users {
 						'readonly'    => true,
 						'destructive' => false,
 						'idempotent'  => true,
+					),
+					'public'      => true,
+				),
+			)
+		);
+	}
+
+	/**
+	 * Registers the `core/user-create` ability.
+	 *
+	 * @since 7.3.0
+	 */
+	private function register_user_create(): void {
+		wp_register_ability(
+			'core/user-create',
+			array(
+				'label'                 => __( 'Create User' ),
+				'description'           => __( 'Creates a user and returns it. No password is set: WordPress generates one and emails the new user a link to choose their own, and the site administrator gets the usual new user notice. On multisite, the user becomes a member of the current site. Requires permission to create users.' ),
+				'category'              => self::CATEGORY,
+				'input_schema'          => $this->get_user_create_input_schema(),
+				'output_schema'         => $this->get_user_item_schema(),
+				'execute_callback'      => function ( $input = array() ) {
+					return $this->execute_user_create( $input );
+				},
+				'required_capabilities' => array( 'create_users' ),
+				'meta'                  => array(
+					'annotations' => array(
+						'readonly'    => false,
+						'destructive' => false,
+						'idempotent'  => false,
+					),
+					'public'      => true,
+				),
+			)
+		);
+	}
+
+	/**
+	 * Registers the `core/user-update` ability.
+	 *
+	 * @since 7.3.0
+	 */
+	private function register_user_update(): void {
+		wp_register_ability(
+			'core/user-update',
+			array(
+				'label'               => __( 'Update User' ),
+				'description'         => __( 'Updates the given attributes of a user and returns the user. Attributes that are left out keep their stored values. Changing roles requires permission to promote the user; changing any other attribute requires permission to edit the user. Requires an authenticated user.' ),
+				'category'            => self::CATEGORY,
+				'input_schema'        => $this->get_user_update_input_schema(),
+				'output_schema'       => $this->get_user_item_schema(),
+				'execute_callback'    => function ( $input = array() ) {
+					return $this->execute_user_update( $input );
+				},
+				'permission_callback' => static function (): bool {
+					return is_user_logged_in();
+				},
+				'meta'                => array(
+					'annotations' => array(
+						'readonly'    => false,
+						'destructive' => false,
+						'idempotent'  => true,
+					),
+					'public'      => true,
+				),
+			)
+		);
+	}
+
+	/**
+	 * Registers the `core/user-delete` ability.
+	 *
+	 * @since 7.3.0
+	 */
+	private function register_user_delete(): void {
+		wp_register_ability(
+			'core/user-delete',
+			array(
+				'label'               => __( 'Delete User' ),
+				'description'         => __( 'Deletes a user. `reassign` is required: the ID of the user who takes over the content of the deleted user, or false to delete the content with the user. With false, posts and pages go to the Trash where the site has one, and other content is deleted permanently (media too, unless the site keeps a Trash for media); posts of a type that is not deleted with its author, such as patterns, stay as they are. On multisite, the user is removed from the current site instead and the account stays in the network; there, false leaves the content in place. Requires permission to delete users, or on multisite to remove users.' ),
+				'category'            => self::CATEGORY,
+				'input_schema'        => $this->get_user_delete_input_schema(),
+				'output_schema'       => array(
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'required'             => array( 'outcome' ),
+					'properties'           => array(
+						'outcome' => array(
+							'type'        => 'string',
+							'description' => __( 'What happened to the user: `deleted`, or `removed` from the current site on multisite.' ),
+						),
+					),
+				),
+				'execute_callback'    => function ( $input = array() ) {
+					return $this->execute_user_delete( $input );
+				},
+				'permission_callback' => static function (): bool {
+					return current_user_can( is_multisite() ? 'remove_users' : 'delete_users' );
+				},
+				'meta'                => array(
+					'annotations' => array(
+						'readonly'    => false,
+						'destructive' => true,
+						'idempotent'  => false,
 					),
 					'public'      => true,
 				),
@@ -312,6 +443,648 @@ final class WP_Abilities_Users {
 		}
 
 		return $this->prepare_output( $users, $total_users, $total_pages );
+	}
+
+	/**
+	 * Executes the `core/user-create` ability.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $input Optional. The ability input, as prepared by WP_Ability::execute(). Default empty array.
+	 * @return array<string, mixed>|WP_Error The new user, or a WP_Error on failure.
+	 */
+	private function execute_user_create( array $input = array() ) {
+		// Checked again after the gate, whose result a filter can change.
+		if ( ! current_user_can( 'create_users' ) ) {
+			return new WP_Error(
+				'user_cannot_create',
+				__( 'Sorry, you are not allowed to create new users.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		$data  = $input['data'] ?? array();
+		$roles = null;
+		if ( array_key_exists( 'roles', $data ) ) {
+			$roles = $this->check_roles( $data['roles'], null );
+			if ( is_wp_error( $roles ) ) {
+				return $roles;
+			}
+		}
+
+		$error = $this->check_attributes( $data, null );
+		if ( $error ) {
+			return $error;
+		}
+
+		$password = wp_generate_password( 24 );
+		$profile  = $this->get_profile_userdata( $data );
+
+		if ( is_multisite() ) {
+			$signup = wpmu_validate_user_signup( $data['username'], $data['email'] );
+			if ( is_wp_error( $signup['errors'] ) && $signup['errors']->has_errors() ) {
+				$codes = $signup['errors']->get_error_codes();
+				$param = 'data';
+				$code  = $codes[0];
+				$paths = array(
+					'user_name'  => 'data[username]',
+					'user_email' => 'data[email]',
+				);
+				foreach ( $paths as $field_code => $path ) {
+					if ( in_array( $field_code, $codes, true ) ) {
+						$param = $path;
+						$code  = $field_code;
+						break;
+					}
+				}
+
+				return $this->invalid_attribute_error( $param, $signup['errors']->get_error_message( $code ) );
+			}
+
+			$user_id = wpmu_create_user( $data['username'], $password, $data['email'] );
+			if ( ! $user_id ) {
+				return $this->create_failed_error();
+			}
+
+			$result = empty( $profile ) ? true : wp_update_user( array( 'ID' => $user_id ) + $profile );
+			if ( ! is_wp_error( $result ) ) {
+				$result = add_user_to_blog( get_current_blog_id(), $user_id, '' );
+			}
+
+			if ( is_wp_error( $result ) ) {
+				/*
+				 * Undo the network account this call created, and only that one, so a failed
+				 * call leaves the number of users unchanged. The first error is returned
+				 * whatever the cleanup returns.
+				 */
+				require_once ABSPATH . 'wp-admin/includes/ms.php';
+				wpmu_delete_user( $user_id );
+
+				return $this->save_error( $result, array_keys( $data ) );
+			}
+		} else {
+			$userdata = array(
+				'user_login' => wp_slash( $data['username'] ),
+				'user_email' => wp_slash( $data['email'] ),
+				'user_pass'  => $password,
+			) + $profile;
+
+			// The roles are set after the save, so the user never holds the default role.
+			if ( null !== $roles ) {
+				$userdata['role'] = '';
+			}
+
+			$user_id = wp_insert_user( $userdata );
+			if ( is_wp_error( $user_id ) ) {
+				return $this->save_error( $user_id, array_keys( $data ) );
+			}
+			if ( ! $user_id ) {
+				return $this->create_failed_error();
+			}
+		}
+
+		if ( null !== $roles ) {
+			$this->set_user_roles( $user_id, $roles );
+		}
+
+		wp_send_new_user_notifications( $user_id, 'both' );
+
+		return $this->format_written_user( $user_id, $input );
+	}
+
+	/**
+	 * Executes the `core/user-update` ability.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $input Optional. The ability input, as prepared by WP_Ability::execute(). Default empty array.
+	 * @return array<string, mixed>|WP_Error The updated user, or a WP_Error on failure.
+	 */
+	private function execute_user_update( array $input = array() ) {
+		// Checked again after the gate, whose result a filter can change.
+		if ( ! is_user_logged_in() ) {
+			return new WP_Error(
+				'user_cannot_edit',
+				__( 'Sorry, you are not allowed to edit this user.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		$target = $this->get_target_user( $input );
+		if ( ! $target ) {
+			return $this->not_found_error();
+		}
+
+		// Only the keys of `data` choose the capability, before any value is read.
+		$data = $input['data'] ?? array();
+		$keys = array_keys( $data );
+
+		if ( in_array( 'roles', $keys, true ) && ! current_user_can( 'promote_user', $target->ID ) ) {
+			return new WP_Error(
+				'user_cannot_edit_roles',
+				__( 'Sorry, you are not allowed to edit roles of this user.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		if ( array( 'roles' ) !== $keys && ! current_user_can( 'edit_user', $target->ID ) ) {
+			return new WP_Error(
+				'user_cannot_edit',
+				__( 'Sorry, you are not allowed to edit this user.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		$attributes = array_merge( array( 'email', 'roles' ), array_keys( self::PROFILE_ATTRIBUTES ) );
+		$sent       = array_values( array_intersect( $keys, $attributes ) );
+		if ( empty( $sent ) ) {
+			return $this->get_validation_error(
+				'data',
+				array(),
+				array(
+					'type'          => 'object',
+					'minProperties' => 1,
+				)
+			);
+		}
+
+		$roles = null;
+		if ( array_key_exists( 'roles', $data ) ) {
+			$roles = $this->check_roles( $data['roles'], $target );
+			if ( is_wp_error( $roles ) ) {
+				return $roles;
+			}
+		}
+
+		$error = $this->check_attributes( $data, $target );
+		if ( $error ) {
+			return $error;
+		}
+
+		// The save never receives a role or a username.
+		$userdata = $this->get_profile_userdata( $data );
+		if ( array_key_exists( 'email', $data ) ) {
+			$userdata['user_email'] = wp_slash( $data['email'] );
+		}
+
+		if ( ! empty( $userdata ) ) {
+			$result = wp_update_user( array( 'ID' => $target->ID ) + $userdata );
+			if ( is_wp_error( $result ) ) {
+				return $this->save_error( $result, $sent );
+			}
+		}
+
+		if ( null !== $roles ) {
+			$this->set_user_roles( $target->ID, $roles );
+		}
+
+		return $this->format_written_user( $target->ID, $input );
+	}
+
+	/**
+	 * Executes the `core/user-delete` ability.
+	 *
+	 * On multisite, the user is removed from the current site, and the network account stays.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $input Optional. The ability input, as prepared by WP_Ability::execute(). Default empty array.
+	 * @return array<string, string>|WP_Error The outcome, or a WP_Error on failure.
+	 */
+	private function execute_user_delete( array $input = array() ) {
+		// Checked again after the gate, whose result a filter can change.
+		if ( ! current_user_can( is_multisite() ? 'remove_users' : 'delete_users' ) ) {
+			return $this->cannot_delete_error();
+		}
+
+		$target = $this->get_target_user( $input );
+		if ( ! $target ) {
+			return $this->not_found_error();
+		}
+
+		if ( ! current_user_can( is_multisite() ? 'remove_user' : 'delete_user', $target->ID ) ) {
+			return $this->cannot_delete_error();
+		}
+
+		// Only `false` reassigns nothing. Every other value must name a user.
+		$reassign = $input['reassign'] ?? null;
+		if ( false !== $reassign ) {
+			$reassign_user = is_int( $reassign ) && $reassign >= 1 ? get_userdata( $reassign ) : false;
+
+			/*
+			 * Intentionally strict: on multisite, the user who takes over the content must be a
+			 * member of the current site, although the removal would hand it to any user.
+			 */
+			if ( ! $reassign_user || $reassign_user->ID === $target->ID || ! is_user_member_of_blog( $reassign_user->ID ) ) {
+				return $this->invalid_attribute_error( 'reassign', __( 'Invalid user ID for reassignment.' ), 'user_invalid_reassign' );
+			}
+
+			$reassign = $reassign_user->ID;
+		}
+
+		// The stored state decides the outcome, not the return value of the deletion.
+		if ( is_multisite() ) {
+			remove_user_from_blog( $target->ID, get_current_blog_id(), false === $reassign ? 0 : $reassign );
+
+			$outcome = 'removed';
+			$done    = ! is_user_member_of_blog( $target->ID );
+		} else {
+			require_once ABSPATH . 'wp-admin/includes/user.php';
+
+			if ( false === $reassign ) {
+				wp_delete_user( $target->ID );
+			} else {
+				wp_delete_user( $target->ID, $reassign );
+			}
+
+			$outcome = 'deleted';
+			$done    = ! get_userdata( $target->ID );
+		}
+
+		if ( ! $done ) {
+			return new WP_Error(
+				'user_delete_failed',
+				__( 'The user cannot be deleted.' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		return array( 'outcome' => $outcome );
+	}
+
+	/**
+	 * Looks up the user that `where.id` names.
+	 *
+	 * The ID is read once, and the returned user is the one every later check and write
+	 * uses. On multisite, a user who is not a member of the current site is not returned,
+	 * for every caller, so it cannot be told apart from an ID that does not exist.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $input The ability input.
+	 * @return WP_User|null The user, or null when the ID is invalid or names no member of the current site.
+	 */
+	private function get_target_user( array $input ): ?WP_User {
+		$id   = $input['where']['id'] ?? 0;
+		$user = $id >= 1 ? get_userdata( $id ) : false;
+
+		return $user && is_user_member_of_blog( $user->ID ) ? $user : null;
+	}
+
+	/**
+	 * Checks the roles to assign.
+	 *
+	 * Runs for each role in list order, whatever the input schema allowed, since a role
+	 * can be unregistered, or the editable roles narrowed, after the schema was built.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string[]     $roles  The `roles` input.
+	 * @param WP_User|null $target The user to update, or null on create.
+	 * @return string[]|WP_Error The roles, or a WP_Error for the first role that cannot be assigned.
+	 */
+	private function check_roles( array $roles, ?WP_User $target ) {
+		$error = $this->get_validation_error(
+			'data[roles]',
+			$roles,
+			array(
+				'type'     => 'array',
+				'minItems' => 1,
+			)
+		);
+		if ( $error ) {
+			return $error;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/user.php';
+		$editable_roles = get_editable_roles();
+
+		// Users cannot give themselves a role that would take away their right to edit users.
+		$is_own_role_change = $target && get_current_user_id() === $target->ID && ! ( is_multisite() && current_user_can( 'manage_sites' ) );
+
+		foreach ( $roles as $role ) {
+			$role_object = get_role( $role );
+			if ( ! $role_object ) {
+				return $this->invalid_attribute_error(
+					'data[roles]',
+					/* translators: %s: Role key. */
+					sprintf( __( 'The role %s does not exist.' ), $role )
+				);
+			}
+
+			// A role with an empty entry in the editable roles is not editable, like a missing one.
+			if ( ( $is_own_role_change && ! $role_object->has_cap( 'edit_users' ) ) || empty( $editable_roles[ $role ] ) ) {
+				return new WP_Error(
+					'user_cannot_assign_role',
+					__( 'Sorry, you are not allowed to give users that role.' ),
+					array( 'status' => rest_authorization_required_code() )
+				);
+			}
+		}
+
+		return $roles;
+	}
+
+	/**
+	 * Checks the attributes to save, in a fixed order.
+	 *
+	 * The checks that depend on the save's sanitizing compute the value as the save
+	 * does. A value that ends empty, too long or taken is refused here; everything else
+	 * is stored as the save sanitizes it.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $data   The `data` input.
+	 * @param WP_User|null $target The user to update, or null on create.
+	 * @return WP_Error|null A WP_Error for the first attribute that cannot be saved, or null.
+	 */
+	private function check_attributes( array $data, ?WP_User $target ): ?WP_Error {
+		if ( ! $target ) {
+			$error = $this->get_validation_error(
+				'data[username]',
+				$data,
+				array(
+					'type'     => 'object',
+					'required' => array( 'username' ),
+				),
+				'data'
+			);
+			if ( $error ) {
+				return $error;
+			}
+
+			$username = $data['username'];
+
+			/*
+			 * Intentionally strict: a username that strict sanitizing would change is refused,
+			 * also when a filter of validate_username() accepts it.
+			 */
+			if ( sanitize_user( $username, true ) !== $username || ! validate_username( $username ) ) {
+				return $this->invalid_attribute_error( 'data[username]', __( 'This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
+			}
+
+			/** This filter is documented in wp-includes/user.php */
+			$illegal_logins = array_map( 'strtolower', (array) apply_filters( 'illegal_user_logins', array() ) );
+			if ( in_array( strtolower( $username ), $illegal_logins, true ) ) {
+				return $this->invalid_attribute_error( 'data[username]', __( 'Sorry, that username is not allowed.' ) );
+			}
+
+			if ( mb_strlen( $username ) > 60 ) {
+				return $this->invalid_attribute_error( 'data[username]', __( 'Username may not be longer than 60 characters.' ) );
+			}
+
+			if ( username_exists( $username ) ) {
+				return $this->invalid_attribute_error( 'data[username]', __( 'Sorry, that username already exists!' ), 'user_exists' );
+			}
+
+			$error = $this->get_validation_error(
+				'data[email]',
+				$data,
+				array(
+					'type'     => 'object',
+					'required' => array( 'email' ),
+				),
+				'data'
+			);
+			if ( $error ) {
+				return $error;
+			}
+		}
+
+		if ( array_key_exists( 'email', $data ) ) {
+			if ( ! is_email( $data['email'] ) ) {
+				return $this->invalid_attribute_error( 'data[email]', __( 'Invalid email address.' ) );
+			}
+
+			/*
+			 * Intentionally strict: an address that the save would store differently from the
+			 * address sent is refused, rather than stored changed.
+			 */
+			/** This filter is documented in wp-includes/user.php */
+			if ( wp_unslash( apply_filters( 'pre_user_email', wp_slash( $data['email'] ) ) ) !== $data['email'] ) {
+				return $this->invalid_attribute_error( 'data[email]', __( 'Invalid email address.' ) );
+			}
+
+			// Intentionally strict: the address is refused past the column size rather than cut short.
+			$error = $this->get_validation_error(
+				'data[email]',
+				$data['email'],
+				array(
+					'type'      => 'string',
+					'maxLength' => 100,
+				)
+			);
+			if ( $error ) {
+				return $error;
+			}
+
+			// The address of another user is refused, the target's own is not.
+			$email_user_id = email_exists( $data['email'] );
+			if ( $email_user_id && ( ! $target || $email_user_id !== $target->ID ) ) {
+				return $this->invalid_attribute_error( 'data[email]', __( 'Sorry, that email address is already used!' ), 'user_exists' );
+			}
+		}
+
+		if ( array_key_exists( 'name', $data ) ) {
+			/*
+			 * Intentionally strict: the name is counted as the save would store it, and refused
+			 * when that is empty or past the column size, rather than saved empty or cut short.
+			 */
+			/** This filter is documented in wp-includes/user.php */
+			$name  = wp_unslash( apply_filters( 'pre_user_display_name', wp_slash( $data['name'] ) ) );
+			$error = $this->get_validation_error(
+				'data[name]',
+				$name,
+				array(
+					'type'      => 'string',
+					'minLength' => 1,
+					'maxLength' => 250,
+				)
+			);
+			if ( $error ) {
+				return $error;
+			}
+		}
+
+		if ( array_key_exists( 'nickname', $data ) ) {
+			// Intentionally strict: a nickname with nothing left after sanitizing is refused rather than saved empty.
+			$error = $this->get_validation_error(
+				'data[nickname]',
+				sanitize_text_field( $data['nickname'] ),
+				array(
+					'type'      => 'string',
+					'minLength' => 1,
+				)
+			);
+			if ( $error ) {
+				return $error;
+			}
+		}
+
+		if ( array_key_exists( 'slug', $data ) ) {
+			/** This filter is documented in wp-includes/user.php */
+			$slug = (string) apply_filters( 'pre_user_nicename', sanitize_title( sanitize_user( wp_slash( $data['slug'] ), true ) ) );
+			if ( '' === $slug ) {
+				return $this->invalid_attribute_error( 'data[slug]', __( 'Invalid slug.' ) );
+			}
+
+			if ( mb_strlen( $slug ) > 50 ) {
+				return $this->invalid_attribute_error( 'data[slug]', __( 'Nicename may not be longer than 50 characters.' ) );
+			}
+
+			// Intentionally strict: the slug of another user is refused rather than saved with a numeric suffix.
+			$slug_user = get_user_by( 'slug', $slug );
+			if ( $slug_user && ( ! $target || $slug_user->ID !== $target->ID ) ) {
+				return $this->invalid_attribute_error( 'data[slug]', __( 'Invalid slug.' ) );
+			}
+		}
+
+		if ( array_key_exists( 'url', $data ) && '' !== $data['url'] ) {
+			/** This filter is documented in wp-includes/user.php */
+			$url = (string) apply_filters( 'pre_user_url', wp_slash( $data['url'] ) );
+
+			// Intentionally strict: a URL with nothing left after sanitizing is refused rather than saved empty.
+			$error = $this->get_validation_error(
+				'data[url]',
+				$url,
+				array(
+					'type'      => 'string',
+					'minLength' => 1,
+				)
+			);
+			if ( $error ) {
+				return $error;
+			}
+
+			if ( mb_strlen( $url ) > 100 ) {
+				return $this->invalid_attribute_error( 'data[url]', __( 'User URL may not be longer than 100 characters.' ) );
+			}
+		}
+
+		if ( array_key_exists( 'locale', $data ) ) {
+			$error = $this->get_validation_error(
+				'data[locale]',
+				$data['locale'],
+				array(
+					'type' => 'string',
+					'enum' => $this->get_locales(),
+				)
+			);
+			if ( $error ) {
+				return $error;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Builds the user data for a save from the profile attributes, key by key.
+	 *
+	 * Values are slashed, since the saves expect slashed data.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $data The `data` input.
+	 * @return array<string, mixed> The user data, keyed as the saves expect.
+	 */
+	private function get_profile_userdata( array $data ): array {
+		$userdata = array();
+		foreach ( self::PROFILE_ATTRIBUTES as $name => $key ) {
+			if ( array_key_exists( $name, $data ) ) {
+				$userdata[ $key ] = wp_slash( $data[ $name ] );
+			}
+		}
+
+		return $userdata;
+	}
+
+	/**
+	 * Gives a user exactly the given roles, in the given order.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int      $user_id The user ID.
+	 * @param string[] $roles   The roles, at least one.
+	 */
+	private function set_user_roles( int $user_id, array $roles ): void {
+		$user = new WP_User( $user_id );
+		$user->set_role( (string) array_shift( $roles ) );
+		foreach ( $roles as $role ) {
+			$user->add_role( $role );
+		}
+	}
+
+	/**
+	 * Formats a user that was just written.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int          $user_id The user ID.
+	 * @param array<mixed> $input   The ability input.
+	 * @return array<string, mixed> The formatted user data.
+	 */
+	private function format_written_user( int $user_id, array $input ): array {
+		/*
+		 * Intentionally strict: a caller who may neither edit this user nor list users gets
+		 * the ID only, so a write never shows a user that the caller could not otherwise read.
+		 */
+		if ( get_current_user_id() !== $user_id && ! current_user_can( 'edit_user', $user_id ) && ! current_user_can( 'list_users' ) ) {
+			return array( 'id' => $user_id );
+		}
+
+		return $this->format_user( new WP_User( $user_id ), $this->normalize_fields( $input ) );
+	}
+
+	/**
+	 * Builds the error for an error that a save returned.
+	 *
+	 * An error about an attribute that was sent is reported for that attribute. Every
+	 * other error keeps its code, message and data, carries no `params`, and gets status
+	 * 500 when it has no status yet.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param WP_Error $error The error the save returned.
+	 * @param string[] $sent  The names of the attributes that were sent.
+	 * @return WP_Error The error to return.
+	 */
+	private function save_error( WP_Error $error, array $sent ): WP_Error {
+		$attributes = array(
+			'existing_user_login'    => 'username',
+			'empty_user_login'       => 'username',
+			'user_login_too_long'    => 'username',
+			'invalid_username'       => 'username',
+			'existing_user_email'    => 'email',
+			'empty_user_nicename'    => 'slug',
+			'user_nicename_too_long' => 'slug',
+			'user_url_too_long'      => 'url',
+		);
+
+		$code = (string) $error->get_error_code();
+		if ( isset( $attributes[ $code ] ) && in_array( $attributes[ $code ], $sent, true ) ) {
+			return $this->invalid_attribute_error(
+				"data[{$attributes[ $code ]}]",
+				$error->get_error_message(),
+				str_starts_with( $code, 'existing_' ) ? 'user_exists' : 'user_invalid_attribute'
+			);
+		}
+
+		$data = $error->get_error_data();
+		$error->add_data( array_merge( array( 'status' => 500 ), is_array( $data ) ? $data : array() ) );
+
+		return $error;
+	}
+
+	/**
+	 * Returns the locales a user can be given: the site default, `en_US`, and the installed languages.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return string[] The locales.
+	 */
+	private function get_locales(): array {
+		return array_values( array_unique( array_merge( array( '', 'en_US' ), get_available_languages() ) ) );
 	}
 
 	/**
@@ -750,15 +1523,7 @@ final class WP_Abilities_Users {
 					),
 					'description'          => __( 'Selects the users to return. Every given filter must match, and a list matches users with any of its values. Results are ordered by username, and values that match no readable user are left out rather than causing an error. If omitted, every readable user is returned. Callers without permission to list users only see public authors, who have published posts in a publicly viewable post type. To read your own profile, use the `core/get-user-info` ability.' ),
 				),
-				'fields'     => array(
-					'type'        => 'array',
-					'uniqueItems' => true,
-					'items'       => array(
-						'type' => 'string',
-						'enum' => $this->get_field_paths(),
-					),
-					'description' => __( 'Limit each returned user to these fields. A field such as `registered` returns all of its sub-fields, while a path such as `registered.gmt` returns only that sub-field. If omitted or empty, a lean set of common read fields is returned. The `id` field is always included, and fields the current user cannot view are omitted rather than causing an error.' ),
-				),
+				'fields'     => $this->get_fields_input_schema( __( 'Limit each returned user to these fields. A field such as `registered` returns all of its sub-fields, while a path such as `registered.gmt` returns only that sub-field. If omitted or empty, a lean set of common read fields is returned. The `id` field is always included, and fields the current user cannot view are omitted rather than causing an error.' ) ),
 				'pagination' => array(
 					'type'                 => 'object',
 					'additionalProperties' => false,
@@ -787,10 +1552,6 @@ final class WP_Abilities_Users {
 	 * Every request returns the same shape: a page of users in `items`, and the totals
 	 * across all pages in `pagination`.
 	 *
-	 * Only `id` is required in a user, because it is always returned. The other fields
-	 * are optional because the `fields` input lets the caller request any subset, and
-	 * restricted fields are omitted when unavailable.
-	 *
 	 * @since 7.2.0
 	 *
 	 * @return array<string, mixed> The output JSON Schema.
@@ -804,12 +1565,7 @@ final class WP_Abilities_Users {
 				'items'      => array(
 					'type'        => 'array',
 					'description' => __( 'The readable users on the requested page.' ),
-					'items'       => array(
-						'type'                 => 'object',
-						'additionalProperties' => false,
-						'required'             => array( 'id' ),
-						'properties'           => $this->get_user_properties(),
-					),
+					'items'       => $this->get_user_item_schema(),
 				),
 				'pagination' => array(
 					'type'                 => 'object',
@@ -1016,6 +1772,318 @@ final class WP_Abilities_Users {
 				'status' => 400,
 				'params' => array( $param => $message ),
 			)
+		);
+	}
+
+	/**
+	 * Builds the error for an input value that cannot be applied.
+	 *
+	 * The error data maps the value's input path to the message under `params`.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $param   The input path, such as `data[email]`.
+	 * @param string $message The error message.
+	 * @param string $code    Optional. The error code. Default 'user_invalid_attribute'.
+	 * @return WP_Error The error.
+	 */
+	private function invalid_attribute_error( string $param, string $message, string $code = 'user_invalid_attribute' ): WP_Error {
+		return new WP_Error(
+			$code,
+			$message,
+			array(
+				'status' => 400,
+				'params' => array( $param => $message ),
+			)
+		);
+	}
+
+	/**
+	 * Validates a value against a schema, and builds the error for it when it fails.
+	 *
+	 * Used for the checks the input schema also makes, since a filter can skip schema
+	 * validation, and for checks on a computed value, such as its length after sanitizing,
+	 * so the error has a schema validation message.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string               $param  The input path the error is reported for.
+	 * @param mixed                $value  The value to validate.
+	 * @param array<string, mixed> $schema The schema to validate the value against.
+	 * @param string               $path   Optional. The path the message names. Default the input path.
+	 * @return WP_Error|null The error, or null when the value is valid.
+	 */
+	private function get_validation_error( string $param, $value, array $schema, string $path = '' ): ?WP_Error {
+		$result = rest_validate_value_from_schema( $value, $schema, '' === $path ? $param : $path );
+
+		return is_wp_error( $result ) ? $this->invalid_attribute_error( $param, $result->get_error_message() ) : null;
+	}
+
+	/**
+	 * Builds the error for a `where.id` that names no member of the current site.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return WP_Error The not found error.
+	 */
+	private function not_found_error(): WP_Error {
+		return new WP_Error( 'user_not_found', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
+	}
+
+	/**
+	 * Builds the error for a caller who may not delete, or on multisite remove, the user.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return WP_Error The permission error.
+	 */
+	private function cannot_delete_error(): WP_Error {
+		return new WP_Error(
+			'user_cannot_delete',
+			is_multisite() ? __( 'Sorry, you are not allowed to remove users.' ) : __( 'Sorry, you are not allowed to delete this user.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+	/**
+	 * Builds the error for a create save that returned no user.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return WP_Error The error.
+	 */
+	private function create_failed_error(): WP_Error {
+		return new WP_Error( 'user_create_failed', __( 'Error creating new user.' ), array( 'status' => 500 ) );
+	}
+
+	/**
+	 * Builds the schema of the `fields` input.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $description The description of the input.
+	 * @return array<string, mixed> The `fields` JSON Schema.
+	 */
+	private function get_fields_input_schema( string $description ): array {
+		return array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type' => 'string',
+				'enum' => $this->get_field_paths(),
+			),
+			'description' => $description,
+		);
+	}
+
+	/**
+	 * Builds the schema of the `fields` input of the create and update abilities.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array<string, mixed> The `fields` JSON Schema.
+	 */
+	private function get_user_fields_input_schema(): array {
+		return $this->get_fields_input_schema( __( 'Limit the returned user to these fields. A field such as `registered` returns all of its sub-fields, while a path such as `registered.gmt` returns only that sub-field. If omitted or empty, a lean set of common read fields is returned. The `id` field is always included, and fields the current user cannot view are omitted rather than causing an error.' ) );
+	}
+
+	/**
+	 * Builds the schema of a user, as returned by the user abilities.
+	 *
+	 * Only `id` is required, because it is always returned. The other fields are optional
+	 * because the `fields` input lets the caller request any subset, and restricted fields
+	 * are omitted when unavailable.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array<string, mixed> The user JSON Schema.
+	 */
+	private function get_user_item_schema(): array {
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => array( 'id' ),
+			'properties'           => $this->get_user_properties(),
+		);
+	}
+
+	/**
+	 * Builds the schema of the `where` input of the update and delete abilities.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array<string, mixed> The `where` JSON Schema.
+	 */
+	private function get_where_id_schema(): array {
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => array( 'id' ),
+			'properties'           => array(
+				'id' => array(
+					'type'        => 'integer',
+					'minimum'     => 1,
+					'description' => __( 'Unique identifier for the user.' ),
+				),
+			),
+			'description'          => __( 'Selects the user. On multisite, only members of the current site can be selected.' ),
+		);
+	}
+
+	/**
+	 * Builds the attribute schemas of the `data` input of the create and update abilities.
+	 *
+	 * The `roles` and `locale` enums hold the roles and languages available when the
+	 * ability is registered. The callbacks check both again, since either can change later.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param bool $is_create Whether the schemas are for the create ability, which also takes a username.
+	 * @return array<string, mixed> The attribute JSON Schemas, keyed by attribute name.
+	 */
+	private function get_user_data_properties( bool $is_create ): array {
+		$properties = array();
+		if ( $is_create ) {
+			$properties['username'] = array(
+				'type'        => 'string',
+				'minLength'   => 1,
+				'description' => __( 'Login name for the user.' ),
+			);
+		}
+
+		return $properties + array(
+			'email'       => array(
+				'type'        => 'string',
+				'format'      => 'email',
+				'maxLength'   => 100,
+				'description' => __( 'The email address for the user.' ),
+			),
+			'name'        => array(
+				'type'        => 'string',
+				'minLength'   => 1,
+				'maxLength'   => 250,
+				'description' => __( 'Display name for the user.' ),
+			),
+			'first_name'  => array(
+				'type'        => 'string',
+				'description' => __( 'First name for the user.' ),
+			),
+			'last_name'   => array(
+				'type'        => 'string',
+				'description' => __( 'Last name for the user.' ),
+			),
+			'nickname'    => array(
+				'type'        => 'string',
+				'minLength'   => 1,
+				'description' => __( 'The nickname for the user.' ),
+			),
+			'slug'        => array(
+				'type'        => 'string',
+				'minLength'   => 1,
+				'description' => __( 'An alphanumeric identifier for the user.' ),
+			),
+			'description' => array(
+				'type'        => 'string',
+				'description' => __( 'Description of the user.' ),
+			),
+			'url'         => array(
+				'type'        => 'string',
+				'description' => __( 'URL of the user.' ),
+			),
+			'locale'      => array(
+				'type'        => 'string',
+				'enum'        => $this->get_locales(),
+				'description' => __( 'Locale for the user.' ),
+			),
+			'roles'       => array(
+				'type'        => 'array',
+				'uniqueItems' => true,
+				'minItems'    => 1,
+				'items'       => array(
+					'type' => 'string',
+					'enum' => array_keys( wp_roles()->roles ),
+				),
+				'description' => __( 'Roles assigned to the user.' ),
+			),
+		);
+	}
+
+	/**
+	 * Builds the input schema for the `core/user-create` ability.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array<string, mixed> The input JSON Schema.
+	 */
+	private function get_user_create_input_schema(): array {
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => array( 'data' ),
+			'properties'           => array(
+				'data'   => array(
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'required'             => array( 'username', 'email' ),
+					'properties'           => $this->get_user_data_properties( true ),
+					'description'          => __( 'The attributes of the new user. Without `roles`, the user gets the default role of the site, or on multisite no role on the current site.' ),
+				),
+				'fields' => $this->get_user_fields_input_schema(),
+			),
+		);
+	}
+
+	/**
+	 * Builds the input schema for the `core/user-update` ability.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array<string, mixed> The input JSON Schema.
+	 */
+	private function get_user_update_input_schema(): array {
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => array( 'where', 'data' ),
+			'properties'           => array(
+				'where'  => $this->get_where_id_schema(),
+				'data'   => array(
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'minProperties'        => 1,
+					'properties'           => $this->get_user_data_properties( false ),
+					'description'          => __( 'The attributes to change. `roles` replaces all roles of the user.' ),
+				),
+				'fields' => $this->get_user_fields_input_schema(),
+			),
+		);
+	}
+
+	/**
+	 * Builds the input schema for the `core/user-delete` ability.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array<string, mixed> The input JSON Schema.
+	 */
+	private function get_user_delete_input_schema(): array {
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => array( 'where', 'reassign' ),
+			'properties'           => array(
+				'where'    => $this->get_where_id_schema(),
+				'reassign' => array(
+					/*
+					 * Intentionally strict: 0, an empty string and null are refused rather than read
+					 * as reassigning nothing, so the content is only left unassigned when false is
+					 * sent. True passes this schema and is refused by the execute callback.
+					 */
+					'type'        => array( 'integer', 'boolean' ),
+					'minimum'     => 1,
+					'description' => __( 'The ID of the user who takes over the content of the deleted user, or false to reassign nothing. True is not accepted.' ),
+				),
+			),
 		);
 	}
 }

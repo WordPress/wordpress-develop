@@ -50,6 +50,7 @@ function wp_register_core_ability_categories(): void {
  *
  * @since 6.9.0
  * @since 7.2.0 Added the `core/content-query`, `core/settings-get`, and `core/users-query` abilities.
+ * @since 7.3.0 Added the `core/user-create`, `core/user-update`, and `core/user-delete` abilities.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  */
@@ -374,7 +375,7 @@ function wp_register_core_abilities(): void {
 	// Register the settings abilities (currently the read-only `core/settings-get`).
 	( new WP_Abilities_Settings() )->register();
 
-	// Register the user abilities (currently the read-only `core/users-query`).
+	// Register the user abilities: `core/users-query`, `core/user-create`, `core/user-update`, and `core/user-delete`.
 	( new WP_Abilities_Users() )->register();
 
 	// Register the content abilities (currently the read-only `core/content-query`).
