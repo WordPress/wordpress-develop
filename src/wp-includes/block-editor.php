@@ -330,7 +330,10 @@ function _wp_get_iframed_editor_assets() {
 		wp_theme_has_theme_json() ? array( 'wp-reset-editor-styles' ) : array();
 
 	wp_enqueue_script( 'wp-polyfill' );
-	// Enqueue the `editorStyle` handles for all core block, and dependencies.
+	/*
+	 * Enqueue the `editorStyle` handles for all core block, and dependencies.
+	 * Prefetched for the block editor by wp_prefetch_admin_assets(), which needs updating if this changes.
+	 */
 	wp_enqueue_style( 'wp-edit-blocks' );
 
 	if ( current_theme_supports( 'wp-block-styles' ) ) {
