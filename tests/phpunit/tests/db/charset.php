@@ -69,7 +69,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_strip_invalid_text() {
+	public static function data_strip_invalid_text() {
 		$fields = array(
 			'latin1'                                => array(
 				// latin1. latin1 never changes.
@@ -449,8 +449,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 			$big5      = mb_convert_encoding( $utf8, 'BIG-5', 'UTF-8' );
 			$conv_utf8 = mb_convert_encoding( $big5, 'UTF-8', 'BIG-5' );
 			// Make sure PHP's multibyte conversions are working correctly.
-			$this->assertNotSame( $utf8, $big5 );
-			$this->assertSame( $utf8, $conv_utf8 );
+			self::assertNotSame( $utf8, $big5 );
+			self::assertSame( $utf8, $conv_utf8 );
 
 			$fields['big5'] = array(
 				'charset'  => 'big5',
@@ -560,7 +560,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_process_field_charsets() {
+	public static function data_process_field_charsets() {
 		if ( $GLOBALS['wpdb']->charset ) {
 			$charset = $GLOBALS['wpdb']->charset;
 		} else {
@@ -699,7 +699,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	protected $table_and_column_defs = array(
+	protected static $table_and_column_defs = array(
 		array(
 			'definition'      => '( a INT, b FLOAT )',
 			'table_expected'  => false,
@@ -749,7 +749,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 			),
 		),
 		array(
-			'definition'      => '( a VARCHAR(50) CHARACTER SET utf8, b TEXT CHARACTER SET utf8mb4 )',
+			'definition'      => '( a VARCHAR(50) CHARACTER SET utf8mb3, b TEXT CHARACTER SET utf8mb4 )',
 			'table_expected'  => 'utf8',
 			'column_expected' => array(
 				'a' => 'utf8',
@@ -769,11 +769,11 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_get_table_charset() {
+	public static function data_get_table_charset() {
 		$table_name = 'test_get_table_charset';
 
 		$vars = array();
-		foreach ( $this->table_and_column_defs as $i => $value ) {
+		foreach ( self::$table_and_column_defs as $i => $value ) {
 			$this_table_name = $table_name . '_' . $i;
 			$drop            = "DROP TABLE IF EXISTS $this_table_name";
 			$create          = "CREATE TABLE $this_table_name {$value['definition']}";
@@ -786,6 +786,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_get_table_charset
 	 * @ticket 21212
+	 * @ticket 66072
 	 *
 	 * @covers wpdb::get_table_charset
 	 */
@@ -805,11 +806,11 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_get_column_charset() {
+	public static function data_get_column_charset() {
 		$table_name = 'test_get_column_charset';
 
 		$vars = array();
-		foreach ( $this->table_and_column_defs as $i => $value ) {
+		foreach ( self::$table_and_column_defs as $i => $value ) {
 			$this_table_name = $table_name . '_' . $i;
 			$drop            = "DROP TABLE IF EXISTS $this_table_name";
 			$create          = "CREATE TABLE $this_table_name {$value['definition']}";
@@ -822,6 +823,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_get_column_charset
 	 * @ticket 21212
+	 * @ticket 66072
 	 *
 	 * @covers wpdb::get_col_charset
 	 */
@@ -896,7 +898,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_strip_invalid_text_from_query() {
+	public static function data_strip_invalid_text_from_query() {
 		$table_name = 'strip_invalid_text_from_query_table';
 		$data       = array(
 			'utf8 + binary'  => array(
@@ -907,7 +909,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 			),
 			'utf8 + utf8mb4' => array(
 				// utf8/utf8mb4 tables default to utf8.
-				'create'   => '( a VARCHAR(50) CHARACTER SET utf8, b VARCHAR(50) CHARACTER SET utf8mb4 )',
+				'create'   => '( a VARCHAR(50) CHARACTER SET utf8mb3, b VARCHAR(50) CHARACTER SET utf8mb4 )',
 				'query'    => "('foo\xf0\x9f\x98\x88bar', 'foo')",
 				'expected' => "('foobar', 'foo')",
 			),
@@ -931,6 +933,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_strip_invalid_text_from_query
 	 * @ticket 21212
+	 * @ticket 66072
 	 *
 	 * @covers wpdb::strip_invalid_text_from_query
 	 */
@@ -947,7 +950,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 32104
 	 */
-	public function data_dont_strip_text_from_schema_queries() {
+	public static function data_dont_strip_text_from_schema_queries() {
 		// An obviously invalid and fake table name.
 		$table_name = "\xff\xff\xff\xff";
 
@@ -997,7 +1000,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_table_collation_check() {
+	public static function data_table_collation_check() {
 		$table_name = 'table_collation_check';
 		$data       = array(
 			'utf8_bin'                   => array(
@@ -1155,14 +1158,15 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36649
+	 * @ticket 66072
 	 *
 	 * @covers wpdb::set_charset
 	 */
 	public function test_set_charset_changes_the_connection_collation() {
-		self::$_wpdb->set_charset( self::$_wpdb->dbh, 'utf8', 'utf8_general_ci' );
-		$results  = self::$_wpdb->get_results( "SHOW VARIABLES WHERE Variable_name='collation_connection'" );
-		$expected = self::$utf8_is_utf8mb3 ? 'utf8mb3_general_ci' : 'utf8_general_ci';
-		$this->assertSame( $expected, $results[0]->Value, "Collation should be set to $expected." );
+		// Avoid the `utf8` alias: it resolves to utf8mb3 or utf8mb4 depending on the server version.
+		self::$_wpdb->set_charset( self::$_wpdb->dbh, 'utf8mb4', 'utf8mb4_general_ci' );
+		$results = self::$_wpdb->get_results( "SHOW VARIABLES WHERE Variable_name='collation_connection'" );
+		$this->assertSame( 'utf8mb4_general_ci', $results[0]->Value, 'Collation should be set to utf8mb4_general_ci.' );
 
 		self::$_wpdb->set_charset( self::$_wpdb->dbh, 'utf8mb4', 'utf8mb4_unicode_ci' );
 		$results = self::$_wpdb->get_results( "SHOW VARIABLES WHERE Variable_name='collation_connection'" );

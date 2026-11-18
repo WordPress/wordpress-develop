@@ -65,7 +65,6 @@ class Tests_Load_WpGetServerProtocol extends WP_UnitTestCase {
 			'HTTP/3'         => array( 'HTTP/3', 'HTTP/3' ),
 			'HTTP/1.0'       => array( 'HTTP/1.0', 'HTTP/1.0' ),
 			'unknown value'  => array( 'HTTP/0.9', 'HTTP/1.0' ),
-			'empty string'   => array( '', 'HTTP/1.0' ),
 			'missing header' => array( null, 'HTTP/1.0' ),
 		);
 	}

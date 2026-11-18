@@ -260,7 +260,7 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 	/**
 	 * @return array
 	 */
-	public function data_type_object_pattern_properties() {
+	public static function data_type_object_pattern_properties() {
 		return array(
 			array( array(), array(), array() ),
 			array( array(), array( 'propA' => 'a' ), array( 'propA' => 'a' ) ),

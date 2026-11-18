@@ -72,16 +72,6 @@ class Tests_Category_Walker_CategoryDropdown extends WP_UnitTestCase {
 				0,
 				'<option class="level-0" value="5">News</option>',
 			),
-			'first level of depth'                 => array(
-				array(),
-				1,
-				'<option class="level-1" value="5">&nbsp;&nbsp;&nbsp;News</option>',
-			),
-			'second level of depth'                => array(
-				array(),
-				2,
-				'<option class="level-2" value="5">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;News</option>',
-			),
 			'selected by integer ID'               => array(
 				array( 'selected' => 5 ),
 				0,

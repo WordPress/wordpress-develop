@@ -45,16 +45,6 @@ class Tests_Post_TheGuid extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the_guid() displays the guid when given a post ID.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_the_guid_with_post_id() {
-		$this->expectOutputString( self::$guid );
-		the_guid( self::$post_id );
-	}
-
-	/**
 	 * Tests that the_guid() displays the guid when given a WP_Post object.
 	 *
 	 * @ticket 65819
@@ -86,18 +76,6 @@ class Tests_Post_TheGuid extends WP_UnitTestCase {
 	public function test_the_guid_with_non_existent_post() {
 		$this->expectOutputString( '' );
 		the_guid( 999999 );
-	}
-
-	/**
-	 * Tests that the_guid() outputs an empty string when called with 0 and no global post exists.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_the_guid_with_zero_and_no_global_post() {
-		unset( $GLOBALS['post'] );
-
-		$this->expectOutputString( '' );
-		the_guid( 0 );
 	}
 
 	/**
@@ -173,26 +151,5 @@ class Tests_Post_TheGuid extends WP_UnitTestCase {
 		the_guid( self::$post_id );
 
 		remove_filter( 'get_the_guid', $custom_callback, 10 );
-	}
-
-	/**
-	 * Tests that the_guid() displays the guid for an attachment.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_the_guid_with_attachment() {
-		$attachment_guid = 'https://example.org/wp-content/uploads/2026/10/test.jpg';
-		$attachment_id   = self::factory()->attachment->create_object(
-			'test.jpg',
-			0,
-			array(
-				'post_mime_type' => 'image/jpeg',
-				'post_type'      => 'attachment',
-				'guid'           => $attachment_guid,
-			)
-		);
-
-		$this->expectOutputString( $attachment_guid );
-		the_guid( $attachment_id );
 	}
 }

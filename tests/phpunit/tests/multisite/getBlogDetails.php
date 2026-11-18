@@ -195,7 +195,7 @@ class Tests_Multisite_GetBlogDetails extends WP_UnitTestCase {
 		$this->assertSameSets( $this->get_fields( $get_all ), $result );
 	}
 
-	public function data_get_all() {
+	public static function data_get_all() {
 		return array(
 			array( false ),
 			array( true ),

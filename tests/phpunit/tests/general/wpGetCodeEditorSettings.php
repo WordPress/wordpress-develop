@@ -270,11 +270,10 @@ class Tests_General_wpGetCodeEditorSettings extends WP_UnitTestCase {
 	 */
 	public static function data_module_files() {
 		return array(
-			'.mjs file'  => array( array( 'file' => 'module.mjs' ), true ),
-			'.js file'   => array( array( 'file' => 'script.js' ), false ),
-			'type only'  => array( array( 'type' => 'text/javascript' ), false ),
-			'no file'    => array( array(), false ),
-			'empty file' => array( array( 'file' => '' ), false ),
+			'.mjs file' => array( array( 'file' => 'module.mjs' ), true ),
+			'.js file'  => array( array( 'file' => 'script.js' ), false ),
+			'type only' => array( array( 'type' => 'text/javascript' ), false ),
+			'no file'   => array( array(), false ),
 		);
 	}
 

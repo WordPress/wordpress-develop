@@ -197,6 +197,8 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_sub_main() {
+		$this->set_permalink_structure( '' );
+
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
 		$user_id   = self::$user_id;
