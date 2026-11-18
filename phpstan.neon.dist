@@ -1,5 +1,8 @@
 # PHPStan configuration for WordPress Core.
 #
+# This analyzes the whole codebase. phpstan-strict.neon.dist includes it, and holds selected
+# paths to a stricter rule level. `composer phpstan` runs both.
+#
 # To override this configuration, create a phpstan.neon which includes this file and adjusts
 # its parameters as needed, rather than copying it, so that the copy does not go stale. See
 # tests/phpstan/README.md for examples.
