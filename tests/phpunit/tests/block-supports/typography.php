@@ -23,22 +23,29 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @ticket 65893
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
-		$this->test_block_name = null;
+		$this->test_block_name     = null;
+		$this->original_stylesheet = get_stylesheet();
 
 		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
 		$this->theme_root                = realpath( DIR_TESTDATA . '/themedir1' );
 		$this->orig_theme_dir            = $GLOBALS['wp_theme_directories'];
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
 
-		$theme_root_callback = function () {
-			return $this->theme_root;
-		};
-		add_filter( 'theme_root', $theme_root_callback );
-		add_filter( 'stylesheet_root', $theme_root_callback );
-		add_filter( 'template_root', $theme_root_callback );
+		add_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
+		add_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 
 		// Clear caches.
 		wp_clean_themes_cache();
@@ -51,8 +58,16 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	public function tear_down() {
 		// Restores the original theme directory setup.
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
+		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
+		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
+		remove_filter( 'template_root', array( $this, 'filter_theme_root' ) );
+
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		// Resets test block name.
 		unregister_block_type( $this->test_block_name );
@@ -62,6 +77,15 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		$GLOBALS['wp_script_modules'] = null;
 
 		parent::tear_down();
+	}
+
+	/**
+	 * Filters the theme root to use the test data directory.
+	 *
+	 * @return string Theme root path.
+	 */
+	public function filter_theme_root() {
+		return $this->theme_root;
 	}
 
 	/**
@@ -358,7 +382,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_font_size_preset_fixtures() {
+	public static function data_generate_font_size_preset_fixtures() {
 		return array(
 			'returns value when fluid typography is deactivated' => array(
 				'font_size_preset' => array(
@@ -874,7 +898,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_font_size_preset_should_use_fluid_typography_deprecated_fixtures() {
+	public static function data_generate_font_size_preset_should_use_fluid_typography_deprecated_fixtures() {
 		return array(
 			'returns value when fluid typography is deactivated' => array(
 				'font_size'                   => array(
@@ -925,7 +949,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_should_override_theme_settings_fixtures() {
+	public static function data_generate_should_override_theme_settings_fixtures() {
 		return array(
 			'returns clamp value when theme activates fluid typography' => array(
 				'font_size'       => array(
@@ -1052,7 +1076,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_block_supports_font_size_fixtures() {
+	public static function data_generate_block_supports_font_size_fixtures() {
 		return array(
 			'returns value when fluid typography is not active' => array(
 				'font_size_value' => '15px',
@@ -1130,7 +1154,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_replace_inline_font_styles_with_fluid_values_fixtures() {
+	public static function data_generate_replace_inline_font_styles_with_fluid_values_fixtures() {
 		return array(
 			'default_return_content'                       => array(
 				'block_content'               => '<h2 class="has-vivid-red-background-color has-background has-link-color" style="margin-top:var(--wp--preset--spacing--60);font-size:4rem;font-style:normal;font-weight:600;letter-spacing:29px;text-decoration:underline;text-transform:capitalize">This is a heading</h2>',
@@ -1206,7 +1230,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ block_content: non-falsy-string, expected_class: non-falsy-string }>
 	 */
-	public function data_should_add_fit_text_class_name(): array {
+	public static function data_should_add_fit_text_class_name(): array {
 		return array(
 			'wrapper without a class attribute' => array(
 				'block_content'  => '<h1>Site Title</h1>',
@@ -1266,7 +1290,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_valid_size_wp_get_typography_value_and_unit() {
+	public static function data_valid_size_wp_get_typography_value_and_unit() {
 		return array(
 			'size: 10vh with default units do not match' => array(
 				'raw_value' => '10vh',
@@ -1353,7 +1377,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_invalid_size_wp_get_typography_value_and_unit() {
+	public static function data_invalid_size_wp_get_typography_value_and_unit() {
 		return array(
 			'size: null'  => array( null ),
 			'size: false' => array( false ),
@@ -1393,7 +1417,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_get_computed_fluid_typography_value() {
+	public static function data_wp_get_computed_fluid_typography_value() {
 		return array(
 			'returns clamped value with valid args' => array(
 				'args'            => array(

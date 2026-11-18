@@ -516,6 +516,29 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
+		/*
+		 * A request names the file to attach either as an upload or as a URL to
+		 * sideload, never as both: the two are alternative sources for the same
+		 * attachment, so honoring one would silently discard the other. An
+		 * upload arrives as a multipart file parameter or as the raw request
+		 * body, which upload_from_data() identifies by its Content-Disposition
+		 * filename.
+		 */
+		if ( ! empty( $request['url'] ) ) {
+			$headers     = $request->get_headers();
+			$disposition = empty( $headers['content_disposition'] )
+				? null
+				: self::get_filename_from_disposition( $headers['content_disposition'] );
+
+			if ( ! empty( $request->get_file_params() ) || ! empty( $disposition ) ) {
+				return new WP_Error(
+					'rest_invalid_param',
+					__( 'The url parameter cannot be combined with an uploaded file.' ),
+					array( 'status' => 400 )
+				);
+			}
+		}
+
 		// Handle generate_sub_sizes parameter.
 		if ( false === $request['generate_sub_sizes'] ) {
 			add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 100 );
@@ -532,18 +555,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Handle convert_format parameter.
 		if ( false === $request['convert_format'] ) {
 			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
-		}
-
-		/*
-		 * When a URL is supplied instead of an uploaded file, sideload the
-		 * remote image on the server. This avoids a cross-origin browser fetch,
-		 * which fails under cross-origin isolation. The sub-size and scaling
-		 * filters applied above still govern whether derivatives are generated.
-		 */
-		if ( ! empty( $request['url'] ) ) {
-			$response = $this->create_item_from_url( $request );
-			$this->remove_client_side_media_processing_filters();
-			return $response;
 		}
 
 		$insert = $this->insert_attachment( $request );
@@ -640,33 +651,23 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Sideloads an external image from a URL into the media library.
+	 * Handles an image sideloaded from a URL.
 	 *
 	 * Downloads the remote file on the server, avoiding a cross-origin browser
-	 * fetch that fails under cross-origin isolation. Whether sub-sizes are
-	 * generated is governed by the filters applied in create_item().
+	 * fetch that fails under cross-origin isolation. The downloaded file is
+	 * handed to wp_handle_sideload(), so this returns the same data as the
+	 * uploaded-file handlers and the attachment is inserted by the shared code
+	 * in insert_attachment().
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+	 * @param string      $url  URL of the image to sideload.
+	 * @param string|null $time Optional. Time formatted in 'yyyy/mm'. Default null.
+	 * @return array|WP_Error Data from wp_handle_sideload().
 	 */
-	protected function create_item_from_url( WP_REST_Request $request ) {
-		// Sideloading downloads and stores a file, so require the upload capability.
-		if ( ! current_user_can( 'upload_files' ) ) {
-			return new WP_Error(
-				'rest_cannot_create',
-				__( 'Sorry, you are not allowed to upload media on this site.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
+	protected function upload_from_url( $url, $time = null ) {
+		// Include filesystem functions to get access to download_url() and wp_handle_sideload().
 		require_once ABSPATH . 'wp-admin/includes/file.php';
-		require_once ABSPATH . 'wp-admin/includes/media.php';
-		require_once ABSPATH . 'wp-admin/includes/image.php';
-
-		$url     = $request['url'];
-		$post_id = ! empty( $request['post'] ) ? (int) $request['post'] : 0;
 
 		// Derive the filename from the URL path before downloading anything.
 		$url_path = wp_parse_url( $url, PHP_URL_PATH );
@@ -759,36 +760,34 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$attachment_id = media_handle_sideload( $file_array, $post_id );
+		$sideloaded = wp_handle_sideload( $file_array, array( 'test_form' => false ), $time );
 
-		if ( is_wp_error( $attachment_id ) ) {
+		if ( isset( $sideloaded['error'] ) ) {
 			/*
-			 * media_handle_sideload() deletes the temp file on success; remove
-			 * it explicitly when the sideload fails.
+			 * wp_handle_sideload() moves the temp file on success; remove it
+			 * explicitly when it fails.
 			 */
 			if ( file_exists( $tmp_file ) ) {
 				wp_delete_file( $tmp_file );
 			}
-			return $attachment_id;
+
+			// Content that does not match an allowed type is a client error, not a server one.
+			if ( __( 'Sorry, you are not allowed to upload this file type.' ) === $sideloaded['error'] ) {
+				return new WP_Error(
+					'rest_upload_invalid_file_type',
+					$sideloaded['error'],
+					array( 'status' => 400 )
+				);
+			}
+
+			return new WP_Error(
+				'rest_upload_sideload_error',
+				$sideloaded['error'],
+				array( 'status' => 500 )
+			);
 		}
 
-		$attachment = get_post( $attachment_id );
-
-		$request->set_param( 'context', 'edit' );
-
-		/*
-		 * media_handle_sideload() fires the standard insert hooks (including
-		 * wp_after_insert_post), but not the REST-specific action, so fire it
-		 * here for parity with the uploaded-file path in create_item().
-		 */
-		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php */
-		do_action( 'rest_after_insert_attachment', $attachment, $request, true );
-
-		$response = $this->prepare_item_for_response( $attachment, $request );
-		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( rest_get_route_for_post( $attachment_id ) ) );
-
-		return $response;
+		return $sideloaded;
 	}
 
 	/**
@@ -828,7 +827,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
-		if ( ! empty( $files ) ) {
+		/*
+		 * A URL is the third way to name the file, alongside a multipart upload
+		 * and a raw request body. All three produce the same data, so the rest
+		 * of this method is shared: the URL path gets the same title and caption
+		 * defaults, the same hooks, and the same terms and meta handling as an
+		 * uploaded file.
+		 */
+		if ( ! empty( $request['url'] ) ) {
+			$file = $this->upload_from_url( $request['url'], $time );
+		} elseif ( ! empty( $files ) ) {
 			$file = $this->upload_from_file( $files, $headers, $time );
 		} else {
 			$file = $this->upload_from_data( $request->get_body(), $headers, $time );
@@ -868,6 +876,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$attachment = $this->prepare_item_for_database( $request );
+
+		// The rest_pre_insert_attachment filter can return an error.
+		if ( is_wp_error( $attachment ) ) {
+			return $attachment;
+		}
 
 		$attachment->post_mime_type = $type;
 		$attachment->guid           = $url;
@@ -992,14 +1005,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$attachment = get_post( $request['id'] );
-
-		if ( ! empty( $schema['properties']['featured_media'] ) && isset( $request['featured_media'] ) ) {
-			$thumbnail_update = $this->handle_featured_media( $request['featured_media'], $attachment->ID );
-
-			if ( is_wp_error( $thumbnail_update ) ) {
-				return $thumbnail_update;
-			}
-		}
 
 		$fields_update = $this->update_additional_fields_for_object( $attachment, $request );
 
@@ -1356,6 +1361,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'file'          => _wp_relative_upload_path( $image_file ),
 		);
 
+		/*
+		 * Record the attachment this chain of edits started from, so the edit root can be
+		 * found in one lookup from any image later in the chain. The new attachment inherits
+		 * the edit root recorded on the image being edited, or that image itself when it was
+		 * uploaded rather than edited.
+		 */
+		$edit_root_id = wp_get_edit_root_attachment_id( $attachment_id );
+
+		if ( ! $edit_root_id ) {
+			$edit_root_id = (int) $attachment_id;
+		}
+
+		update_post_meta( $new_attachment_id, '_wp_attachment_edit_root_id', $edit_root_id );
+
 		/**
 		 * Filters the meta data for the new image created by editing an existing image.
 		 *
@@ -1509,6 +1528,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$data['post'] = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
 		}
 
+		/*
+		 * ID of the attachment this image's chain of edits started from, or 0.
+		 * Edit context only, since only editors need it.
+		 * Not validated: deleting an attachment clears it from images edited from it.
+		 */
+		if ( in_array( 'edit_root', $fields, true ) && 'edit' === $request['context'] ) {
+			$data['edit_root'] = wp_get_edit_root_attachment_id( $post->ID );
+		}
+
 		if ( in_array( 'source_url', $fields, true ) ) {
 			$data['source_url'] = wp_get_attachment_url( $post->ID );
 		}
@@ -1575,24 +1603,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$mime_type = (string) get_post_mime_type( $post );
 
 			/*
-			 * Per-file output format for images, evaluated with the real filename
-			 * and MIME type so plugins filtering image_editor_output_format can
-			 * make per-attachment decisions (e.g. JPEG -> WebP). Resolved the same
-			 * way WP_Image_Editor::set_quality() resolves the output format.
+			 * Per-file output format for images, so plugins filtering
+			 * image_editor_output_format can make per-attachment decisions
+			 * (e.g. JPEG -> WebP).
 			 */
 			if ( in_array( 'image_output_format', $fields, true ) ) {
-				$filename = get_attached_file( $post->ID );
-
-				/** This filter is documented in wp-includes/media.php */
-				$output_formats = apply_filters(
-					'image_editor_output_format',
-					array( $mime_type => $mime_type ),
-					$filename ? $filename : '',
-					$mime_type
-				);
-
-				$output_mime                 = $output_formats[ $mime_type ] ?? $mime_type;
-				$data['image_output_format'] = ( $output_mime !== $mime_type ) ? $output_mime : null;
+				$data['image_output_format'] = $this->get_image_output_format( $post );
 			}
 
 			/*
@@ -1664,6 +1680,31 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		foreach ( $links as $rel => $rel_links ) {
 			foreach ( $rel_links as $link ) {
 				$response->add_link( $rel, $link['href'], $link['attributes'] );
+			}
+		}
+
+		/*
+		 * Embeddable link to the edit root, like `featured_media`. Added here rather than
+		 * in `prepare_links()`, which cannot see the request, and gated like the parent
+		 * controller's own links so a `_fields` request is not handed a stray `_links`.
+		 * Like `featured_media`, the link is skipped when the edit root no longer exists
+		 * or the user cannot read it, although the `edit_root` field still reports the ID.
+		 */
+		if (
+			'edit' === $request['context'] &&
+			( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) )
+		) {
+			$edit_root_id = wp_get_edit_root_attachment_id( $post->ID );
+
+			if (
+				$edit_root_id &&
+				( 'publish' === get_post_status( $edit_root_id ) || current_user_can( 'read_post', $edit_root_id ) )
+			) {
+				$response->add_link(
+					'https://api.w.org/edit-root',
+					rest_url( rest_get_route_for_post( $edit_root_id ) ),
+					array( 'embeddable' => true )
+				);
 			}
 		}
 
@@ -1803,6 +1844,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'description' => __( 'The ID for the associated post of the attachment.' ),
 			'type'        => 'integer',
 			'context'     => array( 'view', 'edit' ),
+		);
+
+		$schema['properties']['edit_root'] = array(
+			'description' => __( 'The ID of the attachment this attachment\'s chain of edits started from, or 0 if none is recorded.' ),
+			'type'        => 'integer',
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
 		);
 
 		$schema['properties']['source_url'] = array(
@@ -2193,9 +2241,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		foreach ( get_allowed_mime_types() as $mime_type ) {
 			$parts = explode( '/', $mime_type );
 
-			if ( ! isset( $media_types[ $parts[0] ] ) ) {
-				$media_types[ $parts[0] ] = array();
-			}
+			$media_types[ $parts[0] ] ??= array();
 
 			$media_types[ $parts[0] ][] = $mime_type;
 		}
@@ -2726,6 +2772,34 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Gets the MIME type an image attachment's sub-sizes are generated in.
+	 *
+	 * Resolved the same way WP_Image_Editor::set_quality() resolves the output
+	 * format, with the attachment's real file name and MIME type.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Post $post Image attachment post object.
+	 * @return string|null The output MIME type, or null if it matches the attachment's own.
+	 */
+	private function get_image_output_format( WP_Post $post ): ?string {
+		$mime_type = (string) get_post_mime_type( $post );
+		$filename  = get_attached_file( $post->ID );
+
+		/** This filter is documented in wp-includes/media.php */
+		$output_formats = apply_filters(
+			'image_editor_output_format',
+			array( $mime_type => $mime_type ),
+			$filename ? $filename : '',
+			$mime_type
+		);
+
+		$output_mime = is_array( $output_formats ) ? ( $output_formats[ $mime_type ] ?? $mime_type ) : $mime_type;
+
+		return ( is_string( $output_mime ) && $output_mime !== $mime_type ) ? $output_mime : null;
+	}
+
+	/**
 	 * Checks whether a dimension exceeds the maximum allowed value.
 	 *
 	 * A maximum of zero means the dimension is unconstrained.
@@ -2789,6 +2863,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
+		/*
+		 * The server writes sub-sizes in the attachment's output format without
+		 * checking it against the network's allowed upload file types, so a
+		 * sideload in that format is exempt from them too. Resolved before the
+		 * output format filter below is added.
+		 */
+		$output_format     = wp_attachment_is_image( $post ) ? $this->get_image_output_format( $post ) : null;
+		$output_extensions = null !== $output_format ? array_search( $output_format, wp_get_mime_types(), true ) : false;
+		$filter_filetypes  = null;
+
+		if ( is_string( $output_extensions ) ) {
+			$filter_filetypes = static function ( $filetypes ) use ( $output_extensions ) {
+				return is_string( $filetypes ) ? $filetypes . ' ' . str_replace( '|', ' ', $output_extensions ) : $filetypes;
+			};
+
+			add_filter( 'site_option_upload_filetypes', $filter_filetypes );
+			add_filter( 'default_site_option_upload_filetypes', $filter_filetypes );
+		}
+
 		if ( false === $request['convert_format'] ) {
 			// Prevent image conversion as that is done client-side.
 			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
@@ -2839,6 +2932,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		remove_filter( 'wp_unique_filename', $filter_filename );
 		remove_filter( 'image_editor_output_format', '__return_empty_array', 100 );
 		remove_filter( 'upload_dir', $filter_upload_dir, 100 );
+
+		if ( null !== $filter_filetypes ) {
+			remove_filter( 'site_option_upload_filetypes', $filter_filetypes );
+			remove_filter( 'default_site_option_upload_filetypes', $filter_filetypes );
+		}
 
 		if ( is_wp_error( $file ) ) {
 			return $file;

@@ -28,7 +28,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		'name'       => 'Open Sans',
 		'slug'       => 'open-sans',
 		'fontFamily' => '"Open Sans", sans-serif',
-		'preview'    => 'https://s.w.org/images/fonts/wp-7.1/previews/open-sans/open-sans-400-normal.svg',
+		'preview'    => 'https://s.w.org/images/fonts/wp-7.2/previews/open-sans/open-sans-400-normal.svg',
 	);
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -48,7 +48,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 				'name'       => 'Open Sans',
 				'slug'       => 'open-sans',
 				'fontFamily' => '"Open Sans", sans-serif',
-				'preview'    => 'https://s.w.org/images/fonts/wp-7.1/previews/open-sans/open-sans-400-normal.svg',
+				'preview'    => 'https://s.w.org/images/fonts/wp-7.2/previews/open-sans/open-sans-400-normal.svg',
 			)
 		);
 		self::$font_family_id2 = self::create_font_family_post(
@@ -194,7 +194,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 *
 	 * @return array
 	 */
-	public function data_get_context_param() {
+	public static function data_get_context_param() {
 		return array(
 			'Collection' => array( false ),
 			'Single'     => array( true ),
@@ -423,7 +423,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 *
 	 * @return array
 	 */
-	public function data_create_item_invalid_theme_json_version() {
+	public static function data_create_item_invalid_theme_json_version() {
 		return array(
 			array( 1 ),
 			array( 4 ),
@@ -458,7 +458,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 *
 	 * @return array
 	 */
-	public function data_create_item_with_default_preview() {
+	public static function data_create_item_with_default_preview() {
 		$default_settings = array(
 			'name'       => 'Open Sans',
 			'slug'       => 'open-sans-2',
@@ -503,7 +503,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_font_family_settings() {
+	public static function data_sanitize_font_family_settings() {
 		return array(
 			'settings with tags, extra whitespace, new lines' => array(
 				'settings' => array(
@@ -574,7 +574,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 *
 	 * @return array
 	 */
-	public function data_create_item_invalid_settings() {
+	public static function data_create_item_invalid_settings() {
 		return array(
 			'Missing name'          => array(
 				'settings' => array_diff_key( self::$default_settings, array( 'name' => '' ) ),
@@ -677,7 +677,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 					'name'       => 'Open Sans',
 					'slug'       => 'open-sans',
 					'fontFamily' => '"Open Sans", sans-serif',
-					'preview'    => 'https://s.w.org/images/fonts/wp-7.1/previews/open-sans/open-sans-400-normal.svg',
+					'preview'    => 'https://s.w.org/images/fonts/wp-7.2/previews/open-sans/open-sans-400-normal.svg',
 				)
 			)
 		);
@@ -694,7 +694,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		$settings = array(
 			'name'       => 'Open Sans',
 			'fontFamily' => 'Open Sans, "Noto Sans", sans-serif',
-			'preview'    => 'https://s.w.org/images/fonts/wp-7.1/previews/open-sans/open-sans-400-normal.svg',
+			'preview'    => 'https://s.w.org/images/fonts/wp-7.2/previews/open-sans/open-sans-400-normal.svg',
 		);
 
 		$font_family_id = self::create_font_family_post( array( 'slug' => 'open-sans-2' ) );
@@ -746,11 +746,11 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 *
 	 * @return array
 	 */
-	public function data_update_item_individual_settings() {
+	public static function data_update_item_individual_settings() {
 		return array(
 			array( array( 'name' => 'Opened Sans' ) ),
 			array( array( 'fontFamily' => '"Opened Sans", sans-serif' ) ),
-			array( array( 'preview' => 'https://s.w.org/images/fonts/wp-7.1/previews/opened-sans/opened-sans-400-normal.svg' ) ),
+			array( array( 'preview' => 'https://s.w.org/images/fonts/wp-7.2/previews/opened-sans/opened-sans-400-normal.svg' ) ),
 			// Empty preview is allowed.
 			array( array( 'preview' => '' ) ),
 		);
@@ -806,7 +806,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 *
 	 * @return array
 	 */
-	public function data_update_item_invalid_settings() {
+	public static function data_update_item_invalid_settings() {
 		return array(
 			'Empty name'            => array(
 				array( 'name' => '' ),

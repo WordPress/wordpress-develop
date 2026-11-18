@@ -1478,6 +1478,8 @@ function wpmu_create_blog( $domain, $path, $title, $user_id, $options = array(),
  * @param WP_Site|int $blog_id    The new site's object or ID.
  * @param string      $deprecated Not used.
  * @return bool
+ *
+ * @phpstan-param '' $deprecated
  */
 function newblog_notify_siteadmin( $blog_id, $deprecated = '' ) {
 	if ( is_object( $blog_id ) ) {
@@ -2088,6 +2090,8 @@ function check_upload_mimes( $mimes ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $deprecated Not used.
+ *
+ * @phpstan-param '' $deprecated
  */
 function update_posts_count( $deprecated = '' ) {
 	global $wpdb;
@@ -2802,7 +2806,7 @@ function update_network_option_new_admin_email( $old_value, $value ) {
 		return;
 	}
 
-	$hash            = md5( $value . time() . mt_rand() );
+	$hash            = md5( $value . time() . wp_rand() );
 	$new_admin_email = array(
 		'hash'     => $hash,
 		'newemail' => $value,

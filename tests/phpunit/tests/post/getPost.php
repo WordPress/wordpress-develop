@@ -37,7 +37,7 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 	 */
 	public function test_get_post_global(): void {
 		global $post;
-		$post = $this->get_test_post_instance();
+		$post = self::get_test_post_instance();
 		$this->assertSame( $post, get_post() );
 		$this->assertSame( $post, get_post( null ) );
 		$this->assertSame( $post, get_post( 0 ) );
@@ -117,7 +117,7 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 	 *     expected: string,
 	 * }>
 	 */
-	public function data_provider_to_test_get_post_sanitization(): array {
+	public static function data_provider_to_test_get_post_sanitization(): array {
 		return array(
 			'Raw filter'       => array(
 				'filter'   => 'raw',
@@ -152,7 +152,7 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 	 *     expected_id: Closure(): (int|null),
 	 * }>
 	 */
-	public function data_provider_to_test_get_post(): array {
+	public static function data_provider_to_test_get_post(): array {
 		return array(
 			'Valid ID'                             => array(
 				'input'       => fn() => self::$post_id,
@@ -161,7 +161,7 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 				'expected_id' => fn() => self::$post_id,
 			),
 			'WP_Post instance'                     => array(
-				'input'       => fn() => $this->get_test_post_instance(),
+				'input'       => fn() => self::get_test_post_instance(),
 				'output'      => OBJECT,
 				'filter'      => 'raw',
 				'expected_id' => fn() => self::$post_id,
@@ -283,9 +283,9 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 	 *
 	 * @return WP_Post Post object.
 	 */
-	private function get_test_post_instance(): WP_Post {
+	private static function get_test_post_instance(): WP_Post {
 		$post = WP_Post::get_instance( self::$post_id );
-		$this->assertInstanceOf( WP_Post::class, $post );
+		self::assertInstanceOf( WP_Post::class, $post );
 		return $post;
 	}
 }

@@ -360,7 +360,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$page1_slugs    = wp_list_pluck( $page1_response->get_data(), 'slug' );
 		$page2_slugs    = wp_list_pluck( $data, 'slug' );
 
-		$this->assertNotEquals( $page1_slugs, $page2_slugs );
+		$this->assertNotSame( $page1_slugs, $page2_slugs );
 	}
 
 	/**
@@ -455,7 +455,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_invalid_ability_category_slugs_provider(): array {
+	public static function data_invalid_ability_category_slugs_provider(): array {
 		return array(
 			'Uppercase'         => array( 'Data-Retrieval' ),
 			'@ symbol'          => array( 'data@retrieval' ),
@@ -487,7 +487,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 *
 	 * @return array<string, array{0: array<string, mixed>}>
 	 */
-	public function data_invalid_pagination_params_provider(): array {
+	public static function data_invalid_pagination_params_provider(): array {
 		return array(
 			'Zero page'            => array( array( 'page' => 0 ) ),
 			'Negative page'        => array( array( 'page' => -1 ) ),

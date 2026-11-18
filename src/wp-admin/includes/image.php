@@ -922,7 +922,7 @@ function wp_read_image_metadata( $file ) {
 			}
 
 			if ( ! empty( $iptc['2#025'][0] ) ) { // Keywords array.
-				$meta['keywords'] = array_values( $iptc['2#025'] );
+				$meta['keywords'] = $iptc['2#025'];
 			}
 		}
 	}
@@ -964,6 +964,14 @@ function wp_read_image_metadata( $file ) {
 
 		if ( ! empty( $exif['COMPUTED']['UserComment'] ) ) {
 			$exif_usercomment = trim( $exif['COMPUTED']['UserComment'] );
+
+			/*
+			 * PHP returns a UserComment shorter than its 8-byte character code
+			 * as the bare code, such as "ASCII". It holds no comment.
+			 */
+			if ( in_array( $exif_usercomment, array( 'ASCII', 'UNICODE', 'JIS' ), true ) ) {
+				$exif_usercomment = '';
+			}
 		}
 
 		if ( $exif_description ) {

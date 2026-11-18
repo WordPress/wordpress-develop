@@ -805,7 +805,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_get_post_revisions_url() {
+	public static function data_wp_get_post_revisions_url() {
 		return array(
 			'one revision'       => array( 'revisions' => 1 ),
 			'multiple revisions' => array( 'revisions' => 2 ),

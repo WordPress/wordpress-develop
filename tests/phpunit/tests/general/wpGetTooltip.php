@@ -42,6 +42,9 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'class="wp-tooltip__close"', $tooltip );
 		$this->assertStringNotContainsString( 'popovertargetaction="hide"', $tooltip );
 
+		// A plain tooltip has no separate hint element.
+		$this->assertStringNotContainsString( 'wp-tooltip__hint', $tooltip );
+
 		$toggletip = wp_get_toggletip(
 			'Helpful text.',
 			array(
@@ -52,6 +55,59 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'popovertarget="my-tip"', $toggletip );
 		$this->assertStringContainsString( 'class="wp-tooltip__close"', $toggletip );
 		$this->assertStringContainsString( 'popovertargetaction="hide"', $toggletip );
+	}
+
+	/**
+	 * Tests that a toggle tip exposes its accessible name through a hint tooltip.
+	 *
+	 * With no visible text label, the toggle button's accessible name is only
+	 * available to assistive technologies via `aria-label`. A hover/focus hint
+	 * tooltip exposes that same name to sighted users, while being hidden from
+	 * assistive technologies to avoid a duplicate announcement.
+	 *
+	 * @ticket 65633
+	 */
+	public function test_wp_get_toggletip_includes_accessible_name_hint() {
+		$toggletip = wp_get_toggletip(
+			'Helpful text.',
+			array(
+				'id'    => 'my-tip',
+				'label' => 'About this field',
+			)
+		);
+
+		// The hint is a hint popover that duplicates the toggle button's label.
+		$this->assertStringContainsString(
+			'<span popover="hint" id="my-tip-hint" class="wp-tooltip__bubble wp-tooltip__hint" aria-hidden="true">',
+			$toggletip
+		);
+		$this->assertStringContainsString(
+			'<span class="wp-tooltip__text">About this field</span>',
+			$toggletip
+		);
+
+		// The toggle button still exposes the accessible name to assistive technologies.
+		$this->assertStringContainsString( 'aria-label="About this field"', $toggletip );
+	}
+
+	/**
+	 * Tests that the toggle tip hint escapes its content.
+	 *
+	 * @ticket 65633
+	 */
+	public function test_wp_get_toggletip_hint_escapes_label() {
+		$toggletip = wp_get_toggletip(
+			'Helpful text.',
+			array(
+				'label' => '<script>alert(1)</script>',
+			)
+		);
+
+		$this->assertStringContainsString(
+			'<span class="wp-tooltip__text">&lt;script&gt;',
+			$toggletip
+		);
+		$this->assertStringNotContainsString( '<span class="wp-tooltip__text"><script>', $toggletip );
 	}
 
 	/**
@@ -280,7 +336,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_percent_encoded_hrefs() {
+	public static function data_percent_encoded_hrefs() {
 		return array(
 			'an encoded space' => array( '/wp-admin/edit.php?s=hello%20world' ),
 			'an encoded slash' => array( '/x?p=a%2Fb' ),
@@ -292,7 +348,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_button_markup_containing_percent_signs() {
+	public static function data_button_markup_containing_percent_signs() {
 		return array(
 			'a literal percent sign'      => array(
 				'<button type="button">100% done</button>',
@@ -326,7 +382,7 @@ class Tests_General_wpGetTooltip extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_tooltip_types() {
+	public static function data_tooltip_types() {
 		return array(
 			'tooltip'   => array( 'tooltip' ),
 			'toggletip' => array( 'toggletip' ),

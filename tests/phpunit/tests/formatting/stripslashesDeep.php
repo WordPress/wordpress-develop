@@ -5,6 +5,7 @@
  * @group slashes
  *
  * @covers ::stripslashes_deep
+ * @covers ::stripslashes_from_strings_only
  */
 class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 	/**
@@ -54,5 +55,18 @@ class Tests_Formatting_StripslashesDeep extends WP_UnitTestCase {
 		$txt = "I can't see, isn\'t that it?";
 		$this->assertSame( $txt, stripslashes_deep( "I can\'t see, isn\\\'t that it?" ) );
 		$this->assertSame( $txt, stripslashes_deep( "I can\'t see, isn\\\\\'t that it?" ) );
+	}
+
+	/**
+	 * Tests that stripslashes_from_strings_only() does not strip slashes from array elements.
+	 *
+	 * Unlike stripslashes_deep(), stripslashes_from_strings_only() does not recurse into arrays.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_stripslashes_from_strings_only_does_not_strip_array() {
+		$slashed_array = array( "I can\'t see", 'b' );
+
+		$this->assertSame( $slashed_array, stripslashes_from_strings_only( $slashed_array ) );
 	}
 }
