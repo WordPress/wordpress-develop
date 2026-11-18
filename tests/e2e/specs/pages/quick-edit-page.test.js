@@ -2,6 +2,7 @@
  * Internal dependencies
  */
 import { test, expect } from '../../fixtures';
+import { postRow } from '../../utils/admin';
 
 test.describe( 'Quick Edit page', () => {
 	test( 'saves a page parent using Quick Edit', async ( {
@@ -20,7 +21,7 @@ test.describe( 'Quick Edit page', () => {
 		const pageId = createdPage.id;
 
 		await admin.visitAdminPage( 'edit.php?post_type=page' );
-		const row = page.locator( `#post-${ pageId }` );
+		const row = postRow( page, pageId );
 		await row
 			.getByRole( 'link', { name: 'Quick Edit page', exact: true } )
 			.hover();
