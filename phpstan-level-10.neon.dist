@@ -72,8 +72,6 @@ parameters:
 		- src/wp-includes/html-api/class-wp-html-token.php
 		- src/wp-includes/html-api/class-wp-html-unsupported-exception.php
 		- src/wp-includes/l10n/class-wp-translations.php
-		- src/wp-includes/secrets
-		- src/wp-includes/secrets.php
 		- src/wp-includes/sitemaps.php
 		- src/wp-includes/speculative-loading.php
 		- src/wp-includes/style-engine
