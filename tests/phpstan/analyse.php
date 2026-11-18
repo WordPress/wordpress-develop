@@ -11,9 +11,11 @@
  * Each analysis honors a local override of its configuration, the same way
  * PHPStan does: phpstan.neon in place of phpstan.neon.dist, which PHPStan finds by
  * itself, and phpstan-strict.neon in place of phpstan-strict.neon.dist, which
- * this script chooses. When a local phpstan.neon already analyzes the whole
- * codebase at the strict rule level or above, the second analysis could only
- * repeat some of what the first reported, so it is skipped.
+ * this script chooses. When a local phpstan.neon analyzes at the strict rule
+ * level or above, the second analysis is skipped, since for the paths the first
+ * analyzed it could only repeat some of what that reported. Only the levels are
+ * compared, so a local phpstan.neon narrowing the paths it analyzes may leave
+ * strict paths out, which `composer phpstan:strict` still analyzes.
  *
  * With `--fix`, the stale entries of both sets of baselines are fixed instead,
  * along with anything else PHPStan can fix. That always uses the two .dist
@@ -123,7 +125,7 @@ if ( is_file( $local_config ) ) {
 	$strict_level = get_level( $phpstan, $repo_root . '/' . $strict_config );
 
 	if ( null !== $local_level && null !== $strict_level && is_level_at_least( $local_level, $strict_level ) ) {
-		fwrite( STDERR, "\nSkipping $strict_config: phpstan.neon already analyzes every path at level $local_level, and the strict paths are held to $strict_level.\n" );
+		fwrite( STDERR, "\nSkipping $strict_config: phpstan.neon analyzes at level $local_level, and the strict paths are held to $strict_level. If phpstan.neon leaves any of them out, run `composer phpstan:strict` too.\n" );
 		exit( $exit_code );
 	}
 }

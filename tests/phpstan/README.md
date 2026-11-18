@@ -125,7 +125,7 @@ To hold another path to the stricter level:
 
 In the strict paths, **do not add an `@phpstan-ignore` comment for an error that only the stricter level reports**. The analysis of the whole codebase does not report that error, so it reports the comment as ignoring nothing, and `composer phpstan:fix` would remove it. Fix the error, or baseline it instead.
 
-A local `phpstan-strict.neon` overrides `phpstan-strict.neon.dist`, the same way `phpstan.neon` overrides `phpstan.neon.dist`. When a local `phpstan.neon` already analyzes everything at the strict level or above, `composer phpstan` skips the second analysis, since it could only repeat part of the first.
+A local `phpstan-strict.neon` overrides `phpstan-strict.neon.dist`, the same way `phpstan.neon` overrides `phpstan.neon.dist`. When a local `phpstan.neon` analyzes at the strict level or above, `composer phpstan` skips the second analysis, since it could only repeat part of the first. Only the levels are compared, so if the local `phpstan.neon` also narrows the paths analyzed, leaving out some of the strict paths, run `composer phpstan:strict` as well.
 
 For more information about configuring PHPStan, see the [PHPStan documentation's Config reference](https://phpstan.org/config-reference).
 
