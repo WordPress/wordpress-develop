@@ -2554,10 +2554,11 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @since 2.3.0
+ * @since 7.2.0 A `$term` that is not a string or number now returns a WP_Error instead of causing a fatal error.
  *
- * @param string       $term     The term name to add.
- * @param string       $taxonomy The taxonomy to which to add the term.
- * @param array|string $args {
+ * @param string|int|float $term     The term name to add. A number is stored as its string form.
+ * @param string           $taxonomy The taxonomy to which to add the term.
+ * @param array|string     $args {
  *     Optional. Array or query string of arguments for inserting a term.
  *
  *     @type string $alias_of    Slug of the term to make this term an alias of.
@@ -2611,7 +2612,14 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		return new WP_Error( 'invalid_term_id', __( 'Invalid term ID.' ) );
 	}
 
-	if ( '' === trim( $term ) ) {
+	// Null and false are treated as a missing name rather than an invalid one, as they were before.
+	if ( null === $term || false === $term ) {
+		$term = '';
+	} elseif ( ! ( is_string( $term ) || is_int( $term ) || is_float( $term ) ) ) {
+		return new WP_Error( 'invalid_term_name', __( 'Invalid term name.' ) );
+	}
+
+	if ( '' === trim( (string) $term ) ) {
 		return new WP_Error( 'empty_term_name', __( 'A name is required for this term.' ) );
 	}
 
@@ -2966,6 +2974,8 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
  * exists under.
  *
  * @since 2.3.0
+ * @since 7.2.0 A term that is an array, or an object without a `__toString()` method, is now skipped
+ *              instead of causing a fatal error.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -3010,7 +3020,17 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 	$new_tt_ids = array();
 
 	foreach ( (array) $terms as $term ) {
-		if ( '' === trim( $term ) ) {
+		// Skip values that cannot be a term name or ID, such as arrays.
+		if ( ! is_scalar( $term ) && ! ( is_object( $term ) && method_exists( $term, '__toString' ) ) ) {
+			continue;
+		}
+
+		// Anything other than an integer ID is a name or slug, including objects such as SimpleXMLElement.
+		if ( ! is_int( $term ) ) {
+			$term = (string) $term;
+		}
+
+		if ( '' === trim( (string) $term ) ) {
 			continue;
 		}
 
