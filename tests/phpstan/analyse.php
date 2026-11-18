@@ -184,7 +184,7 @@ function get_level( string $phpstan, string $config ): ?string {
 	}
 
 	foreach ( $output as $line ) {
-		if ( 1 === preg_match( '/^\s*"level": ("max"|"?\d+"?),?$/', $line, $matches ) ) {
+		if ( 1 === preg_match( '/^\s*"level":\s*("max"|"?\d+"?),?$/', $line, $matches ) ) {
 			return trim( $matches[1], '"' );
 		}
 	}

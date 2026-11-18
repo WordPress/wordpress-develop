@@ -179,7 +179,7 @@ jobs:
                 [ 'dump-parameters', `--configuration=${ process.env.CONFIG }`, '--json' ],
                 { encoding: 'utf8' }
               );
-              const match = parameters.match( /^\s*"level": "?(max|\d+)"?,?$/m );
+              const match = parameters.match( /^\s*"level":\s*"?(max|\d+)"?,?$/m );
               if ( match ) {
                 level = match[ 1 ] === 'max' ? 'max' : Number( match[ 1 ] );
               }
