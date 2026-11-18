@@ -2,6 +2,12 @@
  * Internal dependencies
  */
 import { test, expect } from '../fixtures';
+import {
+	adminNotice,
+	bulkActionApply,
+	bulkActionSelect,
+	postRow,
+} from '../utils/admin';
 
 test( 'Undo restores a trashed post to its published status', async ( {
 	page,
@@ -20,7 +26,7 @@ test( 'Undo restores a trashed post to its published status', async ( {
 		'edit.php',
 		new URLSearchParams( { s: title } ).toString()
 	);
-	const row = page.locator( `#post-${ postId }` );
+	const row = postRow( page, postId );
 	await row.getByRole( 'link', { name: title, exact: true } ).hover();
 	await row
 		.getByRole( 'link', {
@@ -28,7 +34,7 @@ test( 'Undo restores a trashed post to its published status', async ( {
 			exact: true,
 		} )
 		.click();
-	await expect( page.locator( '#message' ) ).toContainText(
+	await expect( adminNotice( page ) ).toContainText(
 		'1 post moved to the Trash.'
 	);
 	await expect( row ).toHaveCount( 0 );
@@ -39,7 +45,7 @@ test( 'Undo restores a trashed post to its published status', async ( {
 	expect( trashedPost.status ).toBe( 'trash' );
 
 	await page.getByRole( 'link', { name: 'Undo', exact: true } ).click();
-	await expect( page.locator( '#message' ) ).toContainText(
+	await expect( adminNotice( page ) ).toContainText(
 		'1 post restored from the Trash.'
 	);
 	await admin.visitAdminPage(
@@ -79,26 +85,23 @@ test( 'bulk trashes only the selected posts', async ( {
 		new URLSearchParams( { s: titlePrefix } ).toString()
 	);
 	for ( const post of posts.slice( 0, 2 ) ) {
-		await page
-			.locator( `#post-${ post.id }` )
-			.getByRole( 'checkbox' )
-			.check();
+		await postRow( page, post.id ).getByRole( 'checkbox' ).check();
 	}
-	await page.locator( '#bulk-action-selector-top' ).selectOption( 'trash' );
-	await page.locator( '#doaction' ).click();
-	await expect( page.locator( '#message' ) ).toContainText(
+	await bulkActionSelect( page ).selectOption( 'trash' );
+	await bulkActionApply( page ).click();
+	await expect( adminNotice( page ) ).toContainText(
 		'2 posts moved to the Trash.'
 	);
 
 	for ( const post of posts.slice( 0, 2 ) ) {
-		await expect( page.locator( `#post-${ post.id }` ) ).toHaveCount( 0 );
+		await expect( postRow( page, post.id ) ).toHaveCount( 0 );
 		const savedPost = await requestUtils.rest( {
 			path: `/wp/v2/posts/${ post.id }`,
 			params: { context: 'edit' },
 		} );
 		expect( savedPost.status ).toBe( 'trash' );
 	}
-	await expect( page.locator( `#post-${ posts[ 2 ].id }` ) ).toBeVisible();
+	await expect( postRow( page, posts[ 2 ].id ) ).toBeVisible();
 	const control = await requestUtils.rest( {
 		path: `/wp/v2/posts/${ posts[ 2 ].id }`,
 		params: { context: 'edit' },
