@@ -883,10 +883,10 @@ class Tests_Auth extends WP_UnitTestCase {
 		);
 		clean_user_cache( $this->user );
 
-		// A key with a valid hash but a malformed timestamp should be rejected as expired.
+		// A key with a valid hash but a malformed timestamp should be rejected as invalid.
 		$check = check_password_reset_key( $key, $this->user->user_login );
 		$this->assertWPError( $check );
-		$this->assertSame( 'expired_key', $check->get_error_code() );
+		$this->assertSame( 'invalid_key', $check->get_error_code() );
 	}
 
 	/**

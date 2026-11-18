@@ -1223,6 +1223,9 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 		 */
 		$comment_args = apply_filters( 'get_page_of_comment_query_args', $comment_args );
 
+		// The page number is calculated from a count, whatever the filter returned.
+		$comment_args['count'] = true;
+
 		$comment_query       = new WP_Comment_Query();
 		$older_comment_count = $comment_query->query( $comment_args );
 
