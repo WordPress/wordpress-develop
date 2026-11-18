@@ -119,4 +119,43 @@ class Tests_Term_SanitizeTerm extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 50568
+	 */
+	public function test_sanitize_term_should_return_early_when_object_already_filtered_for_context() {
+		$term              = new stdClass();
+		$term->term_id     = 1;
+		$term->name        = 'Test';
+		$term->slug        = 'test';
+		$term->taxonomy    = 'category';
+		$term->description = '';
+		$term->filter      = 'edit';
+
+		$count = did_filter( 'edit_term_name' );
+
+		$result = sanitize_term( $term, 'category', 'edit' );
+
+		$this->assertSame( $term, $result );
+		$this->assertSame( $count, did_filter( 'edit_term_name' ), 'edit_term_name filter should not have fired.' );
+	}
+
+	/**
+	 * @ticket 50568
+	 */
+	public function test_sanitize_term_should_return_early_when_array_already_filtered_for_context() {
+		$term = array(
+			'term_id' => 1,
+			'name'    => 'Test',
+			'slug'    => 'test',
+			'filter'  => 'display',
+		);
+
+		$count = did_filter( 'term_name' );
+
+		$result = sanitize_term( $term, 'category', 'display' );
+
+		$this->assertSame( $term, $result );
+		$this->assertSame( $count, did_filter( 'term_name' ), 'term_name filter should not have fired.' );
+	}
 }
