@@ -40,11 +40,11 @@ if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
  * }
  * @phpstan-type Prepared_Request array{
  *     url: string,
- *     headers: array<array-key, mixed>,
+ *     headers: mixed[],
  *     data: mixed,
  *     type: mixed,
  *     options: array<string, mixed>,
- *     args: array<array-key, mixed>,
+ *     args: mixed[],
  * }
  */
 #[AllowDynamicProperties]
@@ -214,9 +214,9 @@ class WP_Http {
 			);
 		} catch ( WpOrg\Requests\Exception $e ) {
 			$response = new WP_Error( 'http_request_failed', $e->getMessage() );
+		} finally {
+			reset_mbstring_encoding();
 		}
-
-		reset_mbstring_encoding();
 
 		return $this->finalize_response( $response, $prepared['args'], $prepared['url'] );
 	}
@@ -248,8 +248,8 @@ class WP_Http {
 	 * }
 	 * @return array Responses keyed like $requests. Each is a response array, or a WP_Error
 	 *               on failure. See {@see WP_Http::request()} for the response format.
-	 * @phpstan-param array<array-key, string|array{ url?: string, args?: string|array<array-key, mixed> }> $requests
-	 * @phpstan-return array<array-key, Response|WP_Error>
+	 * @phpstan-param array<string|array{ url?: string, args?: string|mixed[] }> $requests
+	 * @phpstan-return array<Response|WP_Error>
 	 */
 	public function request_multiple( array $requests, array $options = array() ): array {
 		$responses = array();
@@ -260,8 +260,8 @@ class WP_Http {
 				$request = array( 'url' => $request );
 			}
 
-			$url  = isset( $request['url'] ) ? $request['url'] : '';
-			$args = isset( $request['args'] ) ? $request['args'] : array();
+			$url  = $request['url'] ?? '';
+			$args = $request['args'] ?? array();
 
 			if ( ! is_array( $args ) ) {
 				$args = wp_parse_args( $args );
@@ -283,7 +283,7 @@ class WP_Http {
 		}
 
 		if ( ! empty( $pending ) ) {
-			$concurrency = isset( $options['concurrency'] ) ? (int) $options['concurrency'] : 6;
+			$concurrency = (int) ( $options['concurrency'] ?? 6 );
 
 			/**
 			 * Filters the maximum number of HTTP requests that WP_Http::request_multiple() sends at once.
@@ -313,7 +313,7 @@ class WP_Http {
 				mbstring_binary_safe_encoding();
 
 				try {
-					/** @var array<array-key, \WpOrg\Requests\Response|\WpOrg\Requests\Exception> $results */
+					/** @var array<\WpOrg\Requests\Response|\WpOrg\Requests\Exception> $results */
 					$results = WpOrg\Requests\Requests::request_multiple( $batch_requests );
 				} catch ( Exception $e ) {
 					/*
@@ -336,9 +336,9 @@ class WP_Http {
 							$results[ $id ] = $e;
 						}
 					}
+				} finally {
+					reset_mbstring_encoding();
 				}
-
-				reset_mbstring_encoding();
 
 				foreach ( $batch as $id => $prepared ) {
 					if ( isset( $results[ $id ] ) ) {
@@ -385,7 +385,7 @@ class WP_Http {
 	 *     @type array          $args     The parsed request arguments, after the 'http_request_args' filter.
 	 *     @type array|WP_Error $response Optional. The response returned by the 'pre_http_request' filter.
 	 * }
-	 * @phpstan-param array<array-key, mixed> $args
+	 * @phpstan-param mixed[] $args
 	 * @phpstan-return Prepared_Request|array{ response: Response|WP_Error }|WP_Error
 	 */
 	protected function prepare_request( $url, array $args = array() ) {
@@ -650,7 +650,7 @@ class WP_Http {
 	 *
 	 * @param \WpOrg\Requests\Response|\WpOrg\Requests\Exception|WP_Error $response    The response, or the error the
 	 *                                                                                 request failed with.
-	 * @param array<array-key, mixed>                                     $parsed_args The parsed request arguments, as
+	 * @param mixed[]                                                     $parsed_args The parsed request arguments, as
 	 *                                                                                 returned by {@see WP_Http::prepare_request()}.
 	 * @param string                                                      $url         The request URL.
 	 * @return array|WP_Error The response array, or a WP_Error on failure. See {@see WP_Http::request()}.

@@ -160,8 +160,8 @@ function wp_safe_remote_head( $url, $args = array() ) {
  *     @type int $concurrency Maximum number of requests to send at once. Default 6.
  * }
  * @return array Responses keyed like $requests. Each is a response array, or a WP_Error on failure.
- * @phpstan-param array<array-key, string|array{ url?: string, args?: string|array<array-key, mixed> }> $requests
- * @phpstan-return array<array-key, array<string, mixed>|WP_Error>
+ * @phpstan-param array<string|array{ url?: string, args?: string|mixed[] }> $requests
+ * @phpstan-return array<array<string, mixed>|WP_Error>
  */
 function wp_safe_remote_request_multiple( array $requests, array $options = array() ): array {
 	foreach ( $requests as $id => $request ) {
@@ -169,7 +169,7 @@ function wp_safe_remote_request_multiple( array $requests, array $options = arra
 			$request = array( 'url' => $request );
 		}
 
-		$args = isset( $request['args'] ) ? $request['args'] : array();
+		$args = $request['args'] ?? array();
 
 		if ( ! is_array( $args ) ) {
 			$args = wp_parse_args( $args );
@@ -299,8 +299,8 @@ function wp_remote_head( $url, $args = array() ) {
  *     @type int $concurrency Maximum number of requests to send at once. Default 6.
  * }
  * @return array Responses keyed like $requests. Each is a response array, or a WP_Error on failure.
- * @phpstan-param array<array-key, string|array{ url?: string, args?: string|array<array-key, mixed> }> $requests
- * @phpstan-return array<array-key, array<string, mixed>|WP_Error>
+ * @phpstan-param array<string|array{ url?: string, args?: string|mixed[] }> $requests
+ * @phpstan-return array<array<string, mixed>|WP_Error>
  */
 function wp_remote_request_multiple( array $requests, array $options = array() ): array {
 	$http = _wp_http_get_object();
