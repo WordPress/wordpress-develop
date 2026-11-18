@@ -691,6 +691,12 @@
 	font-size: clamp(2rem, 20vw - 9rem, 4rem);
 }
 
+.about-php .about__header-title h1,
+.contribute-php .about__header-title h1,
+.contribute-php .about__header-text {
+	color: var(--text);
+}
+
 .about__header-text {
 	box-sizing: border-box;
 	max-width: 26em;
