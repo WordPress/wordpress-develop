@@ -3237,7 +3237,7 @@ function check_password_reset_key(
 	$key_parts = explode( ':', $user->user_activation_key, 2 );
 
 	if ( 2 === count( $key_parts ) && is_numeric( $key_parts[0] ) ) {
-		$expiration_time = (int) $key_parts[0] + $expiration_duration;
+		$expiration_time = $key_parts[0] + $expiration_duration;
 		$pass_key        = $key_parts[1];
 	} else {
 		$pass_key        = $user->user_activation_key;
