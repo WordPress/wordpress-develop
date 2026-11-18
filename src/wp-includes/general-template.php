@@ -1484,6 +1484,21 @@ function wp_get_document_title() {
 		$author         = get_queried_object();
 		$title['title'] = $author->display_name;
 
+		/*
+		 * If it's a weekly archive, use the week's date range as the title.
+		 * Weekly archive links also contain the year, so check this before is_year().
+		 */
+	} elseif ( is_date() && get_query_var( 'w' ) && get_the_date( 'Y-m-d' ) ) {
+		$week        = get_weekstartend( get_the_date( 'Y-m-d' ), get_option( 'start_of_week' ) );
+		$date_format = get_option( 'date_format' );
+
+		$title['title'] = sprintf(
+			/* translators: 1: Week start date, 2: Week end date. */
+			_x( '%1$s &#8211; %2$s', 'weekly archives date range' ),
+			date_i18n( $date_format, $week['start'] ),
+			date_i18n( $date_format, $week['end'] )
+		);
+
 		// If it's a date archive, use the date as the title.
 	} elseif ( is_year() ) {
 		$title['title'] = get_the_date( _x( 'Y', 'yearly archives date format' ) );
@@ -2005,6 +2020,18 @@ function get_the_archive_title() {
 	} elseif ( is_author() ) {
 		$title  = get_the_author();
 		$prefix = _x( 'Author:', 'author archive title prefix' );
+	} elseif ( is_date() && get_query_var( 'w' ) && get_the_date( 'Y-m-d' ) ) {
+		// Weekly archive links also contain the year, so check this before is_year().
+		$week        = get_weekstartend( get_the_date( 'Y-m-d' ), get_option( 'start_of_week' ) );
+		$date_format = get_option( 'date_format' );
+
+		$title = sprintf(
+			/* translators: 1: Week start date, 2: Week end date. */
+			_x( '%1$s &#8211; %2$s', 'weekly archives date range' ),
+			date_i18n( $date_format, $week['start'] ),
+			date_i18n( $date_format, $week['end'] )
+		);
+		$prefix = _x( 'Week:', 'date archive title prefix' );
 	} elseif ( is_year() ) {
 		/* translators: See https://www.php.net/manual/datetime.format.php */
 		$title  = get_the_date( _x( 'Y', 'yearly archives date format' ) );
