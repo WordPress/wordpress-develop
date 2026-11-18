@@ -844,12 +844,74 @@
 			} );
 		},
 
+		/**
+		 * Creates a saver that sends screen option updates in order.
+		 *
+		 * @since 7.2.0
+		 * @private
+		 *
+		 * @param {Function} getData   Gets the current screen option request data.
+		 * @param {Function} [success] Handles a successful request.
+		 * @return {Function} Saves the current state after any active request, with
+		 *                    a whenIdle() method to wait for queued requests to settle.
+		 */
+		createScreenOptionsSaver : function( getData, success ) {
+			var saving = false,
+				pending = false,
+				idle = $.Deferred().resolve();
+
+			function save() {
+				if ( saving ) {
+					pending = true;
+					return;
+				}
+
+				pending = false;
+				saving = true;
+
+				if ( 'pending' !== idle.state() ) {
+					idle = $.Deferred();
+				}
+
+				$.post( ajaxurl, getData(), success ).always( function() {
+					saving = false;
+
+					if ( pending ) {
+						save();
+					} else {
+						idle.resolve();
+					}
+				} );
+			}
+
+			/**
+			 * Waits for the active request and any queued updates to settle.
+			 *
+			 * @return {JQuery.Promise} A promise that resolves when the saver is idle.
+			 */
+			save.whenIdle = function() {
+				return idle.promise();
+			};
+
+			return save;
+		},
+
 		initToggles : function() {
 			// Init postboxes.
 			postboxes.add_postbox_toggles('nav-menus');
 
 			// Adjust columns functions for menus UI.
 			columns.useCheckboxesForHidden();
+			columns.saveManageColumnsState = api.createScreenOptionsSaver( function() {
+				return {
+					action: 'hidden-columns',
+					hidden: columns.hidden(),
+					screenoptionnonce: $( '#screenoptionnonce' ).val(),
+					page: 'nav-menus'
+				};
+			}, function() {
+				wp.a11y.speak( wp.i18n.__( 'Screen Options updated.' ) );
+			} );
 			columns.checked = function(field) {
 				$('.field-' + field).removeClass('hidden-field');
 			};
@@ -859,15 +921,17 @@
 			// Hide fields.
 			api.menuList.hideAdvancedMenuItemFields();
 
-			$('.hide-postbox-tog').on( 'click', function () {
-				var hidden = $( '.accordion-container li.accordion-section' ).filter(':hidden').map(function() { return this.id; }).get().join(',');
-				$.post(ajaxurl, {
+			api.saveMenuBoxesState = api.createScreenOptionsSaver( function() {
+				return {
 					action: 'closed-postboxes',
-					hidden: hidden,
-					closedpostboxesnonce: jQuery('#closedpostboxesnonce').val(),
+					hidden: $( '.accordion-container li.accordion-section' ).filter( ':hidden' ).map( function() {
+						return this.id;
+					} ).get().join( ',' ),
+					closedpostboxesnonce: $( '#closedpostboxesnonce' ).val(),
 					page: 'nav-menus'
-				});
-			});
+				};
+			} );
+			$( '.hide-postbox-tog' ).on( 'click', api.saveMenuBoxesState );
 		},
 
 		initSortables : function() {
@@ -1377,13 +1441,61 @@
 		},
 
 		attachMenuSaveSubmitListeners : function() {
+			var waiting = false;
+
 			/*
 			 * When a navigation menu is saved, store a JSON representation of all form data
 			 * in a single input to avoid PHP `max_input_vars` limitations. See #14134.
 			 */
-			$( '#update-nav-menu' ).on( 'submit', function() {
-				var navMenuData = $( '#update-nav-menu' ).serializeArray();
-				$( '[name="nav-menu-data"]' ).val( JSON.stringify( navMenuData ) );
+			$( '#update-nav-menu' ).on( 'submit', function( event ) {
+				var form = this,
+					$form = $( form ),
+					columnsSaved, boxesSaved, submitter, $saveButtons, navMenuData;
+
+				if ( event.isDefaultPrevented() ) {
+					return;
+				}
+
+				columnsSaved = columns.saveManageColumnsState.whenIdle();
+				boxesSaved = api.saveMenuBoxesState.whenIdle();
+
+				if ( 'pending' === columnsSaved.state() || 'pending' === boxesSaved.state() ) {
+					event.preventDefault();
+
+					if ( waiting ) {
+						return;
+					}
+
+					waiting = true;
+					submitter = event.originalEvent && event.originalEvent.submitter;
+					$saveButtons = $form.find( '.menu-save:enabled' ).prop( 'disabled', true );
+					$form.attr( 'aria-busy', 'true' );
+
+					$.when( columnsSaved, boxesSaved ).done( function() {
+						waiting = false;
+						$saveButtons.prop( 'disabled', false );
+						$form.attr( 'aria-busy', 'false' );
+
+						// Recheck the queues and preserve native validation and the submit button.
+						if ( submitter && submitter.form === form ) {
+							form.requestSubmit( submitter );
+						} else {
+							form.requestSubmit();
+						}
+					} );
+					return;
+				}
+
+				if ( ! api.validateMenuName() ) {
+					event.preventDefault();
+					return;
+				}
+
+				// Include menu edits made while the screen options were being saved.
+				api.menuList.find( '.menu-item-data-position' ).val( function( index ) { return index + 1; } );
+				navMenuData = $form.serializeArray();
+				$form.find( '[name="nav-menu-data"]' ).val( JSON.stringify( navMenuData ) );
+				window.onbeforeunload = null;
 			});
 		},
 
@@ -1742,7 +1854,15 @@
 			return false;
 		},
 
-		eventOnClickMenuSave : function() {
+		/**
+		 * Validates the menu name before saving.
+		 *
+		 * @since 7.2.0
+		 * @private
+		 *
+		 * @return {boolean} Whether the menu name contains non-whitespace characters.
+		 */
+		validateMenuName : function() {
 			var menuName = $('#menu-name'),
 				menuNameVal = menuName.val();
 
@@ -1751,6 +1871,14 @@
 				menuName.parent().addClass( 'form-invalid' );
 				return false;
 			}
+			return true;
+		},
+
+		eventOnClickMenuSave : function() {
+			if ( ! api.validateMenuName() ) {
+				return false;
+			}
+
 			// Copy menu theme locations.
 			// Note: This appears to be dead code since #nav-menu-theme-locations no longer exists, perhaps removed in r32842.
 			var $updateNavMenu = $('#update-nav-menu');
@@ -1763,10 +1891,6 @@
 					} )
 				);
 			});
-			// Update menu item position data.
-			api.menuList.find('.menu-item-data-position').val( function(index) { return index + 1; } );
-			window.onbeforeunload = null;
-
 			return true;
 		},
 
