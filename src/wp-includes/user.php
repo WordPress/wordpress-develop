@@ -4962,18 +4962,32 @@ function wp_send_user_request( $request_id ) {
 	 */
 	$request->confirm_key = wp_generate_user_request_key( $request_id );
 
+	$confirm_url = add_query_arg(
+		array(
+			'action'      => 'confirmaction',
+			'request_id'  => $request_id,
+			'confirm_key' => $request->confirm_key,
+		),
+		wp_login_url()
+	);
+
+	/*
+	 * When the user has explicitly selected a locale on their profile, add it to the
+	 * confirmation URL so the confirmation page is displayed in the same language as the email.
+	 */
+	if ( ! empty( $request->user_id ) ) {
+		$user_selected_locale = get_user_meta( (int) $request->user_id, 'locale', true );
+
+		if ( ! empty( $user_selected_locale ) ) {
+			$confirm_url = add_query_arg( 'wp_lang', $user_selected_locale, $confirm_url );
+		}
+	}
+
 	$email_data = array(
 		'request'     => $request,
 		'email'       => $request->email,
 		'description' => wp_user_request_action_description( $request->action_name ),
-		'confirm_url' => add_query_arg(
-			array(
-				'action'      => 'confirmaction',
-				'request_id'  => $request_id,
-				'confirm_key' => $request->confirm_key,
-			),
-			wp_login_url()
-		),
+		'confirm_url' => $confirm_url,
 		'sitename'    => wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ),
 		'siteurl'     => home_url(),
 	);
