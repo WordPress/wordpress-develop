@@ -106,6 +106,7 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 			// Load block patterns from w.org.
 			_load_remote_block_patterns(); // Patterns with the `core` keyword.
 			_load_remote_featured_patterns(); // Patterns in the `featured` category.
+			_load_remote_community_patterns(); // Community-contributed patterns (opt-in).
 			_register_remote_theme_patterns(); // Patterns requested by current theme.
 
 			$this->remote_patterns_loaded = true;
