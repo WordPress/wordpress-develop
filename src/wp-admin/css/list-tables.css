@@ -1921,41 +1921,8 @@ div.action-links,
 		min-width: 20em;
 	}
 
-	/* Match the edge fades to Core's row backgrounds. */
 	.wp-list-table-scroll > .wp-list-table > :is(thead, tbody, tfoot) > tr {
-		--list-table-row-background: #fff;
 		position: relative;
-	}
-
-	.wp-list-table-scroll > .striped > tbody > :nth-child(odd),
-	.wp-list-table-scroll > .wp-list-table > tbody > .alternate,
-	.wp-list-table-scroll > .wp-list-table > tbody > .undo {
-		--list-table-row-background: #f6f7f7;
-	}
-
-	.wp-list-table-scroll > .plugins > tbody > tr {
-		--list-table-row-background: #fff;
-	}
-
-	.wp-list-table-scroll > .plugins > tbody > .active {
-		--list-table-row-background: color-mix(in srgb, var(--wp-admin-theme-color) 8%, #fff);
-	}
-
-	.wp-list-table-scroll > .plugins > tbody > .paused {
-		--list-table-row-background: #f6f7f7;
-	}
-
-	.wp-list-table-scroll > .wp-list-table > tbody > :is(.unapproved, .site-spammed, .site-mature) {
-		--list-table-row-background: #fcf9e8;
-	}
-
-	.wp-list-table-scroll > .wp-list-table > tbody > :is(.site-deleted, .site-archived) {
-		--list-table-row-background: #fcf0f1;
-	}
-
-	/* Core applies the 8% keyboard-selection tint to both the row and its cells. */
-	.wp-list-table-scroll > .wp-list-table > tbody > .vim-current {
-		--list-table-row-background: color-mix(in srgb, var(--wp-admin-theme-color) 15.36%, #fff);
 	}
 
 	/* Zero-width sticky cells paint the fades inward without adding column width. */
@@ -1969,7 +1936,7 @@ div.action-links,
 		padding: 0;
 
 		/* WebKit needs a nonzero, nontransparent border to paint the sticky cell's border image. */
-		border: 0 solid var(--list-table-row-background);
+		border: 0 solid #fff;
 		border-top-width: 1px;
 		pointer-events: none;
 		opacity: 0;
@@ -1979,14 +1946,14 @@ div.action-links,
 		inset-inline-start: 0;
 
 		/* rtl:ignore */
-		border-image: linear-gradient(to right, var(--list-table-row-background), transparent) 0 100% / 0 32px 0 0 / 0 32px 0 0 stretch;
+		border-image: linear-gradient(to right, #fff, transparent) 0 100% / 0 24px 0 0 / 0 24px 0 0 stretch;
 	}
 
 	.wp-list-table-scroll > .wp-list-table > :is(thead, tbody, tfoot) > tr::after {
 		inset-inline-end: 0;
 
 		/* rtl:ignore */
-		border-image: linear-gradient(to left, var(--list-table-row-background), transparent) 0 0 0 100% / 0 0 0 32px / 0 0 0 32px stretch;
+		border-image: linear-gradient(to left, #fff, transparent) 0 0 0 100% / 0 0 0 24px / 0 0 0 24px stretch;
 	}
 
 	.wp-list-table-scroll.has-scroll-overflow-start > .wp-list-table > :is(thead, tbody, tfoot) > tr::before,
