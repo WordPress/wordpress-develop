@@ -246,12 +246,13 @@ function wptexturize( $text, $reset = false ) {
 	$no_texturize_shortcodes = $html_api_depth > 0 ? $html_api_no_texturize_shorts : apply_filters( 'no_texturize_shortcodes', $default_no_texturize_shortcodes );
 
 	/*
-	 * When opted in, markup goes to the HTML API implementation. It calls back into
-	 * this function for the text it rewrites; the depth guard sends those calls to
-	 * the legacy code below, with the filtered lists above, so each filter runs once
-	 * per call. Text with no markup is handled the same either way.
+	 * When opted in, markup where the legacy code misreads quotes goes to the HTML
+	 * API implementation. It calls back into this function for the text it rewrites;
+	 * the depth guard sends those calls to the legacy code below, with the filtered
+	 * lists above, so each filter runs once per call. Other input is handled the same
+	 * either way, at the legacy code's speed.
 	 */
-	if ( $use_html_api && 0 === $html_api_depth && str_contains( $text, '<' ) ) {
+	if ( $use_html_api && 0 === $html_api_depth && _wptexturize_needs_html_api( $text ) ) {
 		$html_api_no_texturize_tags   = $no_texturize_tags;
 		$html_api_no_texturize_shorts = $no_texturize_shortcodes;
 		++$html_api_depth;
@@ -336,6 +337,53 @@ function wptexturize( $text, $reset = false ) {
 	}
 
 	return implode( '', $textarr );
+}
+
+/**
+ * Determines whether wptexturize() should use the HTML API implementation.
+ *
+ * The legacy implementation texturizes each run of text on its own, so a quote
+ * right after an inline tag is read as if it began the text: in `<em>word</em>'s`
+ * and `word<em>'s</em>` the apostrophe becomes an opening quote. Only input with a
+ * straight quote directly after an inline tag goes to the HTML API, which can see
+ * the text on both sides of the tag. This test is conservative: many inputs that
+ * match it, such as `<em>"quoted"</em>`, are texturized the same either way.
+ *
+ * @since 7.3.0
+ * @access private
+ * @internal
+ *
+ * @param string $text The text to be formatted.
+ * @return bool Whether the input needs the HTML API implementation.
+ */
+function _wptexturize_needs_html_api( $text ) {
+	if ( ! str_contains( $text, '<' ) ) {
+		return false;
+	}
+
+	$length = strlen( $text );
+	$offset = 0;
+
+	// Find each quote right after a ">", then check only the tag that ends there.
+	while ( 1 === preg_match( '/>[\'"]/', $text, $quote, PREG_OFFSET_CAPTURE, $offset ) ) {
+		$at        = $quote[0][1];
+		$offset    = $at + 2;
+		$tag_start = strrpos( $text, '<', $at - $length );
+		if (
+			false !== $tag_start &&
+			1 === preg_match(
+				'~</?(?:a|abbr|b|bdi|bdo|cite|data|del|dfn|em|i|ins|label|mark|q|s|samp|small|span|strong|sub|sup|time|u|var)(?:[\s/](?:[^>"\']++|"[^"]*+"|\'[^\']*+\')*+)?>[\'"]~Ai',
+				$text,
+				$tag,
+				0,
+				$tag_start
+			)
+		) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
