@@ -416,8 +416,11 @@ function get_lastcommentmodified( $timezone = 'server' ) {
 	$timezone = strtolower( $timezone );
 	$key      = "lastcommentmodified:$timezone";
 
-	$comment_modified_date = wp_cache_get( $key, 'timeinfo' );
-	if ( false !== $comment_modified_date ) {
+	// Salted with the excluded set, which changes the date without clearing the cache.
+	$salt = implode( ',', wp_get_default_excluded_comment_types() );
+
+	$comment_modified_date = wp_cache_get_salted( $key, 'timeinfo', $salt );
+	if ( is_string( $comment_modified_date ) ) {
 		return $comment_modified_date;
 	}
 
@@ -440,7 +443,7 @@ function get_lastcommentmodified( $timezone = 'server' ) {
 	// phpcs:enable
 
 	if ( $comment_modified_date ) {
-		wp_cache_set( $key, $comment_modified_date, 'timeinfo' );
+		wp_cache_set_salted( $key, $comment_modified_date, 'timeinfo', $salt );
 
 		return $comment_modified_date;
 	}
