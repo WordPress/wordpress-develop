@@ -1077,6 +1077,7 @@ final class WP_Abilities_Media {
 				$description['raw'] = $attachment->post_content;
 			}
 			if ( $this->is_field_requested( 'description.rendered', $fields ) ) {
+				/** This filter is documented in wp-includes/post-template.php */
 				$description['rendered'] = (string) apply_filters( 'the_content', $attachment->post_content );
 			}
 			if ( ! empty( $description ) ) {
