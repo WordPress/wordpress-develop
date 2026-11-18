@@ -164,4 +164,92 @@ class Tests_Ajax_wpAjaxHeartbeat extends WP_Ajax_UnitTestCase {
 		$this->assertNotEmpty( $response['wp_autosave'] );
 		$this->assertFalse( $response['wp_autosave']['success'] );
 	}
+
+	/**
+	 * Tests that an expired or invalid heartbeat nonce returns only refreshed nonces.
+	 *
+	 * @ticket 24447
+	 */
+	public function test_expired_nonce_returns_refreshed_nonces_only() {
+		wp_set_current_user( self::$admin_id );
+
+		$_POST = array(
+			'action'    => 'heartbeat',
+			'_nonce'    => 'expired_invalid_nonce',
+			'screen_id' => 'post',
+			'data'      => array(
+				'wp-refresh-post-nonces' => array(
+					'post_id' => self::$post_id,
+				),
+			),
+		);
+
+		try {
+			$this->_handleAjax( 'heartbeat' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$response = json_decode( $this->_last_response, true );
+
+		// Fresh nonces should be present for recovery.
+		$this->assertArrayHasKey( 'heartbeat_nonce', $response, 'Response should contain a fresh heartbeat nonce for recovery.' );
+		$this->assertArrayHasKey( 'rest_nonce', $response, 'Response should contain a fresh REST nonce for recovery.' );
+		$this->assertSame( 1, wp_verify_nonce( $response['heartbeat_nonce'], 'heartbeat-nonce' ), 'The fresh heartbeat nonce should be valid.' );
+		$this->assertSame( 1, wp_verify_nonce( $response['rest_nonce'], 'wp_rest' ), 'The fresh REST nonce should be valid.' );
+
+		// Post nonces should also be refreshed via wp_refresh_nonces filter.
+		$this->assertArrayHasKey( 'wp-refresh-post-nonces', $response, 'Response should contain refreshed post nonces.' );
+		$this->assertArrayHasKey( '_wpnonce', $response['wp-refresh-post-nonces']['replace'], 'Post nonces should include _wpnonce.' );
+		$this->assertSame(
+			1,
+			wp_verify_nonce( $response['wp-refresh-post-nonces']['replace']['_wpnonce'], 'update-post_' . self::$post_id ),
+			'The refreshed post nonce should be valid.'
+		);
+
+		// The legacy nonces_expired flag should not be set.
+		$this->assertArrayNotHasKey( 'nonces_expired', $response, 'Response should not set nonces_expired.' );
+
+		// server_time is set after heartbeat_tick — its absence proves the early return.
+		$this->assertArrayNotHasKey( 'server_time', $response, 'Response should not contain server_time since heartbeat_tick must not fire.' );
+	}
+
+	/**
+	 * Tests that autosave does NOT run when the heartbeat nonce is expired.
+	 *
+	 * @ticket 24447
+	 */
+	public function test_autosave_blocked_when_nonce_expired() {
+		wp_set_current_user( self::$admin_id );
+
+		$md5   = md5( uniqid() );
+		$_POST = array(
+			'action'    => 'heartbeat',
+			'_nonce'    => 'expired_invalid_nonce',
+			'screen_id' => 'post',
+			'data'      => array(
+				'wp_autosave' => array(
+					'post_id'      => self::$post_id,
+					'_wpnonce'     => wp_create_nonce( 'update-post_' . self::$post_id ),
+					'post_content' => self::$post->post_content . PHP_EOL . $md5,
+					'post_type'    => 'post',
+				),
+			),
+		);
+
+		try {
+			$this->_handleAjax( 'heartbeat' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$response = json_decode( $this->_last_response, true );
+
+		// Autosave should not have run.
+		$this->assertArrayNotHasKey( 'wp_autosave', $response, 'Autosave must not run when heartbeat nonce is expired.' );
+
+		// Post content should be unchanged.
+		$post = get_post( self::$post_id );
+		$this->assertStringNotContainsString( $md5, $post->post_content, 'Post should not be modified when heartbeat nonce is expired.' );
+	}
 }
