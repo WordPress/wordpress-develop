@@ -69,7 +69,7 @@ class Tests_Admin_WPPluginDependencies_GetDependencyFilepath extends WP_PluginDe
 	 *
 	 * @return array[]
 	 */
-	public function data_get_dependency_filepath() {
+	public static function data_get_dependency_filepath() {
 		return array(
 			'no plugins'                      => array(
 				'dependency_slug' => 'dependency',

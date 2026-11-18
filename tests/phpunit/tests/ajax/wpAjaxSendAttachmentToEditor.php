@@ -14,6 +14,15 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_Ajax_wpAjaxSendAttachmentToEditor extends WP_Ajax_UnitTestCase {
 
 	/**
+	 * Tear down the test fixture.
+	 */
+	public function tear_down() {
+		// Cleanup.
+		$this->remove_added_uploads();
+		parent::tear_down();
+	}
+
+	/**
 	 * Shared user ID for the tests.
 	 *
 	 * @var int
@@ -44,11 +53,7 @@ class Tests_Ajax_wpAjaxSendAttachmentToEditor extends WP_Ajax_UnitTestCase {
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload     = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment = $this->_make_attachment( $upload );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 
 		// Set up a default request.
 		$_POST['nonce']      = wp_create_nonce( 'media-send-to-editor' );
@@ -87,11 +92,7 @@ class Tests_Ajax_wpAjaxSendAttachmentToEditor extends WP_Ajax_UnitTestCase {
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		$filename = DIR_TESTDATA . '/formatting/entities.txt';
-		$contents = file_get_contents( $filename );
-
-		$upload     = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment = $this->_make_attachment( $upload );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/formatting/entities.txt' );
 
 		// Set up a default request.
 		$_POST['nonce']      = wp_create_nonce( 'media-send-to-editor' );
@@ -132,18 +133,10 @@ class Tests_Ajax_wpAjaxSendAttachmentToEditor extends WP_Ajax_UnitTestCase {
 		$_POST = array_merge( $_POST, $post );
 
 		// Upload the attachment itself.
-		$filename = DIR_TESTDATA . '/uploads/small-audio.mp3';
-		$contents = file_get_contents( $filename );
-
-		$upload     = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment = $this->_make_attachment( $upload );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/uploads/small-audio.mp3' );
 
 		// Upload the thumbnail.
-		$filename = DIR_TESTDATA . '/images/waffles.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload    = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$thumbnail = $this->_make_attachment( $upload );
+		$thumbnail = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/waffles.jpg' );
 
 		// Set up a default request.
 		$_POST['_ajax_nonce']  = wp_create_nonce( 'set-attachment-thumbnail' );
@@ -172,18 +165,10 @@ class Tests_Ajax_wpAjaxSendAttachmentToEditor extends WP_Ajax_UnitTestCase {
 		$_POST = array_merge( $_POST, $post );
 
 		// Upload the attachment itself.
-		$filename = DIR_TESTDATA . '/uploads/small-audio.mp3';
-		$contents = file_get_contents( $filename );
-
-		$upload     = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment = $this->_make_attachment( $upload );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/uploads/small-audio.mp3' );
 
 		// Upload the thumbnail.
-		$filename = DIR_TESTDATA . '/images/waffles.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload    = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$thumbnail = $this->_make_attachment( $upload );
+		$thumbnail = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/waffles.jpg' );
 
 		// Set up a default request.
 		$_POST['thumbnail_id'] = $thumbnail;

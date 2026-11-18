@@ -9,9 +9,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $wp_post_types );
 
-		foreach ( $wp_post_types as $post_type ) {
-			$this->assertInstanceOf( 'WP_Post_Type', $post_type );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Post_Type', $wp_post_types );
 	}
 
 	public function test_add_supports_defaults() {
@@ -108,8 +106,6 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	}
 
 	public function test_does_not_add_query_var_if_not_public() {
-		$this->set_permalink_structure( '/%postname%' );
-
 		/* @var WP $wp */
 		global $wp;
 
@@ -127,8 +123,6 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	}
 
 	public function test_adds_query_var_if_public() {
-		$this->set_permalink_structure( '/%postname%' );
-
 		/* @var WP $wp */
 		global $wp;
 
@@ -153,8 +147,6 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	}
 
 	public function test_adds_rewrite_rules() {
-		$this->set_permalink_structure( '/%postname%' );
-
 		/* @var WP_Rewrite $wp_rewrite */
 		global $wp_rewrite;
 
@@ -173,8 +165,8 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		$post_type_object->remove_rewrite_rules();
 		$rewrite_tags_after = $wp_rewrite->rewritecode;
 
-		$this->assertNotFalse( array_search( "%$post_type%", $rewrite_tags, true ) );
-		$this->assertFalse( array_search( "%$post_type%", $rewrite_tags_after, true ) );
+		$this->assertContains( "%$post_type%", $rewrite_tags );
+		$this->assertNotContains( "%$post_type%", $rewrite_tags_after );
 	}
 
 	public function test_register_meta_boxes() {
@@ -267,7 +259,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	 *     @type string|bool $expected_property_value Expected property value.
 	 * }
 	 */
-	public function data_should_have_correct_custom_revisions_and_autosaves_controllers_properties() {
+	public static function data_should_have_correct_custom_revisions_and_autosaves_controllers_properties() {
 		return array(
 			'autosave_rest_controller_class property'  => array(
 				'autosave_rest_controller_class',
@@ -334,7 +326,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	 *     @type string|null      $expected_value                  Expected value.
 	 * }
 	 */
-	public function data_get_revisions_rest_controller_should_return_correct_values() {
+	public static function data_get_revisions_rest_controller_should_return_correct_values() {
 		return array(
 			'disable show_in_rest'                => array(
 				false,
@@ -410,7 +402,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	 *     @type string|null $expected_value                 Expected value.
 	 * }
 	 */
-	public function data_get_autosave_rest_controller_should_return_correct_values() {
+	public static function data_get_autosave_rest_controller_should_return_correct_values() {
 		return array(
 			'disable show_in_rest'               => array(
 				false,
