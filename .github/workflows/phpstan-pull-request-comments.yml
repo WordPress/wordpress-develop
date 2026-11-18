@@ -129,6 +129,7 @@ jobs:
             const expectsStrict = Array.isArray( results.analyses ) && results.analyses.includes( 'strict' );
             let strictErrors = [];
             let strictLevel = null;
+            let strictChangedInBase = [];
             if ( expectsStrict ) {
               let strictResults = null;
               try {
@@ -143,6 +144,7 @@ jobs:
               }
               strictLevel = asLevel( strictResults.level );
               strictErrors = strictResults.errors.map( ( error ) => normalize( { ...error, analysis: 'strict', level: strictLevel } ) );
+              strictChangedInBase = Array.isArray( strictResults.changed_in_base ) ? strictResults.changed_in_base : [];
             }
 
             // The strict analysis includes everything the default one does, so an error it reports at a lower level is
@@ -226,7 +228,11 @@ jobs:
 
             // Files the base branch has changed since the pull request branched from it, in which the line numbers
             // reported can be off in the head commit, since the analysis ran on the head commit merged into the base.
-            const changedInBase = new Set( Array.isArray( results.changed_in_base ) ? results.changed_in_base.filter( ( file ) => typeof file === 'string' ) : [] );
+            // Each analysis only lists those among the files it reported errors in, so the lists of both are combined.
+            const changedInBase = new Set(
+              [ ...( Array.isArray( results.changed_in_base ) ? results.changed_in_base : [] ), ...strictChangedInBase ]
+                .filter( ( file ) => typeof file === 'string' )
+            );
             const lineMayBeOff = ( error ) => ! error.fixed && Boolean( error.line ) && changedInBase.has( error.file );
             const filesWithLinesOff = new Set( active.filter( lineMayBeOff ).map( ( error ) => error.file ) );
 
