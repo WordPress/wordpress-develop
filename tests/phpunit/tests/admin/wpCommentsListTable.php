@@ -276,6 +276,8 @@ OPTIONS;
 		return array(
 			'note type explicitly requested'     => array( 'note' ),
 			'reaction type explicitly requested' => array( 'reaction' ),
+			'note type in another case'          => array( 'Note' ),
+			'note type with a trailing space'    => array( 'note ' ),
 			'all type requested'                 => array( 'all' ),
 		);
 	}
@@ -409,14 +411,17 @@ OPTIONS;
 			'An empty excluded set should surface notes in the untyped view.'
 		);
 
-		$_REQUEST['comment_type'] = 'note';
-		$this->table->prepare_items();
+		// The database matches the type in any case and ignores trailing spaces.
+		foreach ( array( 'note', 'Note', 'note ' ) as $requested_type ) {
+			$_REQUEST['comment_type'] = $requested_type;
+			$this->table->prepare_items();
 
-		$this->assertSameSets(
-			array( $note_id, $regular_comment_id ),
-			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
-			'A request for the note type should be dropped rather than filter the table.'
-		);
+			$this->assertSameSets(
+				array( $note_id, $regular_comment_id ),
+				array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
+				"A request for '$requested_type' should be dropped rather than filter the table."
+			);
+		}
 	}
 
 	/**

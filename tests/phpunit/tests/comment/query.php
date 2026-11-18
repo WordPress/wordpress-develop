@@ -6233,4 +6233,42 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'review' ), wp_get_default_excluded_comment_types() );
 	}
+
+	/**
+	 * Only an exact type name lifts a default exclusion. The database would match
+	 * 'Note' against notes, so a request in another case must keep them excluded:
+	 * callers that gate the note type compare the requested name exactly.
+	 *
+	 * @ticket 65537
+	 * @covers WP_Comment_Query::get_comment_ids
+	 *
+	 * @dataProvider data_inexact_note_type_requests
+	 *
+	 * @param string $requested_type Type requested by the query.
+	 */
+	public function test_inexact_type_request_does_not_lift_a_default_exclusion( string $requested_type ): void {
+		$this->create_excluded_type_test_comments();
+
+		$query = new WP_Comment_Query();
+		$found = $query->query(
+			array(
+				'type'   => $requested_type,
+				'fields' => 'ids',
+			)
+		);
+
+		$this->assertSame( array(), $found );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public function data_inexact_note_type_requests(): array {
+		return array(
+			'another case'   => array( 'Note' ),
+			'trailing space' => array( 'note ' ),
+		);
+	}
 }

@@ -107,11 +107,12 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		/*
 		 * Notes and reactions cannot be requested as a type here, unlike other
-		 * default-excluded types. A non-string request is ignored.
+		 * default-excluded types. The request is normalized the way the database
+		 * compares it. A non-string request is ignored.
 		 */
 		$comment_type = '';
 
-		if ( ! empty( $_REQUEST['comment_type'] ) && is_string( $_REQUEST['comment_type'] ) && ! in_array( $_REQUEST['comment_type'], array( 'note', 'reaction' ), true ) ) {
+		if ( ! empty( $_REQUEST['comment_type'] ) && is_string( $_REQUEST['comment_type'] ) && ! in_array( strtolower( trim( $_REQUEST['comment_type'] ) ), array( 'note', 'reaction' ), true ) ) {
 			$comment_type = $_REQUEST['comment_type'];
 		}
 
