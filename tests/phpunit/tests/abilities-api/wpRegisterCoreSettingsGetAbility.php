@@ -465,6 +465,48 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	}
 
 	/**
+	 * The output schema of a setting uses its registered label as the title and keeps its description.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_core_settings_get_describes_a_setting_with_its_label_and_description(): void {
+		$schema = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties']['core_settings_get_ability_test_option'];
+
+		$this->assertSame( 'Custom Ability Setting', $schema['title'] ?? null, 'The setting label should be used as the schema title.' );
+		$this->assertSame( 'A custom setting exposed through the Abilities API.', $schema['description'] ?? null, 'The setting description should be kept in the schema.' );
+	}
+
+	/**
+	 * A setting registered without a label or description has no title or description in its output schema.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_core_settings_get_omits_an_empty_label_and_description(): void {
+		$option = 'core_settings_get_ability_unlabeled_test_option';
+
+		register_setting(
+			'general',
+			$option,
+			array(
+				'type'              => 'string',
+				'show_in_abilities' => true,
+			)
+		);
+
+		try {
+			$this->register_ability();
+
+			$schema = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'][ $option ];
+
+			$this->assertArrayNotHasKey( 'title', $schema, 'A setting without a label should have no schema title.' );
+			$this->assertArrayNotHasKey( 'description', $schema, 'A setting without a description should have no schema description.' );
+		} finally {
+			unregister_setting( 'general', $option );
+			$this->register_ability();
+		}
+	}
+
+	/**
 	 * A setting shown in the REST API without `show_in_abilities` is not exposed.
 	 *
 	 * @ticket 64605
