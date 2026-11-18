@@ -9,6 +9,18 @@
  * @since 2.8.0
  */
 
+/**
+ * Preload files from the current version into memory that may be
+ * needed during the update process, and may not be available
+ * after files from the updated version have been installed.
+ *
+ * This covers downgrades.
+ * Upgrades are covered in wp-admin/includes/update-core.php.
+ *
+ * @since 6.1.0
+ */
+require_once ABSPATH . WPINC . '/Requests/Exception.php';
+
 /** WP_Upgrader_Skin class */
 require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader-skin.php';
 
