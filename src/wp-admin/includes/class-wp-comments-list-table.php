@@ -116,21 +116,11 @@ class WP_Comments_List_Table extends WP_List_Table {
 		}
 
 		/*
-		 * The default exclusions are passed explicitly so they still apply to an 'all'
-		 * request. The requested type is kept, so a plugin can list its own excluded
-		 * type via the 'admin_comment_types_dropdown' filter.
+		 * WP_Comment_Query drops its default exclusions for an 'all' request, so they are
+		 * passed explicitly. Any other request is left to the query, which keeps a type a
+		 * plugin lists via the 'admin_comment_types_dropdown' filter.
 		 */
-		switch ( $comment_type ) {
-			case 'pings':
-				$requested_types = array( 'pingback', 'trackback' );
-				break;
-
-			default:
-				$requested_types = array( $comment_type );
-				break;
-		}
-
-		$excluded_types = array_values( array_diff( wp_get_default_excluded_comment_types(), $requested_types ) );
+		$excluded_types = 'all' === $comment_type ? wp_get_default_excluded_comment_types() : array();
 
 		$search = $_REQUEST['s'] ?? '';
 
