@@ -46,6 +46,29 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * AVIF output should retain its format even when Imagick identifies the source as HEIC.
+	 *
+	 * @ticket 66261
+	 */
+	public function test_avif_output_format_retained() {
+		if ( ! WP_Image_Editor_Imagick::supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( 'Imagick does not support AVIF.' );
+		}
+
+		$editor = new WP_Image_Editor_Imagick( DIR_TESTDATA . '/images/avif-lossy.avif' );
+		$this->assertTrue( $editor->load() );
+
+		$get_output_format = new ReflectionMethod( $editor, 'get_output_format' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$get_output_format->setAccessible( true );
+		}
+
+		list( , $extension, $mime_type ) = $get_output_format->invoke( $editor );
+		$this->assertSame( 'avif', $extension );
+		$this->assertSame( 'image/avif', $mime_type );
+	}
+
+	/**
 	 * Tests resizing an image, not using crop.
 	 */
 	public function test_resize() {
