@@ -310,19 +310,27 @@ class Tests_Admin_Includes_Update_WpPluginUpdateRow extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that nothing is output on a site's Plugins screen in a network.
+	 * Tests that an update row is output on a site's Plugins screen in a network.
 	 *
-	 * @ticket 65819
+	 * @ticket 52191
 	 *
 	 * @group ms-required
 	 */
-	public function test_should_not_output_row_on_site_screen_in_network() {
+	public function test_should_output_row_on_site_screen_in_network() {
 		wp_set_current_user( self::$admin_id );
 		set_current_screen( 'plugins' );
 
 		$this->set_update( self::FILE, array() );
 
-		$this->assertSame( array( null, '' ), $this->render_row() );
+		$this->assertSame(
+			array(
+				null,
+				$this->get_row_start( '', 'notice-warning' )
+				. 'There is a new version of My Plugin available. ' . $this->get_details_link( 'My Plugin' )
+				. '.</p></div></td></tr>',
+			),
+			$this->render_row()
+		);
 	}
 
 	/**
@@ -397,7 +405,7 @@ class Tests_Admin_Includes_Update_WpPluginUpdateRow extends WP_UnitTestCase {
 	 * @return string The markup.
 	 */
 	private function get_details_link( $label_name ) {
-		$url = 'http://' . WP_TESTS_DOMAIN . '/wp-admin/' . ( is_multisite() ? 'network/' : '' )
+		$url = 'http://' . WP_TESTS_DOMAIN . '/wp-admin/' . ( is_network_admin() ? 'network/' : '' )
 			. 'plugin-install.php?tab=plugin-information&#038;plugin=my-plugin&#038;section=changelog&#038;TB_iframe=true&#038;width=600&#038;height=800';
 
 		return '<a href="' . $url . '" class="thickbox open-plugin-details-modal" aria-label="View ' . $label_name . ' version 2.0.0 details">View version 2.0.0 details</a>';
