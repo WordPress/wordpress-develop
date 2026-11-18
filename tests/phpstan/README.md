@@ -186,6 +186,24 @@ These identifiers are specific to WordPress, and can be ignored or baselined lik
 | `wordpress.hookDocReferenceHookMissing` | The referenced file exists, but documents no hook of that name. Either the reference is stale, or the canonical docblock has moved. |
 | `wordpress.hookParamCountMismatch` | The call passes a different number of arguments than the docblock documents `@param` tags for. Passing fewer risks an `ArgumentCountError` in a callback registered for the documented count; passing more silently drops the extra argument and leaves the documentation misleading. |
 
+### Testing the extensions
+
+The extensions have tests of their own under [`Tests/`](Tests), built on PHPStan's test harness. The two rules are run over fixture files and the errors they report are compared with the ones expected. The visitors and the return type extension are checked through the types PHPStan infers for the `assertType()` calls in their fixtures. Reference comments resolve against a small WordPress tree of fixtures in [`Tests/data/wordpress`](Tests/data/wordpress) rather than against `src`, so a broken reference can be tested without one existing in core.
+
+Run them with:
+
+```bash
+npm run typecheck:php:test
+```
+
+or, outside the Docker environment:
+
+```bash
+composer phpstan:test
+```
+
+They also run in CI, ahead of the analysis itself.
+
 ## Ignoring and baselining errors
 
 As we adopt PHPStan iteratively, you may be faced with false positives due to legacy code, or code that is not worth changing at this time.

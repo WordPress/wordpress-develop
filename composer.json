@@ -78,6 +78,7 @@
 		"phpstan": "@php ./vendor/bin/phpstan analyse --memory-limit=2G",
 		"phpstan:baselines": [ "Composer\\Config::disableProcessTimeout", "@php ./tests/phpstan/generate-baselines.php" ],
 		"phpstan:fix": [ "Composer\\Config::disableProcessTimeout", "@phpstan --configuration=phpstan.neon.dist --fix", "@phpstan:baselines --prune", "@phpstan --configuration=phpstan.neon.dist" ],
+		"phpstan:test": "@php ./vendor/phpunit/phpunit/phpunit -c tests/phpstan/phpunit.xml.dist",
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
 		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
 		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",

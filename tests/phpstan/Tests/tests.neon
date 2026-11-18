@@ -1,0 +1,49 @@
+# PHPStan configuration for the tests of the extensions in tests/phpstan.
+#
+# PHPStan's test harness builds its own container from PHPStan's defaults plus the
+# files a test case names, so the services base.neon registers for the analysis of
+# core are registered again here. The difference is the WordPress root: reference
+# comments resolve against the fixtures in data/wordpress rather than against src,
+# so a test can describe a broken reference without a broken reference existing in
+# core.
+
+parameters:
+	# The hook functions are reflected from core itself, so the tests see the same
+	# signatures the analysis does. The helpers are declared for the fixtures that
+	# pass a filtered value through another call.
+	#
+	# These are loaded rather than scanned because the test harness replaces the
+	# source locator that `scanFiles` feeds, and reflects only what is autoloadable
+	# or already declared in the process.
+	bootstrapFiles:
+		- ../../../src/wp-includes/plugin.php
+		- data/functions.php
+		- data/hash-notation.php
+
+services:
+	-
+		class: WordPress\PHPStan\GlobalDocBlockVisitor
+		tags:
+			- phpstan.parser.richParserNodeVisitor
+
+	-
+		class: WordPress\PHPStan\HashNotationVisitor
+		tags:
+			- phpstan.parser.richParserNodeVisitor
+
+	-
+		class: WordPress\PHPStan\HookDocsVisitor
+		tags:
+			- phpstan.parser.richParserNodeVisitor
+
+	# The root is set by Tests/bootstrap.php, which knows the absolute path of the
+	# fixtures. A relative path here would be resolved against nothing in particular.
+	-
+		class: WordPress\PHPStan\HookDocBlock
+		arguments:
+			wordpress_root: %env.WP_PHPSTAN_TESTS_WORDPRESS_ROOT%
+
+	-
+		class: WordPress\PHPStan\ApplyFiltersDynamicFunctionReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicFunctionReturnTypeExtension
