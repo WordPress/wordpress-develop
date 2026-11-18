@@ -14,7 +14,7 @@ require_once __DIR__ . '/admin.php';
 $title = _x( 'About', 'page title' );
 
 list( $display_version ) = explode( '-', wp_get_wp_version() );
-$display_major_version   = '7.1';
+$display_major_version   = '7.2';
 
 $release_notes_url = sprintf(
 	/* translators: %s: WordPress version number. */
