@@ -8,7 +8,7 @@ on:
         description: 'Operating system to run tests on.'
         required: false
         type: 'string'
-        default: 'ubuntu-24.04'
+        default: 'ubuntu-26.04'
       wp:
         description: 'The version of WordPress to start with.'
         required: true
