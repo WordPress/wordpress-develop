@@ -866,6 +866,91 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65817
+	 */
+	public function test_user_activation_key_with_non_numeric_timestamp_is_rejected() {
+		global $wpdb;
+
+		$key = wp_generate_password( 20, false );
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => 'not-a-timestamp:' . wp_fast_hash( $key ),
+			),
+			array(
+				'ID' => $this->user->ID,
+			)
+		);
+		clean_user_cache( $this->user );
+
+		// A key with a valid hash but a malformed timestamp should be rejected as invalid.
+		$check = check_password_reset_key( $key, $this->user->user_login );
+		$this->assertWPError( $check );
+		$this->assertSame( 'invalid_key', $check->get_error_code() );
+	}
+
+	/**
+	 * A key with a fractional request time, such as one built with `microtime( true )`,
+	 * is accepted until it expires.
+	 *
+	 * @ticket 65817
+	 */
+	public function test_user_activation_key_with_fractional_timestamp_is_accepted() {
+		global $wpdb;
+
+		$key = wp_generate_password( 20, false );
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => microtime( true ) . ':' . wp_fast_hash( $key ),
+			),
+			array(
+				'ID' => $this->user->ID,
+			)
+		);
+		clean_user_cache( $this->user );
+
+		$check = check_password_reset_key( $key, $this->user->user_login );
+		$this->assertInstanceOf( 'WP_User', $check );
+		$this->assertSame( $this->user->ID, $check->ID );
+	}
+
+	/**
+	 * A key with a fractional request time keeps its fraction when it expires,
+	 * so it is still valid during the last second before it expires.
+	 *
+	 * @ticket 65817
+	 */
+	public function test_user_activation_key_with_fractional_timestamp_expires_at_its_exact_time() {
+		global $wpdb;
+
+		$request_time = time() - 100 + 0.5;
+		$key          = wp_generate_password( 20, false );
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => $request_time . ':' . wp_fast_hash( $key ),
+			),
+			array(
+				'ID' => $this->user->ID,
+			)
+		);
+		clean_user_cache( $this->user );
+
+		// Expire the key half a second after the time of the check.
+		add_filter(
+			'password_reset_expiration',
+			static function () use ( $request_time ) {
+				return time() - (int) floor( $request_time );
+			}
+		);
+
+		$check = check_password_reset_key( $key, $this->user->user_login );
+		$this->assertInstanceOf( 'WP_User', $check );
+		$this->assertSame( $this->user->ID, $check->ID );
+	}
+
+	/**
 	 * @ticket 32429
 	 */
 	public function test_empty_user_activation_key_fails_key_check() {
