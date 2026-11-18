@@ -473,15 +473,13 @@ if ( $combined ) {
 
 /*
  * The command each header gives for regenerating its baseline has to name the
- * configuration and the directory this run used, where they are not the
- * defaults. Without them, it would regenerate the default directory instead.
- * A default configuration's own directory needs no naming, since naming the
- * configuration alone writes there.
+ * configuration this run used, even the default one, since without a
+ * configuration named, every one in DEFAULT_CONFIGS is processed, and the
+ * baselines of the same identifier in each of their directories are rewritten.
+ * The directory is only named where it is not the configuration's own, since
+ * naming the configuration alone writes there.
  */
-$regenerate_options = '';
-if ( DEFAULT_CONFIG !== $config_relative ) {
-	$regenerate_options .= ' --config=' . quote_shell_value( $config_option );
-}
+$regenerate_options = ' --config=' . quote_shell_value( $config_option );
 if ( $config_output_dir !== trim( normalize_path( $output_option ), '/' ) ) {
 	$regenerate_options .= ' --output-dir=' . quote_shell_value( $output_option );
 }
