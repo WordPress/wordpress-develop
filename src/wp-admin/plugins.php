@@ -690,6 +690,12 @@ if ( isset( $_GET['error'] ) ) {
 		$errmsg = __( 'Plugin could not be activated because it triggered a <strong>fatal error</strong>.' );
 	}
 
+	$error_notice_args = array(
+		'id'                 => 'message',
+		'additional_classes' => array( 'error' ),
+	);
+	$allowed_html      = wp_kses_allowed_html( 'post' );
+
 	if ( ! isset( $_GET['main'] ) && ! isset( $_GET['charsout'] )
 		&& isset( $_GET['_error_nonce'] ) && wp_verify_nonce( $_GET['_error_nonce'], 'plugin-activation-error_' . $plugin )
 	) {
@@ -704,37 +710,20 @@ if ( isset( $_GET['error'] ) ) {
 
 		$errmsg .= '<iframe style="border:0" width="100%" height="70px" src="' . esc_url( $iframe_url ) . '"></iframe>';
 
-		/*
-		 * wp_admin_notice() passes the message through wp_kses_post(), which strips iframes.
-		 * Allow the iframe for this notice only, so the error output can be displayed.
-		 */
-		$allow_error_iframe = static function ( $tags, $context ) {
-			if ( 'post' === $context ) {
-				$tags['iframe'] = array(
-					'src'    => true,
-					'style'  => true,
-					'width'  => true,
-					'height' => true,
-				);
-			}
-
-			return $tags;
-		};
-
-		add_filter( 'wp_kses_allowed_html', $allow_error_iframe, 10, 2 );
+		// wp_kses_post() strips iframes, so allow this one when sanitizing this notice only.
+		$allowed_html['iframe'] = array(
+			'src'    => true,
+			'style'  => true,
+			'width'  => true,
+			'height' => true,
+		);
 	}
 
-	wp_admin_notice(
-		$errmsg,
-		array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'error' ),
-		)
-	);
+	/** This action is documented in wp-includes/functions.php */
+	do_action( 'wp_admin_notice', $errmsg, $error_notice_args );
 
-	if ( isset( $allow_error_iframe ) ) {
-		remove_filter( 'wp_kses_allowed_html', $allow_error_iframe );
-	}
+	// Same as wp_admin_notice(), but sanitized with the allowed HTML above instead of wp_kses_post().
+	echo wp_kses( wp_get_admin_notice( $errmsg, $error_notice_args ), $allowed_html );
 } elseif ( isset( $_GET['deleted'] ) ) {
 	$delete_result = get_option( 'plugins_delete_result_' . $user_ID );
 	// Delete it once we're done.
