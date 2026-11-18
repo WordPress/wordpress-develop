@@ -59,7 +59,8 @@ class WP_Privacy_Data_Removal_Requests_List_Table extends WP_Privacy_Requests_Ta
 			$remove_data_markup = '<span class="remove-personal-data force-remove-personal-data" ' .
 				'data-erasers-count="' . esc_attr( $erasers_count ) . '" ' .
 				'data-request-id="' . esc_attr( $request_id ) . '" ' .
-				'data-nonce="' . esc_attr( $nonce ) .
+				'data-nonce="' . esc_attr( $nonce ) . '" ' .
+				'data-email="' . esc_attr( $item->email ) .
 				'">';
 
 			$remove_data_markup .= '<span class="remove-personal-data-idle"><button type="button" class="button-link remove-personal-data-handle">' . __( 'Force erase personal data' ) . '</button></span>' .
@@ -132,7 +133,8 @@ class WP_Privacy_Data_Removal_Requests_List_Table extends WP_Privacy_Requests_Ta
 					'data-force-erase="1" ' .
 					'data-erasers-count="' . esc_attr( $erasers_count ) . '" ' .
 					'data-request-id="' . esc_attr( $request_id ) . '" ' .
-					'data-nonce="' . esc_attr( $nonce ) .
+					'data-nonce="' . esc_attr( $nonce ) . '" ' .
+					'data-email="' . esc_attr( $item->email ) .
 					'">';
 
 				?>
