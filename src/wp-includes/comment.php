@@ -3267,6 +3267,10 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 * changes the set for types that already have comments should call
 	 * wp_update_comment_count_now() for the affected posts on activation and deactivation.
 	 *
+	 * The counts, the feeds and get_lastcommentmodified() resolve the set without a query,
+	 * and a threaded query resolves it again for each level of replies. A callback that
+	 * varies the set by `$query` makes those disagree with the listed comments.
+	 *
 	 * This is a default-visibility setting, not access control: excluded types can still
 	 * be queried explicitly.
 	 *
