@@ -339,14 +339,30 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 	 * @ticket 35214
 	 *
 	 * @covers ::register_comment_type
+	 *
+	 * @expectedIncorrectUsage register_comment_type
+	 *
+	 * @dataProvider data_comment_type_names_changed_by_sanitize_key
 	 */
-	public function test_register_comment_type_name_is_sanitized(): void {
-		$comment_type_object = register_comment_type( 'Foo Bar!' );
+	public function test_register_comment_type_name_that_sanitize_key_would_change_is_rejected( string $comment_type ): void {
+		$result = register_comment_type( $comment_type );
 
-		$this->assertInstanceOf( WP_Comment_Type::class, $comment_type_object );
-		$this->assertSame( 'foobar', $comment_type_object->name );
-		$this->assertFalse( comment_type_exists( 'Foo Bar!' ) );
-		$this->assertTrue( comment_type_exists( 'foobar' ) );
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_type_name_invalid', $result->get_error_code() );
+		$this->assertFalse( comment_type_exists( $comment_type ) );
+		$this->assertFalse( comment_type_exists( sanitize_key( $comment_type ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public function data_comment_type_names_changed_by_sanitize_key(): array {
+		return array(
+			'uppercase'          => array( 'Review' ),
+			'spaces and symbols' => array( 'Foo Bar!' ),
+		);
 	}
 
 	/**
@@ -575,8 +591,8 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Comment types are never hierarchical. The default labels reserve the hierarchical
-	 * slot as null, so honoring a provided value would resolve every label to null.
+	 * Comment types are never hierarchical, so a 'hierarchical' argument has no effect
+	 * on the labels.
 	 *
 	 * @ticket 35214
 	 *
@@ -587,7 +603,6 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 
 		$cobj = $this->get_registered_comment_type( 'foo' );
 
-		$this->assertFalse( $cobj->hierarchical, 'A comment type should never be hierarchical.' );
 		$this->assertSame( 'Comments', $cobj->label, 'The default label should survive the argument.' );
 		$this->assertSame( 'Comments', $cobj->labels->name );
 		$this->assertSame( 'Comment', $cobj->labels->singular_name );
@@ -629,26 +644,75 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The built-in guard reads the raw arguments, so passing '_builtin' bypasses it. This
-	 * matches register_post_type(), where '_builtin' is an accepted internal-use argument
-	 * with no guard at all. Pinned so the follow-ups that give '_builtin' more meaning
-	 * cannot change it by accident.
+	 * Passing '_builtin' does not get around the built-in guard.
 	 *
 	 * @ticket 35214
 	 *
 	 * @covers ::register_comment_type
+	 *
+	 * @expectedIncorrectUsage register_comment_type
 	 */
-	public function test_register_comment_type_builtin_argument_bypasses_the_built_in_guard(): void {
+	public function test_register_comment_type_builtin_argument_does_not_bypass_the_built_in_guard(): void {
 		$result = register_comment_type(
-			'pingback',
+			'note',
 			array(
 				'_builtin' => true,
 				'label'    => 'Hijacked',
+				'internal' => false,
 			)
 		);
 
-		$this->assertInstanceOf( 'WP_Comment_Type', $result, 'Passing _builtin bypasses the guard.' );
-		$this->assertSame( 'Hijacked', $this->get_registered_comment_type( 'pingback' )->label );
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_type_builtin', $result->get_error_code() );
+
+		$note = $this->get_registered_comment_type( 'note' );
+
+		$this->assertNotSame( 'Hijacked', $note->label );
+		$this->assertTrue( $note->internal );
+	}
+
+	/**
+	 * The args filters cannot remove built-in status from a core type.
+	 *
+	 * @ticket 35214
+	 *
+	 * @covers WP_Comment_Type::set_props
+	 */
+	public function test_args_filter_cannot_remove_built_in_status(): void {
+		add_filter(
+			'register_comment_comment_type_args',
+			static function ( array $args ): array {
+				$args['_builtin'] = false;
+				return $args;
+			}
+		);
+
+		create_initial_comment_types();
+
+		$this->assertTrue( $this->get_registered_comment_type( 'comment' )->_builtin );
+		$this->assertWPError( unregister_comment_type( 'comment' ) );
+	}
+
+	/**
+	 * The args filters cannot lock a custom type by marking it built-in.
+	 *
+	 * @ticket 35214
+	 *
+	 * @covers WP_Comment_Type::set_props
+	 */
+	public function test_args_filter_cannot_add_built_in_status(): void {
+		add_filter(
+			'register_comment_type_args',
+			static function ( array $args ): array {
+				$args['_builtin'] = true;
+				return $args;
+			}
+		);
+
+		register_comment_type( 'foo' );
+
+		$this->assertFalse( $this->get_registered_comment_type( 'foo' )->_builtin );
+		$this->assertTrue( unregister_comment_type( 'foo' ) );
 	}
 
 	/**

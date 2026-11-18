@@ -338,73 +338,63 @@ function get_comments( $args = '' ) {
  * @since 7.3.0
  */
 function create_initial_comment_types(): void {
+	global $wp_comment_types;
+
+	if ( ! is_array( $wp_comment_types ) ) {
+		$wp_comment_types = array();
+	}
+
 	WP_Comment_Type::reset_default_labels();
 
 	/*
 	 * The 'comment', 'pingback', and 'trackback' labels reuse existing translation
 	 * strings; 'note' and 'reaction' use new strings with explicit contexts.
 	 */
-	register_comment_type(
-		'comment',
-		array(
-			'label'    => __( 'Comments' ),
-			'labels'   => array(
+	$builtin_comment_types = array(
+		'comment'   => array(
+			'label'  => __( 'Comments' ),
+			'labels' => array(
 				'singular_name' => _x( 'Comment', 'noun' ),
 			),
-			'public'   => true,
-			'_builtin' => true,
-		)
-	);
-
-	register_comment_type(
-		'pingback',
-		array(
-			'label'    => __( 'Pingbacks' ),
-			'labels'   => array(
+		),
+		'pingback'  => array(
+			'label'  => __( 'Pingbacks' ),
+			'labels' => array(
 				'singular_name' => __( 'Pingback' ),
 			),
-			'public'   => true,
-			'_builtin' => true,
-		)
-	);
-
-	register_comment_type(
-		'trackback',
-		array(
-			'label'    => __( 'Trackbacks' ),
-			'labels'   => array(
+		),
+		'trackback' => array(
+			'label'  => __( 'Trackbacks' ),
+			'labels' => array(
 				'singular_name' => __( 'Trackback' ),
 			),
-			'public'   => true,
-			'_builtin' => true,
-		)
-	);
-
-	register_comment_type(
-		'note',
-		array(
+		),
+		'note'      => array(
 			'label'    => _x( 'Notes', 'comment type general name' ),
 			'labels'   => array(
 				'singular_name' => _x( 'Note', 'comment type singular name' ),
 			),
 			'public'   => false,
 			'internal' => true,
-			'_builtin' => true,
-		)
-	);
-
-	register_comment_type(
-		'reaction',
-		array(
+		),
+		'reaction'  => array(
 			'label'    => _x( 'Reactions', 'comment type general name' ),
 			'labels'   => array(
 				'singular_name' => _x( 'Reaction', 'comment type singular name' ),
 			),
 			'public'   => false,
 			'internal' => true,
-			'_builtin' => true,
-		)
+		),
 	);
+
+	foreach ( $builtin_comment_types as $comment_type => $args ) {
+		// Re-registration of a built-in type is rejected, so clear it first ('init', 'change_locale').
+		unset( $wp_comment_types[ $comment_type ] );
+
+		$args['_builtin'] = true;
+
+		register_comment_type( $comment_type, $args );
+	}
 }
 
 /**
@@ -423,6 +413,9 @@ function create_initial_comment_types(): void {
  *
  * Cannot be used to re-register built-in comment types. The names WP_Comment_Query reads
  * as query tokens ('all', 'comments', 'pings') cannot be registered either.
+ *
+ * The key is stored and matched verbatim, so a key that sanitize_key() would change
+ * (for example one with uppercase letters) is rejected rather than silently rewritten.
  *
  * @since 7.3.0
  *
@@ -450,33 +443,35 @@ function create_initial_comment_types(): void {
  *                                   Default false.
  *     @type bool       $_builtin    For internal core use only. Marks the type as native to
  *                                   WordPress, which blocks it from being re-registered or
- *                                   unregistered. Default false.
+ *                                   unregistered. Cannot be changed by the
+ *                                   {@see 'register_comment_type_args'} filters. Default false.
  * }
  * @return WP_Comment_Type|WP_Error The registered comment type object on success,
  *                                  WP_Error object on failure.
  */
-function register_comment_type( $comment_type, $args = array() ) {
+function register_comment_type( string $comment_type, $args = array() ) {
 	global $wp_comment_types;
 
 	if ( ! is_array( $wp_comment_types ) ) {
 		$wp_comment_types = array();
 	}
 
-	$args = wp_parse_args( $args );
+	// Stored comment_type values are matched verbatim, so reject keys sanitize_key() would alter.
+	if ( sanitize_key( $comment_type ) !== $comment_type ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			__( 'Comment type names may only contain lowercase alphanumeric characters, dashes, and underscores.' ),
+			'7.3.0'
+		);
+		return new WP_Error( 'comment_type_name_invalid', __( 'Comment type names may only contain lowercase alphanumeric characters, dashes, and underscores.' ) );
+	}
 
-	// Sanitize comment type name.
-	$comment_type = sanitize_key( $comment_type );
-
-	if ( empty( $comment_type ) || strlen( $comment_type ) > 20 ) {
+	if ( '' === $comment_type || strlen( $comment_type ) > 20 ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Comment type names must be between 1 and 20 characters in length.' ), '7.3.0' );
 		return new WP_Error( 'comment_type_length_invalid', __( 'Comment type names must be between 1 and 20 characters in length.' ) );
 	}
 
-	// Core's own re-registrations on 'init' and 'change_locale' pass '_builtin' and are exempt.
-	if ( isset( $wp_comment_types[ $comment_type ] )
-		&& $wp_comment_types[ $comment_type ]->_builtin
-		&& empty( $args['_builtin'] )
-	) {
+	if ( isset( $wp_comment_types[ $comment_type ] ) && $wp_comment_types[ $comment_type ]->_builtin ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -549,7 +544,7 @@ function register_comment_type( $comment_type, $args = array() ) {
  * @param string $comment_type Comment type key.
  * @return true|WP_Error True on success, WP_Error on failure or if the comment type doesn't exist.
  */
-function unregister_comment_type( $comment_type ) {
+function unregister_comment_type( string $comment_type ) {
 	global $wp_comment_types;
 
 	$comment_type_object = get_comment_type_object( $comment_type );
@@ -587,7 +582,7 @@ function unregister_comment_type( $comment_type ) {
  * @param string $comment_type The name of a registered comment type.
  * @return WP_Comment_Type|null WP_Comment_Type object if it exists, null otherwise.
  */
-function get_comment_type_object( $comment_type ) {
+function get_comment_type_object( $comment_type ): ?WP_Comment_Type {
 	global $wp_comment_types;
 
 	if ( ! is_scalar( $comment_type ) || empty( $wp_comment_types[ $comment_type ] ) ) {
@@ -615,7 +610,7 @@ function get_comment_type_object( $comment_type ) {
  *
  * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  */
-function get_comment_types( $args = array(), $output = 'names', $operator = 'and' ) {
+function get_comment_types( array $args = array(), string $output = 'names', string $operator = 'and' ): array {
 	global $wp_comment_types;
 
 	$field = ( 'names' === $output ) ? 'name' : false;
@@ -631,7 +626,7 @@ function get_comment_types( $args = array(), $output = 'names', $operator = 'and
  * @param string $comment_type Comment type name.
  * @return bool Whether the comment type is registered.
  */
-function comment_type_exists( $comment_type ) {
+function comment_type_exists( $comment_type ): bool {
 	return (bool) get_comment_type_object( $comment_type );
 }
 
@@ -650,22 +645,30 @@ function comment_type_exists( $comment_type ) {
  *     @type string $menu_name     Label for the menu name. Default is the same as `name`.
  * }
  */
-function get_comment_type_labels( $comment_type_object ) {
-	$nohier_vs_hier_defaults = WP_Comment_Type::get_default_labels();
+function get_comment_type_labels( WP_Comment_Type $comment_type_object ): stdClass {
+	$defaults = array();
 
-	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
-
-	$provided_labels = (array) $comment_type_object->labels;
-
-	// _get_custom_object_labels() writes labels back onto the object, so pass a copy.
-	$labels = _get_custom_object_labels( clone $comment_type_object, $nohier_vs_hier_defaults );
-
-	// Drop post-type-only labels unless they were provided at registration.
-	foreach ( array( 'name_admin_bar', 'all_items', 'archives' ) as $post_type_only_label ) {
-		if ( ! array_key_exists( $post_type_only_label, $provided_labels ) ) {
-			unset( $labels->$post_type_only_label );
-		}
+	foreach ( WP_Comment_Type::get_default_labels() as $key => $value ) {
+		$defaults[ $key ] = $value[0];
 	}
+
+	$defaults['menu_name'] = $defaults['name'];
+
+	$labels = (array) $comment_type_object->labels;
+
+	if ( ! empty( $comment_type_object->label ) && empty( $labels['name'] ) ) {
+		$labels['name'] = $comment_type_object->label;
+	}
+
+	if ( ! isset( $labels['singular_name'] ) && isset( $labels['name'] ) ) {
+		$labels['singular_name'] = $labels['name'];
+	}
+
+	if ( ! isset( $labels['menu_name'] ) && isset( $labels['name'] ) ) {
+		$labels['menu_name'] = $labels['name'];
+	}
+
+	$labels = (object) array_merge( $defaults, $labels );
 
 	$comment_type = $comment_type_object->name;
 
