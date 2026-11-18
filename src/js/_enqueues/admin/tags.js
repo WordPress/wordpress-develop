@@ -135,17 +135,20 @@ jQuery( function($) {
 		);
 
 		if ( itemCount < 1 ) {
-			// No tags remain: show the empty-state row and hide the navigation.
+			// No terms remain: show the empty-state row and hide the navigation.
 			var $list = $( '#the-list' );
 
- 			if ( ! $list.find( 'tr.no-items' ).length ) {
- 				var colspan = $list.closest( 'table' ).find( 'thead > tr' ).first().children( ':not(.hidden)' ).length;
- 				$list.append(
- 					'<tr class="no-items"><td class="colspanchange" colspan="' + colspan + '">' +
- 					wp.i18n.__( 'No tags found.' ) +
- 					'</td></tr>'
- 				);
- 			}
+			if ( ! $list.find( 'tr.no-items' ).length ) {
+				var colspan = $list.closest( 'table' ).find( 'thead > tr' ).first().children( ':not(.hidden)' ).length;
+
+				$( '<tr class="no-items"><td class="colspanchange"></td></tr>' )
+					.find( 'td' )
+						.attr( 'colspan', colspan )
+						// The label is filterable and may contain markup, so insert it as text.
+						.text( window.tagsL10n && window.tagsL10n.notFound || wp.i18n.__( 'No items found.' ) )
+					.end()
+					.appendTo( $list );
+			}
 			$( '.tablenav > *' ).hide();
 			$( 'p.search-box' ).hide();
 		} else {
