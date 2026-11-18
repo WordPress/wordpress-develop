@@ -480,10 +480,10 @@ if ( $combined ) {
  */
 $regenerate_options = '';
 if ( DEFAULT_CONFIG !== $config_relative ) {
-	$regenerate_options .= ' --config=' . $config_option;
+	$regenerate_options .= ' --config=' . quote_shell_value( $config_option );
 }
 if ( $config_output_dir !== trim( normalize_path( $output_option ), '/' ) ) {
-	$regenerate_options .= ' --output-dir=' . $output_option;
+	$regenerate_options .= ' --output-dir=' . quote_shell_value( $output_option );
 }
 
 foreach ( $grouped as $identifier => $entries ) {
@@ -888,6 +888,22 @@ function build_baseline( array $entries, string $output_dir, string $header ): s
  */
 function quote_neon_value( string $value ): string {
 	return "'" . str_replace( "'", "''", $value ) . "'";
+}
+
+/**
+ * Quotes a value for a command shown to be run in a shell, where it needs it.
+ *
+ * The command is only written into a baseline's header, to be copied from there,
+ * so a value is left as it is when the shell would read it that way, as the paths
+ * of the default configurations and their directories are. Any other value, such
+ * as a path with a space in it, is quoted, so the copied command still passes it
+ * as one argument.
+ *
+ * @param string $value Value to quote.
+ * @return string Value, quoted if the shell would otherwise split or expand it.
+ */
+function quote_shell_value( string $value ): string {
+	return 1 === preg_match( '#^[\w./-]+$#', $value ) ? $value : escapeshellarg( $value );
 }
 
 /**
