@@ -99,13 +99,32 @@ class Tests_Comment_CommentType extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The label fallback does not apply to built-in types such as 'note' and 'reaction'.
+	 * Built-in types other than 'comment', 'pingback', and 'trackback' use their registered label.
 	 *
 	 * @ticket 35214
 	 */
-	public function test_built_in_internal_types_output_default_comment_text(): void {
-		$this->assertSame( 'Comment', $this->get_comment_type_output( 'note' ) );
-		$this->assertSame( 'Comment', $this->get_comment_type_output( 'reaction' ) );
+	public function test_built_in_internal_types_output_their_label(): void {
+		$this->assertSame( 'Note', $this->get_comment_type_output( 'note' ) );
+		$this->assertSame( 'Reaction', $this->get_comment_type_output( 'reaction' ) );
+	}
+
+	/**
+	 * Overriding the 'comment' label does not change the default comment_type() output.
+	 *
+	 * @ticket 35214
+	 */
+	public function test_comment_type_output_ignores_filtered_comment_label(): void {
+		add_filter(
+			'comment_type_labels_comment',
+			static function ( stdClass $labels ): stdClass {
+				$labels->singular_name = 'Filtered';
+				return $labels;
+			}
+		);
+
+		create_initial_comment_types();
+
+		$this->assertSame( 'Comment', $this->get_comment_type_output( 'comment' ) );
 	}
 
 	/**

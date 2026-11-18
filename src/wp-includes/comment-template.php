@@ -1195,8 +1195,8 @@ function get_comment_type( $comment_id = 0 ) {
  * Displays the comment type of the current comment.
  *
  * @since 0.71
- * @since 7.3.0 The default output for a registered non-built-in comment type
- *              falls back to the type's singular name label.
+ * @since 7.3.0 The default output for a registered comment type other than 'comment',
+ *              such as 'note', falls back to the type's singular name label.
  *
  * @param string|false $comment_text   Optional. String to display for comment type. Default false.
  * @param string|false $trackback_text Optional. String to display for trackback type. Default false.
@@ -1223,10 +1223,10 @@ function comment_type( $comment_text = false, $trackback_text = false, $pingback
 			echo $pingback_text;
 			break;
 		default:
-			// Registered non-built-in types fall back to their singular label.
-			$comment_type_object = $comment_text_overridden ? null : get_comment_type_object( $type );
+			// Other registered types fall back to their singular label.
+			$comment_type_object = ( $comment_text_overridden || 'comment' === $type ) ? null : get_comment_type_object( $type );
 
-			if ( $comment_type_object && ! $comment_type_object->_builtin && is_string( $comment_type_object->labels->singular_name ?? null ) ) {
+			if ( $comment_type_object && is_string( $comment_type_object->labels->singular_name ?? null ) ) {
 				echo esc_html( $comment_type_object->labels->singular_name );
 			} else {
 				echo $comment_text;
