@@ -87,12 +87,12 @@ if ( null !== $single_reason ) {
 		exit( 1 );
 	}
 	fwrite( STDERR, "Running a single analysis, because of $single_reason.\n" );
-	exit( run( 'Analyzing', $phpstan, $args ) );
+	exit( analyse( 'Analyzing', $phpstan, $args ) );
 }
 
 if ( $fix ) {
 	foreach ( array( PROJECT_CONFIG, STRICT_CONFIG ) as $config ) {
-		$status = run( "Fixing with $config", $phpstan, array_merge( array( "--configuration=$config", '--fix' ), $args ) );
+		$status = analyse( "Fixing with $config", $phpstan, array_merge( array( "--configuration=$config", '--fix' ), $args ) );
 
 		// PHPStan exits with 1 both when it fixed something and when there was nothing to fix.
 		if ( $status > 1 ) {
@@ -100,14 +100,14 @@ if ( $fix ) {
 		}
 	}
 
-	$status = run( 'Deleting the baselines left without entries', __DIR__ . '/generate-baselines.php', array( '--prune' ), false );
+	$status = run( 'Deleting the baselines left without entries', __DIR__ . '/generate-baselines.php', array( '--prune' ) );
 	if ( 0 !== $status ) {
 		exit( $status );
 	}
 
 	$exit_code = 0;
 	foreach ( array( PROJECT_CONFIG, STRICT_CONFIG ) as $config ) {
-		$exit_code = max( $exit_code, run( "Analyzing with $config", $phpstan, array_merge( array( "--configuration=$config" ), $args ) ) );
+		$exit_code = max( $exit_code, analyse( "Analyzing with $config", $phpstan, array_merge( array( "--configuration=$config" ), $args ) ) );
 	}
 	exit( $exit_code );
 }
@@ -116,7 +116,7 @@ $local_config  = $repo_root . '/phpstan.neon';
 $strict_config = is_file( $repo_root . '/phpstan-strict.neon' ) ? 'phpstan-strict.neon' : STRICT_CONFIG;
 
 // PHPStan reads phpstan.neon in place of phpstan.neon.dist by itself, so the first analysis names neither.
-$exit_code = run( 'Analyzing with ' . ( is_file( $local_config ) ? 'phpstan.neon' : PROJECT_CONFIG ), $phpstan, $args );
+$exit_code = analyse( 'Analyzing with ' . ( is_file( $local_config ) ? 'phpstan.neon' : PROJECT_CONFIG ), $phpstan, $args );
 
 if ( is_file( $local_config ) ) {
 	$local_level  = get_level( $phpstan, $local_config );
@@ -128,7 +128,7 @@ if ( is_file( $local_config ) ) {
 	}
 }
 
-exit( max( $exit_code, run( "Analyzing the strict paths with $strict_config", $phpstan, array_merge( array( "--configuration=$strict_config" ), $args ) ) ) );
+exit( max( $exit_code, analyse( "Analyzing the strict paths with $strict_config", $phpstan, array_merge( array( "--configuration=$strict_config" ), $args ) ) ) );
 
 /**
  * Runs a command with a heading, passing its output through.
@@ -139,19 +139,15 @@ exit( max( $exit_code, run( "Analyzing the strict paths with $strict_config", $p
  * The script runs on the PHP running this one, which Composer's `@php` chose,
  * rather than on whichever `php` the script's shebang finds first.
  *
- * @param string   $heading     Heading describing the run.
- * @param string   $script      Path to the PHP script to run.
- * @param string[] $args        Arguments, which are escaped for the shell here.
- * @param bool     $is_analysis Whether the script is PHPStan, to which `analyse` is passed first.
+ * @param string   $heading Heading describing the run.
+ * @param string   $script  Path to the PHP script to run.
+ * @param string[] $args    Arguments, which are escaped for the shell here.
  * @return int Exit status of the script.
  */
-function run( string $heading, string $script, array $args, bool $is_analysis = true ): int {
+function run( string $heading, string $script, array $args ): int {
 	fwrite( STDERR, "\n== $heading ==\n\n" );
 
 	$parts = array( escapeshellarg( PHP_BINARY ), escapeshellarg( $script ) );
-	if ( $is_analysis ) {
-		$parts[] = 'analyse';
-	}
 	foreach ( $args as $arg ) {
 		$parts[] = escapeshellarg( $arg );
 	}
@@ -160,6 +156,18 @@ function run( string $heading, string $script, array $args, bool $is_analysis = 
 	passthru( implode( ' ', $parts ), $exit_code );
 
 	return $exit_code;
+}
+
+/**
+ * Runs PHPStan's `analyse` command with a heading, passing its output through.
+ *
+ * @param string   $heading Heading describing the run.
+ * @param string   $phpstan Path to the PHPStan executable.
+ * @param string[] $args    Arguments to the command, which are escaped for the shell.
+ * @return int Exit status of PHPStan.
+ */
+function analyse( string $heading, string $phpstan, array $args ): int {
+	return run( $heading, $phpstan, array_merge( array( 'analyse' ), $args ) );
 }
 
 /**
