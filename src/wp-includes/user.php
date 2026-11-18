@@ -3234,9 +3234,11 @@ function check_password_reset_key(
 	 */
 	$expiration_duration = apply_filters( 'password_reset_expiration', DAY_IN_SECONDS );
 
-	if ( preg_match( '/^(?P<pass_request_time>\d+):(?P<pass_key>.+)\z/', $user->user_activation_key, $matches ) ) {
-		$expiration_time = (int) $matches['pass_request_time'] + $expiration_duration;
-		$pass_key        = $matches['pass_key'];
+	$key_parts = explode( ':', $user->user_activation_key, 2 );
+
+	if ( 2 === count( $key_parts ) && is_numeric( $key_parts[0] ) ) {
+		$expiration_time = (int) $key_parts[0] + $expiration_duration;
+		$pass_key        = $key_parts[1];
 	} else {
 		$pass_key        = $user->user_activation_key;
 		$expiration_time = false;

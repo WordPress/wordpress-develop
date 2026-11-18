@@ -543,4 +543,52 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 
 		wp_set_current_user( $current_user );
 	}
+
+	/**
+	 * The page is calculated from a count, whatever the query args filter returns.
+	 *
+	 * @ticket 65817
+	 *
+	 * @dataProvider data_query_args_filters
+	 *
+	 * @param callable $filter Callback for the `get_page_of_comment_query_args` filter.
+	 */
+	public function test_query_args_filter_cannot_break_the_count( $filter ) {
+		$p        = self::factory()->post->create();
+		$comments = array();
+		foreach ( array( '2013-09-14', '2013-09-15', '2013-09-16' ) as $date ) {
+			$comments[] = self::factory()->comment->create(
+				array(
+					'comment_post_ID' => $p,
+					'comment_date'    => $date . ' 00:00:00',
+				)
+			);
+		}
+
+		add_filter( 'get_page_of_comment_query_args', $filter );
+
+		$this->assertSame( 3, get_page_of_comment( $comments[2], array( 'per_page' => 1 ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: callable}>
+	 */
+	public static function data_query_args_filters() {
+		return array(
+			'count set to false' => array(
+				static function ( $args ) {
+					$args['count'] = false;
+					return $args;
+				},
+			),
+			'count removed'      => array(
+				static function ( $args ) {
+					unset( $args['count'] );
+					return $args;
+				},
+			),
+		);
+	}
 }
