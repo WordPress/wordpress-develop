@@ -133,6 +133,18 @@ class WP_Upgrader {
 	private $temp_restores = array();
 
 	/**
+	 * Stores the package name of each working directory created by this upgrader.
+	 *
+	 * Working directories get an unpredictable name, see WP_Upgrader::get_working_dir_name().
+	 * The package name is kept so a package that is not wrapped in a single folder
+	 * is still installed into a folder named after the package, without the random suffix.
+	 *
+	 * @since 7.2.0
+	 * @var string[] Package names, keyed by working directory path.
+	 */
+	private $working_dir_names = array();
+
+	/**
 	 * Construct the upgrader with a skin.
 	 *
 	 * @since 2.8.0
@@ -352,10 +364,43 @@ class WP_Upgrader {
 	 * @return string The directory name, without a path.
 	 */
 	private function get_working_dir_name( $package ) {
-		// Strip off any .tmp or .zip suffixes.
-		$name = basename( basename( $package, '.tmp' ), '.zip' );
+		return $this->get_package_name( $package ) . '-' . wp_generate_password( 16, false );
+	}
 
-		return $name . '-' . wp_generate_password( 16, false );
+	/**
+	 * Gets the name of a package, without its path and any .tmp or .zip suffixes.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $package The full local path or URI of the package.
+	 * @return string The package name.
+	 */
+	private function get_package_name( $package ) {
+		// Strip off any .tmp or .zip suffixes.
+		return basename( basename( $package, '.tmp' ), '.zip' );
+	}
+
+	/**
+	 * Gets the name of the folder a package source is installed into.
+	 *
+	 * When the source is a working directory created by WP_Upgrader::unpack_package(),
+	 * which happens when the package is not wrapped in a single folder, the package name
+	 * is used instead of the working directory name, so the random suffix of the working
+	 * directory does not end up in the installed folder name.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $source Path to the package source.
+	 * @return string The folder name, without a path.
+	 */
+	private function get_destination_dir_name( $source ) {
+		$source = untrailingslashit( $source );
+
+		if ( isset( $this->working_dir_names[ $source ] ) ) {
+			return $this->working_dir_names[ $source ];
+		}
+
+		return basename( $source );
 	}
 
 	/**
@@ -407,6 +452,8 @@ class WP_Upgrader {
 
 		// We need a working directory.
 		$working_dir = $upgrade_folder . $this->get_working_dir_name( $package );
+
+		$this->working_dir_names[ $working_dir ] = $this->get_package_name( $package );
 
 		// Clean up working directory.
 		if ( $wp_filesystem->is_dir( $working_dir ) ) {
@@ -670,8 +717,10 @@ class WP_Upgrader {
 		}
 
 		if ( in_array( $destination, $protected_directories, true ) ) {
-			$remote_destination = trailingslashit( $remote_destination ) . trailingslashit( basename( $source ) );
-			$destination        = trailingslashit( $destination ) . trailingslashit( basename( $source ) );
+			$destination_dir_name = $this->get_destination_dir_name( $source );
+
+			$remote_destination = trailingslashit( $remote_destination ) . trailingslashit( $destination_dir_name );
+			$destination        = trailingslashit( $destination ) . trailingslashit( $destination_dir_name );
 		}
 
 		if ( $clear_destination ) {
