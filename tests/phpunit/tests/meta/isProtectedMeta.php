@@ -13,7 +13,7 @@ class Tests_Meta_isProtectedMeta extends WP_UnitTestCase {
 		$this->assertTrue( is_protected_meta( $key ) );
 	}
 
-	public function data_is_protected_meta_true() {
+	public static function data_is_protected_meta_true() {
 		$protected_keys = array(
 			array( '_wp_attachment' ),
 		);
@@ -35,7 +35,7 @@ class Tests_Meta_isProtectedMeta extends WP_UnitTestCase {
 		$this->assertFalse( is_protected_meta( $key ) );
 	}
 
-	public function data_is_protected_meta_false() {
+	public static function data_is_protected_meta_false() {
 		$unprotected_keys = array(
 			array( 'singleword' ),
 			array( 'two_words' ),

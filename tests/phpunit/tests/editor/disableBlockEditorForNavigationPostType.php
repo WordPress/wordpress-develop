@@ -23,7 +23,7 @@ class Tests_Editor_DisableBlockEditorForNavigationPostType extends WP_UnitTestCa
 	 *
 	 * @return array
 	 */
-	public function data_should_return_false_when_wp_navigation() {
+	public static function data_should_return_false_when_wp_navigation() {
 		return array(
 			'support value: true'  => array( true ),
 			'support value: false' => array( false ),
@@ -46,7 +46,7 @@ class Tests_Editor_DisableBlockEditorForNavigationPostType extends WP_UnitTestCa
 	 *
 	 * @return array
 	 */
-	public function data_should_return_given_value_for_non_wp_navigation_post_types() {
+	public static function data_should_return_given_value_for_non_wp_navigation_post_types() {
 		return array(
 			'post'                => array(
 				'post_type' => 'post',

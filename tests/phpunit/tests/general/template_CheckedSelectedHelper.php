@@ -96,7 +96,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_equal_values() {
+	public static function data_equal_values() {
 		return array(
 			'same value, "foo"; 1: string; 2: string'   => array( 'foo', 'foo' ),
 			'same value, 1; 1: string; 2: int'          => array( '1', 1 ),
@@ -141,7 +141,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_non_equal_values() {
+	public static function data_non_equal_values() {
 		return array(
 			'1: string foo; 2: string bar' => array( 'foo', 'bar' ),
 			'1: string 0; 2: empty string' => array( '0', '' ),
@@ -212,7 +212,7 @@ class Tests_General_Template_CheckedSelectedHelper extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_checked_selected_helper_default_value_for_second_parameter() {
+	public static function data_checked_selected_helper_default_value_for_second_parameter() {
 		return array(
 			'truthy; boolean true'          => array(
 				'input'         => true,
