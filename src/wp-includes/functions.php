@@ -6307,7 +6307,7 @@ function _doing_it_wrong( $function_name, $message, $version ) {
  * @param int    $error_level   Optional. The designated error type for this error.
  *                              Only works with E_USER family of constants. Default E_USER_NOTICE.
  *
- * @phpstan-param \E_USER_ERROR|\E_USER_WARNING|\E_USER_NOTICE|\E_USER_DEPRECATED $error_level
+ * @phpstan-param E_USER_ERROR|E_USER_WARNING|E_USER_NOTICE|E_USER_DEPRECATED $error_level
  */
 function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTICE ) {
 	/**
@@ -6775,8 +6775,10 @@ function get_main_network_id() {
 	 * @since 4.3.0
 	 *
 	 * @param int $main_network_id The ID of the main network.
+	 *
+	 * @phpstan-param non-negative-int $main_network_id
 	 */
-	return max( 0, (int) apply_filters( 'get_main_network_id', $main_network_id ) );
+	return (int) apply_filters( 'get_main_network_id', $main_network_id );
 }
 
 /**
