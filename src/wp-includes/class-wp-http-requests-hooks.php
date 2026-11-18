@@ -53,9 +53,9 @@ class WP_HTTP_Requests_Hooks extends WpOrg\Requests\Hooks {
 
 		// Handle back-compat actions.
 		switch ( $hook ) {
-			/*
+			/**
 			 * Requests fires 'curl.before_multi_add' instead of 'curl.before_send' for the
-			 * requests of a batch, see WP_Http::request_multiple().
+			 * requests of a batch, see {@see WP_Http::request_multiple()}.
 			 */
 			case 'curl.before_send':
 			case 'curl.before_multi_add':

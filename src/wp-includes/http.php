@@ -148,7 +148,7 @@ function wp_safe_remote_head( $url, $args = array() ) {
  * Like wp_remote_request_multiple(), but every URL is validated to avoid redirection
  * and request forgery attacks. See wp_safe_remote_request().
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @see wp_remote_request_multiple() For information on the request and response format.
  *
@@ -163,7 +163,7 @@ function wp_safe_remote_head( $url, $args = array() ) {
  * @phpstan-param array<array-key, string|array{ url?: string, args?: string|array<array-key, mixed> }> $requests
  * @phpstan-return array<array-key, array<string, mixed>|WP_Error>
  */
-function wp_safe_remote_request_multiple( $requests, $options = array() ) {
+function wp_safe_remote_request_multiple( array $requests, array $options = array() ): array {
 	foreach ( $requests as $id => $request ) {
 		if ( ! is_array( $request ) ) {
 			$request = array( 'url' => $request );
@@ -283,7 +283,7 @@ function wp_remote_head( $url, $args = array() ) {
  * Each request is filtered, and its response processed, individually and exactly as
  * if it had been sent with wp_remote_request().
  *
- * @since 7.2.0
+ * @since 7.3.0
  *
  * @see WP_Http::request_multiple() For information on the request format and the batch options.
  * @see WP_Http::request() For information on accepted request arguments and the response format.
@@ -302,7 +302,7 @@ function wp_remote_head( $url, $args = array() ) {
  * @phpstan-param array<array-key, string|array{ url?: string, args?: string|array<array-key, mixed> }> $requests
  * @phpstan-return array<array-key, array<string, mixed>|WP_Error>
  */
-function wp_remote_request_multiple( $requests, $options = array() ) {
+function wp_remote_request_multiple( array $requests, array $options = array() ): array {
 	$http = _wp_http_get_object();
 	return $http->request_multiple( $requests, $options );
 }

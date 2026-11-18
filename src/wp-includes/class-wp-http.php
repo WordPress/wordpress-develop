@@ -186,6 +186,10 @@ class WP_Http {
 	 * @phpstan-return Response|WP_Error
 	 */
 	public function request( $url, $args = array() ) {
+		if ( ! is_array( $args ) ) {
+			$args = wp_parse_args( $args );
+		}
+
 		$prepared = $this->prepare_request( $url, $args );
 
 		if ( is_wp_error( $prepared ) ) {
@@ -228,7 +232,7 @@ class WP_Http {
 	 *
 	 * Non-blocking requests are not supported: every request is performed in full.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @see WP_Http::request() For the accepted request arguments and the response format.
 	 *
@@ -247,7 +251,7 @@ class WP_Http {
 	 * @phpstan-param array<array-key, string|array{ url?: string, args?: string|array<array-key, mixed> }> $requests
 	 * @phpstan-return array<array-key, Response|WP_Error>
 	 */
-	public function request_multiple( array $requests, array $options = array() ) {
+	public function request_multiple( array $requests, array $options = array() ): array {
 		$responses = array();
 		$pending   = array();
 
@@ -284,7 +288,7 @@ class WP_Http {
 			/**
 			 * Filters the maximum number of HTTP requests that WP_Http::request_multiple() sends at once.
 			 *
-			 * @since 7.2.0
+			 * @since 7.3.0
 			 *
 			 * @param int   $concurrency Maximum number of requests to send at once. Default 6.
 			 * @param array $requests    The requests to send. See WP_Http::request_multiple().
@@ -365,10 +369,10 @@ class WP_Http {
 	 * short-circuit the request, validates the URL, checks whether the request is
 	 * blocked, and translates the arguments into options for the Requests library.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
-	 * @param string                      $url  The request URL.
-	 * @param string|array<string, mixed> $args Optional. Request arguments. See {@see WP_Http::request()}.
+	 * @param string               $url  The request URL.
+	 * @param array<string, mixed> $args Optional. Request arguments. See {@see WP_Http::request()}.
 	 * @return array|WP_Error {
 	 *     The prepared request, or a WP_Error if the request cannot be sent. If the request was
 	 *     short-circuited by the 'pre_http_request' filter, only the 'response' key is present.
@@ -381,10 +385,10 @@ class WP_Http {
 	 *     @type array          $args     The parsed request arguments, after the 'http_request_args' filter.
 	 *     @type array|WP_Error $response Optional. The response returned by the 'pre_http_request' filter.
 	 * }
-	 * @phpstan-param string|array<array-key, mixed> $args
+	 * @phpstan-param array<array-key, mixed> $args
 	 * @phpstan-return Prepared_Request|array{ response: Response|WP_Error }|WP_Error
 	 */
-	protected function prepare_request( $url, $args = array() ) {
+	protected function prepare_request( $url, array $args = array() ) {
 		$defaults = array(
 			'method'              => 'GET',
 			/**
@@ -449,9 +453,6 @@ class WP_Http {
 			'filename'            => null,
 			'limit_response_size' => null,
 		);
-
-		// Pre-parse for the HEAD checks.
-		$args = wp_parse_args( $args );
 
 		// By default, HEAD requests do not cause redirections.
 		if ( isset( $args['method'] ) && 'HEAD' === $args['method'] ) {
@@ -645,7 +646,7 @@ class WP_Http {
 	 *
 	 * Fires the 'http_api_debug' action and applies the 'http_response' filter.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param \WpOrg\Requests\Response|\WpOrg\Requests\Exception|WP_Error $response    The response, or the error the
 	 *                                                                                 request failed with.
@@ -655,7 +656,7 @@ class WP_Http {
 	 * @return array|WP_Error The response array, or a WP_Error on failure. See {@see WP_Http::request()}.
 	 * @phpstan-return Response|WP_Error
 	 */
-	protected function finalize_response( $response, $parsed_args, $url ) {
+	protected function finalize_response( $response, array $parsed_args, string $url ) {
 		if ( $response instanceof WpOrg\Requests\Exception ) {
 			$response = new WP_Error( 'http_request_failed', $response->getMessage() );
 		}
