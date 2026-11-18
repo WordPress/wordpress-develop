@@ -3242,8 +3242,11 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
 function wp_get_default_excluded_comment_types( $query = null ) {
 	$default_excluded_types = array( 'note', 'reaction' );
 
-	// The comment type registry is optional; 'note' and 'reaction' stay excluded without it.
-	if ( function_exists( 'get_comment_types' ) ) {
+	/*
+	 * The comment type registry is optional; 'note' and 'reaction' stay excluded without it.
+	 * The class check keeps a plugin's own get_comment_types() from being read as the registry.
+	 */
+	if ( class_exists( 'WP_Comment_Type' ) && function_exists( 'get_comment_types' ) ) {
 		$internal_types = array_filter( (array) get_comment_types( array( 'internal' => true ), 'names' ), 'is_string' );
 
 		$default_excluded_types = array_values( array_unique( array_merge( $default_excluded_types, $internal_types ) ) );
