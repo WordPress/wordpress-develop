@@ -136,6 +136,8 @@ function wp_robots_noindex_search( array $robots ) {
  *
  * @param array<string, bool|string> $robots Associative array of robots directives.
  * @return array<string, bool|string> Filtered robots directives.
+ *
+ * @phpstan-return array{ noindex: true, ...<string, bool|string> }
  */
 function wp_robots_no_robots( array $robots ) {
 	$robots['noindex'] = true;
@@ -163,6 +165,8 @@ function wp_robots_no_robots( array $robots ) {
  *
  * @param array<string, bool|string> $robots Associative array of robots directives.
  * @return array<string, bool|string> Filtered robots directives.
+ *
+ * @phpstan-return array{ noindex: true, noarchive: true, ...<string, bool|string> }
  */
 function wp_robots_sensitive_page( array $robots ) {
 	$robots['noindex']   = true;
