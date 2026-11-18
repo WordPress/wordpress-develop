@@ -1188,7 +1188,7 @@ function network_edit_site_nav( $args = array() ) {
  *
  * @return array Help tab arguments.
  *
- * @phpstan-return array{id: 'overview', title: string, content: non-falsy-string}
+ * @phpstan-return array{id: non-falsy-string, title: string, content: non-falsy-string}
  */
 function get_site_screen_help_tab_args() {
 	return array(

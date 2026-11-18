@@ -1351,7 +1351,7 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
  *
  * @phpstan-return array{
  *     _title: string,
- *     cb: '<input type="checkbox" />',
+ *     cb: non-falsy-string,
  *     link-target: string,
  *     title-attribute: string,
  *     css-classes: string,

@@ -85,9 +85,7 @@ function is_nav_menu( $menu ) {
  *
  * @global array $_wp_registered_nav_menus
  *
- * @param string[] $locations Associative array of menu location identifiers (like a slug) and descriptive text.
- *
- * @phpstan-param array<string, string> $locations
+ * @param array<string, string> $locations Associative array of menu location identifiers (like a slug) and descriptive text.
  */
 function register_nav_menus( $locations = array() ) {
 	global $_wp_registered_nav_menus;

@@ -64,11 +64,8 @@ function wp_robots() {
  *
  * @see wp_robots_no_robots()
  *
- * @param array $robots Associative array of robots directives.
- * @return array Filtered robots directives.
- *
- * @phpstan-param array<string, bool|string> $robots
- * @phpstan-return array<string, bool|string>
+ * @param array<string, bool|string> $robots Associative array of robots directives.
+ * @return array<string, bool|string> Filtered robots directives.
  */
 function wp_robots_noindex( array $robots ) {
 	if ( ! get_option( 'blog_public' ) ) {
@@ -89,11 +86,8 @@ function wp_robots_noindex( array $robots ) {
  *
  * @see wp_robots_no_robots()
  *
- * @param array $robots Associative array of robots directives.
- * @return array Filtered robots directives.
- *
- * @phpstan-param array<string, bool|string> $robots
- * @phpstan-return array<string, bool|string>
+ * @param array<string, bool|string> $robots Associative array of robots directives.
+ * @return array<string, bool|string> Filtered robots directives.
  */
 function wp_robots_noindex_embeds( array $robots ) {
 	if ( is_embed() ) {
@@ -118,11 +112,8 @@ function wp_robots_noindex_embeds( array $robots ) {
  *
  * @see wp_robots_no_robots()
  *
- * @param array $robots Associative array of robots directives.
- * @return array Filtered robots directives.
- *
- * @phpstan-param array<string, bool|string> $robots
- * @phpstan-return array<string, bool|string>
+ * @param array<string, bool|string> $robots Associative array of robots directives.
+ * @return array<string, bool|string> Filtered robots directives.
  */
 function wp_robots_noindex_search( array $robots ) {
 	if ( is_search() ) {
@@ -143,11 +134,8 @@ function wp_robots_noindex_search( array $robots ) {
  *
  * @since 5.7.0
  *
- * @param array $robots Associative array of robots directives.
- * @return array Filtered robots directives.
- *
- * @phpstan-param array<string, bool|string> $robots
- * @phpstan-return array<string, bool|string>
+ * @param array<string, bool|string> $robots Associative array of robots directives.
+ * @return array<string, bool|string> Filtered robots directives.
  */
 function wp_robots_no_robots( array $robots ) {
 	$robots['noindex'] = true;
@@ -173,11 +161,8 @@ function wp_robots_no_robots( array $robots ) {
  *
  * @since 5.7.0
  *
- * @param array $robots Associative array of robots directives.
- * @return array Filtered robots directives.
- *
- * @phpstan-param array<string, bool|string> $robots
- * @phpstan-return array<string, bool|string>
+ * @param array<string, bool|string> $robots Associative array of robots directives.
+ * @return array<string, bool|string> Filtered robots directives.
  */
 function wp_robots_sensitive_page( array $robots ) {
 	$robots['noindex']   = true;
@@ -197,11 +182,8 @@ function wp_robots_sensitive_page( array $robots ) {
  *
  * @since 5.7.0
  *
- * @param array $robots Associative array of robots directives.
- * @return array Filtered robots directives.
- *
- * @phpstan-param array<string, bool|string> $robots
- * @phpstan-return array<string, bool|string>
+ * @param array<string, bool|string> $robots Associative array of robots directives.
+ * @return array<string, bool|string> Filtered robots directives.
  */
 function wp_robots_max_image_preview_large( array $robots ) {
 	if ( get_option( 'blog_public' ) ) {
