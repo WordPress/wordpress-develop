@@ -19,7 +19,7 @@
  *
  * Unless a configuration is named, this is done for each of DEFAULT_CONFIGS in
  * turn: phpstan.neon.dist, which analyzes the whole codebase, and then
- * phpstan-level-10.neon.dist, which holds selected paths to a stricter rule level
+ * phpstan-strict.neon.dist, which holds selected paths to a stricter rule level
  * and includes the former along with its baselines.
  *
  * With `--prune`, nothing is analyzed: the baselines that no longer list any
@@ -66,15 +66,15 @@ const DEFAULT_CONFIG = 'phpstan.neon.dist';
  * The configurations processed when neither `--config` nor `--output-dir` is given,
  * each with the directory its baselines are written to.
  *
- * They are processed in this order, which matters: phpstan-level-10.neon.dist
+ * They are processed in this order, which matters: phpstan-strict.neon.dist
  * includes phpstan.neon.dist along with its baselines, so its own are only what is
  * left over once those are up to date.
  *
  * Relative to the repository root.
  */
 const DEFAULT_CONFIGS = array(
-	DEFAULT_CONFIG               => DEFAULT_OUTPUT_DIR,
-	'phpstan-level-10.neon.dist' => 'tests/phpstan/baselines-level-10',
+	DEFAULT_CONFIG             => DEFAULT_OUTPUT_DIR,
+	'phpstan-strict.neon.dist' => 'tests/phpstan/baselines-strict',
 );
 
 if ( 'cli' !== PHP_SAPI ) {
@@ -193,10 +193,10 @@ if ( ! $config_given && ! $combined ) {
 
 /*
  * A default configuration named without an output directory writes to its own,
- * so that naming phpstan-level-10.neon.dist alone cannot write its baselines over
+ * so that naming phpstan-strict.neon.dist alone cannot write its baselines over
  * those of phpstan.neon.dist. So does a local override of one, such as
- * phpstan-level-10.neon, named as the `.dist` file is but without the suffix.
- * Written to the default directory instead, the level 10 analysis of only the
+ * phpstan-strict.neon, named as the `.dist` file is but without the suffix.
+ * Written to the default directory instead, the stricter analysis of only the
  * strict paths, with the baselines there suppressed, would retire every baseline of
  * the whole codebase it does not report again.
  */
@@ -550,8 +550,8 @@ function get_usage(): string {
 		edit of it.
 
 		Without --config or --output-dir, this is done for phpstan.neon.dist into
-		tests/phpstan/baselines, and then for phpstan-level-10.neon.dist into
-		tests/phpstan/baselines-level-10. The other options apply to both.
+		tests/phpstan/baselines, and then for phpstan-strict.neon.dist into
+		tests/phpstan/baselines-strict. The other options apply to both.
 
 		Usage:
 		  composer phpstan:baselines [-- <options>]
@@ -573,7 +573,7 @@ function get_usage(): string {
 		                       they leave are written.
 		                       Default: the directory of the configuration named
 		                       above, or of the one it overrides locally, such as
-		                       phpstan-level-10.neon, or else tests/phpstan/baselines
+		                       phpstan-strict.neon, or else tests/phpstan/baselines
 		  --combined           Print one combined baseline to stdout instead of writing
 		                       per-identifier files. Nothing is written to disk. Only
 		                       phpstan.neon.dist is analyzed, unless --config names

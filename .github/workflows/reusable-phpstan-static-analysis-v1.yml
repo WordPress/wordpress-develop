@@ -21,8 +21,8 @@ permissions: {}
 jobs:
   # Runs PHP static analysis tests.
   #
-  # Core is analyzed twice, in parallel: the whole codebase with phpstan.neon.dist, and the paths held to rule level 10
-  # with phpstan-level-10.neon.dist. See tests/phpstan/README.md.
+  # Core is analyzed twice, in parallel: the whole codebase with phpstan.neon.dist, and the paths held to a stricter rule
+  # level with phpstan-strict.neon.dist. See tests/phpstan/README.md.
   #
   # Violations are reported inline with annotations. For pull requests, the results of each analysis are also uploaded
   # as an artifact, and the PHPStan Pull Request Comments workflow combines them in a comment.
@@ -54,16 +54,21 @@ jobs:
           # The artifact of the analysis of the whole codebase keeps the name it had before there were two, which is
           # the name the PHPStan Pull Request Comments workflow on trunk requires. That way the comment is kept up to
           # date for a pull request whose branch does not have the second analysis yet.
-          - analysis: level-5
+          #
+          # The analyses are named for their role rather than their rule level, which is read from the configuration
+          # when the results are reported, so that raising either level is an edit of its configuration alone.
+          - analysis: default
             label: all paths
+            config: phpstan.neon.dist
             baselines: tests/phpstan/baselines
-            script: phpstan:level-5
+            script: phpstan:default
             artifact: phpstan-results
-          - analysis: level-10
-            label: level 10 paths
-            baselines: tests/phpstan/baselines-level-10
-            script: phpstan:level-10
-            artifact: phpstan-results-level-10
+          - analysis: strict
+            label: strict paths
+            config: phpstan-strict.neon.dist
+            baselines: tests/phpstan/baselines-strict
+            script: phpstan:strict
+            artifact: phpstan-results-strict
 
     steps:
       # For a pull request, the parents of the merge commit are fetched too, to find the files that the base branch
@@ -119,9 +124,9 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: .cache # This is defined in the base.neon file.
-          key: "phpstan-analysis-cache-${{ matrix.analysis }}-${{ hashFiles('phpstan.neon.dist', 'phpstan-level-10.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
+          key: "phpstan-analysis-cache-${{ matrix.analysis }}-${{ hashFiles('phpstan.neon.dist', 'phpstan-strict.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
           restore-keys: |
-            phpstan-analysis-cache-${{ matrix.analysis }}-${{ hashFiles('phpstan.neon.dist', 'phpstan-level-10.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-
+            phpstan-analysis-cache-${{ matrix.analysis }}-${{ hashFiles('phpstan.neon.dist', 'phpstan-strict.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-
 
       - name: Run PHP static analysis tests
         id: phpstan
@@ -159,13 +164,32 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ANALYSIS: ${{ matrix.analysis }}
+          CONFIG: ${{ matrix.config }}
         with:
           script: |
             const fs = require( 'fs' );
 
+            // The rule level the configuration analyzes at, as a number, or `max`. Only the line of the parameter is
+            // matched, rather than decoding the whole dump, because the JSON PHPStan prints can be invalid: it writes
+            // the `\<` in a message pattern as is, which is not a valid JSON escape.
+            let level = null;
+            try {
+              const parameters = require( 'child_process' ).execFileSync(
+                `${ process.env.GITHUB_WORKSPACE }/vendor/bin/phpstan`,
+                [ 'dump-parameters', `--configuration=${ process.env.CONFIG }`, '--json' ],
+                { encoding: 'utf8' }
+              );
+              const match = parameters.match( /^\s*"level": "?(max|\d+)"?,?$/m );
+              if ( match ) {
+                level = match[ 1 ] === 'max' ? 'max' : Number( match[ 1 ] );
+              }
+            } catch ( error ) {
+              core.warning( `The rule level of ${ process.env.CONFIG } could not be read: ${ error.message }` );
+            }
+
             // Annotations from the stricter analysis say so, since the same code can pass the other one.
             const analysis = process.env.ANALYSIS;
-            const titlePrefix = analysis === 'level-10' ? 'PHPStan (level 10)' : 'PHPStan';
+            const titlePrefix = analysis === 'strict' ? `PHPStan (strict${ level === null ? '' : `, level ${ level }` })` : 'PHPStan';
 
             const report = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-report.json`, 'utf8' ) );
             const workspace = `${ process.env.GITHUB_WORKSPACE }/`;
@@ -236,8 +260,9 @@ jobs:
               fs.writeFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, JSON.stringify( {
                 pull_request: context.payload.pull_request.number,
                 analysis,
+                level,
                 // Keep this list in step with the `analysis` values of the job's matrix.
-                ...( analysis === 'level-5' ? { analyses: [ 'level-5', 'level-10' ] } : {} ),
+                ...( analysis === 'default' ? { analyses: [ 'default', 'strict' ] } : {} ),
                 changed_in_base: changedInBase,
                 errors: errors.map( ( { tip, fixable, ...error } ) => error ),
               } ) );
@@ -353,7 +378,7 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           path: .cache
-          key: "phpstan-analysis-cache-${{ matrix.analysis }}-${{ hashFiles('phpstan.neon.dist', 'phpstan-level-10.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
+          key: "phpstan-analysis-cache-${{ matrix.analysis }}-${{ hashFiles('phpstan.neon.dist', 'phpstan-strict.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

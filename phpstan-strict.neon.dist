@@ -1,15 +1,15 @@
-# PHPStan configuration holding selected parts of WordPress Core to rule level 10.
+# PHPStan configuration holding selected parts of WordPress Core to a stricter rule level.
 #
 # phpstan.neon.dist analyzes the whole codebase at a lower rule level. This analyzes only the paths listed under
-# `paths!` below, at level 10, so that code which already meets the stricter level, mostly code added in recent
-# releases, keeps meeting it. `composer phpstan` runs both analyses.
+# `paths!` below, at the `level` set below, so that code which already meets that stricter level, mostly code added in
+# recent releases, keeps meeting it. `composer phpstan` runs both analyses.
 #
 # The rest of core is scanned rather than analyzed, so that what the strict paths use is known. A scanned file is read
 # with the same WordPress-specific parser node visitors as an analyzed one (see the redefinition of
 # `currentPhpVersionSimpleParser` in tests/phpstan/base.neon), so a function outside the strict paths has the same
 # types here, such as the array shapes from hash notation, as in the analysis of the whole codebase.
 #
-# To override this configuration, create a phpstan-level-10.neon which includes this file, in the same way as
+# To override this configuration, create a phpstan-strict.neon which includes this file, in the same way as
 # phpstan.neon overrides phpstan.neon.dist.
 #
 # https://phpstan.org/config-reference
@@ -24,16 +24,17 @@ includes:
 	# Preexisting errors at this level in the strict paths, beyond those baselined by phpstan.neon.dist. They are
 	# organized and regenerated the same way, by `composer phpstan:baselines`, and included the same way, through the
 	# loader in their directory.
-	- tests/phpstan/baselines-level-10/loader.php
+	- tests/phpstan/baselines-strict/loader.php
 
 parameters:
+	# The level is set explicitly rather than as `max`, so that a PHPStan update that adds a level does not raise it.
 	# https://phpstan.org/user-guide/rule-levels
 	level: 10
 
 	# The two analyses share the cache of what PHPStan reads from each file, since both read every file the same way,
 	# but each needs its own result cache. Its metadata includes the rule level and the paths analyzed, so a shared one
 	# would be discarded by every run of the other analysis.
-	resultCachePath: %tmpDir%/resultCache-level-10.php
+	resultCachePath: %tmpDir%/resultCache-strict.php
 
 	# The paths held to this rule level, replacing those analyzed by phpstan.neon.dist. A directory covers every file
 	# below it.

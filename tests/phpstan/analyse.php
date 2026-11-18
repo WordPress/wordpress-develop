@@ -3,17 +3,17 @@
  * Runs the PHPStan analyses of WordPress core.
  *
  * Core is analyzed twice: the whole codebase with phpstan.neon.dist, and then the
- * paths held to a stricter rule level with phpstan-level-10.neon.dist. A Composer
+ * paths held to a stricter rule level with phpstan-strict.neon.dist. A Composer
  * script listing the two would stop at the first, since PHPStan exits with a
  * failure status whenever it reports an error, so this runs each in turn whatever
  * the other reports, and exits with the highest status of them.
  *
  * Each analysis honors a local override of its configuration, the same way
  * PHPStan does: phpstan.neon in place of phpstan.neon.dist, which PHPStan finds by
- * itself, and phpstan-level-10.neon in place of phpstan-level-10.neon.dist, which
+ * itself, and phpstan-strict.neon in place of phpstan-strict.neon.dist, which
  * this script chooses. When a local phpstan.neon already analyzes the whole
- * codebase at level 10, the second analysis could only repeat some of what the
- * first reported, so it is skipped.
+ * codebase at the strict rule level or above, the second analysis could only
+ * repeat some of what the first reported, so it is skipped.
  *
  * With `--fix`, the stale entries of both sets of baselines are fixed instead,
  * along with anything else PHPStan can fix. That always uses the two .dist
@@ -52,7 +52,7 @@ const PROJECT_CONFIG = 'phpstan.neon.dist';
 /**
  * The configuration holding selected paths to a stricter rule level.
  */
-const STRICT_CONFIG = 'phpstan-level-10.neon.dist';
+const STRICT_CONFIG = 'phpstan-strict.neon.dist';
 
 $repo_root = dirname( __DIR__, 2 );
 $phpstan   = $repo_root . '/vendor/bin/phpstan';
@@ -73,10 +73,10 @@ if ( $fix ) {
 
 /*
  * Some arguments only make sense for a single analysis. Paths would replace the
- * strict paths of the second one, holding whatever they name to level 10; a level
- * would analyze the strict paths at another; a report format meant to be read by
- * a program would print two reports in a row; and a baseline would be written by
- * each in turn. With any of them, only the first analysis runs, as it did before
+ * strict paths of the second one, holding whatever they name to the stricter
+ * level; a level would analyze the strict paths at another; a report format meant
+ * to be read by a program would print two reports in a row; and a baseline would
+ * be written by each in turn. With any of them, only the first analysis runs, as it did before
  * there were two.
  */
 $single_reason = get_single_analysis_reason( $args );
@@ -113,14 +113,19 @@ if ( $fix ) {
 }
 
 $local_config  = $repo_root . '/phpstan.neon';
-$strict_config = is_file( $repo_root . '/phpstan-level-10.neon' ) ? 'phpstan-level-10.neon' : STRICT_CONFIG;
+$strict_config = is_file( $repo_root . '/phpstan-strict.neon' ) ? 'phpstan-strict.neon' : STRICT_CONFIG;
 
 // PHPStan reads phpstan.neon in place of phpstan.neon.dist by itself, so the first analysis names neither.
 $exit_code = run( 'Analyzing with ' . ( is_file( $local_config ) ? 'phpstan.neon' : PROJECT_CONFIG ), $phpstan, $args );
 
-if ( is_file( $local_config ) && is_strictest_level( $phpstan, $local_config ) ) {
-	fwrite( STDERR, "\nSkipping $strict_config: phpstan.neon already analyzes every path at level 10.\n" );
-	exit( $exit_code );
+if ( is_file( $local_config ) ) {
+	$local_level  = get_level( $phpstan, $local_config );
+	$strict_level = get_level( $phpstan, $repo_root . '/' . $strict_config );
+
+	if ( null !== $local_level && null !== $strict_level && is_level_at_least( $local_level, $strict_level ) ) {
+		fwrite( STDERR, "\nSkipping $strict_config: phpstan.neon already analyzes every path at level $local_level, and the strict paths are held to $strict_level.\n" );
+		exit( $exit_code );
+	}
 }
 
 exit( max( $exit_code, run( "Analyzing the strict paths with $strict_config", $phpstan, array_merge( array( "--configuration=$strict_config" ), $args ) ) ) );
@@ -158,7 +163,7 @@ function run( string $heading, string $script, array $args, bool $is_analysis = 
 }
 
 /**
- * Determines whether a configuration analyzes at the strictest rule level.
+ * Gets the rule level a configuration analyzes at.
  *
  * Only the line of the parameter is matched, rather than decoding the whole dump,
  * because the JSON PHPStan prints can be invalid: it writes the `\<` in a message
@@ -166,21 +171,41 @@ function run( string $heading, string $script, array $args, bool $is_analysis = 
  *
  * @param string $phpstan Path to the PHPStan executable.
  * @param string $config  Absolute path to the configuration file.
- * @return bool Whether the configuration's rule level is 10 or `max`.
+ * @return string|null The rule level, as digits or `max`, or null if it could not be read.
  */
-function is_strictest_level( string $phpstan, string $config ): bool {
+function get_level( string $phpstan, string $config ): ?string {
 	$output    = array();
 	$exit_code = 0;
 	exec( sprintf( '%s %s dump-parameters --configuration=%s --json 2>/dev/null', escapeshellarg( PHP_BINARY ), escapeshellarg( $phpstan ), escapeshellarg( $config ) ), $output, $exit_code );
 
 	foreach ( $output as $line ) {
 		if ( 1 === preg_match( '/^\s*"level": ("max"|"?\d+"?),?$/', $line, $matches ) ) {
-			$level = trim( $matches[1], '"' );
-			return 'max' === $level || (int) $level >= 10;
+			return trim( $matches[1], '"' );
 		}
 	}
 
-	return false;
+	return null;
+}
+
+/**
+ * Determines whether a rule level is at least as strict as another.
+ *
+ * `max` is the highest level of whichever PHPStan version is installed, so it is
+ * at least any other. A numbered level is not taken to be at least `max`, since
+ * that would only hold until PHPStan adds a level above it.
+ *
+ * @param string $level   Rule level, as digits or `max`.
+ * @param string $minimum Rule level to compare it with, as digits or `max`.
+ * @return bool Whether the level is at least the minimum.
+ */
+function is_level_at_least( string $level, string $minimum ): bool {
+	if ( 'max' === $level ) {
+		return true;
+	}
+	if ( 'max' === $minimum ) {
+		return false;
+	}
+	return (int) $level >= (int) $minimum;
 }
 
 /**

@@ -76,8 +76,8 @@
 	},
 	"scripts": {
 		"phpstan": [ "Composer\\Config::disableProcessTimeout", "@php ./tests/phpstan/analyse.php --memory-limit=2G" ],
-		"phpstan:level-5": "@php ./vendor/bin/phpstan analyse --configuration=phpstan.neon.dist --memory-limit=2G",
-		"phpstan:level-10": "@php ./vendor/bin/phpstan analyse --configuration=phpstan-level-10.neon.dist --memory-limit=2G",
+		"phpstan:default": "@php ./vendor/bin/phpstan analyse --configuration=phpstan.neon.dist --memory-limit=2G",
+		"phpstan:strict": "@php ./vendor/bin/phpstan analyse --configuration=phpstan-strict.neon.dist --memory-limit=2G",
 		"phpstan:baselines": [ "Composer\\Config::disableProcessTimeout", "@php ./tests/phpstan/generate-baselines.php" ],
 		"phpstan:fix": [ "Composer\\Config::disableProcessTimeout", "@php ./tests/phpstan/analyse.php --memory-limit=2G --fix" ],
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
