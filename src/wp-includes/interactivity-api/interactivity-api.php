@@ -53,9 +53,9 @@ function wp_interactivity_process_directives( string $html ): string {
  * @since 6.5.0
  * @since 6.6.0 The namespace can be omitted when called inside derived state getters.
  *
- * @param string $store_namespace The unique store namespace identifier.
- * @param array  $state           Optional. The array that will be merged with the existing state for the specified
- *                                store namespace.
+ * @param string|null $store_namespace The unique store namespace identifier.
+ * @param array       $state           Optional. The array that will be merged with the existing state for the specified
+ *                                     store namespace.
  * @return array The state for the specified store namespace. This will be the updated state if a $state argument was
  *               provided.
  */
@@ -119,7 +119,7 @@ function wp_interactivity_data_wp_context( array $context, string $store_namespa
  *
  * @since 6.6.0
  *
- * @param string $store_namespace Optional. The unique store namespace identifier.
+ * @param string|null $store_namespace Optional. The unique store namespace identifier.
  * @return array The context for the specified store namespace.
  */
 function wp_interactivity_get_context( ?string $store_namespace = null ): array {
@@ -137,4 +137,27 @@ function wp_interactivity_get_context( ?string $store_namespace = null ): array 
  */
 function wp_interactivity_get_element(): ?array {
 	return wp_interactivity()->get_element();
+}
+
+/**
+ * Marks an HTML string as trusted, for `data-wp-html` to render as the content of an element.
+ *
+ * The returned token is the only value `data-wp-html` renders in server directive processing.
+ *
+ * Warning: this function does not sanitize the HTML. Passing untrusted input, such as
+ * user-submitted content, creates a cross-site scripting (XSS) vulnerability. Sanitize it
+ * first, for example with `wp_kses_post()`, or build it only from trusted markup.
+ *
+ * A value read from context must never become a token, directly or after being copied into
+ * state. Context selects and state supplies: context is controlled by the client or by markup,
+ * so it may only select among tokens that server-side code created, and must never be the
+ * HTML a token is created from.
+ *
+ * @since 7.2.0
+ *
+ * @param string $html The HTML to mark as trusted. It is not sanitized.
+ * @return WP_Interactivity_Dangerous_HTML The token that carries the HTML.
+ */
+function wp_interactivity_as_dangerous_html( string $html ): WP_Interactivity_Dangerous_HTML {
+	return new WP_Interactivity_Dangerous_HTML( $html );
 }

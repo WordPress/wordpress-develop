@@ -11,8 +11,11 @@ class Tests_Post_TruncatePostSlug extends WP_UnitTestCase {
 	 * Tests that _truncate_post_slug() correctly truncates slugs.
 	 *
 	 * @ticket 56868
+	 * @ticket 46010
 	 *
 	 * @dataProvider data_truncate_post_slug_should_truncate
+	 *
+	 * @expectedDeprecated _truncate_post_slug
 	 *
 	 * @param string $slug     The slug to truncate.
 	 * @param int    $length   Max length of the slug.
@@ -28,7 +31,7 @@ class Tests_Post_TruncatePostSlug extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_truncate_post_slug_should_truncate() {
+	public static function data_truncate_post_slug_should_truncate() {
 		return array(
 			'a slug that is too long'                      => array(
 				'slug'     => 'truncated slug',
@@ -94,7 +97,7 @@ class Tests_Post_TruncatePostSlug extends WP_UnitTestCase {
 				'expected' => 'myslug',
 				'message'  => '"myslug%C4%85" should have been truncated to "myslug".',
 			),
-			'URL-encoded accent characters and "length" includes the fifth URL-encoded character' => array(
+			'URL-encoded accent characters and "length" includes the sixth URL-encoded character' => array(
 				'slug'     => 'myslug%C4%85',
 				'length'   => 12,
 				'expected' => 'myslug%C4%85',

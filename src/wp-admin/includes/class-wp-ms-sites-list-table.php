@@ -65,19 +65,11 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global string $mode List table view mode.
 	 * @global string $s    Search string.
 	 * @global wpdb   $wpdb WordPress database abstraction object.
 	 */
 	public function prepare_items() {
-		global $mode, $s, $wpdb;
-
-		if ( ! empty( $_REQUEST['mode'] ) ) {
-			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
-			set_user_setting( 'sites_list_mode', $mode );
-		} else {
-			$mode = get_user_setting( 'sites_list_mode', 'list' );
-		}
+		global $s, $wpdb;
 
 		$per_page = $this->get_items_per_page( 'sites_network_per_page' );
 
@@ -311,25 +303,6 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Displays the pagination.
-	 *
-	 * @since 3.1.0
-	 *
-	 * @global string $mode List table view mode.
-	 *
-	 * @param string $which The location of the pagination nav markup: Either 'top' or 'bottom'.
-	 */
-	protected function pagination( $which ) {
-		global $mode;
-
-		parent::pagination( $which );
-
-		if ( 'top' === $which ) {
-			$this->view_switcher( $mode );
-		}
-	}
-
-	/**
 	 * Displays extra controls between bulk actions and pagination.
 	 *
 	 * @since 5.3.0
@@ -472,13 +445,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @global string $mode List table view mode.
-	 *
 	 * @param array $blog Current site.
 	 */
 	public function column_blogname( $blog ) {
-		global $mode;
-
 		$blogname = untrailingslashit( $blog['domain'] . $blog['path'] );
 
 		?>
@@ -494,18 +463,6 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			?>
 		</strong>
 		<?php
-		if ( 'list' !== $mode ) {
-			switch_to_blog( $blog['blog_id'] );
-			echo '<p>';
-			printf(
-				/* translators: 1: Site title, 2: Site tagline. */
-				__( '%1$s &#8211; %2$s' ),
-				get_option( 'blogname' ),
-				'<em>' . get_option( 'blogdescription' ) . '</em>'
-			);
-			echo '</p>';
-			restore_current_blog();
-		}
 	}
 
 	/**
@@ -513,18 +470,10 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @global string $mode List table view mode.
-	 *
 	 * @param array $blog Current site.
 	 */
 	public function column_lastupdated( $blog ) {
-		global $mode;
-
-		if ( 'list' === $mode ) {
-			$date = __( 'Y/m/d' );
-		} else {
-			$date = __( 'Y/m/d g:i:s a' );
-		}
+		$date = __( 'Y/m/d g:i:s a' );
 
 		if ( '0000-00-00 00:00:00' === $blog['last_updated'] ) {
 			_e( 'Never' );
@@ -538,18 +487,10 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @global string $mode List table view mode.
-	 *
 	 * @param array $blog Current site.
 	 */
 	public function column_registered( $blog ) {
-		global $mode;
-
-		if ( 'list' === $mode ) {
-			$date = __( 'Y/m/d' );
-		} else {
-			$date = __( 'Y/m/d g:i:s a' );
-		}
+		$date = __( 'Y/m/d g:i:s a' );
 
 		if ( '0000-00-00 00:00:00' === $blog['registered'] ) {
 			echo '&#x2014;';
@@ -883,5 +824,24 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		$actions = apply_filters( 'manage_sites_action_links', array_filter( $actions ), $blog['blog_id'], $blogname );
 
 		return $this->row_actions( $actions );
+	}
+
+	/**
+	 * Returns a clean label for the primary (URL) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the site title as the row header name,
+	 * preventing them from computing the name from the full cell content.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array $blog The current site properties array.
+	 * @return string The site title, or the site URL (domain + path) if the title is empty.
+	 */
+	protected function get_primary_column_aria_label( $blog ) {
+		$blog_name = html_entity_decode( (string) get_blog_option( $blog['blog_id'], 'blogname', '' ), ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$blog_name = wp_strip_all_tags( $blog_name );
+
+		// Fall back to the blog URL and path if the blog name is empty.
+		return '' !== $blog_name ? $blog_name : untrailingslashit( $blog['domain'] . $blog['path'] );
 	}
 }
