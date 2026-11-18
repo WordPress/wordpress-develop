@@ -628,3 +628,25 @@ function twentysixteen_widget_tag_cloud_args( $args ) {
 	return $args;
 }
 add_filter( 'widget_tag_cloud_args', 'twentysixteen_widget_tag_cloud_args' );
+
+/**
+ * Registers Custom Block Styles.
+ *
+ * @since Twenty Sixteen 3.9
+ */
+if ( function_exists( 'register_block_style' ) ) {
+	function twentysixteen_register_block_styles() {
+
+		// Add a control for the user to select text alignment.
+		// @ticket 65111
+		register_block_style(
+			'core/image',
+			array(
+				'name'         => 'caption-center',
+				'label'        => __( 'Text align center', 'twentysixteen' ),
+				'inline_style' => '.wp-block-image.is-style-caption-center figcaption { text-align: center; }',
+			)
+		);
+	}
+	add_action( 'init', 'twentysixteen_register_block_styles' );
+}
