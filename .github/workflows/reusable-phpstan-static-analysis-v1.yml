@@ -283,9 +283,9 @@ jobs:
           composer phpstan:fix
           ```
 
-          That runs PHPStan with `--fix`, which lowers the counts in the files under [`tests/phpstan/baselines`][baselines], removes the entries that no longer match, and removes any `@phpstan-ignore` annotation in the code that no longer ignores anything. It then deletes any baseline left with no entries, and updates the list of them in `phpstan.neon.dist`.
+          That runs PHPStan with `--fix`, which lowers the counts in the files under [`tests/phpstan/baselines`][baselines], removes the entries that no longer match, and removes any `@phpstan-ignore` annotation in the code that no longer ignores anything. It then deletes any baseline left with no entries.
 
-          Alternatively, regenerate the baselines with `npm run typecheck:php:baselines` or `composer phpstan:baselines`. That also deletes any baseline whose errors are now all fixed, and updates the list of them in `phpstan.neon.dist`, but it does not clear an `@phpstan-ignore` annotation.
+          Alternatively, regenerate the baselines with `npm run typecheck:php:baselines` or `composer phpstan:baselines`. That also deletes any baseline whose errors are now all fixed, but it does not clear an `@phpstan-ignore` annotation.
 
           See [`tests/phpstan/README.md`][readme] for details.
 
