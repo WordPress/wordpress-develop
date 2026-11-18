@@ -4083,8 +4083,8 @@ function update_object_term_cache( $object_ids, $object_type ) {
  *
  * @since 2.3.0
  *
- * @param WP_Term[] $terms    Array of term objects to change.
- * @param string    $taxonomy Not used.
+ * @param WP_Term[]|stdClass[] $terms    Array of term objects to change.
+ * @param string              $taxonomy Not used.
  */
 function update_term_cache( $terms, $taxonomy = '' ) {
 	$data = array();
