@@ -952,7 +952,7 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  *               the type it was registered with, which may be an integer, float, or
  *               boolean.
  *
- * @phpstan-param int|numeric-string $comment_id
+ * @phpstan-param int|decimal-int-string $comment_id
  * @phpstan-return (
  *     $key is ''|'0'
  *         ? array<array-key, list<string>>|false
@@ -1442,19 +1442,17 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
 		return 1;
 	}
 
-	if ( ! isset( $per_page ) ) {
-		$per_page = (int) get_query_var( 'comments_per_page' );
-	}
+	$per_page ??= (int) get_query_var( 'comments_per_page' );
+
 	if ( 0 === $per_page ) {
 		$per_page = (int) get_option( 'comments_per_page' );
 	}
+
 	if ( 0 === $per_page ) {
 		return 1;
 	}
 
-	if ( ! isset( $threaded ) ) {
-		$threaded = get_option( 'thread_comments' );
-	}
+	$threaded ??= get_option( 'thread_comments' );
 
 	if ( $threaded ) {
 		$walker = new Walker_Comment();
@@ -2865,13 +2863,8 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 
 	$prefiltered_user_id = ( isset( $commentdata['user_id'] ) ) ? (int) $commentdata['user_id'] : 0;
 
-	if ( ! isset( $commentdata['comment_author_IP'] ) ) {
-		$commentdata['comment_author_IP'] = $_SERVER['REMOTE_ADDR'];
-	}
-
-	if ( ! isset( $commentdata['comment_agent'] ) ) {
-		$commentdata['comment_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? '';
-	}
+	$commentdata['comment_author_IP'] ??= $_SERVER['REMOTE_ADDR'];
+	$commentdata['comment_agent']     ??= $_SERVER['HTTP_USER_AGENT'] ?? '';
 
 	/**
 	 * Filters a comment's data before it is sanitized and inserted into the database.

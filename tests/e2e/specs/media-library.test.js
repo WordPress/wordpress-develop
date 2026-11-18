@@ -9,6 +9,16 @@ import path from 'node:path';
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
+/**
+ * Internal dependencies
+ */
+import {
+	adminNotice,
+	bulkActionApply,
+	bulkActionSelect,
+	postRow,
+} from '../utils/admin';
+
 test.describe( 'Media library', () => {
 	let ids;
 	let prefix;
@@ -69,7 +79,7 @@ test.describe( 'Media library', () => {
 	} ) => {
 		const id = await upload( requestUtils, 'delete' );
 		await admin.visitAdminPage( '/upload.php', `mode=list&s=${ prefix }` );
-		const row = page.locator( `#post-${ id }` );
+		const row = postRow( page, id );
 		await expect( row ).toBeVisible();
 		await row.hover();
 		await confirmDelete(
@@ -79,7 +89,7 @@ test.describe( 'Media library', () => {
 				exact: true,
 			} )
 		);
-		await expect( page.locator( '#message' ) ).toContainText(
+		await expect( adminNotice( page ) ).toContainText(
 			'Media file permanently deleted.'
 		);
 		await expect( row ).toBeHidden();
@@ -102,16 +112,14 @@ test.describe( 'Media library', () => {
 		const second = await upload( requestUtils, 'second' );
 		const control = await upload( requestUtils, 'control' );
 		await admin.visitAdminPage( '/upload.php', `mode=list&s=${ prefix }` );
-		const firstRow = page.locator( `#post-${ first }` );
-		const secondRow = page.locator( `#post-${ second }` );
-		const controlRow = page.locator( `#post-${ control }` );
+		const firstRow = postRow( page, first );
+		const secondRow = postRow( page, second );
+		const controlRow = postRow( page, control );
 		await firstRow.getByRole( 'checkbox' ).check();
 		await secondRow.getByRole( 'checkbox' ).check();
-		await page
-			.locator( '#bulk-action-selector-top' )
-			.selectOption( 'delete' );
-		await confirmDelete( page, page.locator( '#doaction' ) );
-		await expect( page.locator( '#message' ) ).toContainText(
+		await bulkActionSelect( page ).selectOption( 'delete' );
+		await confirmDelete( page, bulkActionApply( page ) );
+		await expect( adminNotice( page ) ).toContainText(
 			'2 media files permanently deleted.'
 		);
 		await expect( firstRow ).toBeHidden();
@@ -172,7 +180,7 @@ test.describe( 'Media library', () => {
 			'/upload.php',
 			`mode=list&s=${ encodeURIComponent( title ) }`
 		);
-		const row = page.locator( `#post-${ id }` );
+		const row = postRow( page, id );
 		await expect( row ).toBeVisible();
 		await expect(
 			row.getByRole( 'link', { name: title, exact: true } )
@@ -219,7 +227,7 @@ test.describe( 'Media library', () => {
 			.getByRole( 'button', { name: 'Update', exact: true } )
 			.click();
 
-		await expect( page.locator( '#message' ) ).toContainText(
+		await expect( adminNotice( page ) ).toContainText(
 			'Media file updated.'
 		);
 		await expect( page.getByLabel( 'Add title' ) ).toHaveValue( title );
