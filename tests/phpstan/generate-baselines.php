@@ -194,10 +194,17 @@ if ( ! $config_given && ! $combined ) {
 /*
  * A default configuration named without an output directory writes to its own,
  * so that naming phpstan-level-10.neon.dist alone cannot write its baselines over
- * those of phpstan.neon.dist.
+ * those of phpstan.neon.dist. So does a local override of one, such as
+ * phpstan-level-10.neon, named as the `.dist` file is but without the suffix.
+ * Written to the default directory instead, the level 10 analysis of only the
+ * strict paths, with the baselines there suppressed, would retire every baseline of
+ * the whole codebase it does not report again.
  */
+$config_relative   = trim( normalize_path( $config_option ), '/' );
+$config_output_dir = DEFAULT_CONFIGS[ $config_relative ] ?? DEFAULT_CONFIGS[ $config_relative . '.dist' ] ?? DEFAULT_OUTPUT_DIR;
+
 if ( null === $output_option ) {
-	$output_option = DEFAULT_CONFIGS[ trim( normalize_path( $config_option ), '/' ) ] ?? DEFAULT_OUTPUT_DIR;
+	$output_option = $config_output_dir;
 }
 
 $config_path = $repo_root . '/' . ltrim( $config_option, '/' );
@@ -320,8 +327,6 @@ $analysis_tmp_dir = $repo_root . '/.cache/baselines';
  * readings of everything it does not cover. Keying the directory on the
  * configuration keeps each one's reflection to itself.
  */
-$config_relative = trim( normalize_path( $config_option ), '/' );
-
 if ( DEFAULT_CONFIG !== $config_relative ) {
 	$analysis_tmp_dir .= '-' . (string) preg_replace( '/[^A-Za-z0-9._]+/', '-', $config_relative );
 }
@@ -465,7 +470,7 @@ $regenerate_options = '';
 if ( DEFAULT_CONFIG !== $config_relative ) {
 	$regenerate_options .= ' --config=' . $config_option;
 }
-if ( ( DEFAULT_CONFIGS[ $config_relative ] ?? DEFAULT_OUTPUT_DIR ) !== trim( normalize_path( $output_option ), '/' ) ) {
+if ( $config_output_dir !== trim( normalize_path( $output_option ), '/' ) ) {
 	$regenerate_options .= ' --output-dir=' . $output_option;
 }
 
@@ -555,7 +560,8 @@ function get_usage(): string {
 		                       in other directories stay in force, so only the errors
 		                       they leave are written.
 		                       Default: the directory of the configuration named
-		                       above, or else tests/phpstan/baselines
+		                       above, or of the one it overrides locally, such as
+		                       phpstan-level-10.neon, or else tests/phpstan/baselines
 		  --combined           Print one combined baseline to stdout instead of writing
 		                       per-identifier files. Nothing is written to disk. Only
 		                       phpstan.neon.dist is analyzed, unless --config names
