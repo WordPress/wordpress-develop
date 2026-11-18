@@ -2638,6 +2638,21 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66432
+	 *
+	 * @covers WP_Comment_Query::query
+	 */
+	public function test_search_array_should_be_ignored() {
+		$q = new WP_Comment_Query();
+		$q->query(
+			array(
+				'search' => array( 'foo' ),
+			)
+		);
+		$this->assertStringNotContainsString( 'comment_author LIKE', $q->request );
+	}
+
+	/**
 	 * @ticket 35513
 	 *
 	 * @covers WP_Comment_Query::query

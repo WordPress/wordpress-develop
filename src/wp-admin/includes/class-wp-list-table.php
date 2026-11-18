@@ -415,19 +415,22 @@ class WP_List_Table {
 		if ( ! empty( $_REQUEST['orderby'] ) ) {
 			if ( is_array( $_REQUEST['orderby'] ) ) {
 				foreach ( $_REQUEST['orderby'] as $key => $value ) {
+					if ( ! is_string( $value ) ) {
+						continue;
+					}
 					echo '<input type="hidden" name="orderby[' . esc_attr( $key ) . ']" value="' . esc_attr( $value ) . '" />';
 				}
 			} else {
 				echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '" />';
 			}
 		}
-		if ( ! empty( $_REQUEST['order'] ) ) {
+		if ( ! empty( $_REQUEST['order'] ) && is_string( $_REQUEST['order'] ) ) {
 			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '" />';
 		}
-		if ( ! empty( $_REQUEST['post_mime_type'] ) ) {
+		if ( ! empty( $_REQUEST['post_mime_type'] ) && is_string( $_REQUEST['post_mime_type'] ) ) {
 			echo '<input type="hidden" name="post_mime_type" value="' . esc_attr( $_REQUEST['post_mime_type'] ) . '" />';
 		}
-		if ( ! empty( $_REQUEST['detached'] ) ) {
+		if ( ! empty( $_REQUEST['detached'] ) && is_string( $_REQUEST['detached'] ) ) {
 			echo '<input type="hidden" name="detached" value="' . esc_attr( $_REQUEST['detached'] ) . '" />';
 		}
 		?>

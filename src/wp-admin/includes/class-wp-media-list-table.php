@@ -88,7 +88,10 @@ class WP_Media_List_Table extends WP_List_Table {
 	public function prepare_items() {
 		global $mode, $wp_query, $post_mime_types, $avail_post_mime_types;
 
-		$mode = empty( $_REQUEST['mode'] ) ? 'list' : $_REQUEST['mode'];
+		$mode = 'list';
+		if ( ! empty( $_REQUEST['mode'] ) && is_string( $_REQUEST['mode'] ) ) {
+			$mode = $_REQUEST['mode'];
+		}
 
 		/*
 		 * Exclude attachments scheduled for deletion in the next two hours
@@ -150,7 +153,10 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		$type_links = array();
 
-		$filter = empty( $_GET['attachment-filter'] ) ? '' : $_GET['attachment-filter'];
+		$filter = '';
+		if ( ! empty( $_GET['attachment-filter'] ) && is_string( $_GET['attachment-filter'] ) ) {
+			$filter = $_GET['attachment-filter'];
+		}
 
 		$type_links['all'] = sprintf(
 			'<option value=""%s>%s</option>',

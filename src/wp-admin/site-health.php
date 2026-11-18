@@ -36,7 +36,7 @@ $wrapper_classes = array(
 	'tab-count-' . count( $tabs ),
 );
 
-$current_tab = $_GET['tab'] ?? '';
+$current_tab = isset( $_GET['tab'] ) && is_string( $_GET['tab'] ) ? $_GET['tab'] : '';
 
 $title = sprintf(
 	// translators: %s: The currently displayed tab.
@@ -206,7 +206,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <hr class="wp-header-end">
 
 <?php
-if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
+if ( isset( $_GET['tab'] ) && is_string( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 	/**
 	 * Fires when outputting the content of a custom Site Health tab.
 	 *
@@ -217,7 +217,7 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 	 *
 	 * @param string $tab The slug of the tab that was requested.
 	 */
-	do_action( 'site_health_tab_content', $_GET['tab'] );
+	do_action( 'site_health_tab_content', $current_tab );
 
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 	return;

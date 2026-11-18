@@ -83,9 +83,9 @@ class WP_Users_List_Table extends WP_List_Table {
 	public function prepare_items() {
 		global $role, $usersearch;
 
-		$usersearch = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
+		$usersearch = isset( $_REQUEST['s'] ) && is_string( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
 
-		$role = $_REQUEST['role'] ?? '';
+		$role = isset( $_REQUEST['role'] ) && is_string( $_REQUEST['role'] ) ? $_REQUEST['role'] : '';
 
 		$per_page       = ( $this->is_site_users ) ? 'site_users_network_per_page' : 'users_per_page';
 		$users_per_page = $this->get_items_per_page( $per_page );
@@ -118,11 +118,11 @@ class WP_Users_List_Table extends WP_List_Table {
 			$args['blog_id'] = $this->site_id;
 		}
 
-		if ( isset( $_REQUEST['orderby'] ) ) {
+		if ( isset( $_REQUEST['orderby'] ) && is_string( $_REQUEST['orderby'] ) ) {
 			$args['orderby'] = $_REQUEST['orderby'];
 		}
 
-		if ( isset( $_REQUEST['order'] ) ) {
+		if ( isset( $_REQUEST['order'] ) && is_string( $_REQUEST['order'] ) ) {
 			$args['order'] = $_REQUEST['order'];
 		}
 
