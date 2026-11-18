@@ -731,6 +731,17 @@ class wpdb {
 	private $has_connected = false;
 
 	/**
+	 * Whether the initial connection of a plain `wpdb` instance is still pending.
+	 *
+	 * Never set for subclasses, which connect in the constructor.
+	 *
+	 * @since x.x.x
+	 *
+	 * @var bool
+	 */
+	private $connection_deferred = false;
+
+	/**
 	 * Time when the last query was performed.
 	 *
 	 * Only set when `SAVEQUERIES` is defined and truthy.
@@ -786,7 +797,28 @@ class wpdb {
 			return;
 		}
 
-		$this->db_connect();
+		// Subclasses such as database drop-ins keep connecting eagerly.
+		if ( get_class( $this ) !== self::class ) {
+			$this->db_connect();
+			return;
+		}
+
+		$this->connection_deferred = true;
+	}
+
+	/**
+	 * Connects on first use if the connection of a plain `wpdb` instance was deferred.
+	 *
+	 * @since x.x.x
+	 */
+	private function ensure_connected() {
+		if ( ! $this->connection_deferred ) {
+			return;
+		}
+
+		if ( ! $this->db_connect() && ! $this->show_errors && ! did_action( 'template_redirect' ) && function_exists( 'dead_db' ) ) {
+			dead_db();
+		}
 	}
 
 	/**
@@ -800,6 +832,8 @@ class wpdb {
 	public function __get( $name ) {
 		if ( 'col_info' === $name ) {
 			$this->load_col_info();
+		} elseif ( 'dbh' === $name ) {
+			$this->ensure_connected();
 		}
 
 		return $this->$name;
@@ -823,6 +857,9 @@ class wpdb {
 		if ( in_array( $name, $protected_members, true ) ) {
 			return;
 		}
+		if ( 'dbh' === $name ) {
+			$this->connection_deferred = false;
+		}
 		$this->$name = $value;
 	}
 
@@ -835,6 +872,10 @@ class wpdb {
 	 * @return bool If the member is set or not.
 	 */
 	public function __isset( $name ) {
+		if ( 'dbh' === $name ) {
+			$this->ensure_connected();
+		}
+
 		return isset( $this->$name );
 	}
 
@@ -964,6 +1005,8 @@ class wpdb {
 	 * @param array $modes Optional. A list of SQL modes to set. Default empty array.
 	 */
 	public function set_sql_mode( $modes = array() ) {
+		$this->ensure_connected();
+
 		if ( empty( $modes ) ) {
 			$res = mysqli_query( $this->dbh, 'SELECT @@SESSION.sql_mode' );
 
@@ -1208,6 +1251,7 @@ class wpdb {
 	 */
 	public function select( $db, $dbh = null ) {
 		if ( is_null( $dbh ) ) {
+			$this->ensure_connected();
 			$dbh = $this->dbh;
 		}
 
@@ -1289,6 +1333,8 @@ class wpdb {
 		if ( ! is_scalar( $data ) ) {
 			return '';
 		}
+
+		$this->ensure_connected();
 
 		if ( $this->dbh ) {
 			$escaped = mysqli_real_escape_string( $this->dbh, $data );
@@ -1981,7 +2027,8 @@ class wpdb {
 	 * @return bool True with a successful connection, false on failure.
 	 */
 	public function db_connect( $allow_bail = true ) {
-		$this->is_mysql = true;
+		$this->connection_deferred = false;
+		$this->is_mysql            = true;
 
 		$client_flags = defined( 'MYSQL_CLIENT_FLAGS' ) ? MYSQL_CLIENT_FLAGS : 0;
 
@@ -2244,6 +2291,8 @@ class wpdb {
 	 *                  affected/selected for all other queries. Boolean false on error.
 	 */
 	public function query( $query ) {
+		$this->ensure_connected();
+
 		if ( ! $this->ready ) {
 			$this->check_current_query = true;
 			return false;
@@ -2842,6 +2891,8 @@ class wpdb {
 	 *                     False for invalid values.
 	 */
 	protected function process_fields( $table, $data, $format ) {
+		$this->ensure_connected();
+
 		$data = $this->process_field_formats( $data, $format );
 		if ( false === $data ) {
 			return false;
@@ -3425,6 +3476,8 @@ class wpdb {
 			return $charset;
 		}
 
+		$this->ensure_connected();
+
 		// Skip this entirely if this isn't a MySQL database.
 		if ( empty( $this->is_mysql ) ) {
 			return false;
@@ -3477,6 +3530,8 @@ class wpdb {
 	public function get_col_length( $table, $column ) {
 		$tablekey  = strtolower( $table );
 		$columnkey = strtolower( $column );
+
+		$this->ensure_connected();
 
 		// Skip this entirely if this isn't a MySQL database.
 		if ( empty( $this->is_mysql ) ) {
@@ -3857,6 +3912,8 @@ class wpdb {
 			return $value;
 		}
 
+		$this->ensure_connected();
+
 		$charset = $this->get_col_charset( $table, $column );
 		if ( ! $charset ) {
 			// Not a string column.
@@ -4138,6 +4195,8 @@ class wpdb {
 	 * @return string The database character collate.
 	 */
 	public function get_charset_collate() {
+		$this->ensure_connected();
+
 		$charset_collate = '';
 
 		if ( ! empty( $this->charset ) ) {
@@ -4246,6 +4305,8 @@ class wpdb {
 	 * @return string Database server version as a string.
 	 */
 	public function db_server_info() {
+		$this->ensure_connected();
+
 		return mysqli_get_server_info( $this->dbh );
 	}
 }
