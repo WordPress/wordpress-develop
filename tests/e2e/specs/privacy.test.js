@@ -2,12 +2,13 @@
  * Internal dependencies
  */
 import { test, expect } from '../fixtures';
+import { PRIVACY_POLICY_PAGE } from '../utils/locks';
 
 function normalizeText( text ) {
 	return text.replace( /\s+/g, ' ' ).trim();
 }
 
-test.describe( 'Privacy page creation', () => {
+test.describe( 'Privacy page creation', { lock: PRIVACY_POLICY_PAGE }, () => {
 	let createdPageId;
 
 	test.beforeEach( () => {

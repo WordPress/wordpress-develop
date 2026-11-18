@@ -683,11 +683,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			$parent_post_id = 0;
 		}
 
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-
-		$attachment_id   = $this->_make_attachment( $upload, $parent_post_id );
+		$attachment_id   = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg', $parent_post_id );
 		$attachment_url  = wp_get_attachment_url( $attachment_id );
 		$attachment_page = get_permalink( $attachment_id );
 

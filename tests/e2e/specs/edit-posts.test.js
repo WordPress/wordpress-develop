@@ -1,18 +1,32 @@
 /**
+ * External dependencies
+ */
+import { randomUUID } from 'node:crypto';
+
+/**
  * Internal dependencies
  */
 import { test, expect } from '../fixtures';
+import {
+	adminNotice,
+	bulkActionApply,
+	bulkActionSelect,
+	postRow,
+} from '../utils/admin';
 
 test.describe( 'Edit Posts', () => {
-	test.beforeEach( async ( { requestUtils }) => {
-		await requestUtils.deleteAllPosts();
-	} );
+	async function visitPostList( admin, title ) {
+		await admin.visitAdminPage(
+			'edit.php',
+			new URLSearchParams( { s: title } ).toString()
+		);
+	}
 
-	test( 'displays a message in the posts table when no posts are present',async ( {
+	test( 'displays a message in the posts table when a search finds no posts',async ( {
 		admin,
 		page,
 	} ) => {
-		await admin.visitAdminPage( '/edit.php' );
+		await visitPostList( admin, randomUUID() );
 		await expect(
 			page.getByRole( 'cell', { name: 'No posts found.' } )
 		).toBeVisible();
@@ -20,14 +34,13 @@ test.describe( 'Edit Posts', () => {
 
 	test( 'lists a published post and renders its title and content on the front end', async ( {
 		admin,
-		editor,
 		page,
+		postFactory,
 	} ) => {
-		const title = 'Test Title';
+		const title = postFactory.uniqueTitle( 'Edit Posts list' );
 		const content = 'This content should be visible on the published post.';
-		await admin.createNewPost( { title, content } );
-		await editor.publishPost();
-		await admin.visitAdminPage( '/edit.php' );
+		const post = await postFactory.create( { title, content, status: 'publish' } );
+		await visitPostList( admin, title );
 
 		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
 		await expect( listTable ).toBeVisible();
@@ -36,16 +49,17 @@ test.describe( 'Edit Posts', () => {
 		await expect(
 			listTable.locator( '#the-list' ).getByRole( 'row' )
 		).toHaveCount( 1 );
+		const row = postRow( listTable, post.id );
 
 		// Expect the title of the post to be correct.
-		const postLink = listTable.getByRole( 'link', {
+		const postLink = row.getByRole( 'link', {
 			name: title,
 			exact: true,
 		} );
 		await expect( postLink ).toBeVisible();
 
 		await postLink.hover();
-		await listTable.getByRole( 'link', { name: `View “${ title }”`, exact: true } ).click();
+		await row.getByRole( 'link', { name: `View “${ title }”`, exact: true } ).click();
 		await expect( page.getByRole( 'heading', { name: title, exact: true } ) ).toBeVisible();
 		await expect( page.getByText( content, { exact: true } ) ).toBeVisible();
 	} );
@@ -54,17 +68,19 @@ test.describe( 'Edit Posts', () => {
 		admin,
 		editor,
 		page,
+		postFactory,
 	} ) => {
-		const title = 'Test Title';
-		await admin.createNewPost( { title } );
-		await editor.publishPost();
-		await admin.visitAdminPage( '/edit.php' );
+		const title = postFactory.uniqueTitle( 'Edit Posts edit' );
+		const post = await postFactory.create( { title, status: 'publish' } );
+		await visitPostList( admin, title );
 
 		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
 		await expect( listTable ).toBeVisible();
 
 		// Click the post title (edit) link
-		await listTable.getByRole( 'link', { name: title, exact: true } ).click();
+		await postRow( listTable, post.id )
+			.getByRole( 'link', { name: title, exact: true } )
+			.click();
 
 		const editorPostTitle = editor.canvas.getByRole( 'textbox', { name: 'Add title' } );
 
@@ -76,20 +92,20 @@ test.describe( 'Edit Posts', () => {
 
 	test( 'allows an existing post to be quick edited using the Quick Edit button', async ( {
 		admin,
-		editor,
 		page,
-		pageUtils
+		pageUtils,
+		postFactory,
 	} ) => {
-		const title = 'Test Title';
-		await admin.createNewPost( { title } );
-		await editor.publishPost();
-		await admin.visitAdminPage( '/edit.php' );
+		const title = postFactory.uniqueTitle( 'Edit Posts quick edit' );
+		const post = await postFactory.create( { title, status: 'publish' } );
+		await visitPostList( admin, title );
 
 		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
 		await expect( listTable ).toBeVisible();
+		const row = postRow( listTable, post.id );
 
 		// // Focus on the post title link.
-		await listTable.getByRole( 'link', { name: title, exact: true } ).focus();
+		await row.getByRole( 'link', { name: title, exact: true } ).focus();
 
 		// Tab to the Quick Edit button and press Enter to quick edit.
 		await pageUtils.pressKeys( 'Tab', { times: 2 } );
@@ -108,7 +124,7 @@ test.describe( 'Edit Posts', () => {
 		await page.getByRole( 'button', { name: 'Update' } ).click();
 
 		// Wait for the quick edit button to reappear.
-		await expect( page.getByRole( 'button', { name: 'Quick Edit' } ) ).toBeVisible();
+		await expect( row.getByRole( 'button', { name: 'Quick Edit' } ) ).toBeVisible();
 
 		// Expect there to be one row in the post list.
 		await expect(
@@ -117,7 +133,7 @@ test.describe( 'Edit Posts', () => {
 
 		// Expect the title of the post to be correct.
 		await expect(
-			listTable.getByRole( 'link', {
+			row.getByRole( 'link', {
 				name: `${ title } Edited`,
 				exact: true,
 			} )
@@ -126,19 +142,19 @@ test.describe( 'Edit Posts', () => {
 
 	test( 'allows an existing post to be deleted using the Trash button', async ( {
 		admin,
-		editor,
 		page,
+		postFactory,
 	} ) => {
-		const title = 'Test Title';
-		await admin.createNewPost( { title } );
-		await editor.publishPost();
-		await admin.visitAdminPage( '/edit.php' );
+		const title = postFactory.uniqueTitle( 'Edit Posts trash' );
+		const post = await postFactory.create( { title, status: 'publish' } );
+		await visitPostList( admin, title );
 
 		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
 		await expect( listTable ).toBeVisible();
+		const row = postRow( listTable, post.id );
 
-		await listTable.getByRole( 'link', { name: title, exact: true } ).hover();
-		await listTable
+		await row.getByRole( 'link', { name: title, exact: true } ).hover();
+		await row
 			.getByRole( 'link', {
 				name: `Move “${ title }” to the Trash`,
 				exact: true,
@@ -174,13 +190,10 @@ test( 'bulk edits only the selected posts', async ( {
 		new URLSearchParams( { s: titlePrefix } ).toString()
 	);
 	for ( const post of posts.slice( 0, 2 ) ) {
-		await page
-			.locator( `#post-${ post.id }` )
-			.getByRole( 'checkbox' )
-			.check();
+		await postRow( page, post.id ).getByRole( 'checkbox' ).check();
 	}
-	await page.locator( '#bulk-action-selector-top' ).selectOption( 'edit' );
-	await page.locator( '#doaction' ).click();
+	await bulkActionSelect( page ).selectOption( 'edit' );
+	await bulkActionApply( page ).click();
 	const bulkEdit = page.getByRole( 'region', {
 		name: 'Bulk Edit',
 		exact: true,
@@ -191,15 +204,14 @@ test( 'bulk edits only the selected posts', async ( {
 	await bulkEdit
 		.getByRole( 'button', { name: 'Update', exact: true } )
 		.click();
-	await expect( page.locator( '#message' ) ).toContainText(
+	await expect( adminNotice( page ) ).toContainText(
 		'2 posts updated.'
 	);
 
 	await page.reload();
 	for ( const post of posts.slice( 0, 2 ) ) {
 		await expect(
-			page
-				.locator( `#post-${ post.id }` )
+			postRow( page, post.id )
 				.getByText( 'Draft', { exact: true } )
 		).toBeVisible();
 		const savedPost = await requestUtils.rest( {
