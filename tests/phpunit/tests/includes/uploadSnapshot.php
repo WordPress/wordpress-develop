@@ -16,7 +16,7 @@ class Tests_Includes_UploadSnapshot extends PHPUnit_Adapter_TestCase {
 	 */
 	public function test_scan_user_uploads_preserves_initial_snapshot( $initial_files ) {
 		$test_case = $this->getMockBuilder( WP_UnitTestCase::class )
-			->setMethods( array( 'files_in_dir' ) )
+			->onlyMethods( array( 'files_in_dir' ) )
 			->getMock();
 
 		$test_case->method( 'files_in_dir' )
