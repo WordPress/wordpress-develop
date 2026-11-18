@@ -444,6 +444,52 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @group sidebar
+	 * @ticket 42987
+	 */
+	public function test_is_active_sidebar_returns_false_when_sidebar_only_has_unregistered_widgets() {
+		register_sidebar( array( 'id' => 'sidebar-42987' ) );
+		wp_set_sidebars_widgets( array( 'sidebar-42987' => array( 'unregistered-widget-1' ) ) );
+
+		$this->assertFalse( is_active_sidebar( 'sidebar-42987' ) );
+	}
+
+	/**
+	 * @group sidebar
+	 * @ticket 42987
+	 */
+	public function test_is_active_sidebar_returns_true_when_sidebar_has_a_registered_widget() {
+		register_sidebar( array( 'id' => 'sidebar-42987' ) );
+		wp_register_sidebar_widget( 'registered-widget-1', 'Registered', '__return_empty_string' );
+		wp_set_sidebars_widgets( array( 'sidebar-42987' => array( 'unregistered-widget-1', 'registered-widget-1' ) ) );
+
+		$this->assertTrue( is_active_sidebar( 'sidebar-42987' ) );
+	}
+
+	/**
+	 * @group sidebar
+	 * @ticket 42987
+	 */
+	public function test_is_active_sidebar_returns_false_for_empty_sidebar() {
+		register_sidebar( array( 'id' => 'sidebar-42987' ) );
+		wp_set_sidebars_widgets( array( 'sidebar-42987' => array() ) );
+
+		$this->assertFalse( is_active_sidebar( 'sidebar-42987' ) );
+	}
+
+	/**
+	 * @group sidebar
+	 * @ticket 42987
+	 */
+	public function test_is_active_sidebar_uses_stored_widgets_before_widgets_init() {
+		register_sidebar( array( 'id' => 'sidebar-42987' ) );
+		wp_set_sidebars_widgets( array( 'sidebar-42987' => array( 'unregistered-widget-1' ) ) );
+		unset( $GLOBALS['wp_actions']['widgets_init'] );
+
+		$this->assertTrue( is_active_sidebar( 'sidebar-42987' ) );
+	}
+
+	/**
 	 * @see WP_Widget_Search::form()
 	 */
 	public function test_wp_widget_search_form() {
