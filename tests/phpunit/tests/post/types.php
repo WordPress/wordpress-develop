@@ -230,6 +230,366 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that add_post_type_support() merges array arguments on subsequent calls.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_merges_array_arguments() {
+		register_post_type( 'foo' );
+
+		// First call with array arguments.
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'default-mode' => 'template-locked',
+			)
+		);
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertIsArray( $support['editor'], 'The editor support should be stored as an array of arguments.' );
+		$this->assertArrayHasKey( 0, $support['editor'], 'The first argument of the editor support should be set.' );
+		$this->assertIsArray( $support['editor'][0], 'The first argument should be an array.' );
+		$this->assertSame( 'template-locked', $support['editor'][0]['default-mode'], 'The argument of the first call should be stored as passed.' );
+
+		// Second call with different array arguments should merge.
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'block-comments' => true,
+			)
+		);
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertIsArray( $support['editor'], 'The editor support should be stored as an array of arguments.' );
+		$this->assertArrayHasKey( 0, $support['editor'], 'The first argument of the editor support should be set.' );
+		$this->assertIsArray( $support['editor'][0], 'The first argument should be an array.' );
+		$this->assertSame( 'template-locked', $support['editor'][0]['default-mode'], 'The argument of the first call should be preserved.' );
+		$this->assertTrue( $support['editor'][0]['block-comments'], 'The argument of the second call should be merged in.' );
+
+		// Third call with yet another property should merge with both previous.
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'another-option' => 'test-value',
+			)
+		);
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertSame( 'template-locked', $support['editor'][0]['default-mode'], 'The argument of the first call should be preserved.' );
+		$this->assertTrue( $support['editor'][0]['block-comments'], 'The argument of the second call should be preserved.' );
+		$this->assertSame( 'test-value', $support['editor'][0]['another-option'], 'The argument of the third call should be merged in.' );
+	}
+
+	/**
+	 * Tests that add_post_type_support() appends the values of a list to an existing list.
+	 *
+	 * Features are not required to receive an associative array of arguments, so values
+	 * passed as a list over several calls are appended rather than replaced.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_merges_list_arguments() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'my-feature', array( 'aside', 'gallery' ) );
+		add_post_type_support( 'foo', 'my-feature', array( 'link' ) );
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertSame(
+			array( 'aside', 'gallery', 'link' ),
+			$support['my-feature'][0],
+			'The values of the second call should be appended to the existing list.'
+		);
+	}
+
+	/**
+	 * Tests that add_post_type_support() merges string keys into an existing list.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_merges_string_keys_into_a_list() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'my-feature', array( 'aside', 'gallery' ) );
+		add_post_type_support(
+			'foo',
+			'my-feature',
+			array(
+				'default-mode' => 'template-locked',
+			)
+		);
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertSame(
+			array(
+				0              => 'aside',
+				1              => 'gallery',
+				'default-mode' => 'template-locked',
+			),
+			$support['my-feature'][0],
+			'String keys should be added without replacing the values of the existing list.'
+		);
+	}
+
+	/**
+	 * Tests that add_post_type_support() replaces the arguments passed after the first one.
+	 *
+	 * Only the first argument is merged into the existing arguments. Any further arguments
+	 * are replaced by those of the most recent call.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_replaces_arguments_after_the_first_one() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'my-feature', array( 'default-mode' => 'template-locked' ), 'first-extra' );
+		add_post_type_support( 'foo', 'my-feature', array( 'block-comments' => true ), 'second-extra' );
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertSame(
+			array(
+				array(
+					'default-mode'   => 'template-locked',
+					'block-comments' => true,
+				),
+				'second-extra',
+			),
+			$support['my-feature'],
+			'The first argument should be merged and the second one replaced.'
+		);
+
+		// A call without further arguments should drop the arguments of the previous call.
+		add_post_type_support( 'foo', 'my-feature', array( 'another-option' => 'test-value' ) );
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertSame(
+			array(
+				array(
+					'default-mode'   => 'template-locked',
+					'block-comments' => true,
+					'another-option' => 'test-value',
+				),
+			),
+			$support['my-feature'],
+			'Arguments passed after the first one should not be carried over from a previous call.'
+		);
+	}
+
+	/**
+	 * Tests that add_post_type_support() merges the arguments of each feature separately
+	 * when adding multiple features at once.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_merges_arguments_per_feature() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'feature-a', array( 'only-a' => true ) );
+		add_post_type_support( 'foo', array( 'feature-a', 'feature-b' ), array( 'shared' => true ) );
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertSame(
+			array(
+				'only-a' => true,
+				'shared' => true,
+			),
+			$support['feature-a'][0],
+			'The new arguments should be merged into the existing arguments of the first feature.'
+		);
+		$this->assertSame(
+			array( 'shared' => true ),
+			$support['feature-b'][0],
+			'The existing arguments of the first feature should not leak into the second feature.'
+		);
+	}
+
+	/**
+	 * Tests that add_post_type_support() keeps existing arguments when merging an empty array.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_merging_an_empty_array_keeps_existing_arguments() {
+		register_post_type( 'foo' );
+
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'default-mode' => 'template-locked',
+			)
+		);
+
+		add_post_type_support( 'foo', 'editor', array() );
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertSame(
+			array( 'default-mode' => 'template-locked' ),
+			$support['editor'][0],
+			'Merging an empty array should not change the existing arguments.'
+		);
+	}
+
+	/**
+	 * Tests that add_post_type_support() overwrites values when called with the same key.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_overwrites_same_key() {
+		register_post_type( 'foo' );
+
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'default-mode' => 'template-locked',
+			)
+		);
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertSame( 'template-locked', $support['editor'][0]['default-mode'], 'The argument of the first call should be stored as passed.' );
+
+		// Calling with same key but different value should overwrite.
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'default-mode' => 'unlocked',
+			)
+		);
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertSame( 'unlocked', $support['editor'][0]['default-mode'], 'An argument passed twice should keep the value of the last call.' );
+	}
+
+	/**
+	 * Tests backwards compatibility: calling add_post_type_support() without args still works.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_without_args() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'custom-fields' );
+
+		$this->assertTrue( post_type_supports( 'foo', 'custom-fields' ), 'The post type should support the feature.' );
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertTrue( $support['custom-fields'], 'A feature added without arguments should be stored as true.' );
+	}
+
+	/**
+	 * Tests backwards compatibility: calling add_post_type_support() with args after
+	 * setting it to true should overwrite with args.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_with_args_after_true() {
+		register_post_type( 'foo' );
+
+		// First call without args sets to true.
+		add_post_type_support( 'foo', 'editor' );
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertTrue( $support['editor'], 'A feature added without arguments should be stored as true.' );
+
+		// Second call with args should overwrite true with args.
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'default-mode' => 'template-locked',
+			)
+		);
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertIsArray( $support['editor'], 'The editor support should be stored as an array of arguments.' );
+		$this->assertSame( 'template-locked', $support['editor'][0]['default-mode'], 'Arguments should replace a feature that was previously added without arguments.' );
+	}
+
+	/**
+	 * Tests backwards compatibility: calling add_post_type_support() without args after
+	 * setting it with args should overwrite with true.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_without_args_after_array() {
+		register_post_type( 'foo' );
+
+		// First call with args.
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'default-mode' => 'template-locked',
+			)
+		);
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertIsArray( $support['editor'], 'The editor support should be stored as an array of arguments.' );
+		$this->assertSame( 'template-locked', $support['editor'][0]['default-mode'], 'The argument of the first call should be stored as passed.' );
+
+		// Second call without args should overwrite args with true.
+		add_post_type_support( 'foo', 'editor' );
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertTrue( $support['editor'], 'Adding a feature without arguments should replace its existing arguments.' );
+	}
+
+	/**
+	 * Tests that add_post_type_support() can add multiple features at once.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_multiple_features() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', array( 'title', 'editor', 'thumbnail' ) );
+
+		$this->assertTrue( post_type_supports( 'foo', 'title' ), 'The post type should support the title feature.' );
+		$this->assertTrue( post_type_supports( 'foo', 'editor' ), 'The post type should support the editor feature.' );
+		$this->assertTrue( post_type_supports( 'foo', 'thumbnail' ), 'The post type should support the thumbnail feature.' );
+	}
+
+	/**
+	 * Tests that add_post_type_support() works with nested array arguments.
+	 *
+	 * @ticket 64156
+	 */
+	public function test_add_post_type_support_with_nested_arrays() {
+		register_post_type( 'foo' );
+
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'allowed_blocks' => array( 'core/paragraph', 'core/heading' ),
+			)
+		);
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertIsArray( $support['editor'][0]['allowed_blocks'], 'The nested argument should be stored as an array.' );
+		$this->assertContains( 'core/paragraph', $support['editor'][0]['allowed_blocks'], 'The nested argument should contain the values passed.' );
+		$this->assertContains( 'core/heading', $support['editor'][0]['allowed_blocks'], 'The nested argument should contain the values passed.' );
+
+		// Adding another nested array should merge.
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'disallowed_blocks' => array( 'core/code' ),
+			)
+		);
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertIsArray( $support['editor'][0]['allowed_blocks'], 'The nested argument of the first call should be preserved.' );
+		$this->assertIsArray( $support['editor'][0]['disallowed_blocks'], 'The nested argument of the second call should be merged in.' );
+		$this->assertContains( 'core/paragraph', $support['editor'][0]['allowed_blocks'], 'The nested argument of the first call should be preserved.' );
+		$this->assertContains( 'core/code', $support['editor'][0]['disallowed_blocks'], 'The nested argument of the second call should be merged in.' );
+	}
+
+	/**
 	 * @ticket 21586
 	 * @ticket 41172
 	 */
