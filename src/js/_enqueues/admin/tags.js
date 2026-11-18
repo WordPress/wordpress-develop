@@ -147,7 +147,10 @@ jQuery( function($) {
  				);
  			}
 			$( '.tablenav > *' ).hide();
-			$( 'p.search-box' ).hide();
+
+			if ( ! new URLSearchParams( window.location.search ).get( 's' ) ) {
+				$( 'p.search-box' ).hide();
+			}
 		} else {
 			$( '#the-list' ).find( 'tr.no-items' ).remove();
 			$( '.tablenav > *' ).show();
