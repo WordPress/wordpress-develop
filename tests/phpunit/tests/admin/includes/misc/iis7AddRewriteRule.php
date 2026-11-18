@@ -37,6 +37,7 @@ class Tests_iis7_add_rewrite_rule extends WP_UnitTestCase {
 	 * Tests that iis7_add_rewrite_rule() correctly adds WordPress rules.
 	 *
 	 * @ticket 65172
+	 * @ticket 45970
 	 *
 	 * @dataProvider data_iis7_add_rewrite_rule
 	 *
@@ -71,48 +72,65 @@ class Tests_iis7_add_rewrite_rule extends WP_UnitTestCase {
 	public static function data_iis7_add_rewrite_rule(): array {
 		$rule = '<rule name="wordpress" patternSyntax="Wildcard"><match url="*" /><conditions><add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" /><add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" /></conditions><action type="Rewrite" url="index.php" /></rule>';
 
+		$ns = ' xmlns="http://schemas.microsoft.com/.NetConfiguration/v2.0"';
+
 		return array(
-			'File does not exist'                  => array(
+			'File does not exist'                        => array(
 				'initial_content'  => null,
 				'rewrite_rule'     => $rule,
 				'expected_content' => '<configuration><system.webServer><rewrite><rules>' . $rule . '</rules></rewrite></system.webServer></configuration>',
 			),
-			'Empty configuration'                  => array(
+			'Empty configuration'                        => array(
 				'initial_content'  => '<configuration/>',
 				'rewrite_rule'     => $rule,
 				'expected_content' => '<configuration><system.webServer><rewrite><rules>' . $rule . '</rules></rewrite></system.webServer></configuration>',
 			),
-			'Existing system.webServer'            => array(
+			'Existing system.webServer'                  => array(
 				'initial_content'  => '<configuration><system.webServer/></configuration>',
 				'rewrite_rule'     => $rule,
 				'expected_content' => '<configuration><system.webServer><rewrite><rules>' . $rule . '</rules></rewrite></system.webServer></configuration>',
 			),
-			'Existing rewrite'                     => array(
+			'Existing rewrite'                           => array(
 				'initial_content'  => '<configuration><system.webServer><rewrite/></system.webServer></configuration>',
 				'rewrite_rule'     => $rule,
 				'expected_content' => '<configuration><system.webServer><rewrite><rules>' . $rule . '</rules></rewrite></system.webServer></configuration>',
 			),
-			'Existing rules'                       => array(
+			'Existing rules'                             => array(
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules/></rewrite></system.webServer></configuration>',
 				'rewrite_rule'     => $rule,
 				'expected_content' => '<configuration><system.webServer><rewrite><rules>' . $rule . '</rules></rewrite></system.webServer></configuration>',
 			),
-			'Existing other rule'                  => array(
+			'Existing other rule'                        => array(
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules><rule name="other" /></rules></rewrite></system.webServer></configuration>',
 				'rewrite_rule'     => $rule,
 				'expected_content' => '<configuration><system.webServer><rewrite><rules><rule name="other" />' . $rule . '</rules></rewrite></system.webServer></configuration>',
 			),
-			'Rule already exists (lowercase)'      => array(
+			'Rule already exists (lowercase)'            => array(
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules><rule name="wordpress" /></rules></rewrite></system.webServer></configuration>',
 				'rewrite_rule'     => $rule,
 				'expected_content' => '<configuration><system.webServer><rewrite><rules><rule name="wordpress" /></rules></rewrite></system.webServer></configuration>',
 			),
-			'Rule already exists (CamelCase)'      => array(
+			'Rule already exists (CamelCase)'            => array(
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules><rule name="WordPress" /></rules></rewrite></system.webServer></configuration>',
 				'rewrite_rule'     => $rule,
 				'expected_content' => '<configuration><system.webServer><rewrite><rules><rule name="WordPress" /></rules></rewrite></system.webServer></configuration>',
 			),
-			'Rule with same prefix already exists' => array(
+			'Empty configuration with default namespace' => array(
+				'initial_content'  => "<configuration$ns/>",
+				'rewrite_rule'     => $rule,
+				'expected_content' => "<configuration$ns><system.webServer><rewrite><rules>" . $rule . '</rules></rewrite></system.webServer></configuration>',
+			),
+			'Existing system.webServer with default namespace' => array(
+				'initial_content'  => "<configuration$ns><system.webServer/></configuration>",
+				'rewrite_rule'     => $rule,
+				'expected_content' => "<configuration$ns><system.webServer><rewrite><rules>" . $rule . '</rules></rewrite></system.webServer></configuration>',
+			),
+			'Rule already exists with default namespace' => array(
+				'initial_content'  => "<configuration$ns><system.webServer><rewrite><rules><rule name=\"wordpress\" /></rules></rewrite></system.webServer></configuration>",
+				'rewrite_rule'     => $rule,
+				'expected_content' => "<configuration$ns><system.webServer><rewrite><rules><rule name=\"wordpress\" /></rules></rewrite></system.webServer></configuration>",
+			),
+			'Rule with same prefix already exists'       => array(
 				'initial_content'  => '<configuration><system.webServer><rewrite><rules><rule name="wordpress-rules" /></rules></rewrite></system.webServer></configuration>',
 				'rewrite_rule'     => $rule,
 				'expected_content' => '<configuration><system.webServer><rewrite><rules><rule name="wordpress-rules" /></rules></rewrite></system.webServer></configuration>',
