@@ -368,12 +368,53 @@ $command = sprintf(
 	escapeshellarg( $memory_limit )
 );
 
+/*
+ * The baselines only take effect through a loader in their own directory. It is
+ * written on every run, so that the committed loader of the default directory, and
+ * that of any other, stay what build_loader() makes rather than drifting from it
+ * unnoticed. A directory given with `--output-dir` that had none is not included
+ * by anything yet, so say so.
+ *
+ * It is written before the analysis rather than after, since a configuration may
+ * already include it, and PHPStan refuses to run with an include that is missing.
+ * That is how the baselines of a new configuration are first generated: add the
+ * loader of its directory to its `includes`, then run this with `--config` and
+ * `--output-dir` naming them. With the directory suppressed, the loader includes
+ * nothing during the analysis either way.
+ *
+ * `--combined` writes nothing to disk, so a missing loader stays missing then.
+ */
+if ( ! $combined ) {
+	if ( ! is_dir( $output_dir ) && ! mkdir( $output_dir, 0755, true ) ) {
+		fwrite( STDERR, "Could not create $output_option\n" );
+		exit( 1 );
+	}
+
+	$loader_path     = $output_dir . '/loader.php';
+	$loader          = build_loader( $output_dir );
+	$loader_existed  = is_file( $loader_path );
+	$loader_contents = $loader_existed ? file_get_contents( $loader_path ) : false;
+
+	if ( $loader !== $loader_contents ) {
+		if ( false === file_put_contents( $loader_path, $loader ) ) {
+			fwrite( STDERR, "Could not write $output_option/loader.php\n" );
+			exit( 1 );
+		}
+
+		printf(
+			$loader_existed ? "%s: rewritten.\n" : "%s: written. The configuration has to include it for these baselines to take effect.\n",
+			$output_option . '/loader.php'
+		);
+	}
+}
+
 fwrite( STDERR, "Analyzing with $config_option, baselines in $output_option suppressed...\n" );
 
 /*
  * PHPStan inherits it, as do the worker processes it starts. It is the real path,
- * since that is what the loader's __DIR__ is. An output directory not created yet
- * holds no loader to match, so it is not set at all then. It is cleared first
+ * since that is what the loader's __DIR__ is. An output directory that does not
+ * exist, which only `--combined` leaves uncreated, holds no loader to match, so it
+ * is not set at all then. It is cleared first
  * either way, so that a value exported in the shell, perhaps naming another
  * directory, cannot switch off baselines this run means to keep.
  */
@@ -428,35 +469,6 @@ if ( $combined ) {
 	}
 	echo build_baseline( $all, $output_dir, "# Every identifier, combined.\n" );
 	exit( 0 );
-}
-
-if ( ! is_dir( $output_dir ) && ! mkdir( $output_dir, 0755, true ) ) {
-	fwrite( STDERR, "Could not create $output_option\n" );
-	exit( 1 );
-}
-
-/*
- * The baselines only take effect through a loader in their own directory. It is
- * written on every run, so that the committed loader of the default directory, and
- * that of any other, stay what build_loader() makes rather than drifting from it
- * unnoticed. A directory given with `--output-dir` that had none is not included
- * by anything yet, so say so.
- */
-$loader_path     = $output_dir . '/loader.php';
-$loader          = build_loader( $output_dir );
-$loader_existed  = is_file( $loader_path );
-$loader_contents = $loader_existed ? file_get_contents( $loader_path ) : false;
-
-if ( $loader !== $loader_contents ) {
-	if ( false === file_put_contents( $loader_path, $loader ) ) {
-		fwrite( STDERR, "Could not write $output_option/loader.php\n" );
-		exit( 1 );
-	}
-
-	printf(
-		$loader_existed ? "%s: rewritten.\n" : "%s: written. Include it in the configuration for these baselines to take effect.\n",
-		$output_option . '/loader.php'
-	);
 }
 
 /*
