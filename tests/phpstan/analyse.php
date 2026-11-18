@@ -178,6 +178,11 @@ function get_level( string $phpstan, string $config ): ?string {
 	$exit_code = 0;
 	exec( sprintf( '%s %s dump-parameters --configuration=%s --json 2>/dev/null', escapeshellarg( PHP_BINARY ), escapeshellarg( $phpstan ), escapeshellarg( $config ) ), $output, $exit_code );
 
+	// A configuration PHPStan cannot load, for one, leaves no parameters to read.
+	if ( 0 !== $exit_code ) {
+		return null;
+	}
+
 	foreach ( $output as $line ) {
 		if ( 1 === preg_match( '/^\s*"level": ("max"|"?\d+"?),?$/', $line, $matches ) ) {
 			return trim( $matches[1], '"' );
