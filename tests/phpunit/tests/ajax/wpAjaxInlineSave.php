@@ -199,4 +199,90 @@ class Tests_Ajax_wpAjaxInlineSave extends WP_Ajax_UnitTestCase {
 
 		$this->assertSame( '2020-09-11 19:20:11', $post->post_date_gmt );
 	}
+
+	/**
+	 * Tests that unchecking every category in Quick Edit leaves the post without categories,
+	 * rather than reassigning the default category.
+	 */
+	public function test_quick_edit_removing_all_categories_does_not_assign_default_category() {
+		$this->_setRole( 'administrator' );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_author' => get_current_user_id(),
+			)
+		);
+
+		$default_category = (int) get_option( 'default_category' );
+		$this->assertSame( array( $default_category ), wp_get_post_categories( $post->ID ) );
+
+		// The Quick Edit category checklist always submits a hidden value of 0.
+		$this->make_quick_edit_category_request( $post, array( '0' ) );
+
+		$this->assertSame( array(), wp_get_post_categories( $post->ID ) );
+	}
+
+	/**
+	 * Tests that unchecking the default category while checking another one in Quick Edit
+	 * removes the default category.
+	 */
+	public function test_quick_edit_can_replace_default_category() {
+		$this->_setRole( 'administrator' );
+
+		$category = self::factory()->category->create();
+		$post     = self::factory()->post->create_and_get(
+			array(
+				'post_author' => get_current_user_id(),
+			)
+		);
+
+		$this->make_quick_edit_category_request( $post, array( '0', (string) $category ) );
+
+		$this->assertSame( array( $category ), wp_get_post_categories( $post->ID ) );
+	}
+
+	/**
+	 * Tests that categories are left untouched when the category taxonomy is hidden from Quick Edit.
+	 */
+	public function test_quick_edit_does_not_remove_categories_when_hidden_from_quick_edit() {
+		$this->_setRole( 'administrator' );
+
+		$category = self::factory()->category->create();
+		$post     = self::factory()->post->create_and_get(
+			array(
+				'post_author'   => get_current_user_id(),
+				'post_category' => array( $category ),
+			)
+		);
+
+		add_filter( 'quick_edit_show_taxonomy', '__return_false' );
+
+		$this->make_quick_edit_category_request( $post, array( '0' ) );
+
+		$this->assertNotEmpty( wp_get_post_categories( $post->ID ) );
+	}
+
+	/**
+	 * Makes a Quick Edit request that submits the given category IDs.
+	 *
+	 * @param WP_Post  $post          Post to update.
+	 * @param string[] $post_category Category IDs as submitted by the Quick Edit form.
+	 */
+	private function make_quick_edit_category_request( $post, $post_category ) {
+		$_POST['_inline_edit']  = wp_create_nonce( 'inlineeditnonce' );
+		$_POST['post_ID']       = $post->ID;
+		$_POST['post_type']     = $post->post_type;
+		$_POST['post_title']    = $post->post_title;
+		$_POST['_status']       = $post->post_status;
+		$_POST['post_status']   = $post->post_status;
+		$_POST['screen']        = 'edit-post';
+		$_POST['post_view']     = 'list';
+		$_POST['post_category'] = $post_category;
+
+		try {
+			$this->_handleAjax( 'inline-save' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+	}
 }
