@@ -414,9 +414,9 @@ fwrite( STDERR, "Analyzing with $config_option, baselines in $output_option supp
  * PHPStan inherits it, as do the worker processes it starts. It is the real path,
  * since that is what the loader's __DIR__ is. An output directory that does not
  * exist, which only `--combined` leaves uncreated, holds no loader to match, so it
- * is not set at all then. It is cleared first
- * either way, so that a value exported in the shell, perhaps naming another
- * directory, cannot switch off baselines this run means to keep.
+ * is not set at all then. It is cleared first either way, so that a value
+ * exported in the shell, perhaps naming another directory, cannot switch off
+ * baselines this run means to keep.
  */
 putenv( GENERATING_BASELINES_ENV );
 $resolved_output_dir = realpath( $output_dir );
