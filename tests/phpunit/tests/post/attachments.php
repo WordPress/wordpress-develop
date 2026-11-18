@@ -44,8 +44,13 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	public function test_insert_image_no_thumb() {
 
 		// This image is smaller than the thumbnail size so it won't have one.
-		$id       = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
-		$filename = wp_basename( get_attached_file( $id ) );
+		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
+		$contents = file_get_contents( $filename );
+
+		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$this->assertEmpty( $upload['error'] );
+
+		$id = $this->_make_attachment( $upload );
 
 		// Intermediate copies should not exist.
 		$this->assertFalse( image_get_intermediate_size( $id, 'thumbnail' ) );
@@ -54,17 +59,17 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		// medium, medium_large, and full size will both point to the original.
 		$downsize = image_downsize( $id, 'medium' );
-		$this->assertSame( $filename, wp_basename( $downsize[0] ) );
+		$this->assertSame( wp_basename( $upload['file'] ), wp_basename( $downsize[0] ) );
 		$this->assertSame( 50, $downsize[1] );
 		$this->assertSame( 50, $downsize[2] );
 
 		$downsize = image_downsize( $id, 'medium_large' );
-		$this->assertSame( $filename, wp_basename( $downsize[0] ) );
+		$this->assertSame( wp_basename( $upload['file'] ), wp_basename( $downsize[0] ) );
 		$this->assertSame( 50, $downsize[1] );
 		$this->assertSame( 50, $downsize[2] );
 
 		$downsize = image_downsize( $id, 'full' );
-		$this->assertSame( $filename, wp_basename( $downsize[0] ) );
+		$this->assertSame( wp_basename( $upload['file'] ), wp_basename( $downsize[0] ) );
 		$this->assertSame( 50, $downsize[1] );
 		$this->assertSame( 50, $downsize[2] );
 	}
