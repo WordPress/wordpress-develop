@@ -452,6 +452,51 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that when `object_ids` is null (the default), all terms are returned without filtering.
+	 *
+	 * @ticket 63256
+	 */
+	public function test_object_ids_null_returns_all_terms() {
+		register_taxonomy( 'wptests_tax_1', 'post' );
+
+		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax_1' ) );
+
+		$query = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_1',
+				'object_ids' => null,
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertSameSets( $terms, $query->terms, 'When object_ids is null, all terms should be returned.' );
+	}
+
+	/**
+	 * Tests that numeric zero as `object_ids` is treated as a valid object ID, not as "not set".
+	 *
+	 * @ticket 63256
+	 */
+	public function test_object_ids_zero_is_treated_as_numeric() {
+		register_taxonomy( 'wptests_tax_1', 'post' );
+
+		self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_1' ) );
+
+		$query = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_1',
+				'object_ids' => 0,
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		// object_ids=0 is a valid filter (no objects have ID 0), so no terms should be returned.
+		$this->assertSame( array(), $query->terms, 'When object_ids is 0, it should be treated as a numeric value, not as unset.' );
+	}
+
+	/**
 	 * @ticket 38295
 	 * @group cache
 	 */
