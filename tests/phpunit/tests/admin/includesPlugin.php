@@ -719,6 +719,19 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a missing plugin is rejected before its headers are read.
+	 *
+	 * @ticket 66396
+	 * @covers ::activate_plugin
+	 */
+	public function test_activate_plugin_returns_error_for_missing_plugin() {
+		$result = activate_plugin( 'non-existent-plugin/plugin.php' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'plugin_not_found', $result->get_error_code() );
+	}
+
+	/**
 	 * @covers ::activate_plugins
 	 */
 	public function test_activate_plugins_single_no_array() {
