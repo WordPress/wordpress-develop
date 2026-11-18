@@ -272,6 +272,7 @@ class Tests_Ajax_wpAjaxDeleteComment extends WP_Ajax_UnitTestCase {
 	 * @covers ::_wp_ajax_delete_comment_response
 	 */
 	public function test_ajax_comment_trash_actions_as_administrator() {
+
 		// Test trash/untrash.
 		$this->_test_as_admin( self::$comments[0], 'trash' );
 		$this->_test_as_admin( self::$comments[0], 'untrash' );
@@ -282,6 +283,43 @@ class Tests_Ajax_wpAjaxDeleteComment extends WP_Ajax_UnitTestCase {
 
 		// Test delete.
 		$this->_test_as_admin( self::$comments[2], 'delete' );
+	}
+
+	/**
+	 * Tests that the response identifies a comment by the current user.
+	 *
+	 * @ticket 46017
+	 * @covers ::_wp_ajax_delete_comment_response
+	 */
+	public function test_ajax_comment_response_identifies_current_user_comment() {
+
+		$this->_setRole( 'administrator' );
+
+		$comment = self::$comments[3];
+		wp_update_comment(
+			array(
+				'comment_ID' => $comment->comment_ID,
+				'user_id'    => get_current_user_id(),
+			)
+		);
+
+		$_POST['id']          = $comment->comment_ID;
+		$_POST['_ajax_nonce'] = wp_create_nonce( 'delete-comment_' . $comment->comment_ID );
+		$_POST['trash']       = '1';
+		$_POST['_total']      = count( self::$comments );
+		$_POST['_per_page']   = '100';
+		$_POST['_page']       = '1';
+		$_POST['_url']        = admin_url( 'edit-comments.php' );
+
+		try {
+			$this->_handleAjax( 'delete-comment' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$xml = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
+
+		$this->assertSame( '1', (string) $xml->response[0]->comment[0]->supplemental[0]->is_current_user[0] );
 	}
 
 	/**
