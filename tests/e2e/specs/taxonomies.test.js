@@ -8,6 +8,11 @@ import { randomUUID } from 'node:crypto';
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
+/**
+ * Internal dependencies
+ */
+import { bulkActionApply, bulkActionSelect } from '../utils/admin';
+
 for ( const { taxonomy, endpoint, label } of [
 	{ taxonomy: 'category', endpoint: 'categories', label: 'Category' },
 	{ taxonomy: 'post_tag', endpoint: 'tags', label: 'Tag' },
@@ -275,10 +280,8 @@ for ( const { taxonomy, endpoint, label } of [
 					.locator( `#tag-${ second.id }` )
 					.getByRole( 'checkbox' )
 					.check();
-				await page
-					.locator( '#bulk-action-selector-top' )
-					.selectOption( 'delete' );
-				await page.locator( '#doaction' ).click();
+				await bulkActionSelect( page ).selectOption( 'delete' );
+				await bulkActionApply( page ).click();
 
 				await expect(
 					page.locator( `#tag-${ first.id }` )

@@ -204,6 +204,8 @@ PHPStan errors can be ignored in the following ways:
 
 The baselines live in [`baselines/`](baselines), one file per error identifier, such as `variable.undefined.neon`. Splitting them this way keeps each kind of error visible as a single file that should shrink to nothing and then be deleted, rather than as part of one large file in which every kind is mixed together.
 
+[`phpstan.neon.dist`](../../phpstan.neon.dist) does not list the baselines one by one. It includes [`baselines/loader.php`](baselines/loader.php), which includes every `.neon` file in that directory named for an error identifier, so a baseline takes effect as soon as it is added, and stops as soon as it is deleted, without an edit of the configuration.
+
 Every entry is scoped to the file the error occurs in and carries an exact occurrence count:
 
 ```neon
@@ -235,7 +237,7 @@ composer phpstan:fix
 This runs three steps, each only when the one before it succeeds:
 
 1. PHPStan with its `--fix` option, which lowers the count of the entry, or removes the entry, leaving the rest of the baseline as it was. It is usually much faster than regenerating, since it reuses the result cache of the run that reported the errors. Unlike regenerating, it also removes an `@phpstan-ignore` comment that no longer matches.
-2. `composer phpstan:baselines -- --prune`, which deletes any baseline left with no entries, along with its `includes` entry in `phpstan.neon.dist`. Removing the last entry of a baseline leaves the file behind, as `ignoreErrors: []`. Pruning analyzes nothing, so it can also be run on its own.
+2. `composer phpstan:baselines -- --prune`, which deletes any baseline left with no entries. Removing the last entry of a baseline leaves the file behind, as `ignoreErrors: []`. Pruning analyzes nothing, so it can also be run on its own.
 3. The analysis once more, which reuses the result cache and so is quick. PHPStan's `--fix` reports only what it fixed, and succeeds even when other errors remain, so this is what shows the errors that are left.
 
 Keep in mind:
@@ -290,7 +292,7 @@ composer phpstan:baselines -- --help
 
 Note the `--` in each of those. Composer needs it in order to pass the flags on to the script rather than reading them as its own, and without it they are discarded silently, so `composer phpstan:baselines --identifier=variable.undefined` regenerates every baseline rather than that one. The npm script supplies it, which is why only one is needed there.
 
-A run also deletes any baseline whose identifier no longer reports anything, and rewrites the list of them between the `# phpstan:baselines` markers in the `includes` of [`phpstan.neon.dist`](../../phpstan.neon.dist) to match. Adding a newly split out baseline, and retiring one that has reached zero, therefore need no edit of the configuration.
+A run also deletes any baseline whose identifier no longer reports anything. Since the baselines are included through [`baselines/loader.php`](baselines/loader.php), adding a newly split out baseline, and retiring one that has reached zero, need no edit of the configuration.
 
 PHPStan's own `--generate-baseline` is deliberately not used directly. It captures every error a run reports, with no way to restrict it to one identifier, so it cannot refresh a single baseline without sweeping every other kind of error into it.
 

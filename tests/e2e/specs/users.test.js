@@ -8,6 +8,11 @@ import { randomUUID } from 'node:crypto';
  */
 import { test, expect } from '../fixtures';
 import { signIn } from '../fixtures/user';
+import {
+	adminNotice,
+	bulkActionApply,
+	bulkActionSelect,
+} from '../utils/admin';
 
 test.describe( 'User management', () => {
 	let prefix;
@@ -40,7 +45,7 @@ test.describe( 'User management', () => {
 		await page
 			.getByRole( 'button', { name: 'Add User', exact: true } )
 			.click();
-		await expect( page.locator( '#message' ) ).toContainText(
+		await expect( adminNotice( page ) ).toContainText(
 			'New user created.'
 		);
 
@@ -87,17 +92,15 @@ test.describe( 'User management', () => {
 			.locator( `#user-${ users[ 1 ].id }` )
 			.getByRole( 'checkbox' )
 			.check();
-		await page
-			.locator( '#bulk-action-selector-top' )
-			.selectOption( 'delete' );
-		await page.locator( '#doaction' ).click();
+		await bulkActionSelect( page ).selectOption( 'delete' );
+		await bulkActionApply( page ).click();
 		await expect(
 			page.getByRole( 'heading', { name: 'Delete Users', exact: true } )
 		).toBeVisible();
 		await page
 			.getByRole( 'button', { name: 'Confirm Deletion', exact: true } )
 			.click();
-		await expect( page.locator( '#message' ) ).toContainText(
+		await expect( adminNotice( page ) ).toContainText(
 			'2 users deleted.'
 		);
 		await expect( page.locator( `#user-${ users[ 0 ].id }` ) ).toBeHidden();

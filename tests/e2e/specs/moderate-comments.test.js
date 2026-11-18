@@ -2,6 +2,11 @@
  * Internal dependencies
  */
 import { test, expect } from '../fixtures';
+import {
+	bulkActionApply,
+	bulkActionSelect,
+	commentRow,
+} from '../utils/admin';
 
 /** The comment content used across tests. */
 const COMMENT_CONTENT = 'A comment awaiting moderation.';
@@ -79,7 +84,7 @@ test.describe( 'Moderate Comments', () => {
 			'comment_status=moderated'
 		);
 
-		const row = page.locator( `#comment-${ comment.id }` );
+		const row = commentRow( page, comment.id );
 		await expect( row ).toBeVisible();
 
 		// Row actions appear on hover.
@@ -118,7 +123,7 @@ test.describe( 'Moderate Comments', () => {
 
 		await admin.visitAdminPage( '/edit-comments.php' );
 
-		const row = page.locator( `#comment-${ comment.id }` );
+		const row = commentRow( page, comment.id );
 		await expect( row ).toBeVisible();
 
 		await row.hover();
@@ -153,7 +158,7 @@ test.describe( 'Moderate Comments', () => {
 
 		await admin.visitAdminPage( '/edit-comments.php' );
 
-		const row = page.locator( `#comment-${ comment.id }` );
+		const row = commentRow( page, comment.id );
 		await expect( row ).toBeVisible();
 
 		await row.hover();
@@ -214,8 +219,7 @@ test.describe( 'Moderate Comments', () => {
 				status: 'approved',
 			} );
 		await expect(
-			page
-				.locator( `#comment-${ replyId }` )
+			commentRow( page, replyId )
 				.getByRole( 'paragraph' )
 				.filter( { hasText: /^An admin reply\.$/ } )
 		).toBeVisible();
@@ -248,14 +252,12 @@ test.describe( 'Moderate Comments', () => {
 			'comment_status=moderated'
 		);
 
-		const firstRow = page.locator( `#comment-${ comment.id }` );
-		const secondRow = page.locator( `#comment-${ secondComment.id }` );
+		const firstRow = commentRow( page, comment.id );
+		const secondRow = commentRow( page, secondComment.id );
 		await firstRow.getByRole( 'checkbox' ).check();
 		await secondRow.getByRole( 'checkbox' ).check();
-		await page
-			.locator( '#bulk-action-selector-top' )
-			.selectOption( 'spam' );
-		await page.locator( '#doaction' ).click();
+		await bulkActionSelect( page ).selectOption( 'spam' );
+		await bulkActionApply( page ).click();
 
 		await expect
 			.poll( () => getCommentStatus( requestUtils, comment.id ), {
@@ -293,7 +295,7 @@ test.describe( 'Moderate Comments', () => {
 			`p=${ post.id }`
 		);
 
-		const row = page.locator( `#comment-${ comment.id }` );
+		const row = commentRow( page, comment.id );
 		await row.hover();
 		await row
 			.getByRole( 'button', { name: 'Quick edit this comment inline' } )
