@@ -175,10 +175,12 @@ if ( ! $config_given && ! $combined ) {
 			' ',
 			array_map(
 				'escapeshellarg',
-				array_merge(
-					array( PHP_BINARY, __FILE__ ),
-					$args,
-					array( "--config=$config", "--output-dir=$output" )
+				array(
+					PHP_BINARY,
+					__FILE__,
+					...$args,
+					"--config=$config",
+					"--output-dir=$output",
 				)
 			)
 		);
