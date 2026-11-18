@@ -6155,4 +6155,64 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertSame( 1, (int) $counts->approved, 'Only the regular comment should be counted.' );
 		$this->assertSame( 1, (int) $counts->total_comments, 'The excluded types should not inflate the total.' );
 	}
+
+	/**
+	 * The parent-to-children cache of a hierarchical query is keyed like the query
+	 * itself, so it must not serve replies of a type that has since been excluded.
+	 *
+	 * @ticket 65537
+	 * @covers WP_Comment_Query::fill_descendants
+	 */
+	public function test_default_excluded_comment_types_are_part_of_the_descendants_cache_key(): void {
+		$parent = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+			)
+		);
+		$reply  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'private',
+				'comment_parent'   => $parent,
+			)
+		);
+
+		$args = array(
+			'post_id'      => self::$post_id,
+			'hierarchical' => 'flat',
+		);
+
+		$callback = static function ( array $types ): array {
+			$types[] = 'private';
+			return $types;
+		};
+
+		// Warm the cache with the reply included.
+		$warm = new WP_Comment_Query();
+		$this->assertEquals(
+			array( $parent, $reply ),
+			wp_list_pluck( $warm->query( $args ), 'comment_ID' ),
+			'The reply should be returned before its type is excluded.'
+		);
+
+		add_filter( 'default_excluded_comment_types', $callback );
+
+		$filtered = new WP_Comment_Query();
+		$this->assertEquals(
+			array( $parent ),
+			wp_list_pluck( $filtered->query( $args ), 'comment_ID' ),
+			'A warm cache should not serve a reply of a type that is now excluded.'
+		);
+
+		remove_filter( 'default_excluded_comment_types', $callback );
+
+		$restored = new WP_Comment_Query();
+		$this->assertEquals(
+			array( $parent, $reply ),
+			wp_list_pluck( $restored->query( $args ), 'comment_ID' ),
+			'The reply should be returned again once its type is no longer excluded.'
+		);
+	}
 }
