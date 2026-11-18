@@ -88,7 +88,7 @@ jobs:
             // anything at all. They are therefore checked for shape, and only accepted for the pull request whose
             // current head is the commit that the run analyzed. That also discards the results of a run that was
             // overtaken by a newer push.
-            const results = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, 'utf8' ) );
+            const results = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, { encoding: 'utf8' } ) );
             const issue_number = results.pull_request;
             if ( ! Number.isSafeInteger( issue_number ) || issue_number <= 0 || ! Array.isArray( results.errors ) ) {
               core.setFailed( 'The analysis results are malformed.' );
@@ -132,7 +132,7 @@ jobs:
             if ( expectsStrict ) {
               let strictResults = null;
               try {
-                strictResults = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results-strict/results.json`, 'utf8' ) );
+                strictResults = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results-strict/results.json`, { encoding: 'utf8' } ) );
               } catch ( error ) {
                 core.info( `The results of the strict analysis are missing, so the comment is left as it is: ${ error.message }` );
                 return;

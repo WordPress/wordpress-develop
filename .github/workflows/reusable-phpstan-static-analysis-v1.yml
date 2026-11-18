@@ -191,7 +191,7 @@ jobs:
             const analysis = process.env.ANALYSIS;
             const titlePrefix = analysis === 'strict' ? `PHPStan (strict${ level === null ? '' : `, level ${ level }` })` : 'PHPStan';
 
-            const report = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-report.json`, 'utf8' ) );
+            const report = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-report.json`, { encoding: 'utf8' } ) );
             const workspace = `${ process.env.GITHUB_WORKSPACE }/`;
 
             const errors = [];
