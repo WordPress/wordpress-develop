@@ -110,7 +110,7 @@ parameters:
 
 ### Stricter analysis of selected paths
 
-`phpstan.neon.dist` holds the whole codebase to a low rule level, since most of it does not yet meet a higher one. Some of it already does, mostly code added in recent releases, such as the Secrets API, the AI client, and the Abilities API. [`phpstan-level-10.neon.dist`](../../phpstan-level-10.neon.dist) holds those paths to rule level 10, so that they keep meeting it.
+`phpstan.neon.dist` holds the whole codebase to a low rule level, since most of it does not yet meet a higher one. Some of it already does, mostly code added in recent releases, such as the AI client and the Abilities API. [`phpstan-level-10.neon.dist`](../../phpstan-level-10.neon.dist) holds those paths to rule level 10, so that they keep meeting it.
 
 It includes `phpstan.neon.dist`, so everything that enforces still applies, and replaces the paths analyzed with the ones it lists under `paths!`. The rest of core is scanned instead, so that what those paths use is known. A scanned file gets the same [WordPress-specific extensions](#wordpress-specific-extensions) as an analyzed one, because `base.neon` has every parse run them, so the types of the code outside the strict paths are the same as in the analysis of the whole codebase.
 
