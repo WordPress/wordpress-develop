@@ -111,7 +111,7 @@ final class WP_Comment_Type {
 	 * @param array<string, mixed>|string $args         Optional. Array or string of arguments for registering
 	 *                                                  a comment type. Default empty array.
 	 */
-	public function __construct( string $comment_type, $args = array() ) {
+	public function __construct( $comment_type, $args = array() ) {
 		$this->name = $comment_type;
 
 		$this->set_props( $args );
