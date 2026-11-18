@@ -367,12 +367,22 @@ class WP_Customize_Setting {
 
 		switch ( $this->type ) {
 			case 'theme_mod':
+				$theme_mods_filter = static function ( $mods ) use ( $id_base ) {
+					if ( is_array( $mods ) ) {
+						/** This filter is documented in wp-includes/theme.php */
+						$mods[ $id_base ] = apply_filters( "theme_mod_{$id_base}", $mods[ $id_base ] ?? false );
+					}
+					return $mods;
+				};
+
 				if ( ! $is_multidimensional ) {
 					add_filter( "theme_mod_{$id_base}", array( $this, '_preview_filter' ) );
+					add_filter( 'option_theme_mods_' . get_option( 'stylesheet' ), $theme_mods_filter );
 				} else {
 					if ( empty( self::$aggregated_multidimensionals[ $this->type ][ $id_base ]['previewed_instances'] ) ) {
 						// Only add this filter once for this ID base.
 						add_filter( "theme_mod_{$id_base}", $multidimensional_filter );
+						add_filter( 'option_theme_mods_' . get_option( 'stylesheet' ), $theme_mods_filter );
 					}
 					self::$aggregated_multidimensionals[ $this->type ][ $id_base ]['previewed_instances'][ $this->id ] = $this;
 				}
