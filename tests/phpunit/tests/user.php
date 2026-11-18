@@ -2678,6 +2678,63 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 22310
+	 *
+	 * @dataProvider data_wp_insert_user_boolean_preferences
+	 *
+	 * @param string      $field    The preference field.
+	 * @param bool|string $value    The value passed to wp_insert_user().
+	 * @param string      $expected The expected stored meta value.
+	 */
+	public function test_wp_insert_user_should_store_boolean_preferences_as_string_literals( $field, $value, $expected ) {
+		$user_id = wp_insert_user(
+			array(
+				'user_login' => 'preferences_user',
+				'user_pass'  => 'password',
+				$field       => $value,
+			)
+		);
+
+		$this->assertNotWPError( $user_id );
+		$this->assertSame( $expected, get_user_meta( $user_id, $field, true ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_insert_user_boolean_preferences() {
+		$data = array();
+
+		foreach ( array( 'rich_editing', 'syntax_highlighting', 'infinite_scrolling', 'show_admin_bar_front' ) as $field ) {
+			$data[ "$field: boolean true" ]  = array( $field, true, 'true' );
+			$data[ "$field: boolean false" ] = array( $field, false, 'false' );
+			$data[ "$field: string true" ]   = array( $field, 'true', 'true' );
+			$data[ "$field: string false" ]  = array( $field, 'false', 'false' );
+		}
+
+		return $data;
+	}
+
+	/**
+	 * @ticket 22310
+	 */
+	public function test_wp_update_user_should_store_boolean_preferences_as_string_literals() {
+		wp_update_user(
+			array(
+				'ID'                   => self::$author_id,
+				'rich_editing'         => false,
+				'show_admin_bar_front' => false,
+			)
+		);
+
+		$this->assertSame( 'false', get_user_meta( self::$author_id, 'rich_editing', true ) );
+		$this->assertSame( 'false', get_user_meta( self::$author_id, 'show_admin_bar_front', true ) );
+		$this->assertFalse( _get_admin_bar_pref( 'front', self::$author_id ) );
+	}
+
+	/**
 	 * Hook a filter to alter custom meta when inserting new user.
 	 * This hook is used in `test_wp_insert_user_with_meta()`.
 	 */
