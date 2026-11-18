@@ -161,13 +161,13 @@ function run( string $heading, string $script, array $args ): int {
 /**
  * Runs PHPStan's `analyse` command with a heading, passing its output through.
  *
- * @param string   $heading Heading describing the run.
- * @param string   $phpstan Path to the PHPStan executable.
- * @param string[] $args    Arguments to the command, which are escaped for the shell.
+ * @param string       $heading Heading describing the run.
+ * @param string       $phpstan Path to the PHPStan executable.
+ * @param list<string> $args    Arguments to the command, which are escaped for the shell.
  * @return int Exit status of PHPStan.
  */
 function analyse( string $heading, string $phpstan, array $args ): int {
-	return run( $heading, $phpstan, array_merge( array( 'analyse' ), $args ) );
+	return run( $heading, $phpstan, array( 'analyse', ...$args ) );
 }
 
 /**
