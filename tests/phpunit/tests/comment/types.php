@@ -89,6 +89,23 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * wp_insert_comment() stores an empty() type as 'comment', so '0' cannot be registered.
+	 *
+	 * @ticket 35214
+	 *
+	 * @covers ::register_comment_type
+	 *
+	 * @expectedIncorrectUsage register_comment_type
+	 */
+	public function test_register_comment_type_with_zero_name_is_rejected(): void {
+		$result = register_comment_type( '0' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_type_name_invalid', $result->get_error_code() );
+		$this->assertFalse( comment_type_exists( '0' ) );
+	}
+
+	/**
 	 * @ticket 35214
 	 *
 	 * @covers ::create_initial_comment_types

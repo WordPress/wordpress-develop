@@ -416,6 +416,7 @@ function create_initial_comment_types(): void {
  *
  * The key is stored and matched verbatim, so a key that sanitize_key() would change
  * (for example one with uppercase letters) is rejected rather than silently rewritten.
+ * The key '0' is rejected too, since wp_insert_comment() would store it as 'comment'.
  *
  * @since 7.3.0
  *
@@ -469,6 +470,12 @@ function register_comment_type( $comment_type, $args = array() ) {
 	if ( '' === $comment_type || strlen( $comment_type ) > 20 ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Comment type names must be between 1 and 20 characters in length.' ), '7.3.0' );
 		return new WP_Error( 'comment_type_length_invalid', __( 'Comment type names must be between 1 and 20 characters in length.' ) );
+	}
+
+	// wp_insert_comment() treats an empty() type as 'comment', so '0' could never be stored.
+	if ( '0' === $comment_type ) {
+		_doing_it_wrong( __FUNCTION__, __( 'The "0" comment type name cannot be stored and is not allowed.' ), '7.3.0' );
+		return new WP_Error( 'comment_type_name_invalid', __( 'The "0" comment type name cannot be stored and is not allowed.' ) );
 	}
 
 	if ( isset( $wp_comment_types[ $comment_type ] ) && $wp_comment_types[ $comment_type ]->_builtin ) {
