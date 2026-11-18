@@ -3026,17 +3026,17 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 
 }
 
-@media only screen and (max-width: 480px) {
-	.wp-core-ui.wp-customizer .media-button {
-		margin-top: 13px;
-	}
-}
-
 @media only screen and (max-width: 565px) {
 	.media-modal label[for="media-attachment-filters"],
 	.media-modal label[for="media-attachment-date-filters"],
 	.media-modal label[for="media-search-input"] {
 		margin-bottom: 8px;
+	}
+}
+
+@media only screen and (max-width: 480px) {
+	.wp-core-ui.wp-customizer .media-button {
+		margin-top: 13px;
 	}
 }
 
