@@ -703,6 +703,25 @@ if ( isset( $_GET['error'] ) ) {
 		);
 
 		$errmsg .= '<iframe style="border:0" width="100%" height="70px" src="' . esc_url( $iframe_url ) . '"></iframe>';
+
+		/*
+		 * wp_admin_notice() passes the message through wp_kses_post(), which strips iframes.
+		 * Allow the iframe for this notice only, so the error output can be displayed.
+		 */
+		$allow_error_iframe = static function ( $tags, $context ) {
+			if ( 'post' === $context ) {
+				$tags['iframe'] = array(
+					'src'    => true,
+					'style'  => true,
+					'width'  => true,
+					'height' => true,
+				);
+			}
+
+			return $tags;
+		};
+
+		add_filter( 'wp_kses_allowed_html', $allow_error_iframe, 10, 2 );
 	}
 
 	wp_admin_notice(
@@ -713,6 +732,9 @@ if ( isset( $_GET['error'] ) ) {
 		)
 	);
 
+	if ( isset( $allow_error_iframe ) ) {
+		remove_filter( 'wp_kses_allowed_html', $allow_error_iframe );
+	}
 } elseif ( isset( $_GET['deleted'] ) ) {
 	$delete_result = get_option( 'plugins_delete_result_' . $user_ID );
 	// Delete it once we're done.
