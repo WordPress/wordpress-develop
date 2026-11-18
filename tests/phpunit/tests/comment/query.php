@@ -6215,4 +6215,22 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			'The reply should be returned again once its type is no longer excluded.'
 		);
 	}
+
+	/**
+	 * An alias is stripped from the filter output in any case, since the database would
+	 * match 'Comment' against every regular comment.
+	 *
+	 * @ticket 65537
+	 * @covers ::wp_get_default_excluded_comment_types
+	 */
+	public function test_default_excluded_comment_types_filter_strips_special_tokens_in_any_case(): void {
+		add_filter(
+			'default_excluded_comment_types',
+			static function (): array {
+				return array( 'Comment', 'PINGS', 'All', 'review' );
+			}
+		);
+
+		$this->assertSame( array( 'review' ), wp_get_default_excluded_comment_types() );
+	}
 }

@@ -3286,18 +3286,19 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 
 	$excluded_types = array_filter( (array) $excluded_types, 'is_scalar' );
 
-	// Keeps a type named '0', which array_filter() without a callback would drop.
+	/*
+	 * Keeps a type named '0', which array_filter() without a callback would drop. An alias
+	 * in the set would exclude types a query requests explicitly, and the database matches
+	 * it in any case.
+	 */
 	$excluded_types = array_filter(
 		array_map( 'strval', $excluded_types ),
 		static function ( $excluded_type ) {
-			return '' !== $excluded_type;
+			return '' !== $excluded_type && ! in_array( strtolower( $excluded_type ), array( 'all', 'comment', 'comments', 'pings' ), true );
 		}
 	);
 
-	$excluded_types = array_unique( $excluded_types );
-
-	// An alias in the set would exclude types a query requests explicitly.
-	return array_values( array_diff( $excluded_types, array( 'all', 'comment', 'comments', 'pings' ) ) );
+	return array_values( array_unique( $excluded_types ) );
 }
 
 /**
