@@ -4,6 +4,31 @@
  * @group taxonomy
  */
 class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
+	/**
+	 * @ticket 50568
+	 */
+	public function test_wp_update_term_should_ignore_supplied_filter_context() {
+		$term_id = self::factory()->term->create( array( 'taxonomy' => 'category' ) );
+		$result  = wp_update_term(
+			$term_id,
+			'category',
+			array(
+				'filter'      => 'db',
+				'name'        => '<b>Updated term</b>',
+				'slug'        => 'Updated Slug',
+				'description' => '<script></script><strong>Allowed</strong>',
+			)
+		);
+
+		$this->assertNotWPError( $result );
+
+		$term = get_term( $term_id, 'category' );
+
+		$this->assertSame( 'Updated term', $term->name );
+		$this->assertSame( 'updated-slug', $term->slug );
+		$this->assertSame( '<strong>Allowed</strong>', $term->description );
+	}
+
 	public function test_wp_update_term_taxonomy_does_not_exist() {
 		$found = wp_update_term( 1, 'bar' );
 

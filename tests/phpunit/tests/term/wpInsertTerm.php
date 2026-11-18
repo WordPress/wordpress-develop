@@ -56,6 +56,29 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertSame( 'invalid_taxonomy', $found->get_error_code() );
 	}
 
+	/**
+	 * @ticket 50568
+	 */
+	public function test_wp_insert_term_should_ignore_supplied_filter_context() {
+		$result = wp_insert_term(
+			'<b>Test term</b>',
+			'category',
+			array(
+				'filter'      => 'db',
+				'slug'        => 'Test Slug',
+				'description' => '<script></script><strong>Allowed</strong>',
+			)
+		);
+
+		$this->assertNotWPError( $result );
+
+		$term = get_term( $result['term_id'], 'category' );
+
+		$this->assertSame( 'Test term', $term->name );
+		$this->assertSame( 'test-slug', $term->slug );
+		$this->assertSame( '<strong>Allowed</strong>', $term->description );
+	}
+
 	public function test_wp_insert_term_pre_insert_term_filter_returns_wp_error() {
 		add_filter( 'pre_insert_term', array( $this, '_pre_insert_term_callback' ) );
 		$found = wp_insert_term( 'foo', 'post_tag' );

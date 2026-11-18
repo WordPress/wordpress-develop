@@ -260,6 +260,41 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50568
+	 */
+	public function test_update_term_cache_should_normalize_raw_integer_fields() {
+		$term_id = self::factory()->term->create( array( 'taxonomy' => 'category' ) );
+		$term    = new WP_Term(
+			(object) array(
+				'term_id'          => (string) $term_id,
+				'taxonomy'         => 'category',
+				'term_taxonomy_id' => '123',
+				'parent'           => '0',
+				'count'            => '7',
+				'term_group'       => '0',
+			)
+		);
+
+		wp_cache_delete( $term_id, 'terms' );
+		update_term_cache( array( $term ) );
+
+		$cached_term = wp_cache_get( $term_id, 'terms' );
+		$found       = WP_Term::get_instance( $term_id );
+
+		foreach ( array( $cached_term, $found ) as $normalized_term ) {
+			$this->assertSame( $term_id, $normalized_term->term_id );
+			$this->assertSame( 123, $normalized_term->term_taxonomy_id );
+			$this->assertSame( 0, $normalized_term->parent );
+			$this->assertSame( 7, $normalized_term->count );
+			$this->assertSame( 0, $normalized_term->term_group );
+			$this->assertSame( 'raw', $normalized_term->filter );
+		}
+
+		$this->assertSame( (string) $term_id, $term->term_id );
+		$this->assertSame( '7', $term->count );
+	}
+
+	/**
 	 * @ticket 21760
 	 */
 	public function test_get_term_by_slug_cache() {

@@ -1023,6 +1023,11 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 		return null;
 	}
 
+	// Restore raw data before applying hooks so their changes are preserved.
+	if ( 'raw' === $filter && 'raw' !== $_term->filter ) {
+		$_term = $_term->filter( $filter );
+	}
+
 	// Ensure for filters that this is not empty.
 	$taxonomy = $_term->taxonomy;
 
@@ -1067,7 +1072,7 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 
 	// Sanitize term, according to the specified filter.
 	if ( $_term !== $old_term || $_term->filter !== $filter ) {
-		$_term = $_term->filter( $filter );
+		$_term = sanitize_term( $_term, $_term->taxonomy, $filter );
 	}
 
 	if ( ARRAY_A === $output ) {
@@ -2643,6 +2648,8 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	// Coerce null description to strings, to avoid database errors.
 	$args['description'] = (string) $args['description'];
 
+	unset( $args['filter'] );
+
 	$args = sanitize_term( $args, $taxonomy, 'db' );
 
 	// expected_slashed ($name)
@@ -3434,6 +3441,8 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	// Merge old and new args with new args overwriting old ones.
 	$args = array_merge( $term, $args );
 
+	unset( $args['filter'] );
+
 	$defaults    = array(
 		'alias_of'    => '',
 		'description' => '',
@@ -4082,6 +4091,11 @@ function update_term_cache( $terms, $taxonomy = '' ) {
 	foreach ( (array) $terms as $term ) {
 		// Create a copy in case the array was passed by reference.
 		$_term = clone $term;
+
+		// WP_Term's constructor can mark unnormalized database fields as raw.
+		if ( isset( $_term->filter ) && 'raw' === $_term->filter ) {
+			$_term = sanitize_term( $_term, $_term->taxonomy, 'raw' );
+		}
 
 		// Object ID should not be cached.
 		unset( $_term->object_id );

@@ -222,6 +222,52 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50568
+	 */
+	public function test_raw_filter_should_preserve_hook_changes() {
+		foreach ( array( 'get_term', 'get_wptests_tax' ) as $hook ) {
+			$display_term = get_term( self::$term->term_id, 'wptests_tax', OBJECT, 'display' );
+			$callback     = static function ( $term ) {
+				$term->name       = 'Filtered name';
+				$term->extra_data = 'Hook data';
+				return $term;
+			};
+
+			add_filter( $hook, $callback );
+			$count    = did_filter( $hook );
+			$raw_term = get_term( $display_term, 'wptests_tax', OBJECT, 'raw' );
+			remove_filter( $hook, $callback );
+
+			$this->assertSame( 'raw', $raw_term->filter );
+			$this->assertSame( self::$term->description, $raw_term->description );
+			$this->assertSame( 'Filtered name', $raw_term->name );
+			$this->assertSame( 'Hook data', $raw_term->extra_data );
+			$this->assertSame( $count + 1, did_filter( $hook ) );
+		}
+	}
+
+	/**
+	 * @ticket 50568
+	 */
+	public function test_raw_filter_should_preserve_a_term_replaced_by_a_hook() {
+		$callback = static function ( $term ) {
+			$term             = clone $term;
+			$term->name       = 'Filtered name';
+			$term->extra_data = 'Hook data';
+			$term->filter     = 'display';
+			return $term;
+		};
+
+		add_filter( 'get_term', $callback );
+		$term = get_term( self::$term->term_id, 'wptests_tax' );
+		remove_filter( 'get_term', $callback );
+
+		$this->assertSame( 'raw', $term->filter );
+		$this->assertSame( 'Filtered name', $term->name );
+		$this->assertSame( 'Hook data', $term->extra_data );
+	}
+
+	/**
 	 * @ticket 34332
 	 */
 	public function test_should_return_null_when_provided_taxonomy_does_not_match_actual_term_taxonomy() {
