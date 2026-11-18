@@ -22,17 +22,9 @@ includes:
 	- phpstan.neon.dist
 
 	# Preexisting errors at this level in the strict paths, beyond those baselined by phpstan.neon.dist. They are
-	# organized and regenerated the same way, by `composer phpstan:baselines`, which rewrites both the files and the
-	# list between the markers. Do not edit that list by hand.
-	# phpstan:baselines start
-	- tests/phpstan/baselines-level-10/argument.type.neon
-	- tests/phpstan/baselines-level-10/cast.int.neon
-	- tests/phpstan/baselines-level-10/method.notFound.neon
-	- tests/phpstan/baselines-level-10/missingType.iterableValue.neon
-	- tests/phpstan/baselines-level-10/missingType.return.neon
-	- tests/phpstan/baselines-level-10/offsetAccess.nonOffsetAccessible.neon
-	- tests/phpstan/baselines-level-10/return.type.neon
-	# phpstan:baselines end
+	# organized and regenerated the same way, by `composer phpstan:baselines`, and included the same way, through the
+	# loader in their directory.
+	- tests/phpstan/baselines-level-10/loader.php
 
 parameters:
 	# https://phpstan.org/user-guide/rule-levels
