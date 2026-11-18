@@ -110,8 +110,9 @@ function get_home_path() {
 
 	if ( ! empty( $home ) && 0 !== strcasecmp( $home, $siteurl ) ) {
 		$wp_path_rel_to_home = str_ireplace( $home, '', $siteurl ); /* $siteurl - $home */
-		$pos                 = strripos( str_replace( '\\', '/', $_SERVER['SCRIPT_FILENAME'] ), trailingslashit( $wp_path_rel_to_home ) );
-		$home_path           = substr( $_SERVER['SCRIPT_FILENAME'], 0, $pos );
+		$script_filename     = wp_unslash( $_SERVER['SCRIPT_FILENAME'] );
+		$pos                 = strripos( str_replace( '\\', '/', $script_filename ), trailingslashit( $wp_path_rel_to_home ) );
+		$home_path           = substr( $script_filename, 0, $pos );
 		$home_path           = trailingslashit( $home_path );
 	} else {
 		$home_path = ABSPATH;

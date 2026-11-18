@@ -8,6 +8,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20449
+	 * @ticket 33498
 	 *
 	 * @covers ::get_home_path
 	 */
@@ -20,18 +21,79 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		update_option( 'home', 'http://localhost' );
 		update_option( 'siteurl', 'http://localhost/wp' );
 
-		$_SERVER['SCRIPT_FILENAME'] = 'D:\root\vhosts\site\httpdocs\wp\wp-admin\options-permalink.php';
+		// WordPress adds slashes to $_SERVER on every request.
+		$_SERVER['SCRIPT_FILENAME'] = addslashes( 'D:\root\vhosts\site\httpdocs\wp\wp-admin\options-permalink.php' );
 		$this->assertSame( 'D:/root/vhosts/site/httpdocs/', get_home_path() );
 
-		$_SERVER['SCRIPT_FILENAME'] = '/Users/foo/public_html/trunk/wp/wp-admin/options-permalink.php';
+		$_SERVER['SCRIPT_FILENAME'] = addslashes( '/Users/foo/public_html/trunk/wp/wp-admin/options-permalink.php' );
 		$this->assertSame( '/Users/foo/public_html/trunk/', get_home_path() );
 
-		$_SERVER['SCRIPT_FILENAME'] = 'S:/home/wordpress/trunk/wp/wp-admin/options-permalink.php';
+		$_SERVER['SCRIPT_FILENAME'] = addslashes( 'S:/home/wordpress/trunk/wp/wp-admin/options-permalink.php' );
 		$this->assertSame( 'S:/home/wordpress/trunk/', get_home_path() );
 
 		update_option( 'home', $home );
 		update_option( 'siteurl', $siteurl );
 		$_SERVER['SCRIPT_FILENAME'] = $sfn;
+	}
+
+	/**
+	 * Tests that slashes added to `$_SERVER` by WordPress do not end up in the path.
+	 *
+	 * @ticket 33498
+	 *
+	 * @covers ::get_home_path
+	 *
+	 * @dataProvider data_get_home_path_with_slashed_script_filename
+	 *
+	 * @param string $script_filename The unslashed `$_SERVER['SCRIPT_FILENAME']` value.
+	 * @param string $expected        The expected home path.
+	 */
+	public function test_get_home_path_with_slashed_script_filename( $script_filename, $expected ) {
+		$home    = get_option( 'home' );
+		$siteurl = get_option( 'siteurl' );
+		$sfn     = $_SERVER['SCRIPT_FILENAME'];
+
+		update_option( 'home', 'http://localhost' );
+		update_option( 'siteurl', 'http://localhost/wp' );
+
+		$_SERVER['SCRIPT_FILENAME'] = addslashes( $script_filename );
+		$actual                     = get_home_path();
+
+		update_option( 'home', $home );
+		update_option( 'siteurl', $siteurl );
+		$_SERVER['SCRIPT_FILENAME'] = $sfn;
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_home_path_with_slashed_script_filename() {
+		return array(
+			'a Windows path with backslashes'     => array(
+				'C:\inetpub\wordpress\wp\wp-admin\options-permalink.php',
+				'C:/inetpub/wordpress/',
+			),
+			'a Windows path with forward slashes' => array(
+				'C:/inetpub/wordpress/wp/wp-admin/options-permalink.php',
+				'C:/inetpub/wordpress/',
+			),
+			'a Unix path'                         => array(
+				'/var/www/html/wp/wp-admin/options-permalink.php',
+				'/var/www/html/',
+			),
+			'a path with a single quote'          => array(
+				"/home/o'brien/public_html/wp/wp-admin/options-permalink.php",
+				"/home/o'brien/public_html/",
+			),
+			'a path with a double quote'          => array(
+				'/home/the "site"/public_html/wp/wp-admin/options-permalink.php',
+				'/home/the "site"/public_html/',
+			),
+		);
 	}
 
 	/**
