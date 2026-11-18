@@ -94,7 +94,7 @@ if ( null !== $single_reason ) {
 
 if ( $fix ) {
 	foreach ( array( PROJECT_CONFIG, STRICT_CONFIG ) as $config ) {
-		$status = analyse( "Fixing with $config", $phpstan, array_merge( array( "--configuration=$config", '--fix' ), $args ) );
+		$status = analyse( "Fixing with $config", $phpstan, array( "--configuration=$config", '--fix', ...$args ) );
 
 		// PHPStan exits with 1 both when it fixed something and when there was nothing to fix.
 		if ( $status > 1 ) {
@@ -109,7 +109,7 @@ if ( $fix ) {
 
 	$exit_code = 0;
 	foreach ( array( PROJECT_CONFIG, STRICT_CONFIG ) as $config ) {
-		$exit_code = max( $exit_code, analyse( "Analyzing with $config", $phpstan, array_merge( array( "--configuration=$config" ), $args ) ) );
+		$exit_code = max( $exit_code, analyse( "Analyzing with $config", $phpstan, array( "--configuration=$config", ...$args ) ) );
 	}
 	exit( $exit_code );
 }
@@ -130,7 +130,7 @@ if ( is_file( $local_config ) ) {
 	}
 }
 
-exit( max( $exit_code, analyse( "Analyzing the strict paths with $strict_config", $phpstan, array_merge( array( "--configuration=$strict_config" ), $args ) ) ) );
+exit( max( $exit_code, analyse( "Analyzing the strict paths with $strict_config", $phpstan, array( "--configuration=$strict_config", ...$args ) ) ) );
 
 /**
  * Runs a command with a heading, passing its output through.
