@@ -58,8 +58,6 @@ class WP_User {
 	 *
 	 * @since 2.1.0
 	 * @var int
-	 *
-	 * @phpstan-var non-negative-int
 	 */
 	public $ID = 0;
 
@@ -183,13 +181,11 @@ class WP_User {
 	 * @param int    $site_id Optional. The site ID to initialize for.
 	 */
 	public function init( $data, $site_id = 0 ) {
-		$id = (int) ( $data->ID ?? 0 );
-		if ( ! isset( $data->ID ) || $id < 0 ) {
-			$id       = 0;
+		if ( ! isset( $data->ID ) ) {
 			$data->ID = 0;
 		}
 		$this->data = $data;
-		$this->ID   = $id;
+		$this->ID   = (int) $data->ID;
 
 		$this->for_site( $site_id );
 	}
@@ -368,7 +364,7 @@ class WP_User {
 					'<code>WP_User->ID</code>'
 				)
 			);
-			$this->ID = max( 0, (int) $value );
+			$this->ID = (int) $value;
 			return;
 		}
 
