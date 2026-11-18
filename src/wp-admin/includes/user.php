@@ -629,10 +629,11 @@ Please click the following link to activate your user account:
  * @param array   $request {
  *     The array of request data. All arguments are optional and may be empty.
  *
- *     @type string $app_name    The suggested name of the application.
- *     @type string $app_id      A UUID provided by the application to uniquely identify it.
- *     @type string $success_url The URL the user will be redirected to after approving the application.
- *     @type string $reject_url  The URL the user will be redirected to after rejecting the application.
+ *     @type string $app_name       The suggested name of the application.
+ *     @type string $app_id         A UUID provided by the application to uniquely identify it.
+ *     @type string $success_url    The URL the user will be redirected to after approving the application.
+ *     @type string $success_format The transport to use for the success payload. Accepts 'query' or 'form_post'.
+ *     @type string $reject_url     The URL the user will be redirected to after rejecting the application.
  * }
  * @param WP_User $user The user authorizing the application.
  * @return true|WP_Error True if the request is valid, a WP_Error object contains errors if not.
@@ -658,6 +659,27 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 				$validated_reject_url->get_error_message()
 			);
 		}
+	}
+
+	if ( isset( $request['success_format'] ) && ! in_array( $request['success_format'], array( 'query', 'form_post' ), true ) ) {
+		$error->add(
+			'invalid_success_format',
+			__( 'The success format must be "query" or "form_post".' )
+		);
+	}
+
+	$success_url_scheme = ! empty( $request['success_url'] ) ? wp_parse_url( $request['success_url'], PHP_URL_SCHEME ) : '';
+
+	if (
+		! empty( $request['success_url'] ) &&
+		isset( $request['success_format'] ) &&
+		'form_post' === $request['success_format'] &&
+		! in_array( strtolower( (string) $success_url_scheme ), array( 'http', 'https' ), true )
+	) {
+		$error->add(
+			'invalid_success_format',
+			__( 'The form_post success format requires an HTTP or HTTPS success URL.' )
+		);
 	}
 
 	if ( ! empty( $request['app_id'] ) && ! wp_is_uuid( $request['app_id'] ) ) {
