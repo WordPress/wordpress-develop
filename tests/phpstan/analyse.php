@@ -215,7 +215,7 @@ function is_level_at_least( string $level, string $minimum ): bool {
  * `--fix-ignored`, and the paths to analyze. An option's value can follow it as the
  * next argument, so that is skipped rather than taken for a path.
  *
- * @param string[] $args Arguments.
+ * @param list<string> $args Arguments.
  * @return string|null Description of the first such argument, or null if there is none.
  */
 function get_single_analysis_reason( array $args ): ?string {
@@ -223,12 +223,16 @@ function get_single_analysis_reason( array $args ): ?string {
 	$takes_value = array( '-c', '--configuration', '-l', '--level', '-a', '--autoload-file', '--error-format', '--memory-limit', '--tmp-file', '--instead-of' );
 	$single      = array( '-c', '--configuration', '-l', '--level', '--error-format', '--generate-baseline', '-b', '--fix-ignored' );
 
-	$count = count( $args );
-	for ( $i = 0; $i < $count; $i++ ) {
-		$arg = $args[ $i ];
+	$is_value = false;
+	foreach ( $args as $i => $arg ) {
+		// The value of the option before, given as an argument of its own.
+		if ( $is_value ) {
+			$is_value = false;
+			continue;
+		}
 
 		if ( '--' === $arg ) {
-			return $i + 1 < $count ? 'the paths given' : null;
+			return $i + 1 < count( $args ) ? 'the paths given' : null;
 		}
 
 		if ( '' === $arg || '-' !== $arg[0] ) {
@@ -249,7 +253,7 @@ function get_single_analysis_reason( array $args ): ?string {
 		}
 
 		if ( ! $has_value && in_array( $name, $takes_value, true ) ) {
-			++$i;
+			$is_value = true;
 		}
 	}
 
