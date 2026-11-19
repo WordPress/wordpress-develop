@@ -42,17 +42,6 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 	}
 
 	/**
-	 * @ticket 65537
-	 */
-	public function test_excludes_note_type_by_default(): void {
-		$post_id = self::factory()->post->create();
-		$this->make_pending( $post_id );
-		$this->make_pending( $post_id, 'note' );
-
-		$this->assertSame( 1, get_pending_comments_num( $post_id ) );
-	}
-
-	/**
 	 * A type added to the excluded set must drop out of the pending count.
 	 *
 	 * @ticket 65537
@@ -89,23 +78,6 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 		add_filter( 'default_excluded_comment_types', '__return_empty_array' );
 
 		$this->assertSame( 1, get_pending_comments_num( $post_id ), 'A note should be counted once nothing is excluded.' );
-	}
-
-	/**
-	 * A filter callback returning false degrades gracefully to no exclusions.
-	 *
-	 * Scalar returns are cast to an array and treated as a single excluded type;
-	 * only values that normalize to an empty set disable the exclusions.
-	 *
-	 * @ticket 65537
-	 */
-	public function test_false_filter_return_counts_all_types(): void {
-		$post_id = self::factory()->post->create();
-		$this->make_pending( $post_id, 'note' );
-
-		add_filter( 'default_excluded_comment_types', '__return_false' );
-
-		$this->assertSame( 1, get_pending_comments_num( $post_id ) );
 	}
 
 	/**

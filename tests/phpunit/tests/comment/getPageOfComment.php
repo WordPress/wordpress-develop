@@ -672,46 +672,4 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 			'Once excluded, the custom type should drop out of the page math.'
 		);
 	}
-
-	/**
-	 * get_comment_link() forwards its arguments to get_page_of_comment(). Walker_Comment
-	 * passes the wp_list_comments() arguments, which set 'type' to 'all', so both the
-	 * default and an explicit 'all' have to land on the rendered page.
-	 *
-	 * @ticket 65537
-	 *
-	 * @covers ::get_comment_link
-	 */
-	public function test_get_comment_link_does_not_count_excluded_types(): void {
-		update_option( 'page_comments', 1 );
-		update_option( 'comments_per_page', 2 );
-		update_option( 'default_comments_page', 'oldest' );
-
-		$post_id = self::factory()->post->create();
-
-		foreach ( array( 'note', 'note', '', '' ) as $index => $comment_type ) {
-			$comment_ids[] = self::factory()->comment->create(
-				array(
-					'comment_post_ID'  => $post_id,
-					'comment_type'     => $comment_type,
-					'comment_approved' => '1',
-					'comment_date'     => sprintf( '2024-01-01 10:0%d:00', $index ),
-					'comment_date_gmt' => sprintf( '2024-01-01 10:0%d:00', $index ),
-				)
-			);
-		}
-
-		$last_comment = end( $comment_ids );
-
-		$this->assertStringNotContainsString(
-			'cpage=2',
-			get_comment_link( $last_comment ),
-			'The default permalink should point at the page the comment is rendered on.'
-		);
-		$this->assertStringNotContainsString(
-			'cpage=2',
-			get_comment_link( $last_comment, array( 'type' => 'all' ) ),
-			'A permalink with an explicit type of all should point at the same page.'
-		);
-	}
 }

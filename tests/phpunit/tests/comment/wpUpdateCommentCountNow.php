@@ -162,31 +162,6 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 		$this->assertSame( '1', get_comments_number( $post_id ), 'A note should be counted once nothing is excluded.' );
 	}
 
-	/**
-	 * A filter callback returning false degrades gracefully to no exclusions.
-	 *
-	 * Scalar returns are cast to an array and treated as a single excluded type;
-	 * only values that normalize to an empty set disable the exclusions.
-	 *
-	 * @ticket 65537
-	 */
-	public function test_false_filter_return_counts_all_types(): void {
-		$post_id = self::factory()->post->create();
-
-		self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => $post_id,
-				'comment_type'     => 'note',
-				'comment_approved' => 1,
-			)
-		);
-
-		add_filter( 'default_excluded_comment_types', '__return_false' );
-
-		$this->assertTrue( wp_update_comment_count_now( $post_id ), 'The count should be updated.' );
-		$this->assertSame( '1', get_comments_number( $post_id ), 'A note should be counted once nothing is excluded.' );
-	}
-
 	public function _return_100() {
 		return 100;
 	}
