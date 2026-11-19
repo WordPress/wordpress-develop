@@ -449,8 +449,10 @@ function create_initial_comment_types(): void {
  * }
  * @return WP_Comment_Type|WP_Error The registered comment type object on success,
  *                                  WP_Error object on failure.
+ *
+ * @phpstan-param non-falsy-string $comment_type
  */
-function register_comment_type( $comment_type, $args = array() ) {
+function register_comment_type( string $comment_type, array $args = array() ) {
 	global $wp_comment_types;
 
 	if ( ! is_array( $wp_comment_types ) ) {
@@ -505,11 +507,6 @@ function register_comment_type( $comment_type, $args = array() ) {
 		return new WP_Error( 'comment_type_reserved', __( 'This comment type name is reserved.' ) );
 	}
 
-	if ( ! is_array( $args ) ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Comment type arguments must be passed as an array.' ), '7.3.0' );
-		return new WP_Error( 'comment_type_args_invalid', __( 'Comment type arguments must be passed as an array.' ) );
-	}
-
 	$comment_type_object = new WP_Comment_Type( $comment_type, $args );
 
 	$wp_comment_types[ $comment_type ] = $comment_type_object;
@@ -551,12 +548,12 @@ function register_comment_type( $comment_type, $args = array() ) {
  *
  * @since 7.3.0
  *
- * @global WP_Comment_Type[] $wp_comment_types List of comment types.
+ * @global array<string, WP_Comment_Type> $wp_comment_types List of comment types.
  *
  * @param string $comment_type Comment type key.
  * @return true|WP_Error True on success, WP_Error on failure or if the comment type doesn't exist.
  */
-function unregister_comment_type( $comment_type ) {
+function unregister_comment_type( string $comment_type ) {
 	global $wp_comment_types;
 
 	$comment_type_object = get_comment_type_object( $comment_type );
@@ -589,7 +586,7 @@ function unregister_comment_type( $comment_type ) {
  *
  * @since 7.3.0
  *
- * @global WP_Comment_Type[] $wp_comment_types List of comment types.
+ * @global array<string, WP_Comment_Type> $wp_comment_types List of comment types.
  *
  * @param string $comment_type The name of a registered comment type.
  * @return WP_Comment_Type|null WP_Comment_Type object if it exists, null otherwise.
@@ -609,7 +606,7 @@ function get_comment_type_object( $comment_type ): ?WP_Comment_Type {
  *
  * @since 7.3.0
  *
- * @global WP_Comment_Type[] $wp_comment_types List of comment types.
+ * @global array<string, WP_Comment_Type> $wp_comment_types List of comment types.
  *
  * @param array<string, mixed> $args     Optional. An array of key => value arguments to match against
  *                                       the comment type objects. Default empty array.
