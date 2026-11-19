@@ -1,0 +1,3924 @@
+<?php
+
+/**
+ * Tests for random content redirects.
+ *
+ * @group query
+ * @group rewrite
+ * @ticket 64498
+ *
+ * @covers ::wp_random_content_redirect
+ * @covers WP::handle_random
+ * @covers WP::redirect_random_search
+ * @covers ::wp_random_content_pre_get_posts
+ * @covers ::wp_random_content_posts_orderby
+ * @covers ::wp_random_content_post_limits
+ * @covers ::wp_random_content_posts_where
+ * @covers ::wp_random_content_posts_fields
+ * @covers ::wp_random_content_posts_pre_query
+ * @covers ::wp_get_random_content_sample_ids
+ * @covers ::_wp_random_content_sample_clause
+ * @covers ::wp_is_random_content_query
+ * @covers ::wp_get_random_content_post_types
+ * @covers ::wp_random_content_flush_rewrite_rules_for_post
+ * @covers ::wp_is_random_content_redirect_enabled
+ */
+class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
+
+	/**
+	 * Published post in the "arts" category, tagged "Impressionism".
+	 *
+	 * @var int
+	 */
+	protected static $arts_post;
+
+	/**
+	 * Published post in the "sport" category, written by the editor.
+	 *
+	 * @var int
+	 */
+	protected static $sport_post;
+
+	/**
+	 * Term ID of the "arts" category.
+	 *
+	 * @var int
+	 */
+	protected static $arts_category;
+
+	/**
+	 * Term ID of the "sport" category.
+	 *
+	 * @var int
+	 */
+	protected static $sport_category;
+
+	/**
+	 * Term ID of the empty "empty" category.
+	 *
+	 * @var int
+	 */
+	protected static $empty_category;
+
+	/**
+	 * User ID of the editor.
+	 *
+	 * @var int
+	 */
+	protected static $editor;
+
+	/**
+	 * User ID of an administrator.
+	 *
+	 * @var int
+	 */
+	protected static $admin;
+
+	/**
+	 * Message of the exception thrown in place of the `exit` following a redirect.
+	 *
+	 * @var string
+	 */
+	const REDIRECT_EXCEPTION_MESSAGE = 'Random content redirect.';
+
+	/**
+	 * Redirect location captured from the `wp_redirect` filter.
+	 *
+	 * @var string|null
+	 */
+	protected $redirect_location;
+
+	/**
+	 * Redirect status captured from the `wp_redirect` filter.
+	 *
+	 * @var int|null
+	 */
+	protected $redirect_status;
+
+	/**
+	 * Database queries made between the request being parsed and the redirect.
+	 *
+	 * @var string[]
+	 */
+	protected $queries = array();
+
+	/**
+	 * Whether database queries are being recorded.
+	 *
+	 * @var bool
+	 */
+	protected $recording_queries = false;
+
+	/**
+	 * Rewrite rules added to the top of the rules before each test.
+	 *
+	 * WP_Rewrite::init() does not reset these, so they are restored after each test.
+	 *
+	 * @var string[]
+	 */
+	protected $original_extra_rules_top = array();
+
+	/**
+	 * Extra permalink structures registered before each test.
+	 *
+	 * Unregistering post types between tests does not remove their permalink structures,
+	 * so they are restored after each test.
+	 *
+	 * @var array<array<mixed>>
+	 */
+	protected $original_extra_permastructs = array();
+
+	/**
+	 * Creates shared user, category and post fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Test factory.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
+		self::$editor = $factory->user->create(
+			array(
+				'role'          => 'editor',
+				'user_nicename' => 'random-editor',
+			)
+		);
+		self::$admin  = $factory->user->create( array( 'role' => 'administrator' ) );
+
+		self::$arts_category  = $factory->category->create( array( 'slug' => 'arts' ) );
+		self::$sport_category = $factory->category->create( array( 'slug' => 'sport' ) );
+		self::$empty_category = $factory->category->create( array( 'slug' => 'empty' ) );
+
+		self::$arts_post = $factory->post->create(
+			array(
+				'post_title'    => 'Cassatt',
+				'post_name'     => 'cassatt',
+				'post_date'     => '1844-05-22 00:00:00',
+				'post_author'   => self::$admin,
+				'post_category' => array( self::$arts_category ),
+				'tags_input'    => array( 'Impressionism' ),
+			)
+		);
+
+		self::$sport_post = $factory->post->create(
+			array(
+				'post_title'    => 'Baseball',
+				'post_name'     => 'baseball',
+				'post_date'     => '2005-10-27 04:01:00',
+				'post_author'   => self::$editor,
+				'post_category' => array( self::$sport_category ),
+			)
+		);
+	}
+
+	/**
+	 * Sets up pretty permalinks and redirect capturing before each test.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 */
+	public function set_up(): void {
+		global $wp_rewrite;
+
+		parent::set_up();
+
+		$this->original_extra_rules_top    = $wp_rewrite->extra_rules_top;
+		$this->original_extra_permastructs = $wp_rewrite->extra_permastructs;
+
+		$this->set_permalink_structure( '/%postname%/' );
+		// Register the taxonomy rewrite rules for the permalink structure.
+		create_initial_taxonomies();
+		flush_rewrite_rules();
+
+		$this->redirect_location = null;
+		$this->redirect_status   = null;
+		$this->queries           = array();
+		$this->recording_queries = false;
+
+		// Capture redirects and end the request before `exit` ends the test run.
+		add_filter( 'wp_redirect', array( $this, 'filter_wp_redirect' ), 10, 2 );
+
+		/*
+		 * The random redirect is sent on `template_redirect`, see go_to(). Canonical
+		 * redirects run on the same action and exit after redirecting even when the
+		 * redirect is suppressed, which would end the test run. Their interplay with
+		 * random content requests is covered by test_redirect_canonical_skips_random_content_requests_with_a_post().
+		 */
+		remove_action( 'template_redirect', 'redirect_canonical' );
+
+		/*
+		 * Sitemaps are rendered on the same action and exit after rendering, which would
+		 * also end the test run. The sitemaps server is reset between tests while its
+		 * action may remain, so the action is removed for every instance. Creating the
+		 * server first ensures a later call does not add the action again.
+		 */
+		wp_sitemaps_get_server();
+		foreach ( $GLOBALS['wp_filter']['template_redirect']->callbacks[10] ?? array() as $callback ) {
+			if ( is_array( $callback['function'] ) && $callback['function'][0] instanceof WP_Sitemaps ) {
+				remove_action( 'template_redirect', $callback['function'] );
+			}
+		}
+	}
+
+	/**
+	 * Prevents redirects from being sent, so the request continues after a redirect is attempted.
+	 *
+	 * By default a redirect ends the request, see {@see self::filter_wp_redirect()}. This
+	 * is for tests of a request that continues, as it does when the `wp_redirect` filter
+	 * returns an empty location. The location and status of the redirect are still captured.
+	 */
+	protected function prevent_redirects(): void {
+		remove_filter( 'wp_redirect', array( $this, 'filter_wp_redirect' ), 10 );
+		add_filter(
+			'wp_redirect',
+			function ( string $location, int $status ): bool {
+				$this->redirect_location = $location;
+				$this->redirect_status   = $status;
+
+				return false;
+			},
+			10,
+			2
+		);
+	}
+
+	/**
+	 * Unregisters the test post types and taxonomy after each test.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 */
+	public function tear_down(): void {
+		global $wp_rewrite;
+
+		$wp_rewrite->extra_rules_top    = $this->original_extra_rules_top;
+		$wp_rewrite->extra_permastructs = $this->original_extra_permastructs;
+
+		unregister_post_type( 'wptests_book' );
+		unregister_post_type( 'wptests_hidden' );
+		unregister_post_type( 'wptests_unsearchable' );
+		unregister_taxonomy( 'wptests_genre' );
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Captures the redirect and ends the request in place of the `exit` that follows it.
+	 *
+	 * @throws WP_Tests_Exception Always, caught by {@see self::go_to()}.
+	 *
+	 * @param string $location Redirect location.
+	 * @param int    $status   Redirect status.
+	 * @return never
+	 */
+	public function filter_wp_redirect( string $location, int $status ) {
+		$this->redirect_location = $location;
+		$this->redirect_status   = $status;
+		$this->recording_queries = false;
+
+		throw new WP_Tests_Exception( self::REDIRECT_EXCEPTION_MESSAGE );
+	}
+
+	/**
+	 * Starts recording database queries once the request has been parsed.
+	 */
+	public function start_recording_queries(): void {
+		$this->recording_queries = true;
+	}
+
+	/**
+	 * Records database queries while recording is active.
+	 *
+	 * @param string $query Database query.
+	 * @return string Unmodified database query.
+	 */
+	public function record_query( string $query ) {
+		if ( $this->recording_queries ) {
+			$this->queries[] = $query;
+		}
+
+		return $query;
+	}
+
+	/**
+	 * Requests a URL and fires the `template_redirect` action the redirect is sent on,
+	 * stopping where a random content redirect ends the request.
+	 *
+	 * @param string $url The URL to request.
+	 */
+	public function go_to( $url ): void {
+		try {
+			parent::go_to( $url );
+		} catch ( WP_Tests_Exception $e ) {
+			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
+				throw $e;
+			}
+
+			return;
+		}
+
+		$this->do_template_redirect();
+	}
+
+	/**
+	 * Fires the `template_redirect` action, stopping where a random content redirect
+	 * ends the request.
+	 */
+	protected function do_template_redirect(): void {
+		try {
+			do_action( 'template_redirect' );
+		} catch ( WP_Tests_Exception $e ) {
+			if ( self::REDIRECT_EXCEPTION_MESSAGE !== $e->getMessage() ) {
+				throw $e;
+			}
+		}
+	}
+
+	/**
+	 * Requests a URL and records the queries made after the request is parsed.
+	 *
+	 * @param string $url URL to request.
+	 */
+	protected function go_to_and_record_queries( string $url ): void {
+		add_action( 'parse_request', array( $this, 'start_recording_queries' ), PHP_INT_MAX );
+		add_filter( 'query', array( $this, 'record_query' ) );
+
+		$this->go_to( $url );
+
+		$this->recording_queries = false;
+	}
+
+	/**
+	 * Gets the main query.
+	 *
+	 * The global is read when called as WP_UnitTestCase_Base::go_to() replaces it.
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
+	 *
+	 * @return WP_Query The main query.
+	 */
+	protected function get_main_query(): WP_Query {
+		global $wp_query;
+
+		return $wp_query;
+	}
+
+	/**
+	 * Creates a published post.
+	 *
+	 * @param array<string, mixed> $args Optional. Post arguments.
+	 * @return int Post ID.
+	 */
+	protected function create_post( array $args = array() ): int {
+		return self::factory()->post->create(
+			array_merge(
+				array(
+					'post_status' => 'publish',
+					'post_date'   => '2016-12-04 00:00:00',
+				),
+				$args
+			)
+		);
+	}
+
+	/**
+	 * Creates a published post and returns the post object.
+	 *
+	 * @param array<string, mixed> $args Optional. Post arguments.
+	 * @return WP_Post Post object.
+	 */
+	protected function create_post_object( array $args = array() ): WP_Post {
+		$post = get_post( $this->create_post( $args ) );
+
+		$this->assertInstanceOf( WP_Post::class, $post );
+
+		return $post;
+	}
+
+	/**
+	 * Asserts that the request redirected to one of the given posts.
+	 *
+	 * @param int[]  $post_ids Allowed post IDs.
+	 * @param string $message  Message to display on failure.
+	 *
+	 * @phpstan-assert !null $this->redirect_location
+	 */
+	protected function assertRedirectedToOneOf( array $post_ids, string $message ): void {
+		$this->assertNotNull( $this->redirect_location, "{$message} The request did not redirect." );
+
+		$permalinks = array_map( 'get_permalink', $post_ids );
+		$this->assertContains( $this->redirect_location, $permalinks, "{$message} The request redirected to an unexpected location." );
+	}
+
+	/**
+	 * Asserts that the request did not redirect.
+	 *
+	 * @param string $message Message to display on failure.
+	 */
+	protected function assertNotRedirected( string $message ): void {
+		$this->assertNull( $this->redirect_location, $message );
+	}
+
+	/**
+	 * Asserts that the query does not select posts for a random content request.
+	 *
+	 * @param WP_Query $query   The query to check.
+	 * @param string   $message Message to display on failure.
+	 */
+	protected function assertQueryIsNotRandomized( WP_Query $query, string $message ): void {
+		$this->assertIsString( $query->request, "{$message} The query was not run." );
+		$this->assertStringNotContainsString( 'RAND()', $query->request, $message );
+		$this->assertFalse( $query->get( 'random_sample_ids', false ), $message );
+	}
+
+	/*
+	 * Redirect targets.
+	 */
+
+	/**
+	 * Ensure random content URLs redirect to a published post.
+	 *
+	 * @dataProvider data_random_urls
+	 *
+	 * @param string $path Random content request path.
+	 */
+	public function test_random_url_redirects_to_a_published_post( string $path ): void {
+		$this->go_to( home_url( $path ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random URL should redirect to a published post.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_url_redirects_to_a_published_post()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_random_urls(): array {
+		return array(
+			'pretty permalink'         => array( '/random/' ),
+			'pretty without slash'     => array( '/random' ),
+			'query string flag'        => array( '/?random' ),
+			'query string with value'  => array( '/?random=1' ),
+			'query string array value' => array( '/?random[]=1' ),
+		);
+	}
+
+	/**
+	 * Ensure redirect uses HTTP 302 Temporary Redirect status.
+	 */
+	public function test_random_redirect_uses_a_temporary_redirect(): void {
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertSame( 302, $this->redirect_status, 'Random redirects must not be permanent.' );
+	}
+
+	/**
+	 * Ensure redirect location header matches the permalink of the selected post.
+	 */
+	public function test_random_redirect_location_is_the_permalink(): void {
+		$this->go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'The redirect location should be the permalink of the selected post.' );
+	}
+
+	/**
+	 * Ensure random redirects work with plain permalinks.
+	 */
+	public function test_random_query_string_redirects_with_plain_permalinks(): void {
+		$this->set_permalink_structure( '' );
+
+		$this->go_to( home_url( '/?random' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random query string should redirect with plain permalinks.' );
+		$this->assertStringContainsString( '?p=', $this->redirect_location, 'The redirect should use the plain permalink.' );
+	}
+
+	/**
+	 * Ensure random redirects work with pathinfo (/index.php/...) permalinks.
+	 */
+	public function test_random_redirect_with_pathinfo_permalinks(): void {
+		$this->set_permalink_structure( '/index.php/%postname%/' );
+
+		$this->go_to( home_url( '/index.php/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random URL should redirect with PATHINFO permalinks.' );
+	}
+
+	/**
+	 * Ensure random redirects respect the selected category.
+	 */
+	public function test_random_category_url_only_selects_posts_in_the_category(): void {
+		$this->go_to( home_url( '/random/category/sport/' ) );
+
+		$this->assertSame( get_permalink( self::$sport_post ), $this->redirect_location, 'The random category URL should only select posts in the category.' );
+	}
+
+	/**
+	 * Ensure random redirects respect the selected nested category.
+	 */
+	public function test_random_child_category_url_selects_posts_in_the_child_category(): void {
+		$child   = self::factory()->category->create(
+			array(
+				'slug'   => 'local',
+				'parent' => self::$arts_category,
+			)
+		);
+		$post_id = $this->create_post( array( 'post_category' => array( $child ) ) );
+
+		$this->go_to( home_url( '/random/category/arts/local/' ) );
+
+		$this->assertSame( get_permalink( $post_id ), $this->redirect_location, 'The random child category URL should select posts in the child category.' );
+	}
+
+	/**
+	 * Ensure random redirects include posts in the selected category's sub-categories.
+	 */
+	public function test_random_category_url_includes_posts_in_child_categories(): void {
+		$child      = self::factory()->category->create(
+			array(
+				'slug'   => 'politics',
+				'parent' => self::$sport_category,
+			)
+		);
+		$child_post = $this->create_post( array( 'post_category' => array( $child ) ) );
+
+		$this->go_to( home_url( '/random/category/sport/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$sport_post, $child_post ), 'Category archives include child categories.' );
+	}
+
+	/**
+	 * Ensure random redirects respect the `?cat` URL parameter.
+	 */
+	public function test_random_cat_query_string_only_selects_posts_in_the_category(): void {
+		$this->go_to( add_query_arg( 'cat', self::$arts_category, home_url( '/?random' ) ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'The random cat query string should only select posts in the category.' );
+	}
+
+	/**
+	 * Ensure random redirects respect the selected tag.
+	 */
+	public function test_random_tag_url_only_selects_posts_with_the_tag(): void {
+		$this->go_to( home_url( '/random/tag/impressionism/' ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'The random tag URL should only select posts with the tag.' );
+	}
+
+	/**
+	 * Ensure random redirects respect URLs specifying terms from multiple taxonomies.
+	 */
+	public function test_random_combined_taxonomy_query_selects_posts_matching_all_terms(): void {
+		$impressionist_sport = $this->create_post(
+			array(
+				'post_title'    => 'Caillebotte',
+				'post_category' => array( self::$sport_category ),
+				'tags_input'    => array( 'Impressionism' ),
+			)
+		);
+
+		$this->go_to( home_url( '/?random&category_name=sport&tag=impressionism' ) );
+
+		$this->assertSame( get_permalink( $impressionist_sport ), $this->redirect_location, 'The combined taxonomy query should only select posts matching all terms.' );
+	}
+
+	/**
+	 * Ensure random redirects respect the selected author.
+	 */
+	public function test_random_author_url_only_selects_posts_by_the_author(): void {
+		$this->go_to( home_url( '/random/author/random-editor/' ) );
+
+		$this->assertSame( get_permalink( self::$sport_post ), $this->redirect_location, 'The random author URL should only select posts by the author.' );
+	}
+
+	/**
+	 * Ensure random redirects respect the selected date.
+	 */
+	public function test_random_date_archive_only_selects_posts_from_the_date(): void {
+		$this->go_to( home_url( '/1844/?random' ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'The random date archive should only select posts from the date.' );
+	}
+
+	/**
+	 * Ensure random redirects respect the selected post type.
+	 */
+	public function test_random_post_type_archive_url_only_selects_posts_of_the_type(): void {
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => 'books',
+			)
+		);
+		flush_rewrite_rules();
+
+		$book = $this->create_post( array( 'post_type' => 'wptests_book' ) );
+
+		$this->go_to( home_url( '/random/books/' ) );
+
+		$this->assertSame( get_permalink( $book ), $this->redirect_location, 'The random post type archive URL should only select posts of the type.' );
+	}
+
+	/**
+	 * Ensure random redirects respect the randomable post type parameter regardless of archive setting.
+	 */
+	public function test_random_post_type_rewrite_slug_url_selects_posts_of_a_randomable_type_without_an_archive(): void {
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => false,
+				'randomable'  => true,
+				'rewrite'     => array( 'slug' => 'books' ),
+			)
+		);
+		flush_rewrite_rules();
+
+		$book = $this->create_post( array( 'post_type' => 'wptests_book' ) );
+
+		$this->go_to( home_url( '/random/books/' ) );
+
+		$this->assertSame( get_permalink( $book ), $this->redirect_location, 'The random rewrite slug URL should select posts of a randomable type without an archive.' );
+	}
+
+	/**
+	 * Ensure random redirects respect the selected post type using plain permalinks.
+	 */
+	public function test_random_post_type_query_string_selects_posts_of_the_type(): void {
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+
+		$book = $this->create_post( array( 'post_type' => 'wptests_book' ) );
+
+		$this->go_to( home_url( '/?random&post_type=wptests_book' ) );
+
+		$this->assertSame( get_permalink( $book ), $this->redirect_location, 'The random post_type query string should only select posts of the type.' );
+	}
+
+	/*
+	 * Randomable post types.
+	 */
+
+	/**
+	 * Ensure pages are not randomable.
+	 */
+	public function test_no_redirect_for_pages(): void {
+		$this->create_post( array( 'post_type' => 'page' ) );
+
+		$this->go_to( home_url( '/?random&post_type=page' ) );
+
+		$this->assertNotRedirected( 'Pages should not be randomable by default.' );
+	}
+
+	/**
+	 * Ensure main query for pages is not modified by random query string parameter.
+	 */
+	public function test_main_query_is_unchanged_for_pages(): void {
+		$this->create_post( array( 'post_type' => 'page' ) );
+
+		$this->go_to( home_url( '/?random&post_type=page' ) );
+
+		$this->assertQueryIsNotRandomized( $this->get_main_query(), 'Requests for non-randomable post types should not be randomized.' );
+	}
+
+	/**
+	 * Ensure pages are randomable if registration arguments enable the feature.
+	 */
+	public function test_pages_redirect_when_made_randomable(): void {
+		add_filter( 'register_post_type_args', array( $this, 'filter_make_pages_randomable' ), 10, 2 );
+		create_initial_post_types();
+
+		$page = $this->create_post( array( 'post_type' => 'page' ) );
+
+		$this->go_to( home_url( '/?random&post_type=page' ) );
+
+		$this->assertSame( get_permalink( $page ), $this->redirect_location, 'Pages should redirect once they are made randomable.' );
+	}
+
+	/**
+	 * Makes the page post type randomable.
+	 *
+	 * @param array<string, mixed> $args      Post type registration arguments.
+	 * @param string               $post_type Post type name.
+	 * @return array<string, mixed> Modified post type registration arguments.
+	 */
+	public function filter_make_pages_randomable( array $args, string $post_type ): array {
+		if ( 'page' === $post_type ) {
+			$args['randomable'] = true;
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Ensure post types registered as not randomable do not redirect.
+	 */
+	public function test_no_redirect_for_post_type_that_is_not_randomable(): void {
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'     => true,
+				'randomable' => false,
+			)
+		);
+
+		$this->create_post( array( 'post_type' => 'wptests_book' ) );
+
+		$this->go_to( home_url( '/?random&post_type=wptests_book' ) );
+
+		$this->assertNotRedirected( 'Post types registered as not randomable should not redirect.' );
+	}
+
+	/**
+	 * Ensure archives of post types registered as not randomable do not redirect.
+	 */
+	public function test_no_redirect_for_post_type_archive_that_is_not_randomable(): void {
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => 'books',
+				'randomable'  => false,
+			)
+		);
+		flush_rewrite_rules();
+
+		$this->create_post( array( 'post_type' => 'wptests_book' ) );
+
+		$this->go_to( home_url( '/books/?random' ) );
+
+		$this->assertNotRedirected( 'Post type archives registered as not randomable should not redirect.' );
+		$this->assertTrue( is_post_type_archive( 'wptests_book' ), 'The archive should be displayed.' );
+	}
+
+	/**
+	 * Ensure only randomable post types are selected when multiple post types are requested.
+	 */
+	public function test_random_redirect_with_multiple_post_types_only_selects_randomable_types(): void {
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+
+		$this->create_post( array( 'post_type' => 'page' ) );
+		$book = $this->create_post( array( 'post_type' => 'wptests_book' ) );
+
+		$this->go_to( home_url( '/?random&post_type[]=page&post_type[]=wptests_book' ) );
+
+		$this->assertSame( get_permalink( $book ), $this->redirect_location, 'Only randomable post types should be selected from multiple post types.' );
+	}
+
+	/**
+	 * Ensure random custom taxonomy archives only select randomable post types.
+	 */
+	public function test_random_custom_taxonomy_archive_only_selects_randomable_post_types(): void {
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+		register_taxonomy(
+			'wptests_genre',
+			array( 'page', 'wptests_book' ),
+			array(
+				'public'  => true,
+				'rewrite' => array( 'slug' => 'genre' ),
+			)
+		);
+		flush_rewrite_rules();
+
+		$page = $this->create_post( array( 'post_type' => 'page' ) );
+		$book = $this->create_post( array( 'post_type' => 'wptests_book' ) );
+		wp_set_object_terms( $page, 'sci-fi', 'wptests_genre' );
+		wp_set_object_terms( $book, 'sci-fi', 'wptests_genre' );
+
+		$this->go_to( home_url( '/random/genre/sci-fi/' ) );
+
+		$this->assertSame( get_permalink( $book ), $this->redirect_location, 'Only randomable post types should be selected from a custom taxonomy archive.' );
+	}
+
+	/**
+	 * Ensure archives of taxonomies used only by pages do not redirect.
+	 */
+	public function test_no_redirect_for_taxonomy_used_only_by_pages(): void {
+		register_taxonomy(
+			'wptests_genre',
+			'page',
+			array(
+				'public'  => true,
+				'rewrite' => array( 'slug' => 'genre' ),
+			)
+		);
+		flush_rewrite_rules();
+
+		$page = $this->create_post( array( 'post_type' => 'page' ) );
+		wp_set_object_terms( $page, 'sci-fi', 'wptests_genre' );
+
+		$this->go_to( home_url( '/genre/sci-fi/?random' ) );
+
+		$this->assertNotRedirected( 'Taxonomies used only by pages should not redirect.' );
+		$this->assertTrue( is_tax( 'wptests_genre' ), 'The term archive should be displayed.' );
+	}
+
+	/**
+	 * Ensure the eligible post types match the request.
+	 *
+	 * @dataProvider data_wp_get_random_content_post_types
+	 *
+	 * @param string   $url      URL to request.
+	 * @param string[] $expected Expected post types.
+	 */
+	public function test_wp_get_random_content_post_types( string $url, array $expected ): void {
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+		register_post_type(
+			'wptests_hidden',
+			array(
+				'public'     => true,
+				'randomable' => false,
+			)
+		);
+		register_taxonomy( 'wptests_genre', array( 'post', 'page', 'wptests_book' ), array( 'public' => true ) );
+		wp_set_object_terms( self::$arts_post, 'sci-fi', 'wptests_genre' );
+
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+		$this->go_to( home_url( $url ) );
+		remove_filter( 'wp_enable_random_content_redirect', '__return_false' );
+
+		$actual = wp_get_random_content_post_types( $this->get_main_query() );
+		sort( $actual );
+
+		$this->assertSame( $expected, $actual, 'The eligible post types do not match the expected post types for the request.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_wp_get_random_content_post_types()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: list<non-falsy-string> }>
+	 */
+	public static function data_wp_get_random_content_post_types(): array {
+		return array(
+			'home'                 => array( '/?random', array( 'post' ) ),
+			'category'             => array( '/?random&category_name=arts', array( 'post' ) ),
+			'search'               => array( '/?random&s=post', array( 'post', 'wptests_book' ) ),
+			'any'                  => array( '/?random&post_type=any', array( 'post', 'wptests_book' ) ),
+			'custom taxonomy'      => array( '/?random&wptests_genre=sci-fi', array( 'post', 'wptests_book' ) ),
+			'randomable post type' => array( '/?random&post_type=wptests_book', array( 'wptests_book' ) ),
+			'non-randomable type'  => array( '/?random&post_type=wptests_hidden', array() ),
+			'page'                 => array( '/?random&post_type=page', array() ),
+			'attachment'           => array( '/?random&post_type=attachment', array() ),
+			'mixed post types'     => array( '/?random&post_type[]=page&post_type[]=post', array( 'post' ) ),
+		);
+	}
+
+	/**
+	 * Ensure the random URL only selects posts by default.
+	 */
+	public function test_random_url_defaults_to_posts(): void {
+		$this->create_post( array( 'post_type' => 'page' ) );
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Pages should not be selected without requesting them.' );
+	}
+
+	/**
+	 * Ensure the random URL redirects to a post when a static front page is set.
+	 */
+	public function test_random_url_with_static_front_page_redirects_to_a_post(): void {
+		$front = $this->create_post( array( 'post_type' => 'page' ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $front );
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random URL should redirect to a post when a static front page is set.' );
+	}
+
+	/**
+	 * Ensure pagination does not affect the random selection.
+	 */
+	public function test_random_redirect_ignores_pagination(): void {
+		$this->go_to( home_url( '/random/category/arts/?paged=5' ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'Pagination should not affect the random selection.' );
+	}
+
+	/*
+	 * Eligible posts.
+	 */
+
+	/**
+	 * Ensure unpublished and password protected posts are not selected, even for administrators.
+	 *
+	 * @dataProvider data_ineligible_posts
+	 *
+	 * @param array<string, string> $args Post arguments.
+	 */
+	public function test_random_redirect_excludes_ineligible_posts( array $args ): void {
+		$category = self::factory()->category->create();
+		$this->create_post( array_merge( array( 'post_category' => array( $category ) ), $args ) );
+
+		wp_set_current_user( self::$admin );
+
+		$this->go_to( add_query_arg( 'cat', $category, home_url( '/?random' ) ) );
+
+		$this->assertNotRedirected( 'Only published posts without passwords may be selected, even for administrators.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_redirect_excludes_ineligible_posts()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<non-falsy-string, string> }>
+	 */
+	public static function data_ineligible_posts(): array {
+		return array(
+			'draft'              => array( array( 'post_status' => 'draft' ) ),
+			'pending'            => array( array( 'post_status' => 'pending' ) ),
+			'private'            => array( array( 'post_status' => 'private' ) ),
+			'future'             => array(
+				array(
+					'post_status' => 'future',
+					'post_date'   => gmdate( 'Y-m-d H:i:s', time() + 64498 ),
+				),
+			),
+			'trash'              => array( array( 'post_status' => 'trash' ) ),
+			'password protected' => array( array( 'post_password' => 'secret' ) ),
+		);
+	}
+
+	/**
+	 * Ensure sticky posts are not prepended to the random selection.
+	 */
+	public function test_random_redirect_ignores_sticky_posts(): void {
+		$sticky = $this->create_post( array( 'post_title' => 'Sticky' ) );
+		stick_post( $sticky );
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$query = $this->get_main_query();
+
+		$this->assertTrue( $query->get( 'ignore_sticky_posts' ), 'Sticky posts should be ignored by the random query.' );
+		$this->assertCount( 1, $query->posts, 'Sticky posts must not be prepended to the random selection.' );
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post, $sticky ), 'The request with a sticky post did not redirect to an eligible post.' );
+	}
+
+	/*
+	 * Requests that are not random content requests.
+	 */
+
+	/**
+	 * Ensure the home page does not redirect without the random query variable.
+	 */
+	public function test_no_redirect_without_random_query_var(): void {
+		$this->go_to( home_url( '/' ) );
+
+		$this->assertNotRedirected( 'The home page should not redirect without the random query variable.' );
+		$this->assertQueryTrue( 'is_home', 'is_front_page' );
+	}
+
+	/**
+	 * Ensure archives are not randomized without the random query variable.
+	 */
+	public function test_archives_are_unchanged_without_random_query_var(): void {
+		$this->go_to( home_url( '/category/arts/' ) );
+
+		$this->assertNotRedirected( 'Archives should not redirect without the random query variable.' );
+		$this->assertQueryIsNotRandomized( $this->get_main_query(), 'The archive order should not be modified.' );
+	}
+
+	/**
+	 * Ensure singular posts do not redirect with the random query variable.
+	 */
+	public function test_no_redirect_for_singular_post_with_random_query_var(): void {
+		$this->go_to( add_query_arg( 'random', '', get_permalink( self::$arts_post ) ) );
+
+		$this->assertNotRedirected( 'Singular requests should not redirect to themselves or another post.' );
+		$this->assertQueryTrue( 'is_single', 'is_singular' );
+		$this->assertSame( self::$arts_post, get_queried_object_id(), 'The singular post should be queried despite the random query variable.' );
+	}
+
+	/**
+	 * Ensure requests for a post ID do not redirect with the random query variable.
+	 */
+	public function test_no_redirect_for_post_id_with_random_query_var(): void {
+		$this->go_to( home_url( '/?random&p=' . self::$sport_post ) );
+
+		$this->assertNotRedirected( 'Requests for a post ID should not redirect.' );
+		$this->assertSame( self::$sport_post, get_queried_object_id(), 'The post ID should be queried despite the random query variable.' );
+	}
+
+	/**
+	 * Ensure pages do not redirect with the random query variable.
+	 */
+	public function test_no_redirect_for_page_with_random_query_var(): void {
+		$page = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'about',
+			)
+		);
+
+		$this->go_to( home_url( '/about/?random' ) );
+
+		$this->assertNotRedirected( 'Requests for a page should not redirect.' );
+		$this->assertSame( $page, get_queried_object_id(), 'The page should be queried despite the random query variable.' );
+	}
+
+	/**
+	 * Ensure the static front page does not redirect with the random query variable.
+	 */
+	public function test_no_redirect_for_static_front_page_with_random_query_var_from_extra_vars(): void {
+		$front = $this->create_post( array( 'post_type' => 'page' ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $front );
+
+		$this->go_to( home_url( '/?page_id=' . $front . '&random' ) );
+
+		$this->assertNotRedirected( 'The static front page should not redirect.' );
+		$this->assertSame( $front, get_queried_object_id(), 'The static front page should be queried despite the random query variable.' );
+	}
+
+	/**
+	 * Ensure feeds do not redirect with the random query variable.
+	 *
+	 * @dataProvider data_feed_urls
+	 *
+	 * @param string $path Feed path.
+	 */
+	public function test_no_redirect_for_feeds( string $path ): void {
+		$this->go_to( home_url( $path ) );
+
+		$this->assertNotRedirected( 'Feeds should not redirect.' );
+		$this->assertTrue( is_feed(), 'The request should remain a feed.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_no_redirect_for_feeds()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_feed_urls(): array {
+		return array(
+			'site feed'     => array( '/feed/?random' ),
+			'category feed' => array( '/category/arts/feed/?random' ),
+			'comments feed' => array( '/comments/feed/?random' ),
+		);
+	}
+
+	/**
+	 * Ensure searches with the random query variable redirect to the search results.
+	 *
+	 * @ticket 66662
+	 *
+	 * @dataProvider data_search_urls
+	 *
+	 * @param string $path     Search path.
+	 * @param string $expected Expected redirect path.
+	 */
+	public function test_random_search_redirects_to_the_search_results( string $path, string $expected ): void {
+		$this->go_to_and_record_queries( home_url( $path ) );
+
+		$this->assertSame( home_url( $expected ), $this->redirect_location, 'The search should redirect to the search results without the random query variable.' );
+		$this->assertSame( 301, $this->redirect_status, 'The search should redirect permanently.' );
+		$this->assertSame( array(), $this->queries, 'No database queries should be made before redirecting.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_search_redirects_to_the_search_results()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string }>
+	 */
+	public static function data_search_urls(): array {
+		return array(
+			'search'                             => array( '/?s=Baseball&random', '/?s=Baseball' ),
+			'search with a random value'         => array( '/?s=Baseball&random=1', '/?s=Baseball' ),
+			'empty search'                       => array( '/?s=&random', '/?s' ),
+			'random base search'                 => array( '/random/?s=Baseball', '/?s=Baseball' ),
+			'random category base search'        => array( '/random/category/sport/?s=Baseball', '/?s=Baseball&category_name=sport' ),
+			'category search'                    => array( '/?s=Baseball&category_name=sport&random', '/?s=Baseball&category_name=sport' ),
+			'post type search'                   => array( '/?s=Baseball&post_type=post&random', '/?s=Baseball&post_type=post' ),
+			'search requiring encoding'          => array( '/?s=base+ball%26%23%2F%27%22&random', '/?s=base+ball%26%23%2F%27%22' ),
+			'array search'                       => array( '/?s[]=Baseball&random', '/?s%5B0%5D=Baseball' ),
+
+			// Query string parameters that are not query variables are retained.
+			'unregistered parameter'             => array( '/?s=Baseball&random&utm_source=newsletter', '/?s=Baseball&utm_source=newsletter' ),
+			'unregistered parameter first'       => array( '/?lang=fr&s=Baseball&random', '/?lang=fr&s=Baseball' ),
+			'unregistered array parameter'       => array( '/?s=Baseball&random&filter[color]=red', '/?s=Baseball&filter%5Bcolor%5D=red' ),
+			'unregistered, random base'          => array( '/random/?s=Baseball&utm_source=newsletter', '/?s=Baseball&utm_source=newsletter' ),
+			'unregistered, random category base' => array( '/random/category/sport/?s=Baseball&lang=fr', '/?s=Baseball&lang=fr&category_name=sport' ),
+			'unregistered, pretty search'        => array( '/search/Baseball/?random&utm_source=newsletter', '/search/Baseball/?utm_source=newsletter' ),
+
+			// Parameter names are encoded, so they can not add parameters to the redirect.
+			'parameter name requiring encoding'  => array( '/?s=Baseball&random&foo%26random%3D1=1', '/?s=Baseball&foo%26random%3D1=1' ),
+			'array key requiring encoding'       => array( '/?s=Baseball&random&filter[a%26random%3D1]=1', '/?s=Baseball&filter%5Ba%26random%3D1%5D=1' ),
+			'parameter name, random base'        => array( '/random/?s=Baseball&foo%26random%3D1=1', '/?s=Baseball&foo%26random%3D1=1' ),
+			'parameter name, pretty search'      => array( '/search/Baseball/?random&foo%23bar=1', '/search/Baseball/?foo%23bar=1' ),
+
+			// Parameter names are not slashed, so a backslash in a name is retained.
+			'parameter name with a backslash'    => array( '/?s=Baseball&random&%5Cs=Other', '/?s=Baseball&%5Cs=Other' ),
+			'array key with a backslash'         => array( '/?s=Baseball&random&filter[a%5Cb]=1', '/?s=Baseball&filter%5Ba%5Cb%5D=1' ),
+
+			// The requested path is retained when it does not include the random base.
+			'pretty search'                      => array( '/search/Baseball/?random', '/search/Baseball/' ),
+			'pretty search with a random value'  => array( '/search/Baseball/?random=1', '/search/Baseball/' ),
+			'pretty search without a slash'      => array( '/search/Baseball?random', '/search/Baseball/' ),
+			'paged pretty search'                => array( '/search/Baseball/page/2/?random', '/search/Baseball/page/2/' ),
+			'encoded pretty search'              => array( '/search/base%20ball/?random', '/search/base%20ball/' ),
+			'pretty search with a plus'          => array( '/search/base+ball/?random', '/search/base+ball/' ),
+			'pretty search with an encoded plus' => array( '/search/c%2B%2B/?random', '/search/c%2B%2B/' ),
+			'pretty search with a quote'         => array( "/search/o'neil/?random", '/search/o%27neil/' ),
+			'pretty search with UTF-8'           => array( '/search/caf%C3%A9/?random', '/search/caf%C3%A9/' ),
+			'category archive search'            => array( '/category/sport/?s=Baseball&random', '/category/sport/?s=Baseball' ),
+			'unmatched path search'              => array( '/does/not/exist/?s=Baseball&random', '/does/not/exist/?s=Baseball' ),
+		);
+	}
+
+	/**
+	 * Ensure the random search redirect does not include the slashes added to the superglobals.
+	 *
+	 * WordPress adds slashes to the values of `$_GET` and `$_SERVER`, but not to the
+	 * parameter names. The slashes are not part of the request, so must not be in the redirect.
+	 *
+	 * @ticket 66662
+	 *
+	 * @dataProvider data_search_urls_with_slashed_superglobals
+	 *
+	 * @param string $path     Search path.
+	 * @param string $expected Expected redirect path.
+	 */
+	public function test_random_search_redirect_with_slashed_superglobals( string $path, string $expected ): void {
+		// go_to() sets the superglobals without slashes, add them as wp_magic_quotes() does.
+		add_filter(
+			'do_parse_request',
+			static function ( bool $parse ): bool {
+				$_GET                   = add_magic_quotes( $_GET );
+				$_SERVER['REQUEST_URI'] = addslashes( $_SERVER['REQUEST_URI'] );
+
+				return $parse;
+			}
+		);
+
+		$this->go_to( home_url( $path ) );
+
+		$this->assertSame( home_url( $expected ), $this->redirect_location, 'The redirect should not include the slashes added to the superglobals.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_search_redirect_with_slashed_superglobals()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string }>
+	 */
+	public static function data_search_urls_with_slashed_superglobals(): array {
+		return array(
+			'pretty search with a quote'        => array( "/search/o'neil/?random", '/search/o%27neil/' ),
+			'pretty search with a double quote' => array( '/search/base"ball/?random', '/search/base%22ball/' ),
+			'pretty search with a backslash'    => array( '/search/base\\ball/?random', '/search/base%5Cball/' ),
+			'pretty search, encoded quote'      => array( '/search/o%27neil/?random', '/search/o%27neil/' ),
+			'pretty search, encoded backslash'  => array( '/search/base%5Cball/?random', '/search/base%5Cball/' ),
+			'search with a quote'               => array( '/?s=o%27neil&random', '/?s=o%27neil' ),
+			'search with a backslash'           => array( '/?s=base%5Cball&random', '/?s=base%5Cball' ),
+			'parameter name with a backslash'   => array( '/?s=Baseball&random&%5Cs=Other', '/?s=Baseball&%5Cs=Other' ),
+			'array key with a backslash'        => array( '/?s=Baseball&random&filter[a%5Cb]=1', '/?s=Baseball&filter%5Ba%5Cb%5D=1' ),
+			'array key with a quote'            => array( '/?s=Baseball&random&filter[a%27b]=1', '/?s=Baseball&filter%5Ba%27b%5D=1' ),
+		);
+	}
+
+	/**
+	 * Ensure the random search redirect does not change the search.
+	 *
+	 * @ticket 66662
+	 *
+	 * @dataProvider data_search_terms
+	 *
+	 * @param string $path     Search path.
+	 * @param string $expected Expected search terms.
+	 */
+	public function test_random_search_redirect_retains_the_search_terms( string $path, string $expected ): void {
+		// Prevent the redirect so the search is run for the request.
+		$this->prevent_redirects();
+
+		$this->go_to( home_url( $path ) );
+
+		$this->assertSame( $expected, get_query_var( 's' ), 'The request should search for the expected terms.' );
+		$this->assertIsString( $this->redirect_location, 'The search should redirect.' );
+
+		$this->go_to( $this->redirect_location );
+
+		$this->assertSame( $expected, get_query_var( 's' ), 'The redirect should search for the same terms.' );
+		$query = $this->get_main_query()->query;
+		$this->assertIsArray( $query, 'The redirect should be queried.' );
+		$this->assertArrayNotHasKey( 'random', $query, 'The redirect should not request random content.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_search_redirect_retains_the_search_terms()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string }>
+	 */
+	public static function data_search_terms(): array {
+		return array(
+			'query string, plus'         => array( '/?s=base+ball&random', 'base ball' ),
+			'query string, encoded plus' => array( '/?s=c%2B%2B&random', 'c++' ),
+			'query string, quote'        => array( '/?s=o%27neil&random', "o'neil" ),
+			'query string, ampersand'    => array( '/?s=R%26D&random', 'R&D' ),
+			'query string, UTF-8'        => array( '/?s=caf%C3%A9&random', 'café' ),
+			'pretty, plus'               => array( '/search/base+ball/?random', 'base ball' ),
+			'pretty, encoded space'      => array( '/search/base%20ball/?random', 'base ball' ),
+			'pretty, encoded plus'       => array( '/search/c%2B%2B/?random', 'c++' ),
+			'pretty, quote'              => array( "/search/o'neil/?random", "o'neil" ),
+			'pretty, UTF-8'              => array( '/search/caf%C3%A9/?random', 'café' ),
+			'random base, plus'          => array( '/random/?s=base+ball', 'base ball' ),
+			'random base, encoded plus'  => array( '/random/?s=c%2B%2B', 'c++' ),
+		);
+	}
+
+	/**
+	 * Ensure searches do not redirect when the URL does not request random content.
+	 *
+	 * The redirect removes the random request from the URL. If it was added by other
+	 * means, there is nothing to remove and the redirect would be to the same URL.
+	 *
+	 * @ticket 66662
+	 *
+	 * @dataProvider data_search_urls_without_random
+	 *
+	 * @param string $path Search path.
+	 */
+	public function test_random_search_does_not_redirect_to_the_requested_url( string $path ): void {
+		add_filter(
+			'request',
+			static function ( array $query_vars ): array {
+				$query_vars['random'] = '1';
+
+				return $query_vars;
+			}
+		);
+
+		$this->go_to( home_url( $path ) );
+
+		$this->assertNotRedirected( 'A search should not redirect to the requested URL.' );
+		$this->assertTrue( is_search(), 'The request should remain a search.' );
+		$this->assertFalse( is_random(), 'A search should not be a random content request.' );
+		$this->assertQueryIsNotRandomized( $this->get_main_query(), 'The search results should not be randomized.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_search_does_not_redirect_to_the_requested_url()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_search_urls_without_random(): array {
+		return array(
+			'search'          => array( '/?s=Baseball' ),
+			'pretty search'   => array( '/search/Baseball/' ),
+			'category search' => array( '/category/sport/?s=Baseball' ),
+		);
+	}
+
+	/**
+	 * Ensure searches do not redirect to the requested URL when a rewrite rule requests random content.
+	 *
+	 * A rewrite rule that does not use the random base, such as one for the home page,
+	 * has no path to remove. Redirecting would be to the same URL, repeatedly.
+	 *
+	 * @ticket 66662
+	 *
+	 * @dataProvider data_search_urls_with_a_random_home_page
+	 *
+	 * @param string      $path     Search path.
+	 * @param string|null $expected Expected redirect path, null when the request should not redirect.
+	 */
+	public function test_random_search_does_not_redirect_in_a_loop_when_the_home_page_is_random( string $path, ?string $expected ): void {
+		add_filter(
+			'random_rewrite_rules',
+			static function ( array $rules ): array {
+				$rules['$'] = 'index.php?random=1';
+
+				return $rules;
+			}
+		);
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/' ) );
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The home page should request random content.' );
+
+		$this->redirect_location = null;
+		$this->go_to( home_url( $path ) );
+
+		if ( null === $expected ) {
+			$this->assertNotRedirected( 'A search should not redirect to the requested URL.' );
+			$this->assertTrue( is_search(), 'The request should remain a search.' );
+			$this->assertFalse( is_random(), 'A search should not be a random content request.' );
+			$this->assertQueryIsNotRandomized( $this->get_main_query(), 'The search results should not be randomized.' );
+			return;
+		}
+
+		$this->assertSame( home_url( $expected ), $this->redirect_location, 'The search should redirect to the search results without the random query variable.' );
+
+		// The redirect must not redirect again.
+		$this->redirect_location = null;
+		$this->go_to( home_url( $expected ) );
+		$this->assertNotRedirected( 'The search results should not redirect again.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_search_does_not_redirect_in_a_loop_when_the_home_page_is_random()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string|null }>
+	 */
+	public static function data_search_urls_with_a_random_home_page(): array {
+		return array(
+			'search'                         => array( '/?s=Baseball', null ),
+			'search with other parameters'   => array( '/?s=Baseball&utm_source=newsletter', null ),
+			'search with the query variable' => array( '/?s=Baseball&random', '/?s=Baseball' ),
+			'random base search'             => array( '/random/?s=Baseball', '/?s=Baseball' ),
+		);
+	}
+
+	/**
+	 * Ensure requests that are not for posts ignore the random query variable.
+	 *
+	 * Requests for robots.txt, the favicon, sitemaps, feeds and trackbacks neither
+	 * redirect to a random post nor redirect searches.
+	 *
+	 * @ticket 66662
+	 *
+	 * @dataProvider data_urls_not_for_posts
+	 *
+	 * @param string $path        Requested path.
+	 * @param string $conditional Conditional tag expected to be true for the request.
+	 */
+	public function test_random_is_ignored_for_requests_not_for_posts( string $path, string $conditional ): void {
+		// Register the sitemap rewrite rules and query variables, which are not retained between tests.
+		wp_sitemaps_get_server()->register_rewrites();
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( $path ) );
+
+		$this->assertNotRedirected( 'The request should not redirect.' );
+		$this->assertIsCallable( $conditional );
+		$this->assertTrue( call_user_func( $conditional ), "{$conditional}() should be true for the request." );
+		$this->assertFalse( is_random(), 'The request should not be for random content.' );
+
+		$query = $this->get_main_query();
+		$this->assertFalse( wp_is_random_content_query( $query ), 'The query should not be a random content query.' );
+		$this->assertQueryIsNotRandomized( $query, 'The query should not be randomized.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_is_ignored_for_requests_not_for_posts()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: callable-string }>
+	 */
+	public static function data_urls_not_for_posts(): array {
+		return array(
+			'robots.txt'                     => array( '/robots.txt?random', 'is_robots' ),
+			'robots.txt, archive'            => array( '/robots.txt?random&category_name=sport', 'is_robots' ),
+			'robots.txt, search'             => array( '/robots.txt?s=Baseball&random', 'is_robots' ),
+			'robots query variable, archive' => array( '/?robots=1&random&category_name=sport', 'is_robots' ),
+			'robots query variable, search'  => array( '/?robots=1&s=Baseball&random', 'is_robots' ),
+			'random base robots, archive'    => array( '/random/category/sport/?robots=1', 'is_robots' ),
+			'random base robots, search'     => array( '/random/?robots=1&s=Baseball', 'is_robots' ),
+			'favicon'                        => array( '/favicon.ico?random', 'is_favicon' ),
+			'favicon, archive'               => array( '/favicon.ico?random&category_name=sport', 'is_favicon' ),
+			'favicon, search'                => array( '/favicon.ico?s=Baseball&random', 'is_favicon' ),
+			'sitemap index'                  => array( '/wp-sitemap.xml?random', 'is_sitemap' ),
+			'sitemap index, archive'         => array( '/wp-sitemap.xml?random&category_name=sport', 'is_sitemap' ),
+			'sitemap index, search'          => array( '/wp-sitemap.xml?s=Baseball&random', 'is_sitemap' ),
+			'sitemap'                        => array( '/wp-sitemap-posts-post-1.xml?random', 'is_sitemap' ),
+			'sitemap, archive'               => array( '/wp-sitemap-posts-post-1.xml?random&category_name=sport', 'is_sitemap' ),
+			'sitemap, search'                => array( '/wp-sitemap-posts-post-1.xml?s=Baseball&random', 'is_sitemap' ),
+			'sitemap query variable'         => array( '/?sitemap=index&random', 'is_sitemap' ),
+			'random base sitemap'            => array( '/random/?sitemap=index', 'is_sitemap' ),
+			'search feed'                    => array( '/?s=Baseball&feed=rss2&random', 'is_feed' ),
+			'pretty search feed'             => array( '/search/Baseball/feed/rss2/?random', 'is_feed' ),
+			'random base search feed'        => array( '/random/?s=Baseball&feed=rss2', 'is_feed' ),
+			'trackback, archive'             => array( '/?tb=1&category_name=sport&random', 'is_trackback' ),
+			'trackback, search'              => array( '/?tb=1&s=Baseball&random', 'is_trackback' ),
+		);
+	}
+
+	/**
+	 * Ensure pretty searches keep the requested path with PATHINFO permalinks.
+	 *
+	 * @ticket 66662
+	 *
+	 * @dataProvider data_pathinfo_search_urls
+	 *
+	 * @param string $path     Search path.
+	 * @param string $expected Expected redirect path.
+	 */
+	public function test_random_search_redirect_with_pathinfo_permalinks( string $path, string $expected ): void {
+		$this->set_permalink_structure( '/index.php/%postname%/' );
+
+		$this->go_to( home_url( $path ) );
+
+		$this->assertSame( home_url( $expected ), $this->redirect_location, 'The search should redirect to the search results without the random query variable.' );
+	}
+
+	/**
+	 * Ensure pretty searches keep the requested path when the server sets PATH_INFO.
+	 *
+	 * @ticket 66662
+	 */
+	public function test_random_search_redirect_with_path_info(): void {
+		$this->set_permalink_structure( '/index.php/%postname%/' );
+
+		add_action(
+			'parse_request',
+			static function (): void {
+				unset( $_SERVER['PATH_INFO'] );
+			}
+		);
+		add_filter(
+			'do_parse_request',
+			static function ( bool $parse ): bool {
+				$_SERVER['PATH_INFO'] = '/search/Baseball/';
+
+				return $parse;
+			}
+		);
+
+		$this->go_to( home_url( '/index.php/search/Baseball/?random&utm_source=newsletter' ) );
+
+		$this->assertSame( home_url( '/index.php/search/Baseball/?utm_source=newsletter' ), $this->redirect_location, 'The search should redirect to the requested path without the random query variable.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_search_redirect_with_pathinfo_permalinks()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string }>
+	 */
+	public static function data_pathinfo_search_urls(): array {
+		return array(
+			'pretty search'      => array( '/index.php/search/Baseball/?random', '/index.php/search/Baseball/' ),
+			'random base search' => array( '/index.php/random/?s=Baseball&utm_source=newsletter', '/?s=Baseball&utm_source=newsletter' ),
+		);
+	}
+
+	/**
+	 * Ensure the random search redirect never includes a custom random base.
+	 *
+	 * @ticket 66662
+	 */
+	public function test_random_search_redirect_removes_a_custom_random_base(): void {
+		global $wp_rewrite;
+
+		$this->assertInstanceOf( WP_Rewrite::class, $wp_rewrite );
+		$wp_rewrite->set_random_base( 'surprise' );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/surprise/category/sport/?s=Baseball&utm_source=newsletter' ) );
+
+		$this->assertSame( home_url( '/?s=Baseball&utm_source=newsletter&category_name=sport' ), $this->redirect_location, 'The redirect should not include the random base.' );
+	}
+
+	/**
+	 * Ensure pretty searches keep the requested path without trailing slashes.
+	 *
+	 * @ticket 66662
+	 */
+	public function test_random_search_redirect_follows_the_trailing_slash_of_the_permalink_structure(): void {
+		$this->set_permalink_structure( '/%postname%' );
+
+		$this->go_to( home_url( '/search/Baseball/?random' ) );
+
+		$this->assertSame( home_url( '/search/Baseball' ), $this->redirect_location, 'The redirect should not add a trailing slash the permalink structure does not use.' );
+	}
+
+	/**
+	 * Ensure searches that are not redirected are regular searches.
+	 *
+	 * @ticket 66662
+	 */
+	public function test_random_search_is_a_regular_search_when_not_redirected(): void {
+		$page = $this->create_post(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Baseball page',
+			)
+		);
+
+		$this->prevent_redirects();
+
+		$this->go_to( home_url( '/?s=Baseball&random' ) );
+
+		$this->assertSame( home_url( '/?s=Baseball' ), $this->redirect_location, 'The search should attempt to redirect to the search results.' );
+
+		$this->assertTrue( is_search(), 'The request should remain a search.' );
+		$this->assertFalse( is_random(), 'A search should not be a random content request.' );
+		$this->assertFalse( is_404(), 'A search should not be a 404.' );
+
+		$query = $this->get_main_query();
+		$this->assertQueryIsNotRandomized( $query, 'The search results should not be randomized.' );
+		$this->assertIsArray( $query->posts, 'The search should have run.' );
+		$this->assertSameSets( array( self::$sport_post, $page ), wp_list_pluck( $query->posts, 'ID' ), 'The search should return the regular search results.' );
+	}
+
+	/**
+	 * Ensure searches without results are not a 404 with the random query variable.
+	 *
+	 * @ticket 66662
+	 */
+	public function test_random_search_without_results_is_not_a_404(): void {
+		// Prevent the redirect so the search is run for the request.
+		$this->prevent_redirects();
+
+		$this->go_to( home_url( '/?s=qqqzzznothere&random' ) );
+
+		$this->assertSame( home_url( '/?s=qqqzzznothere' ), $this->redirect_location, 'A search without results should redirect to the search results.' );
+		$this->assertTrue( is_search(), 'The request should remain a search.' );
+		$this->assertFalse( is_404(), 'A search without results should not be a 404.' );
+	}
+
+	/**
+	 * Ensure searches are not redirected for unsupported request methods.
+	 *
+	 * @ticket 66662
+	 */
+	public function test_random_search_does_not_redirect_post_requests(): void {
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+
+		$this->go_to( home_url( '/?s=Baseball&random' ) );
+
+		$this->assertNotRedirected( 'POST search requests should not redirect.' );
+		$this->assertTrue( is_search(), 'The request should remain a search.' );
+		$this->assertFalse( is_random(), 'A search should not be a random content request.' );
+		$this->assertQueryIsNotRandomized( $this->get_main_query(), 'The search results should not be randomized.' );
+	}
+
+	/**
+	 * Ensure searches are not redirected when random content redirects are disabled.
+	 *
+	 * @ticket 66662
+	 */
+	public function test_random_search_does_not_redirect_when_disabled(): void {
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+
+		$this->go_to( home_url( '/?s=Baseball&random' ) );
+
+		$this->assertNotRedirected( 'Searches should not redirect when random content redirects are disabled.' );
+		$this->assertTrue( is_search(), 'The request should remain a search.' );
+		$this->assertQueryIsNotRandomized( $this->get_main_query(), 'The search results should not be randomized.' );
+	}
+
+	/**
+	 * Ensure embeds do not redirect with the random query variable.
+	 */
+	public function test_no_redirect_for_embeds(): void {
+		$this->go_to( home_url( '/cassatt/embed/?random' ) );
+
+		$this->assertNotRedirected( 'Embeds should not redirect.' );
+		$this->assertTrue( is_embed(), 'The embed should be displayed despite the random query variable.' );
+	}
+
+	/**
+	 * Ensure the embed query variable is ignored for requests that are not for a single post.
+	 *
+	 * Only singular requests are embeds, so the random content request is handled as usual.
+	 *
+	 * @ticket 66662
+	 *
+	 * @dataProvider data_random_urls_with_the_embed_query_var
+	 *
+	 * @param string $path Random content request path.
+	 */
+	public function test_random_redirects_with_the_embed_query_var_when_not_an_embed( string $path ): void {
+		$this->go_to( home_url( $path ) );
+
+		$this->assertFalse( is_embed(), 'The request should not be an embed.' );
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random URL should redirect to a published post.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_redirects_with_the_embed_query_var_when_not_an_embed()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_random_urls_with_the_embed_query_var(): array {
+		return array(
+			'home'        => array( '/?embed=1&random' ),
+			'random base' => array( '/random/?embed=true' ),
+			'category'    => array( '/category/sport/?embed=1&random' ),
+		);
+	}
+
+	/**
+	 * Ensure searches with the embed query variable redirect to the search results.
+	 *
+	 * @ticket 66662
+	 */
+	public function test_random_search_redirects_with_the_embed_query_var(): void {
+		$this->go_to( home_url( '/?s=Baseball&embed=1&random' ) );
+
+		$this->assertSame( home_url( '/?s=Baseball&embed=1' ), $this->redirect_location, 'The search should redirect to the search results without the random query variable.' );
+	}
+
+	/**
+	 * Ensure random requests for a nonexistent category return a 404 rather than redirecting.
+	 */
+	public function test_no_redirect_for_nonexistent_category(): void {
+		$this->go_to( home_url( '/random/category/does-not-exist/' ) );
+
+		$this->assertNotRedirected( 'Nonexistent categories should not redirect.' );
+		$this->assertTrue( is_404(), 'A random request for a nonexistent term should 404.' );
+	}
+
+	/**
+	 * Ensure random requests for an empty category return a 404 rather than redirecting.
+	 */
+	public function test_no_redirect_for_empty_category(): void {
+		$this->go_to( home_url( '/random/category/empty/' ) );
+
+		$this->assertNotRedirected( 'An empty archive has nothing to redirect to.' );
+		$this->assertQueryTrue( 'is_404' );
+	}
+
+	/**
+	 * Ensure random requests without eligible posts return a 404 rather than redirecting.
+	 */
+	public function test_no_redirect_when_no_posts_are_eligible(): void {
+		add_filter(
+			'posts_where',
+			static function ( string $where, WP_Query $query ): string {
+				return $query->is_main_query() ? "{$where} AND 1 = 0" : $where;
+			},
+			10,
+			2
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'A random request without eligible posts has nothing to redirect to.' );
+		$this->assertTrue( is_404(), 'A random request without eligible posts should 404.' );
+	}
+
+	/**
+	 * Ensure requests using HTTP methods other than GET or HEAD do not redirect.
+	 *
+	 * @dataProvider data_non_redirecting_http_methods
+	 *
+	 * @param string $method HTTP request method.
+	 */
+	public function test_no_redirect_for_non_get_requests( string $method ): void {
+		$_SERVER['REQUEST_METHOD'] = $method;
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'Requests using methods other than GET or HEAD should not redirect.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_no_redirect_for_non_get_requests()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_non_redirecting_http_methods(): array {
+		return array(
+			'POST'    => array( 'POST' ),
+			'PUT'     => array( 'PUT' ),
+			'DELETE'  => array( 'DELETE' ),
+			'OPTIONS' => array( 'OPTIONS' ),
+		);
+	}
+
+	/**
+	 * Ensure requests without an HTTP method do not redirect.
+	 */
+	public function test_no_redirect_without_request_method(): void {
+		unset( $_SERVER['REQUEST_METHOD'] );
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'Requests without a request method should not redirect.' );
+	}
+
+	/**
+	 * Ensure GET and HEAD requests redirect, regardless of case.
+	 *
+	 * @dataProvider data_redirecting_http_methods
+	 *
+	 * @param string $method HTTP request method.
+	 */
+	public function test_redirect_for_get_and_head_requests( string $method ): void {
+		$_SERVER['REQUEST_METHOD'] = $method;
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'GET and HEAD requests should redirect.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_redirect_for_get_and_head_requests()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_redirecting_http_methods(): array {
+		return array(
+			'GET'            => array( 'GET' ),
+			'HEAD'           => array( 'HEAD' ),
+			'lowercase get'  => array( 'get' ),
+			'lowercase head' => array( 'head' ),
+		);
+	}
+
+	/*
+	 * Conflicts with pages.
+	 */
+
+	/**
+	 * A page whose slug begins with the random base must not be matched by the random rules.
+	 *
+	 * @dataProvider data_permalink_structures
+	 *
+	 * @global WP $wp Current WordPress environment instance.
+	 *
+	 * @param string $structure Permalink structure.
+	 */
+	public function test_page_with_slug_beginning_with_random_base_does_not_conflict( string $structure ): void {
+		global $wp;
+
+		$this->set_permalink_structure( $structure );
+		create_initial_taxonomies();
+		flush_rewrite_rules();
+
+		$page = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random-is-just-patterns-we-cant-decipher',
+			)
+		);
+
+		$permalink = get_permalink( $page );
+		$this->assertIsString( $permalink, 'The page with a slug beginning with the random base has no permalink.' );
+
+		$this->go_to( $permalink );
+
+		$this->assertNotRedirected( 'The page should not be treated as a random content request.' );
+		$this->assertQueryTrue( 'is_page', 'is_singular' );
+		$this->assertSame( $page, get_queried_object_id(), 'The page with a slug beginning with the random base should be queried.' );
+		$this->assertArrayNotHasKey( 'random', $wp->query_vars, 'The random query variable should not be set.' );
+	}
+
+	/**
+	 * Ensure the random URL redirects when a page slug begins with the random base.
+	 *
+	 * @dataProvider data_permalink_structures
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 *
+	 * @param string $structure Permalink structure.
+	 */
+	public function test_random_url_redirects_when_a_page_slug_begins_with_random_base( string $structure ): void {
+		global $wp_rewrite;
+
+		$this->set_permalink_structure( $structure );
+		create_initial_taxonomies();
+		flush_rewrite_rules();
+
+		$this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random-is-just-patterns-we-cant-decipher',
+			)
+		);
+
+		$this->go_to( home_url( $wp_rewrite->root . 'random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random URL should redirect when a page slug begins with the random base.' );
+	}
+
+	/**
+	 * A published page named "random" takes precedence over random content redirects.
+	 *
+	 * @dataProvider data_permalink_structures
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 *
+	 * @param string $structure Permalink structure.
+	 */
+	public function test_page_named_random_takes_precedence_over_random_content_redirects( string $structure ): void {
+		global $wp_rewrite;
+
+		$this->set_permalink_structure( $structure );
+		create_initial_taxonomies();
+		flush_rewrite_rules();
+
+		// Creating the page flushes the rewrite rules, no manual flush is required.
+		$page = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$this->go_to( home_url( $wp_rewrite->root . 'random/' ) );
+
+		$this->assertNotRedirected( 'The page should take precedence over random content redirects.' );
+		$this->assertQueryTrue( 'is_page', 'is_singular' );
+		$this->assertSame( $page, get_queried_object_id(), 'The page named random should be queried.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_page_with_slug_beginning_with_random_base_does_not_conflict()}, {@see self::test_random_url_redirects_when_a_page_slug_begins_with_random_base()},
+	 * and {@see self::test_page_named_random_takes_precedence_over_random_content_redirects()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_permalink_structures(): array {
+		return array(
+			'post name'          => array( '/%postname%/' ),
+			'date and post name' => array( '/%year%/%monthnum%/%postname%/' ),
+			'category and name'  => array( '/%category%/%postname%/' ),
+			'pathinfo'           => array( '/index.php/%postname%/' ),
+		);
+	}
+
+	/**
+	 * Ensure random archives redirect when a page named "random" exists.
+	 */
+	public function test_random_archives_redirect_when_a_page_named_random_exists(): void {
+		$this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$this->go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'Random archives should redirect when a page named random exists.' );
+	}
+
+	/**
+	 * Ensure the random query string redirects when a page named "random" exists.
+	 */
+	public function test_random_query_string_redirects_when_a_page_named_random_exists(): void {
+		$this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$this->go_to( home_url( '/?random' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random query string should redirect when a page named random exists.' );
+	}
+
+	/**
+	 * Ensure a draft page named "random" does not take precedence over random content redirects.
+	 */
+	public function test_draft_page_named_random_does_not_take_precedence(): void {
+		$this->create_post(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'random',
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'A draft page named random should not take precedence.' );
+	}
+
+	/**
+	 * Ensure random content redirects resume once a page named "random" no longer conflicts.
+	 *
+	 * @dataProvider data_page_named_random_changes
+	 *
+	 * @param callable $change Callback to change the page so it no longer conflicts.
+	 */
+	public function test_random_content_redirects_resume_when_the_page_no_longer_conflicts( callable $change ): void {
+		$page = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+		$this->assertNotRedirected( 'The page should take precedence before it is changed.' );
+
+		$change( $page );
+
+		$this->go_to( home_url( '/random/' ) );
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Random content redirects should resume.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_content_redirects_resume_when_the_page_no_longer_conflicts()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: Closure(int): void }>
+	 */
+	public static function data_page_named_random_changes(): array {
+		return array(
+			'renamed'     => array(
+				static function ( int $page_id ): void {
+					wp_update_post(
+						array(
+							'ID'        => $page_id,
+							'post_name' => 'not-random',
+						)
+					);
+				},
+			),
+			'unpublished' => array(
+				static function ( int $page_id ): void {
+					wp_update_post(
+						array(
+							'ID'          => $page_id,
+							'post_status' => 'draft',
+						)
+					);
+				},
+			),
+			'trashed'     => array(
+				static function ( int $page_id ): void {
+					wp_trash_post( $page_id );
+				},
+			),
+			'deleted'     => array(
+				static function ( int $page_id ): void {
+					wp_delete_post( $page_id, true );
+				},
+			),
+			'moved'       => array(
+				static function ( int $page_id ): void {
+					wp_update_post(
+						array(
+							'ID'          => $page_id,
+							'post_parent' => self::factory()->post->create( array( 'post_type' => 'page' ) ),
+						)
+					);
+				},
+			),
+		);
+	}
+
+	/**
+	 * Ensure publishing a draft page named "random" takes precedence over random content redirects.
+	 */
+	public function test_publishing_a_draft_page_named_random_takes_precedence(): void {
+		$page = $this->create_post(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'random',
+				'post_status' => 'draft',
+			)
+		);
+
+		wp_publish_post( $page );
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'A newly published page named random should not redirect.' );
+		$this->assertSame( $page, get_queried_object_id(), 'A newly published page named random should be queried.' );
+	}
+
+	/**
+	 * Ensure saving pages and posts not at the random base does not flush the rewrite rules.
+	 */
+	public function test_saving_unrelated_pages_does_not_flush_rewrite_rules(): void {
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		$this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'about',
+			)
+		);
+		$this->create_post( array( 'post_name' => 'random-thoughts' ) );
+		$this->create_post(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'random',
+				'post_parent' => $this->create_post( array( 'post_type' => 'page' ) ),
+			)
+		);
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'Only pages and posts at the random base should flush the rewrite rules.' );
+	}
+
+	/**
+	 * @dataProvider data_invalid_arguments
+	 *
+	 * @param array<int, mixed> $args The arguments to call the function with.
+	 */
+	public function test_invalid_arguments_do_not_flush_rewrite_rules( array $args ): void {
+		// The data provider cannot query the database, so PHP_INT_MAX stands in for a nonexistent post ID.
+		$args = array_map(
+			function ( $arg ) {
+				return PHP_INT_MAX === $arg ? $this->get_nonexistent_post_id() : $arg;
+			},
+			$args
+		);
+
+		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		wp_random_content_flush_rewrite_rules_for_post( ...$args ); // @phpstan-ignore argument.type (Intentionally passing invalid values.)
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'Invalid arguments should not flush the rewrite rules.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * Core never fires the `wp_after_insert_post` and `after_delete_post` actions with invalid
+	 * arguments, but third-party code can. Doing so is incorrect usage and must not cause a
+	 * fatal error.
+	 *
+	 * `PHP_INT_MAX` is replaced with a post ID that is verified not to exist when the test runs.
+	 *
+	 * @return array<string, array{array<int, mixed>}>
+	 */
+	public static function data_invalid_arguments(): array {
+		return array(
+			'nulls'                              => array( array( null, null, false, null ) ),
+			'strings'                            => array( array( 'random', 'random', 'yes', 'random' ) ),
+			'arrays'                             => array( array( array(), array( 'post_name' => 'random' ), 1, array() ) ),
+			'nulls without optional values'      => array( array( null, null ) ),
+			'strings without optional values'    => array( array( 'random', 'random' ) ),
+			'post ID of zero without a post'     => array( array( 0 ) ),
+			'nonexistent post ID without a post' => array( array( PHP_INT_MAX ) ),
+		);
+	}
+
+	/**
+	 * Returns a post ID that does not exist.
+	 *
+	 * Starts at `PHP_INT_MAX` and decrements until no post is found.
+	 *
+	 * @return int Post ID.
+	 */
+	protected function get_nonexistent_post_id(): int {
+		$post_id = PHP_INT_MAX;
+
+		while ( get_post( $post_id ) instanceof WP_Post ) {
+			--$post_id;
+		}
+
+		return $post_id;
+	}
+
+	/**
+	 * Tests that an omitted post object does not fall back to the global post.
+	 *
+	 * `get_post()` returns the global post for an empty value, which would flush the
+	 * rewrite rules for whatever post is being displayed rather than the one passed in.
+	 */
+	public function test_omitted_post_does_not_fall_back_to_the_global_post(): void {
+		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+
+		$GLOBALS['post'] = $this->create_post_object(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		wp_random_content_flush_rewrite_rules_for_post( null ); // @phpstan-ignore argument.type (Intentionally omitting the post ID.)
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'An omitted post should not be looked up from the global post.' );
+	}
+
+	/**
+	 * Tests that an omitted post object is looked up from the post ID.
+	 *
+	 * The `$post` parameter was added to `after_delete_post` in 5.5.0, but third-party
+	 * code written against the original signature may still fire the action with only
+	 * the post ID.
+	 */
+	public function test_omitted_post_is_looked_up_from_the_post_id(): void {
+		$page_id = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		wp_random_content_flush_rewrite_rules_for_post( $page_id );
+
+		$this->assertSame( 1, $flushes->get_call_count(), 'A page at the random base should flush the rewrite rules when only its ID is passed.' );
+	}
+
+	/**
+	 * Tests that firing `after_delete_post` with only a post ID does not cause a fatal error.
+	 *
+	 * As the post is already deleted, it cannot be looked up from the ID, so the call is
+	 * incorrect usage and the rewrite rules are left alone.
+	 *
+	 * @covers ::_update_posts_count_on_delete
+	 */
+	public function test_after_delete_post_fired_with_only_a_post_id_does_not_flush_rewrite_rules(): void {
+		$post_id = $this->create_post();
+		wp_delete_post( $post_id, true );
+
+		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		do_action( 'after_delete_post', $post_id ); // @phpstan-ignore WordPress.hookParamCountMismatch (Intentionally omitting the post object.)
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'Firing after_delete_post for a deleted post without the post object should not flush the rewrite rules.' );
+	}
+
+	public function test_page_named_random_still_flushes_rewrite_rules_when_the_other_arguments_are_invalid(): void {
+		$page = $this->create_post_object(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		do_action( 'wp_after_insert_post', (string) $page->ID, $page, 'yes', false );
+
+		$this->assertSame( 1, $flushes->get_call_count(), 'A page at the random base should flush the rewrite rules even when the other arguments are invalid.' );
+	}
+
+	/**
+	 * Tests that the previous post object is only considered on `wp_after_insert_post`.
+	 *
+	 * `after_delete_post` has no previous post, so a value passed in its place is ignored
+	 * rather than reported as incorrect usage.
+	 */
+	public function test_post_before_is_ignored_outside_wp_after_insert_post(): void {
+		$page_before = $this->create_post_object(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+		$post        = $this->create_post_object();
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		wp_random_content_flush_rewrite_rules_for_post( $post->ID, $post, false, 'not a post' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
+		wp_random_content_flush_rewrite_rules_for_post( $post->ID, $post, false, $page_before );
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'The previous post should not be considered outside wp_after_insert_post.' );
+	}
+
+	public function test_renamed_page_at_random_base_flushes_rewrite_rules_via_post_before(): void {
+		$page_before = $this->create_post_object(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+		$post        = $this->create_post_object();
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		do_action( 'wp_after_insert_post', $post->ID, $post, true, $page_before );
+
+		$this->assertSame( 1, $flushes->get_call_count(), 'A page previously at the random base should flush the rewrite rules on wp_after_insert_post.' );
+	}
+
+	/*
+	 * Opting out.
+	 */
+
+	/**
+	 * Ensure random content requests do not redirect when the feature is disabled.
+	 */
+	public function test_no_redirect_when_disabled(): void {
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+
+		$this->go_to( home_url( '/?random' ) );
+
+		$this->assertNotRedirected( 'Random content requests should not redirect when the feature is disabled.' );
+		$this->assertQueryTrue( 'is_home', 'is_front_page' );
+	}
+
+	/**
+	 * Ensure the main query is not randomized or limited when the feature is disabled.
+	 */
+	public function test_main_query_is_unchanged_when_disabled(): void {
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+
+		$this->go_to( home_url( '/?random' ) );
+
+		$this->assertQueryIsNotRandomized( $this->get_main_query(), 'The main query should not be randomized when disabled.' );
+		$this->assertSame( 2, $this->get_main_query()->post_count, 'The main query should not be limited when disabled.' );
+	}
+
+	/**
+	 * Ensure the random URL is not routed when the feature is disabled.
+	 */
+	public function test_random_url_is_not_routed_when_disabled(): void {
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'The random URL should not be routed when the feature is disabled.' );
+		$this->assertTrue( is_404(), 'Without the rewrite rules /random/ is not found.' );
+	}
+
+	/*
+	 * Extensibility.
+	 */
+
+	/**
+	 * Ensure the `pre_get_posts` action can change the eligible post type.
+	 */
+	public function test_pre_get_posts_can_change_the_eligible_post_type(): void {
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+		$book = $this->create_post( array( 'post_type' => 'wptests_book' ) );
+
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ): void {
+				if ( wp_is_random_content_query( $query ) ) {
+					$query->set( 'post_type', 'wptests_book' );
+				}
+			}
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertSame( get_permalink( $book ), $this->redirect_location, 'The pre_get_posts action should be able to change the eligible post type.' );
+	}
+
+	/**
+	 * Ensure the `pre_get_posts` action cannot add non-randomable post types.
+	 */
+	public function test_pre_get_posts_cannot_add_non_randomable_post_types(): void {
+		$this->create_post( array( 'post_type' => 'page' ) );
+
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ): void {
+				if ( wp_is_random_content_query( $query ) ) {
+					$query->set( 'post_type', array( 'post', 'page' ) );
+				}
+			}
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The pre_get_posts action should not be able to add non-randomable post types.' );
+	}
+
+	/**
+	 * Ensure the `pre_get_posts` action can exclude posts from the random selection.
+	 */
+	public function test_pre_get_posts_can_exclude_posts(): void {
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ): void {
+				if ( wp_is_random_content_query( $query ) ) {
+					$query->set( 'category__not_in', array( self::$arts_category ) );
+				}
+			}
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertSame( get_permalink( self::$sport_post ), $this->redirect_location, 'The pre_get_posts action should be able to exclude posts.' );
+	}
+
+	/**
+	 * Ensure theme customizations of the archive order and limit do not override the random query.
+	 */
+	public function test_pre_get_posts_archive_customizations_do_not_override_the_random_order(): void {
+		// Typical theme customization of the main query for archives.
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ): void {
+				if ( $query->is_main_query() ) {
+					$query->set( 'orderby', 'title' );
+					$query->set( 'order', 'ASC' );
+					$query->set( 'posts_per_page', 12 );
+				}
+			}
+		);
+
+		$this->go_to_and_record_queries( home_url( '/random/' ) );
+
+		$request = $this->get_main_query()->request;
+		$this->assertIsString( $request, 'The customized archive query was not run.' );
+		$this->assertStringContainsString( '.ID IN (', $request, 'The random post IDs should be looked up when the archive is customized.' );
+		$this->assertStringNotContainsString( 'ORDER BY', $request, 'The order set by archive customizations should be removed.' );
+		$this->assertStringNotContainsString( 'LIMIT', $request, 'The number of posts set by archive customizations should be removed.' );
+	}
+
+	/**
+	 * Ensure secondary queries are not random content queries.
+	 */
+	public function test_secondary_queries_are_not_random_content_queries(): void {
+		$this->go_to( home_url( '/random/' ) );
+
+		$query = new WP_Query( array( 'random' => '1' ) );
+
+		$this->assertFalse( wp_is_random_content_query( $query ), 'Secondary queries should not be random content queries.' );
+		$this->assertQueryIsNotRandomized( $query, 'Secondary queries should not be randomized.' );
+	}
+
+	/**
+	 * Ensure the main query for the random URL is a random content query.
+	 */
+	public function test_wp_is_random_content_query_for_main_query(): void {
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertTrue( wp_is_random_content_query( $this->get_main_query() ), 'The main query for a random URL should be a random content query.' );
+	}
+
+	/**
+	 * Ensure the `is_random()` conditional tag matches the request.
+	 *
+	 * @dataProvider data_is_random
+	 *
+	 * @covers ::is_random
+	 * @covers WP_Query::is_random
+	 *
+	 * @param string $path     Path to request.
+	 * @param bool   $expected Expected result.
+	 */
+	public function test_is_random( string $path, bool $expected ): void {
+		$this->go_to( home_url( $path ) );
+
+		$this->assertSame( $expected, is_random(), 'The is_random() conditional tag returned an unexpected value.' );
+		$this->assertSame( $expected, $this->get_main_query()->is_random(), 'WP_Query::is_random() returned an unexpected value.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_is_random()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: bool }>
+	 */
+	public static function data_is_random(): array {
+		return array(
+			'random home'                => array( '/random/', true ),
+			'random category archive'    => array( '/random/category/arts/', true ),
+			'random author archive'      => array( '/random/author/random-editor/', true ),
+			'random date archive'        => array( '/1844/?random', true ),
+			'random search'              => array( '/?s=Baseball&random', false ),
+			'random category search'     => array( '/?s=Baseball&category_name=sport&random', false ),
+			'home'                       => array( '/', false ),
+			'category archive'           => array( '/category/arts/', false ),
+			'singular post'              => array( '/cassatt/?random', false ),
+			'feed'                       => array( '/?random&feed=rss2', false ),
+			'nonexistent random archive' => array( '/random/category/nonexistent/', false ),
+			'random empty archive'       => array( '/random/category/empty/', false ),
+		);
+	}
+
+	/**
+	 * Ensure secondary queries with the random query variable are for random content.
+	 *
+	 * @covers WP_Query::is_random
+	 */
+	public function test_secondary_query_is_random_with_the_random_query_var(): void {
+		$query = new WP_Query( array( 'random' => '1' ) );
+
+		$this->assertTrue( $query->is_random(), 'A secondary query with the random query variable should be for random content.' );
+		$this->assertFalse( wp_is_random_content_query( $query ), 'A secondary query for random content should not be redirected.' );
+	}
+
+	/**
+	 * Ensure the query is not for random content once it is set to a 404.
+	 *
+	 * @covers WP_Query::is_random
+	 */
+	public function test_is_random_is_reset_when_the_query_is_a_404(): void {
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->get_main_query()->set_404();
+
+		$this->assertFalse( $this->get_main_query()->is_random(), 'A 404 query should not be for random content.' );
+	}
+
+	/**
+	 * Ensure the `is_random()` conditional tag returns false before the query is run.
+	 *
+	 * @covers ::is_random
+	 *
+	 * @expectedIncorrectUsage is_random
+	 */
+	public function test_is_random_before_the_query_is_run(): void {
+		unset( $GLOBALS['wp_query'] );
+
+		$this->assertFalse( is_random(), 'The is_random() conditional tag should return false before the query is run.' );
+	}
+
+	/**
+	 * Ensure the main query is not randomized in the admin.
+	 */
+	public function test_main_query_is_not_randomized_in_the_admin(): void {
+		set_current_screen( 'edit.php' );
+
+		$GLOBALS['wp_the_query'] = new WP_Query();
+		$GLOBALS['wp_query']     = $GLOBALS['wp_the_query'];
+		$this->get_main_query()->query( array( 'random' => '' ) );
+
+		$is_random_content_query = wp_is_random_content_query( $this->get_main_query() );
+		set_current_screen( 'front' );
+
+		$this->assertFalse( $is_random_content_query, 'Admin queries are not random content queries.' );
+		$this->assertQueryIsNotRandomized( $this->get_main_query(), 'Admin queries should not be randomized.' );
+	}
+
+	/**
+	 * Ensure the request redirects when the `the_posts` filter returns a non-list array.
+	 */
+	public function test_redirect_when_the_posts_filter_returns_a_non_list_array(): void {
+		add_filter(
+			'the_posts',
+			static function ( array $posts ): array {
+				return array( 5 => reset( $posts ) );
+			}
+		);
+
+		$this->go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'A non-list array returned by the posts filter should still redirect.' );
+	}
+
+	/**
+	 * Ensure the redirect is sent on the `template_redirect` action at priority 100.
+	 */
+	public function test_redirect_is_added_to_template_redirect_at_priority_100(): void {
+		parent::go_to( home_url( '/random/' ) );
+
+		$this->assertSame( 100, has_action( 'template_redirect', 'wp_random_content_redirect' ), 'The redirect should be added to the template_redirect action at priority 100.' );
+		$this->assertNotRedirected( 'The redirect should not be sent before the template_redirect action.' );
+
+		$this->do_template_redirect();
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The redirect should be sent on the template_redirect action.' );
+	}
+
+	/**
+	 * Ensure the redirect is not added when there is no post to redirect to.
+	 */
+	public function test_redirect_is_not_added_to_template_redirect_without_a_post(): void {
+		parent::go_to( home_url( '/random/category/empty/' ) );
+
+		$this->assertFalse( has_action( 'template_redirect', 'wp_random_content_redirect' ), 'The redirect should not be added when no post is selected.' );
+	}
+
+	/**
+	 * Ensure canonical redirects, which run earlier on `template_redirect`, leave random content requests alone.
+	 *
+	 * A canonical redirect sent before the random redirect would redirect the request
+	 * twice and may drop the `random` query variable, sending the visitor to an archive.
+	 *
+	 * @ticket 66661
+	 *
+	 * @covers ::redirect_canonical
+	 *
+	 * @dataProvider data_redirect_canonical_skips_random_content_requests_with_a_post
+	 *
+	 * @param string $path Path of the random content request.
+	 */
+	public function test_redirect_canonical_skips_random_content_requests_with_a_post( string $path ): void {
+		parent::go_to( home_url( $path ) );
+
+		$this->assertSame( 100, has_action( 'template_redirect', 'wp_random_content_redirect' ), 'The request should be a random content request with a post.' );
+		$this->assertNull( redirect_canonical( home_url( $path ), false ), 'Canonical redirects must not redirect random content requests with a post.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_redirect_canonical_skips_random_content_requests_with_a_post(): array {
+		return array(
+			'random base'                 => array( '/random/' ),
+			'category'                    => array( '/random/category/arts/' ),
+			'tag'                         => array( '/random/tag/impressionism/' ),
+			'author'                      => array( '/random/author/random-editor/' ),
+			'query string'                => array( '/?random' ),
+			'cat query var'               => array( '/?random&category_name=sport' ),
+			'random base with date query' => array( '/random/?m=1844' ),
+			'random base with cat query'  => array( '/random/?category_name=sport' ),
+		);
+	}
+
+	/**
+	 * Ensure canonical redirects still apply to random content requests without a post to redirect to.
+	 *
+	 * @ticket 66661
+	 *
+	 * @covers ::redirect_canonical
+	 */
+	public function test_redirect_canonical_applies_to_random_requests_that_are_not_redirected(): void {
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+
+		parent::go_to( home_url( '/?random&category_name=sport' ) );
+
+		$this->assertSame(
+			home_url( '/category/sport/?random' ),
+			redirect_canonical( home_url( '/?random&category_name=sport' ), false ),
+			'Canonical redirects should apply when random content redirects are disabled.'
+		);
+	}
+
+	/**
+	 * Ensure the redirect is sent when an earlier callback replaces the current query.
+	 *
+	 * The selected post is in the main query, which `query_posts()` does not replace.
+	 *
+	 * @ticket 66661
+	 *
+	 * @dataProvider data_actions_before_the_redirect
+	 *
+	 * @param string $action Action the current query is replaced on.
+	 */
+	public function test_redirect_is_sent_when_the_current_query_is_replaced( string $action ): void {
+		add_action(
+			$action,
+			static function (): void {
+				query_posts( array( 'post_type' => 'page' ) );
+			}
+		);
+
+		$this->go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertNotSame( $GLOBALS['wp_the_query'], $GLOBALS['wp_query'], 'The current query should have been replaced.' );
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'The redirect should be to the post selected by the main query.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_actions_before_the_redirect(): array {
+		return array(
+			'wp'                => array( 'wp' ),
+			'template_redirect' => array( 'template_redirect' ),
+		);
+	}
+
+	/**
+	 * Ensure the redirect happens after the `wp` action fires.
+	 */
+	public function test_redirect_happens_after_the_wp_action(): void {
+		$wp = new MockAction();
+		add_action( 'wp', array( $wp, 'action' ) );
+
+		$redirected_after_wp = null;
+		add_filter(
+			'wp_redirect',
+			static function ( string $location ) use ( $wp, &$redirected_after_wp ): string {
+				$redirected_after_wp = 1 === $wp->get_call_count();
+				return $location;
+			},
+			5
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertTrue( $redirected_after_wp, 'The redirect should happen after the wp action.' );
+	}
+
+	/*
+	 * Database queries.
+	 */
+
+	/**
+	 * Gets the recorded queries looking up random post IDs.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @return string[] Queries looking up random post IDs for a random content request.
+	 *
+	 * @phpstan-return list<string>
+	 */
+	protected function get_recorded_sample_queries(): array {
+		global $wpdb;
+
+		$queries = preg_grep( "/{$wpdb->posts}\.ID IN \(/", $this->queries );
+
+		return is_array( $queries ) ? array_values( $queries ) : array();
+	}
+
+	/**
+	 * Gets the recorded queries selecting a pool of randomly ordered posts.
+	 *
+	 * @return string[] Queries selecting a pool of posts for a random content request.
+	 *
+	 * @phpstan-return list<string>
+	 */
+	protected function get_recorded_pool_queries(): array {
+		$queries = preg_grep( '/ORDER BY RAND\(\) LIMIT 1000$/', $this->queries );
+
+		return is_array( $queries ) ? array_values( $queries ) : array();
+	}
+
+	/**
+	 * Sets the highest post ID seen by the random content query, as if the site had
+	 * that many posts.
+	 *
+	 * WP_UnitTestCase_Base::go_to() flushes the cache, so the query is filtered.
+	 *
+	 * @param int $max_id Highest post ID.
+	 */
+	protected function set_highest_post_id( int $max_id ): void {
+		add_filter(
+			'query',
+			static function ( string $query ) use ( $max_id ): string {
+				return str_contains( $query, 'SELECT MAX(ID)' ) ? "SELECT {$max_id}" : $query;
+			}
+		);
+	}
+
+	/**
+	 * Sets the random post IDs looked up first by the random content query.
+	 *
+	 * @param int[] $post_ids Post IDs.
+	 */
+	protected function set_sample_ids( array $post_ids ): void {
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ) use ( $post_ids ): void {
+				if ( wp_is_random_content_query( $query ) ) {
+					$query->set( 'random_sample_ids', $post_ids );
+				}
+			},
+			30
+		);
+	}
+
+	/**
+	 * Ensure the random post is selected by looking up random post IDs, so the database
+	 * reads a fixed number of posts rather than every eligible post.
+	 *
+	 * @ticket 66654
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_random_post_is_selected_by_looking_up_random_ids(): void {
+		global $wpdb;
+
+		$this->set_sample_ids( array( self::$arts_post, self::$sport_post, $this->get_nonexistent_post_id() ) );
+
+		$this->go_to_and_record_queries( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'One of the eligible posts looked up should be selected.' );
+
+		$sample_queries = $this->get_recorded_sample_queries();
+		$this->assertCount( 1, $sample_queries, "Random post IDs should be looked up once when one of them is eligible:\n" . implode( "\n", $this->queries ) );
+		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.ID\s+FROM/", $sample_queries[0], 'The query should select post IDs only.' );
+		$this->assertMatchesRegularExpression( "/AND {$wpdb->posts}\.ID IN \(\d+(,\d+)*\)/", $sample_queries[0], 'The query should be limited to the random post IDs.' );
+		$this->assertStringNotContainsString( 'ORDER BY', $sample_queries[0], 'The query should not be ordered.' );
+		$this->assertStringNotContainsString( 'LIMIT', $sample_queries[0], 'The query should not be limited.' );
+		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $sample_queries[0], 'The query should not count found rows.' );
+		$this->assertCount( 0, $this->get_recorded_pool_queries(), 'A pool of posts should not be selected when a random post ID is eligible.' );
+	}
+
+	/**
+	 * Ensure the random post is selected with a small, fixed number of queries.
+	 *
+	 * @ticket 66654
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_random_post_is_selected_with_a_fixed_number_of_queries(): void {
+		global $wpdb;
+
+		$this->set_sample_ids( array( self::$arts_post, self::$sport_post ) );
+
+		$this->go_to_and_record_queries( home_url( '/random/' ) );
+
+		$queries = implode( "\n", $this->queries );
+
+		// The highest post ID, the random post IDs, and the selected post.
+		$this->assertCount( 3, $this->queries, "Three database queries should be made to select the random post:\n{$queries}" );
+		$this->assertMatchesRegularExpression( "/^SELECT MAX\(ID\) FROM {$wpdb->posts}$/", $this->queries[0], 'The highest post ID should be queried first.' );
+		$this->assertMatchesRegularExpression( "/{$wpdb->posts}\.ID IN \(/", $this->queries[1], 'The random post IDs should be looked up second.' );
+		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+\*\s+FROM\s+{$wpdb->posts}\s+WHERE\s+ID\s+=\s+\d+\s+LIMIT\s+1\s*$/", $this->queries[2], 'The selected post should be loaded by its ID.' );
+	}
+
+	/**
+	 * Ensure only the posts of the requested archive are selected from the random post IDs.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_random_ids_outside_the_archive_are_not_selected(): void {
+		$page = $this->create_post( array( 'post_type' => 'page' ) );
+
+		$this->set_sample_ids( array( self::$arts_post, self::$sport_post, $page ) );
+
+		for ( $i = 0; $i < 10; $i++ ) {
+			$this->redirect_location = null;
+			$this->go_to( home_url( '/random/category/arts/' ) );
+
+			$this->assertRedirectedToOneOf( array( self::$arts_post ), 'Only the post in the category may be selected.' );
+		}
+	}
+
+	/**
+	 * Ensure other random post IDs are looked up, then a pool of posts selected, when
+	 * none of the random post IDs are eligible posts.
+	 *
+	 * @ticket 66654
+	 *
+	 * @dataProvider data_random_urls_for_queries
+	 *
+	 * @param string $path     Request path.
+	 * @param string $eligible Which of the posts are eligible.
+	 */
+	public function test_pool_is_selected_when_no_random_id_is_eligible( string $path, string $eligible ): void {
+		/*
+		 * With random post IDs of up to 4 billion, the probability of one of them being
+		 * a post is less than 1 in a million.
+		 */
+		$this->set_highest_post_id( 4000000000 );
+
+		$this->go_to_and_record_queries( home_url( $path ) );
+
+		$sample_queries = $this->get_recorded_sample_queries();
+		$this->assertCount( 3, $sample_queries, "Random post IDs should be looked up three times:\n" . implode( "\n", $this->queries ) );
+		$this->assertCount( 3, array_unique( $sample_queries ), 'Different random post IDs should be looked up each time.' );
+
+		$pool_queries = $this->get_recorded_pool_queries();
+		$this->assertCount( 1, $pool_queries, "A pool of posts should be selected once:\n" . implode( "\n", $this->queries ) );
+		$this->assertStringNotContainsString( '.ID IN (', $pool_queries[0], 'The pool should not be limited to random post IDs.' );
+		$this->assertSame( array_search( $pool_queries[0], $this->queries, true ), array_search( end( $sample_queries ), $this->queries, true ) + 1, 'The pool should be selected after the random post IDs are looked up.' );
+
+		$post_ids = 'arts' === $eligible ? array( self::$arts_post ) : array( self::$arts_post, self::$sport_post );
+		$this->assertRedirectedToOneOf( $post_ids, 'A post should be selected from the pool.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_pool_is_selected_when_no_random_id_is_eligible()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string }>
+	 */
+	public static function data_random_urls_for_queries(): array {
+		return array(
+			'home'     => array( '/random/', 'all' ),
+			'category' => array( '/random/category/arts/', 'arts' ),
+		);
+	}
+
+	/**
+	 * Ensure an empty archive is a 404 once random post IDs are looked up and no pool
+	 * of posts can be selected.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_empty_archive_is_a_404_when_no_random_id_is_eligible(): void {
+		$this->set_highest_post_id( 4000000000 );
+
+		$this->go_to_and_record_queries( home_url( '/random/category/empty/' ) );
+
+		$this->assertCount( 1, $this->get_recorded_pool_queries(), 'A pool of posts should be selected.' );
+		$this->assertNull( $this->redirect_location, 'An empty archive should not redirect.' );
+		$this->assertTrue( is_404(), 'An empty archive should be a 404.' );
+	}
+
+	/**
+	 * Ensure no query writes to the database.
+	 *
+	 * @ticket 66654
+	 *
+	 * @dataProvider data_highest_post_ids_for_queries
+	 *
+	 * @param int|null $max_id Highest post ID to set, or null to use the highest post ID.
+	 */
+	public function test_random_requests_do_not_write_to_the_database( ?int $max_id ): void {
+		if ( null !== $max_id ) {
+			$this->set_highest_post_id( $max_id );
+		}
+
+		$this->go_to_and_record_queries( home_url( '/random/' ) );
+
+		$this->assertNotNull( $this->redirect_location, 'The request did not redirect.' );
+		$this->assertNotEmpty( $this->queries, 'No database queries were recorded.' );
+
+		foreach ( $this->queries as $query ) {
+			$this->assertMatchesRegularExpression( '/^\s*(SELECT|SHOW)\b/i', $query, 'Queries must not write to the database.' );
+		}
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_requests_do_not_write_to_the_database()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: int|null }>
+	 */
+	public static function data_highest_post_ids_for_queries(): array {
+		return array(
+			'random post IDs' => array( null ),
+			'pool of posts'   => array( 4000000000 ),
+		);
+	}
+
+	/**
+	 * Ensure the random post IDs are distinct and between 1 and the highest post ID.
+	 *
+	 * @ticket 66654
+	 *
+	 * @dataProvider data_highest_post_ids
+	 *
+	 * @param int $max_id Highest post ID.
+	 * @param int $count  Number of random post IDs expected.
+	 */
+	public function test_wp_get_random_content_sample_ids( int $max_id, int $count ): void {
+		wp_cache_set( 'max_post_id', $max_id, 'random-content' );
+
+		$sample_ids = wp_get_random_content_sample_ids();
+
+		$this->assertCount( $count, $sample_ids, 'An unexpected number of random post IDs was returned.' );
+		$this->assertSame( $sample_ids, array_values( array_unique( $sample_ids ) ), 'The random post IDs should be distinct.' );
+		$this->assertContainsOnly( 'int', $sample_ids, true, 'The random post IDs should be integers.' );
+		$this->assertGreaterThanOrEqual( 1, min( $sample_ids ), 'The random post IDs should be at least 1.' );
+		$this->assertLessThanOrEqual( max( 1, $max_id ), max( $sample_ids ), 'The random post IDs should not exceed the highest post ID.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_wp_get_random_content_sample_ids()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: int, 1: int }>
+	 */
+	public static function data_highest_post_ids(): array {
+		return array(
+			'no posts'          => array( 0, 1 ),
+			'one post ID'       => array( 1, 1 ),
+			'fewer than 50 IDs' => array( 20, 20 ),
+			'exactly 50 IDs'    => array( 50, 50 ),
+			'51 IDs'            => array( 51, 50 ),
+			'many IDs'          => array( 1000000, 50 ),
+		);
+	}
+
+	/**
+	 * Ensure every post ID is looked up when there are no more than 50, so a post is
+	 * always selected by the first query.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_wp_get_random_content_sample_ids_returns_every_id_of_a_small_site(): void {
+		wp_cache_set( 'max_post_id', 20, 'random-content' );
+
+		$this->assertSame( range( 1, 20 ), wp_get_random_content_sample_ids(), 'Every post ID should be returned.' );
+	}
+
+	/**
+	 * Ensure the highest post ID is cached, so it is only queried once.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_wp_get_random_content_sample_ids_caches_the_highest_post_id(): void {
+		wp_get_random_content_sample_ids();
+
+		$queries = new MockAction();
+		add_filter( 'query', array( $queries, 'filter' ) );
+
+		wp_get_random_content_sample_ids();
+
+		$this->assertSame( 0, $queries->get_call_count(), 'The highest post ID should not be queried again once it is cached.' );
+	}
+
+	/**
+	 * Ensure posts are selected evenly when there are gaps between their IDs.
+	 *
+	 * @ticket 66654
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_posts_following_a_gap_in_post_ids_are_not_selected_more_often(): void {
+		global $wpdb;
+
+		// The post IDs of the fixtures are followed by a gap, then the IDs of these posts.
+		$max_id   = (int) $wpdb->get_var( "SELECT MAX(ID) FROM {$wpdb->posts}" );
+		$post_ids = array( self::$arts_post, self::$sport_post );
+		for ( $i = 1; $i <= 2; $i++ ) {
+			$post_id = $this->create_post( array( 'import_id' => $max_id + 300 + $i ) );
+
+			$this->assertSame( $max_id + 300 + $i, $post_id, 'The post was not created following a gap in post IDs.' );
+
+			$post_ids[] = $post_id;
+		}
+
+		$selected = array_fill_keys( array_map( 'get_permalink', $post_ids ), 0 );
+		for ( $i = 0; $i < 200; $i++ ) {
+			$this->redirect_location = null;
+			$this->go_to( home_url( '/random/' ) );
+
+			$this->assertArrayHasKey( $this->redirect_location, $selected, 'An unexpected post was selected.' );
+			++$selected[ $this->redirect_location ];
+		}
+
+		// Each post is expected to be selected 50 times, fewer than 20 has a probability of less than 1 in 10^7.
+		foreach ( $selected as $permalink => $count ) {
+			$this->assertGreaterThan( 20, $count, "The post at {$permalink} was selected too rarely: " . implode( ', ', $selected ) );
+		}
+	}
+
+	/**
+	 * Ensure the random query does not prime the post meta or term caches.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_random_query_does_not_prime_meta_or_term_caches(): void {
+		global $wpdb;
+
+		$this->go_to_and_record_queries( home_url( '/random/' ) );
+
+		$this->assertNotEmpty( $this->queries, 'No database queries were recorded.' );
+		foreach ( $this->queries as $query ) {
+			$this->assertStringNotContainsString( $wpdb->postmeta, $query, 'Post meta should not be queried.' );
+			$this->assertStringNotContainsString( $wpdb->term_relationships, $query, 'Post terms should not be queried.' );
+		}
+	}
+
+	/**
+	 * Ensure different posts are selected across random requests.
+	 */
+	public function test_random_selection_varies_between_requests(): void {
+		for ( $i = 0; $i < 8; $i++ ) {
+			$this->create_post();
+		}
+
+		$seen = array();
+		for ( $i = 0; $i < 30; $i++ ) {
+			$this->redirect_location = null;
+			$this->go_to( home_url( '/random/' ) );
+			$seen[ $this->redirect_location ] = true;
+		}
+
+		// With 10 posts the probability of a single post being selected 30 times in a row is 1 in 10^29.
+		$this->assertGreaterThan( 1, count( $seen ), 'Random requests should select different posts.' );
+	}
+
+	/*
+	 * Query arguments that would otherwise override the posts selected from.
+	 */
+
+	/**
+	 * Ensure the random query is not limited, and a single post selected, when a theme overrides the limit.
+	 *
+	 * @dataProvider data_query_vars_overriding_the_limit
+	 *
+	 * @param string $path      Request path.
+	 * @param string $query_var Query variable set by a theme.
+	 * @param mixed  $value     Query variable value.
+	 */
+	public function test_random_query_selects_one_post_when_a_theme_overrides_the_limit( string $path, string $query_var, $value ): void {
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ) use ( $query_var, $value ): void {
+				if ( $query->is_main_query() ) {
+					$query->set( $query_var, $value );
+				}
+			}
+		);
+
+		$this->go_to( home_url( $path ) );
+
+		$request = $this->get_main_query()->request;
+		$this->assertIsString( $request, 'The random query with a theme limit override was not run.' );
+		$this->assertStringContainsString( '.ID IN (', $request, 'The random post IDs should be looked up.' );
+		$this->assertStringNotContainsString( 'LIMIT', $request, 'The limit set by the theme should be removed.' );
+		$this->assertCount( 1, $this->get_main_query()->posts, 'A single post should be selected.' );
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Theme limit overrides should not prevent a single post being selected.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_random_query_selects_one_post_when_a_theme_overrides_the_limit()}.
+	 *
+	 * The limit is applied differently to the home page and archives, see WP_Query::get_posts().
+	 *
+	 * @return array<non-falsy-string, array{ path: non-falsy-string, query_var: non-falsy-string, value: bool|int }>
+	 */
+	public static function data_query_vars_overriding_the_limit(): array {
+		$overrides = array(
+			'nopaging'               => array( 'nopaging', true ),
+			'posts_per_archive_page' => array( 'posts_per_archive_page', 10 ),
+			'showposts'              => array( 'showposts', 10 ),
+			'posts_per_page -1'      => array( 'posts_per_page', -1 ),
+		);
+
+		$data = array();
+		foreach ( array(
+			'home'    => '/random/',
+			'archive' => '/random/category/arts/',
+		) as $context => $path ) {
+			foreach ( $overrides as $name => $override ) {
+				$data[ "{$context}: {$name}" ] = array(
+					'path'      => $path,
+					'query_var' => $override[0],
+					'value'     => $override[1],
+				);
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Ensure an offset set by a theme does not prevent the redirect.
+	 */
+	public function test_random_redirect_ignores_an_offset_set_by_a_theme(): void {
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ): void {
+				if ( $query->is_main_query() ) {
+					$query->set( 'offset', 50 );
+				}
+			}
+		);
+
+		$this->go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'An offset beyond the eligible posts would prevent the redirect.' );
+	}
+
+	/*
+	 * Redirect locations.
+	 */
+
+	/**
+	 * Ensure the request redirects to the permalink when it is on another site.
+	 */
+	public function test_redirect_to_a_permalink_on_another_site(): void {
+		add_filter(
+			'post_link',
+			static function (): string {
+				return 'https://elsewhere.example/post/';
+			}
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertSame( 'https://elsewhere.example/post/', $this->redirect_location, 'Permalinks on another site should be redirected to.' );
+	}
+
+	/**
+	 * Ensure the request does not redirect to a global post when the main query has no post.
+	 */
+	public function test_no_redirect_when_the_main_query_has_no_post(): void {
+		add_filter( 'the_posts', '__return_empty_array' );
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertTrue( is_404(), 'A random request where the main query has no post should 404.' );
+
+		// Treat the 404 as a random content query again, so the redirect reaches the post check.
+		$this->get_main_query()->is_random = true;
+
+		// A global post set by a plugin must not be used as the redirect target.
+		$GLOBALS['post'] = get_post( self::$arts_post );
+		wp_random_content_redirect();
+
+		$this->assertNotRedirected( 'A main query without a post should not redirect.' );
+	}
+
+	/*
+	 * Randomable post types: edge cases.
+	 */
+
+	/**
+	 * Ensure randomable post types excluded from search can be requested directly.
+	 */
+	public function test_randomable_post_type_excluded_from_search_can_be_requested_directly(): void {
+		register_post_type(
+			'wptests_unsearchable',
+			array(
+				'public'              => true,
+				'has_archive'         => true,
+				'exclude_from_search' => true,
+			)
+		);
+		$post_id = $this->create_post( array( 'post_type' => 'wptests_unsearchable' ) );
+
+		$this->go_to( home_url( '/?random&post_type=wptests_unsearchable' ) );
+
+		$this->assertSame( get_permalink( $post_id ), $this->redirect_location, 'Randomable post types excluded from search should be selectable directly.' );
+	}
+
+	/**
+	 * Ensure randomable attachments are eligible for taxonomies registered for attachment MIME types.
+	 */
+	public function test_random_post_types_include_attachments_for_attachment_mime_type_taxonomies(): void {
+		$filter = static function ( array $args, string $post_type ): array {
+			if ( 'attachment' === $post_type ) {
+				$args['randomable'] = true;
+			}
+			return $args;
+		};
+		add_filter( 'register_post_type_args', $filter, 10, 2 );
+		create_initial_post_types();
+		register_taxonomy( 'wptests_genre', 'attachment:image', array( 'public' => true ) );
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_genre',
+				'slug'     => 'sci-fi',
+			)
+		);
+
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+		$this->go_to( home_url( '/?random&wptests_genre=sci-fi' ) );
+		remove_filter( 'wp_enable_random_content_redirect', '__return_false' );
+
+		$post_types = wp_get_random_content_post_types( $this->get_main_query() );
+
+		$this->assertSame( array( 'attachment' ), $post_types, 'Attachments should be eligible for attachment MIME type taxonomies.' );
+	}
+
+	/**
+	 * Ensure non-string post types set by plugins are ignored.
+	 */
+	public function test_non_string_post_types_set_by_plugins_are_ignored(): void {
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ): void {
+				if ( $query->is_main_query() ) {
+					$query->set( 'post_type', array( 'post', array( 'page' ), 5, null ) );
+				}
+			}
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Non-string post types set by plugins should be ignored.' );
+	}
+
+	/*
+	 * Enabling and disabling.
+	 */
+
+	/**
+	 * Ensure the enabled filter value is cast to a boolean.
+	 *
+	 * @dataProvider data_enabled_filter_values
+	 *
+	 * @param mixed $value    Value returned by the filter.
+	 * @param bool  $expected Expected result.
+	 */
+	public function test_wp_is_random_content_redirect_enabled_returns_a_boolean( $value, bool $expected ): void {
+		add_filter(
+			'wp_enable_random_content_redirect',
+			static function () use ( $value ) {
+				return $value;
+			}
+		);
+
+		$this->assertSame( $expected, wp_is_random_content_redirect_enabled(), 'The enabled filter value should be cast to a boolean.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_wp_is_random_content_redirect_enabled_returns_a_boolean()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed, 1: bool }>
+	 */
+	public static function data_enabled_filter_values(): array {
+		return array(
+			'default true' => array( true, true ),
+			'false'        => array( false, false ),
+			'zero'         => array( 0, false ),
+			'empty string' => array( '', false ),
+			'one'          => array( 1, true ),
+			'string yes'   => array( 'yes', true ),
+		);
+	}
+
+	/**
+	 * Ensure stale rewrite rules do not redirect or randomize the query when the feature is disabled.
+	 */
+	public function test_no_redirect_when_disabled_without_flushing_the_rewrite_rules(): void {
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'Stale rewrite rules must not trigger a redirect.' );
+		$this->assertQueryIsNotRandomized( $this->get_main_query(), 'Stale rewrite rules must not randomize the query.' );
+	}
+
+	/*
+	 * Conflicts with pages: lifecycle guards.
+	 */
+
+	/**
+	 * Ensure creating a page named "random" flushes the rewrite rules once.
+	 */
+	public function test_creating_a_page_named_random_flushes_the_rewrite_rules(): void {
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		$this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$this->assertSame( 1, $flushes->get_call_count(), 'Creating a page named random should flush the rewrite rules once.' );
+	}
+
+	/**
+	 * Ensure a page named "random" does not flush the rewrite rules with plain permalinks.
+	 */
+	public function test_page_named_random_does_not_flush_rewrite_rules_with_plain_permalinks(): void {
+		$this->set_permalink_structure( '' );
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		$this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'Plain permalinks have no rewrite rules to update.' );
+	}
+
+	/**
+	 * Ensure a page named "random" does not flush the rewrite rules when the feature is disabled.
+	 */
+	public function test_page_named_random_does_not_flush_rewrite_rules_when_disabled(): void {
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		$this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'Disabled random redirects have no rules to update.' );
+	}
+
+	/**
+	 * Ensure a page at a custom random base takes precedence over random content redirects.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 */
+	public function test_page_at_custom_random_base_takes_precedence(): void {
+		global $wp_rewrite;
+
+		$wp_rewrite->random_base = 'surprise-me';
+		flush_rewrite_rules();
+
+		$page = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'surprise-me',
+			)
+		);
+
+		$this->go_to( home_url( '/surprise-me/' ) );
+
+		$this->assertNotRedirected( 'A page at a custom random base should not redirect.' );
+		$this->assertSame( $page, get_queried_object_id(), 'A page at a custom random base should be queried.' );
+	}
+
+	/**
+	 * Ensure a page named "random" does not conflict with a custom random base.
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 */
+	public function test_page_named_random_does_not_conflict_with_a_custom_random_base(): void {
+		global $wp_rewrite;
+
+		$wp_rewrite->random_base = 'surprise-me';
+		flush_rewrite_rules();
+
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+		$this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'random',
+			)
+		);
+
+		$this->go_to( home_url( '/surprise-me/' ) );
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'Only pages at the custom random base should flush the rules.' );
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'A page named random should not conflict with a custom random base.' );
+	}
+
+	/**
+	 * Ensure a private page named "random" does not take precedence over random content redirects.
+	 */
+	public function test_private_page_named_random_does_not_take_precedence(): void {
+		$this->create_post(
+			array(
+				'post_type'   => 'page',
+				'post_name'   => 'random',
+				'post_status' => 'private',
+			)
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Pages visitors cannot view should not replace random redirects.' );
+	}
+
+	/**
+	 * Ensure a password protected page named "random" takes precedence over random content redirects.
+	 */
+	public function test_password_protected_page_named_random_takes_precedence(): void {
+		$page = $this->create_post(
+			array(
+				'post_type'     => 'page',
+				'post_name'     => 'random',
+				'post_password' => 'secret',
+			)
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'A password protected page named random should not redirect.' );
+		$this->assertSame( $page, get_queried_object_id(), 'A password protected page named random should be queried.' );
+	}
+
+	/*
+	 * Paths beneath the random base without random rules.
+	 */
+
+	/**
+	 * Ensure paths beneath the random base without random rules do not redirect.
+	 *
+	 * @dataProvider data_unsupported_random_paths
+	 *
+	 * @global WP $wp Current WordPress environment instance.
+	 *
+	 * @param string $path Request path.
+	 */
+	public function test_no_redirect_for_paths_without_random_rules( string $path ): void {
+		global $wp;
+
+		$this->go_to( home_url( $path ) );
+
+		$this->assertNotRedirected( 'Paths without random rules should not redirect.' );
+		$this->assertArrayNotHasKey( 'random', $wp->query_vars, 'Paths without random rules should not set the random query variable.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_no_redirect_for_paths_without_random_rules()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_unsupported_random_paths(): array {
+		return array(
+			'pagination' => array( '/random/page/2/' ),
+			'feed'       => array( '/random/feed/' ),
+		);
+	}
+
+	/**
+	 * Ensure random content requests without a post send a 404 status.
+	 */
+	public function test_random_requests_without_a_post_send_a_404_status(): void {
+		$status = new MockAction();
+		add_filter( 'status_header', array( $status, 'filter' ), 10, 2 );
+
+		$this->go_to( home_url( '/random/category/empty/' ) );
+
+		$codes = array_column( $status->get_args(), 1 );
+
+		$this->assertNotRedirected( 'Random content requests without a post should not redirect.' );
+		$this->assertContains( 404, $codes, 'Random content requests without a post should send a 404 status.' );
+		$this->assertNotContains( 200, $codes, 'Random content requests without a post should not send a 200 status.' );
+	}
+
+	/*
+	 * WP::handle_random().
+	 */
+
+	/**
+	 * Ensure `WP::handle_random()` ignores requests without the random query variable.
+	 */
+	public function test_handle_random_ignores_requests_without_the_random_query_var(): void {
+		$wp             = new WP();
+		$wp->query_vars = array( 'category_name' => 'arts' );
+
+		$this->assertFalse( $wp->handle_random(), 'Requests without the random query variable should not be handled.' );
+	}
+
+	/**
+	 * Ensure `WP::handle_random()` ignores random content requests when the feature is disabled.
+	 */
+	public function test_handle_random_ignores_random_requests_when_disabled(): void {
+		add_filter( 'wp_enable_random_content_redirect', '__return_false' );
+
+		$wp             = new WP();
+		$wp->query_vars = array( 'random' => '' );
+
+		$this->assertFalse( $wp->handle_random(), 'Random content requests should not be handled when the feature is disabled.' );
+	}
+
+	/**
+	 * Ensure `WP::handle_random()` runs the main query for random content requests.
+	 */
+	public function test_handle_random_runs_the_main_query_for_random_requests(): void {
+		$wp             = new WP();
+		$wp->query_vars = array( 'random' => '' );
+
+		try {
+			$wp->handle_random();
+		} catch ( WP_Tests_Exception $e ) {
+			$this->assertSame( self::REDIRECT_EXCEPTION_MESSAGE, $e->getMessage(), 'An unexpected exception was thrown.' );
+		}
+
+		$this->assertTrue( $this->get_main_query()->is_random(), 'The main query should be the random content query.' );
+		$this->assertSame( 100, has_action( 'template_redirect', 'wp_random_content_redirect' ), 'The redirect should be added to the template_redirect action after running the main query.' );
+		$this->assertFalse( is_404(), 'A random content request with a post should not 404.' );
+
+		$this->do_template_redirect();
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'The random content request should redirect on the template_redirect action.' );
+	}
+
+	/**
+	 * Ensure the main query is only run once for random content requests.
+	 *
+	 * @dataProvider data_random_requests
+	 *
+	 * @param string $path Path to request.
+	 */
+	public function test_main_query_is_run_once_for_random_requests( string $path ): void {
+		$pre_get_posts = new MockAction();
+		add_action( 'pre_get_posts', array( $pre_get_posts, 'action' ) );
+
+		$this->go_to( home_url( $path ) );
+
+		$this->assertSame( 1, $pre_get_posts->get_call_count(), "The main query should be run once for {$path}." );
+	}
+
+	/**
+	 * Data provider for {@see self::test_main_query_is_run_once_for_random_requests()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_random_requests(): array {
+		return array(
+			'random post'          => array( '/random/' ),
+			'random empty archive' => array( '/random/category/empty/' ),
+		);
+	}
+
+	/**
+	 * Ensure the random content query callbacks are removed after the main query.
+	 */
+	public function test_random_content_callbacks_are_removed_after_the_main_query(): void {
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertFalse( has_action( 'pre_get_posts', 'wp_random_content_pre_get_posts' ), 'The pre_get_posts callback should be removed after the main query.' );
+		$this->assertFalse( has_filter( 'posts_orderby', 'wp_random_content_posts_orderby' ), 'The posts_orderby callback should be removed after the main query.' );
+		$this->assertFalse( has_filter( 'post_limits', 'wp_random_content_post_limits' ), 'The post_limits callback should be removed after the main query.' );
+		$this->assertFalse( has_filter( 'posts_where', 'wp_random_content_posts_where' ), 'The posts_where callback should be removed after the main query.' );
+		$this->assertFalse( has_filter( 'posts_fields', 'wp_random_content_posts_fields' ), 'The posts_fields callback should be removed after the main query.' );
+		$this->assertFalse( has_filter( 'posts_pre_query', 'wp_random_content_posts_pre_query' ), 'The posts_pre_query callback should be removed after the main query.' );
+	}
+
+	/**
+	 * Ensure the `posts_orderby` and `post_limits` filters do not override the random order or limit.
+	 */
+	public function test_sql_customizations_do_not_override_the_random_order_or_limit(): void {
+		add_filter(
+			'posts_orderby',
+			static function (): string {
+				return 'post_title ASC';
+			}
+		);
+		add_filter(
+			'post_limits',
+			static function (): string {
+				return 'LIMIT 0, 10';
+			}
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$request = $this->get_main_query()->request;
+		$this->assertIsString( $request, 'The random query with SQL customizations was not run.' );
+		$this->assertStringContainsString( '.ID IN (', $request, 'The random post IDs should be looked up when the SQL is customized.' );
+		$this->assertStringNotContainsString( 'ORDER BY', $request, 'The posts_orderby filter should not order the random query.' );
+		$this->assertStringNotContainsString( 'LIMIT', $request, 'The post_limits filter should not limit the random query.' );
+	}
+
+	/**
+	 * Ensure suppressing filters does not bypass the random order or limit.
+	 */
+	public function test_suppressed_filters_do_not_bypass_the_random_order_or_limit(): void {
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ): void {
+				if ( $query->is_main_query() ) {
+					$query->set( 'suppress_filters', true );
+				}
+			}
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$request = $this->get_main_query()->request;
+		$this->assertIsString( $request, 'The random query with suppressed filters was not run.' );
+		$this->assertStringContainsString( '.ID IN (', $request, 'Suppressing filters should not bypass the lookup of random post IDs.' );
+		$this->assertStringNotContainsString( 'ORDER BY', $request, 'Suppressing filters should not order the random query.' );
+		$this->assertStringNotContainsString( 'LIMIT', $request, 'Suppressing filters should not limit the random query.' );
+	}
+
+	/*
+	 * Conflicts with posts.
+	 */
+
+	/**
+	 * Ensure a post named "random" takes precedence over random content redirects.
+	 *
+	 * @dataProvider data_post_name_at_the_root_structures
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 *
+	 * @param string $structure Permalink structure.
+	 */
+	public function test_post_named_random_takes_precedence_over_random_content_redirects( string $structure ): void {
+		global $wp_rewrite;
+
+		$this->set_permalink_structure( $structure );
+		create_initial_taxonomies();
+		flush_rewrite_rules();
+
+		// Creating the post flushes the rewrite rules, no manual flush is required.
+		$post = $this->create_post( array( 'post_name' => 'random' ) );
+
+		$this->go_to( home_url( $wp_rewrite->root . 'random/' ) );
+
+		$this->assertNotRedirected( "The post should take precedence over random content redirects for the '{$structure}' structure." );
+		$this->assertQueryTrue( 'is_single', 'is_singular' );
+		$this->assertSame( $post, get_queried_object_id(), "The post named random should be queried for the '{$structure}' structure." );
+	}
+
+	/**
+	 * Data provider for {@see self::test_post_named_random_takes_precedence_over_random_content_redirects()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_post_name_at_the_root_structures(): array {
+		return array(
+			'post name' => array( '/%postname%/' ),
+			'pathinfo'  => array( '/index.php/%postname%/' ),
+		);
+	}
+
+	/**
+	 * Ensure random archives redirect when a post named "random" exists.
+	 */
+	public function test_random_archives_redirect_when_a_post_named_random_exists(): void {
+		$this->create_post( array( 'post_name' => 'random' ) );
+
+		$this->go_to( home_url( '/random/category/sport/' ) );
+
+		$this->assertSame( get_permalink( self::$sport_post ), $this->redirect_location, 'Random archives should redirect when a post named random exists.' );
+	}
+
+	/**
+	 * Ensure a post named "random" does not conflict when posts have a blog prefix.
+	 */
+	public function test_post_named_random_does_not_conflict_with_a_blog_prefix(): void {
+		$this->set_permalink_structure( '/blog/%postname%/' );
+		create_initial_taxonomies();
+		flush_rewrite_rules();
+
+		$post = $this->create_post( array( 'post_name' => 'random' ) );
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post, $post ), 'Random content requests should redirect when posts have a blog prefix.' );
+	}
+
+	/**
+	 * Ensure creating a post named "random" flushes the rewrite rules once.
+	 */
+	public function test_creating_a_post_named_random_flushes_the_rewrite_rules(): void {
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		$this->create_post( array( 'post_name' => 'random' ) );
+
+		$this->assertSame( 1, $flushes->get_call_count(), 'Creating a post named random should flush the rewrite rules once.' );
+	}
+
+	/**
+	 * Ensure a post named "random" does not flush the rewrite rules when posts have a blog prefix.
+	 */
+	public function test_post_named_random_does_not_flush_rewrite_rules_with_a_blog_prefix(): void {
+		$this->set_permalink_structure( '/blog/%postname%/' );
+		$flushes = new MockAction();
+		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
+
+		$this->create_post( array( 'post_name' => 'random' ) );
+
+		$this->assertSame( 0, $flushes->get_call_count(), 'A post named random should not flush the rewrite rules when posts have a blog prefix.' );
+	}
+
+	/**
+	 * Ensure random content redirects resume when a post named "random" is unpublished.
+	 */
+	public function test_unpublishing_a_post_named_random_resumes_random_content_redirects(): void {
+		$post = $this->create_post( array( 'post_name' => 'random' ) );
+
+		wp_update_post(
+			array(
+				'ID'          => $post,
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Random content redirects should resume when the post named random is unpublished.' );
+	}
+
+	/**
+	 * Ensure a post type archive at the random base is not redirected to random content.
+	 *
+	 * @dataProvider data_post_types_at_the_random_base
+	 *
+	 * @param string               $post_type Post type name.
+	 * @param array<string, mixed> $args      Post type registration arguments.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $post_type
+	 * @phpstan-param array{public: bool, has_archive: bool|string, rewrite?: array{slug: string}} $args
+	 */
+	public function test_post_type_archive_at_the_random_base_is_not_redirected( string $post_type, array $args ): void {
+		register_post_type( $post_type, $args );
+		flush_rewrite_rules();
+
+		$this->create_post( array( 'post_type' => $post_type ) );
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'The post type archive at the random base should not redirect to random content.' );
+		$this->assertQueryTrue( 'is_archive', 'is_post_type_archive' );
+		$this->assertSame( $post_type, get_query_var( 'post_type' ), 'The post type archive at the random base should be queried.' );
+	}
+
+	/**
+	 * Ensure a single post of a post type at the random base is not redirected to random content.
+	 *
+	 * Registering a post type named `random` also registers `random` as its query variable,
+	 * which is the query variable used by random content requests.
+	 *
+	 * @dataProvider data_post_types_at_the_random_base
+	 *
+	 * @param string               $post_type Post type name.
+	 * @param array<string, mixed> $args      Post type registration arguments.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $post_type
+	 * @phpstan-param array{public: bool, has_archive: bool|string, rewrite?: array{slug: string}} $args
+	 */
+	public function test_single_post_of_a_post_type_at_the_random_base_is_not_redirected( string $post_type, array $args ): void {
+		register_post_type( $post_type, $args );
+		flush_rewrite_rules();
+
+		$post_id = self::factory()->post->create( array( 'post_type' => $post_type ) );
+		self::factory()->post->create();
+
+		$permalink = get_permalink( $post_id );
+		$this->assertIsString( $permalink, 'The post permalink could not be retrieved.' );
+		$this->assertStringStartsWith( home_url( '/' . ( $args['rewrite']['slug'] ?? $post_type ) . '/' ), $permalink, 'The post permalink should use the post type rewrite slug.' );
+
+		$redirect = new MockAction();
+		add_filter( 'wp_redirect', array( $redirect, 'filter' ), 5 );
+
+		$this->go_to( $permalink );
+
+		$this->assertSame( 0, $redirect->get_call_count(), 'The single post should not redirect to random content.' );
+		$this->assertQueryTrue( 'is_single', 'is_singular' );
+		$this->assertSame( $post_id, get_queried_object_id(), 'The single post should be queried.' );
+	}
+
+	/**
+	 * Data provider for post types registered with an archive or single posts at the random base.
+	 *
+	 * @return array<string, array{0: string, 1: array<string, mixed>}>
+	 */
+	public static function data_post_types_at_the_random_base(): array {
+		return array(
+			'post type named random'          => array(
+				'random',
+				array(
+					'public'      => true,
+					'has_archive' => true,
+				),
+			),
+			'archive slug random'             => array(
+				'wptests_random',
+				array(
+					'public'      => true,
+					'has_archive' => 'random',
+				),
+			),
+			'archive and rewrite slug random' => array(
+				'wptests_random',
+				array(
+					'public'      => true,
+					'has_archive' => 'random',
+					'rewrite'     => array( 'slug' => 'random' ),
+				),
+			),
+			'rewrite slug random'             => array(
+				'wptests_random',
+				array(
+					'public'      => true,
+					'has_archive' => true,
+					'rewrite'     => array( 'slug' => 'random' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Ensure random archives redirect when a post type archive is at the random base.
+	 */
+	public function test_random_archives_redirect_when_a_post_type_archive_is_at_the_random_base(): void {
+		register_post_type(
+			'wptests_random',
+			array(
+				'public'      => true,
+				'has_archive' => 'random',
+			)
+		);
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'Random archives should redirect when a post type archive is at the random base.' );
+	}
+
+	/**
+	 * Ensure the random base is not redirected to random content when an existing rule takes it.
+	 *
+	 * The dataProvider supplies a top-priority rewrite rule, each one a different regex spelling that
+	 * matches the path `/random` and points to a specific `page`. This ensures that rewrite rule
+	 * takes priority over the random ones.
+	 *
+	 * @dataProvider data_random_base_is_not_redirected_when_an_existing_rule_takes_it
+	 *
+	 * @param string $regex Rewrite rule regex.
+	 */
+	public function test_random_base_is_not_redirected_when_an_existing_rule_takes_it( string $regex ): void {
+		$page = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'wptests-taken',
+			)
+		);
+
+		add_rewrite_rule( $regex, 'index.php?pagename=wptests-taken', 'top' );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( "The random base should not redirect to random content when the rule {$regex} takes it." );
+		$this->assertSame( $page, get_queried_object_id(), "The page served by the rule {$regex} should be queried." );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public static function data_random_base_is_not_redirected_when_an_existing_rule_takes_it(): array {
+		return array(
+			'exact match'          => array( 'random/?$' ),
+			'anchored exact match' => array( '^random/?$' ),
+			'alternation'          => array( '(random|pens|pencils)/?$' ),
+			'partial group'        => array( '(rand)om/?$' ),
+			'character class'      => array( '[r]andom/?$' ),
+			'optional suffix'      => array( 'random(?:-ful)?/?$' ),
+		);
+	}
+
+	/**
+	 * Ensure random archives redirect when an existing rule takes the random base.
+	 */
+	public function test_random_archives_redirect_when_an_existing_rule_takes_the_random_base(): void {
+		add_rewrite_rule( '^random/?$', 'index.php?pagename=wptests-taken', 'top' );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/category/arts/' ) );
+
+		$this->assertSame( get_permalink( self::$arts_post ), $this->redirect_location, 'Random archives should redirect when an existing rule takes the random base.' );
+	}
+
+	/**
+	 * Ensure the random base redirects to random content when existing rules do not take it.
+	 *
+	 * @dataProvider data_random_base_redirects_when_existing_rules_do_not_take_it
+	 *
+	 * @param string $regex    Rewrite rule regex.
+	 * @param string $position Position of the rewrite rule, either 'top' or 'bottom'.
+	 */
+	public function test_random_base_redirects_when_existing_rules_do_not_take_it( string $regex, string $position ): void {
+		add_rewrite_rule( $regex, 'index.php?pagename=wptests-not-taken', $position );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), "The random base should redirect to random content when the rule {$regex} does not take it." );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public static function data_random_base_redirects_when_existing_rules_do_not_take_it(): array {
+		return array(
+			'suffixed slug'            => array( 'randomful/?$', 'top' ),
+			'hyphenated suffixed slug' => array( '^random-ful/?$', 'top' ),
+			'similar alternation'      => array( '(randomful|random-ful)/?$', 'top' ),
+			'sub path'                 => array( '^random/wptests/?$', 'top' ),
+			'requires a sub path'      => array( '^random/(.*)?', 'top' ),
+			'catch-all'                => array( '(.+?)/?$', 'bottom' ),
+			'single segment catch-all' => array( '([^/]+)/?$', 'bottom' ),
+			'bottom anchored match'    => array( '^random/?$', 'bottom' ),
+			'bottom alternation'       => array( '(random|pens|pencils)/?$', 'bottom' ),
+			'bottom unterminated'      => array( 'random', 'bottom' ),
+		);
+	}
+
+	/**
+	 * Ensure a bottom rule using the random root rule's regex takes the random base.
+	 *
+	 * Rules added to the bottom are preceded by the generic page and post rules, so are
+	 * never matched for the random base. A bottom rule using the same regex as the random
+	 * root rule replaces the root rule's query while keeping its position ahead of the
+	 * page and post rules, so takes the random base.
+	 */
+	public function test_bottom_rule_using_the_random_root_rule_regex_takes_the_random_base(): void {
+		$page = $this->create_post(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'wptests-taken',
+			)
+		);
+
+		add_rewrite_rule( 'random/?$', 'index.php?pagename=wptests-taken', 'bottom' );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'A bottom rule using the root rule regex should not redirect to random content.' );
+		$this->assertQueryTrue( 'is_page', 'is_singular' );
+		$this->assertSame( $page, get_queried_object_id(), 'The page served by the bottom rule using the root rule regex should be queried.' );
+	}
+
+	/**
+	 * Ensure a category at the random base with the category base removed is not redirected to random content.
+	 *
+	 * This replicates plugins that remove the category base from category archive URLs.
+	 */
+	public function test_category_at_the_random_base_without_a_category_base_is_not_redirected(): void {
+		$category = self::factory()->category->create( array( 'slug' => 'random' ) );
+
+		add_rewrite_rule( '(random)/?$', 'index.php?category_name=$matches[1]', 'top' );
+		flush_rewrite_rules();
+
+		$this->go_to( home_url( '/random/' ) );
+
+		$this->assertNotRedirected( 'A category at the random base should not redirect to random content.' );
+		$this->assertQueryTrue( 'is_archive', 'is_category' );
+		$this->assertSame( $category, get_queried_object_id(), 'The category at the random base should be queried.' );
+	}
+}
