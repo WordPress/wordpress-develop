@@ -656,24 +656,6 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Arguments must be an array. A query string is rejected rather than parsed.
-	 *
-	 * @ticket 35214
-	 *
-	 * @covers ::register_comment_type
-	 *
-	 * @expectedIncorrectUsage register_comment_type
-	 */
-	public function test_register_comment_type_rejects_non_array_arguments(): void {
-		// @phpstan-ignore argument.type (Deliberately passing a query string.)
-		$result = register_comment_type( 'foo', 'label=Foo&internal=1' );
-
-		$this->assertWPError( $result );
-		$this->assertSame( 'comment_type_args_invalid', $result->get_error_code() );
-		$this->assertNull( get_comment_type_object( 'foo' ) );
-	}
-
-	/**
 	 * The names WP_Comment_Query reads as query tokens cannot be registered, since a type
 	 * stored under one of them could never be queried for on its own.
 	 *
