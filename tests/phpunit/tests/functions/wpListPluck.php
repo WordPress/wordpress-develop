@@ -275,7 +275,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_pluck() {
+	public static function data_wp_list_pluck() {
 		return array(
 			'arrays'                         => array(
 				array(

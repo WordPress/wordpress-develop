@@ -10,8 +10,8 @@
  */
 
 /**
- * @global int $page  WordPress paginated post page count.
- * @global int $paged WordPress archive pagination page count.
+ * @global int $page  Page number of a single post.
+ * @global int $paged Page number of a list of posts.
  */
 global $page, $paged;
 
@@ -42,7 +42,7 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 ?>
 	</title>
 <link rel="profile" href="https://gmpg.org/xfn/11" />
-<link rel="stylesheet" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20260520" />
+<link rel="stylesheet" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20260819" />
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <?php
 	/*

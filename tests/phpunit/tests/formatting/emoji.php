@@ -6,8 +6,8 @@
  */
 class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
-	private $png_cdn = 'https://s.w.org/images/core/emoji/17.0.2/72x72/';
-	private $svg_cdn = 'https://s.w.org/images/core/emoji/17.0.2/svg/';
+	private static $png_cdn = 'https://s.w.org/images/core/emoji/17.0.2/72x72/';
+	private static $svg_cdn = 'https://s.w.org/images/core/emoji/17.0.2/svg/';
 
 	/**
 	 * Tests that the emoji detection script is hooked onto the front end footer
@@ -192,9 +192,9 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 			array( 'baseUrl', 'ext', 'svgUrl', 'svgExt', 'source' ),
 			array_keys( $settings )
 		);
-		$this->assertSame( $this->png_cdn, $settings['baseUrl'] );
+		$this->assertSame( self::$png_cdn, $settings['baseUrl'] );
 		$this->assertSame( '.png', $settings['ext'] );
-		$this->assertSame( $this->svg_cdn, $settings['svgUrl'] );
+		$this->assertSame( self::$svg_cdn, $settings['svgUrl'] );
 		$this->assertSame( '.svg', $settings['svgExt'] );
 		$this->assertIsArray( $settings['source'] );
 		$this->assertArrayHasKey( 'wpemoji', $settings['source'] );
@@ -216,8 +216,8 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
 
-		$this->assertStringContainsString( wp_json_encode( $this->png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
-		$this->assertStringContainsString( wp_json_encode( $this->svg_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
+		$this->assertStringContainsString( wp_json_encode( self::$png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
+		$this->assertStringContainsString( wp_json_encode( self::$svg_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
 	}
 
 	public function _filtered_emoji_svg_cdn( $cdn = '' ) {
@@ -238,8 +238,8 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
 
-		$this->assertStringContainsString( wp_json_encode( $this->png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
-		$this->assertStringNotContainsString( wp_json_encode( $this->svg_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
+		$this->assertStringContainsString( wp_json_encode( self::$png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
+		$this->assertStringNotContainsString( wp_json_encode( self::$svg_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
 		$this->assertStringContainsString( wp_json_encode( $filtered_svn_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
 
 		remove_filter( 'emoji_svg_url', array( $this, '_filtered_emoji_svg_cdn' ) );
@@ -264,8 +264,8 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		$output = get_echo( '_print_emoji_detection_script' );
 
 		$this->assertStringContainsString( wp_json_encode( $filtered_png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
-		$this->assertStringNotContainsString( wp_json_encode( $this->png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
-		$this->assertStringContainsString( wp_json_encode( $this->svg_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
+		$this->assertStringNotContainsString( wp_json_encode( self::$png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
+		$this->assertStringContainsString( wp_json_encode( self::$svg_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
 
 		remove_filter( 'emoji_url', array( $this, '_filtered_emoji_png_cdn' ) );
 	}
@@ -295,7 +295,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		$this->assertNotSame( $default, $partials );
 	}
 
-	public function data_wp_encode_emoji() {
+	public static function data_wp_encode_emoji() {
 		return array(
 			array(
 				// Not emoji.
@@ -335,7 +335,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_encode_emoji( $emoji ) );
 	}
 
-	public function data_wp_staticize_emoji() {
+	public static function data_wp_staticize_emoji() {
 		$data = array(
 			array(
 				// Not emoji.
@@ -345,22 +345,22 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 			array(
 				// Simple emoji.
 				'🙂',
-				'<img src="' . $this->png_cdn . '1f642.png" alt="🙂" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . self::$png_cdn . '1f642.png" alt="🙂" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 			array(
 				// Skin tone, gender, ZWJ, emoji selector.
 				'👮🏼‍♀️',
-				'<img src="' . $this->png_cdn . '1f46e-1f3fc-200d-2640-fe0f.png" alt="👮🏼‍♀️" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . self::$png_cdn . '1f46e-1f3fc-200d-2640-fe0f.png" alt="👮🏼‍♀️" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 			array(
 				// Unicode 10.
 				'🧚',
-				'<img src="' . $this->png_cdn . '1f9da.png" alt="🧚" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . self::$png_cdn . '1f9da.png" alt="🧚" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 			array(
 				// Hairy creature (Unicode 17).
 				'🫈',
-				'<img src="' . $this->png_cdn . '1fac8.png" alt="🫈" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . self::$png_cdn . '1fac8.png" alt="🫈" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 		);
 
