@@ -83,6 +83,34 @@ class Tests_Comment_WpCommentType extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The properties are typed, so filtered arguments of the wrong type must not cause a TypeError.
+	 *
+	 * @ticket 35214
+	 *
+	 * @covers ::set_props
+	 */
+	public function test_set_props_normalizes_filtered_arguments_of_the_wrong_type(): void {
+		$filter = static function ( array $args ): array {
+			$args['label']       = array( 'Not a string' );
+			$args['labels']      = 'Not an array';
+			$args['description'] = null;
+			$args['public']      = 0;
+			$args['internal']    = '1';
+			return $args;
+		};
+
+		add_filter( 'register_comment_type_args', $filter );
+		$comment_type = new WP_Comment_Type( 'foo' );
+		remove_filter( 'register_comment_type_args', $filter );
+
+		$this->assertSame( 'Comments', $comment_type->label );
+		$this->assertSame( 'Comment', $comment_type->labels->singular_name );
+		$this->assertSame( '', $comment_type->description );
+		$this->assertFalse( $comment_type->public );
+		$this->assertTrue( $comment_type->internal );
+	}
+
+	/**
 	 * @ticket 35214
 	 *
 	 * @covers ::get_default_labels

@@ -20,7 +20,6 @@ final class WP_Comment_Type {
 	 * Comment type key.
 	 *
 	 * @since 7.3.0
-	 * @var string
 	 */
 	public string $name;
 
@@ -28,9 +27,8 @@ final class WP_Comment_Type {
 	 * Name of the comment type. Usually plural.
 	 *
 	 * @since 7.3.0
-	 * @var string
 	 */
-	public $label;
+	public string $label;
 
 	/**
 	 * Labels object for this comment type.
@@ -40,15 +38,18 @@ final class WP_Comment_Type {
 	 * @see get_comment_type_labels()
 	 *
 	 * @since 7.3.0
-	 * @var stdClass
 	 */
-	public $labels;
+	public stdClass $labels;
 
 	/**
 	 * Default labels.
 	 *
 	 * @since 7.3.0
-	 * @var (string|null)[][] $default_labels
+	 * @var array<string, array<string|null>> $default_labels
+	 * @phpstan-var array{
+	 *     name:          array{ string, null },
+	 *     singular_name: array{ string, null },
+	 * }|array{}
 	 */
 	protected static array $default_labels = array();
 
@@ -56,9 +57,8 @@ final class WP_Comment_Type {
 	 * A short descriptive summary of what the comment type is for.
 	 *
 	 * @since 7.3.0
-	 * @var string
 	 */
-	public $description = '';
+	public string $description = '';
 
 	/**
 	 * Whether a comment type is intended for use publicly either via the admin interface or by front-end users.
@@ -68,9 +68,8 @@ final class WP_Comment_Type {
 	 * Default true.
 	 *
 	 * @since 7.3.0
-	 * @var bool
 	 */
-	public $public = true;
+	public bool $public = true;
 
 	/**
 	 * Whether the comment type is for internal use only.
@@ -81,9 +80,8 @@ final class WP_Comment_Type {
 	 * Default false.
 	 *
 	 * @since 7.3.0
-	 * @var bool
 	 */
-	public $internal = false;
+	public bool $internal = false;
 
 	/**
 	 * Whether this comment type is a native or "built-in" comment type.
@@ -91,9 +89,8 @@ final class WP_Comment_Type {
 	 * Default false.
 	 *
 	 * @since 7.3.0
-	 * @var bool
 	 */
-	public $_builtin = false;
+	public bool $_builtin = false;
 
 	/**
 	 * Constructor.
@@ -107,11 +104,11 @@ final class WP_Comment_Type {
 	 *
 	 * @see register_comment_type()
 	 *
-	 * @param string                      $comment_type Comment type key.
-	 * @param array<string, mixed>|string $args         Optional. Array or string of arguments for registering
-	 *                                                  a comment type. Default empty array.
+	 * @param string               $comment_type Comment type key.
+	 * @param array<string, mixed> $args         Optional. Array of arguments for registering
+	 *                                           a comment type. Default empty array.
 	 */
-	public function __construct( $comment_type, $args = array() ) {
+	public function __construct( string $comment_type, array $args = array() ) {
 		$this->name = $comment_type;
 
 		$this->set_props( $args );
@@ -124,11 +121,9 @@ final class WP_Comment_Type {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param array<string, mixed>|string $args Array or string of arguments for registering a comment type.
+	 * @param array<string, mixed> $args Array of arguments for registering a comment type.
 	 */
-	public function set_props( $args ): void {
-		$args = wp_parse_args( $args );
-
+	public function set_props( array $args ): void {
 		// Captured before the filters run, so they cannot add or remove built-in status.
 		$is_builtin = ! empty( $args['_builtin'] );
 
@@ -175,10 +170,20 @@ final class WP_Comment_Type {
 			'_builtin'    => false,
 		);
 
-		$args = array_merge( $defaults, $args );
+		$args = array_merge( $defaults, (array) $args );
 
 		$args['name']     = $this->name;
 		$args['_builtin'] = $is_builtin;
+
+		// The filters can return anything, so match the declared property types before assigning.
+		$args['labels']      = is_array( $args['labels'] ) || is_object( $args['labels'] ) ? (object) (array) $args['labels'] : new stdClass();
+		$args['description'] = is_string( $args['description'] ) ? $args['description'] : '';
+		$args['public']      = (bool) $args['public'];
+		$args['internal']    = (bool) $args['internal'];
+
+		if ( isset( $args['label'] ) && ! is_string( $args['label'] ) ) {
+			unset( $args['label'] );
+		}
 
 		foreach ( $args as $property_name => $property_value ) {
 			$this->$property_name = $property_value;
@@ -197,7 +202,12 @@ final class WP_Comment_Type {
 	 * post type and taxonomy shape. Comment types are never hierarchical, so only the
 	 * first value is used.
 	 *
-	 * @return (string|null)[][] The default labels for comment types.
+	 * @return array<string, array<string|null>> The default labels for comment types.
+	 *
+	 * @phpstan-return array{
+	 *     name:          array{ string, null },
+	 *     singular_name: array{ string, null },
+	 * }
 	 */
 	public static function get_default_labels(): array {
 		if ( ! empty( self::$default_labels ) ) {

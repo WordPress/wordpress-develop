@@ -422,11 +422,11 @@ function create_initial_comment_types(): void {
  *
  * @global WP_Comment_Type[] $wp_comment_types List of comment types.
  *
- * @param string       $comment_type Comment type key. Must not exceed 20 characters and may only
- *                                   contain lowercase alphanumeric characters, dashes, and underscores.
- *                                   See sanitize_key().
- * @param array|string $args {
- *     Optional. Array or string of arguments for registering a comment type. Default empty array.
+ * @param string $comment_type Comment type key. Must not exceed 20 characters and may only
+ *                             contain lowercase alphanumeric characters, dashes, and underscores.
+ *                             See sanitize_key().
+ * @param array  $args {
+ *     Optional. Array of arguments for registering a comment type. Default empty array.
  *
  *     @type string     $label       Name of the comment type. Usually plural.
  *                                   Default is the value of $labels['name'].
@@ -503,6 +503,11 @@ function register_comment_type( $comment_type, $args = array() ) {
 			'7.3.0'
 		);
 		return new WP_Error( 'comment_type_reserved', __( 'This comment type name is reserved.' ) );
+	}
+
+	if ( ! is_array( $args ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Comment type arguments must be passed as an array.' ), '7.3.0' );
+		return new WP_Error( 'comment_type_args_invalid', __( 'Comment type arguments must be passed as an array.' ) );
 	}
 
 	$comment_type_object = new WP_Comment_Type( $comment_type, $args );
