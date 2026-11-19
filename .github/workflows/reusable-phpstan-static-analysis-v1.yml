@@ -21,8 +21,11 @@ permissions: {}
 jobs:
   # Runs PHP static analysis tests.
   #
-  # Violations are reported inline with annotations. For pull requests, the results are also uploaded
-  # as an artifact, which the PHPStan Pull Request Comments workflow summarizes in a comment.
+  # Core is analyzed twice, in parallel: the whole codebase with phpstan.neon.dist, and the paths held to a stricter rule
+  # level with phpstan-strict.neon.dist. See tests/phpstan/README.md.
+  #
+  # Violations are reported inline with annotations. For pull requests, the results of each analysis are also uploaded
+  # as an artifact, and the PHPStan Pull Request Comments workflow combines them in a comment.
   #
   # Performs the following steps:
   # - Checks out the repository.
@@ -39,11 +42,33 @@ jobs:
   # - Saves the PHPStan result cache.
   # - Ensures version-controlled files are not modified or deleted.
   phpstan:
-    name: Run PHP static analysis
+    name: Run PHP static analysis (${{ matrix.label }})
     runs-on: ubuntu-26.04
     permissions:
       contents: read
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The artifact of the analysis of the whole codebase keeps the name it had before there were two, which is
+          # the name the PHPStan Pull Request Comments workflow on trunk requires. That way the comment is kept up to
+          # date for a pull request whose branch does not have the second analysis yet.
+          #
+          # The analyses are named for their role rather than their rule level, which is read from the configuration
+          # when the results are reported, so that raising either level is an edit of its configuration alone.
+          - analysis: default
+            label: all paths
+            config: phpstan.neon.dist
+            baselines: tests/phpstan/baselines
+            script: phpstan:default
+            artifact: phpstan-results
+          - analysis: strict
+            label: strict paths
+            config: phpstan-strict.neon.dist
+            baselines: tests/phpstan/baselines-strict
+            script: phpstan:strict
+            artifact: phpstan-results-strict
 
     steps:
       # For a pull request, the parents of the merge commit are fetched too, to find the files that the base branch
@@ -92,16 +117,21 @@ jobs:
       # merged this commit yet runs the workflow it has, and that workflow would prefix-match the
       # caches written here: it would analyse without the extensions against reflection derived with
       # them. A name of its own leaves those runs restoring only their own caches.
+      #
+      # Each analysis caches separately. Its result cache records the rule level, and is discarded
+      # by a run at another level, so restoring the other analysis's cache would gain nothing.
       - name: Cache PHP Static Analysis scan cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: .cache # This is defined in the base.neon file.
-          key: "phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
+          key: "phpstan-analysis-cache-${{ matrix.analysis }}-${{ hashFiles('phpstan.neon.dist', 'phpstan-strict.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
           restore-keys: |
-            phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-
+            phpstan-analysis-cache-${{ matrix.analysis }}-${{ hashFiles('phpstan.neon.dist', 'phpstan-strict.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-
 
       - name: Run PHP static analysis tests
         id: phpstan
+        env:
+          SCRIPT: ${{ matrix.script }}
         run: |
           # The report is written to a file for the steps below, which turn it into annotations,
           # the pull request comment, and a check for errors that cannot be reported as warnings.
@@ -111,7 +141,7 @@ jobs:
           # The step shell exits on the first failing command, which would also end the step on
           # the status of 1 that PHPStan uses for reporting errors. Capture the status instead.
           status=0
-          composer run phpstan -- -vvv --error-format=json > "${RUNNER_TEMP}/phpstan-report.json" || status=$?
+          composer run "${SCRIPT}" -- -vvv --error-format=json > "${RUNNER_TEMP}/phpstan-report.json" || status=$?
 
           # PHPStan exits 1 when it has errors to report, which is the expected case here and
           # is what the annotations are for. Anything higher means it did not finish at all.
@@ -132,11 +162,36 @@ jobs:
       - name: Report the analysis results
         id: report
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ANALYSIS: ${{ matrix.analysis }}
+          CONFIG: ${{ matrix.config }}
         with:
           script: |
             const fs = require( 'fs' );
 
-            const report = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-report.json`, 'utf8' ) );
+            // The rule level the configuration analyzes at, as a number, or `max`. Only the line of the parameter is
+            // matched, rather than decoding the whole dump, because the JSON PHPStan prints can be invalid: it writes
+            // the `\<` in a message pattern as is, which is not a valid JSON escape.
+            let level = null;
+            try {
+              const parameters = require( 'child_process' ).execFileSync(
+                `${ process.env.GITHUB_WORKSPACE }/vendor/bin/phpstan`,
+                [ 'dump-parameters', `--configuration=${ process.env.CONFIG }`, '--json' ],
+                { encoding: 'utf8' }
+              );
+              const match = parameters.match( /^\s*"level":\s*"?(max|\d+)"?,?$/m );
+              if ( match ) {
+                level = match[ 1 ] === 'max' ? 'max' : Number( match[ 1 ] );
+              }
+            } catch ( error ) {
+              core.warning( `The rule level of ${ process.env.CONFIG } could not be read: ${ error.message }` );
+            }
+
+            // Annotations from the stricter analysis say so, since the same code can pass the other one.
+            const analysis = process.env.ANALYSIS;
+            const titlePrefix = analysis === 'strict' ? `PHPStan (strict${ level === null ? '' : `, level ${ level }` })` : 'PHPStan';
+
+            const report = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-report.json`, { encoding: 'utf8' } ) );
             const workspace = `${ process.env.GITHUB_WORKSPACE }/`;
 
             const errors = [];
@@ -165,7 +220,7 @@ jobs:
             const fixHint = 'This can be fixed automatically by running `composer phpstan:fix` (or `npm run typecheck:php:fix`).';
 
             for ( const error of errors ) {
-              const properties = { title: error.identifier ? `PHPStan: ${ error.identifier }` : 'PHPStan' };
+              const properties = { title: error.identifier ? `${ titlePrefix }: ${ error.identifier }` : titlePrefix };
               if ( error.file ) {
                 properties.file = error.file;
               }
@@ -186,6 +241,10 @@ jobs:
             // The commit analyzed is the pull request merged into its base branch, whose second parent is the head
             // commit. The files with errors that differ between the two are those the base branch has changed, in
             // which the line numbers reported can be off in the head commit.
+            //
+            // Each analysis writes its own results. Those of the analysis of the whole codebase also list every
+            // analysis the run makes, so that the comment is not updated from only some of them: an error missing
+            // because its analysis did not upload results would otherwise be shown as resolved.
             if ( context.eventName === 'pull_request' ) {
               let changedInBase = [];
               try {
@@ -200,6 +259,10 @@ jobs:
               fs.mkdirSync( `${ process.env.RUNNER_TEMP }/phpstan-results`, { recursive: true } );
               fs.writeFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, JSON.stringify( {
                 pull_request: context.payload.pull_request.number,
+                analysis,
+                level,
+                // Keep this list in step with the `analysis` values of the job's matrix.
+                ...( analysis === 'default' ? { analyses: [ 'default', 'strict' ] } : {} ),
                 changed_in_base: changedInBase,
                 errors: errors.map( ( { tip, fixable, ...error } ) => error ),
               } ) );
@@ -211,7 +274,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ github.event_name == 'pull_request' && steps.report.outcome == 'success' }}
         with:
-          name: phpstan-results
+          name: ${{ matrix.artifact }}
           path: ${{ runner.temp }}/phpstan-results/
 
       # Some errors cannot be ignored, so they cannot be reported as warnings either. Most often
@@ -229,7 +292,8 @@ jobs:
       - name: Check for errors that cannot be reported as warnings
         if: ${{ !cancelled() }}
         env:
-          BASELINES_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.sha }}/tests/phpstan/baselines
+          BASELINES_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.sha }}/${{ matrix.baselines }}
+          LABEL: ${{ matrix.label }}
           README_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/tests/phpstan/README.md
         run: |
           # This step runs even when the analysis above it failed, in which case the report may
@@ -264,8 +328,11 @@ jobs:
           #
           # A newline renders as a line break rather than a space, so each paragraph is one
           # line however long that makes it, and the rendered summary wraps to its own width.
+          #
+          # The heading names the analysis whose baselines are out of date, which is filled in for
+          # the LABEL placeholder when the summary is written, since the heredoc expands nothing.
           baselines_summary=$( cat <<'SUMMARY'
-          ## PHPStan baselines are out of date
+          ## PHPStan baselines are out of date (LABEL)
 
           An ignored error no longer occurs, or occurs a different number of times, so PHPStan reported it under an `ignore.unmatched` or `ignore.count` identifier.
 
@@ -283,7 +350,7 @@ jobs:
           composer phpstan:fix
           ```
 
-          That runs PHPStan with `--fix`, which lowers the counts in the files under [`tests/phpstan/baselines`][baselines], removes the entries that no longer match, and removes any `@phpstan-ignore` annotation in the code that no longer ignores anything. It then deletes any baseline left with no entries.
+          That runs PHPStan with `--fix`, which lowers the counts in [the baselines][baselines], removes the entries that no longer match, and removes any `@phpstan-ignore` annotation in the code that no longer ignores anything. It then deletes any baseline left with no entries.
 
           Alternatively, regenerate the baselines with `npm run typecheck:php:baselines` or `composer phpstan:baselines`. That also deletes any baseline whose errors are now all fixed, but it does not clear an `@phpstan-ignore` annotation.
 
@@ -294,14 +361,14 @@ jobs:
 
           if [ "${ignore_errors}" -gt 0 ]; then
             {
-              printf '%s\n\n' "${baselines_summary}"
+              printf '%s\n\n' "${baselines_summary/LABEL/${LABEL}}"
               echo "[baselines]: ${BASELINES_URL}"
               echo "[readme]: ${README_URL}"
             } >> "${GITHUB_STEP_SUMMARY}"
 
-            echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:fix\` or \`composer phpstan:fix\` and commit the updated baselines. See ${README_URL}"
+            echo "::error title=PHPStan baselines are out of date (${LABEL})::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:fix\` or \`composer phpstan:fix\` and commit the updated baselines. See ${README_URL}"
           else
-            echo "::error title=PHPStan reported errors that cannot be ignored::PHPStan reported ${unignorable} error(s) that cannot be ignored or reported as warnings. See the error annotations for details, and ${README_URL} for how to run the analysis locally."
+            echo "::error title=PHPStan reported errors that cannot be ignored (${LABEL})::PHPStan reported ${unignorable} error(s) that cannot be ignored or reported as warnings. See the error annotations for details, and ${README_URL} for how to run the analysis locally."
           fi
 
           exit 1
@@ -311,7 +378,7 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           path: .cache
-          key: "phpstan-analysis-cache-${{ hashFiles('phpstan.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
+          key: "phpstan-analysis-cache-${{ matrix.analysis }}-${{ hashFiles('phpstan.neon.dist', 'phpstan-strict.neon.dist', 'tests/phpstan/*.neon', 'tests/phpstan/*.php') }}-${{ github.run_id }}"
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
