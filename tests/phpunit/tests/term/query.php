@@ -20,6 +20,11 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 * Clean up after each test.
 	 */
 	public function tear_down() {
+		unregister_post_type( 'wptests_pt' );
+		unregister_taxonomy( 'wptests_tax' );
+		unregister_taxonomy( 'wptests_tax_1' );
+		unregister_taxonomy( 'wptests_tax_2' );
+		unregister_taxonomy( 'wptests_tax_hierarchical' );
 		unset( $this->term_id );
 
 		parent::tear_down();
