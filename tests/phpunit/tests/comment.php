@@ -2648,6 +2648,50 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 'foo&#x1f60e;baz', $comment->comment_content );
 	}
 
+	/**
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_allow_comment
+	 */
+	public function test_duplicate_comment_with_emoji_is_rejected_on_utf8mb3(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$submission = array(
+			'comment_post_ID' => self::$post_id,
+			'author'          => 'Bob 😀',
+			'email'           => 'bob@example.org',
+			'comment'         => 'Hello 😀',
+		);
+		$this->assertInstanceOf( WP_Comment::class, wp_handle_comment_submission( $submission ) );
+
+		$result = wp_handle_comment_submission( $submission );
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_duplicate', $result->get_error_code() );
+	}
+
+	/**
+	 * @ticket 65700
+	 *
+	 * @covers ::check_comment
+	 */
+	public function test_previously_approved_author_with_emoji_is_recognized_on_utf8mb3(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+		update_option( 'comment_previously_approved', '1' );
+
+		$author = 'Bob 😀';
+		$email  = 'bob@example.org';
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => $author,
+				'comment_author_email' => $email,
+				'comment_approved'     => 1,
+			)
+		);
+
+		$this->assertTrue( check_comment( $author, $email, '', 'Another comment.', '', '', 'comment' ) );
+	}
+
 	public function filter_pre_get_col_charset_utf8mb3_for_comment_fields( $charset, $table, $column ) {
 		global $wpdb;
 

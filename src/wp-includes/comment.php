@@ -145,6 +145,8 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 					)
 				);
 			} else {
+				$stored = _wp_encode_emoji_in_fields( array( 'comment_author' => $author ), $wpdb->comments, array( 'comment_author' ) );
+
 				// expected_slashed ($author, $email)
 				$ok_to_comment = $wpdb->get_var(
 					$wpdb->prepare(
@@ -154,7 +156,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 						AND comment_author_email = %s
 						AND comment_approved = '1'
 						LIMIT 1",
-						$author,
+						$stored['comment_author'],
 						$email
 					)
 				);
@@ -768,6 +770,8 @@ function sanitize_comment_cookies() {
 function wp_allow_comment( $commentdata, $wp_error = false ) {
 	global $wpdb;
 
+	$stored = _wp_encode_emoji_in_fields( $commentdata, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+
 	/*
 	 * Simple duplicate check.
 	 * expected_slashed ($comment_post_ID, $comment_author, $comment_author_email, $comment_content)
@@ -776,7 +780,7 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 		"SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_parent = %s AND comment_approved != 'trash' AND ( comment_author = %s ",
 		wp_unslash( $commentdata['comment_post_ID'] ),
 		wp_unslash( $commentdata['comment_parent'] ),
-		wp_unslash( $commentdata['comment_author'] )
+		wp_unslash( $stored['comment_author'] )
 	);
 	if ( $commentdata['comment_author_email'] ) {
 		$dupe .= $wpdb->prepare(
@@ -786,7 +790,7 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 	}
 	$dupe .= $wpdb->prepare(
 		') AND comment_content = %s LIMIT 1',
-		wp_unslash( $commentdata['comment_content'] )
+		wp_unslash( $stored['comment_content'] )
 	);
 
 	$dupe_id = $wpdb->get_var( $dupe );
