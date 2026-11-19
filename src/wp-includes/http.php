@@ -444,20 +444,31 @@ function get_http_origin() {
  * @since 3.4.0
  *
  * @return string[] Array of origin URLs.
+ *
+ * @phpstan-return array<non-falsy-string>
  */
 function get_allowed_http_origins() {
-	$admin_origin = parse_url( admin_url() );
-	$home_origin  = parse_url( home_url() );
+	$parsed_urls = array(
+		parse_url( admin_url() ),
+		parse_url( home_url() ),
+	);
 
 	// @todo Preserve port?
-	$allowed_origins = array_unique(
-		array(
-			'http://' . $admin_origin['host'],
-			'https://' . $admin_origin['host'],
-			'http://' . $home_origin['host'],
-			'https://' . $home_origin['host'],
-		)
-	);
+	$allowed_origins = array();
+
+	foreach ( $parsed_urls as $parsed_url ) {
+		if ( ! is_array( $parsed_url ) || ! isset( $parsed_url['host'] ) ) {
+			continue;
+		}
+		$allowed_origins[] = 'https://' . $parsed_url['host'];
+
+		// An insecure origin is only allowed when the URL is not served over HTTPS.
+		if ( isset( $parsed_url['scheme'] ) && 'https' !== $parsed_url['scheme'] ) {
+			$allowed_origins[] = 'http://' . $parsed_url['host'];
+		}
+	}
+
+	$allowed_origins = array_values( array_unique( $allowed_origins ) );
 
 	/**
 	 * Changes the origin types allowed for HTTP requests.
@@ -465,6 +476,8 @@ function get_allowed_http_origins() {
 	 * @since 3.4.0
 	 *
 	 * @param string[] $allowed_origins Array of allowed HTTP origins.
+	 *
+	 * @phpstan-param array<non-falsy-string> $allowed_origins
 	 */
 	return apply_filters( 'allowed_http_origins', $allowed_origins );
 }
