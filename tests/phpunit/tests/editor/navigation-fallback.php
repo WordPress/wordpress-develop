@@ -351,6 +351,73 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 		$this->assertCount( 1, $navs_in_db, 'Only the existing Navigation menus should be present in the database.' );
 	}
 
+	/**
+	 * Tests that escaped characters in classic menu item labels are not corrupted
+	 * when persisted as a fallback wp_navigation post.
+	 *
+	 * @ticket 66735
+	 * @covers WP_Navigation_Fallback::get_fallback
+	 */
+	public function test_classic_menu_fallback_preserves_escaped_block_attributes() {
+		$menu_id = wp_create_nav_menu( 'Escaped Labels Menu' );
+
+		wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array(
+				'menu-item-title'  => 'News & Politics',
+				'menu-item-url'    => '/news-politics',
+				'menu-item-status' => 'publish',
+			)
+		);
+
+		wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array(
+				'menu-item-title'  => 'Books -- "Reviews"',
+				'menu-item-url'    => '/books-reviews',
+				'menu-item-status' => 'publish',
+			)
+		);
+
+		$data = WP_Navigation_Fallback::get_fallback();
+
+		$this->assertInstanceOf( 'WP_Post', $data, 'Fallback navigation should be a WP_Post instance.' );
+		$this->assertStringContainsString( '\u0026', $data->post_content, 'Escaped ampersand backslash should be preserved in post_content.' );
+
+		$blocks = parse_blocks( $data->post_content );
+
+		$this->assertCount( 2, $blocks, 'Fallback navigation should contain two navigation-link blocks.' );
+		$this->assertSame( 'News & Politics', $blocks[0]['attrs']['label'], 'First menu item label should preserve the ampersand without literal u0026 corruption.' );
+		$this->assertSame( 'Books -- "Reviews"', $blocks[1]['attrs']['label'], 'Second menu item label should preserve double hyphens and double quotes.' );
+	}
+
+	/**
+	 * Tests that backslashes in a classic menu title are preserved when creating a fallback post.
+	 *
+	 * @ticket 66735
+	 * @covers WP_Navigation_Fallback::get_fallback
+	 */
+	public function test_classic_menu_fallback_preserves_backslashes_in_menu_title() {
+		$menu_id = wp_create_nav_menu( wp_slash( 'Main \ Nav' ) );
+
+		wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array(
+				'menu-item-title'  => 'Home',
+				'menu-item-url'    => '/',
+				'menu-item-status' => 'publish',
+			)
+		);
+
+		$data = WP_Navigation_Fallback::get_fallback();
+
+		$this->assertInstanceOf( 'WP_Post', $data, 'Fallback navigation should be a WP_Post instance.' );
+		$this->assertSame( 'Main \ Nav', $data->post_title, 'Fallback menu title should preserve backslashes.' );
+	}
+
 	private function get_navigations_in_database() {
 		$navs_in_db = new WP_Query(
 			array(
