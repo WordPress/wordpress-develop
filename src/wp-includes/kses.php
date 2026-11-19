@@ -1581,15 +1581,31 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							1 === strspn( $text, "\n\r", 0, 1 )
 						);
 
-						$text = strtr(
-							$text,
-							array(
-								"\r" => '&#xD;',
-								'<'  => '&lt;',
-								'&'  => '&amp;',
-								'>'  => '&gt;',
-							)
-						);
+						$raw_text = $text;
+						if ( $this->set_bookmark( 'text' ) ) {
+							$span     = $this->bookmarks['text'];
+							$raw_text = substr( $this->html, $span->start, $span->length );
+							$this->release_bookmark( 'text' );
+
+							$raw_text = str_replace( array( "\r\n", "\r" ), "\n", $raw_text );
+							$raw_text = ( 'html' === $namespace || $is_in_text_integration_point )
+								? str_replace( "\x00", '', $raw_text )
+								: str_replace( "\x00", "\u{FFFD}", $raw_text );
+
+							// Match get_modifiable_text()'s leading newline removal after <pre>/<listing>/<textarea>.
+							if ( strlen( $output ) === $special_newline_at ) {
+								if ( "\n" === ( $raw_text[0] ?? '' ) ) {
+									$raw_text = substr( $raw_text, 1 );
+								} elseif ( '&' === ( $raw_text[0] ?? '' ) ) {
+									$nl_length = 0;
+									if ( "\n" === WP_HTML_Decoder::read_character_reference( 'data', $raw_text, 0, $nl_length ) ) {
+										$raw_text = substr( $raw_text, $nl_length );
+									}
+								}
+							}
+						}
+
+						$text = $this->escape_text_preserving_character_references( $raw_text );
 
 						if ( $needs_special_newline ) {
 							$output .= "\n{$text}";
@@ -2044,6 +2060,48 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			}
 
 			return $sanitized;
+		}
+
+		/**
+		 * Escapes unsafe characters in a raw HTML text node while preserving
+		 * existing valid HTML character references as written.
+		 *
+		 * @param string $text Raw preprocessed HTML text node content.
+		 * @return string Escaped text node content.
+		 */
+		private function escape_text_preserving_character_references( string $text ): string {
+			$result       = '';
+			$at           = 0;
+			$end          = strlen( $text );
+			$token_length = 0;
+			$replacements = array(
+				"\r" => '&#xD;',
+				'<'  => '&lt;',
+				'>'  => '&gt;',
+			);
+
+			while ( $at < $end ) {
+				$next_amp = strpos( $text, '&', $at );
+				if ( false === $next_amp ) {
+					$result .= strtr( substr( $text, $at ), $replacements );
+					break;
+				}
+
+				if ( $next_amp > $at ) {
+					$result .= strtr( substr( $text, $at, $next_amp - $at ), $replacements );
+				}
+
+				$decoded = WP_HTML_Decoder::read_character_reference( 'data', $text, $next_amp, $token_length );
+				if ( isset( $decoded ) ) {
+					$result .= substr( $text, $next_amp, $token_length );
+					$at      = $next_amp + $token_length;
+				} else {
+					$result .= '&amp;';
+					$at      = $next_amp + 1;
+				}
+			}
+
+			return $result;
 		}
 	};
 
