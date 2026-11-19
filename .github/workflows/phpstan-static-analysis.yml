@@ -17,8 +17,10 @@ on:
       - 'composer.*'
       # These files configure PHPStan. Changes could affect the outcome.
       - 'phpstan.neon.dist'
+      - 'phpstan-strict.neon.dist'
       - 'tests/phpstan/base.neon'
       - 'tests/phpstan/baselines/**'
+      - 'tests/phpstan/baselines-strict/**'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/phpstan-static-analysis.yml'
       - '.github/workflows/reusable-phpstan-static-analysis-v1.yml'
