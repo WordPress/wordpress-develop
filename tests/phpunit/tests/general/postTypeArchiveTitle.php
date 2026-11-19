@@ -27,6 +27,12 @@ class Tests_General_PostTypeArchiveTitle extends WP_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		unregister_post_type( self::POST_TYPE );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that post_type_archive_title() returns null when not on a post type archive.
 	 *
