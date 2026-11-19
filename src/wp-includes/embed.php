@@ -788,7 +788,7 @@ function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
 	$params = $request->get_params();
 
 	// Match the route the way WP_REST_Server::match_request_to_handler() does, ignoring case.
-	if ( ! preg_match( '@^/oembed/1.0/embed$@i', $request->get_route() ) || 'GET' !== $request->get_method() ) {
+	if ( 'GET' !== $request->get_method() || ! preg_match( '@^/oembed/1.0/embed$@i', $request->get_route() ) ) {
 		return $served;
 	}
 

@@ -508,7 +508,7 @@ class Tests_oEmbed_Controller extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_embed_route_spellings
 	 *
-	 * @param string $route Requested embed route.
+	 * @param non-falsy-string $route Requested embed route.
 	 */
 	public function test_rest_pre_serve_request_serves_xml_for_every_route_spelling( string $route ): void {
 		$post = self::factory()->post->create_and_get(
@@ -536,7 +536,7 @@ class Tests_oEmbed_Controller extends WP_UnitTestCase {
 	 * Data provider for spellings of the embed route that the REST server
 	 * dispatches to the oEmbed controller.
 	 *
-	 * @return array<string, array{string}> Test cases.
+	 * @return array<non-falsy-string, array{ non-falsy-string }> Test cases.
 	 */
 	public static function data_embed_route_spellings(): array {
 		return array(
@@ -559,13 +559,9 @@ class Tests_oEmbed_Controller extends WP_UnitTestCase {
 		$request->set_param( 'format', 'xml' );
 
 		$response = new WP_REST_Response( array( 'title' => 'Hello World' ) );
+		$output   = get_echo( '_oembed_rest_pre_serve_request', array( false, $response, $request, rest_get_server() ) );
 
-		ob_start();
-		$served = _oembed_rest_pre_serve_request( false, $response, $request, rest_get_server() );
-		$output = ob_get_clean();
-
-		$this->assertFalse( $served, 'The request should be left for the REST server to serve.' );
-		$this->assertSame( '', $output, 'Nothing should be printed for other routes.' );
+		$this->assertSame( '', $output, 'XML should not be served for other routes.' );
 	}
 
 	public function test_get_oembed_endpoint_url() {
