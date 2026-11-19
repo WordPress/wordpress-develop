@@ -2613,6 +2613,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb4_for_comment_fields' ), 10 );
 
+		$this->assertIsInt( $comment_id, 'Expected wp_insert_comment() to return the new comment ID.' );
+
 		$comment = get_comment( $comment_id );
 
 		$this->assertSame( "foo\xf0\x9f\x98\x88bar", $comment->comment_author );
