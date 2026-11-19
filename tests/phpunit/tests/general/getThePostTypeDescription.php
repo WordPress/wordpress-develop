@@ -33,6 +33,13 @@ class Tests_General_GetThePostTypeDescription extends WP_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		unregister_post_type( self::POST_TYPE_WITH_DESC );
+		unregister_post_type( self::POST_TYPE_WITHOUT_DESC );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that get_the_post_type_description() returns an empty string when no post type is queried.
 	 *
