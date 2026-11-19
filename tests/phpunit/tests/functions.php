@@ -1078,6 +1078,81 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a value which cannot be encoded as is throws a JsonException when JSON_THROW_ON_ERROR is passed.
+	 *
+	 * The error is thrown before the confidence checks can recover from it, as they do for invalid UTF-8.
+	 *
+	 * @dataProvider data_wp_json_encode_throw_on_error
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::wp_json_encode
+	 *
+	 * @param mixed       $value Value to encode.
+	 * @param int<1, max> $depth Maximum depth.
+	 */
+	public function test_wp_json_encode_throw_on_error( $value, int $depth ) {
+		$this->expectException( JsonException::class );
+		wp_json_encode( $value, JSON_THROW_ON_ERROR, $depth );
+	}
+
+	/**
+	 * Data provider for {@see self::test_wp_json_encode_throw_on_error()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed, 1: int<1, max> }>
+	 */
+	public static function data_wp_json_encode_throw_on_error(): array {
+		return array(
+			'INF'                 => array( INF, 512 ),
+			'exceeding the depth' => array( array( array( 1 ) ), 1 ),
+			'invalid UTF-8'       => array( "\xB1", 512 ),
+		);
+	}
+
+	/**
+	 * Tests that a number, a numeric string, or a JSON serializable object can encode to the falsy string '0'.
+	 *
+	 * This is why {@see wp_json_encode()} is typed to return a non-empty string, not a non-falsy one.
+	 *
+	 * @dataProvider data_wp_json_encode_falsy_output
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::wp_json_encode
+	 *
+	 * @param mixed $value Value to encode.
+	 * @param int   $flags Options to pass to json_encode().
+	 */
+	public function test_wp_json_encode_falsy_output( $value, int $flags ) {
+		$this->assertSame( '0', wp_json_encode( $value, $flags ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_wp_json_encode_falsy_output()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed, 1: int }>
+	 */
+	public static function data_wp_json_encode_falsy_output(): array {
+		return array(
+			'zero integer'                           => array( 0, 0 ),
+			'zero float'                             => array( 0.0, 0 ),
+			'numeric string with JSON_NUMERIC_CHECK' => array( '0', JSON_NUMERIC_CHECK ),
+			'INF with JSON_PARTIAL_OUTPUT_ON_ERROR'  => array( INF, JSON_PARTIAL_OUTPUT_ON_ERROR ),
+			'NAN with JSON_PARTIAL_OUTPUT_ON_ERROR'  => array( NAN, JSON_PARTIAL_OUTPUT_ON_ERROR ),
+			'INF with JSON_PARTIAL_OUTPUT_ON_ERROR and JSON_THROW_ON_ERROR' => array( INF, JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_THROW_ON_ERROR ),
+			'JsonSerializable serializing to zero'   => array(
+				new class() implements JsonSerializable {
+					#[ReturnTypeWillChange]
+					public function jsonSerialize() {
+						return 0;
+					}
+				},
+				0,
+			),
+		);
+	}
+
+	/**
 	 * @ticket 53238
 	 */
 	public function test_wp_json_file_decode() {
