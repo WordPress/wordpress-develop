@@ -626,6 +626,24 @@ function get_comment_types( $args = array(), $output = 'names', $operator = 'and
 }
 
 /**
+ * Adds the comment types registered as internal to the default-excluded comment types.
+ *
+ * Hooked to {@see 'default_excluded_comment_types'}, so registering a type as internal
+ * is enough to keep it out of comment queries, counts and feeds by default.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param string[] $excluded_types Comment types excluded by default.
+ * @return string[] Comment types excluded by default, including every internal type.
+ */
+function _wp_exclude_internal_comment_types( $excluded_types ): array {
+	$internal_types = array_filter( get_comment_types( array( 'internal' => true ) ), 'is_string' );
+
+	return array_values( array_unique( array_merge( (array) $excluded_types, $internal_types ) ) );
+}
+
+/**
  * Determines whether a comment type is registered.
  *
  * @since 7.3.0

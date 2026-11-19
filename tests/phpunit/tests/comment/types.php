@@ -202,6 +202,36 @@ class Tests_Comment_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Registering a type as internal is enough to exclude it by default.
+	 *
+	 * @ticket 35214
+	 * @ticket 65537
+	 *
+	 * @covers ::_wp_exclude_internal_comment_types
+	 */
+	public function test_internal_comment_types_are_added_to_the_default_excluded_types(): void {
+		register_comment_type( 'foo', array( 'internal' => true ) );
+		register_comment_type( 'bar' );
+
+		$this->assertSame(
+			array( 'note', 'reaction', 'foo' ),
+			_wp_exclude_internal_comment_types( array( 'note', 'reaction' ) ),
+			'Only the internal types should be added, without repeating the built-in ones.'
+		);
+	}
+
+	/**
+	 * The callback runs ahead of the default priority, so a plugin filtering the
+	 * excluded types sees the internal ones and has the last word on them.
+	 *
+	 * @ticket 35214
+	 * @ticket 65537
+	 */
+	public function test_internal_comment_types_are_hooked_before_the_default_priority(): void {
+		$this->assertSame( 0, has_filter( 'default_excluded_comment_types', '_wp_exclude_internal_comment_types' ) );
+	}
+
+	/**
 	 * @ticket 35214
 	 *
 	 * @covers ::unregister_comment_type
