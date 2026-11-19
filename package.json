@@ -1,13 +1,13 @@
 {
 	"name": "WordPress",
-	"version": "7.1.5",
+	"version": "7.1.6",
 	"description": "WordPress is open source software you can use to create a beautiful website, blog, or app.",
 	"repository": {
 		"type": "svn",
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "8daba429215ef3dce75da4360156b1a2f39897c6",
+		"sha": "89408c2b9bd944575dfa9039bc6870da1c8f56cb",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
@@ -29,7 +29,7 @@
 	],
 	"devDependencies": {
 		"@lodder/grunt-postcss": "^3.1.1",
-		"@playwright/test": "1.61.1",
+		"@playwright/test": "1.64.1",
 		"@pmmmwh/react-refresh-webpack-plugin": "0.6.2",
 		"@types/codemirror": "5.60.17",
 		"@types/espree": "10.1.0",
@@ -41,7 +41,6 @@
 		"@wordpress/prettier-config": "4.51.0",
 		"@wordpress/scripts": "33.0.0",
 		"autoprefixer": "10.5.3",
-		"chalk": "5.6.2",
 		"check-node-version": "4.2.1",
 		"cssnano": "7.1.9",
 		"dotenv": "17.4.2",
@@ -78,7 +77,6 @@
 		"source-map-loader": "5.0.0",
 		"typescript": "6.0.3",
 		"update-browserslist-db": "1.2.3",
-		"uuid": "14.0.1",
 		"wait-on": "9.0.10",
 		"webpack": "5.108.4"
 	},
