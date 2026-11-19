@@ -69,6 +69,8 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 * Tears down each test.
 	 */
 	public function tear_down() {
+		unregister_post_type( 'summaries_cpt' );
+		unregister_post_type( 'view_config_cpt' );
 		remove_all_filters( 'get_entity_view_config_posttype_unregistered_cpt' );
 		remove_all_filters( 'get_entity_view_config_custom_kind_custom_name' );
 		parent::tear_down();
@@ -425,8 +427,6 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 		$config = wp_get_entity_view_config( 'postType', 'view_config_cpt' );
 
 		$this->assertSame( 'All Custom Things', $config['view_list'][0]['title'] );
-
-		unregister_post_type( 'view_config_cpt' );
 	}
 
 	/**
