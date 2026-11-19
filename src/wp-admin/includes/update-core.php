@@ -1178,9 +1178,11 @@ $_old_files = array(
 	'wp-includes/js/dist/script-modules/block-library/form/view.js',
 	'wp-includes/js/dist/script-modules/block-library/form/view.min.js',
 	'wp-includes/js/dist/script-modules/block-library/form/view.min.asset.php',
+	'wp-includes/js/dist/script-modules/block-library/form/',
 	'wp-includes/js/dist/script-modules/content-types/index.js',
 	'wp-includes/js/dist/script-modules/content-types/index.min.js',
 	'wp-includes/js/dist/script-modules/content-types/index.min.asset.php',
+	'wp-includes/js/dist/script-modules/content-types/',
 	'wp-includes/js/dist/sync.js',
 	'wp-includes/js/dist/sync.min.js',
 );
