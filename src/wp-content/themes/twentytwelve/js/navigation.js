@@ -52,10 +52,11 @@
 	} );
 
   if ( 'ontouchstart' in window ) {
-    $('body').on( 'touchstart.twentytwelve',  '.menu-item-has-children > a, .page_item_has_children > a', function( e ) {
+    $( '.main-navigation' ).on( 'touchstart.twentytwelve',  '.menu-item-has-children > a, .page_item_has_children > a', function( e ) {
       var el = $( this ).parent( 'li' );
 
-      if ( ! el.hasClass( 'focus' ) ) {
+      // Sub-menus are only hidden behind hover on large screens.
+      if ( ! el.hasClass( 'focus' ) && window.matchMedia( '(min-width: 600px)' ).matches ) {
         e.preventDefault();
         el.toggleClass( 'focus' );
         el.siblings( '.focus').removeClass( 'focus' );
