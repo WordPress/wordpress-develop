@@ -11,8 +11,8 @@
 (function(w) {
 	var init = function() {
 		var pr = document.getElementById('post-revisions'),
-		inputs = pr ? pr.getElementsByTagName('input') : [];
-		pr.onclick = function() {
+		inputs = pr ? pr.getElementsByTagName('input') : [],
+		update = function() {
 			var i, checkCount = 0, side;
 			for ( i = 0; i < inputs.length; i++ ) {
 				checkCount += inputs[i].checked ? 1 : 0;
@@ -25,10 +25,13 @@
 					inputs[i].style.visibility = 'visible';
 			}
 		};
-		pr.onclick();
+
+		if ( ! pr ) {
+			return;
+		}
+
+		pr.onclick = update;
+		update();
 	};
-	if ( w && w.addEventListener )
-		w.addEventListener('load', init, false);
-	else if ( w && w.attachEvent )
-		w.attachEvent('onload', init);
+	w.addEventListener('load', init, false);
 })(window);

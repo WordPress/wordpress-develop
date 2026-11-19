@@ -39,6 +39,7 @@
 		"src/js/_enqueues/lib/codemirror/htmlhint-kses.js",
 		"src/js/_enqueues/lib/codemirror/javascript-lint.js",
 		"src/js/_enqueues/lib/emoji-loader.js",
+		"src/js/_enqueues/lib/list-revisions.js",
 		"src/js/_enqueues/wp/code-editor.js",
 		"src/js/_enqueues/wp/emoji.js",
 		"src/js/_enqueues/wp/wp-tooltip.js",
