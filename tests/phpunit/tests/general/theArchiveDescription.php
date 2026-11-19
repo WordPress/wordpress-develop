@@ -23,6 +23,12 @@ class Tests_General_TheArchiveDescription extends WP_UnitTestCase {
 		);
 	}
 
+	public function tear_down() {
+		unregister_post_type( self::CPT_NAME );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests get_the_archive_description() on author archives.
 	 *
