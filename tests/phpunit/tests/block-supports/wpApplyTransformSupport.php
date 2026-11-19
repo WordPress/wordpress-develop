@@ -139,9 +139,9 @@ class Tests_Block_Supports_WpApplyTransformSupport extends WP_UnitTestCase {
 						'y' => '-50%',
 					),
 				),
-				'translate:10px -50%;',
+				'--wp--style--translate-x:10px;--wp--style--translate-y:-50%;translate:var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0);',
 			),
-			'missing axis'    => array( array( 'translate' => array( 'y' => '2rem' ) ), 'translate:0 2rem;' ),
+			'one axis'        => array( array( 'translate' => array( 'y' => '2rem' ) ), '--wp--style--translate-y:2rem;translate:var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0);' ),
 			'unknown z axis'  => array(
 				array(
 					'translate' => array(
@@ -149,14 +149,14 @@ class Tests_Block_Supports_WpApplyTransformSupport extends WP_UnitTestCase {
 						'z' => '5px',
 					),
 				),
-				'translate:1px 0;',
+				'--wp--style--translate-x:1px;translate:var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0);',
 			),
 			'with a rotation' => array(
 				array(
 					'rotate'    => '15deg',
 					'translate' => array( 'x' => '1em' ),
 				),
-				'rotate:15deg;translate:1em 0;',
+				'rotate:15deg;--wp--style--translate-x:1em;translate:var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0);',
 			),
 		);
 	}

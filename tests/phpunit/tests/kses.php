@@ -2008,7 +2008,7 @@ EOF;
 				'css'      => 'rotate: var(--angle)',
 				'expected' => '',
 			),
-			// `translate` introduced in 7.3, limited to one or two lengths or percentages.
+			// `translate` introduced in 7.3, limited to one or two lengths or percentages, or CSS functions.
 			array(
 				'css'      => 'translate: 10px -50%',
 				'expected' => 'translate: 10px -50%',
@@ -2051,10 +2051,39 @@ EOF;
 			),
 			array(
 				'css'      => 'translate: calc(1px + 2px)',
-				'expected' => '',
+				'expected' => 'translate: calc(1px + 2px)',
 			),
 			array(
 				'css'      => 'translate: var(--offset)',
+				'expected' => 'translate: var(--offset)',
+			),
+			array(
+				'css'      => 'translate: var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0)',
+				'expected' => 'translate: var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0)',
+			),
+			// The `translate` axis custom properties, limited to a single length or percentage.
+			array(
+				'css'      => '--wp--style--translate-x: 10px',
+				'expected' => '--wp--style--translate-x: 10px',
+			),
+			array(
+				'css'      => '--wp--style--translate-y: -50%',
+				'expected' => '--wp--style--translate-y: -50%',
+			),
+			array(
+				'css'      => '--wp--style--translate-x: red',
+				'expected' => '',
+			),
+			array(
+				'css'      => '--wp--style--translate-x: 1px 2px',
+				'expected' => '',
+			),
+			array(
+				'css'      => '--wp--style--translate-y: calc(1px + 2px)',
+				'expected' => '',
+			),
+			array(
+				'css'      => '--wp--style--translate-y: 10',
 				'expected' => '',
 			),
 		);
@@ -3112,5 +3141,24 @@ HTML;
 			array( 'content', 'data', array( 'http', 'https' ) ),
 			$received
 		);
+	}
+
+	/**
+	 * Tests that an offset saved by a user without `unfiltered_html` keeps its
+	 * axis custom property and the `translate` declaration that reads it.
+	 *
+	 * @ticket 66467
+	 */
+	public function test_translate_axis_survives_post_kses_without_unfiltered_html() {
+		$author = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $author );
+		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
+		kses_init();
+
+		$content = '<div class="wp-block-group" style="--wp--style--translate-y:-6px;translate:var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0)"></div>';
+		$post_id = self::factory()->post->create( array( 'post_content' => $content ) );
+
+		kses_remove_filters();
+		$this->assertSame( $content, get_post( $post_id )->post_content );
 	}
 }

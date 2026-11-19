@@ -410,9 +410,11 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 				'options'         => null,
 				'expected_output' => array(
-					'css'          => 'translate:-50% 1.5rem;',
+					'css'          => '--wp--style--translate-x:-50%;--wp--style--translate-y:1.5rem;translate:var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0);',
 					'declarations' => array(
-						'translate' => '-50% 1.5rem',
+						'--wp--style--translate-x' => '-50%',
+						'--wp--style--translate-y' => '1.5rem',
+						'translate'                => 'var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0)',
 					),
 				),
 			),
@@ -428,9 +430,10 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 				'options'         => null,
 				'expected_output' => array(
-					'css'          => 'translate:0 10px;',
+					'css'          => '--wp--style--translate-y:10px;translate:var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0);',
 					'declarations' => array(
-						'translate' => '0 10px',
+						'--wp--style--translate-y' => '10px',
+						'translate'                => 'var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0)',
 					),
 				),
 			),

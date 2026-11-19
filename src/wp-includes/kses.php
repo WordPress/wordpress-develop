@@ -3728,7 +3728,9 @@ function kses_init() {
  * @since 7.2.0 Added support for CSS anchor positioning properties and `text-shadow`.
  *              Added support for `background-clip`.
  * @since 7.3.0 Added support for `rotate`, limited to a single angle, and `translate`,
- *              limited to one or two lengths or percentages.
+ *              limited to one or two lengths or percentages or CSS functions such as `var()`.
+ *              The `--wp--style--translate-x` and `--wp--style--translate-y` custom properties
+ *              are limited to a single length or percentage.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -4072,7 +4074,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				$url_attr       = in_array( $css_selector, $css_url_data_types, true );
 				$gradient_attr  = in_array( $css_selector, $css_gradient_data_types, true );
 				$angle_attr     = 'rotate' === $css_selector;
-				$translate_attr = 'translate' === $css_selector;
+				$translate_attr = in_array( $css_selector, array( 'translate', '--wp--style--translate-x', '--wp--style--translate-y' ), true );
 			}
 
 			if ( $is_custom_var ) {
@@ -4159,10 +4161,20 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				$allow_css = 1 === preg_match( WP_Style_Engine::VALID_ANGLE_PATTERN, trim( $parts[1] ) );
 			}
 
-			// Only allow one or two lengths or percentages for `translate`, mirroring the style engine.
+			/*
+			 * Only allow lengths or percentages for `translate` and its axis custom properties,
+			 * mirroring the style engine. Each axis property takes one, and `translate` takes
+			 * one or two, or CSS functions such as `var()`, which were removed from the test string.
+			 */
 			if ( $allow_css && $translate_attr ) {
-				$axes      = preg_split( '/\s+/', trim( $parts[1] ) );
-				$allow_css = count( $axes ) <= 2;
+				if ( 'translate' === $css_selector ) {
+					$translate_value = trim( explode( ':', $css_test_string, 2 )[1] ?? '' );
+					$axes            = '' === $translate_value ? array() : preg_split( '/\s+/', $translate_value );
+					$allow_css       = count( $axes ) <= 2;
+				} else {
+					$axes      = preg_split( '/\s+/', trim( $parts[1] ) );
+					$allow_css = 1 === count( $axes );
+				}
 				foreach ( $axes as $axis ) {
 					if ( $allow_css && 1 !== preg_match( WP_Style_Engine::VALID_LENGTH_PERCENTAGE_PATTERN, $axis ) ) {
 						$allow_css = false;

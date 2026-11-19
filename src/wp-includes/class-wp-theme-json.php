@@ -320,6 +320,8 @@ class WP_Theme_JSON {
 		'padding-bottom'                    => array( 'spacing', 'padding', 'bottom' ),
 		'padding-left'                      => array( 'spacing', 'padding', 'left' ),
 		'rotate'                            => array( 'transform', 'rotate' ),
+		'--wp--style--translate-x'          => array( 'transform', 'translate', 'x' ),
+		'--wp--style--translate-y'          => array( 'transform', 'translate', 'y' ),
 		'translate'                         => array( 'transform', 'translate' ),
 		'--wp--style--root--padding'        => array( 'spacing', 'padding' ),
 		'--wp--style--root--padding-top'    => array( 'spacing', 'padding', 'top' ),
@@ -3285,7 +3287,9 @@ class WP_Theme_JSON {
 
 			// The style engine validates transform values.
 			if ( 'transform' === $value_path[0] ) {
-				$value = wp_style_engine_get_styles( array( 'transform' => array( $value_path[1] => $value ) ) )['declarations'][ $css_property ] ?? null;
+				// Each translate axis and the `translate` declaration come from the whole value.
+				$transform_value = 'translate' === $value_path[1] ? ( $styles['transform']['translate'] ?? null ) : $value;
+				$value           = wp_style_engine_get_styles( array( 'transform' => array( $value_path[1] => $transform_value ) ) )['declarations'][ $css_property ] ?? null;
 			}
 
 			// Skip if empty and not "0" or value represents array of longhand values.
@@ -5417,7 +5421,6 @@ class WP_Theme_JSON {
 	 * without the insecure styles.
 	 *
 	 * @since 5.9.0
-	 * @since 7.3.0 Keep the `transform.translate` axes when their declaration is safe.
 	 *
 	 * @param array $input Node to process.
 	 * @return array
@@ -5437,19 +5440,6 @@ class WP_Theme_JSON {
 				$value = _wp_array_get( $input, $path, array() );
 				if ( ! is_array( $value ) ) {
 					_wp_array_set( $output, $path, $value );
-				} elseif ( 'translate' === $declaration['name'] ) {
-					// The declaration only exists when every axis is valid.
-					_wp_array_set(
-						$output,
-						$path,
-						array_intersect_key(
-							$value,
-							array(
-								'x' => true,
-								'y' => true,
-							)
-						)
-					);
 				}
 			}
 		}
