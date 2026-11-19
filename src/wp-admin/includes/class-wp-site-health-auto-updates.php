@@ -63,9 +63,9 @@ class WP_Site_Health_Auto_Updates {
 	 * @since 5.2.0
 	 * @since 5.5.1 The `$value` parameter can accept an array.
 	 *
-	 * @param string $constant         The name of the constant to check.
-	 * @param bool|string|array $value The value that the constant should be, if set,
-	 *                                 or an array of acceptable values.
+	 * @param string            $constant The name of the constant to check.
+	 * @param bool|string|array $value    The value that the constant should be, if set,
+	 *                                    or an array of acceptable values.
 	 * @return array|null The test results if there are any constants set incorrectly,
 	 *                    or null if the test passed.
 	 */
@@ -210,6 +210,7 @@ class WP_Site_Health_Auto_Updates {
 	 * Checks if WordPress is controlled by a VCS (Git, Subversion etc).
 	 *
 	 * @since 5.2.0
+	 * @since 7.2.0 Detects a `.git` file, as used by Git worktrees and submodules.
 	 *
 	 * @return array The test results.
 	 */
@@ -243,7 +244,8 @@ class WP_Site_Health_Auto_Updates {
 					continue;
 				}
 
-				$checkout = is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" );
+				// In a Git worktree or submodule, `.git` is a file rather than a directory.
+				$checkout = file_exists( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" );
 				if ( $checkout ) {
 					break 2;
 				}

@@ -175,39 +175,111 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * The create_item() method does not exist for menu locations.
+	 * Menu locations are read-only; create requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/menu-locations' );
+		$request->set_param( 'name', 'primary' );
+		$request->set_param( 'description', 'Primary' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The update_item() method does not exist for menu locations.
+	 * Menu locations are read-only; update requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		$menu = 'primary';
+		$this->register_nav_menu_locations( array( $menu ) );
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/menu-locations/' . $menu );
+		$request->set_param( 'description', 'Updated' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The delete_item() method does not exist for menu locations.
+	 * Menu locations are read-only; delete requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		$menu = 'primary';
+		$this->register_nav_menu_locations( array( $menu ) );
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/menu-locations/' . $menu );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The prepare_item() method does not exist for menu locations.
+	 * @ticket 40538
 	 *
-	 * @doesNotPerformAssertions
+	 * @covers ::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		$this->register_nav_menu_locations( array( 'primary' ) );
+
+		$menu = wp_create_nav_menu( 'Primary Menu' );
+		set_theme_mod( 'nav_menu_locations', array( 'primary' => $menu ) );
+
+		$location = (object) array(
+			'name'        => 'primary',
+			'description' => 'Primary',
+		);
+
+		$endpoint = new WP_REST_Menu_Locations_Controller();
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/menu-locations/primary' );
+		$response = $endpoint->prepare_item_for_response( $location, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'primary', $data['name'] );
+		$this->assertSame( 'Primary', $data['description'] );
+		$this->assertSame( $menu, $data['menu'] );
+
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertSame( rest_url( 'wp/v2/menu-locations/primary' ), $links['self'][0]['href'] );
+		$this->assertArrayHasKey( 'collection', $links );
+		$this->assertSame( rest_url( 'wp/v2/menu-locations' ), $links['collection'][0]['href'] );
+		$this->assertArrayHasKey( 'https://api.w.org/menu', $links );
+		$this->assertSame( rest_url( rest_get_route_for_term( $menu ) ), $links['https://api.w.org/menu'][0]['href'] );
+	}
+
+	/**
+	 * @ticket 40538
+	 *
+	 * @covers ::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		$location = (object) array(
+			'name'        => 'primary',
+			'description' => 'Primary',
+		);
+
+		$endpoint = new WP_REST_Menu_Locations_Controller();
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/menu-locations/primary' );
+		$request->set_param( '_fields', 'name' );
+
+		$response = $endpoint->prepare_item_for_response( $location, $request );
+		$this->assertSame( array( 'name' => 'primary' ), $response->get_data() );
+		$this->assertEmpty( $response->get_links() );
 	}
 
 	/**
