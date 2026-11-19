@@ -9,6 +9,14 @@
  */
 class Tests_REST_API_RestGetRouteForTaxonomyItems extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unregister_taxonomy( 'not-in-rest' );
+		unregister_taxonomy( 'with-rest-base' );
+		unregister_taxonomy( 'fallback-tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 65819
 	 */
