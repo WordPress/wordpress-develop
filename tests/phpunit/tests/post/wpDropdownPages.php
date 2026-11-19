@@ -219,4 +219,51 @@ NO;
 
 		$this->assertMatchesRegularExpression( '/<select[^>]+class=\'bar\'/', $found );
 	}
+
+	/**
+	 * @ticket 54378
+	 */
+	public function test_wp_dropdown_pages_fields_should_load_value_field() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'foo',
+			)
+		);
+
+		$found = wp_dropdown_pages(
+			array(
+				'echo'        => 0,
+				'value_field' => 'post_name',
+				'fields'      => array( 'post_title' ),
+			)
+		);
+
+		$this->assertStringContainsString( 'value="foo"', $found );
+		$this->assertStringContainsString( get_post( $page_id )->post_title, $found );
+	}
+
+	/**
+	 * @ticket 54378
+	 */
+	public function test_wp_dropdown_pages_fields_should_match_output_with_all_fields() {
+		$parent_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent_id,
+			)
+		);
+
+		$args = array(
+			'echo'        => 0,
+			'selected'    => $parent_id,
+			'sort_column' => 'menu_order, post_title',
+		);
+
+		$this->assertSame(
+			wp_dropdown_pages( $args ),
+			wp_dropdown_pages( array_merge( $args, array( 'fields' => array( 'post_title' ) ) ) )
+		);
+	}
 }

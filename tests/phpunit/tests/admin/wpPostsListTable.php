@@ -720,4 +720,41 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Select (no title) Hello world example excerpt.', $output );
 	}
+
+	/**
+	 * @ticket 54378
+	 *
+	 * @covers WP_Posts_List_Table::inline_edit
+	 */
+	public function test_inline_edit_parent_dropdown_should_not_load_long_text_columns() {
+		global $wpdb;
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$GLOBALS['post'] = self::$top[1];
+
+		$page_queries = array();
+		add_filter(
+			'query',
+			static function ( $query ) use ( &$page_queries, $wpdb ) {
+				if ( str_contains( $query, "FROM {$wpdb->posts}" ) && str_contains( $query, "post_type = 'page'" ) && str_contains( $query, 'ORDER BY' ) ) {
+					$page_queries[] = $query;
+				}
+				return $query;
+			}
+		);
+
+		ob_start();
+		$this->table->inline_edit();
+		$output = ob_get_clean();
+
+		$this->assertNotEmpty( $page_queries, 'The parent drop-down should query pages.' );
+		foreach ( $page_queries as $query ) {
+			$this->assertStringNotContainsString( "{$wpdb->posts}.*", $query, 'The parent drop-down should not select all columns.' );
+			$this->assertStringNotContainsString( 'post_content', $query, 'The parent drop-down should not select post_content.' );
+		}
+
+		$this->assertStringContainsString( 'Top Level Page 1', $output, 'The parent drop-down should list page titles.' );
+		$this->assertStringContainsString( 'value="' . self::$top[1]->ID . '"', $output, 'The parent drop-down should use page IDs as values.' );
+	}
 }
