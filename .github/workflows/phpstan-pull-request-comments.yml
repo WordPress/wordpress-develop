@@ -57,6 +57,20 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
+      # The results of the analysis holding selected paths to a stricter rule level. A pull request whose branch does
+      # not have that analysis yet uploads none, which is fine. Whether they were expected is decided from the results
+      # above.
+      - name: Download the results of the strict analysis
+        id: download-strict
+        if: ${{ steps.download.outcome == 'success' }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        continue-on-error: true
+        with:
+          name: phpstan-results-strict
+          path: ${{ runner.temp }}/phpstan-results-strict
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
       - name: Create, update, or resolve the PHPStan comment
         if: ${{ steps.download.outcome == 'success' }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -74,7 +88,7 @@ jobs:
             // anything at all. They are therefore checked for shape, and only accepted for the pull request whose
             // current head is the commit that the run analyzed. That also discards the results of a run that was
             // overtaken by a newer push.
-            const results = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, 'utf8' ) );
+            const results = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, { encoding: 'utf8' } ) );
             const issue_number = results.pull_request;
             if ( ! Number.isSafeInteger( issue_number ) || issue_number <= 0 || ! Array.isArray( results.errors ) ) {
               core.setFailed( 'The analysis results are malformed.' );
@@ -93,12 +107,62 @@ jobs:
 
             const asString = ( value ) => ( typeof value === 'string' ? value : null );
             const asSha = ( value ) => ( typeof value === 'string' && /^[0-9a-f]{40}$/.test( value ) ? value : null );
+            // A rule level is a number, or `max`. Results from a branch that does not report the level have none.
+            const asLevel = ( value ) => ( ( Number.isSafeInteger( value ) && value >= 0 ) || value === 'max' ? value : null );
             const normalize = ( error ) => ( {
               file: asString( error.file ),
               line: Number.isSafeInteger( error.line ) && error.line > 0 ? error.line : null,
               message: ( asString( error.message ) ?? '' ).slice( 0, 1000 ),
               identifier: /^[A-Za-z0-9.]+$/.test( error.identifier ) ? error.identifier : null,
               ignorable: error.ignorable === true,
+              // The analysis that reported the error, and the rule level it analyzed at. Neither is reported per error:
+              // they are those of the results the error was read from, and are kept in the history from there.
+              analysis: error.analysis === 'strict' ? 'strict' : 'default',
+              level: asLevel( error.level ),
+            } );
+
+            // The paths held to a stricter rule level are analyzed a second time, and that analysis uploads its results
+            // separately. The results above list the analyses the run made, and when the strict one is among them but
+            // its results are missing, the comment is left as it is: every error that only analysis reported would
+            // otherwise be shown as resolved. A run from a branch that does not have that analysis yet lists none, and
+            // has only these results.
+            const expectsStrict = Array.isArray( results.analyses ) && results.analyses.includes( 'strict' );
+            let strictErrors = [];
+            let strictLevel = null;
+            let strictChangedInBase = [];
+            if ( expectsStrict ) {
+              let strictResults = null;
+              try {
+                strictResults = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results-strict/results.json`, { encoding: 'utf8' } ) );
+              } catch ( error ) {
+                core.info( `The results of the strict analysis are missing, so the comment is left as it is: ${ error.message }` );
+                return;
+              }
+              if ( strictResults?.pull_request !== issue_number || ! Array.isArray( strictResults.errors ) ) {
+                core.setFailed( 'The results of the strict analysis are malformed.' );
+                return;
+              }
+              strictLevel = asLevel( strictResults.level );
+              strictErrors = strictResults.errors.map( ( error ) => normalize( { ...error, analysis: 'strict', level: strictLevel } ) );
+              strictChangedInBase = Array.isArray( strictResults.changed_in_base ) ? strictResults.changed_in_base : [];
+            }
+
+            // The strict analysis includes everything the default one does, so an error it reports at a lower level is
+            // reported by both. Such an error is listed once, as found by the analysis of the whole codebase, and the
+            // strict one only adds what is left over. Errors are matched as they are below, apart from their line.
+            const errorKey = ( error ) => JSON.stringify( [ error.file, error.identifier, error.message ] );
+            const defaultCounts = new Map();
+            const defaultErrors = results.errors.map( ( error ) => normalize( { ...error, analysis: 'default', level: results.level } ) );
+            for ( const error of defaultErrors ) {
+              defaultCounts.set( errorKey( error ), ( defaultCounts.get( errorKey( error ) ) ?? 0 ) + 1 );
+            }
+            const strictOnly = strictErrors.filter( ( error ) => {
+              const count = defaultCounts.get( errorKey( error ) ) ?? 0;
+              if ( count > 0 ) {
+                defaultCounts.set( errorKey( error ), count - 1 );
+                return false;
+              }
+              return true;
             } );
 
             // An error is recognized from one run to the next by its file, identifier and message, but not its line,
@@ -107,10 +171,10 @@ jobs:
             // is fixed or added, those after it shift to the history of the one before or after, so their first reports
             // can be off, and the one shown as resolved or new is the last rather than the one that was. That is rarer
             // than lines being added or removed above them, which would throw off matching them by line.
-            const errors = results.errors.map( normalize );
+            const errors = [ ...defaultErrors, ...strictOnly ];
             const occurrences = new Map();
             for ( const error of [ ...errors ].sort( ( a, b ) => ( a.line ?? 0 ) - ( b.line ?? 0 ) ) ) {
-              const key = JSON.stringify( [ error.file, error.identifier, error.message ] );
+              const key = errorKey( error );
               const occurrence = occurrences.get( key ) ?? 0;
               occurrences.set( key, occurrence + 1 );
               error.key = `${ key }#${ occurrence }`;
@@ -164,7 +228,11 @@ jobs:
 
             // Files the base branch has changed since the pull request branched from it, in which the line numbers
             // reported can be off in the head commit, since the analysis ran on the head commit merged into the base.
-            const changedInBase = new Set( Array.isArray( results.changed_in_base ) ? results.changed_in_base.filter( ( file ) => typeof file === 'string' ) : [] );
+            // Each analysis only lists those among the files it reported errors in, so the lists of both are combined.
+            const changedInBase = new Set(
+              [ ...( Array.isArray( results.changed_in_base ) ? results.changed_in_base : [] ), ...strictChangedInBase ]
+                .filter( ( file ) => typeof file === 'string' )
+            );
             const lineMayBeOff = ( error ) => ! error.fixed && Boolean( error.line ) && changedInBase.has( error.file );
             const filesWithLinesOff = new Set( active.filter( lineMayBeOff ).map( ( error ) => error.file ) );
 
@@ -206,7 +274,10 @@ jobs:
 
             // GitHub shows only the first few annotations of each kind from a step on the page of the workflow run, so
             // errors left out of a table are pointed to in the log of the step that reported them, which has them all.
-            const where = `the log of the [workflow run](${ run.html_url }), in the “Report the analysis results” step`;
+            // Each analysis runs in a job of its own, and an error found only by the strict one is only in that job's log.
+            const where = strictOnly.length > 0
+              ? `the log of the [workflow run](${ run.html_url }), in the “Report the analysis results” step of each of its jobs (errors in strict paths are only in the “strict paths” job)`
+              : `the log of the [workflow run](${ run.html_url }), in the “Report the analysis results” step`;
             const table = ( rows, rowLimit, { withResolution = false } = {} ) => {
               const shown = rows.slice( 0, rowLimit );
               if ( shown.length === 0 ) {
@@ -215,10 +286,14 @@ jobs:
                   : `The ${ rows.length } errors are not listed here, to keep this comment short. They are listed in ${ where }.`;
               }
               const more = `…and ${ rows.length - shown.length } more, which are listed in ${ where }.`;
+              // The rule level is only shown in a table listing an error from the strict analysis, so that one listing
+              // only errors from the analysis of the whole codebase looks as it did before there were two. A level
+              // that was not reported, as by a branch from before it was, is left blank.
+              const withLevel = shown.some( ( error ) => error.analysis === 'strict' );
               const lines = [
-                `| Location | Error | Identifier | First reported |${ withResolution ? ' Resolved |' : '' }`,
-                `| --- | --- | --- | --- |${ withResolution ? ' --- |' : '' }`,
-                ...shown.map( ( error ) => `| ${ location( error ) } | ${ code( error.message ) } | ${ identifier( error ) } | ${ commit( error.introduced ) } |${ withResolution ? ` ${ commit( error.fixed ) } |` : '' }` ),
+                `| Location | Error | Identifier |${ withLevel ? ' Level |' : '' } First reported |${ withResolution ? ' Resolved |' : '' }`,
+                `| --- | --- | --- |${ withLevel ? ' --- |' : '' } --- |${ withResolution ? ' --- |' : '' }`,
+                ...shown.map( ( error ) => `| ${ location( error ) } | ${ code( error.message ) } | ${ identifier( error ) } |${ withLevel ? ` ${ error.level ?? '' } |` : '' } ${ commit( error.introduced ) } |${ withResolution ? ` ${ commit( error.fixed ) } |` : '' }` ),
               ];
               if ( shown.length < rows.length ) {
                 lines.push( '', more );
@@ -247,6 +322,11 @@ jobs:
                     '> [!NOTE]',
                     `> ${ filesWithLinesOff.size === 1 ? 'A file with errors has' : `${ filesWithLinesOff.size } files with errors have` } changed in ${ code( pr.base.ref ) } since this branch was last updated, so the line numbers reported in ${ filesWithLinesOff.size === 1 ? 'it' : 'them' } may be off and are not linked. Merge the latest ${ code( pr.base.ref ) } into this branch for accurate links.`,
                   ].join( '\n' ) );
+                }
+                if ( active.some( ( error ) => error.analysis === 'strict' ) ) {
+                  const strictError = strictLevel === null ? 'An error found by the strict analysis' : `An error at level ${ strictLevel }`;
+                  const stricterLevel = strictLevel === null ? 'a stricter rule level' : `rule level ${ strictLevel }`;
+                  sections.push( `${ strictError } is in a path that ${ code( 'phpstan-strict.neon.dist' ) } holds to ${ stricterLevel }, which the rest of the codebase is not yet held to. See [Stricter analysis of selected paths](${ readmeUrl }#stricter-analysis-of-selected-paths).` );
                 }
               } else {
                 // Resolved by the last commit that resolved anything, so that later commits do not change the comment.
@@ -316,8 +396,8 @@ jobs:
 
               // The errors tracked are taken in the order they are listed, so that each one listed keeps its history.
               const tracked = [ ...unignorable, ...ignorable ].slice( 0, trackedLimit ).concat( resolved ).map( ( error ) => {
-                const { key, file, line, message, identifier, ignorable, introduced, seen, fixed } = error;
-                return { key, file, line: lineMayBeOff( error ) ? null : line, message, identifier, ignorable, introduced, seen, fixed };
+                const { key, file, line, message, identifier, ignorable, analysis, level, introduced, seen, fixed } = error;
+                return { key, file, line: lineMayBeOff( error ) ? null : line, message, identifier, ignorable, analysis, level, introduced, seen, fixed };
               } );
               sections.push( `<!-- phpstan-history:${ zlib.deflateRawSync( JSON.stringify( tracked ) ).toString( 'base64' ) } -->` );
 
