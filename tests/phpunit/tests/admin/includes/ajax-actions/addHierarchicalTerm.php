@@ -44,6 +44,12 @@ class Tests_Admin_Includes_AjaxActions_addHierarchicalTerm extends WP_Ajax_UnitT
 		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 	}
 
+	public function tear_down(): void {
+		unregister_taxonomy( 'wptests_tax' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Populates $_POST for an add request.
 	 *
