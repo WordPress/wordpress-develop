@@ -160,39 +160,52 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 58557
-	 * @covers WP_REST_Navigation_Fallback_Controller::get_fallback
+	 * @ticket 66735
+	 * @covers WP_Navigation_Fallback::get_fallback
 	 */
 	public function test_should_return_fallback_navigation_from_existing_classic_menu_if_no_navigation_menus_exist() {
-		$menu_id = wp_create_nav_menu( 'Existing Classic Menu' );
+		$menu_title  = 'Main \\ Navigation';
+		$label       = 'News & Politics';
+		$url         = '/news?section=local&sort=new';
+		$child_label = 'Press "Room" -- Café \\ FAQ';
+
+		$menu_id = wp_create_nav_menu( wp_slash( $menu_title ) );
+		$parent  = wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array(
+				'menu-item-title'  => $label,
+				'menu-item-url'    => $url,
+				'menu-item-status' => 'publish',
+			)
+		);
 
 		wp_update_nav_menu_item(
 			$menu_id,
 			0,
 			array(
-				'menu-item-title'  => 'Classic Menu Item 1',
-				'menu-item-url'    => '/classic-menu-item-1',
-				'menu-item-status' => 'publish',
+				'menu-item-parent-id' => $parent,
+				'menu-item-title'     => wp_slash( $child_label ),
+				'menu-item-url'       => '/press',
+				'menu-item-status'    => 'publish',
 			)
 		);
 
-		$data = WP_Navigation_Fallback::get_fallback();
+		// Generate the menu as a visitor to exercise KSES filtering during the save.
+		wp_set_current_user( 0 );
 
-		$this->assertInstanceOf( 'WP_Post', $data, 'Response should be of the correct type.' );
+		$fallback = WP_Navigation_Fallback::get_fallback();
+		$this->assertInstanceOf( 'WP_Post', $fallback, 'A fallback navigation post should be created from the classic menu.' );
+		$this->assertSame( $menu_title, $fallback->post_title, 'The fallback post title should retain the backslash.' );
 
-		$this->assertSame( 'Existing Classic Menu', $data->post_title, 'Fallback menu title should be the same as the classic menu.' );
+		$blocks = parse_blocks( $fallback->post_content );
+		$this->assertSame( 'core/navigation-submenu', $blocks[0]['blockName'], 'The parent item should become a submenu.' );
+		$this->assertSame( $label, html_entity_decode( $blocks[0]['attrs']['label'] ), 'The submenu label should retain the ampersand.' );
+		$this->assertSame( $url, html_entity_decode( $blocks[0]['attrs']['url'] ), 'The URL should retain both query parameters.' );
+		$this->assertSame( 'core/navigation-link', $blocks[0]['innerBlocks'][0]['blockName'], 'The child item should become a nested navigation link.' );
+		$this->assertSame( $child_label, html_entity_decode( $blocks[0]['innerBlocks'][0]['attrs']['label'] ), 'The nested link label should retain its original characters.' );
 
-		// Assert that the fallback contains a navigation-link block.
-		$this->assertStringContainsString( '<!-- wp:navigation-link', $data->post_content, 'The fallback Navigation Menu should contain a `core/navigation-link` block.' );
-
-		// Assert that fallback post_content contains the expected menu item title.
-		$this->assertStringContainsString( '"label":"Classic Menu Item 1"', $data->post_content, 'The fallback Navigation Menu should contain menu item with a label matching the title of the menu item from the Classic Menu.' );
-
-		// Assert that fallback post_content contains the expected menu item url.
-		$this->assertStringContainsString( '"url":"/classic-menu-item-1"', $data->post_content, 'The fallback Navigation Menu should contain menu item with a url matching the slug of the menu item from the Classic Menu.' );
-
-		// Check that only a single Navigation fallback was created.
-		$navs_in_db = $this->get_navigations_in_database();
-		$this->assertCount( 1, $navs_in_db, 'A single Navigation menu should be present in the database.' );
+		$this->assertCount( 1, $this->get_navigations_in_database(), 'A single Navigation menu should be present in the database.' );
 	}
 
 	/**
