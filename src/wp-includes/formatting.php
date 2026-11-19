@@ -6194,12 +6194,12 @@ function wp_encode_emoji( $content ) {
 }
 
 /**
- * Replaces recognized emoji with hexadecimal HTML numeric character references in fields
- * whose database columns use utf8 or utf8mb3.
+ * Replaces four-byte UTF-8 characters with HTML character references in fields whose database
+ * columns use `utf8` or `utf8mb3`.
  *
  * Use for fields where consumers interpret HTML character references.
  *
- * @todo Encode all four-byte UTF-8 characters.
+ * @link https://dev.mysql.com/doc/refman/8.4/en/charset-unicode-utf8.html
  *
  * @since 7.2.0
  * @access private
@@ -6210,19 +6210,46 @@ function wp_encode_emoji( $content ) {
  * @param array    $data   Field values keyed by column name.
  * @param string   $table  Database table name.
  * @param string[] $fields Names of the fields to check.
- * @return array Field values with recognized emoji encoded where needed.
+ * @return array Field values with four-byte characters encoded where needed.
  */
 function _wp_encode_4byte_chars_in_fields( $data, $table, $fields ) {
 	global $wpdb;
 
 	foreach ( $fields as $field ) {
-		if ( isset( $data[ $field ] ) ) {
-			$charset = $wpdb->get_col_charset( $table, $field );
+		if ( ! isset( $data[ $field ] ) || ! is_string( $data[ $field ] ) ) {
+			continue;
+		}
 
-			// The 'utf8' character set is a deprecated alias of 'utf8mb3'. See <https://dev.mysql.com/doc/refman/8.4/en/charset-unicode-utf8.html>.
-			if ( 'utf8' === $charset || 'utf8mb3' === $charset ) {
-				$data[ $field ] = wp_encode_emoji( $data[ $field ] );
-			}
+		$charset = $wpdb->get_col_charset( $table, $field );
+
+		/*
+		 * Note that the `utf8` character set is a deprecated alias of `utf8mb3`.
+		 *
+		 * Table 3-7 of the Unicode Standard gives these ranges for four-byte UTF-8 sequences.
+		 *
+		 *  ╭─────────────────────┬────────────┬──────────────┬─────────────┬──────────────╮
+		 *  │ Code Points         │ First Byte │ Second Byte  │ Third Byte  │ Fourth Byte  │
+		 *  ├─────────────────────┼────────────┼──────────────┼─────────────┼──────────────┤
+		 *  │ U+10000..U+3FFFF    │ F0         │ 90..BF       │ 80..BF      │ 80..BF       │
+		 *  │ U+40000..U+FFFFF    │ F1..F3     │ 80..BF       │ 80..BF      │ 80..BF       │
+		 *  │ U+100000..U+10FFFF  │ F4         │ 80..8F       │ 80..BF      │ 80..BF       │
+		 *  ╰─────────────────────┴────────────┴──────────────┴─────────────┴──────────────╯
+		 *
+		 * @link https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G27506
+		 */
+		if ( 'utf8' === $charset || 'utf8mb3' === $charset ) {
+			$data[ $field ] = preg_replace_callback(
+				'/
+					# Match bytes so malformed UTF-8 elsewhere in the field does not prevent a match.
+					    \xF0        [\x90-\xBF] [\x80-\xBF] [\x80-\xBF] # U+10000..U+3FFFF
+					|   [\xF1-\xF3] [\x80-\xBF] [\x80-\xBF] [\x80-\xBF] # U+40000..U+FFFFF
+					|   \xF4        [\x80-\x8F] [\x80-\xBF] [\x80-\xBF] # U+100000..U+10FFFF
+				/x',
+				static function ( $match ) {
+					return sprintf( '&#x%x;', mb_ord( $match[0], 'UTF-8' ) );
+				},
+				$data[ $field ]
+			) ?? $data[ $field ];
 		}
 	}
 

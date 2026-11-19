@@ -384,9 +384,9 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	 */
 	public function test_wp_encode_4byte_chars_in_fields_only_touches_requested_utf8mb3_fields(): void {
 		$data = array(
-			'legacy_field'  => '🙂',
-			'modern_field'  => '🙂',
-			'ignored_field' => '🙂',
+			'legacy_field'  => '™🙂𠮷',
+			'modern_field'  => '™🙂𠮷',
+			'ignored_field' => '™🙂𠮷',
 		);
 
 		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_for_encode_4byte_chars_in_fields_test' ), 10, 3 );
@@ -396,17 +396,17 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_for_encode_4byte_chars_in_fields_test' ), 10 );
 
 		$this->assertSame(
-			'&#x1f642;',
+			'™&#x1f642;&#x20bb7;',
 			$result['legacy_field'],
-			'Expected emoji to be encoded for a field on a utf8/utf8mb3 column.'
+			'Expected four-byte characters to be encoded for a field on a utf8/utf8mb3 column.'
 		);
 		$this->assertSame(
-			'🙂',
+			'™🙂𠮷',
 			$result['modern_field'],
-			'Expected emoji to be left alone for a field on a utf8mb4 column.'
+			'Expected four-byte characters to be left alone for a field on a utf8mb4 column.'
 		);
 		$this->assertSame(
-			'🙂',
+			'™🙂𠮷',
 			$result['ignored_field'],
 			'Expected a field not passed in $fields to be left alone entirely.'
 		);
