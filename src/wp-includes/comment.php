@@ -2614,19 +2614,19 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 		$unslashed = wp_unslash( $commentdata );
 		$stored    = _wp_encode_4byte_chars_in_fields( $unslashed, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
-		$check_storage_lengths = _wp_check_comment_data_storage_lengths( $stored );
-		if ( is_wp_error( $check_storage_lengths ) ) {
-			return $wp_error ? $check_storage_lengths : false;
-		}
-
 		foreach ( $fields as $field ) {
 			if ( ! isset( $commentdata[ $field ] ) ) {
 				continue;
 			}
 
-			// Keep the original characters for comment filters when the encoded value is valid.
 			if ( $stored[ $field ] !== $unslashed[ $field ] ) {
-				$value = $stored[ $field ];
+				$value                 = $stored[ $field ];
+				$check_storage_lengths = _wp_check_comment_data_storage_lengths( array( $field => $value ) );
+				if ( is_wp_error( $check_storage_lengths ) ) {
+					return $wp_error ? $check_storage_lengths : false;
+				}
+
+				// Keep the original characters for comment filters when the encoded value is valid.
 				if ( $value === $wpdb->strip_invalid_text_for_column( $wpdb->comments, $field, $value ) ) {
 					continue;
 				}
