@@ -454,9 +454,9 @@ add_action( 'post_updated', 'wp_save_post_revision', 10, 1 );
 // Update post list table change tokens after post mutations.
 add_action( 'wp_after_insert_post', '_wp_set_post_list_table_last_changed', 10, 4 );
 add_action( 'deleted_post', '_wp_set_post_list_table_last_changed', 10, 2 );
-add_action( 'added_post_meta', '_wp_set_post_list_table_last_changed_for_post_meta', 10, 2 );
-add_action( 'updated_post_meta', '_wp_set_post_list_table_last_changed_for_post_meta', 10, 2 );
-add_action( 'deleted_post_meta', '_wp_set_post_list_table_last_changed_for_post_meta', 10, 2 );
+add_action( 'added_post_meta', '_wp_set_post_list_table_last_changed_for_post_meta', 10, 3 );
+add_action( 'updated_post_meta', '_wp_set_post_list_table_last_changed_for_post_meta', 10, 3 );
+add_action( 'deleted_post_meta', '_wp_set_post_list_table_last_changed_for_post_meta', 10, 3 );
 add_action( 'added_term_relationship', '_wp_set_post_list_table_last_changed_for_terms', 10, 3 );
 add_action( 'deleted_term_relationships', '_wp_set_post_list_table_last_changed_for_terms', 10, 3 );
 add_action( 'shutdown', '_wp_finalize_post_list_table_last_changed' );

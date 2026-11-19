@@ -218,6 +218,45 @@ class Tests_Admin_Includes_Misc_WpHeartbeatSetSuspension_Test extends WP_UnitTes
 	}
 
 	/**
+	 * Tests that internal bookkeeping metadata does not invalidate post lists.
+	 *
+	 * @dataProvider data_post_list_internal_meta
+	 * @ticket 65461
+	 *
+	 * @param string $meta_key Internal metadata key.
+	 */
+	public function test_post_list_ignores_internal_meta( $meta_key ) {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		_wp_finalize_post_list_table_last_changed();
+		$last_changed = _wp_get_post_list_table_last_changed( 'post' );
+
+		add_post_meta( $post_id, $meta_key, 'one' );
+		_wp_finalize_post_list_table_last_changed();
+		$this->assertSame( $last_changed, _wp_get_post_list_table_last_changed( 'post' ) );
+
+		update_post_meta( $post_id, $meta_key, 'two' );
+		_wp_finalize_post_list_table_last_changed();
+		$this->assertSame( $last_changed, _wp_get_post_list_table_last_changed( 'post' ) );
+
+		delete_post_meta( $post_id, $meta_key );
+		_wp_finalize_post_list_table_last_changed();
+		$this->assertSame( $last_changed, _wp_get_post_list_table_last_changed( 'post' ) );
+	}
+
+	/**
+	 * Provides internal metadata keys that do not affect post list content.
+	 *
+	 * @return array[]
+	 */
+	public static function data_post_list_internal_meta() {
+		return array(
+			'edit lock'      => array( '_edit_lock' ),
+			'ping flag'      => array( '_pingme' ),
+			'enclosure flag' => array( '_encloseme' ),
+		);
+	}
+
+	/**
 	 * Tests that a failed immediate token update is retried at shutdown.
 	 *
 	 * @ticket 65461

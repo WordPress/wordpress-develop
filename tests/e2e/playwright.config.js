@@ -23,6 +23,9 @@ const SERIAL_SPECS = [
 	'themes.test.js',
 	// This deletes all posts, including other workers' content.
 	'empty-trash.test.js',
+	// Post lists reload when other workers change posts.
+	'edit-posts.test.js',
+	'empty-trash-restore-trashed-posts.test.js',
 ];
 
 const config = defineConfig( {

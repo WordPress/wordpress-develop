@@ -166,10 +166,7 @@ test.describe( 'Edit Posts', () => {
 		const otherEditor = new Editor( { page: otherPage } );
 		await otherPage.goto( `/wp-admin/post.php?post=${ post.id }&action=edit` );
 
-		const welcomeDialog = otherPage.getByRole( 'dialog', { name: 'Welcome to the editor' } );
-		if ( await welcomeDialog.isVisible() ) {
-			await welcomeDialog.getByRole( 'button', { name: 'Close' } ).click();
-		}
+		await otherEditor.setPreferences( 'core/edit-post', { welcomeGuide: false } );
 
 		await otherEditor.canvas.getByRole( 'textbox', { name: 'Add title' } ).fill( updatedTitle );
 		await otherPage.getByRole( 'button', { name: 'Save', exact: true } ).click();
@@ -202,7 +199,11 @@ test.describe( 'Edit Posts', () => {
 		} );
 
 		await visitPostList( admin, originalTitle );
-		await page.locator( `#post-${ post.id } .editinline` ).evaluate( ( button ) => button.click() );
+		await postRow( page, post.id ).hover();
+		await postRow( page, post.id ).getByRole( 'button', {
+			name: `Quick edit “${ originalTitle }” inline`,
+			exact: true,
+		} ).click();
 
 		const titleInput = page.locator( `#edit-${ post.id } input[name="post_title"]` );
 		await titleInput.fill( 'Unsaved title' );

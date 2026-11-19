@@ -8959,10 +8959,16 @@ function _wp_set_post_list_table_last_changed( $post_id, $post, $update = null, 
  * @since x.x.x
  * @access private
  *
- * @param int $meta_id Post meta ID.
- * @param int $post_id Post ID.
+ * @param int|int[] $meta_id  Post meta ID or IDs.
+ * @param int       $post_id  Post ID.
+ * @param string    $meta_key Post meta key.
  */
-function _wp_set_post_list_table_last_changed_for_post_meta( $meta_id, $post_id ) {
+function _wp_set_post_list_table_last_changed_for_post_meta( $meta_id, $post_id, $meta_key ) {
+	// Lock renewals and ping bookkeeping do not change post list content.
+	if ( in_array( $meta_key, array( '_edit_lock', '_pingme', '_encloseme' ), true ) ) {
+		return;
+	}
+
 	$post = get_post( $post_id );
 
 	if ( $post ) {
