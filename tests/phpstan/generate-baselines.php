@@ -17,6 +17,11 @@
  * includes every baseline in that directory, so adding a newly split out baseline,
  * and retiring one that has reached zero, need no edit of the configuration.
  *
+ * Unless a configuration is named, this is done for each of DEFAULT_CONFIGS in
+ * turn: phpstan.neon.dist, which analyzes the whole codebase, and then
+ * phpstan-strict.neon.dist, which holds selected paths to a stricter rule level
+ * and includes the former along with its baselines.
+ *
  * With `--prune`, nothing is analyzed: the baselines that no longer list any
  * entries are deleted. That completes running PHPStan with `--fix`, which removes
  * the entries of fixed errors in place but leaves a baseline it has emptied
@@ -57,6 +62,21 @@ const DEFAULT_OUTPUT_DIR = 'tests/phpstan/baselines';
  */
 const DEFAULT_CONFIG = 'phpstan.neon.dist';
 
+/**
+ * The configurations processed when neither `--config` nor `--output-dir` is given,
+ * each with the directory its baselines are written to.
+ *
+ * They are processed in this order, which matters: phpstan-strict.neon.dist
+ * includes phpstan.neon.dist along with its baselines, so its own are only what is
+ * left over once those are up to date.
+ *
+ * Relative to the repository root.
+ */
+const DEFAULT_CONFIGS = array(
+	DEFAULT_CONFIG             => DEFAULT_OUTPUT_DIR,
+	'phpstan-strict.neon.dist' => 'tests/phpstan/baselines-strict',
+);
+
 if ( 'cli' !== PHP_SAPI ) {
 	fwrite( STDERR, "This script must be run from the command line.\n" );
 	exit( 1 );
@@ -74,7 +94,8 @@ foreach ( (array) ( $_SERVER['argv'] ?? array() ) as $arg ) {
 array_shift( $args );
 
 $config_option    = DEFAULT_CONFIG;
-$output_option    = DEFAULT_OUTPUT_DIR;
+$output_option    = null;
+$config_given     = false;
 $memory_limit     = '2G';
 $only_identifiers = array();
 $combined         = false;
@@ -121,11 +142,13 @@ foreach ( $args as $arg ) {
 
 	if ( 1 === preg_match( '/^--config=(.+)$/', $arg, $matches ) ) {
 		$config_option = $matches[1];
+		$config_given  = true;
 		continue;
 	}
 
 	if ( 1 === preg_match( '/^--output-dir=(.+)$/', $arg, $matches ) ) {
 		$output_option = $matches[1];
+		$config_given  = true;
 		continue;
 	}
 
@@ -136,6 +159,58 @@ foreach ( $args as $arg ) {
 
 	fwrite( STDERR, "Unrecognized option: $arg\n\n" . get_usage() );
 	exit( 1 );
+}
+
+/*
+ * Without a configuration named, every default configuration is processed in turn,
+ * each by a run of this script naming it, so that each run is the same as one asked
+ * for directly. The first failure stops the rest, since each configuration after it
+ * depends on the baselines of those before it.
+ *
+ * `--combined` prints a single baseline, so it keeps to the first configuration.
+ */
+if ( ! $config_given && ! $combined ) {
+	foreach ( DEFAULT_CONFIGS as $config => $output ) {
+		$command = implode(
+			' ',
+			array_map(
+				'escapeshellarg',
+				array(
+					PHP_BINARY,
+					__FILE__,
+					...$args,
+					"--config=$config",
+					"--output-dir=$output",
+				)
+			)
+		);
+
+		fwrite( STDERR, "\n== $config ==\n\n" );
+
+		$exit_code = 0;
+		passthru( $command, $exit_code );
+
+		if ( 0 !== $exit_code ) {
+			exit( $exit_code );
+		}
+	}
+	exit( 0 );
+}
+
+/*
+ * A default configuration named without an output directory writes to its own,
+ * so that naming phpstan-strict.neon.dist alone cannot write its baselines over
+ * those of phpstan.neon.dist. So does a local override of one, such as
+ * phpstan-strict.neon, named as the `.dist` file is but without the suffix.
+ * Written to the default directory instead, the stricter analysis of only the
+ * strict paths, with the baselines there suppressed, would retire every baseline of
+ * the whole codebase it does not report again.
+ */
+$config_relative   = trim( normalize_path( $config_option ), '/' );
+$config_output_dir = DEFAULT_CONFIGS[ $config_relative ] ?? DEFAULT_CONFIGS[ $config_relative . '.dist' ] ?? DEFAULT_OUTPUT_DIR;
+
+if ( null === $output_option ) {
+	$output_option = $config_output_dir;
 }
 
 $config_path = $repo_root . '/' . ltrim( $config_option, '/' );
@@ -258,8 +333,6 @@ $analysis_tmp_dir = $repo_root . '/.cache/baselines';
  * readings of everything it does not cover. Keying the directory on the
  * configuration keeps each one's reflection to itself.
  */
-$config_relative = trim( normalize_path( $config_option ), '/' );
-
 if ( DEFAULT_CONFIG !== $config_relative ) {
 	$analysis_tmp_dir .= '-' . (string) preg_replace( '/[^A-Za-z0-9._]+/', '-', $config_relative );
 }
@@ -301,14 +374,55 @@ $command = sprintf(
 	escapeshellarg( $memory_limit )
 );
 
+/*
+ * The baselines only take effect through a loader in their own directory. It is
+ * written on every run, so that the committed loader of the default directory, and
+ * that of any other, stay what build_loader() makes rather than drifting from it
+ * unnoticed. A directory given with `--output-dir` that had none is not included
+ * by anything yet, so say so.
+ *
+ * It is written before the analysis rather than after, since a configuration may
+ * already include it, and PHPStan refuses to run with an include that is missing.
+ * That is how the baselines of a new configuration are first generated: add the
+ * loader of its directory to its `includes`, then run this with `--config` and
+ * `--output-dir` naming them. With the directory suppressed, the loader includes
+ * nothing during the analysis either way.
+ *
+ * `--combined` writes nothing to disk, so a missing loader stays missing then.
+ */
+if ( ! $combined ) {
+	if ( ! is_dir( $output_dir ) && ! mkdir( $output_dir, 0755, true ) ) {
+		fwrite( STDERR, "Could not create $output_option\n" );
+		exit( 1 );
+	}
+
+	$loader_path     = $output_dir . '/loader.php';
+	$loader          = build_loader( $output_dir );
+	$loader_existed  = is_file( $loader_path );
+	$loader_contents = $loader_existed ? file_get_contents( $loader_path ) : false;
+
+	if ( $loader !== $loader_contents ) {
+		if ( false === file_put_contents( $loader_path, $loader ) ) {
+			fwrite( STDERR, "Could not write $output_option/loader.php\n" );
+			exit( 1 );
+		}
+
+		printf(
+			$loader_existed ? "%s: rewritten.\n" : "%s: written. The configuration has to include it for these baselines to take effect.\n",
+			$output_option . '/loader.php'
+		);
+	}
+}
+
 fwrite( STDERR, "Analyzing with $config_option, baselines in $output_option suppressed...\n" );
 
 /*
  * PHPStan inherits it, as do the worker processes it starts. It is the real path,
- * since that is what the loader's __DIR__ is. An output directory not created yet
- * holds no loader to match, so it is not set at all then. It is cleared first
- * either way, so that a value exported in the shell, perhaps naming another
- * directory, cannot switch off baselines this run means to keep.
+ * since that is what the loader's __DIR__ is. An output directory that does not
+ * exist, which only `--combined` leaves uncreated, holds no loader to match, so it
+ * is not set at all then. It is cleared first either way, so that a value
+ * exported in the shell, perhaps naming another directory, cannot switch off
+ * baselines this run means to keep.
  */
 putenv( GENERATING_BASELINES_ENV );
 $resolved_output_dir = realpath( $output_dir );
@@ -363,46 +477,17 @@ if ( $combined ) {
 	exit( 0 );
 }
 
-if ( ! is_dir( $output_dir ) && ! mkdir( $output_dir, 0755, true ) ) {
-	fwrite( STDERR, "Could not create $output_option\n" );
-	exit( 1 );
-}
-
-/*
- * The baselines only take effect through a loader in their own directory. It is
- * written on every run, so that the committed loader of the default directory, and
- * that of any other, stay what build_loader() makes rather than drifting from it
- * unnoticed. A directory given with `--output-dir` that had none is not included
- * by anything yet, so say so.
- */
-$loader_path     = $output_dir . '/loader.php';
-$loader          = build_loader( $output_dir );
-$loader_existed  = is_file( $loader_path );
-$loader_contents = $loader_existed ? file_get_contents( $loader_path ) : false;
-
-if ( $loader !== $loader_contents ) {
-	if ( false === file_put_contents( $loader_path, $loader ) ) {
-		fwrite( STDERR, "Could not write $output_option/loader.php\n" );
-		exit( 1 );
-	}
-
-	printf(
-		$loader_existed ? "%s: rewritten.\n" : "%s: written. Include it in the configuration for these baselines to take effect.\n",
-		$output_option . '/loader.php'
-	);
-}
-
 /*
  * The command each header gives for regenerating its baseline has to name the
- * configuration and the directory this run used, where they are not the
- * defaults. Without them, it would regenerate the default directory instead.
+ * configuration this run used, even the default one, since without a
+ * configuration named, every one in DEFAULT_CONFIGS is processed, and the
+ * baselines of the same identifier in each of their directories are rewritten.
+ * The directory is only named where it is not the configuration's own, since
+ * naming the configuration alone writes there.
  */
-$regenerate_options = '';
-if ( DEFAULT_CONFIG !== $config_relative ) {
-	$regenerate_options .= ' --config=' . $config_option;
-}
-if ( ! $is_default_output_dir ) {
-	$regenerate_options .= ' --output-dir=' . $output_option;
+$regenerate_options = ' --config=' . quote_shell_value( $config_option );
+if ( $config_output_dir !== trim( normalize_path( $output_option ), '/' ) ) {
+	$regenerate_options .= ' --output-dir=' . quote_shell_value( $output_option );
 }
 
 foreach ( $grouped as $identifier => $entries ) {
@@ -468,6 +553,10 @@ function get_usage(): string {
 		tests/phpstan/baselines/loader.php, so neither addition nor removal needs an
 		edit of it.
 
+		Without --config or --output-dir, this is done for phpstan.neon.dist into
+		tests/phpstan/baselines, and then for phpstan-strict.neon.dist into
+		tests/phpstan/baselines-strict. The other options apply to both.
+
 		Usage:
 		  composer phpstan:baselines [-- <options>]
 
@@ -478,16 +567,21 @@ function get_usage(): string {
 		                       rather than left behind empty.
 		                       Default: every identifier reported.
 		  --config=<path>      Configuration to analyze with, relative to the repository
-		                       root. Default: phpstan.neon.dist
+		                       root. Naming one processes only that configuration.
+		                       Default: both of the above.
 		  --output-dir=<path>  Where the per-identifier baselines are written, relative
 		                       to the repository root. Paths inside them are written
 		                       relative to this directory. A loader is written there
 		                       too, which the configuration has to include. Baselines
 		                       in other directories stay in force, so only the errors
 		                       they leave are written.
-		                       Default: tests/phpstan/baselines
+		                       Default: the directory of the configuration named
+		                       above, or of the one it overrides locally, such as
+		                       phpstan-strict.neon, or else tests/phpstan/baselines
 		  --combined           Print one combined baseline to stdout instead of writing
-		                       per-identifier files. Nothing is written to disk.
+		                       per-identifier files. Nothing is written to disk. Only
+		                       phpstan.neon.dist is analyzed, unless --config names
+		                       another configuration.
 		  --prune              Without analyzing anything, delete the baselines that no
 		                       longer list any entries, such as one emptied by running
 		                       PHPStan with --fix. With --identifier, only those
@@ -801,6 +895,22 @@ function quote_neon_value( string $value ): string {
 }
 
 /**
+ * Quotes a value for a command shown to be run in a shell, where it needs it.
+ *
+ * The command is only written into a baseline's header, to be copied from there,
+ * so a value is left as it is when the shell would read it that way, as the paths
+ * of the default configurations and their directories are. Any other value, such
+ * as a path with a space in it, is quoted, so the copied command still passes it
+ * as one argument.
+ *
+ * @param string $value Value to quote.
+ * @return string Value, quoted if the shell would otherwise split or expand it.
+ */
+function quote_shell_value( string $value ): string {
+	return 1 === preg_match( '#^[\w./-]+$#', $value ) ? $value : escapeshellarg( $value );
+}
+
+/**
  * Builds the header comment for a per-identifier baseline.
  *
  * @param non-falsy-string $identifier Error identifier, a group followed by a code.
@@ -822,11 +932,11 @@ function build_baseline_header( string $identifier, string $options = '' ): stri
 		#
 		# The goal is to empty this file and delete it.
 		#
-		# Generated by `composer phpstan:baselines`. Do not edit by hand; regenerate with
+		# Generated by `composer phpstan:baselines`. Do not edit by hand. Regenerate with:
 		#
 		#     composer phpstan:baselines -- --identifier=$identifier$options
 		#
-		# which reruns the analysis with the baselines in this directory suppressed, so
+		# This reruns the analysis with the baselines in this directory suppressed, so
 		# that their errors surface again, and rewrites only this file.
 
 		TEXT;
