@@ -115,6 +115,58 @@ class Tests_Image_Alttext extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_get_image_alttext() does not raise warnings when the extracted
+	 * XMP range contains binary bytes, as happens with Extended XMP split across
+	 * APP1 segments.
+	 *
+	 * @ticket 66666
+	 */
+	public function test_wp_get_image_alttext_does_not_raise_warnings_for_malformed_xmp() {
+		$file    = wp_tempnam( 'alttext-malformed-xmp' );
+		$content = '<x:xmpmeta xmlns:x="adobe:ns:meta/">'
+			. "\xFF\xE1\xFF\xC5"
+			. '</x:xmpmeta>';
+		file_put_contents( $file, $content );
+		$this->temp_files[] = $file;
+
+		$alt = wp_get_image_alttext( $file );
+
+		$this->assertSame( '', $alt );
+	}
+
+	/**
+	 * Tests that wp_get_image_alttext() keeps libxml errors that the caller has already collected.
+	 *
+	 * @ticket 66666
+	 *
+	 * @requires extension dom
+	 */
+	public function test_wp_get_image_alttext_keeps_callers_libxml_errors() {
+		$file = $this->create_temp_xmp_file( array( 'x-default' => 'Default Alt Text' ) );
+
+		$use_internal_errors = libxml_use_internal_errors( true );
+		libxml_clear_errors();
+
+		try {
+			// Queue an error the way a caller collecting its own libxml errors would.
+			$doc = new DOMDocument();
+			$doc->loadXML( '<a><b></a>' );
+			$caller_errors = libxml_get_errors();
+
+			$alt = wp_get_image_alttext( $file );
+
+			$errors_after = libxml_get_errors();
+		} finally {
+			libxml_clear_errors();
+			libxml_use_internal_errors( $use_internal_errors );
+		}
+
+		$this->assertNotEmpty( $caller_errors, 'The invalid XML should have queued a libxml error.' );
+		$this->assertSame( 'Default Alt Text', $alt );
+		$this->assertEquals( $caller_errors, $errors_after, 'The caller\'s libxml errors should be kept.' );
+	}
+
+	/**
 	 * Tests possibility 1: exact match on site locale.
 	 */
 	public function test_wp_get_image_alttext_exact_locale_match() {
