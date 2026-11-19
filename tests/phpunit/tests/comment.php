@@ -2602,7 +2602,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @param string $column        Comment table column name.
 	 * @param string $prefix        ASCII prefix before the four-byte characters.
 	 * @param int    $count         Number of four-byte characters.
-	 * @param bool   $should_insert Whether the encoded value fits in the column.
+	 * @param bool   $should_insert Whether the encoded value fits the comment field limit.
 	 */
 	public function test_wp_handle_comment_submission_checks_encoded_length( $input, $column, $prefix, $count, $should_insert ): void {
 		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
@@ -2630,10 +2630,10 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	public function data_comment_encoded_length() {
 		return array(
-			'255-byte author'     => array( 'author', 'comment_author', 'abc', 28, true ),
-			'256-byte author'     => array( 'author', 'comment_author', 'abcd', 28, false ),
-			'65,535-byte content' => array( 'comment', 'comment_content', 'abcdef', 7281, true ),
-			'65,536-byte content' => array( 'comment', 'comment_content', 'abcdefg', 7281, false ),
+			'245-byte author'     => array( 'author', 'comment_author', 'ab', 27, true ),
+			'246-byte author'     => array( 'author', 'comment_author', 'abc', 27, false ),
+			'65,525-byte content' => array( 'comment', 'comment_content', 'abcde', 7280, true ),
+			'65,526-byte content' => array( 'comment', 'comment_content', 'abcdef', 7280, false ),
 		);
 	}
 
@@ -2641,12 +2641,12 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @ticket 65700
 	 * @covers ::wp_new_comment
 	 */
-	public function test_wp_new_comment_rejects_author_whose_encoded_value_exceeds_column_after_filtering(): void {
+	public function test_wp_new_comment_rejects_overlong_encoded_author_on_retry(): void {
 		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
 		add_filter(
 			'pre_comment_author_name',
 			static function ( $author ) {
-				return 'd' . $author;
+				return 'Comment author ' . $author;
 			}
 		);
 
@@ -2654,7 +2654,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		$result = wp_handle_comment_submission(
 			array(
 				'comment_post_ID' => self::$post_id,
-				'author'          => 'abc' . str_repeat( '😀', 28 ),
+				'author'          => 'ab' . str_repeat( '😀', 27 ),
 				'email'           => 'author@example.org',
 				'comment'         => 'Comment with an overlong filtered author name.',
 			)

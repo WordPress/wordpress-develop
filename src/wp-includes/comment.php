@@ -1326,7 +1326,7 @@ function wp_get_comment_fields_max_lengths() {
 }
 
 /**
- * Checks submitted comment field lengths and the storage limits for the author and content.
+ * Checks comment field lengths after preparing the author and content for storage.
  *
  * @since 4.7.0
  *
@@ -1338,7 +1338,8 @@ function wp_get_comment_fields_max_lengths() {
 function wp_check_comment_data_max_lengths( $comment_data ) {
 	global $wpdb;
 
-	$max_lengths = wp_get_comment_fields_max_lengths();
+	$comment_data = _wp_encode_4byte_chars_in_fields( $comment_data, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+	$max_lengths  = wp_get_comment_fields_max_lengths();
 
 	if ( isset( $comment_data['comment_author'] ) && mb_strlen( $comment_data['comment_author'], '8bit' ) > $max_lengths['comment_author'] ) {
 		return new WP_Error( 'comment_author_column_length', __( '<strong>Error:</strong> Your name is too long.' ), 200 );
@@ -1353,46 +1354,6 @@ function wp_check_comment_data_max_lengths( $comment_data ) {
 	}
 
 	if ( isset( $comment_data['comment_content'] ) && mb_strlen( $comment_data['comment_content'], '8bit' ) > $max_lengths['comment_content'] ) {
-		return new WP_Error( 'comment_content_column_length', __( '<strong>Error:</strong> Your comment is too long.' ), 200 );
-	}
-
-	$stored = _wp_encode_4byte_chars_in_fields( $comment_data, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
-
-	return _wp_check_comment_data_storage_lengths( $stored );
-}
-
-/**
- * Checks the column lengths of the author and content prepared for storage.
- *
- * @since 7.2.0
- * @access private
- * @ignore
- * @global wpdb $wpdb WordPress database abstraction object.
- * @param array $stored Array of unslashed comment data prepared for storage.
- * @return WP_Error|true WP_Error when the author or content exceeds its column length, otherwise true.
- */
-function _wp_check_comment_data_storage_lengths( $stored ) {
-	global $wpdb;
-
-	foreach ( array( 'comment_author', 'comment_content' ) as $field ) {
-		if ( ! isset( $stored[ $field ] ) || ! is_string( $stored[ $field ] ) ) {
-			continue;
-		}
-
-		$col_length = $wpdb->get_col_length( $wpdb->comments, $field );
-		if ( ! is_array( $col_length ) ) {
-			continue;
-		}
-
-		$length = 'byte' === $col_length['type'] ? strlen( $stored[ $field ] ) : mb_strlen( $stored[ $field ], 'UTF-8' );
-		if ( $length <= $col_length['length'] ) {
-			continue;
-		}
-
-		if ( 'comment_author' === $field ) {
-			return new WP_Error( 'comment_author_column_length', __( '<strong>Error:</strong> Your name is too long.' ), 200 );
-		}
-
 		return new WP_Error( 'comment_content_column_length', __( '<strong>Error:</strong> Your comment is too long.' ), 200 );
 	}
 
@@ -2620,14 +2581,14 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 			}
 
 			if ( $stored[ $field ] !== $unslashed[ $field ] ) {
-				$value                 = $stored[ $field ];
-				$check_storage_lengths = _wp_check_comment_data_storage_lengths( array( $field => $value ) );
-				if ( is_wp_error( $check_storage_lengths ) ) {
-					return $wp_error ? $check_storage_lengths : false;
+				$value         = $stored[ $field ];
+				$check_lengths = wp_check_comment_data_max_lengths( array( $field => $value ) );
+				if ( is_wp_error( $check_lengths ) ) {
+					return $wp_error ? $check_lengths : false;
 				}
 
 				// Keep the original characters for comment filters when the encoded value is valid.
-				if ( $value === $wpdb->strip_invalid_text_for_column( $wpdb->comments, $field, $value ) ) {
+				if ( wp_is_valid_utf8( $value ) ) {
 					continue;
 				}
 			}
