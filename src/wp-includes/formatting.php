@@ -6202,7 +6202,7 @@ function wp_encode_emoji( $content ) {
  * `utf8`/`utf8mb3` columns instead of causing truncated or failed writes.
  *
  * @access private
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
