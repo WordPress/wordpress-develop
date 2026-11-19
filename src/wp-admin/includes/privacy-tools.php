@@ -74,7 +74,7 @@ function _wp_personal_data_handle_actions() {
 	if ( isset( $_POST['privacy_action_email_retry'] ) ) {
 		check_admin_referer( 'bulk-privacy_requests' );
 
-		$request_id = absint( current( array_keys( (array) wp_unslash( $_POST['privacy_action_email_retry'] ) ) ) );
+		$request_id = absint( array_key_first( (array) wp_unslash( $_POST['privacy_action_email_retry'] ) ) );
 		$result     = _wp_privacy_resend_request( $request_id );
 
 		if ( is_wp_error( $result ) ) {
@@ -204,7 +204,13 @@ function _wp_personal_data_cleanup_requests() {
 			'fields'         => 'ids',
 			'date_query'     => array(
 				array(
-					'column' => 'post_modified_gmt',
+					/*
+					 * The local-time column must be used here, not post_modified_gmt:
+					 * WP_Date_Query resolves relative date strings like "N seconds ago"
+					 * in the site's timezone, so comparing against the GMT column would
+					 * shift the expiry window by the site's UTC offset.
+					 */
+					'column' => 'post_modified',
 					'before' => $expires . ' seconds ago',
 				),
 			),
@@ -581,6 +587,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
  * Send an email to the user with a link to the personal data export file
  *
  * @since 4.9.6
+ * @since 7.2.0 Returns a `WP_Error` if the request is not confirmed or completed.
  *
  * @param int $request_id The request ID for this personal data export.
  * @return true|WP_Error True on success or `WP_Error` on failure.
@@ -591,6 +598,10 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 
 	if ( ! $request || 'export_personal_data' !== $request->action_name ) {
 		return new WP_Error( 'invalid_request', __( 'Invalid request ID when sending personal data export email.' ) );
+	}
+
+	if ( ! in_array( $request->status, array( 'request-confirmed', 'request-completed' ), true ) ) {
+		return new WP_Error( 'invalid_request', __( 'Invalid request status when sending personal data export email.' ) );
 	}
 
 	// Localize message content for user; fallback to site default for visitors.
