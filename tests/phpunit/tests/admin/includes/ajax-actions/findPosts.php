@@ -33,6 +33,12 @@ class Tests_Admin_Includes_AjaxActions_findPosts extends WP_Ajax_UnitTestCase {
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
+	public function tear_down(): void {
+		unregister_post_type( 'wptests_private' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Dispatches a search and returns the decoded JSON response.
 	 *
