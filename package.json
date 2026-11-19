@@ -30,7 +30,6 @@
 		"@wordpress/e2e-test-utils": "8.1.2",
 		"@wordpress/scripts": "24.1.2",
 		"autoprefixer": "^9.8.8",
-		"chalk": "5.1.0",
 		"check-node-version": "4.2.1",
 		"copy-webpack-plugin": "11.0.0",
 		"cssnano": "4.1.11",
@@ -70,7 +69,6 @@
 		"source-map-loader": "4.0.0",
 		"terser-webpack-plugin": "5.3.6",
 		"uglify-js": "^3.17.3",
-		"uuid": "9.0.0",
 		"wait-on": "6.0.1",
 		"webpack": "5.74.0",
 		"webpack-livereload-plugin": "3.0.2"
