@@ -185,7 +185,7 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 		// Should be empty when there is an invalid attachment_id.
 		ob_start();
 		$widget->render_media( array(
-			'attachment_id' => 777,
+			'attachment_id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 		) );
 		$output = ob_get_clean();
 		$this->assertEmpty( $output );
