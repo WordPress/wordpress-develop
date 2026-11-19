@@ -1167,8 +1167,24 @@ class WP_Block_Processor {
 		return true;
 
 		incomplete:
-		$this->state      = self::COMPLETE;
 		$this->last_error = self::INCOMPLETE_INPUT;
+
+		/*
+		 * Text before the partial delimiter is still HTML, so visit it before stopping.
+		 * This matches the behavior when the document ends in `<`, `<!`, or `<!-`.
+		 */
+		if ( is_int( $comment_opening_at ) && $comment_opening_at > $after_prev_delimiter ) {
+			$this->state                    = self::HTML_SPAN;
+			$this->after_previous_delimiter = $after_prev_delimiter;
+			$this->matched_delimiter_at     = $comment_opening_at;
+			$this->matched_delimiter_length = $end - $comment_opening_at;
+			$this->open_blocks_at[]         = $after_prev_delimiter;
+			$this->open_blocks_length[]     = 0;
+			$this->was_void                 = true;
+			return true;
+		}
+
+		$this->state = self::COMPLETE;
 		return false;
 	}
 

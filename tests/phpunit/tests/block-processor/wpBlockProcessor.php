@@ -484,6 +484,66 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that the HTML before a partial block delimiter at the end
+	 * of a document is still visited before reporting incomplete input.
+	 *
+	 * @ticket 66756
+	 *
+	 * @dataProvider data_html_before_partial_delimiter_at_end_of_document
+	 *
+	 * @covers ::next_token()
+	 *
+	 * @param string   $html   Input document ending in a partial block delimiter.
+	 * @param string[] $tokens Expected tokens: block type for delimiters, `#` and the content for HTML spans.
+	 */
+	public function test_visits_html_before_partial_delimiter_at_end_of_document( $html, $tokens ): void {
+		$processor = new WP_Block_Processor( $html );
+
+		$found = array();
+		while ( $processor->next_token() ) {
+			$found[] = $processor->is_html()
+				? '#' . $processor->get_html_content()
+				: $processor->get_block_type();
+		}
+
+		$this->assertSame(
+			$tokens,
+			$found,
+			'Should have visited every token before the partial delimiter.'
+		);
+
+		$this->assertSame(
+			WP_Block_Processor::INCOMPLETE_INPUT,
+			$processor->get_last_error(),
+			'Should have reported incomplete input.'
+		);
+
+		$this->assertFalse(
+			$processor->next_token(),
+			'Should not proceed after reporting incomplete input.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string[]}>
+	 */
+	public static function data_html_before_partial_delimiter_at_end_of_document(): array {
+		return array(
+			'Text, then <!-'                    => array( 'text<!-', array( '#text' ) ),
+			'Text, then <!--'                   => array( 'text<!--', array( '#text' ) ),
+			'Text, then partial opener'         => array( 'text<!-- wp:a', array( '#text' ) ),
+			'Text, then partial attributes'     => array( 'text<!-- wp:a {"b":1', array( '#text' ) ),
+			'Text, then partial closer'         => array( 'text<!-- /wp', array( '#text' ) ),
+			'Opener, text, then partial opener' => array( '<!-- wp:a -->text<!-- wp:b', array( 'core/a', '#text' ) ),
+			'Comment kept with HTML before'     => array( 'text<!-- c --><!-- wp:b', array( '#text<!-- c -->' ) ),
+			'Opener, then partial opener'       => array( '<!-- wp:a --><!-- wp:b', array( 'core/a' ) ),
+			'Only a partial opener'             => array( '<!-- wp:a', array() ),
+		);
+	}
+
+	/**
 	 * Verifies that block delimiters are matched even with malformed
 	 * JSON attributes as long as they start and end with curly brackets.
 	 *
