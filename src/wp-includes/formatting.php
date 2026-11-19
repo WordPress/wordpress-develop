@@ -6201,6 +6201,7 @@ function wp_encode_emoji( $content ) {
  * that emoji (and other 4-byte characters) are stored as HTML entities on
  * `utf8`/`utf8mb3` columns instead of causing truncated or failed writes.
  *
+ * @ignore
  * @access private
  * @since 7.2.0
  *
