@@ -44,6 +44,7 @@ class WP_Widget_RSS extends WP_Widget {
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current RSS widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		if ( isset( $instance['error'] ) && $instance['error'] ) {
 			return;
@@ -155,6 +156,7 @@ class WP_Widget_RSS extends WP_Widget {
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Updated settings to save.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$testurl = ( isset( $new_instance['url'] ) && ( ! isset( $old_instance['url'] ) || ( $new_instance['url'] !== $old_instance['url'] ) ) );
 		return wp_widget_rss_process( $new_instance, $testurl );
@@ -167,6 +169,7 @@ class WP_Widget_RSS extends WP_Widget {
 	 *
 	 * @param array $instance Current settings.
 	 */
+	#[Override]
 	public function form( $instance ) {
 		if ( empty( $instance ) ) {
 			$instance = array(

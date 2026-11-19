@@ -32,6 +32,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 	 *
 	 * @return array<string, WP_Taxonomy> Array of registered taxonomy objects keyed by their name.
 	 */
+	#[Override]
 	public function get_object_subtypes() {
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'objects' );
 
@@ -58,6 +59,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 	 * @param string $object_subtype Optional. Taxonomy name. Default empty.
 	 * @return array[] Array of URL information for a sitemap.
 	 */
+	#[Override]
 	public function get_url_list( $page_num, $object_subtype = '' ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$taxonomy = $object_subtype;
@@ -144,6 +146,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 	 * @param string $object_subtype Optional. Taxonomy name. Default empty.
 	 * @return int Total number of pages.
 	 */
+	#[Override]
 	public function get_max_num_pages( $object_subtype = '' ) {
 		if ( empty( $object_subtype ) ) {
 			return 0;

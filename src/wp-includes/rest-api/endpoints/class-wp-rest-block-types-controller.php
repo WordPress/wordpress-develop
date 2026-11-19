@@ -55,6 +55,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[Override]
 	public function register_routes() {
 
 		register_rest_route(
@@ -120,6 +121,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_items_permissions_check( $request ) {
 		return $this->check_read_permission();
 	}
@@ -132,6 +134,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_items( $request ) {
 		if ( $request->is_method( 'HEAD' ) ) {
 			// Return early as this handler doesn't add any response headers.
@@ -171,6 +174,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		$check = $this->check_read_permission();
 		if ( is_wp_error( $check ) ) {
@@ -230,6 +234,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		$block_name = sprintf( '%s/%s', $request['namespace'], $request['name'] );
 		$block_type = $this->get_block( $block_name );
@@ -253,6 +258,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Block type data.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$block_type = $item;
@@ -418,6 +424,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -840,6 +847,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[Override]
 	public function get_collection_params() {
 		return array(
 			'context'   => $this->get_context_param( array( 'default' => 'view' ) ),

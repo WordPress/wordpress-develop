@@ -70,6 +70,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[Override]
 	public function register_routes() {
 
 		register_rest_route(
@@ -157,6 +158,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_items_permissions_check( $request ) {
 
 		$post_type = get_post_type_object( $this->post_type );
@@ -212,6 +214,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_items( $request ) {
 
 		// Ensure a search string is set in case the orderby is set to 'relevance'.
@@ -576,6 +579,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object or false otherwise.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		$post = $this->get_post( $request['id'] );
 		if ( is_wp_error( $post ) ) {
@@ -659,6 +663,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		$post = $this->get_post( $request['id'] );
 		if ( is_wp_error( $post ) ) {
@@ -683,6 +688,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function create_item_permissions_check( $request ) {
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error(
@@ -737,6 +743,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error(
@@ -889,6 +896,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function update_item_permissions_check( $request ) {
 		$post = $this->get_post( $request['id'] );
 		if ( is_wp_error( $post ) ) {
@@ -940,6 +948,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function update_item( $request ) {
 		$valid_check = $this->get_post( $request['id'] );
 		if ( is_wp_error( $valid_check ) ) {
@@ -1061,6 +1070,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function delete_item_permissions_check( $request ) {
 		$post = $this->get_post( $request['id'] );
 		if ( is_wp_error( $post ) ) {
@@ -1086,6 +1096,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function delete_item( $request ) {
 		$post = $this->get_post( $request['id'] );
 		if ( is_wp_error( $post ) ) {
@@ -1284,6 +1295,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return stdClass|WP_Error Post object or WP_Error.
 	 */
+	#[Override]
 	protected function prepare_item_for_database( $request ) {
 		$prepared_post  = new stdClass();
 		$current_status = '';
@@ -1880,6 +1892,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
@@ -2425,6 +2438,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *     ...
 	 * }
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -3019,6 +3033,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[Override]
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
 

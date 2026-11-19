@@ -33,6 +33,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 	 *
 	 * @return array<string, WP_Post_Type> Array of registered post type objects keyed by their name.
 	 */
+	#[Override]
 	public function get_object_subtypes() {
 		$post_types = get_post_types( array( 'public' => true ), 'objects' );
 		unset( $post_types['attachment'] );
@@ -60,6 +61,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 	 * @param string $object_subtype Optional. Post type name. Default empty.
 	 * @return array[] Array of URL information for a sitemap.
 	 */
+	#[Override]
 	public function get_url_list( $page_num, $object_subtype = '' ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$post_type = $object_subtype;
@@ -177,6 +179,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 	 * @param string $object_subtype Optional. Post type name. Default empty.
 	 * @return int Total number of pages.
 	 */
+	#[Override]
 	public function get_max_num_pages( $object_subtype = '' ) {
 		if ( empty( $object_subtype ) ) {
 			return 0;

@@ -47,6 +47,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 */
+	#[Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -112,6 +113,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_items_permissions_check( $request ) {
 		$this->retrieve_widgets();
 		if ( isset( $request['sidebar'] ) && $this->check_read_sidebar_permission( $request['sidebar'] ) ) {
@@ -135,6 +137,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[Override]
 	public function get_items( $request ) {
 		if ( $request->is_method( 'HEAD' ) ) {
 			// Return early as this handler doesn't add any response headers.
@@ -175,6 +178,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		$this->retrieve_widgets();
 
@@ -210,6 +214,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		$this->retrieve_widgets();
 
@@ -235,6 +240,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function create_item_permissions_check( $request ) {
 		return $this->permissions_check( $request );
 	}
@@ -247,6 +253,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function create_item( $request ) {
 		$sidebar_id = $request['sidebar'];
 
@@ -279,6 +286,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function update_item_permissions_check( $request ) {
 		return $this->permissions_check( $request );
 	}
@@ -293,6 +301,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function update_item( $request ) {
 		global $wp_widget_factory;
 
@@ -353,6 +362,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function delete_item_permissions_check( $request ) {
 		return $this->permissions_check( $request );
 	}
@@ -368,6 +378,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function delete_item( $request ) {
 		global $wp_widget_factory, $wp_registered_widget_updates;
 
@@ -668,6 +679,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $item, $request ) {
 		global $wp_widget_factory, $wp_registered_widgets;
 
@@ -788,6 +800,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @return array[]
 	 */
+	#[Override]
 	public function get_collection_params() {
 		return array(
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
@@ -805,6 +818,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );

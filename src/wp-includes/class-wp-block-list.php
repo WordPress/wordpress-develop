@@ -74,6 +74,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @return bool Whether block exists.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetExists( $offset ) {
 		return isset( $this->blocks[ $offset ] );
 	}
@@ -89,6 +90,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @return WP_Block|null Block value if exists, or null.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetGet( $offset ) {
 		$block = $this->blocks[ $offset ];
 
@@ -112,6 +114,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @param array|WP_Block $value  Block value.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetSet( $offset, $value ) {
 		if ( is_null( $offset ) ) {
 			$this->blocks[] = $value;
@@ -130,6 +133,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @param int $offset Offset of block value to unset.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetUnset( $offset ) {
 		unset( $this->blocks[ $offset ] );
 	}
@@ -142,6 +146,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @link https://www.php.net/manual/en/iterator.rewind.php
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function rewind() {
 		reset( $this->blocks );
 	}
@@ -156,6 +161,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @return WP_Block|null Current element.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function current() {
 		return $this->offsetGet( $this->key() );
 	}
@@ -170,6 +176,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @return int|null Key of the current element.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function key() {
 		return key( $this->blocks );
 	}
@@ -182,6 +189,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @link https://www.php.net/manual/en/iterator.next.php
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function next() {
 		next( $this->blocks );
 	}
@@ -194,6 +202,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @link https://www.php.net/manual/en/iterator.valid.php
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function valid() {
 		return null !== key( $this->blocks );
 	}
@@ -208,6 +217,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @return int Block count.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function count() {
 		return count( $this->blocks );
 	}

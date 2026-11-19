@@ -41,6 +41,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -97,6 +98,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
+	#[Override]
 	public function get_items_permissions_check( $request ) {
 		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
 			return true;
@@ -122,6 +124,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
 			return true;
@@ -174,6 +177,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		$wp_theme = wp_get_theme( $request['stylesheet'] );
 		if ( ! $wp_theme->exists() ) {
@@ -196,6 +200,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_items( $request ) {
 		$themes = array();
 
@@ -236,6 +241,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$theme = $item;
@@ -477,6 +483,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -717,6 +724,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[Override]
 	public function get_collection_params() {
 		$query_params = array(
 			'status' => array(

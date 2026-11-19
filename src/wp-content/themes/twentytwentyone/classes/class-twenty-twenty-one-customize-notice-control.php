@@ -33,6 +33,7 @@ class Twenty_Twenty_One_Customize_Notice_Control extends WP_Customize_Control {
 	 *
 	 * @return void
 	 */
+	#[Override]
 	public function render_content() {
 		?>
 		<div class="notice notice-warning">

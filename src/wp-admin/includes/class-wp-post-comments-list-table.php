@@ -19,6 +19,7 @@ class WP_Post_Comments_List_Table extends WP_Comments_List_Table {
 	/**
 	 * @return array
 	 */
+	#[Override]
 	protected function get_column_info() {
 		return array(
 			array(
@@ -40,6 +41,7 @@ class WP_Post_Comments_List_Table extends WP_Comments_List_Table {
 	 *
 	 * @phpstan-return non-empty-list<string>
 	 */
+	#[Override]
 	protected function get_table_classes() {
 		$classes   = parent::get_table_classes();
 		$classes[] = 'wp-list-table';
@@ -50,6 +52,7 @@ class WP_Post_Comments_List_Table extends WP_Comments_List_Table {
 	/**
 	 * @param bool $output_empty
 	 */
+	#[Override]
 	public function display( $output_empty = false ) {
 		$singular = $this->_args['singular'];
 
@@ -77,6 +80,7 @@ class WP_Post_Comments_List_Table extends WP_Comments_List_Table {
 	 * @param bool $comment_status
 	 * @return int
 	 */
+	#[Override]
 	public function get_per_page( $comment_status = false ) {
 		return 10;
 	}

@@ -69,6 +69,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Recent Comments widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		static $first_instance = true;
 
@@ -170,6 +171,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Updated settings to save.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$instance           = $old_instance;
 		$instance['title']  = sanitize_text_field( $new_instance['title'] );
@@ -184,6 +186,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 	 *
 	 * @param array $instance Current settings.
 	 */
+	#[Override]
 	public function form( $instance ) {
 		$title  = $instance['title'] ?? '';
 		$number = isset( $instance['number'] ) ? absint( $instance['number'] ) : 5;

@@ -50,6 +50,7 @@ class WP_REST_Term_Search_Handler extends WP_REST_Search_Handler {
 	 *                                      the requested taxonomy does not exist.
 	 * }
 	 */
+	#[Override]
 	public function search_items( WP_REST_Request $request ) {
 		$taxonomies = $request[ WP_REST_Search_Controller::PROP_SUBTYPE ];
 		if ( in_array( WP_REST_Search_Controller::TYPE_ANY, $taxonomies, true ) ) {
@@ -132,6 +133,7 @@ class WP_REST_Term_Search_Handler extends WP_REST_Search_Handler {
 	 *     @type string $type  Optional. Term taxonomy name.
 	 * }
 	 */
+	#[Override]
 	public function prepare_item( $id, array $fields ) {
 		$term = get_term( $id );
 
@@ -161,6 +163,7 @@ class WP_REST_Term_Search_Handler extends WP_REST_Search_Handler {
 	 * @param int $id Item ID.
 	 * @return array[] Array of link arrays for the given item.
 	 */
+	#[Override]
 	public function prepare_item_links( $id ) {
 		$term = get_term( $id );
 

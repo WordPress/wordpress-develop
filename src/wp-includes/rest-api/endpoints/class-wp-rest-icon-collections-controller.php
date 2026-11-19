@@ -32,6 +32,7 @@ class WP_REST_Icon_Collections_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.1.0
 	 */
+	#[Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -78,6 +79,7 @@ class WP_REST_Icon_Collections_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_items_permissions_check(
 		// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		$request
@@ -107,6 +109,7 @@ class WP_REST_Icon_Collections_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		$check = $this->get_items_permissions_check( $request );
 		if ( is_wp_error( $check ) ) {
@@ -125,6 +128,7 @@ class WP_REST_Icon_Collections_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_items( $request ) {
 		$response    = array();
 		$collections = WP_Icon_Collections_Registry::get_instance()->get_all_registered();
@@ -146,6 +150,7 @@ class WP_REST_Icon_Collections_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		$collection = $this->get_icon_collection( $request['slug'] );
 		if ( is_wp_error( $collection ) ) {
@@ -193,6 +198,7 @@ class WP_REST_Icon_Collections_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $item, $request ) {
 		$fields = $this->get_fields_for_response( $request );
 		$keys   = array(
@@ -220,6 +226,7 @@ class WP_REST_Icon_Collections_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -263,6 +270,7 @@ class WP_REST_Icon_Collections_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[Override]
 	public function get_collection_params() {
 		$query_params                       = parent::get_collection_params();
 		$query_params['context']['default'] = 'view';

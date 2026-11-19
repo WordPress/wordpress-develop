@@ -33,6 +33,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -108,6 +109,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		global $post;
 
@@ -150,6 +152,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		global $post;
 
@@ -201,6 +204,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->schema;

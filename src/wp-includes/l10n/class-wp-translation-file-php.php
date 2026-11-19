@@ -18,6 +18,7 @@ class WP_Translation_File_PHP extends WP_Translation_File {
 	 *
 	 * @since 6.5.0
 	 */
+	#[Override]
 	protected function parse_file() {
 		$this->parsed = true;
 
@@ -44,6 +45,7 @@ class WP_Translation_File_PHP extends WP_Translation_File {
 	 *
 	 * @return string Translation file contents.
 	 */
+	#[Override]
 	public function export(): string {
 		$data = array_merge( $this->headers, array( 'messages' => $this->entries ) );
 

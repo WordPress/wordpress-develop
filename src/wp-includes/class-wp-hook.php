@@ -505,6 +505,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @return bool True if the offset exists, false otherwise.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetExists( $offset ) {
 		return isset( $this->callbacks[ $offset ] );
 	}
@@ -521,6 +522,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @phpstan-return array<non-decimal-int-string, Hook_Callback>|null
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetGet( $offset ) {
 		return $this->callbacks[ $offset ] ?? null;
 	}
@@ -537,6 +539,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @phpstan-param array<non-decimal-int-string, Hook_Callback> $value
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetSet( $offset, $value ) {
 		if ( is_null( $offset ) ) {
 			$this->callbacks[] = $value;
@@ -557,6 +560,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @param int $offset The offset to unset.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetUnset( $offset ) {
 		unset( $this->callbacks[ $offset ] );
 		$this->priorities = array_keys( $this->callbacks );
@@ -573,6 +577,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @phpstan-return array<non-decimal-int-string, Hook_Callback>|false
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function current() {
 		return current( $this->callbacks );
 	}
@@ -588,6 +593,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @phpstan-return array<non-decimal-int-string, Hook_Callback>|false
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function next() {
 		return next( $this->callbacks );
 	}
@@ -602,6 +608,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @return int|null Returns current priority on success, or NULL on failure
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function key() {
 		return key( $this->callbacks );
 	}
@@ -616,6 +623,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @return bool Whether the current position is valid.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function valid() {
 		return key( $this->callbacks ) !== null;
 	}
@@ -628,6 +636,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @link https://www.php.net/manual/en/iterator.rewind.php
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function rewind() {
 		reset( $this->callbacks );
 	}

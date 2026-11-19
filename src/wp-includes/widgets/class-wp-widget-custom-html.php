@@ -62,6 +62,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	 * @param int $number Optional. The unique order number of this widget instance
 	 *                    compared to other instances of the same class. Default -1.
 	 */
+	#[Override]
 	public function _register_one( $number = -1 ) {
 		parent::_register_one( $number );
 		if ( $this->registered ) {
@@ -114,6 +115,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Custom HTML widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		global $post;
 
@@ -187,6 +189,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Settings to save or bool false to cancel saving.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$instance          = array_merge( $this->default_instance, $old_instance );
 		$instance['title'] = sanitize_text_field( $new_instance['title'] );
@@ -246,6 +249,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	 *
 	 * @param array $instance Current instance.
 	 */
+	#[Override]
 	public function form( $instance ) {
 		$instance = wp_parse_args( (array) $instance, $this->default_instance );
 		?>

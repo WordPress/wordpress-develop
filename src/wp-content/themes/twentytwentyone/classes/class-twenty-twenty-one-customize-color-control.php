@@ -40,6 +40,7 @@ class Twenty_Twenty_One_Customize_Color_Control extends WP_Customize_Color_Contr
 	 *
 	 * @return void
 	 */
+	#[Override]
 	public function enqueue() {
 		parent::enqueue();
 
@@ -62,6 +63,7 @@ class Twenty_Twenty_One_Customize_Color_Control extends WP_Customize_Color_Contr
 	 *
 	 * @return void
 	 */
+	#[Override]
 	public function to_json() {
 		parent::to_json();
 		$this->json['palette'] = $this->palette;

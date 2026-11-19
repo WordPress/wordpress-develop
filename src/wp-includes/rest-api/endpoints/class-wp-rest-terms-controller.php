@@ -79,6 +79,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[Override]
 	public function register_routes() {
 
 		register_rest_route(
@@ -181,6 +182,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return bool|WP_Error True if the request has read access, otherwise false or WP_Error object.
 	 */
+	#[Override]
 	public function get_items_permissions_check( $request ) {
 		$tax_obj = get_taxonomy( $this->taxonomy );
 
@@ -232,6 +234,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_items( $request ) {
 
 		// Retrieve the list of registered collection query parameters.
@@ -449,6 +452,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		$term = $this->get_term( $request['id'] );
 
@@ -475,6 +479,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		$term = $this->get_term( $request['id'] );
 		if ( is_wp_error( $term ) ) {
@@ -494,6 +499,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return bool|WP_Error True if the request has access to create items, otherwise false or WP_Error object.
 	 */
+	#[Override]
 	public function create_item_permissions_check( $request ) {
 
 		if ( ! $this->check_is_taxonomy_allowed( $this->taxonomy ) ) {
@@ -524,6 +530,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function create_item( $request ) {
 		if ( isset( $request['parent'] ) ) {
 			if ( ! is_taxonomy_hierarchical( $this->taxonomy ) ) {
@@ -640,6 +647,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, false or WP_Error object otherwise.
 	 */
+	#[Override]
 	public function update_item_permissions_check( $request ) {
 		$term = $this->get_term( $request['id'] );
 
@@ -666,6 +674,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function update_item( $request ) {
 		$term = $this->get_term( $request['id'] );
 		if ( is_wp_error( $term ) ) {
@@ -741,6 +750,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to delete the item, otherwise false or WP_Error object.
 	 */
+	#[Override]
 	public function delete_item_permissions_check( $request ) {
 		$term = $this->get_term( $request['id'] );
 
@@ -767,6 +777,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function delete_item( $request ) {
 		$term = $this->get_term( $request['id'] );
 		if ( is_wp_error( $term ) ) {
@@ -836,6 +847,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return object Term object.
 	 */
+	#[Override]
 	public function prepare_item_for_database( $request ) {
 		$prepared_term = new stdClass();
 
@@ -898,6 +910,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $item, $request ) {
 
 		// Don't prepare the response body for HEAD requests.
@@ -1042,6 +1055,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -1127,6 +1141,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[Override]
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
 		$taxonomy     = get_taxonomy( $this->taxonomy );

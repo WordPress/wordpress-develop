@@ -91,6 +91,7 @@ final class WP_Interactivity_Dangerous_HTML implements JsonSerializable, Iterato
 	 * @return array<string, bool> The marker: a single `wpServerHtml` entry set to `true`,
 	 *                             which `json_encode()` prints as `{"wpServerHtml":true}`.
 	 */
+	#[Override]
 	public function jsonSerialize(): array {
 		return array( 'wpServerHtml' => true );
 	}
@@ -105,6 +106,7 @@ final class WP_Interactivity_Dangerous_HTML implements JsonSerializable, Iterato
 	 *
 	 * @return Traversable<string, bool> An iterator yielding `wpServerHtml` => `true`, once.
 	 */
+	#[Override]
 	public function getIterator(): Traversable {
 		return new ArrayIterator( $this->jsonSerialize() );
 	}

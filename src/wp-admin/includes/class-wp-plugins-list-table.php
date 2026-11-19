@@ -82,6 +82,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @phpstan-return non-empty-list<string>
 	 */
+	#[Override]
 	protected function get_table_classes() {
 		return array( 'widefat', $this->_args['plural'] );
 	}
@@ -93,6 +94,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @return bool Whether the current user can activate plugins.
 	 */
+	#[Override]
 	public function ajax_user_can() {
 		return current_user_can( 'activate_plugins' );
 	}
@@ -110,6 +112,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 * @global string                                             $order   Sort direction, 'ASC' or 'DESC'.
 	 * @global string                                             $s       URL-encoded search term.
 	 */
+	#[Override]
 	public function prepare_items() {
 		global $status, $plugins, $totals, $page, $orderby, $order, $s;
 
@@ -446,6 +449,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @global array<string, array<string, array<string, mixed>>> $plugins Array of plugin data arrays grouped by status.
 	 */
+	#[Override]
 	public function no_items() {
 		global $plugins;
 
@@ -474,6 +478,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 * @param string $text     The 'submit' button label.
 	 * @param string $input_id ID attribute value for the search input field.
 	 */
+	#[Override]
 	public function search_box( $text, $input_id ) {
 		if ( empty( $_REQUEST['s'] ) && ! $this->has_items() ) {
 			return;
@@ -505,6 +510,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @return array<string, string> An associative array of column titles keyed by their column name.
 	 */
+	#[Override]
 	public function get_columns() {
 		global $status;
 
@@ -528,6 +534,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @return array<string, array<int, string|bool>|string> An associative array of sortable columns.
 	 */
+	#[Override]
 	protected function get_sortable_columns() {
 		return array();
 	}
@@ -542,6 +549,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @return array<string, string> An associative array of views.
 	 */
+	#[Override]
 	protected function get_views() {
 		global $totals, $status;
 
@@ -675,6 +683,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @return array<string, string> An associative array of bulk actions.
 	 */
+	#[Override]
 	protected function get_bulk_actions() {
 		global $status;
 
@@ -720,6 +729,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 * @param string $which The location of the bulk actions: Either 'top' or 'bottom'.
 	 *                      This is designated as optional for backward compatibility.
 	 */
+	#[Override]
 	public function bulk_actions( $which = '' ) {
 		global $status;
 
@@ -739,6 +749,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @param string $which The location: 'top' or 'bottom'.
 	 */
+	#[Override]
 	protected function extra_tablenav( $which ) {
 		global $status;
 
@@ -775,6 +786,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @return string|false The action name. False if no action was selected.
 	 */
+	#[Override]
 	public function current_action() {
 		if ( isset( $_POST['clear-recent-list'] ) ) {
 			return 'clear-recent-list';
@@ -790,6 +802,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @global string $status Current plugin status filter slug.
 	 */
+	#[Override]
 	public function display_rows() {
 		global $status;
 
@@ -815,6 +828,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 * @param array $item The current item. An array containing the plugin file path and plugin data.
 	 * @phpstan-param array{string, array<string, mixed>} $item
 	 */
+	#[Override]
 	public function single_row( $item ) {
 		global $status, $page, $s, $totals;
 		static $plugin_id_attrs = array();
@@ -1618,6 +1632,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @return string Unalterable name for the primary column, in this case, 'name'.
 	 */
+	#[Override]
 	protected function get_primary_column_name() {
 		return 'name';
 	}

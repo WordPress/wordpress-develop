@@ -38,6 +38,7 @@ class WP_REST_Entity_Actions_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.2.0
 	 */
+	#[Override]
 	public function register_routes() {
 		if ( $this->is_route_of_entity_items() ) {
 			return;
@@ -117,6 +118,7 @@ class WP_REST_Entity_Actions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_items_permissions_check( $request ) {
 		$kind = $request->get_param( 'kind' );
 		$name = $request->get_param( 'name' );
@@ -193,6 +195,7 @@ class WP_REST_Entity_Actions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_items( $request ) {
 		$kind = $request->get_param( 'kind' );
 		$name = $request->get_param( 'name' );
@@ -214,6 +217,7 @@ class WP_REST_Entity_Actions_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );

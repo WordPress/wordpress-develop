@@ -75,6 +75,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 *
 	 * @see register_rest_route()
 	 */
+	#[Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -163,6 +164,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $item, $request ) {
 		$template = _build_block_template_result_from_post( $item );
 		$response = $this->parent_controller->prepare_item_for_response( $template, $request );
@@ -201,6 +203,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Post|WP_Error Autosave post object if ID is valid, WP_Error otherwise.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		$parent = $this->get_parent( $request['parent'] );
 		if ( is_wp_error( $parent ) ) {
@@ -229,6 +232,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 * @param int $parent_id Supplied ID.
 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
 	 */
+	#[Override]
 	protected function get_parent( $parent_id ) {
 		return $this->revisions_controller->get_parent( $parent_id );
 	}
@@ -261,6 +265,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );

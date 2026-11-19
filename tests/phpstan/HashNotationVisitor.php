@@ -236,6 +236,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @param Node[] $nodes The nodes of the file.
 	 * @return null Always null, leaving the nodes as they are.
 	 */
+	#[\Override]
 	public function beforeTraverse( array $nodes ) {
 		$this->scope_local_types = array();
 		$this->resolves_names  = false;
@@ -249,6 +250,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @param Node $node The node being left.
 	 * @return null Always null, leaving the node as it is.
 	 */
+	#[\Override]
 	public function leaveNode( Node $node ) {
 		if ( $node instanceof Node\Stmt\ClassLike || $node instanceof Node\FunctionLike ) {
 			array_pop( $this->scope_local_types );
@@ -272,6 +274,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @param Node $node The node being entered.
 	 * @return null
 	 */
+	#[\Override]
 	public function enterNode( Node $node ): ?Node {
 		// Each namespace has imports of its own, so entering one starts afresh.
 		if ( $node instanceof Node\Stmt\Namespace_ ) {
@@ -997,6 +1000,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 				$this->resolves_names = $resolves_names;
 			}
 
+			#[\Override]
 			public function enterNode( DocNode $node ): DocNode {
 				if ( ( $node instanceof ArrayShapeItemNode || $node instanceof ObjectShapeItemNode ) && $node->keyName instanceof IdentifierTypeNode ) {
 					// A key written bare is a string, not a name, so it keeps its case.
@@ -1032,6 +1036,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 				return $this->resolves_names ? $name : $bare;
 			}
 
+			#[\Override]
 			public function leaveNode( DocNode $node ): DocNode {
 				/*
 				 * The order of a union or intersection says nothing, so `string|array`

@@ -54,6 +54,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	 *
 	 * @return array Schema for properties.
 	 */
+	#[Override]
 	public function get_instance_schema() {
 		$schema = array(
 			'title'          => array(
@@ -110,6 +111,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	 *
 	 * @param array $instance Widget instance props.
 	 */
+	#[Override]
 	public function render_media( $instance ) {
 		$instance = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
 
@@ -134,6 +136,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	 *
 	 * @since 4.9.0
 	 */
+	#[Override]
 	public function enqueue_admin_scripts() {
 		parent::enqueue_admin_scripts();
 
@@ -172,6 +175,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	 *
 	 * @since 4.9.0
 	 */
+	#[Override]
 	public function render_control_template_scripts() {
 		parent::render_control_template_scripts();
 		?>
@@ -244,6 +248,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	 * @param array $instance Widget instance props.
 	 * @return bool Whether widget has content.
 	 */
+	#[Override]
 	protected function has_content( $instance ) {
 		if ( empty( $instance['ids'] ) ) {
 			return false;

@@ -96,6 +96,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	 *                                                           inputs.
 	 * @return EmbeddingBuilder The SDK embedding builder instance.
 	 */
+	#[Override]
 	protected function create_sdk_builder( ProviderRegistry $registry, $input ): object {
 		return new EmbeddingBuilder( $registry, $input, AiClient::getEventDispatcher() );
 	}
@@ -107,6 +108,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	 *
 	 * @return string The error code prefix.
 	 */
+	#[Override]
 	protected function get_error_code_prefix(): string {
 		return 'embedding';
 	}
@@ -118,6 +120,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	 *
 	 * @return string The translated error message.
 	 */
+	#[Override]
 	protected function get_prevented_error_message(): string {
 		return __( 'Embedding generation was prevented by a filter.' );
 	}
@@ -129,6 +132,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	 *
 	 * @return bool Whether the embedding generation is prevented.
 	 */
+	#[Override]
 	protected function is_prevented_by_filter(): bool {
 		/**
 		 * Filters whether to prevent the embedding generation from being executed.
@@ -148,6 +152,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	 *
 	 * @return array<string, bool> The generating methods map.
 	 */
+	#[Override]
 	protected function get_generating_methods(): array {
 		return self::$generating_methods;
 	}
@@ -159,6 +164,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	 *
 	 * @return array<string, bool> The support check methods map.
 	 */
+	#[Override]
 	protected function get_support_check_methods(): array {
 		return self::$support_check_methods;
 	}

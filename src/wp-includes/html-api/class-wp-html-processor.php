@@ -699,6 +699,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @phpstan-param Query $query
 	 */
+	#[Override]
 	public function next_tag( $query = null ): bool {
 		$visit_closers = isset( $query['tag_closers'] ) && 'visit' === $query['tag_closers'];
 
@@ -793,6 +794,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @phpstan-impure
 	 */
+	#[Override]
 	public function next_token(): bool {
 		return $this->next_visitable_token();
 	}
@@ -895,6 +897,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether the current tag is a tag closer.
 	 */
+	#[Override]
 	public function is_tag_closer(): bool {
 		return $this->is_virtual()
 			? ( WP_HTML_Stack_Event::POP === $this->current_element->operation && '#tag' === $this->get_token_type() )
@@ -5141,6 +5144,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string One of "html", "math", or "svg".
 	 */
+	#[Override]
 	public function get_namespace(): string {
 		if ( ! isset( $this->current_element ) ) {
 			return parent::get_namespace();
@@ -5172,6 +5176,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @phpstan-return non-falsy-string|null
 	 */
+	#[Override]
 	public function get_tag(): ?string {
 		if ( null !== $this->last_error ) {
 			return null;
@@ -5213,6 +5218,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return bool Whether the currently matched tag contains the self-closing flag.
 	 */
+	#[Override]
 	public function has_self_closing_flag(): bool {
 		return $this->is_virtual() ? false : parent::has_self_closing_flag();
 	}
@@ -5239,6 +5245,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @phpstan-return non-falsy-string|null
 	 */
+	#[Override]
 	public function get_token_name(): ?string {
 		return $this->is_virtual()
 			? $this->current_element->token->node_name
@@ -5270,6 +5277,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null What kind of token is matched, or null.
 	 */
+	#[Override]
 	public function get_token_type(): ?string {
 		if ( $this->is_virtual() ) {
 			/*
@@ -5313,6 +5321,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $name Name of attribute whose value is requested.
 	 * @return string|true|null Value of attribute or `null` if not available. Boolean attributes return `true`.
 	 */
+	#[Override]
 	public function get_attribute( $name ) {
 		return $this->is_virtual() ? null : parent::get_attribute( $name );
 	}
@@ -5349,6 +5358,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string|bool $value The new attribute value.
 	 * @return bool Whether an attribute value was set.
 	 */
+	#[Override]
 	public function set_attribute( $name, $value ): bool {
 		return $this->is_virtual() ? false : parent::set_attribute( $name, $value );
 	}
@@ -5361,6 +5371,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $name The attribute name to remove.
 	 * @return bool Whether an attribute was removed.
 	 */
+	#[Override]
 	public function remove_attribute( $name ): bool {
 		return $this->is_virtual() ? false : parent::remove_attribute( $name );
 	}
@@ -5391,6 +5402,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $prefix Prefix of requested attribute names.
 	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
 	 */
+	#[Override]
 	public function get_attribute_names_with_prefix( $prefix ): ?array {
 		return $this->is_virtual() ? null : parent::get_attribute_names_with_prefix( $prefix );
 	}
@@ -5403,6 +5415,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $class_name The class name to add.
 	 * @return bool Whether the class was set to be added.
 	 */
+	#[Override]
 	public function add_class( $class_name ): bool {
 		return $this->is_virtual() ? false : parent::add_class( $class_name );
 	}
@@ -5415,6 +5428,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $class_name The class name to remove.
 	 * @return bool Whether the class was set to be removed.
 	 */
+	#[Override]
 	public function remove_class( $class_name ): bool {
 		return $this->is_virtual() ? false : parent::remove_class( $class_name );
 	}
@@ -5431,6 +5445,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
 	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
 	 */
+	#[Override]
 	public function has_class( $wanted_class ): ?bool {
 		return $this->is_virtual() ? null : parent::has_class( $wanted_class );
 	}
@@ -5451,6 +5466,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 */
+	#[Override]
 	public function class_list() {
 		return $this->is_virtual() ? null : parent::class_list();
 	}
@@ -5475,6 +5491,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string
 	 */
+	#[Override]
 	public function get_modifiable_text(): string {
 		return $this->is_virtual() ? '' : parent::get_modifiable_text();
 	}
@@ -5498,6 +5515,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null
 	 */
+	#[Override]
 	public function get_comment_type(): ?string {
 		return $this->is_virtual() ? null : parent::get_comment_type();
 	}
@@ -5513,6 +5531,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Name of the bookmark to remove.
 	 * @return bool Whether the bookmark already existed before removal.
 	 */
+	#[Override]
 	public function release_bookmark( $bookmark_name ): bool {
 		return parent::release_bookmark( "_{$bookmark_name}" );
 	}
@@ -5534,6 +5553,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
 	 */
+	#[Override]
 	public function seek( $bookmark_name ): bool {
 		// Flush any pending updates to the document before beginning.
 		$this->get_updated_html();
@@ -5750,6 +5770,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Identifies this particular bookmark.
 	 * @return bool Whether the bookmark was successfully created.
 	 */
+	#[Override]
 	public function set_bookmark( $bookmark_name ): bool {
 		if ( $this->is_virtual() ) {
 			_doing_it_wrong(
@@ -5770,6 +5791,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
 	 * @return bool Whether that bookmark exists.
 	 */
+	#[Override]
 	public function has_bookmark( $bookmark_name ): bool {
 		return parent::has_bookmark( "_{$bookmark_name}" );
 	}

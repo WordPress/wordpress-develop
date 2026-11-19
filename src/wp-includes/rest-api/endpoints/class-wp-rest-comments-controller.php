@@ -71,6 +71,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[Override]
 	public function register_routes() {
 
 		register_rest_route(
@@ -150,6 +151,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, error object otherwise.
 	 */
+	#[Override]
 	public function get_items_permissions_check( $request ) {
 		$is_note          = in_array( $request['type'], array( 'note', 'reaction' ), true );
 		$is_edit_context  = 'edit' === $request['context'];
@@ -261,6 +263,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
 	 */
+	#[Override]
 	public function get_items( $request ) {
 
 		// Retrieve the list of registered collection query parameters.
@@ -477,6 +480,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, error object otherwise.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		$comment = $this->get_comment( $request['id'] );
 		if ( is_wp_error( $comment ) ) {
@@ -522,6 +526,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		$comment = $this->get_comment( $request['id'] );
 		if ( is_wp_error( $comment ) ) {
@@ -542,6 +547,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to create items, error object otherwise.
 	 */
+	#[Override]
 	public function create_item_permissions_check( $request ) {
 		$is_note = ! empty( $request['type'] ) && in_array( $request['type'], array( 'note', 'reaction' ), true );
 
@@ -713,6 +719,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
 	 */
+	#[Override]
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error(
@@ -1138,6 +1145,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, error object otherwise.
 	 */
+	#[Override]
 	public function update_item_permissions_check( $request ) {
 		$comment = $this->get_comment( $request['id'] );
 		if ( is_wp_error( $comment ) ) {
@@ -1217,6 +1225,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
 	 */
+	#[Override]
 	public function update_item( $request ) {
 		$comment = $this->get_comment( $request['id'] );
 		if ( is_wp_error( $comment ) ) {
@@ -1350,6 +1359,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to delete the item, error object otherwise.
 	 */
+	#[Override]
 	public function delete_item_permissions_check( $request ) {
 		$comment = $this->get_comment( $request['id'] );
 		if ( is_wp_error( $comment ) ) {
@@ -1396,6 +1406,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
 	 */
+	#[Override]
 	public function delete_item( $request ) {
 		$comment = $this->get_comment( $request['id'] );
 		if ( is_wp_error( $comment ) ) {
@@ -1484,6 +1495,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$comment = $item;
@@ -1809,6 +1821,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return array|WP_Error Prepared comment, otherwise WP_Error object.
 	 */
+	#[Override]
 	protected function prepare_item_for_database( $request ) {
 		$prepared_comment = array();
 
@@ -1907,6 +1920,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @return array
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -2096,6 +2110,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Comments collection parameters.
 	 */
+	#[Override]
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
 

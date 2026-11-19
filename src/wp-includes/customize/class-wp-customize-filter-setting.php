@@ -27,6 +27,7 @@ class WP_Customize_Filter_Setting extends WP_Customize_Setting {
 	 * @param mixed $value The value to update.
 	 * @return true Always returns true.
 	 */
+	#[Override]
 	public function update( $value ) {
 		return true;
 	}

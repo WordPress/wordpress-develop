@@ -62,6 +62,7 @@ class ApplyFiltersDynamicFunctionReturnTypeExtension implements DynamicFunctionR
 	 * @param FunctionReflection $functionReflection Function being analyzed.
 	 * @return bool
 	 */
+	#[\Override]
 	public function isFunctionSupported( FunctionReflection $functionReflection ): bool {
 		return in_array( $functionReflection->getName(), HookDocBlock::FILTER_FUNCTIONS, true );
 	}
@@ -79,6 +80,7 @@ class ApplyFiltersDynamicFunctionReturnTypeExtension implements DynamicFunctionR
 	 * @return Type
 	 * @throws ShouldNotHappenException
 	 */
+	#[\Override]
 	public function getTypeFromFunctionCall( FunctionReflection $functionReflection, FuncCall $functionCall, Scope $scope ): Type {
 		$default          = new MixedType();
 		$resolved_php_doc = $this->hookDocBlock->getNullableHookDocBlock( $functionCall, $scope );

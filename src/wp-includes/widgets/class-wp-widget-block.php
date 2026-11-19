@@ -56,6 +56,7 @@ class WP_Widget_Block extends WP_Widget {
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Block widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		$instance = wp_parse_args( $instance, $this->default_instance );
 
@@ -177,6 +178,7 @@ class WP_Widget_Block extends WP_Widget {
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Settings to save or bool false to cancel saving.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$instance = array_merge( $this->default_instance, $old_instance );
 
@@ -198,6 +200,7 @@ class WP_Widget_Block extends WP_Widget {
 	 *
 	 * @param array $instance Current instance.
 	 */
+	#[Override]
 	public function form( $instance ) {
 		$instance = wp_parse_args( (array) $instance, $this->default_instance );
 		?>

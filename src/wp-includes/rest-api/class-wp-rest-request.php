@@ -1055,6 +1055,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @return bool Whether the parameter is set.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetExists( $offset ) {
 		$order = $this->get_parameter_order();
 
@@ -1076,6 +1077,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @return mixed|null Value if set, null otherwise.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetGet( $offset ) {
 		return $this->get_param( $offset );
 	}
@@ -1089,6 +1091,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param mixed  $value  Parameter value.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetSet( $offset, $value ) {
 		$this->set_param( $offset, $value );
 	}
@@ -1101,6 +1104,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param string $offset Parameter name.
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetUnset( $offset ) {
 		$order = $this->get_parameter_order();
 

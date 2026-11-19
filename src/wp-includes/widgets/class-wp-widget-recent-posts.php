@@ -41,6 +41,7 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Recent Posts widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		if ( ! isset( $args['widget_id'] ) ) {
 			$args['widget_id'] = $this->id;
@@ -145,6 +146,7 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Updated settings to save.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$instance              = $old_instance;
 		$instance['title']     = sanitize_text_field( $new_instance['title'] );
@@ -160,6 +162,7 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 	 *
 	 * @param array $instance Current settings.
 	 */
+	#[Override]
 	public function form( $instance ) {
 		$title     = isset( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
 		$number    = isset( $instance['number'] ) ? absint( $instance['number'] ) : 5;

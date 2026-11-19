@@ -60,6 +60,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 	 * @param array<int, Node> $nodes Top-level nodes about to be traversed.
 	 * @return array<int, Node>|null
 	 */
+	#[\Override]
 	public function beforeTraverse( array $nodes ): ?array {
 		$this->stack = array();
 		return null;
@@ -72,6 +73,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 	 * @param Node $node The node being entered.
 	 * @return null
 	 */
+	#[\Override]
 	public function enterNode( Node $node ): ?Node {
 		if ( $node instanceof Node\FunctionLike ) {
 			$doc           = $node->getDocComment();
@@ -144,6 +146,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 	 * @param Node $node The node being left.
 	 * @return null
 	 */
+	#[\Override]
 	public function leaveNode( Node $node ): ?Node {
 		if ( $node instanceof Node\FunctionLike ) {
 			array_pop( $this->stack );

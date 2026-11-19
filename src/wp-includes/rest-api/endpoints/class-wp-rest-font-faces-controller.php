@@ -37,6 +37,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -114,6 +115,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_items_permissions_check( $request ) {
 		$post_type = get_post_type_object( $this->post_type );
 
@@ -136,6 +138,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		$post = $this->get_post( $request['id'] );
 		if ( is_wp_error( $post ) ) {
@@ -275,6 +278,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_items( $request ) {
 		$font_family = $this->get_parent_font_family_post( $request['font_family_id'] );
 		if ( is_wp_error( $font_family ) ) {
@@ -292,6 +296,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		$post = $this->get_post( $request['id'] );
 		if ( is_wp_error( $post ) ) {
@@ -324,6 +329,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function create_item( $request ) {
 		$font_family = $this->get_parent_font_family_post( $request['font_family_id'] );
 		if ( is_wp_error( $font_family ) ) {
@@ -407,6 +413,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function delete_item( $request ) {
 		$post = $this->get_post( $request['id'] );
 		if ( is_wp_error( $post ) ) {
@@ -451,6 +458,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $item, $request ) {
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
@@ -500,6 +508,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -691,6 +700,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @return array Public item schema data.
 	 */
+	#[Override]
 	public function get_public_item_schema() {
 
 		$schema = parent::get_public_item_schema();
@@ -711,6 +721,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[Override]
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
 
@@ -800,6 +811,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_Post $post Post object.
 	 * @return array Links for the given post.
 	 */
+	#[Override]
 	protected function prepare_links( $post ) {
 		// Entity meta.
 		return array(
@@ -823,6 +835,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return stdClass Post object.
 	 */
+	#[Override]
 	protected function prepare_item_for_database( $request ) {
 		$prepared_post = new stdClass();
 

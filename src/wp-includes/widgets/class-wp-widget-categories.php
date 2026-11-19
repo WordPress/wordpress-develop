@@ -55,6 +55,7 @@ class WP_Widget_Categories extends WP_Widget {
 	 *     @type 0|1    $dropdown     Whether to display the categories as a drop-down.
 	 * }
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		static $first_dropdown = true;
 
@@ -252,6 +253,7 @@ class WP_Widget_Categories extends WP_Widget {
 	 *     @type 0|1    $dropdown     Whether to display the categories as a drop-down.
 	 * }
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$instance                 = $old_instance;
 		$instance['title']        = sanitize_text_field( $new_instance['title'] ?? '' );
@@ -276,6 +278,7 @@ class WP_Widget_Categories extends WP_Widget {
 	 *     @type 0|1    $dropdown     Whether to display the categories as a drop-down.
 	 * }
 	 */
+	#[Override]
 	public function form( $instance ) {
 		// Defaults.
 		$instance     = wp_parse_args( (array) $instance, array( 'title' => '' ) );
