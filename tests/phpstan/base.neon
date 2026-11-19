@@ -95,6 +95,9 @@ parameters:
 	scanFiles:
 		- ../../wp-config-sample.php
 		- ../../src/wp-admin/includes/ms.php
+		# Defines `get_file()`, used by `load-scripts.php` and `load-styles.php`. The build copies
+		# this file into `src/wp-includes/js/tinymce`, but the analysis does not run the build.
+		- ../../src/js/_enqueues/vendor/tinymce/wp-tinymce.php
 	excludePaths:
 		analyseAndScan:
 			- ../../src/wp-admin/includes/noop.php
