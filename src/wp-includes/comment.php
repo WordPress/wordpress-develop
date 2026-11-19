@@ -2568,11 +2568,22 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 
 	if ( ! $comment_id ) {
 		$fields = array( 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content' );
+		$stored = _wp_encode_4byte_chars_in_fields( $commentdata, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
 		foreach ( $fields as $field ) {
-			if ( isset( $commentdata[ $field ] ) ) {
-				$commentdata[ $field ] = $wpdb->strip_invalid_text_for_column( $wpdb->comments, $field, $commentdata[ $field ] );
+			if ( ! isset( $commentdata[ $field ] ) ) {
+				continue;
 			}
+
+			// Keep the submitted characters for comment filters when their stored form fits the column.
+			if ( $stored[ $field ] !== $commentdata[ $field ] ) {
+				$value = wp_unslash( $stored[ $field ] );
+				if ( $value === $wpdb->strip_invalid_text_for_column( $wpdb->comments, $field, $value ) ) {
+					continue;
+				}
+			}
+
+			$commentdata[ $field ] = $wpdb->strip_invalid_text_for_column( $wpdb->comments, $field, $commentdata[ $field ] );
 		}
 
 		$commentdata = wp_filter_comment( $commentdata );

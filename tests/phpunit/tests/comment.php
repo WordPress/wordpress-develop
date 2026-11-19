@@ -2715,6 +2715,44 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( (string) self::$post_id, comment_exists( wp_slash( $author ), $date ) );
 	}
 
+	/**
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_new_comment
+	 */
+	public function test_wp_new_comment_preserves_emoji_when_another_field_needs_cleanup(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$commentdata = array(
+			'comment_post_ID'      => self::$post_id,
+			'comment_author'       => 'Ann 😀',
+			'comment_author_email' => 'ann@example.org',
+			'comment_author_url'   => 'https://example.org/' . str_repeat( 'a', 181 ),
+			'comment_content'      => 'Hello 😎',
+		);
+
+		$approved_data = null;
+		add_filter(
+			'pre_comment_approved',
+			static function ( $approved, $data ) use ( &$approved_data ) {
+				$approved_data = $data;
+				return $approved;
+			},
+			10,
+			2
+		);
+
+		$comment_id = wp_new_comment( $commentdata, true );
+		$this->assertIsInt( $comment_id );
+		$comment = get_comment( $comment_id );
+
+		$this->assertSame( substr( $commentdata['comment_author_url'], 0, 200 ), $comment->comment_author_url );
+		$this->assertSame( 'Ann &#x1f600;', $comment->comment_author );
+		$this->assertSame( 'Hello &#x1f60e;', $comment->comment_content );
+		$this->assertSame( $commentdata['comment_author'], $approved_data['comment_author'] );
+		$this->assertSame( $commentdata['comment_content'], $approved_data['comment_content'] );
+	}
+
 	public function filter_pre_get_col_charset_utf8mb3_for_comment_fields( $charset, $table, $column ) {
 		global $wpdb;
 
