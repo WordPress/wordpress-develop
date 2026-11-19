@@ -51,6 +51,7 @@ parameters:
 		- src/wp-includes/class-wp-block-styles-registry.php
 		- src/wp-includes/class-wp-block-template.php
 		- src/wp-includes/class-wp-comment.php
+		- src/wp-includes/class-wp-comment-type.php
 		- src/wp-includes/class-wp-connector-registry.php
 		- src/wp-includes/class-wp-error.php
 		- src/wp-includes/class-wp-post.php
