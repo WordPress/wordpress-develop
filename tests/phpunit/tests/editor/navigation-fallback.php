@@ -389,7 +389,9 @@ class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 		$blocks = parse_blocks( $data->post_content );
 
 		$this->assertCount( 2, $blocks, 'Fallback navigation should contain two navigation-link blocks.' );
-		$this->assertSame( 'News & Politics', $blocks[0]['attrs']['label'], 'First menu item label should preserve the ampersand without literal u0026 corruption.' );
+
+		$expected_first_label = current_user_can( 'unfiltered_html' ) ? 'News & Politics' : 'News &amp; Politics';
+		$this->assertSame( $expected_first_label, $blocks[0]['attrs']['label'], 'First menu item label should preserve the ampersand without literal u0026 corruption.' );
 		$this->assertSame( 'Books -- "Reviews"', $blocks[1]['attrs']['label'], 'Second menu item label should preserve double hyphens and double quotes.' );
 	}
 
