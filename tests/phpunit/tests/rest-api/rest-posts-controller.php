@@ -115,6 +115,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function tear_down() {
+		unregister_post_type( 'youseeme' );
+		unregister_post_type( 'invalid-controller' );
+
 		if ( true === $this->attachments_created ) {
 			$this->remove_added_uploads();
 			$this->attachments_created = false;
@@ -4880,7 +4883,6 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		create_initial_rest_routes();
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayNotHasKey( '/wp/v2/invalid-controller', $routes );
-		_unregister_post_type( 'invalid-controller' );
 	}
 
 	public function test_get_item_schema() {
