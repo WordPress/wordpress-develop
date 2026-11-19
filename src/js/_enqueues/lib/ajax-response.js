@@ -25,7 +25,7 @@ window.wpAjax = jQuery.extend( {
 	 * Converts a query string into an object of key/value pairs.
 	 *
 	 * If a full URL is passed, only the part after the question mark is used.
-	 * The values are not URL-decoded.
+	 * Neither the keys nor values are URL-decoded.
 	 *
 	 * @since 2.5.0
 	 *
