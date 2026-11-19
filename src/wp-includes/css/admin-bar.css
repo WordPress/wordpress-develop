@@ -636,7 +636,7 @@ html:lang(he-il) .rtl #wpadminbar * {
  * Updates
  */
 #wpadminbar #wp-admin-bar-updates.spin .ab-icon svg {
-	animation: rotation 2s infinite linear;
+	animation: rotation 2s infinite linear reverse;
 }
 
 @media (prefers-reduced-motion: reduce) {
