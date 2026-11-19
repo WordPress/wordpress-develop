@@ -58,6 +58,37 @@ jQuery( function() {
 		} );
 	}
 
+	/**
+	 * Loads list-table markup and its admin styles in a desktop viewport.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param {string} direction Document direction, either ltr or rtl.
+	 * @param {string} markup    List-table fixture markup.
+	 * @param {string} styles    Optional additional fixture styles.
+	 *
+	 * @return {Promise<HTMLIFrameElement>} The loaded fixture.
+	 */
+	async function desktopFrame( direction, markup, styles = '' ) {
+		const frame = document.createElement( 'iframe' );
+		const suffix = direction === 'rtl' ? '-rtl.css' : '.css';
+		const cssDirectory = new URL( '../../build/wp-admin/css/', document.baseURI );
+		const loaded = new Promise( function( resolve ) {
+			frame.onload = resolve;
+		} );
+
+		frame.width = '1000';
+		frame.srcdoc = '<!DOCTYPE html><html dir="' + direction + '"><head>' +
+			'<link rel="stylesheet" href="' + cssDirectory + 'common' + suffix + '">' +
+			'<link rel="stylesheet" href="' + cssDirectory + 'list-tables' + suffix + '">' +
+			'<style>' + styles + '</style></head>' +
+			'<body id="wpbody-content" class="' + ( direction === 'rtl' ? 'rtl' : '' ) + '" style="font: 13px sans-serif">' +
+			markup + '</body></html>';
+		document.getElementById( 'qunit-fixture' ).appendChild( frame );
+		await loaded;
+		return frame;
+	}
+
 	const initialOverflow = overflow( content.firstElementChild );
 
 	QUnit.module( 'List table overflow', {
@@ -238,6 +269,34 @@ jQuery( function() {
 	);
 
 	[ 'ltr', 'rtl' ].forEach( function( direction ) {
+		QUnit.test( 'Paints overflow fades inward from the physical scroll edges in ' + direction, async function( assert ) {
+			const frame = await desktopFrame( direction, wrapperMarkup );
+			const wrapper = frame.contentDocument.querySelector( '.wp-list-table-scroll' );
+			const row = wrapper.querySelector( 'tr' );
+			const start = frame.contentWindow.getComputedStyle( row, '::before' );
+			const end = frame.contentWindow.getComputedStyle( row, '::after' );
+			const startEdge = direction === 'rtl' ? 'right' : 'left';
+			const endEdge = direction === 'rtl' ? 'left' : 'right';
+
+			wrapper.classList.add( 'has-scroll-overflow-end' );
+			assert.strictEqual( start.opacity, '0', 'The start fade is hidden at the start of the table.' );
+			assert.strictEqual( end.opacity, '1', 'The end fade is visible at the start of the table.' );
+			assert.strictEqual( end[ endEdge ], '0px', 'The end fade sticks to the ' + endEdge + ' edge.' );
+
+			wrapper.classList.replace( 'has-scroll-overflow-end', 'has-scroll-overflow-start' );
+			assert.strictEqual( end.opacity, '0', 'The end fade is hidden at the end of the table.' );
+			assert.strictEqual( start.opacity, '1', 'The start fade is visible at the end of the table.' );
+			assert.strictEqual( start[ startEdge ], '0px', 'The start fade sticks to the ' + startEdge + ' edge.' );
+
+			// The border images extend toward the table and are mirrored together in RTL.
+			const transform = direction === 'rtl' ? 'matrix(-1, 0, 0, 1, 0, 0)' : 'none';
+			assert.strictEqual( start.transform, transform, 'The start fade uses the correct painting direction.' );
+			assert.strictEqual( end.transform, transform, 'The end fade uses the correct painting direction.' );
+			assert.ok( start.borderImageSource.includes( 'to right' ), 'The start gradient runs rightward before mirroring.' );
+			assert.ok( end.borderImageSource.includes( 'to left' ), 'The end gradient runs leftward before mirroring.' );
+			frame.remove();
+		} );
+
 		QUnit.test( 'Preserves narrow icon columns in ' + direction, async function( assert ) {
 			this.wrapper.style.width = '400px';
 			this.table.classList.add( 'widefat', 'fixed' );
@@ -246,15 +305,7 @@ jQuery( function() {
 			await afterResize();
 			assert.strictEqual( this.table.querySelector( '.score-icon' ).parentElement.tagName, 'TD', 'Inline indicators retain their original formatting context.' );
 
-			const frame = document.createElement( 'iframe' );
-			frame.width = '1000';
-			const loaded = new Promise( function( resolve ) {
-				frame.onload = resolve;
-			} );
-			const stylesheet = new URL( '../../src/wp-admin/css/list-tables.css', document.baseURI );
-			frame.srcdoc = '<!DOCTYPE html><html dir="' + direction + '"><head><link rel="stylesheet" href="' + stylesheet.href + '"><style>.column-score a { display: inline-block; padding: 8px 0 8px 11px; }</style></head><body style="font: 13px sans-serif">' + this.wrapper.outerHTML + '</body></html>';
-			document.getElementById( 'qunit-fixture' ).appendChild( frame );
-			await loaded;
+			const frame = await desktopFrame( direction, this.wrapper.outerHTML, '.column-score a { display: inline-block; padding: 8px 0 8px 11px; }' );
 			const table = frame.contentDocument.querySelector( 'table' );
 			const icon = table.querySelector( '.score-icon' );
 			assert.strictEqual( icon.parentElement.scrollWidth, icon.parentElement.clientWidth, 'The small indicator is fully visible without inner scrolling.' );
@@ -265,24 +316,22 @@ jQuery( function() {
 		} );
 
 		QUnit.test( 'Keeps editing rows aligned with all columns in ' + direction, async function( assert ) {
-			const frame = document.createElement( 'iframe' );
-			frame.width = '1000';
-			const loaded = new Promise( function( resolve ) {
-				frame.onload = resolve;
-			} );
-			const stylesheet = new URL( '../../src/wp-admin/css/list-tables.css', document.baseURI );
-			frame.srcdoc = '<!DOCTYPE html><html dir="' + direction + '"><head><link rel="stylesheet" href="' + stylesheet.href + '"></head><body id="wpbody-content"><div class="wp-list-table-scroll has-scroll-overflow-start has-scroll-overflow-end"><table class="wp-list-table widefat" style="width: 800px; border-collapse: collapse"><thead><tr><th>One</th><th>Two</th><th>Three</th><th>Four</th><th>Five</th></tr></thead><tbody><tr><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td></tr><tr class="inline-edit-row"><td colspan="5">Quick Edit</td></tr><tr class="inline-editor"><td colspan="5">Inline editor</td></tr><tr id="replyrow" class="inline-edit-row"><td colspan="5"><fieldset class="comment-reply"><legend>Reply</legend><textarea style="width: 100%; box-sizing: border-box"></textarea><button>Update Comment</button></fieldset></td></tr></tbody></table></div></body></html>';
-			document.getElementById( 'qunit-fixture' ).appendChild( frame );
-			await loaded;
+			const frame = await desktopFrame( direction, '<div class="wp-list-table-scroll has-scroll-overflow-start has-scroll-overflow-end"><table class="wp-list-table widefat" style="width: 800px; border-collapse: collapse"><thead><tr><th>One</th><th>Two</th><th>Three</th><th>Four</th><th>Five</th></tr></thead><tbody><tr><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td></tr><tr class="inline-edit-row"><td colspan="5">Quick Edit</td></tr><tr class="inline-editor"><td colspan="5">Inline editor</td></tr><tr id="replyrow" class="inline-edit-row"><td colspan="5"><fieldset class="comment-reply"><legend>Reply</legend><textarea style="width: 100%; box-sizing: border-box"></textarea><button>Update Comment</button></fieldset></td></tr></tbody></table></div>' );
 			const wrapper = frame.contentDocument.querySelector( '.wp-list-table-scroll' );
 			const table = wrapper.querySelector( 'table' );
+			const headers = table.tHead.rows[ 0 ].cells;
 			const cells = table.querySelectorAll( 'td[colspan]' );
 
 			[ 900, 600 ].forEach( function( width ) {
 				wrapper.style.width = width + 'px';
+				const first = headers[ 0 ].getBoundingClientRect();
+				const last = headers[ headers.length - 1 ].getBoundingClientRect();
+				const left = Math.min( first.left, last.left );
+				const right = Math.max( first.right, last.right );
 				cells.forEach( function( cell ) {
+					const bounds = cell.getBoundingClientRect();
 					assert.ok(
-						Math.abs( cell.getBoundingClientRect().width - table.getBoundingClientRect().width ) < 1,
+						Math.abs( bounds.left - left ) < 1 && Math.abs( bounds.right - right ) < 1,
 						cell.textContent + ' spans every column with a ' + width + 'px viewport.'
 					);
 				} );
@@ -312,16 +361,7 @@ jQuery( function() {
 			this.table.querySelector( 'pre' ).textContent = sampleText;
 			await afterResize();
 
-			// Use the production stylesheet in an isolated desktop viewport.
-			const frame = document.createElement( 'iframe' );
-			frame.width = '1000';
-			const loaded = new Promise( function( resolve ) {
-				frame.onload = resolve;
-			} );
-			const stylesheet = new URL( '../../src/wp-admin/css/list-tables.css', document.baseURI );
-			frame.srcdoc = '<!DOCTYPE html><html dir="' + direction + '"><head><link rel="stylesheet" href="' + stylesheet.href + '"></head><body style="font: 13px sans-serif">' + this.wrapper.outerHTML + '</body></html>';
-			document.getElementById( 'qunit-fixture' ).appendChild( frame );
-			await loaded;
+			const frame = await desktopFrame( direction, this.wrapper.outerHTML );
 			const wrapper = frame.contentDocument.querySelector( '.wp-list-table-scroll' );
 			const pre = wrapper.querySelector( 'pre' );
 			wrapper.style.width = '800px';
@@ -336,6 +376,24 @@ jQuery( function() {
 
 			wrapper.style.width = '400px';
 			assert.ok( wrapper.scrollWidth > wrapper.clientWidth, 'Column minimum widths still cause table scrolling when needed.' );
+			frame.remove();
+		} );
+	} );
+
+	[
+		[ 'description', 'https://example.test/resource/' + '0123456789abcdef'.repeat( 12 ) ],
+		[ 'email', 'a'.repeat( 60 ) + '@' + 'b'.repeat( 60 ) + '.example' ],
+	].forEach( function( [ column, value ] ) {
+		QUnit.test( 'Wraps long links in the ' + column + ' column', async function( assert ) {
+			const frame = await desktopFrame( 'ltr', '<div class="wp-list-table-scroll" style="width: 600px">' +
+				'<table class="wp-list-table widefat fixed"><tbody><tr><td class="column-' + column + '"><a href="#"></a></td>' +
+				'<td>Another column</td></tr></tbody></table></div>' );
+			const wrapper = frame.contentDocument.querySelector( '.wp-list-table-scroll' );
+			const link = wrapper.querySelector( 'a' );
+			link.textContent = value;
+
+			assert.ok( link.getClientRects().length > 1, 'The link wraps onto multiple lines.' );
+			assert.strictEqual( wrapper.scrollWidth, wrapper.clientWidth, 'Both columns fit in the viewport.' );
 			frame.remove();
 		} );
 	} );
