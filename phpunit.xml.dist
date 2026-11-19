@@ -12,6 +12,7 @@
 		convertNoticesToExceptions="true"
 		convertDeprecationsToExceptions="true"
 		>
+	<!-- tests/invariants/phpunit.xml.dist runs these same suites and groups: keep the two the same. -->
 	<testsuites>
 		<!-- Default test suite to run all tests. -->
 		<testsuite name="default">

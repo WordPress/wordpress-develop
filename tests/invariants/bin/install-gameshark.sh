@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+#
+# Builds the gameshark PHP extension and enables it for every PHP process in this container.
+#
+# Run it as root inside the PHP container of the local Docker environment, with `npm run env:gameshark`, or:
+#
+#     docker compose exec -u 0 php bash /var/www/tests/invariants/bin/install-gameshark.sh
+#
+# It builds the extension from .invariants/gameshark, which must be a checkout of
+# https://github.com/dmsnell/php-ext-gameshark-extension at the commit named in tests/invariants/DEPENDENCIES.
+# Rust and the build are kept in .invariants/ so that later runs reuse them.
+#
+# The extension is only enabled until the container is recreated, as by `npm run env:restart`.
+set -euo pipefail
+
+root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../../.." && pwd )"
+source_dir="$root/.invariants/gameshark"
+export CARGO_HOME="$root/.invariants/cargo"
+export RUSTUP_HOME="$root/.invariants/rustup"
+export PATH="$CARGO_HOME/bin:$PATH"
+
+if [[ ! -f "$source_dir/config.m4" ]]; then
+	echo "There is no gameshark source in $source_dir. Check it out with:" >&2
+	echo "  git clone https://github.com/dmsnell/php-ext-gameshark-extension.git .invariants/gameshark" >&2
+	echo "  git -C .invariants/gameshark checkout \"\$( sed -n 's/^gameshark=//p' tests/invariants/DEPENDENCIES )\"" >&2
+	exit 1
+fi
+
+if ! command -v cargo > /dev/null; then
+	echo 'Installing Rust...'
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --no-modify-path
+fi
+
+cd "$source_dir"
+RUN_TESTS=0 PHP_CONFIG="$( command -v php-config )" scripts/build-unix.sh
+
+install -m 0644 modules/gameshark.so "$( php-config --extension-dir )/gameshark.so"
+# The report lists the hooks on built-in functions, so the extension's warning about them is turned off. It has to be
+# an INI setting: the extension's default for it is an INI value, which beats GAMESHARK_INVARIANTS_WARN_BUILTINS.
+# PHP may use all the memory the container has: what the invariants and the types report keep grows with the suite,
+# and WordPress only lifts the limit once it loads, after the invariants file and in no separate process before that.
+printf 'extension=gameshark.so\ngameshark.invariants_warn_builtins=0\nmemory_limit=-1\n' > "${PHP_INI_DIR:-/usr/local/etc/php}/conf.d/zz-gameshark.ini"
+php --ri gameshark
+echo "PHP memory_limit: $( php -r 'echo ini_get( "memory_limit" );' )"
+echo "Container memory limit: $( cat /sys/fs/cgroup/memory.max 2> /dev/null || cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2> /dev/null || echo unknown )"
+echo "Memory: $( grep -E '^(MemTotal|MemAvailable)' /proc/meminfo 2> /dev/null | tr -s ' ' | paste -sd ',' - )"
+
+# Whoever runs the tests, and the CI cache, can read and replace what was built here as root.
+chmod -R a+rwX "$root/.invariants"

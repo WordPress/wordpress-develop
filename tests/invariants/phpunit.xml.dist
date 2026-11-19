@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+	Runs the WordPress test suite while the gameshark extension checks the invariants in specs/.
+	See README.md. The test suites and groups below are those of phpunit.xml.dist at the root of
+	the repository: keep the two the same.
+-->
+<phpunit
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
+		bootstrap="bootstrap.php"
+		backupGlobals="false"
+		colors="true"
+		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
+		failOnRisky="true"
+		convertErrorsToExceptions="true"
+		convertWarningsToExceptions="true"
+		convertNoticesToExceptions="true"
+		convertDeprecationsToExceptions="true"
+		>
+	<testsuites>
+		<testsuite name="default">
+			<directory suffix=".php">../phpunit/tests</directory>
+			<exclude>../phpunit/tests/rest-api/rest-autosaves-controller.php</exclude>
+		</testsuite>
+		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last. -->
+		<testsuite name="restapi-autosave">
+			<file>../phpunit/tests/rest-api/rest-autosaves-controller.php</file>
+		</testsuite>
+	</testsuites>
+	<groups>
+		<exclude>
+			<group>ajax</group>
+			<group>ms-files</group>
+			<group>ms-required</group>
+			<group>external-http</group>
+			<group>html-api-web-platform-tests</group>
+		</exclude>
+	</groups>
+	<logging>
+		<log type="junit" target="../phpunit/build/logs/invariants-junit.xml" />
+	</logging>
+	<php>
+		<const name="WP_RUN_CORE_TESTS" value="1" />
+	</php>
+	<extensions>
+		<extension class="WP_Invariant_PHPUnit_Extension">
+			<arguments>
+				<string>invariants</string>
+			</arguments>
+		</extension>
+	</extensions>
+</phpunit>
