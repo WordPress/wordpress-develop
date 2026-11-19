@@ -114,7 +114,7 @@ class Tests_Template extends WP_UnitTestCase {
 				'hierarchical' => true,
 			)
 		);
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+		$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 
 		// Remove hooks which are added by wp_load_classic_theme_block_styles_on_demand() during bootstrapping.
 		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
@@ -149,6 +149,11 @@ class Tests_Template extends WP_UnitTestCase {
 		$registry = WP_Block_Type_Registry::get_instance();
 		if ( $registry->is_registered( 'third-party/test' ) ) {
 			$registry->unregister( 'third-party/test' );
+		}
+
+		if ( isset( $GLOBALS['_wp_tests_development_mode'] ) ) {
+			remove_all_filters( 'theme_file_path' );
+			wp_theme_has_theme_json();
 		}
 
 		unset( $GLOBALS['_wp_tests_development_mode'] );
@@ -352,6 +357,29 @@ class Tests_Template extends WP_UnitTestCase {
 				'page.php',
 				'singular.php',
 			)
+		);
+	}
+
+	/**
+	 * Tests that a decoded page name containing directory traversal is left out of the hierarchy.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::get_page_template
+	 */
+	public function test_page_template_hierarchy_omits_decoded_pagename_with_directory_traversal() {
+		$this->go_to( get_permalink( self::$page ) );
+		set_query_var( 'pagename', '..%2Fpage-name' );
+
+		$this->assertSame(
+			array(
+				'templates/page.php',
+				'page-..%2Fpage-name.php',
+				'page-' . self::$page->ID . '.php',
+				'page.php',
+				'singular.php',
+			),
+			$this->get_template_hierarchy()
 		);
 	}
 
@@ -747,7 +775,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$processed_output = ob_get_clean(); // Obtain the output via the wrapper output buffer.
 		$this->assertIsString( $processed_output );
-		$this->assertNotEquals( $original_output, $processed_output );
+		$this->assertNotSame( $original_output, $processed_output );
 
 		$this->assertStringContainsString( '<!DOCTYPE html>', $processed_output, 'Expected processed output to contain string.' );
 		$this->assertStringContainsString( '<html lang="es">', $processed_output, 'Expected processed output to contain string.' );
@@ -1011,7 +1039,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *             expected_displayed_errors: string[],
 	 *         }>
 	 */
-	public function data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing(): array {
+	public static function data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing(): array {
 		$log_and_display_all = array(
 			'error_reporting' => E_ALL,
 			'display_errors'  => true,
@@ -1401,7 +1429,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{theme: string, set_up: Closure|null, expected_on_demand: bool, expected_buffer_started: bool}>
 	 */
-	public function data_wp_load_classic_theme_block_styles_on_demand(): array {
+	public static function data_wp_load_classic_theme_block_styles_on_demand(): array {
 		return array(
 			'block_theme'                              => array(
 				'theme'                   => 'block-theme',
@@ -1486,7 +1514,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *     assert?: Closure( string, string ): void,
 	 * }>
 	 */
-	public function data_wp_hoist_late_printed_styles(): array {
+	public static function data_wp_hoist_late_printed_styles(): array {
 		$blocks_content = '<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator --><!-- wp:third-party/test --><div>This is only a test!</div><!-- /wp:third-party/test -->';
 
 		$early_common_styles = array(
@@ -1690,7 +1718,7 @@ class Tests_Template extends WP_UnitTestCase {
 					),
 					'BODY' => array(),
 				),
-				'assert'            => function ( string $buffer, string $filtered_buffer ) {
+				'assert'            => static function ( string $buffer, string $filtered_buffer ) {
 					$block_separator_core_style_span = null;
 					$block_separator_custom_style_span = null;
 					$processor = new class( $filtered_buffer ) extends WP_HTML_Tag_Processor {
@@ -1715,9 +1743,9 @@ class Tests_Template extends WP_UnitTestCase {
 						}
 					}
 
-					$this->assertInstanceOf( WP_HTML_Span::class, $block_separator_core_style_span, 'Expected the block separator core style to be present.' );
-					$this->assertInstanceOf( WP_HTML_Span::class, $block_separator_custom_style_span, 'Expected the block separator custom style to be present.' );
-					$this->assertGreaterThan( $block_separator_core_style_span->start, $block_separator_custom_style_span->start, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
+					self::assertInstanceOf( WP_HTML_Span::class, $block_separator_core_style_span, 'Expected the block separator core style to be present.' );
+					self::assertInstanceOf( WP_HTML_Span::class, $block_separator_custom_style_span, 'Expected the block separator custom style to be present.' );
+					self::assertGreaterThan( $block_separator_core_style_span->start, $block_separator_custom_style_span->start, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
 				},
 			),
 
@@ -1751,14 +1779,14 @@ class Tests_Template extends WP_UnitTestCase {
 					),
 					'BODY' => array(),
 				),
-				'assert'            => function ( string $buffer, string $filtered_buffer ) {
+				'assert'            => static function ( string $buffer, string $filtered_buffer ) {
 					$block_separator_inline_style_start_tag = '<style id="wp-block-separator-inline-css">';
 					$block_separator_custom_style           = '.wp-block-separator{ outline:solid 1px lime; }';
-					$this->assertStringContainsString( $block_separator_inline_style_start_tag, $filtered_buffer );
-					$this->assertStringContainsString( $block_separator_custom_style, $filtered_buffer );
+					self::assertStringContainsString( $block_separator_inline_style_start_tag, $filtered_buffer );
+					self::assertStringContainsString( $block_separator_custom_style, $filtered_buffer );
 					$block_separator_inline_style_position = strpos( $filtered_buffer, $block_separator_inline_style_start_tag );
 					$block_separator_custom_style_position = strpos( $filtered_buffer, $block_separator_custom_style );
-					$this->assertTrue( $block_separator_custom_style_position > $block_separator_inline_style_position, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
+					self::assertTrue( $block_separator_custom_style_position > $block_separator_inline_style_position, 'Expected the block separator custom style to appear after the block separator stylesheet.' );
 				},
 			),
 
@@ -1949,6 +1977,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	/**
 	 * Tests that wp_hoist_late_printed_styles() adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
+	 *
+	 * @group assets
 	 *
 	 * @ticket 64099
 	 * @ticket 64354

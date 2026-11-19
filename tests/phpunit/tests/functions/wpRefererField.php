@@ -50,7 +50,7 @@ class Tests_Functions_wpRefererField extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_referer_field_should_respect_display_arg() {
+	public static function data_wp_referer_field_should_respect_display_arg() {
 		return array(
 			'true'         => array( true ),
 			'(int) 1'      => array( 1 ),

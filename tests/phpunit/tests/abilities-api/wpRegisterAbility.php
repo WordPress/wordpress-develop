@@ -20,7 +20,7 @@ class Mock_Custom_Ability extends WP_Ability {
  *
  * @group abilities-api
  */
-class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
+class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	public static $test_ability_name = 'test/add-numbers';
 	public static $test_ability_args = array();
@@ -68,7 +68,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 				'description' => 'The result of adding the two numbers.',
 				'required'    => true,
 			),
-			'execute_callback'    => static function ( array $input ): int {
+			'execute_callback'    => static function ( array $input ): float {
 				return $input['a'] + $input['b'];
 			},
 			'permission_callback' => static function (): bool {
@@ -184,7 +184,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		$expected_annotations = array_merge(
 			self::$test_ability_args['meta']['annotations'],
 			array(
-				'idempotent' => false,
+				'idempotent' => null,
 			)
 		);
 		$expected_meta        = array_merge(
@@ -202,7 +202,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		$this->assertSame( self::$test_ability_args['description'], $result->get_description() );
 		$this->assertSame( self::$test_ability_args['input_schema'], $result->get_input_schema() );
 		$this->assertSame( self::$test_ability_args['output_schema'], $result->get_output_schema() );
-		$this->assertEquals( $expected_meta, $result->get_meta() );
+		$this->assertSame( $expected_meta, $result->get_meta() );
 		$this->assertTrue(
 			$result->check_permissions(
 				array(
@@ -212,7 +212,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame(
-			5,
+			5.0,
 			$result->execute(
 				array(
 					'a' => 2,
@@ -220,6 +220,24 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 				)
 			)
 		);
+	}
+
+	/**
+	 * Tests that registering an ability requires a category.
+	 *
+	 * @ticket 65569
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_ability_without_category_fails(): void {
+		$this->simulate_doing_wp_abilities_init_action();
+
+		$args = self::$test_ability_args;
+		unset( $args['category'] );
+
+		$ability = wp_register_ability( self::$test_ability_name, $args );
+
+		$this->assertNull( $ability );
+		$this->assertFalse( wp_has_ability( self::$test_ability_name ) );
 	}
 
 	/**
@@ -480,6 +498,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$result = wp_unregister_ability( self::$test_ability_name );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Ability( self::$test_ability_name, self::$test_ability_args ),
 			$result
@@ -542,6 +561,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$result = wp_get_ability( $name );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Ability( $name, $args ),
 			$result,
@@ -660,6 +680,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		);
 
 		$result = wp_get_abilities();
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $result );
 	}
 }

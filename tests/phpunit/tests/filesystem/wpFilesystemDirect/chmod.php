@@ -62,7 +62,7 @@ class Tests_Filesystem_WpFilesystemDirect_Chmod extends WP_Filesystem_Direct_Uni
 	 *
 	 * @return array[]
 	 */
-	public function data_should_set_mode_when_not_passed() {
+	public static function data_should_set_mode_when_not_passed() {
 		return array(
 			'a file'      => array(
 				'path' => 'a_file_that_exists.txt',
@@ -99,6 +99,38 @@ class Tests_Filesystem_WpFilesystemDirect_Chmod extends WP_Filesystem_Direct_Uni
 			'640',
 			self::$filesystem->getchmod( $nested_file ),
 			'The mode was not applied to a file in a nested subdirectory.'
+		);
+	}
+
+	/**
+	 * Tests that `WP_Filesystem_Direct::chmod()` uses the correct mask for comparing permissions.
+	 *
+	 * The `& 0777` mask should be used to strip the filetype bits from the `fileperms( $file )` value
+	 * so that the current permission bits can be used for comparison with the requested mode.
+	 *
+	 * @ticket 65695
+	 */
+	public function test_should_use_correct_permission_mask_for_files(): void {
+		if ( self::is_windows() ) {
+			$this->markTestSkipped( 'chmod() does not support octal modes on Windows.' );
+		}
+
+		$file = self::$file_structure['visible_file']['path'];
+
+		// Set the initial permissions.
+		self::$filesystem->chmod( $file, 0600 );
+
+		$this->assertTrue(
+			self::$filesystem->chmod( $file, 0644 ),
+			'chmod() did not report success.'
+		);
+
+		clearstatcache();
+
+		$this->assertSame(
+			'644',
+			self::$filesystem->getchmod( $file ),
+			'The requested mode was not applied to the file.'
 		);
 	}
 }

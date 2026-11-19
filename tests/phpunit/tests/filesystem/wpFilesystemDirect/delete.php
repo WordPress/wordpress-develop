@@ -69,11 +69,12 @@ class Tests_Filesystem_WpFilesystemDirect_Delete extends WP_Filesystem_Direct_Un
 	 *
 	 * @dataProvider data_should_delete_a_file
 	 *
-	 * @param string $key The key for the file in `self::$filesystem_structure`.
+	 * @param string $file The key for the file in `self::$file_structure`.
 	 */
 	public function test_should_delete_a_file( $file ) {
-		$file = self::$file_structure[ $file ]['path'] . $file;
+		$file = self::$file_structure[ $file ]['path'];
 
+		$this->assertFileExists( $file, 'The file did not exist before deletion.' );
 		$this->assertTrue( self::$filesystem->delete( $file ), 'File deletion failed.' );
 		$this->assertFileDoesNotExist( $file, 'The file was not deleted.' );
 	}
@@ -83,7 +84,7 @@ class Tests_Filesystem_WpFilesystemDirect_Delete extends WP_Filesystem_Direct_Un
 	 *
 	 * @return array[]
 	 */
-	public function data_should_delete_a_file() {
+	public static function data_should_delete_a_file() {
 		return array(
 			'A visible file' => array(
 				'key' => 'visible_file',

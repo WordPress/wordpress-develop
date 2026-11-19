@@ -18,7 +18,9 @@ class Custom_Background {
 	 * Callback for administration header.
 	 *
 	 * @since 3.0.0
-	 * @var callable
+	 * @var callable|string|null
+	 *
+	 * @phpstan-var ''|(callable(): mixed)|null
 	 */
 	public $admin_header_callback;
 
@@ -26,7 +28,9 @@ class Custom_Background {
 	 * Callback for header div.
 	 *
 	 * @since 3.0.0
-	 * @var callable
+	 * @var callable|string|null
+	 *
+	 * @phpstan-var ''|(callable(): mixed)|null
 	 */
 	public $admin_image_div_callback;
 
@@ -43,10 +47,13 @@ class Custom_Background {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param callable $admin_header_callback    Optional. Administration header callback.
-	 *                                           Default empty string.
-	 * @param callable $admin_image_div_callback Optional. Custom image div output callback.
-	 *                                           Default empty string.
+	 * @param callable|string|null $admin_header_callback    Optional. Administration header callback.
+	 *                                                       Empty string or null for none. Default empty string.
+	 * @param callable|string|null $admin_image_div_callback Optional. Custom image div output callback.
+	 *                                                       Empty string or null for none. Default empty string.
+	 *
+	 * @phpstan-param ''|(callable(): mixed)|null $admin_header_callback
+	 * @phpstan-param ''|(callable(): mixed)|null $admin_image_div_callback
 	 */
 	public function __construct( $admin_header_callback = '', $admin_image_div_callback = '' ) {
 		$this->admin_header_callback    = $admin_header_callback;
@@ -593,8 +600,8 @@ class Custom_Background {
 	 * @since 3.4.0
 	 * @deprecated 3.5.0
 	 *
-	 * @param array $form_fields
-	 * @return array $form_fields
+	 * @param array $form_fields An array of attachment form fields.
+	 * @return array Unmodified form fields.
 	 */
 	public function attachment_fields_to_edit( $form_fields ) {
 		return $form_fields;
@@ -604,8 +611,8 @@ class Custom_Background {
 	 * @since 3.4.0
 	 * @deprecated 3.5.0
 	 *
-	 * @param array $tabs
-	 * @return array $tabs
+	 * @param array $tabs An array of media upload tabs.
+	 * @return array Unmodified upload tabs.
 	 */
 	public function filter_upload_tabs( $tabs ) {
 		return $tabs;
