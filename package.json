@@ -33,7 +33,6 @@
 		"@wordpress/e2e-test-utils-playwright": "0.10.13",
 		"@wordpress/scripts": "26.13.13",
 		"autoprefixer": "10.4.16",
-		"chalk": "5.3.0",
 		"check-node-version": "4.2.1",
 		"copy-webpack-plugin": "11.0.0",
 		"cssnano": "6.0.1",
@@ -73,7 +72,6 @@
 		"terser-webpack-plugin": "5.3.9",
 		"uglify-js": "^3.17.4",
 		"update-browserslist-db": "1.0.11",
-		"uuid": "9.0.1",
 		"wait-on": "7.0.1",
 		"webpack": "5.89.0",
 		"webpack-livereload-plugin": "3.0.2"
