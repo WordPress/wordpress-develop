@@ -598,7 +598,7 @@ class WP_Users_List_Table extends WP_List_Table {
 						}
 						break;
 					case 'email':
-						$row .= "<a href='" . esc_url( "mailto:$email" ) . "'>$email</a>";
+						$row .= "<a href='" . esc_url( "mailto:$email" ) . "'>" . esc_html( $email ) . '</a>';
 						break;
 					case 'role':
 						$row .= esc_html( $roles_list );
