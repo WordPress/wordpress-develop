@@ -381,7 +381,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	 * Tests that emoji inside ignored tags are not staticized, with or without attributes.
 	 *
 	 * @ticket 66134
-	 * @dataProvider data_wp_staticize_emoji_ignored_tags
+	 * @dataProvider data_wp_staticize_emoji_ignores_tags_with_attributes
 	 *
 	 * @covers ::wp_staticize_emoji
 	 *
@@ -403,7 +403,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_wp_staticize_emoji_ignored_tags() {
+	public static function data_wp_staticize_emoji_ignores_tags_with_attributes() {
 		return array(
 			'code'     => array( 'code' ),
 			'pre'      => array( 'pre' ),
