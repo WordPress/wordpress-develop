@@ -8942,7 +8942,7 @@ function _wp_set_post_list_table_last_changed( $post_id, $post, $update = null, 
 		if ( ! isset( $_wp_post_list_table_changed[ $post_type ] ) || 'pending' === $_wp_post_list_table_changed[ $post_type ] ) {
 			$_wp_post_list_table_changed[ $post_type ] = false;
 
-			if ( ! update_option( '_wp_post_list_table_last_changed_' . $post_type, wp_generate_uuid4(), false ) && false === $_wp_post_list_table_changed[ $post_type ] ) {
+			if ( ! update_option( '_wp_post_list_table_last_changed_' . $post_type, wp_generate_uuid4(), false ) ) {
 				$_wp_post_list_table_changed[ $post_type ] = true;
 			}
 		} else {
