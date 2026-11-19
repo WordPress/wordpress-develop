@@ -14,8 +14,7 @@
 /**
  * Helper functions to handle the responses of admin Ajax requests.
  *
- * The `noPerm` and `broken` error messages are localized from PHP, with
- * English fallbacks used when they are not available.
+ * The `noPerm` and `broken` error messages are localized from PHP.
  *
  * @since 2.5.0
  *
@@ -58,12 +57,12 @@ window.wpAjax = jQuery.extend( {
 	 *
 	 * @param {(XMLDocument|string|number)} x   The response of the Ajax request.
 	 * @param {string}                      r   The ID of the element where the messages are displayed.
-	 * @param {string}                      [e] Optional. The ID of the form whose fields are marked
-	 *                                          as invalid when the response contains errors.
+	 * @param {string}                      [e] Optional. The ID of the element containing the fields
+	 *                                          to mark as invalid when the response contains errors.
 	 * @return {(Object|boolean)} The parsed response for an XML response. For other responses,
 	 *                            false when an error was displayed, true otherwise.
 	 */
-	parseAjaxResponse: function( x, r, e ) { // 1 = good, 0 = strange (bad data?), -1 = you lack permission.
+	parseAjaxResponse: function( x, r, e ) {
 		var parsed = {}, re = jQuery('#' + r).empty(), err = '', noticeMessage = '';
 
 		if ( x && typeof x === 'object' && x.getElementsByTagName('wp_ajax') ) {
@@ -139,7 +138,7 @@ window.wpAjax = jQuery.extend( {
 	/**
 	 * Validates the required fields of a form.
 	 *
-	 * Required fields (with the `form-required` class) whose visible input is
+	 * Field wrappers with the `form-required` class whose first visible input is
 	 * empty are marked as invalid.
 	 *
 	 * @since 2.5.0
