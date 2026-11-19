@@ -50,7 +50,6 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		 */
 		$this->original_wp_interactivity = $wp_interactivity;
 		$wp_interactivity                = new WP_Interactivity_API();
-		$wp_interactivity->add_hooks();
 
 		$interactive_block = array(
 			'render_callback' => function ( $attributes, $content ) {
@@ -95,10 +94,6 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	public function tear_down() {
 		global $wp_interactivity;
 
-		/*
-		 * The hooks registered by core are bound to the original instance and are
-		 * restored by the parent method, so the same instance must be restored.
-		 */
 		$wp_interactivity = $this->original_wp_interactivity;
 
 		unregister_block_type( 'test/interactive-block' );
