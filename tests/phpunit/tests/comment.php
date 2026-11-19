@@ -2694,6 +2694,27 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( check_comment( $author, $email, '', 'Another comment.', '', '', 'comment' ) );
 	}
 
+	/**
+	 * @ticket 65700
+	 *
+	 * @covers ::comment_exists
+	 */
+	public function test_comment_exists_finds_author_with_emoji_on_utf8mb3(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$author = "O'Brien 😀";
+		$date   = '2014-05-06 12:00:00';
+		wp_insert_comment(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_author'  => wp_slash( $author ),
+				'comment_date'    => $date,
+			)
+		);
+
+		$this->assertSame( (string) self::$post_id, comment_exists( wp_slash( $author ), $date ) );
+	}
+
 	public function filter_pre_get_col_charset_utf8mb3_for_comment_fields( $charset, $table, $column ) {
 		global $wpdb;
 
