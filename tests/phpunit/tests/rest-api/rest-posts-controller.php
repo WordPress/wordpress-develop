@@ -4429,6 +4429,11 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertSame( 'Test Category', $data[0]['name'] );
 	}
 
+	/**
+	 * Tests that sending empty categories assigns the default category, as posts require one.
+	 *
+	 * @covers WP_REST_Posts_Controller::handle_terms
+	 */
 	public function test_update_post_with_empty_categories() {
 		wp_set_current_user( self::$editor_id );
 
@@ -4445,7 +4450,97 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 		$new_data = $response->get_data();
-		$this->assertSame( array(), $new_data['categories'] );
+
+		$default_category = (int) get_option( 'default_category' );
+		$this->assertSame( array( $default_category ), $new_data['categories'], 'The response should contain the default category.' );
+		$this->assertSame( array( $default_category ), wp_get_post_categories( self::$post_id ), 'The post should be assigned the default category.' );
+	}
+
+	/**
+	 * Tests that creating a post with empty categories assigns the default category.
+	 *
+	 * @covers WP_REST_Posts_Controller::handle_terms
+	 */
+	public function test_create_post_with_empty_categories() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$params  = $this->set_post_data(
+			array(
+				'categories' => array(),
+			)
+		);
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( array( (int) get_option( 'default_category' ) ), $data['categories'] );
+	}
+
+	/**
+	 * Tests that empty categories still remove every category from a post type that
+	 * does not require a default category.
+	 *
+	 * @covers WP_REST_Posts_Controller::handle_terms
+	 */
+	public function test_update_post_type_without_default_category_with_empty_categories() {
+		$this->register_post_type_with_categories();
+		wp_set_current_user( self::$editor_id );
+
+		$category = self::factory()->category->create();
+		$post_id  = self::factory()->post->create( array( 'post_type' => 'wptests_cat_type' ) );
+		wp_set_object_terms( $post_id, $category, 'category' );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/wptests_cat_type/%d', $post_id ) );
+		$request->set_body_params( array( 'categories' => array() ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array(), wp_get_post_categories( $post_id ) );
+	}
+
+	/**
+	 * Tests that empty categories assign the default category to a post type added
+	 * with the 'default_category_post_types' filter.
+	 *
+	 * @covers WP_REST_Posts_Controller::handle_terms
+	 */
+	public function test_update_post_type_with_default_category_filter_with_empty_categories() {
+		$this->register_post_type_with_categories();
+		add_filter(
+			'default_category_post_types',
+			static function ( $post_types ) {
+				$post_types[] = 'wptests_cat_type';
+				return $post_types;
+			}
+		);
+		wp_set_current_user( self::$editor_id );
+
+		$category = self::factory()->category->create();
+		$post_id  = self::factory()->post->create( array( 'post_type' => 'wptests_cat_type' ) );
+		wp_set_object_terms( $post_id, $category, 'category' );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/wptests_cat_type/%d', $post_id ) );
+		$request->set_body_params( array( 'categories' => array() ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( (int) get_option( 'default_category' ) ), wp_get_post_categories( $post_id ) );
+	}
+
+	/**
+	 * Registers a REST-enabled post type that supports the category taxonomy.
+	 */
+	private function register_post_type_with_categories() {
+		register_post_type(
+			'wptests_cat_type',
+			array(
+				'show_in_rest' => true,
+				'taxonomies'   => array( 'category' ),
+				'supports'     => array( 'title', 'editor' ),
+			)
+		);
+		create_initial_rest_routes();
 	}
 
 	/**
