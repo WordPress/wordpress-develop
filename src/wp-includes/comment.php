@@ -145,7 +145,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 					)
 				);
 			} else {
-				$stored = _wp_encode_emoji_in_fields( array( 'comment_author' => $author ), $wpdb->comments, array( 'comment_author' ) );
+				$stored = _wp_encode_4byte_chars_in_fields( array( 'comment_author' => $author ), $wpdb->comments, array( 'comment_author' ) );
 
 				// expected_slashed ($author, $email)
 				$ok_to_comment = $wpdb->get_var(
@@ -770,7 +770,7 @@ function sanitize_comment_cookies() {
 function wp_allow_comment( $commentdata, $wp_error = false ) {
 	global $wpdb;
 
-	$stored = _wp_encode_emoji_in_fields( $commentdata, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+	$stored = _wp_encode_4byte_chars_in_fields( $commentdata, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
 	/*
 	 * Simple duplicate check.
@@ -2309,7 +2309,7 @@ function wp_insert_comment( $commentdata ) {
 		'user_id'
 	);
 
-	$compacted = _wp_encode_emoji_in_fields( $compacted, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+	$compacted = _wp_encode_4byte_chars_in_fields( $compacted, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
 	if ( ! $wpdb->insert( $wpdb->comments, $compacted ) ) {
 		return false;
@@ -3099,7 +3099,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 
 	$data = wp_array_slice_assoc( $data, $keys );
 
-	$data = _wp_encode_emoji_in_fields( $data, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+	$data = _wp_encode_4byte_chars_in_fields( $data, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
 	$result = $wpdb->update( $wpdb->comments, $data, array( 'comment_ID' => $comment_id ) );
 

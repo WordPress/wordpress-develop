@@ -404,7 +404,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * @ticket 65700
 	 *
 	 * @covers ::wp_insert_post
-	 * @covers ::_wp_encode_emoji_in_fields
+	 * @covers ::_wp_encode_4byte_chars_in_fields
 	 */
 	public function test_wp_insert_post_encodes_emoji_for_utf8mb3_columns_via_filter(): void {
 		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_post_fields' ), 10, 3 );

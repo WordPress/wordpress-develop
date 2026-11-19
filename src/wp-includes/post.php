@@ -5174,7 +5174,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		'guid'
 	);
 
-	$data = _wp_encode_emoji_in_fields( $data, $wpdb->posts, array( 'post_title', 'post_content', 'post_excerpt' ) );
+	$data = _wp_encode_4byte_chars_in_fields( $data, $wpdb->posts, array( 'post_title', 'post_content', 'post_excerpt' ) );
 
 	if ( 'attachment' === $post_type ) {
 		/**

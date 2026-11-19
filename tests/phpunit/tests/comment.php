@@ -2569,7 +2569,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @ticket 65700
 	 *
 	 * @covers ::wp_insert_comment
-	 * @covers ::_wp_encode_emoji_in_fields
+	 * @covers ::_wp_encode_4byte_chars_in_fields
 	 */
 	public function test_wp_insert_comment_encodes_emoji_for_utf8mb3_columns(): void {
 		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
@@ -2623,7 +2623,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @ticket 65700
 	 *
 	 * @covers ::wp_update_comment
-	 * @covers ::_wp_encode_emoji_in_fields
+	 * @covers ::_wp_encode_4byte_chars_in_fields
 	 */
 	public function test_wp_update_comment_encodes_emoji_for_utf8mb3_columns(): void {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
