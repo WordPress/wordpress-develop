@@ -23,7 +23,7 @@ jobs:
   # - Restarts all failed jobs when the workflow fails or is cancelled for the first time.
   failed-workflow:
     name: Rerun a workflow
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     timeout-minutes: 30
@@ -43,8 +43,11 @@ jobs:
 
             // Only rerun after the first run attempt.
             if ( workflow_run.data.run_attempt > 1 ) {
+              core.info(`Skipping rerun, attempt ${workflow_run.data.run_attempt}: ${workflow_run.data.html_url}`);
               return;
             }
+
+            core.notice(`Rerunning workflow run "${workflow_run.data.name}" on ${workflow_run.data.head_branch}: ${workflow_run.data.html_url}`);
 
             const rerun = await github.rest.actions.reRunWorkflowFailedJobs({
               owner: context.repo.owner,

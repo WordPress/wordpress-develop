@@ -110,7 +110,7 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 				'fields'    => 'custom',
 				'post_type' => 'page',
 				'post__in'  => self::$page_child_ids,
-				'orderby'   => 'id',
+				'orderby'   => 'ID',
 				'order'     => 'ASC',
 			)
 		);
@@ -263,7 +263,7 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_the_loop_fields() {
+	public static function data_the_loop_fields() {
 		return array(
 			'all fields'                => array( 'all', 2 ),
 			'all fields (empty fields)' => array( '', 2 ),

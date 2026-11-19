@@ -24,6 +24,7 @@ wp-tests-config.php
 /tests/phpunit/build
 /wp-cli.local.yml
 /phpstan.neon
+/phpstan-strict.neon
 /*.tsbuildinfo
 /jsdoc
 /composer.lock
@@ -72,6 +73,7 @@ wp-tests-config.php
 !/src/wp-content/themes/twentytwentythree
 !/src/wp-content/themes/twentytwentyfour
 !/src/wp-content/themes/twentytwentyfive
+!/src/wp-content/themes/ipsum
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php
@@ -87,6 +89,7 @@ wp-tests-config.php
 /src/wp-content/object-cache.php
 /src/wp-content/php-error.php
 /src/wp-content/sunrise.php
+/src/wp-content/test-suite-uploads
 
 # Files and folders relating to wp-content build tools.
 /src/wp-content/themes/twentynineteen/node_modules
@@ -94,10 +97,12 @@ wp-tests-config.php
 /src/wp-content/themes/twentytwenty/node_modules
 /src/wp-content/themes/twentytwentytwo/node_modules
 /src/wp-content/themes/twentytwentyfive/node_modules
+/src/wp-content/themes/ipsum/node_modules
 
 # Minified files in bundled themes
 /src/wp-content/themes/twentytwentytwo/*.min.css
 /src/wp-content/themes/twentytwentyfive/*.min.css
+/src/wp-content/themes/ipsum/*.min.css
 
 # Operating system specific files
 .DS_Store
