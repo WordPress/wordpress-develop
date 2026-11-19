@@ -655,6 +655,30 @@ function wp_get_translation_update_plugin_names() {
 	$all_plugins   = get_plugins();
 	$plugin_update = get_site_transient( 'update_plugins' );
 
+	/*
+	 * Keys are added from the least to the most reliable, so a later key replaces an
+	 * earlier one: main file names, then plugin files and directories, then the slugs
+	 * from the plugin update data. Otherwise a plugin whose main file is named after
+	 * another plugin's slug would show that plugin's name.
+	 */
+	foreach ( $all_plugins as $plugin_file => $plugin_data ) {
+		if ( isset( $plugin_data['Name'] ) ) {
+			$plugin_names[ basename( $plugin_file, '.php' ) ] = $plugin_data['Name'];
+		}
+	}
+
+	foreach ( $all_plugins as $plugin_file => $plugin_data ) {
+		$plugin_basename = dirname( $plugin_file );
+
+		if ( isset( $plugin_data['Name'] ) ) {
+			$plugin_names[ $plugin_file ] = $plugin_data['Name'];
+
+			if ( '.' !== $plugin_basename ) {
+				$plugin_names[ $plugin_basename ] = $plugin_data['Name'];
+			}
+		}
+	}
+
 	if ( is_object( $plugin_update ) ) {
 		$plugin_updates = array();
 
@@ -671,19 +695,6 @@ function wp_get_translation_update_plugin_names() {
 
 			if ( ! empty( $plugin_data->slug ) && ! empty( $all_plugins[ $plugin_file ]['Name'] ) ) {
 				$plugin_names[ $plugin_data->slug ] = $all_plugins[ $plugin_file ]['Name'];
-			}
-		}
-	}
-
-	foreach ( $all_plugins as $plugin_file => $plugin_data ) {
-		$plugin_basename = dirname( $plugin_file );
-
-		if ( isset( $plugin_data['Name'] ) ) {
-			$plugin_names[ $plugin_file ]                     = $plugin_data['Name'];
-			$plugin_names[ basename( $plugin_file, '.php' ) ] = $plugin_data['Name'];
-
-			if ( '.' !== $plugin_basename ) {
-				$plugin_names[ $plugin_basename ] = $plugin_data['Name'];
 			}
 		}
 	}

@@ -1358,18 +1358,35 @@ if ( 'upgrade-core' === $action ) {
 	check_admin_referer( 'upgrade-translations' );
 
 	// Requests without the form's update identifiers must not install all translations.
-	$translation_update_ids          = array_unique(
-		array_map(
-			'sanitize_text_field',
-			wp_unslash( (array) ( $_POST['translations'] ?? array() ) )
-		)
-	);
-	$selected_translation_update_ids = array_unique(
-		array_map(
-			'sanitize_text_field',
-			wp_unslash( (array) ( $_POST['checked'] ?? array() ) )
-		)
-	);
+	if ( isset( $_POST['translations'] ) ) {
+		$translation_update_ids          = array_unique(
+			array_map(
+				'sanitize_text_field',
+				wp_unslash( (array) $_POST['translations'] )
+			)
+		);
+		$selected_translation_update_ids = array_unique(
+			array_map(
+				'sanitize_text_field',
+				wp_unslash( (array) ( $_POST['checked'] ?? array() ) )
+			)
+		);
+	} elseif ( isset( $_GET['translations'] ) && is_string( $_GET['translations'] ) ) {
+		/*
+		 * The filesystem credentials form posts back to the upgrader URL without the
+		 * fields of the Updates screen form, so the URL carries the selected updates.
+		 */
+		$translation_update_ids          = array_unique(
+			array_map(
+				'sanitize_text_field',
+				explode( ',', wp_unslash( $_GET['translations'] ) )
+			)
+		);
+		$selected_translation_update_ids = $translation_update_ids;
+	} else {
+		$translation_update_ids          = array();
+		$selected_translation_update_ids = array();
+	}
 
 	$selected_translation_updates = wp_process_translation_update_selection( $translation_update_ids, $selected_translation_update_ids );
 
@@ -1386,7 +1403,7 @@ if ( 'upgrade-core' === $action ) {
 	require_once ABSPATH . 'wp-admin/admin-header.php';
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
-	$url     = 'update-core.php?action=do-translation-upgrade';
+	$url     = 'update-core.php?action=do-translation-upgrade&translations=' . urlencode( implode( ',', array_keys( $selected_translation_updates ) ) );
 	$nonce   = 'upgrade-translations';
 	$title   = __( 'Update Translations' );
 	$context = WP_LANG_DIR;
