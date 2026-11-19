@@ -768,6 +768,11 @@ final class WP_Style_Engine {
 					&& ! $should_skip_css_vars && ! empty( $individual_property_definition['css_vars'] )
 				) {
 					$value = static::get_css_var_value( $value, $individual_property_definition['css_vars'] );
+
+					// Skip a preset that does not match one of the CSS var patterns.
+					if ( '' === $value ) {
+						continue;
+					}
 				}
 
 				$individual_css_property = sprintf( $style_definition['property_keys']['individual'], $individual_property_key );
