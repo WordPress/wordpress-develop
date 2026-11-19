@@ -618,13 +618,17 @@ function get_comment_type_object( $comment_type ): ?WP_Comment_Type {
  * @return string[]|WP_Comment_Type[] An array of comment type names or objects.
  *
  * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
+ * @phpstan-return ( $output is 'names' ? array<non-falsy-string, non-falsy-string> : array<non-falsy-string, WP_Comment_Type> )
  */
 function get_comment_types( $args = array(), $output = 'names', $operator = 'and' ): array {
 	global $wp_comment_types;
 
 	$field = ( 'names' === $output ) ? 'name' : false;
 
-	return wp_filter_object_list( $wp_comment_types, $args, $operator, $field );
+	/** @var array<non-falsy-string, non-falsy-string>|array<non-falsy-string, WP_Comment_Type> $comment_types */
+	$comment_types = wp_filter_object_list( $wp_comment_types, $args, $operator, $field );
+
+	return $comment_types;
 }
 
 /**
@@ -640,7 +644,7 @@ function get_comment_types( $args = array(), $output = 'names', $operator = 'and
  * @return string[] Comment types excluded by default, including every internal type.
  */
 function _wp_exclude_internal_comment_types( $excluded_types ): array {
-	$internal_types = array_filter( get_comment_types( array( 'internal' => true ) ), 'is_string' );
+	$internal_types = get_comment_types( array( 'internal' => true ) );
 
 	return array_values( array_unique( array_merge( (array) $excluded_types, $internal_types ) ) );
 }
