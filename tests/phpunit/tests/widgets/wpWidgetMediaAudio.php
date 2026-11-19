@@ -239,7 +239,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 		ob_start();
 		$widget->render_media(
 			array(
-				'attachment_id' => 777,
+				'attachment_id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 			)
 		);
 		$output = ob_get_clean();
@@ -316,6 +316,9 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 * @covers WP_Widget_Media_Audio::render_control_template_scripts
 	 */
 	public function test_render_control_template_scripts() {
+		// Provides wp_underscore_audio_template(), normally loaded by wp_enqueue_media().
+		require_once ABSPATH . WPINC . '/media-template.php';
+
 		$widget = new WP_Widget_Media_Audio();
 
 		ob_start();
