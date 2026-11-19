@@ -1081,7 +1081,7 @@ function get_theme_mod( $name, $default_value = false ) {
 
 	if ( is_string( $default_value ) ) {
 		// Only run the replacement if an sprintf() string format pattern was found.
-		if ( preg_match( '#(?<!%)%(?:\d+\$?)?s#', $default_value ) ) {
+		if ( preg_match( '#(?:(?<!%)%(?:\d+\$?)?s|%%)#', $default_value ) ) {
 			// Remove a single trailing percent sign.
 			$default_value = preg_replace( '#(?<!%)%$#', '', $default_value );
 			$default_value = sprintf( $default_value, get_template_directory_uri(), get_stylesheet_directory_uri() );
