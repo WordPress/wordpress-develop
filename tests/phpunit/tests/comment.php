@@ -2593,6 +2593,79 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65700
+	 * @covers ::wp_handle_comment_submission
+	 * @covers ::wp_check_comment_data_max_lengths
+	 *
+	 * @dataProvider data_comment_encoded_length
+	 * @param string $input         Submission field name.
+	 * @param string $column        Comment table column name.
+	 * @param string $prefix        ASCII prefix before the four-byte characters.
+	 * @param int    $count         Number of four-byte characters.
+	 * @param bool   $should_insert Whether the encoded value fits in the column.
+	 */
+	public function test_wp_handle_comment_submission_checks_encoded_length( $input, $column, $prefix, $count, $should_insert ): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$submission = array(
+			'comment_post_ID' => self::$post_id,
+			'author'          => 'Comment author',
+			'email'           => 'author@example.org',
+			'comment'         => 'Comment content.',
+		);
+
+		$submission[ $input ] = $prefix . str_repeat( '😀', $count );
+		$before               = get_comments( array( 'count' => true ) );
+		$result               = wp_handle_comment_submission( $submission );
+
+		if ( $should_insert ) {
+			$this->assertInstanceOf( WP_Comment::class, $result );
+			$this->assertSame( $prefix . str_repeat( '&#x1f600;', $count ), $result->$column );
+		} else {
+			$this->assertSame( $before, get_comments( array( 'count' => true ) ), 'The overlong comment should not be inserted.' );
+			$this->assertWPError( $result );
+			$this->assertSame( $column . '_column_length', $result->get_error_code() );
+		}
+	}
+
+	public function data_comment_encoded_length() {
+		return array(
+			'255-byte author'     => array( 'author', 'comment_author', 'abc', 28, true ),
+			'256-byte author'     => array( 'author', 'comment_author', 'abcd', 28, false ),
+			'65,535-byte content' => array( 'comment', 'comment_content', 'abcdef', 7281, true ),
+			'65,536-byte content' => array( 'comment', 'comment_content', 'abcdefg', 7281, false ),
+		);
+	}
+
+	/**
+	 * @ticket 65700
+	 * @covers ::wp_new_comment
+	 */
+	public function test_wp_new_comment_rejects_author_whose_encoded_value_exceeds_column_after_filtering(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+		add_filter(
+			'pre_comment_author_name',
+			static function ( $author ) {
+				return 'd' . $author;
+			}
+		);
+
+		$before = get_comments( array( 'count' => true ) );
+		$result = wp_handle_comment_submission(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'author'          => 'abc' . str_repeat( '😀', 28 ),
+				'email'           => 'author@example.org',
+				'comment'         => 'Comment with an overlong filtered author name.',
+			)
+		);
+
+		$this->assertSame( $before, get_comments( array( 'count' => true ) ), 'The overlong comment should not be inserted.' );
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_author_column_length', $result->get_error_code() );
+	}
+
+	/**
 	 * Control for test_wp_insert_comment_encodes_emoji_for_utf8mb3_columns(): on a
 	 * utf8mb4 column, emoji should be stored as-is rather than as HTML entities.
 	 *
