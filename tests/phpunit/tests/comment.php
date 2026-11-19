@@ -2666,15 +2666,20 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Control for test_wp_insert_comment_encodes_emoji_for_utf8mb3_columns(): on a
-	 * utf8mb4 column, emoji should be stored as-is rather than as HTML entities.
+	 * Verifies that four-byte characters round-trip on utf8mb4 columns.
 	 *
 	 * @ticket 65700
 	 *
 	 * @covers ::wp_insert_comment
 	 */
 	public function test_wp_insert_comment_does_not_encode_emoji_for_utf8mb4_columns(): void {
-		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb4_for_comment_fields' ), 10, 3 );
+		global $wpdb;
+
+		if ( 'utf8mb4' !== $wpdb->get_col_charset( $wpdb->comments, 'comment_author' )
+			|| 'utf8mb4' !== $wpdb->get_col_charset( $wpdb->comments, 'comment_content' )
+		) {
+			$this->markTestSkipped( 'This test requires utf8mb4 comment author and content columns.' );
+		}
 
 		$comment_id = wp_insert_comment(
 			array(
@@ -2683,8 +2688,6 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_content' => "foo\xf0\x9f\x98\x8ebaz",
 			)
 		);
-
-		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb4_for_comment_fields' ), 10 );
 
 		$this->assertIsInt( $comment_id, 'Expected wp_insert_comment() to return the new comment ID.' );
 
@@ -2831,16 +2834,6 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		if ( $wpdb->comments === $table && in_array( $column, array( 'comment_author', 'comment_content' ), true ) ) {
 			return 'utf8mb3';
-		}
-
-		return $charset;
-	}
-
-	public function filter_pre_get_col_charset_utf8mb4_for_comment_fields( $charset, $table, $column ) {
-		global $wpdb;
-
-		if ( $wpdb->comments === $table && in_array( $column, array( 'comment_author', 'comment_content' ), true ) ) {
-			return 'utf8mb4';
 		}
 
 		return $charset;
