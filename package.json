@@ -34,7 +34,6 @@
 		"@wordpress/prettier-config": "4.19.1",
 		"@wordpress/scripts": "30.12.1",
 		"autoprefixer": "10.4.20",
-		"chalk": "5.4.1",
 		"check-node-version": "4.2.1",
 		"copy-webpack-plugin": "13.0.0",
 		"cssnano": "7.0.6",
@@ -71,7 +70,6 @@
 		"terser-webpack-plugin": "5.3.12",
 		"uglify-js": "^3.19.3",
 		"update-browserslist-db": "1.1.1",
-		"uuid": "11.1.0",
 		"wait-on": "8.0.2",
 		"webpack": "5.98.0",
 		"webpack-livereload-plugin": "3.0.2"
