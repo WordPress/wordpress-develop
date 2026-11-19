@@ -426,6 +426,26 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( 'foo&#x1f610;bat', $post->post_excerpt );
 	}
 
+	/**
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_insert_post
+	 * @covers ::wp_staticize_emoji
+	 */
+	public function test_staticize_emoji_in_post_content_stored_as_utf8mb3(): void {
+		$content = '👨‍👩‍👧 ❤️';
+
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_post_fields' ), 10, 3 );
+		$post_id = wp_insert_post( array( 'post_content' => $content ), true );
+		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_post_fields' ), 10 );
+
+		$this->assertNotWPError( $post_id );
+		$stored = get_post( $post_id )->post_content;
+
+		$this->assertSame( "&#x1f468;\u{200D}&#x1f469;\u{200D}&#x1f467; ❤️", $stored );
+		$this->assertSame( wp_staticize_emoji( $content ), wp_staticize_emoji( $stored ) );
+	}
+
 	public function filter_pre_get_col_charset_utf8mb3_for_post_fields( $charset, $table, $column ) {
 		global $wpdb;
 

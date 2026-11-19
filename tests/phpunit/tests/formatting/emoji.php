@@ -347,6 +347,18 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 				'🙂',
 				'<img src="' . self::$png_cdn . '1f642.png" alt="🙂" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
+			'four-byte emoji beside a character reference' => array(
+				'😀 &#x41;',
+				'<img src="' . self::$png_cdn . '1f600.png" alt="😀" class="wp-smiley" style="height: 1em; max-height: 1em;" /> &#x41;',
+			),
+			'three-byte emoji beside a character reference' => array(
+				'⌚ &#x41;',
+				'<img src="' . self::$png_cdn . '231a.png" alt="⌚" class="wp-smiley" style="height: 1em; max-height: 1em;" /> &#x41;',
+			),
+			'family with literal joiners between character references' => array(
+				"&#x1f468;\u{200D}&#x1f469;\u{200D}&#x1f467;",
+				'<img src="' . self::$png_cdn . '1f468-200d-1f469-200d-1f467.png" alt="👨‍👩‍👧" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+			),
 			array(
 				// Skin tone, gender, ZWJ, emoji selector.
 				'👮🏼‍♀️',

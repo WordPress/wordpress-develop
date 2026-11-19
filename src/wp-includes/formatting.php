@@ -6265,18 +6265,14 @@ function _wp_encode_4byte_chars_in_fields( $data, $table, $fields ) {
  * @return string The encoded content.
  */
 function wp_staticize_emoji( $text ) {
-	if ( ! str_contains( $text, '&#x' ) ) {
-		if ( ( function_exists( 'mb_check_encoding' ) && mb_check_encoding( $text, 'ASCII' ) ) || ! preg_match( '/[^\x00-\x7F]/', $text ) ) {
-			// The text doesn't contain anything that might be emoji, so we can return early.
-			return $text;
-		} else {
-			$encoded_text = wp_encode_emoji( $text );
-			if ( $encoded_text === $text ) {
-				return $encoded_text;
-			}
+	$is_ascii = function_exists( 'mb_check_encoding' ) ? mb_check_encoding( $text, 'ASCII' ) : ! preg_match( '/[^\x00-\x7F]/', $text );
+	if ( ! $is_ascii ) {
+		// An emoji sequence can contain both literal characters and character references.
+		$text = wp_encode_emoji( $text );
+	}
 
-			$text = $encoded_text;
-		}
+	if ( ! str_contains( $text, '&#x' ) ) {
+		return $text;
 	}
 
 	$emoji = _wp_emoji_list( 'entities' );
