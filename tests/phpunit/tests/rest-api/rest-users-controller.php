@@ -3085,6 +3085,386 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Creates a super admin who is not a member of the current site.
+	 *
+	 * @param string $post_status Optional. Status of a post by the super admin to create
+	 *                            on the current site. Default empty, no post.
+	 * @return int The ID of the super admin.
+	 */
+	private function create_non_member_super_admin( $post_status = '' ) {
+		$user_id = self::factory()->user->create( array( 'display_name' => 'Network Admin' ) );
+		grant_super_admin( $user_id );
+		remove_user_from_blog( $user_id, get_current_blog_id() );
+
+		if ( $post_status ) {
+			self::factory()->post->create(
+				array(
+					'post_author' => $user_id,
+					'post_status' => $post_status,
+				)
+			);
+		}
+
+		return $user_id;
+	}
+
+	/**
+	 * Requests a single user.
+	 *
+	 * @param int $user_id ID of the user to request.
+	 * @return WP_REST_Response The response.
+	 */
+	private function get_user_response( $user_id ) {
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $user_id ) );
+		return rest_get_server()->dispatch( $request );
+	}
+
+	/**
+	 * Requests the users with the given IDs.
+	 *
+	 * @param int[] $user_ids IDs of the users to request.
+	 * @param array $params   Optional. Additional request parameters. Default empty array.
+	 * @return WP_REST_Response The response.
+	 */
+	private function get_included_users_response( $user_ids, $params = array() ) {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'include', $user_ids );
+		foreach ( $params as $name => $value ) {
+			$request->set_param( $name, $value );
+		}
+		return rest_get_server()->dispatch( $request );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_item_non_member_super_admin_with_published_post() {
+		$user_id = $this->create_non_member_super_admin( 'publish' );
+		wp_set_current_user( 0 );
+
+		$response = $this->get_user_response( $user_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Network Admin', $response->get_data()['name'] );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_item_non_member_super_admin_with_draft_as_site_administrator() {
+		$user_id = $this->create_non_member_super_admin( 'draft' );
+		wp_set_current_user( self::$user );
+
+		$response = $this->get_user_response( $user_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $user_id, $response->get_data()['id'] );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_item_non_member_super_admin_with_draft_as_anonymous() {
+		$user_id = $this->create_non_member_super_admin( 'draft' );
+		wp_set_current_user( 0 );
+
+		$this->assertErrorResponse( 'rest_user_cannot_view', $this->get_user_response( $user_id ), 401 );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_item_non_member_super_admin_with_revision_only() {
+		$user_id = $this->create_non_member_super_admin();
+		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor ) );
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'revision',
+				'post_status' => 'inherit',
+				'post_parent' => $post_id,
+				'post_author' => $user_id,
+			)
+		);
+		wp_set_current_user( self::$user );
+
+		$response = $this->get_user_response( $user_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $user_id, $response->get_data()['id'] );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 *
+	 * @dataProvider data_non_member_super_admin_without_readable_content
+	 *
+	 * @param string $post_status Status of the only post by the super admin, or empty for none.
+	 */
+	public function test_get_item_non_member_super_admin_without_readable_content( $post_status ) {
+		$user_id = $this->create_non_member_super_admin( $post_status );
+		wp_set_current_user( self::$user );
+
+		$this->assertErrorResponse( 'rest_user_invalid_id', $this->get_user_response( $user_id ), 404 );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_non_member_super_admin_without_readable_content() {
+		return array(
+			'no posts'   => array( '' ),
+			'auto-draft' => array( 'auto-draft' ),
+			'trash'      => array( 'trash' ),
+		);
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_item_non_member_super_admin_as_self() {
+		$user_id = $this->create_non_member_super_admin();
+		wp_set_current_user( $user_id );
+
+		$response = $this->get_user_response( $user_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $user_id, $response->get_data()['id'] );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_item_non_member_regular_user_with_published_post() {
+		$user_id = self::factory()->user->create();
+		remove_user_from_blog( $user_id, get_current_blog_id() );
+		self::factory()->post->create( array( 'post_author' => $user_id ) );
+		wp_set_current_user( self::$user );
+
+		$this->assertErrorResponse( 'rest_user_invalid_id', $this->get_user_response( $user_id ), 404 );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_embed_author_non_member_super_admin() {
+		$user_id = $this->create_non_member_super_admin();
+		$post_id = self::factory()->post->create( array( 'post_author' => $user_id ) );
+		wp_set_current_user( 0 );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = rest_get_server()->response_to_data( $response, array( 'author' ) );
+
+		$this->assertSame( $user_id, $data['_embedded']['author'][0]['id'] );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_update_item_non_member_super_admin() {
+		$user_id = $this->create_non_member_super_admin( 'publish' );
+		wp_set_current_user( self::$superadmin );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_body_params( array( 'first_name' => 'New Name' ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_delete_item_non_member_super_admin() {
+		$user_id = $this->create_non_member_super_admin( 'publish' );
+		wp_set_current_user( self::$superadmin );
+
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'force', true );
+		$request->set_param( 'reassign', false );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_items_include_non_member_super_admin_with_published_post() {
+		$user_id = $this->create_non_member_super_admin( 'publish' );
+		wp_set_current_user( 0 );
+
+		$response = $this->get_included_users_response( array( $user_id ) );
+
+		$this->assertSame( array( $user_id ), wp_list_pluck( $response->get_data(), 'id' ) );
+		$this->assertSame( 1, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 1, $response->get_headers()['X-WP-TotalPages'] );
+	}
+
+	/**
+	 * The query the editor uses to show the author of a post.
+	 *
+	 * @ticket 61444
+	 * @group ms-required
+	 * @expectedDeprecated WP_User_Query
+	 */
+	public function test_get_items_include_authors_non_member_super_admin_with_draft() {
+		$user_id = $this->create_non_member_super_admin( 'draft' );
+		wp_set_current_user( self::$editor );
+
+		$response = $this->get_included_users_response( array( $user_id ), array( 'who' => 'authors' ) );
+
+		$this->assertSame( array( $user_id ), wp_list_pluck( $response->get_data(), 'id' ) );
+		$this->assertSame( 'Network Admin', $response->get_data()[0]['name'] );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_items_include_non_member_super_admin_ordered_by_include() {
+		$user_id = $this->create_non_member_super_admin( 'publish' );
+		wp_set_current_user( self::$user );
+
+		$response = $this->get_included_users_response(
+			array( $user_id, self::$editor ),
+			array( 'orderby' => 'include' )
+		);
+
+		$this->assertSame( array( $user_id, self::$editor ), wp_list_pluck( $response->get_data(), 'id' ) );
+		$this->assertSame( 2, $response->get_headers()['X-WP-Total'] );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_items_include_non_member_super_admin_paginated() {
+		$user_id = $this->create_non_member_super_admin( 'publish' );
+		wp_set_current_user( self::$user );
+
+		$first_page  = $this->get_included_users_response(
+			array( self::$editor, $user_id ),
+			array( 'per_page' => 1 )
+		);
+		$second_page = $this->get_included_users_response(
+			array( self::$editor, $user_id ),
+			array(
+				'per_page' => 1,
+				'page'     => 2,
+			)
+		);
+
+		$this->assertSame( array( self::$editor ), wp_list_pluck( $first_page->get_data(), 'id' ) );
+		$this->assertSame( array( $user_id ), wp_list_pluck( $second_page->get_data(), 'id' ) );
+		$this->assertSame( 2, $first_page->get_headers()['X-WP-Total'] );
+		$this->assertSame( 2, $first_page->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( 2, $second_page->get_headers()['X-WP-Total'] );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_items_include_non_member_super_admin_head_request() {
+		$user_id = $this->create_non_member_super_admin( 'publish' );
+		wp_set_current_user( self::$user );
+
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/users' );
+		$request->set_param( 'include', array( $user_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 1, $response->get_headers()['X-WP-Total'] );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_items_include_non_member_super_admin_with_draft_as_anonymous() {
+		$user_id = $this->create_non_member_super_admin( 'draft' );
+		wp_set_current_user( 0 );
+
+		$this->assertSame( array(), $this->get_included_users_response( array( $user_id ) )->get_data() );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_items_include_non_member_super_admin_without_posts() {
+		$user_id = $this->create_non_member_super_admin();
+		wp_set_current_user( self::$user );
+
+		$this->assertSame( array(), $this->get_included_users_response( array( $user_id ) )->get_data() );
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 *
+	 * @dataProvider data_get_items_include_non_member_super_admin_with_filter
+	 *
+	 * @param string $param Request parameter.
+	 * @param mixed  $value Request parameter value. Null to exclude the super admin.
+	 */
+	public function test_get_items_include_non_member_super_admin_with_filter( $param, $value ) {
+		$user_id = $this->create_non_member_super_admin( 'publish' );
+		wp_set_current_user( self::$user );
+
+		$response = $this->get_included_users_response(
+			array( $user_id ),
+			array( $param => null === $value ? array( $user_id ) : $value )
+		);
+
+		$this->assertSame( array(), $response->get_data() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_items_include_non_member_super_admin_with_filter() {
+		return array(
+			'search'       => array( 'search', 'Network' ),
+			'roles'        => array( 'roles', array( 'administrator' ) ),
+			'capabilities' => array( 'capabilities', array( 'edit_posts' ) ),
+			'slug'         => array( 'slug', array( 'network-admin' ) ),
+			'exclude'      => array( 'exclude', null ),
+		);
+	}
+
+	/**
+	 * @ticket 61444
+	 * @group ms-required
+	 */
+	public function test_get_items_without_include_does_not_list_non_member_super_admin() {
+		$user_id = $this->create_non_member_super_admin( 'publish' );
+		wp_set_current_user( self::$user );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'per_page', 100 );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertNotContains( $user_id, wp_list_pluck( $response->get_data(), 'id' ) );
+	}
+
+	/**
 	 * @ticket 43941
 	 * @dataProvider data_get_default_data
 	 */
