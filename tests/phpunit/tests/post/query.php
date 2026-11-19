@@ -19,6 +19,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * Clean up after each test.
 	 */
 	public function tear_down() {
+		unregister_post_type( 'wptests_pt' );
 		unset( $this->post_id );
 
 		parent::tear_down();
