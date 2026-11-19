@@ -5798,25 +5798,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The filter receives the default 'note' and 'reaction' types and the WP_Comment_Query instance.
-	 *
-	 * @ticket 65537
-	 * @covers WP_Comment_Query::get_comment_ids
-	 */
-	public function test_default_excluded_comment_types_filter_receives_default_and_instance(): void {
-		$filter = new MockAction();
-		add_filter( 'default_excluded_comment_types', array( $filter, 'filter' ), 10, 2 );
-
-		$query = new WP_Comment_Query();
-		$query->query( array( 'fields' => 'ids' ) );
-
-		$filter_args = $filter->get_args()[0];
-
-		$this->assertSame( array( 'note', 'reaction' ), $filter_args[0], 'The filter should receive the default note and reaction types.' );
-		$this->assertSame( $query, $filter_args[1], 'The filter should receive the query instance.' );
-	}
-
-	/**
 	 * A custom excluded type is only added once to the query, even when a query
 	 * already excludes it via type__not_in.
 	 *
@@ -6091,6 +6072,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$query->query( array( 'fields' => 'ids' ) );
 
 		$this->assertSame( 1, $filter->get_call_count(), 'The filter should run once for a single query.' );
+		$this->assertSame( array( 'note', 'reaction' ), $filter->get_args()[0][0], 'The filter should receive the note and reaction types.' );
 	}
 
 	/**

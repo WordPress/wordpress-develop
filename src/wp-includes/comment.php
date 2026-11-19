@@ -3235,11 +3235,9 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
  *
  * @since 7.3.0
  *
- * @param WP_Comment_Query|null $query Optional. The comment query resolving the set, if any.
- *                                     Default null.
  * @return string[] Comment types excluded by default.
  */
-function wp_get_default_excluded_comment_types( $query = null ) {
+function wp_get_default_excluded_comment_types() {
 	/**
 	 * Filters the comment types that are excluded from query results by default.
 	 *
@@ -3255,21 +3253,14 @@ function wp_get_default_excluded_comment_types( $query = null ) {
 	 * changes the set for types that already have comments should call
 	 * wp_update_comment_count_now() for the affected posts on activation and deactivation.
 	 *
-	 * The counts, the feeds and get_lastcommentmodified() resolve the set without a query,
-	 * and a threaded query resolves it again for each level of replies. A callback that
-	 * varies the set by `$query` makes those disagree with the listed comments.
-	 *
 	 * This is a default-visibility setting, not access control: excluded types can still
 	 * be queried explicitly.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param string[]              $excluded_types Comment types excluded by default. Default
-	 *                                              'note' and 'reaction'.
-	 * @param WP_Comment_Query|null $query          The comment query resolving the set, or null
-	 *                                              outside of a comment query.
+	 * @param string[] $excluded_types Comment types excluded by default. Default 'note' and 'reaction'.
 	 */
-	$excluded_types = apply_filters( 'default_excluded_comment_types', array( 'note', 'reaction' ), $query );
+	$excluded_types = apply_filters( 'default_excluded_comment_types', array( 'note', 'reaction' ) );
 
 	$excluded_types = array_filter( (array) $excluded_types, 'is_scalar' );
 

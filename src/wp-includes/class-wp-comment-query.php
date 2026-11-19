@@ -472,7 +472,7 @@ class WP_Comment_Query {
 		 * The excluded set changes the results without bumping 'last_changed', so it is
 		 * part of the key. get_comment_ids() reuses it.
 		 */
-		$this->default_excluded_comment_types = wp_get_default_excluded_comment_types( $this );
+		$this->default_excluded_comment_types = wp_get_default_excluded_comment_types();
 
 		$_args['default_excluded_comment_types'] = $this->default_excluded_comment_types;
 
@@ -800,7 +800,7 @@ class WP_Comment_Query {
 
 		// Resolved in get_comments() when the cache key is built; resolve here for direct calls.
 		if ( null === $this->default_excluded_comment_types ) {
-			$this->default_excluded_comment_types = wp_get_default_excluded_comment_types( $this );
+			$this->default_excluded_comment_types = wp_get_default_excluded_comment_types();
 		}
 
 		$excluded_types = $this->default_excluded_comment_types;
