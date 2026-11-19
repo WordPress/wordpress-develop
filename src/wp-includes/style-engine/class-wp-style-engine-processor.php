@@ -120,7 +120,7 @@ class WP_Style_Engine_Processor {
 			'optimize' => false,
 			'prettify' => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG,
 		);
-		$options  = wp_parse_args( $options, $defaults );
+		$options  = array_merge( $defaults, $options );
 
 		// If we have stores, get the rules from them.
 		foreach ( $this->stores as $store ) {

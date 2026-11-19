@@ -43,18 +43,3 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/ai-client/adapters/class-wp-ai-client-http-client.php
-		-
-			message: '#^Parameter \#4 \$options of static method WP_Style_Engine_CSS_Declarations\:\:filter_declaration\(\) expects array\{important\?\: bool, \.\.\.\}, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-css-declarations.php
-		-
-			message: '#^Parameter \#3 \$options of method WP_Style_Engine_CSS_Declarations\:\:add_declaration\(\) expects array\{important\?\: bool, \.\.\.\}, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-css-rule.php
-		-
-			message: '#^Parameter \#1 \$should_prettify of method WP_Style_Engine_CSS_Rule\:\:get_css\(\) expects bool, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-processor.php

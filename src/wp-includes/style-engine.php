@@ -35,8 +35,8 @@
  * @link https://developer.wordpress.org/block-editor/reference-guides/theme-json-reference/theme-json-living/#styles
  * @link https://developer.wordpress.org/block-editor/reference-guides/block-api/block-supports/
  *
- * @param array $block_styles The style object.
- * @param array $options      {
+ * @param array<string, mixed> $block_styles The style object.
+ * @param array|null           $options      {
  *     Optional. An array of options. Default empty array.
  *
  *     @type string|null $context                    An identifier describing the origin of the style object,
@@ -59,15 +59,21 @@
  *                                  e.g. `array( "$property" => "$value", "$property" => "$value" )`.
  *     @type string   $classnames   Classnames separated by a space.
  * }
+ *
+ * @phpstan-return array{
+ *     css?: non-empty-string,
+ *     declarations?: non-empty-array<non-falsy-string, non-empty-string>,
+ *     classnames?: non-empty-string,
+ * }
  */
 function wp_style_engine_get_styles( $block_styles, $options = array() ) {
-	$options = wp_parse_args(
-		$options,
+	$options = array_merge(
 		array(
-			'selector'                   => null,
+			'selector'                   => '',
 			'context'                    => null,
 			'convert_vars_to_classnames' => false,
-		)
+		),
+		$options ?? array()
 	);
 
 	$parsed_styles = WP_Style_Engine::parse_block_styles( $block_styles, $options );
@@ -120,12 +126,12 @@ function wp_style_engine_get_styles( $block_styles, $options = array() ) {
  *     Required. A collection of CSS rules.
  *
  *     @type array ...$0 {
- *         @type string                                    $rules_group  A parent CSS selector in the case of nested CSS,
- *                                                                       or a CSS nested @rule, such as `@media (min-width: 80rem)` or `@layer module`.
- *         @type string                                    $selector     A CSS selector.
- *         @type string[]|WP_Style_Engine_CSS_Declarations $declarations An associative array of CSS definitions,
- *                                                                       e.g. `array( "$property" => "$value", "$property" => "$value" )`,
- *                                                                       or a WP_Style_Engine_CSS_Declarations object.
+ *         @type string                                                 $rules_group  A parent CSS selector in the case of nested CSS,
+ *                                                                                    or a CSS nested @rule, such as `@media (min-width: 80rem)` or `@layer module`.
+ *         @type string                                                 $selector     A CSS selector.
+ *         @type array<string, string>|WP_Style_Engine_CSS_Declarations $declarations An associative array of CSS definitions,
+ *                                                                                    e.g. `array( "$property" => "$value", "$property" => "$value" )`,
+ *                                                                                    or a WP_Style_Engine_CSS_Declarations object.
  *     }
  * }
  * @param array $options   {
@@ -146,11 +152,11 @@ function wp_style_engine_get_stylesheet_from_css_rules( $css_rules, $options = a
 		return '';
 	}
 
-	$options = wp_parse_args(
-		$options,
+	$options = array_merge(
 		array(
 			'context' => null,
-		)
+		),
+		$options
 	);
 
 	$css_rule_objects = array();
@@ -164,7 +170,7 @@ function wp_style_engine_get_stylesheet_from_css_rules( $css_rules, $options = a
 			continue;
 		}
 
-		$rules_group = $css_rule['rules_group'] ?? null;
+		$rules_group = $css_rule['rules_group'] ?? '';
 		if ( ! empty( $options['context'] ) ) {
 			WP_Style_Engine::store_css_rule( $options['context'], $css_rule['selector'], $declarations, $rules_group );
 		}

@@ -43,13 +43,3 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: ../../../src/wp-includes/ai-client.php
-		-
-			message: '#^Method WP_Style_Engine_CSS_Declarations\:\:get_declaration_options\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-css-declarations.php
-		-
-			message: '#^Property WP_Style_Engine_CSS_Declarations\:\:\$declaration_options type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: ../../../src/wp-includes/style-engine/class-wp-style-engine-css-declarations.php
