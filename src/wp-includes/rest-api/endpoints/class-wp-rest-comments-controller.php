@@ -303,9 +303,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		// Ensure certain parameter values default to empty strings.
 		foreach ( array( 'author_email', 'search' ) as $param ) {
-			if ( ! isset( $prepared_args[ $param ] ) ) {
-				$prepared_args[ $param ] = '';
-			}
+			$prepared_args[ $param ] ??= '';
 		}
 
 		if ( isset( $registered['orderby'] ) ) {
@@ -881,9 +879,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_comment['comment_content'] = $reaction_key;
 		}
 
-		if ( ! isset( $prepared_comment['comment_content'] ) ) {
-			$prepared_comment['comment_content'] = '';
-		}
+		$prepared_comment['comment_content'] ??= '';
 
 		// Include note metadata into check_is_comment_content_allowed.
 		if ( isset( $request['meta']['_wp_note_status'] ) ) {
@@ -943,17 +939,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! isset( $prepared_comment['comment_author_email'] ) ) {
-			$prepared_comment['comment_author_email'] = '';
-		}
+		$prepared_comment['comment_author_email'] ??= '';
 
-		if ( ! isset( $prepared_comment['comment_author_url'] ) ) {
-			$prepared_comment['comment_author_url'] = '';
-		}
+		$prepared_comment['comment_author_url'] ??= '';
 
-		if ( ! isset( $prepared_comment['comment_agent'] ) ) {
-			$prepared_comment['comment_agent'] = '';
-		}
+		$prepared_comment['comment_agent'] ??= '';
 
 		$check_comment_lengths = wp_check_comment_data_max_lengths( $prepared_comment );
 
