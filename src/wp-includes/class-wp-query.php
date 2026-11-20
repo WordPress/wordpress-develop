@@ -130,6 +130,8 @@
  *     search_columns: array<scalar>,
  *     post_type?: string|array<string>,
  *     post_status?: string|array<string>,
+ *     post_mime_type?: string|array<string>,
+ *     orderby?: string|array<string>|false,
  *     ...<array-key, mixed>
  * }
  *
@@ -905,6 +907,17 @@ class WP_Query {
 		}
 		if ( isset( $query_vars['post_status'] ) ) {
 			$query_vars['post_status'] = self::normalize_string_or_array_query_var( $query_vars['post_status'] );
+		}
+		if ( isset( $query_vars['post_mime_type'] ) ) {
+			$query_vars['post_mime_type'] = self::normalize_string_or_array_query_var( $query_vars['post_mime_type'] );
+		}
+
+		/*
+		 * A field to order by, a space-separated list of them, or an array of fields mapped to orders.
+		 * False is kept, since it blanks out the ORDER BY clause.
+		 */
+		if ( isset( $query_vars['orderby'] ) && false !== $query_vars['orderby'] ) {
+			$query_vars['orderby'] = self::normalize_string_or_array_query_var( $query_vars['orderby'] );
 		}
 
 		$query_vars['error']         = is_scalar( $query_vars['error'] ) ? $query_vars['error'] : '';
@@ -2847,7 +2860,7 @@ class WP_Query {
 			$orderby_array = array();
 			if ( is_array( $query_vars['orderby'] ) ) {
 				foreach ( $query_vars['orderby'] as $_orderby => $order ) {
-					$orderby = wp_slash( urldecode( $_orderby ) );
+					$orderby = wp_slash( urldecode( (string) $_orderby ) );
 					$parsed  = $this->parse_orderby( $orderby );
 
 					if ( ! $parsed ) {
@@ -2862,7 +2875,7 @@ class WP_Query {
 				$query_vars['orderby'] = urldecode( $query_vars['orderby'] );
 				$query_vars['orderby'] = wp_slash( $query_vars['orderby'] );
 
-				foreach ( explode( ' ', $query_vars['orderby'] ) as $i => $orderby ) {
+				foreach ( explode( ' ', $query_vars['orderby'] ) as $orderby ) {
 					$parsed = $this->parse_orderby( $orderby );
 					// Only allow certain values for safety.
 					if ( ! $parsed ) {
