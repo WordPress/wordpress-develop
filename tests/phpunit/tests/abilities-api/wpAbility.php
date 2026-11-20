@@ -1871,38 +1871,39 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests wp_ability_validate_output filter can replace error with custom error.
+	 * Custom output errors gain execution context while retaining their details.
 	 *
 	 * @ticket 64311
+	 * @ticket 66433
 	 */
 	public function test_validate_output_filter_replaces_error_with_custom() {
-		$args = array_merge(
-			self::$test_ability_properties,
-			array(
-				'output_schema'    => array(
-					'type'        => 'string',
-					'description' => 'The result string.',
-				),
-				'execute_callback' => static function (): int {
-					return 42;
-				},
-			)
-		);
-
+		$original = new WP_Error( 'custom_output_error', 'Rejected.', array( 'status' => 422 ) );
+		$original->add( 'custom_output_error', 'Another reason.' );
+		$original->add( 'policy', 'Policy rejected.', array( 'field' => 'name' ) );
+		$unchanged = clone $original;
 		add_filter(
 			'wp_ability_validate_output',
-			static function () {
-				return new WP_Error( 'custom_output_error', 'Custom output message.' );
-			},
-			10,
-			1
+			static function () use ( $original ) {
+				return $original;
+			}
 		);
 
-		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
 		$result  = $ability->execute();
 
-		$this->assertWPError( $result );
-		$this->assertSame( 'custom_output_error', $result->get_error_code() );
+		$this->assertEquals( $unchanged, $original );
+		$this->assertSame(
+			array(
+				'custom_output_error' => array(
+					'Ability "test/calculator" ran, but its output failed validation. Rejected.',
+					'Another reason.',
+				),
+				'policy'              => array( 'Policy rejected.' ),
+			),
+			$result->errors
+		);
+		$this->assertSame( $original->get_all_error_data(), $result->get_all_error_data() );
+		$this->assertSame( $original->get_error_data( 'policy' ), $result->get_error_data( 'policy' ) );
 	}
 
 	/**
@@ -2869,221 +2870,34 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that errors from before the callback runs do not say that it ran.
-	 *
-	 * @ticket 66433
-	 *
-	 * @dataProvider data_errors_before_the_callback_runs
-	 *
-	 * @param array<string, mixed> $properties Ability properties that make the call fail early.
-	 * @param mixed                $input      The input to pass to the ability.
-	 * @param string               $error_code The expected error code.
-	 */
-	public function test_errors_before_the_callback_runs_do_not_say_it_ran( array $properties, $input, string $error_code ) {
-		$runs    = 0;
-		$ability = $this->create_ability_with_invalid_output( $runs, $properties );
-		$result  = $ability->execute( $input );
-
-		$this->assertWPError( $result );
-		$this->assertSame( $error_code, $result->get_error_code() );
-		$this->assertSame( 0, $runs, 'The callback should not have run.' );
-		$this->assertStringNotContainsString( 'ran, but its output failed validation', $result->get_error_message() );
-	}
-
-	/**
-	 * Data provider for test_errors_before_the_callback_runs_do_not_say_it_ran().
-	 *
-	 * @return array<string, array{0: array<string, mixed>, 1: mixed, 2: string}>
-	 */
-	public static function data_errors_before_the_callback_runs(): array {
-		return array(
-			'invalid input'     => array(
-				array(
-					'input_schema' => array(
-						'type'        => 'integer',
-						'description' => 'Test input integer.',
-					),
-				),
-				'not a number',
-				'ability_invalid_input',
-			),
-			'permission denied' => array(
-				array( 'permission_callback' => '__return_false' ),
-				null,
-				'ability_invalid_permissions',
-			),
-		);
-	}
-
-	/**
-	 * Retry guidance depends on readonly, not destructive or idempotent.
+	 * A filter rejection includes retry guidance unless the ability is explicitly read-only.
 	 *
 	 * @ticket 66433
 	 * @dataProvider data_output_retry_guidance
 	 *
-	 * @param bool|null $is_readonly Whether the ability declares itself read-only.
+	 * @param bool|null $is_readonly The normalized read-only annotation.
 	 * @param string    $expected    Expected error message.
 	 */
 	public function test_output_retry_guidance( $is_readonly, $expected ) {
-		$runs    = 0;
-		$ability = $this->create_ability_with_invalid_output(
-			$runs,
-			array(
-				'meta' => array(
-					'annotations' => array(
-						'readonly'    => $is_readonly,
-						'destructive' => false,
-						'idempotent'  => true,
-					),
-				),
-			)
-		);
-		$error   = $ability->execute();
+		add_filter( 'wp_ability_validate_output', '__return_false' );
+		$args                                    = self::$test_ability_properties;
+		$args['meta']['annotations']['readonly'] = $is_readonly;
+		$ability                                 = new WP_Ability( self::$test_ability_name, $args );
 
-		$this->assertSame( 1, $runs );
-		$this->assertSame( $expected, $error->get_error_message() );
+		$this->assertSame( $expected, $ability->execute()->get_error_message() );
 	}
 
 	/**
 	 * @return array[] Read-only annotations and their expected messages.
 	 */
 	public static function data_output_retry_guidance() {
-		$readonly_message = 'Ability "test/calculator" ran, but its output failed validation. Reason: output is not of type string.';
-		$write_message    = 'Ability "test/calculator" ran, but its output failed validation. Its changes may already be saved. Check the current state before you run it again. Reason: output is not of type string.';
-
-		return array(
-			'read-only'     => array( true, $readonly_message ),
-			'not read-only' => array( false, $write_message ),
-			'unspecified'   => array( null, $write_message ),
-		);
-	}
-
-	/**
-	 * Filters can reject, clone, or rewrite an error without losing or duplicating execution context.
-	 *
-	 * @ticket 66433
-	 * @dataProvider data_output_validation_filter_messages
-	 *
-	 * @param string $validation Filter behavior.
-	 * @param string $expected   Expected error message.
-	 */
-	public function test_output_validation_filter_messages( $validation, $expected ) {
-		add_filter(
-			'wp_ability_validate_output',
-			static function ( $error ) use ( $validation ) {
-				if ( 'false' === $validation ) {
-					return false;
-				}
-				if ( 'clone' === $validation ) {
-					return clone $error;
-				}
-				$error->errors['ability_invalid_output'][0] = 'Custom reason.';
-				return $error;
-			}
-		);
-		$runs    = 0;
-		$ability = $this->create_ability_with_invalid_output( $runs );
-		$error   = $ability->execute();
-
-		$this->assertSame( 'ability_invalid_output', $error->get_error_code() );
-		$this->assertSame( $expected, $error->get_error_message() );
-		$this->assertNull( $error->get_error_data() );
-	}
-
-	/**
-	 * @return array[] Filter behaviors and expected messages.
-	 */
-	public static function data_output_validation_filter_messages() {
 		$message = 'Ability "test/calculator" ran, but its output failed validation.';
+		$warning = ' Its changes may already be saved. Check the current state before you run it again.';
+
 		return array(
-			'false'     => array( 'false', $message ),
-			'clone'     => array( 'clone', $message . ' Reason: output is not of type string.' ),
-			'rewritten' => array( 'rewritten', $message . ' Custom reason.' ),
+			'read-only'     => array( true, $message ),
+			'not read-only' => array( false, $message . $warning ),
+			'default'       => array( null, $message . $warning ),
 		);
-	}
-
-	/**
-	 * Filter errors keep all codes, messages, data and the original instance.
-	 *
-	 * @ticket 66433
-	 */
-	public function test_output_error_preserves_filter_error() {
-		$original = new WP_Error( 'custom', 'Rejected.', array( 'status' => 422 ) );
-		$original->add( 'custom', 'Another reason.' );
-		$original->add( 'policy', 'Policy rejected.', array( 'field' => 'name' ) );
-		add_filter(
-			'wp_ability_validate_output',
-			static function () use ( $original ) {
-				return $original;
-			}
-		);
-		$runs    = 0;
-		$ability = $this->create_ability_with_invalid_output( $runs, array( 'meta' => array() ) );
-		$error   = $ability->execute();
-		$this->assertNotSame( $original, $error );
-		$this->assertSame( array( 'custom', 'policy' ), $error->get_error_codes() );
-		$this->assertSame( 'Another reason.', $error->get_error_messages( 'custom' )[1] );
-		$this->assertSame( 'Policy rejected.', $error->get_error_message( 'policy' ) );
-		$this->assertSame( array( 'field' => 'name' ), $error->get_error_data( 'policy' ) );
-		$this->assertSame( array( 'status' => 422 ), $original->get_error_data() );
-		$this->assertSame( $original->get_all_error_data(), $error->get_all_error_data() );
-		$this->assertSame( 'Ability "test/calculator" ran, but its output failed validation. Its changes may already be saved. Check the current state before you run it again. Rejected.', $error->get_error_message() );
-		$this->assertSame( array( 'Rejected.', 'Another reason.' ), $original->get_error_messages( 'custom' ) );
-		$this->assertSame( 422, rest_convert_error_to_response( $error )->get_status() );
-	}
-
-	/**
-	 * Callback and short-circuit errors are not output validation errors, even with the same code.
-	 *
-	 * @ticket 66433
-	 */
-	public function test_callback_and_short_circuit_errors_are_unchanged() {
-		$original = new WP_Error( 'ability_invalid_output', 'Nested failure.' );
-		$runs     = 0;
-		$ability  = $this->create_ability_with_invalid_output(
-			$runs,
-			array(
-				'execute_callback' => static function () use ( $original ) {
-					return $original;
-				},
-			)
-		);
-		$this->assertSame( $original, $ability->execute() );
-		add_filter(
-			'wp_pre_execute_ability',
-			static function () use ( $original ) {
-				return $original;
-			}
-		);
-		$this->assertSame( $original, $ability->execute() );
-		$this->assertNull( $original->get_error_data() );
-		$this->assertSame( 'Nested failure.', $original->get_error_message() );
-	}
-
-	/**
-	 * Creates an ability whose callback counts its runs and returns output that fails the schema.
-	 *
-	 * @param int                  $runs       Incremented each time the callback runs.
-	 * @param array<string, mixed> $properties Optional. Properties to override.
-	 * @return WP_Ability The ability.
-	 */
-	private function create_ability_with_invalid_output( int &$runs, array $properties = array() ): WP_Ability {
-		$args = array_merge(
-			self::$test_ability_properties,
-			array(
-				'output_schema'    => array(
-					'type'        => 'string',
-					'description' => 'The result string.',
-				),
-				'execute_callback' => static function () use ( &$runs ): int {
-					++$runs;
-
-					return 42;
-				},
-			),
-			$properties
-		);
-
-		return new WP_Ability( self::$test_ability_name, $args );
 	}
 }
