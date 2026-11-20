@@ -3378,6 +3378,48 @@ function wp_rel_callback( $matches, $rel ) {
 }
 
 /**
+ * Adds rel values to all HTML A elements in content.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $text Content that may contain HTML A elements.
+ * @param string $rel  The rel attribute value(s) to add.
+ * @return string Modified content.
+ */
+function _wp_rel_add( $text, $rel ) {
+	if ( ! is_string( $text ) || '' === $text || false === stripos( $text, '<a' ) ) {
+		return $text;
+	}
+
+	$processor = new WP_HTML_Tag_Processor( $text );
+	while ( $processor->next_tag( 'A' ) ) {
+		$target_rel = $rel;
+
+		$href = $processor->get_attribute( 'href' );
+		if ( is_string( $href ) && wp_is_internal_link( $href ) ) {
+			$target_rel = trim( str_replace( 'nofollow', '', $target_rel ) );
+		}
+
+		if ( '' === $target_rel ) {
+			continue;
+		}
+
+		$existing_rel = $processor->get_attribute( 'rel' );
+		if ( is_string( $existing_rel ) && '' !== trim( $existing_rel ) ) {
+			$parts          = array_values( array_filter( preg_split( '/\s+/', trim( $existing_rel ) ) ) );
+			$new_parts      = array_values( array_filter( preg_split( '/\s+/', trim( $target_rel ) ) ) );
+			$combined_parts = array_unique( array_merge( $parts, $new_parts ) );
+			$processor->set_attribute( 'rel', implode( ' ', $combined_parts ) );
+		} else {
+			$processor->set_attribute( 'rel', $target_rel );
+		}
+	}
+
+	return $processor->get_updated_html();
+}
+
+/**
  * Adds `rel="nofollow"` string to all HTML A elements in content.
  *
  * @since 1.5.0
@@ -3388,13 +3430,7 @@ function wp_rel_callback( $matches, $rel ) {
 function wp_rel_nofollow( $text ) {
 	// This is a pre-save filter, so text is already escaped.
 	$text = stripslashes( $text );
-	$text = preg_replace_callback(
-		'|<a (.+?)>|i',
-		static function ( $matches ) {
-			return wp_rel_callback( $matches, 'nofollow' );
-		},
-		$text
-	);
+	$text = _wp_rel_add( $text, 'nofollow' );
 	return wp_slash( $text );
 }
 
@@ -3422,13 +3458,7 @@ function wp_rel_nofollow_callback( $matches ) {
 function wp_rel_ugc( $text ) {
 	// This is a pre-save filter, so text is already escaped.
 	$text = stripslashes( $text );
-	$text = preg_replace_callback(
-		'|<a (.+?)>|i',
-		static function ( $matches ) {
-			return wp_rel_callback( $matches, 'nofollow ugc' );
-		},
-		$text
-	);
+	$text = _wp_rel_add( $text, 'nofollow ugc' );
 	return wp_slash( $text );
 }
 
