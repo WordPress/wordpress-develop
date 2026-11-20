@@ -185,6 +185,46 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that query vars which are not lists are normalized to scalars or arrays of scalars.
+	 *
+	 * @ticket 60745
+	 *
+	 * @dataProvider data_query_var_values
+	 *
+	 * @param mixed $value    Value given for the query var.
+	 * @param mixed $expected Expected normalized value.
+	 */
+	public function test_query_vars_are_normalized_to_scalars_or_arrays_of_scalars( $value, $expected ): void {
+		$query      = new WP_Query();
+		$query_vars = $query->fill_query_vars( array( 'p' => $value ) );
+
+		$this->assertSame( $expected, $query_vars['p'] );
+	}
+
+	/**
+	 * Data provider for {@see self::test_query_vars_are_normalized_to_scalars_or_arrays_of_scalars()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed, 1: mixed }>
+	 */
+	public static function data_query_var_values(): array {
+		return array(
+			'string'       => array( '5', '5' ),
+			'integer'      => array( 5, 5 ),
+			'false'        => array( false, false ),
+			'null'         => array( null, '' ),
+			'object'       => array( new stdClass(), array() ),
+			'array'        => array( array( 1, 2 ), array( 1, 2 ) ),
+			'nested array' => array(
+				array( 1, array( 2 ), 'a', null, new stdClass() ),
+				array(
+					0 => 1,
+					2 => 'a',
+				),
+			),
+		);
+	}
+
+	/**
 	 * Tests that a list query var given a non-empty value of the wrong type does not cause an error.
 	 *
 	 * @ticket 60745

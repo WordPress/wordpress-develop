@@ -20,42 +20,42 @@
  * @phpstan-method void init_query_flags()
  *
  * @phpstan-type Filled_Query_Vars array{
- *     error: mixed,
- *     m: mixed,
- *     p: mixed,
- *     post_parent: mixed,
- *     subpost: mixed,
- *     subpost_id: mixed,
- *     attachment: mixed,
- *     attachment_id: mixed,
- *     name: mixed,
- *     pagename: mixed,
- *     page_id: mixed,
- *     second: mixed,
- *     minute: mixed,
- *     hour: mixed,
- *     day: mixed,
- *     monthnum: mixed,
- *     year: mixed,
- *     w: mixed,
- *     category_name: mixed,
- *     tag: mixed,
- *     cat: mixed,
- *     tag_id: mixed,
- *     author: mixed,
- *     author_name: mixed,
- *     feed: mixed,
- *     tb: mixed,
- *     paged: mixed,
- *     meta_key: mixed,
- *     meta_value: mixed,
- *     preview: mixed,
- *     s: mixed,
- *     sentence: mixed,
- *     title: mixed,
- *     fields: mixed,
- *     menu_order: mixed,
- *     embed: mixed,
+ *     error: scalar|array<scalar>,
+ *     m: scalar|array<scalar>,
+ *     p: scalar|array<scalar>,
+ *     post_parent: scalar|array<scalar>,
+ *     subpost: scalar|array<scalar>,
+ *     subpost_id: scalar|array<scalar>,
+ *     attachment: scalar|array<scalar>,
+ *     attachment_id: scalar|array<scalar>,
+ *     name: scalar|array<scalar>,
+ *     pagename: scalar|array<scalar>,
+ *     page_id: scalar|array<scalar>,
+ *     second: scalar|array<scalar>,
+ *     minute: scalar|array<scalar>,
+ *     hour: scalar|array<scalar>,
+ *     day: scalar|array<scalar>,
+ *     monthnum: scalar|array<scalar>,
+ *     year: scalar|array<scalar>,
+ *     w: scalar|array<scalar>,
+ *     category_name: scalar|array<scalar>,
+ *     tag: scalar|array<scalar>,
+ *     cat: scalar|array<scalar>,
+ *     tag_id: scalar|array<scalar>,
+ *     author: scalar|array<scalar>,
+ *     author_name: scalar|array<scalar>,
+ *     feed: scalar|array<scalar>,
+ *     tb: scalar|array<scalar>,
+ *     paged: scalar|array<scalar>,
+ *     meta_key: scalar|array<scalar>,
+ *     meta_value: scalar|array<scalar>,
+ *     preview: scalar|array<scalar>,
+ *     s: scalar|array<scalar>,
+ *     sentence: scalar|array<scalar>,
+ *     title: scalar|array<scalar>,
+ *     fields: scalar|array<scalar>,
+ *     menu_order: scalar|array<scalar>,
+ *     embed: scalar|array<scalar>,
  *     category__in: array<scalar>,
  *     category__not_in: array<scalar>,
  *     category__and: array<scalar>,
@@ -103,8 +103,8 @@
  *     feed: string,
  *     tb: scalar,
  *     paged: int<0, max>,
- *     meta_key: mixed,
- *     meta_value: mixed,
+ *     meta_key: scalar|array<scalar>,
+ *     meta_value: scalar|array<scalar>,
  *     preview: scalar,
  *     s: scalar,
  *     sentence: scalar,
@@ -703,13 +703,18 @@ class WP_Query {
 	/**
 	 * Fills in the query variables, which do not exist within the parameter.
 	 *
-	 * Query variables which take a list of values are normalized to arrays: an empty value becomes
-	 * an empty array, a scalar value becomes an array containing that value, and any other value
-	 * becomes an empty array.
+	 * Query variables which take a list of values are normalized to arrays of scalars: an empty value
+	 * becomes an empty array, a scalar value becomes an array containing that value, an array has any
+	 * values which are not scalar removed, and any other value becomes an empty array.
+	 *
+	 * Other query variables are normalized to scalars or arrays of scalars: an undefined value becomes
+	 * an empty string, an array has any values which are not scalar removed, and any other value which
+	 * is not scalar becomes an empty array.
 	 *
 	 * @since 2.1.0
 	 * @since 4.5.0 Removed the `comments_popup` public query variable.
-	 * @since 7.3.0 Query variables which take a list of values are normalized to arrays.
+	 * @since 7.3.0 Query variables are normalized to scalars or arrays of scalars, and those which
+	 *              take a list of values are normalized to arrays.
 	 *
 	 * @param array $query_vars Defined query variables.
 	 * @return array Complete query variables with undefined ones filled in empty.
@@ -725,42 +730,42 @@ class WP_Query {
 		return array_replace(
 			$query_vars,
 			array(
-				'error'               => $query_vars['error'] ?? '',
-				'm'                   => $query_vars['m'] ?? '',
-				'p'                   => $query_vars['p'] ?? '',
-				'post_parent'         => $query_vars['post_parent'] ?? '',
-				'subpost'             => $query_vars['subpost'] ?? '',
-				'subpost_id'          => $query_vars['subpost_id'] ?? '',
-				'attachment'          => $query_vars['attachment'] ?? '',
-				'attachment_id'       => $query_vars['attachment_id'] ?? '',
-				'name'                => $query_vars['name'] ?? '',
-				'pagename'            => $query_vars['pagename'] ?? '',
-				'page_id'             => $query_vars['page_id'] ?? '',
-				'second'              => $query_vars['second'] ?? '',
-				'minute'              => $query_vars['minute'] ?? '',
-				'hour'                => $query_vars['hour'] ?? '',
-				'day'                 => $query_vars['day'] ?? '',
-				'monthnum'            => $query_vars['monthnum'] ?? '',
-				'year'                => $query_vars['year'] ?? '',
-				'w'                   => $query_vars['w'] ?? '',
-				'category_name'       => $query_vars['category_name'] ?? '',
-				'tag'                 => $query_vars['tag'] ?? '',
-				'cat'                 => $query_vars['cat'] ?? '',
-				'tag_id'              => $query_vars['tag_id'] ?? '',
-				'author'              => $query_vars['author'] ?? '',
-				'author_name'         => $query_vars['author_name'] ?? '',
-				'feed'                => $query_vars['feed'] ?? '',
-				'tb'                  => $query_vars['tb'] ?? '',
-				'paged'               => $query_vars['paged'] ?? '',
-				'meta_key'            => $query_vars['meta_key'] ?? '',
-				'meta_value'          => $query_vars['meta_value'] ?? '',
-				'preview'             => $query_vars['preview'] ?? '',
-				's'                   => $query_vars['s'] ?? '',
-				'sentence'            => $query_vars['sentence'] ?? '',
-				'title'               => $query_vars['title'] ?? '',
-				'fields'              => $query_vars['fields'] ?? '',
-				'menu_order'          => $query_vars['menu_order'] ?? '',
-				'embed'               => $query_vars['embed'] ?? '',
+				'error'               => self::normalize_query_var_value( $query_vars['error'] ?? '' ),
+				'm'                   => self::normalize_query_var_value( $query_vars['m'] ?? '' ),
+				'p'                   => self::normalize_query_var_value( $query_vars['p'] ?? '' ),
+				'post_parent'         => self::normalize_query_var_value( $query_vars['post_parent'] ?? '' ),
+				'subpost'             => self::normalize_query_var_value( $query_vars['subpost'] ?? '' ),
+				'subpost_id'          => self::normalize_query_var_value( $query_vars['subpost_id'] ?? '' ),
+				'attachment'          => self::normalize_query_var_value( $query_vars['attachment'] ?? '' ),
+				'attachment_id'       => self::normalize_query_var_value( $query_vars['attachment_id'] ?? '' ),
+				'name'                => self::normalize_query_var_value( $query_vars['name'] ?? '' ),
+				'pagename'            => self::normalize_query_var_value( $query_vars['pagename'] ?? '' ),
+				'page_id'             => self::normalize_query_var_value( $query_vars['page_id'] ?? '' ),
+				'second'              => self::normalize_query_var_value( $query_vars['second'] ?? '' ),
+				'minute'              => self::normalize_query_var_value( $query_vars['minute'] ?? '' ),
+				'hour'                => self::normalize_query_var_value( $query_vars['hour'] ?? '' ),
+				'day'                 => self::normalize_query_var_value( $query_vars['day'] ?? '' ),
+				'monthnum'            => self::normalize_query_var_value( $query_vars['monthnum'] ?? '' ),
+				'year'                => self::normalize_query_var_value( $query_vars['year'] ?? '' ),
+				'w'                   => self::normalize_query_var_value( $query_vars['w'] ?? '' ),
+				'category_name'       => self::normalize_query_var_value( $query_vars['category_name'] ?? '' ),
+				'tag'                 => self::normalize_query_var_value( $query_vars['tag'] ?? '' ),
+				'cat'                 => self::normalize_query_var_value( $query_vars['cat'] ?? '' ),
+				'tag_id'              => self::normalize_query_var_value( $query_vars['tag_id'] ?? '' ),
+				'author'              => self::normalize_query_var_value( $query_vars['author'] ?? '' ),
+				'author_name'         => self::normalize_query_var_value( $query_vars['author_name'] ?? '' ),
+				'feed'                => self::normalize_query_var_value( $query_vars['feed'] ?? '' ),
+				'tb'                  => self::normalize_query_var_value( $query_vars['tb'] ?? '' ),
+				'paged'               => self::normalize_query_var_value( $query_vars['paged'] ?? '' ),
+				'meta_key'            => self::normalize_query_var_value( $query_vars['meta_key'] ?? '' ),
+				'meta_value'          => self::normalize_query_var_value( $query_vars['meta_value'] ?? '' ),
+				'preview'             => self::normalize_query_var_value( $query_vars['preview'] ?? '' ),
+				's'                   => self::normalize_query_var_value( $query_vars['s'] ?? '' ),
+				'sentence'            => self::normalize_query_var_value( $query_vars['sentence'] ?? '' ),
+				'title'               => self::normalize_query_var_value( $query_vars['title'] ?? '' ),
+				'fields'              => self::normalize_query_var_value( $query_vars['fields'] ?? '' ),
+				'menu_order'          => self::normalize_query_var_value( $query_vars['menu_order'] ?? '' ),
+				'embed'               => self::normalize_query_var_value( $query_vars['embed'] ?? '' ),
 				'category__in'        => self::normalize_list_query_var( $query_vars['category__in'] ?? null ),
 				'category__not_in'    => self::normalize_list_query_var( $query_vars['category__not_in'] ?? null ),
 				'category__and'       => self::normalize_list_query_var( $query_vars['category__and'] ?? null ),
@@ -805,6 +810,29 @@ class WP_Query {
 	}
 
 	/**
+	 * Normalizes the value of a query variable to a scalar or an array of scalars.
+	 *
+	 * A scalar value is kept as is, an array has any values which are not scalar removed,
+	 * and any other value becomes an empty array, so that it is still recognized as invalid
+	 * for query variables which take a single value. Whether an array is valid for the query
+	 * variable is left to {@see WP_Query::normalize_query_vars()}.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $value Query variable value.
+	 * @return scalar|array<scalar> Normalized value.
+	 */
+	private static function normalize_query_var_value( $value ) {
+		if ( is_scalar( $value ) ) {
+			return $value;
+		} elseif ( is_array( $value ) ) {
+			return array_filter( $value, 'is_scalar' );
+		} else {
+			return array();
+		}
+	}
+
+	/**
 	 * Normalizes the values of query variables which take a single value.
 	 *
 	 * This runs in {@see WP_Query::parse_query()}, and again in {@see WP_Query::get_posts()}
@@ -821,12 +849,12 @@ class WP_Query {
 	private function normalize_query_vars( array $query_vars ): array {
 		// Array or comma-separated list of positive or negative integers.
 		if ( is_array( $query_vars['cat'] ) ) {
-			$query_vars['cat'] = implode( ',', array_filter( $query_vars['cat'], 'is_scalar' ) );
+			$query_vars['cat'] = implode( ',', $query_vars['cat'] );
 		}
 
 		// Array or comma-separated (either) or plus-separated (all) list of tag slugs.
 		if ( is_array( $query_vars['tag'] ) ) {
-			$query_vars['tag'] = implode( ',', array_filter( $query_vars['tag'], 'is_scalar' ) );
+			$query_vars['tag'] = implode( ',', $query_vars['tag'] );
 		}
 
 		$query_vars['error']         = is_scalar( $query_vars['error'] ) ? $query_vars['error'] : '';
