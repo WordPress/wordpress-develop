@@ -57,7 +57,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( $updated ) {
 	wp_admin_notice(
-		'<strong>' . __( 'Settings saved.' ) . '</strong>',
+		__( 'Settings saved.' ),
 		array(
 			'type'        => 'success',
 			'dismissible' => true,

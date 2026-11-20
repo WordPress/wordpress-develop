@@ -2006,7 +2006,7 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 		);
 
 		wp_admin_notice(
-			"<strong>{$details['message']}</strong>",
+			$details['message'],
 			array(
 				'type'               => $type,
 				'code'               => $details['code'],

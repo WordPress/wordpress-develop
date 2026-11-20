@@ -72,7 +72,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <?php
 if ( isset( $_GET['admin_email_updated'] ) ) {
-	$message = '<strong>' . __( 'Administration email updated.' ) . '</strong>';
+	$message = __( 'Administration email updated.' );
 	wp_admin_notice(
 		$message,
 		array(

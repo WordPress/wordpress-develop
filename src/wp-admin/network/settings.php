@@ -145,7 +145,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( isset( $_GET['updated'] ) && 'true' === $_GET['updated'] && ! isset( $_GET['network_admin_email_updated'] ) ) {
 	wp_admin_notice(
-		'<strong>' . __( 'Settings saved.' ) . '</strong>',
+		__( 'Settings saved.' ),
 		array(
 			'type'        => 'success',
 			'dismissible' => true,
@@ -162,7 +162,7 @@ $pending_new_network_admin_email = $new_network_admin_email && get_site_option( 
 	<h1><?php echo esc_html( $title ); ?></h1>
 	<?php
 	if ( isset( $_GET['network_admin_email_updated'] ) ) {
-		$message = '<strong>' . __( 'Network admin email updated.' ) . '</strong>';
+		$message = __( 'Network admin email updated.' );
 		wp_admin_notice(
 			$message,
 			array(
