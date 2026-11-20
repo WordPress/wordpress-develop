@@ -925,7 +925,7 @@ class WP_Ability {
 	protected function validate_output( $output ) {
 		$annotations = $this->get_meta_item( 'annotations' );
 		$message     = sprintf(
-			true === $annotations['readonly']
+			is_array( $annotations ) && true === ( $annotations['readonly'] ?? null )
 				/* translators: %s: Ability name. */
 				? __( 'Ability "%s" ran, but its output failed validation.' )
 				/* translators: %s: Ability name. */
