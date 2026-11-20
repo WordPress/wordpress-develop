@@ -30,7 +30,7 @@ function export_add_js() {
 	jQuery( function($) {
 		var form = $('#export-filters'),
 			filters = form.find('.export-filters');
-		filters.hide();
+		filters.hide().removeClass('hide-if-js');
 		form.find('input:radio').on( 'change', function() {
 			filters.slideUp('fast');
 			switch ( $(this).val() ) {
@@ -191,7 +191,7 @@ function export_date_options( $post_type = 'post' ) {
 <p class="description" id="all-content-desc"><?php _e( 'This will contain all of your posts, pages, comments, custom fields, terms, navigation menus, and custom posts.' ); ?></p>
 
 <p><label><input type="radio" name="content" value="posts" /> <?php _ex( 'Posts', 'post type general name' ); ?></label></p>
-<ul id="post-filters" class="export-filters">
+<ul id="post-filters" class="export-filters hide-if-js">
 	<li>
 		<label><span class="label-responsive"><?php _e( 'Categories:' ); ?></span>
 		<?php wp_dropdown_categories( array( 'show_option_all' => __( 'All' ) ) ); ?>
@@ -248,7 +248,7 @@ function export_date_options( $post_type = 'post' ) {
 </ul>
 
 <p><label><input type="radio" name="content" value="pages" /> <?php _e( 'Pages' ); ?></label></p>
-<ul id="page-filters" class="export-filters">
+<ul id="page-filters" class="export-filters hide-if-js">
 	<li>
 		<label><span class="label-responsive"><?php _e( 'Authors:' ); ?></span>
 		<?php
@@ -309,7 +309,7 @@ foreach ( get_post_types(
 <?php endforeach; ?>
 
 <p><label><input type="radio" name="content" value="attachment" /> <?php _e( 'Media' ); ?></label></p>
-<ul id="attachment-filters" class="export-filters">
+<ul id="attachment-filters" class="export-filters hide-if-js">
 	<li>
 		<fieldset>
 		<legend class="screen-reader-text">
