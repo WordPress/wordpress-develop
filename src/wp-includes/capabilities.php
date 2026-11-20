@@ -574,6 +574,17 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 
 			$post = get_post( $comment->comment_post_ID );
 
+			if ( 'note' !== $comment->comment_type && user_can( $user_id, 'moderate_comments' ) ) {
+				if ( $post && ! get_post_type_object( $post->post_type ) ) {
+					$caps   = map_meta_cap( 'edit_post', $user_id, $post->ID );
+					$caps[] = 'do_not_allow';
+					break;
+				}
+
+				$caps[] = 'moderate_comments';
+				break;
+			}
+
 			/*
 			 * If the post doesn't exist, we have an orphaned comment.
 			 * Fall back to the edit_posts capability, instead.
