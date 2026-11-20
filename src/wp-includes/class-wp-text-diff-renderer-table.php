@@ -318,6 +318,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	public function _changed( $orig, $final ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.finalFound
 		$old_count = count( $orig );
 		$new_count = count( $final );
+		// interleave_changed_lines() scores every old line against every new line.
 		if ( $old_count + $new_count > $this->_max_changed_lines
 			|| $old_count * $new_count > $this->_max_changed_line_pairs
 		) {
