@@ -793,16 +793,29 @@ function plugin_basename( $file ) {
 	// $wp_plugin_paths contains normalized paths.
 	$file = wp_normalize_path( $file );
 
-	arsort( $wp_plugin_paths );
-
-	foreach ( $wp_plugin_paths as $dir => $realdir ) {
-		if ( str_starts_with( $file, $realdir ) ) {
-			$file = $dir . substr( $file, strlen( $realdir ) );
-		}
-	}
-
 	$plugin_dir    = wp_normalize_path( WP_PLUGIN_DIR );
 	$mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
+
+	if ( $wp_plugin_paths ) {
+		$plugin_paths = $wp_plugin_paths;
+
+		// Map the plugin directories to themselves, so a symlink target that contains them does not rewrite ordinary plugin paths.
+		foreach ( array( $plugin_dir, $mu_plugin_dir ) as $dir ) {
+			if ( ! in_array( $dir, $plugin_paths, true ) ) {
+				$plugin_paths[ $dir ] = $dir;
+			}
+		}
+
+		arsort( $plugin_paths );
+
+		foreach ( $plugin_paths as $dir => $realdir ) {
+			$realdir = rtrim( $realdir, '/' );
+			if ( ( '' !== $realdir && $file === $realdir ) || str_starts_with( $file, $realdir . '/' ) ) {
+				$file = $dir . substr( $file, strlen( $realdir ) );
+				break;
+			}
+		}
+	}
 
 	// Get relative path from plugins directory.
 	$file = preg_replace( '#^' . preg_quote( $plugin_dir, '#' ) . '/|^' . preg_quote( $mu_plugin_dir, '#' ) . '/#', '', $file );
