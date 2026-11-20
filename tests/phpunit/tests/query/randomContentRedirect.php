@@ -254,6 +254,13 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		unregister_post_type( 'wptests_unsearchable' );
 		unregister_taxonomy( 'wptests_genre' );
 
+		/*
+		 * The `random` post type shares the `random` query variable with core. Unregister it
+		 * before the request is reset, as the reset at the start of the next test would remove
+		 * the query variable from that test's request.
+		 */
+		unregister_post_type( 'random' );
+
 		parent::tear_down();
 	}
 
