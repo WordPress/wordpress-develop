@@ -1499,13 +1499,20 @@ th.action-links {
   4.0 - Notifications
 ------------------------------------------------------------------------------*/
 
+/*
+ * Tone is carried by the surface, a full hairline border and the text colour.
+ * Padding, paragraph margins and the dismiss button's position are unchanged:
+ * plugins position their own elements against the inside of this box, so only
+ * its paint may change here.
+ */
 .notice,
 div.updated,
 div.error {
-	background: #fff;
-	border: none;
-	border-left: 4px solid #c3c4c7;
+	background: #f3f3f3;
+	border: 1px solid #dbdbdb;
+	border-radius: 8px;
 	box-shadow: none;
+	color: #1e1e1e;
 	margin: 5px 15px 2px;
 	padding: 8px 12px;
 }
@@ -1523,7 +1530,7 @@ div.error p,
 	padding: 0;
 	font-size: 13px;
 	line-height: 1.54;
-	color: #1e1e1e;
+	color: inherit;
 }
 
 div.notice a,
@@ -1557,7 +1564,7 @@ div.updated a:focus {
 
 .notice-title {
 	display: inline-block;
-	color: #1d2327;
+	color: inherit;
 	font-size: 18px;
 }
 
@@ -1574,7 +1581,8 @@ div.updated a:focus {
 	margin: 0;
 	padding: 0;
 	background: none;
-	color: #1e1e1e;
+	/* Takes the notice's tone. */
+	color: inherit;
 	cursor: pointer;
 	width: 24px;
 	height: 24px;
@@ -1584,9 +1592,14 @@ div.updated a:focus {
 	border-radius: 2px;
 }
 
+/* The glyph follows the button, so a plugin that colours the button colours the icon. */
+.notice-dismiss::before {
+	color: inherit;
+}
+
 .notice-dismiss:hover::before,
 .notice-dismiss:active::before {
-	color: #1e1e1e;
+	color: inherit;
 	opacity: 0.7;
 }
 
@@ -1597,47 +1610,51 @@ div.updated a:focus {
 }
 
 .notice-dismiss:focus::before {
-	color: #1e1e1e;
+	color: inherit;
 }
 
 .notice-success,
 div.updated {
-	border-left-color: #4ab866;
-	background-color: #eff9f1;
+	border-color: #91d29c;
+	background-color: #ebffed;
+	color: #002900;
 }
 
 .notice-success.notice-alt,
 div.updated.notice-alt {
-	background-color: #eff9f1;
+	background-color: #ebffed;
 }
 
 .notice-warning {
-	border-left-color: #f0b849;
-	background-color: #fef8ee;
+	border-color: #e0bc7d;
+	background-color: #fff7e1;
+	color: #2e1900;
 }
 
 .notice-warning.notice-alt {
-	background-color: #fef8ee;
+	background-color: #fff7e1;
 }
 
 .notice-error,
 div.error {
-	border-left-color: #cc1818;
-	background-color: #fcf0f0;
+	border-color: #e1b1a9;
+	background-color: #fff6f5;
+	color: #470000;
 }
 
 .notice-error.notice-alt,
 div.error.notice-alt {
-	background-color: #fcf0f0;
+	background-color: #fff6f5;
 }
 
 .notice-info {
-	border-left-color: #3858e9;
-	background-color: #fff;
+	border-color: #acc5e2;
+	background-color: #f3f9ff;
+	color: #001b4f;
 }
 
 .notice-info.notice-alt {
-	background-color: #fff;
+	background-color: #f3f9ff;
 }
 
 #plugin-information-footer .update-now:not(.button-disabled)::before {
