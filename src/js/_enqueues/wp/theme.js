@@ -326,9 +326,8 @@ themes.Collection = Backbone.Collection.extend({
 			if ( isPaginated ) {
 				return this.apiCall( request, isPaginated ).done( function( data ) {
 					// Add the new themes to the current collection.
-					// @todo Update counter.
 					self.add( data.themes );
-					self.trigger( 'query:success' );
+					self.trigger( 'query:success', data.info && data.info.results );
 
 					// We are done loading themes for now.
 					self.loadingThemes = false;
