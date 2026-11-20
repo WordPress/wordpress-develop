@@ -1528,9 +1528,7 @@ class WP_Query {
 		}
 
 		// If query string 'cat' is an array, implode it.
-		if ( is_array( $query_vars['cat'] ) ) {
-			$query_vars['cat'] = implode( ',', $query_vars['cat'] );
-		}
+		$query_vars['cat'] = is_array( $query_vars['cat'] ) ? implode( ',', $query_vars['cat'] ) : $query_vars['cat'];
 
 		// Category stuff.
 
@@ -1614,9 +1612,7 @@ class WP_Query {
 		}
 
 		// If query string 'tag' is array, implode it.
-		if ( is_array( $query_vars['tag'] ) ) {
-			$query_vars['tag'] = implode( ',', $query_vars['tag'] );
-		}
+		$query_vars['tag'] = is_array( $query_vars['tag'] ) ? implode( ',', $query_vars['tag'] ) : $query_vars['tag'];
 
 		// Tag stuff.
 
