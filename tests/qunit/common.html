@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>WordPress Common Admin QUnit Test Suite</title>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" href="../../node_modules/qunit/qunit/qunit.css" />
+		<script src="../../node_modules/qunit/qunit/qunit.js"></script>
+		<script src="../../node_modules/sinon/pkg/sinon.js"></script>
+		<script>
+			QUnit.config.autostart = false;
+		</script>
+		<script src="../../build/wp-includes/js/jquery/jquery.js"></script>
+		<script src="../../build/wp-includes/js/hoverIntent.js"></script>
+		<script src="../../build/wp-includes/js/utils.js"></script>
+		<script src="../../build/wp-includes/js/dist/dom-ready.js"></script>
+		<script src="../../build/wp-includes/js/dist/hooks.js"></script>
+		<script src="../../build/wp-includes/js/dist/i18n.js"></script>
+		<script src="../../build/wp-includes/js/dist/a11y.js"></script>
+		<style>
+			#wpwrap {
+				position: absolute;
+				left: -10000px;
+			}
+			.wp-list-table-scroll {
+				width: 800px;
+				overflow-x: auto;
+			}
+			.wp-list-table {
+				width: 1200px;
+				border-collapse: collapse;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="qunit"></div>
+		<div id="qunit-fixture"></div>
+		<!-- Keep the content element in place: common.js observes it across table replacements. -->
+		<div id="wpwrap">
+			<div id="wpadminbar"></div>
+			<div id="adminmenuwrap">
+				<ul id="adminmenu"></ul>
+			</div>
+			<div id="wpbody-content">
+				<div class="wp-list-table-scroll" tabindex="0">
+					<table class="wp-list-table">
+						<tbody>
+							<tr>
+								<td>Post title</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<script src="../../build/wp-admin/js/common.js"></script>
+		<script src="wp-admin/js/common.js"></script>
+	</body>
+</html>

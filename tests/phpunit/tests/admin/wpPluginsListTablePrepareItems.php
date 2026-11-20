@@ -249,6 +249,22 @@ class Tests_Admin_wpPluginsListTablePrepareItems extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests the accessible name of the table returned by a plugin search.
+	 *
+	 * @ticket 52151
+	 */
+	public function test_search_results_should_label_the_scroll_region() {
+		$GLOBALS['s'] = 'Hello';
+		get_current_screen()->remove_screen_reader_content();
+
+		$table = $this->prepare();
+		$html  = new WP_HTML_Tag_Processor( get_echo( array( $table, 'display' ) ) );
+
+		$this->assertTrue( $html->next_tag( array( 'class_name' => 'wp-list-table-scroll' ) ) );
+		$this->assertSame( 'Plugins list', $html->get_attribute( 'aria-label' ) );
+	}
+
+	/**
 	 * Tests that an empty view falls back to all plugins.
 	 *
 	 * @ticket 65819
