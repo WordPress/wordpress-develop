@@ -22,6 +22,18 @@ test.describe( 'Edit Posts', () => {
 		);
 	}
 
+	async function getDuplicateIds( page ) {
+		return page.evaluate( () => {
+			const counts = {};
+			document.querySelectorAll( '[id]' ).forEach( ( { id } ) => {
+				counts[ id ] = ( counts[ id ] || 0 ) + 1;
+			} );
+			return Object.keys( counts )
+				.filter( ( id ) => counts[ id ] > 1 )
+				.sort();
+		} );
+	}
+
 	test( 'displays a message in the posts table when a search finds no posts',async ( {
 		admin,
 		page,
@@ -138,6 +150,40 @@ test.describe( 'Edit Posts', () => {
 				exact: true,
 			} )
 		).toBeVisible();
+	} );
+
+	test( 'does not render duplicate HTML IDs in the Quick Edit and Bulk Edit forms', async ( {
+		admin,
+		page,
+		postFactory,
+	} ) => {
+		const title = postFactory.uniqueTitle( 'Edit Posts duplicate IDs' );
+		const post = await postFactory.create( { title, status: 'publish' } );
+		await visitPostList( admin, title );
+
+		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
+		const row = postRow( listTable, post.id );
+		const tagsDescription = 'Separate tags with commas';
+
+		expect( await getDuplicateIds( page ) ).toEqual( [] );
+
+		await row.getByRole( 'link', { name: title, exact: true } ).hover();
+		await row.getByRole( 'button', { name: 'Quick Edit' } ).click();
+		expect( await getDuplicateIds( page ) ).toEqual( [] );
+		await expect(
+			page.locator( `#edit-${ post.id } textarea[name="tax_input[post_tag]"]` )
+		).toHaveAccessibleDescription( tagsDescription );
+
+		await page.getByRole( 'button', { name: 'Cancel' } ).click();
+		await row.getByRole( 'checkbox' ).check();
+		await bulkActionSelect( page ).selectOption( 'edit' );
+		await bulkActionApply( page ).click();
+		expect( await getDuplicateIds( page ) ).toEqual( [] );
+		await expect(
+			page
+				.getByRole( 'region', { name: 'Bulk Edit', exact: true } )
+				.locator( 'textarea[name="tax_input[post_tag]"]' )
+		).toHaveAccessibleDescription( tagsDescription );
 	} );
 
 	test( 'allows an existing post to be deleted using the Trash button', async ( {

@@ -27,6 +27,48 @@ window.wp = window.wp || {};
  */
 ( function( $, wp ) {
 
+	/**
+	 * Prefixes the "id" attributes of cloned elements and updates the references
+	 * to them within the clone.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param {jQuery} $container Cloned markup to update references in.
+	 * @param {jQuery} $elements  Elements within the container to rename.
+	 * @param {string} prefix     Prefix to add to each ID.
+	 */
+	function prefixClonedIds( $container, $elements, prefix ) {
+		/**
+		 * Replaces one ID in a space-separated list of IDs.
+		 *
+		 * @param {string} value Space-separated IDs.
+		 * @param {string} oldId ID to replace.
+		 * @param {string} newId Replacement ID.
+		 *
+		 * @return {string} The updated list.
+		 */
+		function replaceToken( value, oldId, newId ) {
+			return value.split( /\s+/ ).map( function( token ) {
+				return token === oldId ? newId : token;
+			} ).join( ' ' );
+		}
+
+		$elements.each( function() {
+			var oldId = this.id,
+				newId = prefix + oldId;
+
+			this.id = newId;
+
+			$container.find( '[for="' + oldId + '"]' ).attr( 'for', newId );
+			$container.find( '[aria-describedby~="' + oldId + '"]' ).attr( 'aria-describedby', function( i, value ) {
+				return replaceToken( value, oldId, newId );
+			} );
+			$container.find( '[aria-labelledby~="' + oldId + '"]' ).attr( 'aria-labelledby', function( i, value ) {
+				return replaceToken( value, oldId, newId );
+			} );
+		} );
+	}
+
 	window.inlineEditPost = {
 
 	/**
@@ -131,18 +173,18 @@ window.wp = window.wp || {};
 			inlineEditPost.edit( this );
 		});
 
-		// Clone quick edit categories for the bulk editor.
-		var beCategories = $( '#inline-edit fieldset.inline-edit-categories' ).clone();
+		// Clone quick edit categories and tags for the bulk editor.
+		var beCategories = $( '#inline-edit fieldset.inline-edit-categories' ).clone(),
+			beTags = $( '#inline-edit .inline-edit-tags-wrap' ).clone();
 
 		// Make "id" attributes globally unique.
-		beCategories.find( '*[id]' ).each( function() {
-			this.id = 'bulk-edit-' + this.id;
-		});
+		prefixClonedIds( beCategories, beCategories.find( '[id]' ), 'bulk-edit-' );
+		prefixClonedIds( beTags, beTags.find( '[id]' ), 'bulk-edit-' );
 
 		$('#bulk-edit').find('fieldset:first').after(
 			beCategories
 		).siblings( 'fieldset:last' ).prepend(
-			$( '#inline-edit .inline-edit-tags-wrap' ).clone()
+			beTags
 		);
 
 		$('select[name="_status"] option[value="future"]', bulkRow).remove();
@@ -356,6 +398,13 @@ window.wp = window.wp || {};
 		// Remove the ID from the copied row and let the `for` attribute reference the hidden ID.
 		$( 'td', editRow ).find('#quick-edit-legend').removeAttr('id');
 		$( 'td', editRow ).find('p[id^="quick-edit-"]').removeAttr('id');
+
+		// Make the IDs of core fields unique; the hidden template keeps the originals.
+		prefixClonedIds(
+			editRow,
+			editRow.find( 'input[name="ss"][id], input[name="_inline_edit"][id], select[name="post_parent"][id], .inline-edit-categories [id], .inline-edit-tags-wrap [id]' ),
+			'quick-edit-'
+		);
 
 		$(t.what+id).removeClass('is-expanded').hide().after(editRow).after('<tr class="hidden"></tr>');
 
