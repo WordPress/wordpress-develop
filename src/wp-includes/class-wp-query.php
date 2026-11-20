@@ -2788,29 +2788,37 @@ class WP_Query {
 
 		// Matching by comment count.
 		if ( isset( $query_vars['comment_count'] ) ) {
+			$comment_count = $query_vars['comment_count'];
+
 			// Numeric comment count is converted to array format.
-			if ( is_numeric( $query_vars['comment_count'] ) ) {
-				$query_vars['comment_count'] = array(
-					'value' => (int) $query_vars['comment_count'],
+			if ( is_numeric( $comment_count ) ) {
+				$comment_count = array(
+					'value' => (int) $comment_count,
 				);
 			}
 
-			if ( isset( $query_vars['comment_count']['value'] ) ) {
-				$query_vars['comment_count'] = array_merge(
+			if ( is_array( $comment_count ) && isset( $comment_count['value'] ) ) {
+				$comment_count_value = $comment_count['value'];
+
+				$comment_count = array_merge(
 					array(
 						'compare' => '=',
 					),
-					$query_vars['comment_count']
+					$comment_count
 				);
 
 				// Fallback for invalid compare operators is '='.
 				$compare_operators = array( '=', '!=', '>', '>=', '<', '<=' );
-				if ( ! in_array( $query_vars['comment_count']['compare'], $compare_operators, true ) ) {
-					$query_vars['comment_count']['compare'] = '=';
+				if ( ! in_array( $comment_count['compare'], $compare_operators, true ) ) {
+					$comment_count['compare'] = '=';
 				}
 
-				$where .= $wpdb->prepare( " AND {$wpdb->posts}.comment_count {$query_vars['comment_count']['compare']} %d", $query_vars['comment_count']['value'] );
+				$where .= $wpdb->prepare( " AND {$wpdb->posts}.comment_count {$comment_count['compare']} %d", $comment_count_value );
+				unset( $comment_count_value );
 			}
+
+			$query_vars['comment_count'] = $comment_count;
+			unset( $comment_count );
 		}
 
 		// MIME-Type stuff for attachment browsing.
