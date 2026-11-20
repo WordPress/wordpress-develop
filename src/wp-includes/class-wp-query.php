@@ -2275,7 +2275,7 @@ class WP_Query {
 		}
 
 		if ( isset( $query_vars['page'] ) ) {
-			$query_vars['page'] = is_scalar( $query_vars['page'] ) ? absint( trim( $query_vars['page'], '/' ) ) : 0;
+			$query_vars['page'] = is_scalar( $query_vars['page'] ) ? absint( trim( (string) $query_vars['page'], '/' ) ) : 0;
 		}
 
 		// If true, forcibly turns off SQL_CALC_FOUND_ROWS even when limits are present.
@@ -2383,12 +2383,12 @@ class WP_Query {
 				if ( ! $ptype_obj->hierarchical ) {
 					// Non-hierarchical post types can directly use 'name'.
 					$query_vars['name'] = is_scalar( $query_vars[ $ptype_obj->query_var ] )
-						? $query_vars[ $ptype_obj->query_var ]
+						? (string) $query_vars[ $ptype_obj->query_var ]
 						: '';
 				} else {
 					// Hierarchical post types will operate through 'pagename'.
 					if ( is_scalar( $query_vars[ $ptype_obj->query_var ] ) ) {
-						$query_vars['pagename'] = $query_vars[ $ptype_obj->query_var ];
+						$query_vars['pagename'] = (string) $query_vars[ $ptype_obj->query_var ];
 					}
 					$query_vars['name'] = '';
 				}
@@ -2508,7 +2508,7 @@ class WP_Query {
 		}
 
 		// If a search pattern is specified, load the posts that match.
-		if ( strlen( $query_vars['s'] ) ) {
+		if ( strlen( (string) $query_vars['s'] ) ) {
 			$search = $this->parse_search( $query_vars );
 		}
 
