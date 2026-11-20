@@ -805,20 +805,20 @@ class WP_Query {
 	}
 
 	/**
-	 * Sanitizes the values of query variables which take a single value.
+	 * Normalizes the values of query variables which take a single value.
 	 *
 	 * This runs in {@see WP_Query::parse_query()}, and again in {@see WP_Query::get_posts()}
-	 * after the {@see 'pre_get_posts'} action, so that values set by callbacks are sanitized too.
+	 * after the {@see 'pre_get_posts'} action, so that values set by callbacks are normalized too.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @param array $query_vars Query variables, as filled by {@see WP_Query::fill_query_vars()}.
-	 * @return array Query variables with sanitized values.
+	 * @return array Query variables with normalized values.
 	 *
 	 * @phpstan-param Filled_Query_Vars $query_vars
 	 * @phpstan-return Query_Vars
 	 */
-	private function sanitize_query_vars( array $query_vars ): array {
+	private function normalize_query_vars( array $query_vars ): array {
 		// Array or comma-separated list of positive or negative integers.
 		if ( is_array( $query_vars['cat'] ) ) {
 			$query_vars['cat'] = implode( ',', array_filter( $query_vars['cat'], 'is_scalar' ) );
@@ -1065,7 +1065,7 @@ class WP_Query {
 			$query_vars['attachment_id'] = $query_vars['subpost_id'];
 		}
 
-		$query_vars = $this->sanitize_query_vars( $query_vars );
+		$query_vars = $this->normalize_query_vars( $query_vars );
 
 		if ( ( '' !== $query_vars['attachment'] ) || ! empty( $query_vars['attachment_id'] ) ) {
 			$this->is_single     = true;
@@ -2109,8 +2109,8 @@ class WP_Query {
 		// Locally scoped reference for easy of use.
 		$query_vars = &$this->query_vars;
 
-		// Fill and sanitize again in case 'pre_get_posts' unset or changed some vars.
-		$query_vars = $this->sanitize_query_vars( $this->fill_query_vars( $query_vars ) );
+		// Fill and normalize again in case 'pre_get_posts' unset or changed some vars.
+		$query_vars = $this->normalize_query_vars( $this->fill_query_vars( $query_vars ) );
 
 		/**
 		 * Filters whether an attachment query should include filenames or not.
