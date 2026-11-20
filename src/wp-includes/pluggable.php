@@ -1846,7 +1846,9 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		 * are placed in, letting the comment author add email headers or lines of their own.
 		 */
 		$isolate_header_value = static function ( $value ): string {
-			return trim( (string) preg_replace( '/[\r\n]+/', ' ', is_string( $value ) ? $value : '' ) );
+			$is_stringy = is_string( $value ) || ( is_object( $value ) && method_exists( $value, '__toString' ) );
+			$value      = $is_stringy ? (string) $value : '';
+			return trim( (string) preg_replace( '/[\r\n]+/', ' ', $value ) );
 		};
 		$comment_author       = $isolate_header_value( $comment->comment_author );
 		$comment_author_email = $isolate_header_value( $comment->comment_author_email );
@@ -2072,7 +2074,9 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		 * are placed in, letting the comment author add email headers or lines of their own.
 		 */
 		$isolate_header_value = static function ( $value ): string {
-			return trim( (string) preg_replace( '/[\r\n]+/', ' ', is_string( $value ) ? $value : '' ) );
+			$is_stringy = is_string( $value ) || ( is_object( $value ) && method_exists( $value, '__toString' ) );
+			$value      = $is_stringy ? (string) $value : '';
+			return trim( (string) preg_replace( '/[\r\n]+/', ' ', $value ) );
 		};
 		$comment_author       = $isolate_header_value( $comment->comment_author );
 		$comment_author_email = $isolate_header_value( $comment->comment_author_email );
