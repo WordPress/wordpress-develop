@@ -605,18 +605,22 @@ class WP_Ability {
 			);
 		}
 
-		// Unchanged input has already been validated, including any filter override.
+		/*
+		 * Sanitization can make valid input invalid, for example by trimming a string
+		 * below its `minLength` or casting a number below its `minimum`. Only changed
+		 * input needs revalidation; unchanged input retains its earlier validation result.
+		 */
 		if ( $sanitized === $input ) {
 			return $sanitized;
 		}
 
-		/*
-		 * Sanitizing can also make valid input invalid, for example by trimming a string
-		 * below its `minLength` or casting an out of range number to an integer. Callbacks
-		 * must not receive input their schema rejects. Input that only passed validation
-		 * through the `wp_ability_validate_input` filter is left as sanitized.
-		 */
 		$sanitized_validity = rest_validate_value_from_schema( $sanitized, $schema, 'input' );
+
+		/*
+		 * Reject a schema violation only if the original input matched the schema.
+		 * Otherwise, preserve the `wp_ability_validate_input` filter's decision to
+		 * accept input that the schema rejects, and return its sanitized value.
+		 */
 		if ( is_wp_error( $sanitized_validity ) && true === rest_validate_value_from_schema( $input, $schema, 'input' ) ) {
 			return new WP_Error(
 				'ability_invalid_input',
