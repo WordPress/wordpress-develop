@@ -1235,7 +1235,7 @@ final class WP_Interactivity_API {
 	 * @since 7.1.0 An object is resolved to whatever it serializes to for the client, a number is formatted by the
 	 *              JSON encoder, and a value which cannot be sent to the client is rejected rather than passed to
 	 *              WP_HTML_Tag_Processor::set_attribute().
-	 * @since 7.2.0 Event handler bind directives are removed.
+	 * @since 7.2.0 Event handler and directive bind directives are removed.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p    The directives processor instance.
 	 * @param string                                    $mode Whether the processing is entering or exiting the tag.
@@ -1243,6 +1243,7 @@ final class WP_Interactivity_API {
 	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ): void {
 		if ( 'enter' === $mode ) {
 			$event_handler_prefix = 'data-wp-bind--on';
+			$directive_prefix     = 'data-wp-bind--data-wp-';
 			$entries              = $this->get_directive_entries( $p, 'bind' );
 			foreach ( $entries as $entry ) {
 				// Binding event handler attributes is not supported.
@@ -1256,6 +1257,21 @@ final class WP_Interactivity_API {
 							esc_attr( 'data-wp-on--' . substr( $entry['attribute_name'], strlen( $event_handler_prefix ) ) )
 						),
 						'6.9.2'
+					);
+					continue;
+				}
+
+				// Binding Interactivity API directive attributes is not supported.
+				if ( str_starts_with( $entry['attribute_name'], $directive_prefix ) ) {
+					$p->remove_attribute( $entry['attribute_name'] );
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: %s: The directive, e.g. data-wp-bind--data-wp-context. */
+							__( 'Binding Interactivity API directive attributes is not supported, so "%s" was removed.' ),
+							esc_html( $entry['attribute_name'] )
+						),
+						'7.2.0'
 					);
 					continue;
 				}
