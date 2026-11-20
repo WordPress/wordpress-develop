@@ -132,6 +132,22 @@
  *     post_status?: string|array<string>,
  *     ...<array-key, mixed>
  * }
+ *
+ * @phpstan-type Posts_Query_Vars Query_Vars&array{
+ *     ignore_sticky_posts: mixed,
+ *     suppress_filters: mixed,
+ *     cache_results: mixed,
+ *     update_post_term_cache: mixed,
+ *     update_menu_item_cache: mixed,
+ *     lazy_load_term_meta: mixed,
+ *     update_post_meta_cache: mixed,
+ *     post_type: string|array<string>,
+ *     posts_per_page: int,
+ *     nopaging: mixed,
+ *     comments_per_page: mixed,
+ *     no_found_rows: bool,
+ *     ...
+ * }
  */
 #[AllowDynamicProperties]
 class WP_Query {
@@ -1437,6 +1453,9 @@ class WP_Query {
 	 * @since 3.1.0
 	 *
 	 * @param array $query_vars The query variables. Passed by reference.
+	 *
+	 * @phpstan-param Query_Vars $query_vars
+	 * @phpstan-param-out ($query_vars is Posts_Query_Vars ? Posts_Query_Vars : Query_Vars) $query_vars
 	 */
 	public function parse_tax_query( &$query_vars ) {
 		if ( ! empty( $query_vars['tax_query'] ) && is_array( $query_vars['tax_query'] ) ) {
@@ -1465,7 +1484,17 @@ class WP_Query {
 				);
 
 				if ( is_string( $query_vars[ $t->query_var ] ) && ! empty( $t->rewrite['hierarchical'] ) ) {
-					$query_vars[ $t->query_var ] = wp_basename( $query_vars[ $t->query_var ] );
+					$query_vars[ $t->query_var ] = wp_basename( $query_vars[ $t->query_var ] ); // @phpstan-ignore paramOut.type (A non-empty string is replaced with a string, which keeps the type of any query var that can hold it.)
+
+					/*
+					 * PHPStan cannot prove that the taxonomy's query var name is not one of the query vars
+					 * declared in Query_Vars, such as 'p' or 'post__in', so it widens every declared query
+					 * var to also allow a string, and each later write would fail the param-out type. The
+					 * write only replaces a non-empty string with a string, so the declared types still
+					 * hold: a query var which cannot be a non-empty string, such as 'p' (an integer) or
+					 * 'post__in' (an array), never reaches this write.
+					 */
+					/** @var Query_Vars $query_vars */
 				}
 
 				$term = $query_vars[ $t->query_var ];
