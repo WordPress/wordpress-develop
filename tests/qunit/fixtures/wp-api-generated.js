@@ -3152,7 +3152,7 @@ mockedApiResponse.Schema = {
                         "generate_sub_sizes": {
                             "type": "boolean",
                             "default": true,
-                            "description": "Whether to generate image sub sizes.",
+                            "description": "Whether to generate image sub sizes. When false, the main image is also not converted to the image output format.",
                             "required": false
                         },
                         "convert_format": {
