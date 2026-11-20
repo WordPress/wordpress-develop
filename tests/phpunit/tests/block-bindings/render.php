@@ -444,6 +444,47 @@ HTML;
 	}
 
 	/**
+	 * Tests if the Read More block's content attribute is updated with the
+	 * value returned by a block bindings source.
+	 *
+	 * @ticket 66768
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_update_read_more_block_with_value_from_source() {
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => function () {
+					return 'Continue reading';
+				},
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:read-more {"content":"Read more","metadata":{"bindings":{"content":{"source":"test/source"}}}} /-->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block(
+			$parsed_blocks[0],
+			array( 'postId' => self::factory()->post->create() )
+		);
+		$result        = $block->render();
+
+		$this->assertSame(
+			'Continue reading',
+			$block->attributes['content'],
+			"The 'content' attribute should be updated with the value returned by the source."
+		);
+		$this->assertStringContainsString(
+			'>Continue reading<span class="screen-reader-text">',
+			$result,
+			'The link text should be the value returned by the source.'
+		);
+	}
+
+	/**
 	 * Tests if the `__default` attribute is replaced with real attributes for
 	 * pattern overrides.
 	 *
