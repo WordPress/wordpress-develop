@@ -71,8 +71,6 @@ class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
 
 	/**
 	 * Tests reading a valid JSON file.
-	 *
-	 * @ticket 64620
 	 */
 	public function test_read_json_file_with_valid_file() {
 		$valid_file = DIR_TESTDATA . '/themedir1/block-theme/theme.json';
@@ -85,8 +83,6 @@ class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
 
 	/**
 	 * Tests that the result is cached after reading a file.
-	 *
-	 * @ticket 64620
 	 */
 	public function test_read_json_file_caches_result() {
 		$valid_file = DIR_TESTDATA . '/themedir1/block-theme/theme.json';
@@ -99,8 +95,6 @@ class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
 
 	/**
 	 * Tests that the cached value is returned when available.
-	 *
-	 * @ticket 64620
 	 */
 	public function test_read_json_file_returns_cached_value() {
 		$valid_file = DIR_TESTDATA . '/themedir1/block-theme/theme.json';
