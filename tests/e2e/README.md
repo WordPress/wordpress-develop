@@ -80,6 +80,8 @@ test.describe( 'Settings -> General', { lock: GENERAL_SETTINGS }, () => {} );
 
 A form save writes every field on the page, not only the field that the test changed. A spec that saves the General Settings form (`options-general.php`) must hold `GENERAL_SETTINGS`. A spec in `parallel` that changes a General Settings option in a different way, for example with `siteSettings` or `siteOptions`, must also hold it.
 
+WordPress reads the full `active_plugins` list, changes it, and writes the full list back. If two tests turn plugins on or off at the same time, one change can be lost. A spec in `parallel` that installs, deletes, activates or deactivates a plugin must hold `PLUGINS`.
+
 ## Logged-out pages
 
 Most specs run logged in as the admin user. There are two ways to run a test logged out:
