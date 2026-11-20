@@ -150,4 +150,80 @@ class Tests_Link_GetBoundaryPost extends WP_UnitTestCase {
 		$boundary_post = get_boundary_post( false, '', true, 'nonexistent_taxonomy' );
 		$this->assertNull( $boundary_post, 'get_boundary_post() should return null for non-existent taxonomy.' );
 	}
+
+	/**
+	 * Ensure that the excluded terms are left out on a page that is not a single post.
+	 *
+	 * @ticket 66664
+	 */
+	public function test_should_leave_out_excluded_terms_on_non_singular_pages() {
+		$excluded = self::factory()->category->create();
+
+		wp_set_post_categories( self::$post_ids['first'], array( $excluded ) );
+
+		$this->go_to( home_url( '/' ) );
+		$this->assertFalse( is_single(), 'This test should be running on a non-single page.' );
+
+		$first_boundary_post = get_boundary_post( false, array( $excluded ), true );
+
+		$this->assertIsArray( $first_boundary_post, 'get_boundary_post() should return an array.' );
+		$this->assertSame( self::$post_ids['middle'], $first_boundary_post[0]->ID, 'The first post outside the excluded category should be returned.' );
+	}
+
+	/**
+	 * Ensure that the excluded terms are left out when passed as a comma-separated string on a single post.
+	 *
+	 * @ticket 66664
+	 */
+	public function test_should_leave_out_excluded_terms_passed_as_a_string() {
+		$excluded = self::factory()->category->create();
+		$other    = self::factory()->category->create();
+
+		wp_set_post_categories( self::$post_ids['first'], array( $excluded ) );
+		wp_set_post_categories( self::$post_ids['middle'], array( $other ) );
+
+		$this->go_to( get_permalink( self::$post_ids['last'] ) );
+		$this->assertTrue( is_single(), 'This test should be running on a single page.' );
+
+		$first_boundary_post = get_boundary_post( false, "$excluded,$other", true );
+
+		$this->assertIsArray( $first_boundary_post, 'get_boundary_post() should return an array.' );
+		$this->assertSame( self::$post_ids['last'], $first_boundary_post[0]->ID, 'The only post outside both excluded categories should be returned.' );
+	}
+
+	/**
+	 * Ensure that excluded terms are left out of the posts in the same term as the current post.
+	 *
+	 * @ticket 66664
+	 */
+	public function test_should_leave_out_excluded_terms_within_the_same_term() {
+		$shared   = self::factory()->category->create();
+		$excluded = self::factory()->category->create();
+
+		wp_set_post_categories( self::$post_ids['first'], array( $shared, $excluded ) );
+		wp_set_post_categories( self::$post_ids['middle'], array( $shared ) );
+		wp_set_post_categories( self::$post_ids['last'], array( $shared ) );
+
+		$this->go_to( get_permalink( self::$post_ids['last'] ) );
+		$this->assertTrue( is_single(), 'This test should be running on a single page.' );
+
+		$first_boundary_post = get_boundary_post( true, array( $excluded ), true );
+
+		$this->assertIsArray( $first_boundary_post, 'get_boundary_post() should return an array.' );
+		$this->assertSame( self::$post_ids['middle'], $first_boundary_post[0]->ID, 'The first post in the same category but outside the excluded one should be returned.' );
+	}
+
+	/**
+	 * Ensure that a current post with no terms in the taxonomy still matches no posts in the same term.
+	 *
+	 * @ticket 66664
+	 */
+	public function test_should_return_no_posts_in_the_same_term_for_a_post_without_terms() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$this->go_to( get_permalink( self::$post_ids['middle'] ) );
+		$this->assertTrue( is_single(), 'This test should be running on a single page.' );
+
+		$this->assertSame( array(), get_boundary_post( true, '', true, 'wptests_tax' ), 'A post without terms should have no posts in the same term.' );
+	}
 }
