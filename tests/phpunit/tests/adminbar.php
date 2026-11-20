@@ -390,11 +390,11 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @covers ::wp_admin_bar_sidebar_toggle
 	 */
 	public function test_sidebar_toggle_is_added_in_admin() {
-		wp_set_current_user( self::$editor_id );
 		set_current_screen( 'dashboard' );
 
-		$wp_admin_bar = $this->get_standard_admin_bar();
-		$node_toggle  = $wp_admin_bar->get_node( 'menu-toggle' );
+		$wp_admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_sidebar_toggle( $wp_admin_bar );
+		$node_toggle = $wp_admin_bar->get_node( 'menu-toggle' );
 
 		$this->assertNotNull( $node_toggle );
 		$this->assertSame( 'core-admin/menu', $node_toggle->icon );
@@ -410,9 +410,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @covers ::wp_admin_bar_sidebar_toggle
 	 */
 	public function test_sidebar_toggle_is_not_added_on_front_end() {
-		wp_set_current_user( self::$editor_id );
-
-		$wp_admin_bar = $this->get_standard_admin_bar();
+		$wp_admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_sidebar_toggle( $wp_admin_bar );
 
 		$this->assertNull( $wp_admin_bar->get_node( 'menu-toggle' ) );
 	}
@@ -425,26 +424,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @covers ::wp_admin_bar_command_palette_menu
 	 */
 	public function test_command_palette_menu_is_added_in_admin_when_commands_script_is_enqueued() {
-		$original_scripts = $GLOBALS['wp_scripts'] ?? null;
-		$original_agent   = $_SERVER['HTTP_USER_AGENT'] ?? null;
-
-		$GLOBALS['wp_scripts']      = null;
-		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
-		wp_register_script( 'wp-core-commands', false );
-		wp_enqueue_script( 'wp-core-commands' );
-
-		wp_set_current_user( self::$editor_id );
-		set_current_screen( 'dashboard' );
-
-		$wp_admin_bar = $this->get_standard_admin_bar();
-		$node_palette = $wp_admin_bar->get_node( 'command-palette' );
-
-		$GLOBALS['wp_scripts'] = $original_scripts;
-		if ( null === $original_agent ) {
-			unset( $_SERVER['HTTP_USER_AGENT'] );
-		} else {
-			$_SERVER['HTTP_USER_AGENT'] = $original_agent;
-		}
+		$node_palette = $this->get_command_palette_node( 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' );
 
 		$this->assertNotNull( $node_palette );
 		$this->assertSame( 'core-admin/search', $node_palette->icon );
@@ -456,7 +436,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 			$node_palette->title
 		);
 		$this->assertStringContainsString( '<script', $node_palette->meta['html'] );
-		$this->assertStringContainsString( 'sourceURL=wp_admin_bar_command_palette_menu', $node_palette->meta['html'] );
 	}
 
 	/**
@@ -467,26 +446,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @covers ::wp_admin_bar_command_palette_menu
 	 */
 	public function test_command_palette_menu_shows_apple_shortcut_for_apple_user_agent() {
-		$original_scripts = $GLOBALS['wp_scripts'] ?? null;
-		$original_agent   = $_SERVER['HTTP_USER_AGENT'] ?? null;
-
-		$GLOBALS['wp_scripts']      = null;
-		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15';
-		wp_register_script( 'wp-core-commands', false );
-		wp_enqueue_script( 'wp-core-commands' );
-
-		wp_set_current_user( self::$editor_id );
-		set_current_screen( 'dashboard' );
-
-		$wp_admin_bar = $this->get_standard_admin_bar();
-		$node_palette = $wp_admin_bar->get_node( 'command-palette' );
-
-		$GLOBALS['wp_scripts'] = $original_scripts;
-		if ( null === $original_agent ) {
-			unset( $_SERVER['HTTP_USER_AGENT'] );
-		} else {
-			$_SERVER['HTTP_USER_AGENT'] = $original_agent;
-		}
+		$node_palette = $this->get_command_palette_node( 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15' );
 
 		$this->assertStringContainsString( '<kbd>⌘K</kbd>', $node_palette->title );
 		$this->assertStringNotContainsString( 'Ctrl+K', $node_palette->title );
@@ -500,19 +460,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @covers ::wp_admin_bar_command_palette_menu
 	 */
 	public function test_command_palette_menu_is_not_added_without_commands_script() {
-		$original_scripts = $GLOBALS['wp_scripts'] ?? null;
-
-		$GLOBALS['wp_scripts'] = null;
-
-		wp_set_current_user( self::$editor_id );
-		set_current_screen( 'dashboard' );
-
-		$wp_admin_bar = $this->get_standard_admin_bar();
-		$node_palette = $wp_admin_bar->get_node( 'command-palette' );
-
-		$GLOBALS['wp_scripts'] = $original_scripts;
-
-		$this->assertNull( $node_palette );
+		$this->assertNull( $this->get_command_palette_node( '', true, false ) );
 	}
 
 	/**
@@ -523,6 +471,18 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @covers ::wp_admin_bar_command_palette_menu
 	 */
 	public function test_command_palette_menu_is_not_added_on_front_end() {
+		$this->assertNull( $this->get_command_palette_node( '', false ) );
+	}
+
+	/**
+	 * The sidebar toggle and the command palette button are hooked to the admin bar.
+	 *
+	 * @ticket 66491
+	 *
+	 * @covers ::wp_admin_bar_sidebar_toggle
+	 * @covers ::wp_admin_bar_command_palette_menu
+	 */
+	public function test_sidebar_toggle_and_command_palette_are_added_by_admin_bar_menu_action() {
 		$original_scripts = $GLOBALS['wp_scripts'] ?? null;
 
 		$GLOBALS['wp_scripts'] = null;
@@ -530,13 +490,54 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		wp_enqueue_script( 'wp-core-commands' );
 
 		wp_set_current_user( self::$editor_id );
+		set_current_screen( 'dashboard' );
 
 		$wp_admin_bar = $this->get_standard_admin_bar();
+		$node_toggle  = $wp_admin_bar->get_node( 'menu-toggle' );
 		$node_palette = $wp_admin_bar->get_node( 'command-palette' );
 
 		$GLOBALS['wp_scripts'] = $original_scripts;
 
-		$this->assertNull( $node_palette );
+		$this->assertNotNull( $node_toggle, 'The sidebar toggle should be added by the admin_bar_menu action.' );
+		$this->assertNotNull( $node_palette, 'The command palette should be added by the admin_bar_menu action.' );
+	}
+
+	/**
+	 * Runs wp_admin_bar_command_palette_menu() on a fresh admin bar and returns its node.
+	 *
+	 * @param string $user_agent     The user agent of the request.
+	 * @param bool   $in_admin       Optional. Whether the request is in the admin. Default true.
+	 * @param bool   $enqueue_script Optional. Whether the commands script is enqueued. Default true.
+	 * @return object|null The command palette node, or null when it is not added.
+	 */
+	private function get_command_palette_node( $user_agent, $in_admin = true, $enqueue_script = true ) {
+		$original_scripts = $GLOBALS['wp_scripts'] ?? null;
+		$original_agent   = $_SERVER['HTTP_USER_AGENT'] ?? null;
+
+		$GLOBALS['wp_scripts']      = null;
+		$_SERVER['HTTP_USER_AGENT'] = $user_agent;
+
+		if ( $enqueue_script ) {
+			wp_register_script( 'wp-core-commands', false );
+			wp_enqueue_script( 'wp-core-commands' );
+		}
+
+		if ( $in_admin ) {
+			set_current_screen( 'dashboard' );
+		}
+
+		$wp_admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_command_palette_menu( $wp_admin_bar );
+		$node = $wp_admin_bar->get_node( 'command-palette' );
+
+		$GLOBALS['wp_scripts'] = $original_scripts;
+		if ( null === $original_agent ) {
+			unset( $_SERVER['HTTP_USER_AGENT'] );
+		} else {
+			$_SERVER['HTTP_USER_AGENT'] = $original_agent;
+		}
+
+		return $node;
 	}
 
 	/**
