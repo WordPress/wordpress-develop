@@ -3,7 +3,7 @@
 declare( strict_types=1 );
 
 /**
- * Tests dispatching the core/content-query ability through the Abilities REST run endpoint.
+ * Tests dispatching the content abilities through the Abilities REST run endpoint.
  *
  * @covers WP_Abilities_Content
  *
@@ -407,5 +407,538 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 
 		$this->assertSame( 400, $response->get_status(), 'Input without where should be rejected.' );
 		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'], 'The error should come from input validation.' );
+	}
+
+	/**
+	 * Builds a run request for a content write ability.
+	 *
+	 * A POST request carries the input in a JSON body, any other request in the query string.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string               $method  The HTTP method.
+	 * @param string               $ability The ability name.
+	 * @param array<string, mixed> $input   The ability input.
+	 * @return WP_REST_Request The request.
+	 */
+	private function write_request( string $method, string $ability, array $input ): WP_REST_Request {
+		$request = new WP_REST_Request( $method, "/wp-abilities/v1/abilities/{$ability}/run" );
+
+		if ( 'POST' === $method ) {
+			$request->set_header( 'Content-Type', 'application/json' );
+			$request->set_body( wp_json_encode( array( 'input' => $input ) ) );
+		} else {
+			$request->set_query_params( array( 'input' => $input ) );
+		}
+
+		return $request;
+	}
+
+	/**
+	 * Asserts that a response is an error with the given status and code.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param WP_REST_Response $response The response.
+	 * @param int              $status   The expected status.
+	 * @param string           $code     The expected error code.
+	 * @param string           $context  What the request was, for the assertion messages.
+	 */
+	private function assert_error_response( WP_REST_Response $response, int $status, string $code, string $context ): void {
+		$this->assertSame( $status, $response->get_status(), "{$context}: the status should be {$status}." );
+		$this->assertSame( $code, $response->get_data()['code'] ?? null, "{$context}: the error code should be {$code}." );
+	}
+
+	/**
+	 * Takes a snapshot of the stored content: the number of posts per type and status, the
+	 * number of meta rows and, when given, the row and meta of one post.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int $post_id Optional. The post ID. Default 0.
+	 * @return array<string, mixed> The snapshot.
+	 */
+	private function snapshot( int $post_id = 0 ): array {
+		global $wpdb;
+
+		return array(
+			'posts'     => $wpdb->get_results( "SELECT post_type, post_status, COUNT(*) AS total FROM {$wpdb->posts} GROUP BY post_type, post_status ORDER BY post_type, post_status", ARRAY_A ),
+			'meta'      => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->postmeta}" ),
+			'post'      => $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->posts} WHERE ID = %d", $post_id ), ARRAY_A ),
+			'post_meta' => $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM {$wpdb->postmeta} WHERE post_id = %d ORDER BY meta_id", $post_id ), ARRAY_A ),
+		);
+	}
+
+	/**
+	 * Create runs with POST and the input in a JSON body.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_create_runs_with_post_and_a_json_body(): void {
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'POST',
+				'core/content-create',
+				array(
+					'data'   => array(
+						'type'  => 'post',
+						'title' => 'Over the run route',
+					),
+					'fields' => array( 'status', 'title.rendered' ),
+				)
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status(), 'The create request should succeed.' );
+
+		$data = $response->get_data();
+
+		$this->assertSameSets( array( 'id', 'status', 'title' ), array_keys( $data ), 'The created post should be returned in the chosen fields.' );
+		$this->assertSame( 'draft', $data['status'], 'The created post should be a draft.' );
+		$this->assertSame( 'Over the run route', get_post( $data['id'] )->post_title, 'The created post should be stored.' );
+	}
+
+	/**
+	 * Update runs with POST and the input in a JSON body.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_update_runs_with_post_and_a_json_body(): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'POST',
+				'core/content-update',
+				array(
+					'where'  => array(
+						'type' => 'post',
+						'id'   => $post_id,
+					),
+					'data'   => array( 'title' => 'Updated over the run route' ),
+					'fields' => array( 'title.rendered' ),
+				)
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status(), 'The update request should succeed.' );
+		$this->assertSame(
+			array(
+				'id'    => $post_id,
+				'title' => array( 'rendered' => 'Updated over the run route' ),
+			),
+			$response->get_data(),
+			'The updated post should be returned in the chosen fields.'
+		);
+	}
+
+	/**
+	 * Delete runs with DELETE and the input in the query string, where the ID is a string.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_delete_runs_with_delete_and_the_input_in_the_query_string(): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'DELETE',
+				'core/content-delete',
+				array(
+					'where' => array(
+						'type' => 'post',
+						'id'   => (string) $post_id,
+					),
+				)
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status(), 'The delete request should succeed.' );
+		$this->assertSame( array( 'outcome' => 'trashed' ), $response->get_data(), 'The post should be reported as trashed.' );
+		$this->assertSame( 'trash', get_post_status( $post_id ), 'The post should be in the Trash.' );
+	}
+
+	/**
+	 * Returns `permanent` values as they arrive in a query string, and the outcome.
+	 *
+	 * @return array<string, array{permanent: string, outcome: string}> The cases.
+	 */
+	public static function data_permanent_query_string_values(): array {
+		return array(
+			'true'       => array( 'true', 'deleted' ),
+			'1'          => array( '1', 'deleted' ),
+			'false'      => array( 'false', 'trashed' ),
+			'0'          => array( '0', 'trashed' ),
+			'upper case' => array( 'TRUE', 'deleted' ),
+		);
+	}
+
+	/**
+	 * `permanent` in the query string is read as a boolean.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_permanent_query_string_values
+	 * @since 7.3.0
+	 *
+	 * @param string $permanent The value in the query string.
+	 * @param string $outcome   The expected outcome.
+	 */
+	public function test_delete_reads_permanent_from_the_query_string( string $permanent, string $outcome ): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'DELETE',
+				'core/content-delete',
+				array(
+					'where'     => array(
+						'type' => 'post',
+						'id'   => (string) $post_id,
+					),
+					'permanent' => $permanent,
+				)
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status(), 'The delete request should succeed.' );
+		$this->assertSame( array( 'outcome' => $outcome ), $response->get_data(), 'The outcome should follow the permanent value.' );
+
+		clean_post_cache( $post_id );
+
+		if ( 'deleted' === $outcome ) {
+			$this->assertNull( get_post( $post_id ), 'The post should no longer exist.' );
+		} else {
+			$this->assertSame( 'trash', get_post_status( $post_id ), 'The post should be in the Trash.' );
+		}
+	}
+
+	/**
+	 * Returns `permanent` values in a query string that are not booleans.
+	 *
+	 * @return array<string, array{permanent: string}> The values.
+	 */
+	public static function data_permanent_query_string_values_that_are_not_booleans(): array {
+		return array(
+			'yes'          => array( 'yes' ),
+			'2'            => array( '2' ),
+			'on'           => array( 'on' ),
+			'empty string' => array( '' ),
+		);
+	}
+
+	/**
+	 * A `permanent` value in the query string that is not a boolean fails input validation, and
+	 * the post is unchanged.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_permanent_query_string_values_that_are_not_booleans
+	 * @since 7.3.0
+	 *
+	 * @param string $permanent The value in the query string.
+	 */
+	public function test_delete_with_a_permanent_value_that_is_not_a_boolean_returns_400( string $permanent ): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$before   = $this->snapshot( $post_id );
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'DELETE',
+				'core/content-delete',
+				array(
+					'where'     => array(
+						'type' => 'post',
+						'id'   => (string) $post_id,
+					),
+					'permanent' => $permanent,
+				)
+			)
+		);
+
+		$this->assert_error_response( $response, 400, 'ability_invalid_input', 'A permanent value that is not a boolean' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'The post should not change.' );
+	}
+
+	/**
+	 * A create sent with POST but with the input in the query string fails input validation.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_create_with_the_input_in_the_query_string_returns_400(): void {
+		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/core/content-create/run' );
+		$request->set_query_params(
+			array(
+				'input' => array(
+					'data' => array(
+						'type'  => 'post',
+						'title' => 'Misplaced input',
+					),
+				),
+			)
+		);
+
+		$before   = $this->snapshot();
+		$response = $this->server->dispatch( $request );
+
+		$this->assert_error_response( $response, 400, 'ability_invalid_input', 'A create with the input in the query string' );
+		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * A delete sent with DELETE but with the input in a JSON body fails input validation.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_delete_with_the_input_in_a_json_body_returns_400(): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp-abilities/v1/abilities/core/content-delete/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'input' => array(
+						'where' => array(
+							'type' => 'post',
+							'id'   => $post_id,
+						),
+					),
+				)
+			)
+		);
+
+		$before   = $this->snapshot( $post_id );
+		$response = $this->server->dispatch( $request );
+
+		$this->assert_error_response( $response, 400, 'ability_invalid_input', 'A delete with the input in a JSON body' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'The post should not change.' );
+	}
+
+	/**
+	 * Returns write abilities with a method they do not take.
+	 *
+	 * @return array<string, array{ability: string, method: string}> The cases.
+	 */
+	public static function data_wrong_methods_for_write_abilities(): array {
+		return array(
+			'GET to create'    => array( 'core/content-create', 'GET' ),
+			'DELETE to create' => array( 'core/content-create', 'DELETE' ),
+			'GET to update'    => array( 'core/content-update', 'GET' ),
+			'DELETE to update' => array( 'core/content-update', 'DELETE' ),
+			'GET to delete'    => array( 'core/content-delete', 'GET' ),
+			'POST to delete'   => array( 'core/content-delete', 'POST' ),
+		);
+	}
+
+	/**
+	 * A write ability called with a method it does not take is rejected and writes nothing.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_wrong_methods_for_write_abilities
+	 * @since 7.3.0
+	 *
+	 * @param string $ability The ability name.
+	 * @param string $method  The HTTP method.
+	 */
+	public function test_write_ability_with_a_wrong_method_returns_405( string $ability, string $method ): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$inputs  = array(
+			'core/content-create' => array( 'data' => array( 'type' => 'post' ) ),
+			'core/content-update' => array(
+				'where' => array(
+					'type' => 'post',
+					'id'   => $post_id,
+				),
+				'data'  => array( 'title' => 'Wrong method' ),
+			),
+			'core/content-delete' => array(
+				'where' => array(
+					'type' => 'post',
+					'id'   => $post_id,
+				),
+			),
+		);
+		$before  = $this->snapshot( $post_id );
+
+		$response = $this->server->dispatch( $this->write_request( $method, $ability, $inputs[ $ability ] ) );
+
+		$this->assert_error_response( $response, 405, 'rest_ability_invalid_method', 'A wrong method' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * A logged-out user is refused as unauthenticated.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_logged_out_create_receives_401(): void {
+		wp_set_current_user( 0 );
+
+		$before   = $this->snapshot();
+		$response = $this->server->dispatch( $this->write_request( 'POST', 'core/content-create', array( 'data' => array( 'type' => 'post' ) ) ) );
+
+		$this->assert_error_response( $response, 401, 'rest_ability_cannot_execute', 'A logged-out create' );
+		$this->assertSame( $before, $this->snapshot(), 'A logged-out create should write nothing.' );
+	}
+
+	/**
+	 * A user the permission callback refuses is forbidden.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_subscriber_create_receives_403(): void {
+		wp_set_current_user( self::$subscriber_id );
+
+		$before   = $this->snapshot();
+		$response = $this->server->dispatch( $this->write_request( 'POST', 'core/content-create', array( 'data' => array( 'type' => 'post' ) ) ) );
+
+		$this->assert_error_response( $response, 403, 'rest_ability_cannot_execute', 'A subscriber create' );
+		$this->assertSame( $before, $this->snapshot(), 'A subscriber create should write nothing.' );
+	}
+
+	/**
+	 * Input that fails the schema is rejected.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_create_with_input_that_fails_the_schema_returns_400(): void {
+		$before   = $this->snapshot();
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'POST',
+				'core/content-create',
+				array(
+					'data' => array(
+						'type'          => 'post',
+						'post_password' => 'secret',
+					),
+				)
+			)
+		);
+
+		$this->assert_error_response( $response, 400, 'ability_invalid_input', 'A create that fails the schema' );
+		$this->assertSame( $before, $this->snapshot(), 'A create that fails the schema should write nothing.' );
+	}
+
+	/**
+	 * The not-found error of an update reaches the response with its status.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_update_of_a_missing_post_returns_404(): void {
+		$before   = $this->snapshot();
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'POST',
+				'core/content-update',
+				array(
+					'where' => array(
+						'type' => 'post',
+						'id'   => 987654321,
+					),
+					'data'  => array( 'title' => 'Missing' ),
+				)
+			)
+		);
+
+		$this->assert_error_response( $response, 404, 'content_not_found', 'An update of a missing post' );
+		$this->assertSame( $before, $this->snapshot(), 'An update of a missing post should write nothing.' );
+	}
+
+	/**
+	 * An update of a post the user cannot edit is refused before the ability runs.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_update_of_a_post_the_user_cannot_edit_returns_403(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$admin_id,
+				'post_status' => 'publish',
+			)
+		);
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'contributor' ) ) );
+
+		$before   = $this->snapshot( $post_id );
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'POST',
+				'core/content-update',
+				array(
+					'where' => array(
+						'type' => 'post',
+						'id'   => $post_id,
+					),
+					'data'  => array( 'title' => 'Not mine' ),
+				)
+			)
+		);
+
+		$this->assert_error_response( $response, 403, 'rest_ability_cannot_execute', 'An update of a post the user cannot edit' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'The post the user cannot edit should not change.' );
+	}
+
+	/**
+	 * The invalid attribute error of a create reaches the response with its status.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_create_with_an_unsupported_attribute_returns_400(): void {
+		$before   = $this->snapshot();
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'POST',
+				'core/content-create',
+				array(
+					'data' => array(
+						'type'   => 'post',
+						'title'  => 'With a parent',
+						'parent' => 1,
+					),
+				)
+			)
+		);
+
+		$this->assert_error_response( $response, 400, 'content_invalid_attribute', 'A create with an unsupported attribute' );
+		$this->assertSame( array( 'data[parent]' => 'The parent attribute is only supported for hierarchical post types.' ), $response->get_data()['data']['params'] ?? null, 'The params should reach the response.' );
+		$this->assertSame( $before, $this->snapshot(), 'A create with an unsupported attribute should write nothing.' );
+	}
+
+	/**
+	 * The already-trashed error of a delete reaches the response with its status.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_trashing_a_trashed_post_returns_410(): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		wp_trash_post( $post_id );
+
+		$before   = $this->snapshot( $post_id );
+		$response = $this->server->dispatch(
+			$this->write_request(
+				'DELETE',
+				'core/content-delete',
+				array(
+					'where' => array(
+						'type' => 'post',
+						'id'   => (string) $post_id,
+					),
+				)
+			)
+		);
+
+		$this->assert_error_response( $response, 410, 'content_already_trashed', 'Trashing a trashed post' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'The trashed post should stay as it was.' );
 	}
 }

@@ -12,6 +12,15 @@ declare( strict_types=1 );
 class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 	/**
+	 * The content abilities, which every test unregisters before and after it runs.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var list<string>
+	 */
+	private const CONTENT_ABILITIES = array( 'core/content-query', 'core/content-create', 'core/content-update', 'core/content-delete' );
+
+	/**
 	 * Globals that rendering a post changes: the global post and the globals that
 	 * setup_postdata() populates.
 	 *
@@ -142,8 +151,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		if ( wp_has_ability( 'core/content-query' ) ) {
-			wp_unregister_ability( 'core/content-query' );
+		foreach ( self::CONTENT_ABILITIES as $ability_name ) {
+			if ( wp_has_ability( $ability_name ) ) {
+				wp_unregister_ability( $ability_name );
+			}
 		}
 
 		if ( ! wp_has_ability_category( 'content' ) ) {
@@ -160,13 +171,15 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Removes the ability and its category, and resets the post types, after each test.
+	 * Removes the content abilities and their category, and resets the post types, after each test.
 	 *
 	 * @since 7.2.0
 	 */
 	public function tear_down(): void {
-		if ( wp_has_ability( 'core/content-query' ) ) {
-			wp_unregister_ability( 'core/content-query' );
+		foreach ( self::CONTENT_ABILITIES as $ability_name ) {
+			if ( wp_has_ability( $ability_name ) ) {
+				wp_unregister_ability( $ability_name );
+			}
 		}
 
 		if ( wp_has_ability_category( 'content' ) ) {
@@ -186,7 +199,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Registers the core/content-query ability inside a faked init action.
+	 * Registers the content abilities inside a faked init action.
 	 *
 	 * @since 7.2.0
 	 */
@@ -356,7 +369,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertTrue( $status['uniqueItems'], 'The status filter should reject duplicate statuses.' );
 		$this->assertSame( 1, $status['minItems'], 'The status filter should require at least one status.' );
 		$this->assertSame( 'string', $status['items']['type'], 'The status filter should contain status names.' );
-		$this->assertSameSets( array_values( get_post_stati( array( 'internal' => false ) ) ), $status['items']['enum'], 'The status filter should expose the statuses that are not internal.' );
+		$this->assertSame( array_merge( array_values( get_post_stati( array( 'internal' => false ) ) ), array( 'trash' ) ), $status['items']['enum'], 'The status filter should expose the statuses that are not internal, then trash.' );
 
 		$author = $where['properties']['author'];
 
@@ -5690,6 +5703,41 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A stored date at the Unix epoch is returned: a timestamp of zero is a date, not a
+	 * date that could not be parsed.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_date_fields
+	 * @since 7.3.0
+	 *
+	 * @param string $field  The field path to request, such as `date.site`.
+	 * @param string $column The cached post column to set to the Unix epoch.
+	 */
+	public function test_date_at_the_unix_epoch_is_returned( string $field, string $column ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$this->replace_cached_post_date_columns( $post_id, array( $column => '1970-01-01 00:00:00' ) );
+
+		list( $object, $key ) = explode( '.', $field );
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( $post_id ),
+				),
+				'fields' => array( 'id', $field ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'A date at the Unix epoch should pass output validation.' );
+		$this->assertSame( '1970-01-01T00:00:00+00:00', $result['items'][0][ $object ][ $key ] ?? null, 'A date at the Unix epoch should be returned.' );
+	}
+
+	/**
 	 * Returns `where.author` values that are not an object holding an ID or a slug: values
 	 * that are not objects, empty values, and objects with an unknown property.
 	 *
@@ -6397,12 +6445,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'status' => array( 'unregistered_status' ),
 				),
 			),
-			'trash'                               => array(
-				'where' => array(
-					'type'   => 'post',
-					'status' => array( 'trash' ),
-				),
-			),
 			'inherit'                             => array(
 				'where' => array(
 					'type'   => 'post',
@@ -6827,5 +6869,236 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( array( $post_id ), wp_list_pluck( $by_slug['items'], 'id' ), 'The slug should return the author\'s posts on the site.' );
 		$this->assertIsArray( $by_id, 'An author with published posts on the site should be filterable by ID without being a member.' );
 		$this->assertSame( array( $post_id ), wp_list_pluck( $by_id['items'], 'id' ), 'The ID should return the author\'s posts on the site.' );
+	}
+
+	/**
+	 * Creates a post in the Trash.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $author The author, as a role or fixture name.
+	 * @return int The post ID.
+	 */
+	private function create_trashed_post( string $author ): int {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids[ $author ],
+				'post_status' => 'publish',
+			)
+		);
+		wp_trash_post( $post_id );
+
+		$this->assertSame( 'trash', get_post_status( $post_id ), 'Precondition: the post should be in the Trash.' );
+
+		return $post_id;
+	}
+
+	/**
+	 * Runs a query and returns the IDs of the items.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $where The `where` filters.
+	 * @return list<int> The IDs of the returned items.
+	 */
+	private function query_ids( array $where ): array {
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => $where,
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The query should succeed.' );
+
+		return wp_list_pluck( $result['items'], 'id' );
+	}
+
+	/**
+	 * `trash` requested by name returns the trashed posts to roles that may edit them.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_roles_with_edit_access_to_other_users_posts
+	 * @since 7.3.0
+	 *
+	 * @param string $role The role to query as.
+	 */
+	public function test_trash_requested_by_name_returns_trashed_posts( string $role ): void {
+		$post_id = $this->create_trashed_post( 'author' );
+
+		$this->login_as( $role );
+		$this->register_ability();
+
+		$this->assertSame(
+			array( $post_id ),
+			$this->query_ids(
+				array(
+					'type'   => 'post',
+					'status' => array( 'trash' ),
+				)
+			),
+			'The trashed post should be returned.'
+		);
+	}
+
+	/**
+	 * `trash` can be requested next to another status.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_trash_can_be_requested_next_to_another_status(): void {
+		$post_id = $this->create_trashed_post( 'author' );
+
+		$this->login_as( 'editor' );
+		$this->register_ability();
+
+		$this->assertSameSets(
+			array( $post_id, self::$post_ids['published'] ),
+			$this->query_ids(
+				array(
+					'type'   => 'post',
+					'ids'    => array( $post_id, self::$post_ids['published'] ),
+					'status' => array( 'publish', 'trash' ),
+				)
+			),
+			'The trashed and the published post should be returned.'
+		);
+	}
+
+	/**
+	 * A query without a status does not cover `trash`, also not when it lists slugs.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_slugs_without_a_status_do_not_cover_trashed_posts(): void {
+		$post_id = $this->create_trashed_post( 'author' );
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type'  => 'post',
+					'slugs' => array( get_post( $post_id )->post_name ),
+				),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertSame( self::EMPTY_RESULT, $result, 'A query by slug without a status should neither return nor count a trashed post.' );
+	}
+
+	/**
+	 * A query without a status does not cover `trash`.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_query_without_a_status_does_not_cover_trashed_posts(): void {
+		$post_id = $this->create_trashed_post( 'administrator' );
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$this->assertNotContains( $post_id, $this->query_ids( array( 'type' => 'post' ) ), 'A query without a status should not return a trashed post.' );
+	}
+
+	/**
+	 * Querying `trash` needs `edit_posts`.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_trash_needs_edit_posts(): void {
+		$this->create_trashed_post( 'author' );
+
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 'trash' ),
+				),
+			)
+		);
+
+		$this->assertWPError( $result, 'A subscriber should not be able to query the Trash.' );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'The permission callback should refuse a subscriber.' );
+	}
+
+	/**
+	 * Returns roles that may query the Trash but only edit their own posts.
+	 *
+	 * @return array<string, array{role: string}> The roles.
+	 */
+	public static function data_roles_that_edit_only_their_own_trashed_posts(): array {
+		return array(
+			'author'      => array( 'author_secondary' ),
+			'contributor' => array( 'contributor' ),
+		);
+	}
+
+	/**
+	 * Trashed rows pass the per-post read check: a role that edits only its own posts gets its
+	 * own trashed post and not the trashed post of another user.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_roles_that_edit_only_their_own_trashed_posts
+	 * @since 7.3.0
+	 *
+	 * @param string $role The role to query as.
+	 */
+	public function test_trash_returns_only_the_trashed_posts_the_user_may_read( string $role ): void {
+		$own_id   = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids[ $role ],
+				'post_status' => 'draft',
+			)
+		);
+		$other_id = $this->create_trashed_post( 'author' );
+		wp_trash_post( $own_id );
+
+		$this->login_as( $role );
+		$this->register_ability();
+
+		$this->assertSame(
+			array( $own_id ),
+			$this->query_ids(
+				array(
+					'type'   => 'post',
+					'ids'    => array( $own_id, $other_id ),
+					'status' => array( 'trash' ),
+				)
+			),
+			'Only the own trashed post should be returned.'
+		);
+	}
+
+	/**
+	 * Other internal statuses are still rejected.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_other_internal_statuses_are_still_rejected(): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 'auto-draft' ),
+				),
+			)
+		);
+
+		$this->assertWPError( $result, 'An auto-draft query should fail.' );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject auto-draft.' );
 	}
 }
