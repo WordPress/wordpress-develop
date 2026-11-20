@@ -55,15 +55,15 @@ function wp_image_editor( $post_id, $msg = false ) {
 	$edit_thumbnails_separately = (bool) apply_filters( 'image_edit_thumbnails_separately', false );
 
 	?>
-	<div class="imgedit-wrap wp-clearfix">
+	<div class="imgedit-wrap wp-clearfix" data-postid="<?php echo $post_id; ?>">
 	<div id="imgedit-panel-<?php echo $post_id; ?>">
 	<?php echo $note; ?>
 	<div class="imgedit-panel-content imgedit-panel-tools wp-clearfix">
 		<div class="imgedit-menu wp-clearfix">
-			<button type="button" onclick="imageEdit.toggleCropTool( <?php echo "$post_id, '$nonce'"; ?>, this );" aria-expanded="false" aria-controls="imgedit-crop" class="imgedit-crop button disabled" disabled><?php esc_html_e( 'Crop' ); ?></button>
-			<button type="button" class="imgedit-scale button" onclick="imageEdit.toggleControls(this);" aria-expanded="false" aria-controls="imgedit-scale"><?php echo esc_html_x( 'Scale', 'verb' ); ?></button>
+			<button type="button" data-imgedit-action="toggleCropTool" aria-expanded="false" aria-controls="imgedit-crop" class="imgedit-crop button disabled" disabled><?php esc_html_e( 'Crop' ); ?></button>
+			<button type="button" class="imgedit-scale button" data-imgedit-action="toggleControls" aria-expanded="false" aria-controls="imgedit-scale"><?php echo esc_html_x( 'Scale', 'verb' ); ?></button>
 			<div class="imgedit-rotate-menu-container">
-				<button type="button" aria-controls="imgedit-rotate-menu" class="imgedit-rotate button" aria-expanded="false" onclick="imageEdit.togglePopup(this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Image Rotation' ); ?></button>
+				<button type="button" aria-controls="imgedit-rotate-menu" class="imgedit-rotate button" aria-expanded="false" data-imgedit-action="togglePopup"><?php esc_html_e( 'Image Rotation' ); ?></button>
 				<div id="imgedit-rotate-menu" class="imgedit-popup-menu">
 			<?php
 			// On some setups GD library does not provide imagerotate() - Ticket #11536.
@@ -75,9 +75,9 @@ function wp_image_editor( $post_id, $msg = false ) {
 			) ) {
 				$note_no_rotate = '';
 				?>
-					<button type="button" class="imgedit-rleft button" onkeydown="imageEdit.browsePopup(event, this)" onclick="imageEdit.rotate( 90, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 90&deg; left' ); ?></button>
-					<button type="button" class="imgedit-rright button" onkeydown="imageEdit.browsePopup(event, this)" onclick="imageEdit.rotate(-90, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 90&deg; right' ); ?></button>
-					<button type="button" class="imgedit-rfull button" onkeydown="imageEdit.browsePopup(event, this)" onclick="imageEdit.rotate(180, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 180&deg;' ); ?></button>
+					<button type="button" class="imgedit-rleft button" data-imgedit-action="rotate" data-imgedit-value="90"><?php esc_html_e( 'Rotate 90&deg; left' ); ?></button>
+					<button type="button" class="imgedit-rright button" data-imgedit-action="rotate" data-imgedit-value="-90"><?php esc_html_e( 'Rotate 90&deg; right' ); ?></button>
+					<button type="button" class="imgedit-rfull button" data-imgedit-action="rotate" data-imgedit-value="180"><?php esc_html_e( 'Rotate 180&deg;' ); ?></button>
 				<?php
 			} else {
 				$note_no_rotate = '<p class="note-no-rotate"><em>' . __( 'Image rotation is not supported by your web host.' ) . '</em></p>';
@@ -88,17 +88,17 @@ function wp_image_editor( $post_id, $msg = false ) {
 			}
 			?>
 					<hr />
-					<button type="button" onkeydown="imageEdit.browsePopup(event, this)" onclick="imageEdit.flip(1, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()" class="imgedit-flipv button"><?php esc_html_e( 'Flip vertical' ); ?></button>
-					<button type="button" onkeydown="imageEdit.browsePopup(event, this)" onclick="imageEdit.flip(2, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()" class="imgedit-fliph button"><?php esc_html_e( 'Flip horizontal' ); ?></button>
+					<button type="button" data-imgedit-action="flip" data-imgedit-value="1" class="imgedit-flipv button"><?php esc_html_e( 'Flip vertical' ); ?></button>
+					<button type="button" data-imgedit-action="flip" data-imgedit-value="2" class="imgedit-fliph button"><?php esc_html_e( 'Flip horizontal' ); ?></button>
 					<?php echo $note_no_rotate; ?>
 				</div>
 			</div>
 		</div>
 		<div class="imgedit-submit imgedit-menu">
-			<button type="button" id="image-undo-<?php echo $post_id; ?>" onclick="imageEdit.undo(<?php echo "$post_id, '$nonce'"; ?>, this)" class="imgedit-undo button disabled" disabled><?php esc_html_e( 'Undo' ); ?></button>
-			<button type="button" id="image-redo-<?php echo $post_id; ?>" onclick="imageEdit.redo(<?php echo "$post_id, '$nonce'"; ?>, this)" class="imgedit-redo button disabled" disabled><?php esc_html_e( 'Redo' ); ?></button>
-			<button type="button" onclick="imageEdit.close(<?php echo $post_id; ?>, 1)" class="button imgedit-cancel-btn"><?php esc_html_e( 'Cancel Editing' ); ?></button>
-			<button type="button" onclick="imageEdit.save(<?php echo "$post_id, '$nonce'"; ?>)" disabled="disabled" class="button button-primary imgedit-submit-btn"><?php esc_html_e( 'Save Edits' ); ?></button>
+			<button type="button" id="image-undo-<?php echo $post_id; ?>" data-imgedit-action="undo" class="imgedit-undo button disabled" disabled><?php esc_html_e( 'Undo' ); ?></button>
+			<button type="button" id="image-redo-<?php echo $post_id; ?>" data-imgedit-action="redo" class="imgedit-redo button disabled" disabled><?php esc_html_e( 'Redo' ); ?></button>
+			<button type="button" data-imgedit-action="close" class="button imgedit-cancel-btn"><?php esc_html_e( 'Cancel Editing' ); ?></button>
+			<button type="button" data-imgedit-action="save" disabled="disabled" class="button button-primary imgedit-submit-btn"><?php esc_html_e( 'Save Edits' ); ?></button>
 		</div>
 	</div>
 
@@ -114,7 +114,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 
 			<div id="imgedit-crop-<?php echo $post_id; ?>" class="imgedit-crop-wrap">
 			<div class="imgedit-crop-grid"></div>
-			<img id="image-preview-<?php echo $post_id; ?>" onload="imageEdit.imgLoaded('<?php echo $post_id; ?>')"
+			<img id="image-preview-<?php echo $post_id; ?>" data-imgedit-preview
 				src="<?php echo esc_url( admin_url( 'admin-ajax.php', 'relative' ) ) . '?action=imgedit-preview&amp;_ajax_nonce=' . $nonce . '&amp;postid=' . $post_id . '&amp;rand=' . rand( 1, 99999 ); ?>" alt="" />
 			</div>
 		</div>
@@ -124,7 +124,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 				<div id="imgedit-scale" tabindex="-1" class="imgedit-group-controls">
 					<div class="imgedit-group-top">
 						<h2><?php _e( 'Scale Image' ); ?></h2>
-						<button type="button" class="dashicons dashicons-editor-help imgedit-help-toggle" onclick="imageEdit.toggleHelp(this);" aria-expanded="false"><span class="screen-reader-text">
+						<button type="button" class="dashicons dashicons-editor-help imgedit-help-toggle" data-imgedit-action="toggleHelp" aria-expanded="false"><span class="screen-reader-text">
 						<?php
 						/* translators: Hidden accessibility text. */
 						esc_html_e( 'Scale Image Help' );
@@ -154,7 +154,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 							_e( 'Width' );
 							?>
 							</label>
-							<input type="number" step="1" min="0" max="<?php echo $meta['width'] ?? ''; ?>" aria-describedby="imgedit-scale-warn-<?php echo $post_id; ?>"  id="imgedit-scale-width-<?php echo $post_id; ?>" onkeyup="imageEdit.scaleChanged(<?php echo $post_id; ?>, 1, this)" onblur="imageEdit.scaleChanged(<?php echo $post_id; ?>, 1, this)" value="<?php echo $meta['width'] ?? 0; ?>" />
+							<input type="number" step="1" min="0" max="<?php echo $meta['width'] ?? ''; ?>" aria-describedby="imgedit-scale-warn-<?php echo $post_id; ?>"  id="imgedit-scale-width-<?php echo $post_id; ?>" data-imgedit-input="scale" data-imgedit-value="1" value="<?php echo $meta['width'] ?? 0; ?>" />
 							<span class="imgedit-separator" aria-hidden="true">&times;</span>
 							<label for="imgedit-scale-height-<?php echo $post_id; ?>" class="screen-reader-text">
 							<?php
@@ -162,8 +162,8 @@ function wp_image_editor( $post_id, $msg = false ) {
 							_e( 'Height' );
 							?>
 							</label>
-							<input type="number" step="1" min="0" max="<?php echo $meta['height'] ?? ''; ?>" aria-describedby="imgedit-scale-warn-<?php echo $post_id; ?>" id="imgedit-scale-height-<?php echo $post_id; ?>" onkeyup="imageEdit.scaleChanged(<?php echo $post_id; ?>, 0, this)" onblur="imageEdit.scaleChanged(<?php echo $post_id; ?>, 0, this)" value="<?php echo $meta['height'] ?? 0; ?>" />
-							<button id="imgedit-scale-button" type="button" onclick="imageEdit.action(<?php echo "$post_id, '$nonce'"; ?>, 'scale')" class="button button-primary"><?php echo esc_html_x( 'Scale', 'verb' ); ?></button>
+							<input type="number" step="1" min="0" max="<?php echo $meta['height'] ?? ''; ?>" aria-describedby="imgedit-scale-warn-<?php echo $post_id; ?>" id="imgedit-scale-height-<?php echo $post_id; ?>" data-imgedit-input="scale" data-imgedit-value="0" value="<?php echo $meta['height'] ?? 0; ?>" />
+							<button id="imgedit-scale-button" type="button" data-imgedit-action="action" data-imgedit-value="scale" class="button button-primary"><?php echo esc_html_x( 'Scale', 'verb' ); ?></button>
 							</div>
 							<span class="imgedit-scale-warn" id="imgedit-scale-warn-<?php echo $post_id; ?>"><span class="dashicons dashicons-warning" aria-hidden="true"></span><?php esc_html_e( 'Images cannot be scaled to a size larger than the original.' ); ?></span>
 						</fieldset>
@@ -175,7 +175,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<?php if ( $can_restore ) { ?>
 				<div class="imgedit-group">
 				<div class="imgedit-group-top">
-					<h2><button type="button" onclick="imageEdit.toggleHelp(this);" class="button-link" aria-expanded="false"><?php _e( 'Restore original image' ); ?> <span class="dashicons dashicons-arrow-down imgedit-help-toggle"></span></button></h2>
+					<h2><button type="button" data-imgedit-action="toggleHelp" class="button-link" aria-expanded="false"><?php _e( 'Restore original image' ); ?> <span class="dashicons dashicons-arrow-down imgedit-help-toggle"></span></button></h2>
 					<div class="imgedit-help imgedit-restore">
 					<p>
 					<?php
@@ -186,7 +186,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 					?>
 					</p>
 					<div class="imgedit-submit">
-						<input type="button" onclick="imageEdit.action(<?php echo "$post_id, '$nonce'"; ?>, 'restore')" class="button button-primary" value="<?php esc_attr_e( 'Restore image' ); ?>" <?php echo $can_restore; ?> />
+						<input type="button" data-imgedit-action="action" data-imgedit-value="restore" class="button button-primary" value="<?php esc_attr_e( 'Restore image' ); ?>" <?php echo $can_restore; ?> />
 					</div>
 				</div>
 			</div>
@@ -196,7 +196,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 				<div id="imgedit-crop" tabindex="-1" class="imgedit-group-controls">
 				<div class="imgedit-group-top">
 					<h2><?php _e( 'Crop Image' ); ?></h2>
-					<button type="button" class="dashicons dashicons-editor-help imgedit-help-toggle" onclick="imageEdit.toggleHelp(this);" aria-expanded="false"><span class="screen-reader-text">
+					<button type="button" class="dashicons dashicons-editor-help imgedit-help-toggle" data-imgedit-action="toggleHelp" aria-expanded="false"><span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. */
 					_e( 'Image Crop Help' );
@@ -220,7 +220,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 					_e( 'crop ratio width' );
 					?>
 					</label>
-					<input type="number" step="1" min="1" id="imgedit-crop-width-<?php echo $post_id; ?>" onkeyup="imageEdit.setRatioSelection(<?php echo $post_id; ?>, 0, this)" onblur="imageEdit.setRatioSelection(<?php echo $post_id; ?>, 0, this)" />
+					<input type="number" step="1" min="1" id="imgedit-crop-width-<?php echo $post_id; ?>" data-imgedit-input="ratio" data-imgedit-value="0" />
 					<span class="imgedit-separator" aria-hidden="true">:</span>
 					<label for="imgedit-crop-height-<?php echo $post_id; ?>" class="screen-reader-text">
 					<?php
@@ -228,7 +228,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 					_e( 'crop ratio height' );
 					?>
 					</label>
-					<input  type="number" step="1" min="0" id="imgedit-crop-height-<?php echo $post_id; ?>" onkeyup="imageEdit.setRatioSelection(<?php echo $post_id; ?>, 1, this)" onblur="imageEdit.setRatioSelection(<?php echo $post_id; ?>, 1, this)" />
+					<input  type="number" step="1" min="0" id="imgedit-crop-height-<?php echo $post_id; ?>" data-imgedit-input="ratio" data-imgedit-value="1" />
 					</div>
 				</fieldset>
 				<fieldset id="imgedit-crop-sel-<?php echo $post_id; ?>" class="imgedit-crop-sel">
@@ -240,7 +240,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 					_e( 'selection width' );
 					?>
 					</label>
-					<input  type="number" step="1" min="0" id="imgedit-sel-width-<?php echo $post_id; ?>" onkeyup="imageEdit.setNumSelection(<?php echo $post_id; ?>, this)" onblur="imageEdit.setNumSelection(<?php echo $post_id; ?>, this)" />
+					<input  type="number" step="1" min="0" id="imgedit-sel-width-<?php echo $post_id; ?>" data-imgedit-input="selection" />
 					<span class="imgedit-separator" aria-hidden="true">&times;</span>
 					<label for="imgedit-sel-height-<?php echo $post_id; ?>" class="screen-reader-text">
 					<?php
@@ -248,7 +248,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 					_e( 'selection height' );
 					?>
 					</label>
-					<input  type="number" step="1" min="0" id="imgedit-sel-height-<?php echo $post_id; ?>" onkeyup="imageEdit.setNumSelection(<?php echo $post_id; ?>, this)" onblur="imageEdit.setNumSelection(<?php echo $post_id; ?>, this)" />
+					<input  type="number" step="1" min="0" id="imgedit-sel-height-<?php echo $post_id; ?>" data-imgedit-input="selection" />
 					</div>
 				</fieldset>
 				<fieldset id="imgedit-crop-sel-<?php echo $post_id; ?>" class="imgedit-crop-sel">
@@ -260,7 +260,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 					_e( 'horizontal start position' );
 					?>
 					</label>
-					<input  type="number" step="1" min="0" id="imgedit-start-x-<?php echo $post_id; ?>" onkeyup="imageEdit.setNumSelection(<?php echo $post_id; ?>, this)" onblur="imageEdit.setNumSelection(<?php echo $post_id; ?>, this)" value="0" />
+					<input  type="number" step="1" min="0" id="imgedit-start-x-<?php echo $post_id; ?>" data-imgedit-input="selection" value="0" />
 					<span class="imgedit-separator" aria-hidden="true">&times;</span>
 					<label for="imgedit-start-y-<?php echo $post_id; ?>" class="screen-reader-text">
 					<?php
@@ -268,11 +268,11 @@ function wp_image_editor( $post_id, $msg = false ) {
 					_e( 'vertical start position' );
 					?>
 					</label>
-					<input  type="number" step="1" min="0" id="imgedit-start-y-<?php echo $post_id; ?>" onkeyup="imageEdit.setNumSelection(<?php echo $post_id; ?>, this)" onblur="imageEdit.setNumSelection(<?php echo $post_id; ?>, this)" value="0" />
+					<input  type="number" step="1" min="0" id="imgedit-start-y-<?php echo $post_id; ?>" data-imgedit-input="selection" value="0" />
 					</div>
 				</fieldset>
 				<div class="imgedit-crop-apply imgedit-menu container">
-					<button class="button button-primary" type="button" onclick="imageEdit.handleCropToolClick( <?php echo "$post_id, '$nonce'"; ?>, this );" class="imgedit-crop-apply button"><?php esc_html_e( 'Apply Crop' ); ?></button> <button type="button" onclick="imageEdit.handleCropToolClick( <?php echo "$post_id, '$nonce'"; ?>, this );" class="imgedit-crop-clear button" disabled="disabled"><?php esc_html_e( 'Clear Crop' ); ?></button>
+					<button class="button button-primary" type="button" data-imgedit-action="handleCropToolClick" class="imgedit-crop-apply button"><?php esc_html_e( 'Apply Crop' ); ?></button> <button type="button" data-imgedit-action="handleCropToolClick" class="imgedit-crop-clear button" disabled="disabled"><?php esc_html_e( 'Clear Crop' ); ?></button>
 				</div>
 			</div>
 		</div>
@@ -286,7 +286,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 	<div class="imgedit-group imgedit-applyto">
 		<div class="imgedit-group-top">
 			<h2><?php _e( 'Thumbnail Settings' ); ?></h2>
-			<button type="button" class="dashicons dashicons-editor-help imgedit-help-toggle" onclick="imageEdit.toggleHelp(this);" aria-expanded="false"><span class="screen-reader-text">
+			<button type="button" class="dashicons dashicons-editor-help imgedit-help-toggle" data-imgedit-action="toggleHelp" aria-expanded="false"><span class="screen-reader-text">
 			<?php
 			/* translators: Hidden accessibility text. */
 			esc_html_e( 'Thumbnail Settings Help' );
