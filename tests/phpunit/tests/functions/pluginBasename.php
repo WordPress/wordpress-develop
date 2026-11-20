@@ -120,6 +120,31 @@ class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 				array( $plugin_dir . '/sample-plugin' => '/external/sample-plugin' ),
 				'sample-plugin/includes/plugin.php',
 			),
+			'symlink target with a trailing slash'        => array(
+				'/external/sample-plugin/includes/plugin.php',
+				array( $plugin_dir . '/sample-plugin' => '/external/sample-plugin/' ),
+				'sample-plugin/includes/plugin.php',
+			),
+			'exact directory of a symlink target with a trailing slash' => array(
+				'/external/sample-plugin',
+				array( $plugin_dir . '/sample-plugin' => '/external/sample-plugin/' ),
+				'sample-plugin',
+			),
+			'symlink target at a Unix filesystem root'    => array(
+				'/external/includes/plugin.php',
+				array( $plugin_dir . '/sample-plugin' => '/' ),
+				'sample-plugin/external/includes/plugin.php',
+			),
+			'empty file with a symlink target at a filesystem root' => array(
+				'',
+				array( $plugin_dir . '/sample-plugin' => '/' ),
+				'',
+			),
+			'symlink target at a Windows filesystem root' => array(
+				'c:\\external\\includes\\plugin.php',
+				array( $plugin_dir . '/sample-plugin' => 'C:/' ),
+				'sample-plugin/external/includes/plugin.php',
+			),
 			'sibling directory of a symlink target'       => array(
 				'/external/sample-plugin-wp/plugin.php',
 				array( $plugin_dir . '/sample-plugin' => '/external/sample-plugin' ),

@@ -799,7 +799,7 @@ function plugin_basename( $file ) {
 	if ( $wp_plugin_paths ) {
 		$plugin_paths = $wp_plugin_paths;
 
-		// Fall back to configured directories without shadowing registered targets.
+		// Map the plugin directories to themselves, so a symlink target that contains them does not rewrite ordinary plugin paths.
 		foreach ( array( $plugin_dir, $mu_plugin_dir ) as $dir ) {
 			if ( ! in_array( $dir, $plugin_paths, true ) ) {
 				$plugin_paths[ $dir ] = $dir;
@@ -809,7 +809,8 @@ function plugin_basename( $file ) {
 		arsort( $plugin_paths );
 
 		foreach ( $plugin_paths as $dir => $realdir ) {
-			if ( $file === $realdir || str_starts_with( $file, rtrim( $realdir, '/' ) . '/' ) ) {
+			$realdir = rtrim( $realdir, '/' );
+			if ( ( '' !== $realdir && $file === $realdir ) || str_starts_with( $file, $realdir . '/' ) ) {
 				$file = $dir . substr( $file, strlen( $realdir ) );
 				break;
 			}
