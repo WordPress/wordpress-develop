@@ -56,22 +56,22 @@
  *     fields: mixed,
  *     menu_order: mixed,
  *     embed: mixed,
- *     category__in: array<mixed>,
- *     category__not_in: array<mixed>,
- *     category__and: array<mixed>,
- *     post__in: array<mixed>,
- *     post__not_in: array<mixed>,
- *     post_name__in: array<mixed>,
- *     tag__in: array<mixed>,
- *     tag__not_in: array<mixed>,
- *     tag__and: array<mixed>,
- *     tag_slug__in: array<mixed>,
- *     tag_slug__and: array<mixed>,
- *     post_parent__in: array<mixed>,
- *     post_parent__not_in: array<mixed>,
- *     author__in: array<mixed>,
- *     author__not_in: array<mixed>,
- *     search_columns: array<mixed>,
+ *     category__in: array<scalar>,
+ *     category__not_in: array<scalar>,
+ *     category__and: array<scalar>,
+ *     post__in: array<scalar>,
+ *     post__not_in: array<scalar>,
+ *     post_name__in: array<scalar>,
+ *     tag__in: array<scalar>,
+ *     tag__not_in: array<scalar>,
+ *     tag__and: array<scalar>,
+ *     tag_slug__in: array<scalar>,
+ *     tag_slug__and: array<scalar>,
+ *     post_parent__in: array<scalar>,
+ *     post_parent__not_in: array<scalar>,
+ *     author__in: array<scalar>,
+ *     author__not_in: array<scalar>,
+ *     search_columns: array<scalar>,
  *     ...<array-key, mixed>
  * }
  *
@@ -112,22 +112,22 @@
  *     fields: scalar,
  *     menu_order: int<0, max>|'',
  *     embed: scalar,
- *     category__in: array<mixed>,
- *     category__not_in: array<mixed>,
- *     category__and: array<mixed>,
- *     post__in: array<mixed>,
- *     post__not_in: array<mixed>,
- *     post_name__in: array<mixed>,
- *     tag__in: array<mixed>,
- *     tag__not_in: array<mixed>,
- *     tag__and: array<mixed>,
- *     tag_slug__in: array<mixed>,
- *     tag_slug__and: array<mixed>,
- *     post_parent__in: array<mixed>,
- *     post_parent__not_in: array<mixed>,
- *     author__in: array<mixed>,
- *     author__not_in: array<mixed>,
- *     search_columns: array<mixed>,
+ *     category__in: array<scalar>,
+ *     category__not_in: array<scalar>,
+ *     category__and: array<scalar>,
+ *     post__in: array<scalar>,
+ *     post__not_in: array<scalar>,
+ *     post_name__in: array<scalar>,
+ *     tag__in: array<scalar>,
+ *     tag__not_in: array<scalar>,
+ *     tag__and: array<scalar>,
+ *     tag_slug__in: array<scalar>,
+ *     tag_slug__and: array<scalar>,
+ *     post_parent__in: array<scalar>,
+ *     post_parent__not_in: array<scalar>,
+ *     author__in: array<scalar>,
+ *     author__not_in: array<scalar>,
+ *     search_columns: array<scalar>,
  *     ...<array-key, mixed>
  * }
  */
@@ -785,12 +785,12 @@ class WP_Query {
 	 * Normalizes the value of a query variable which takes a list of values to an array.
 	 *
 	 * An empty value becomes an empty array, a scalar value becomes an array containing that value,
-	 * and any other value becomes an empty array.
+	 * an array has any values which are not scalar removed, and any other value becomes an empty array.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @param mixed $value Query variable value.
-	 * @return array<mixed> Normalized value.
+	 * @return array<scalar> Normalized value.
 	 */
 	private static function normalize_list_query_var( $value ): array {
 		if ( empty( $value ) ) {
@@ -798,7 +798,7 @@ class WP_Query {
 		} elseif ( is_scalar( $value ) ) {
 			return array( $value );
 		} elseif ( is_array( $value ) ) {
-			return $value;
+			return array_filter( $value, 'is_scalar' );
 		} else {
 			return array();
 		}

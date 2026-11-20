@@ -162,6 +162,13 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 	public static function data_list_query_var_values(): array {
 		return array(
 			'array'               => array( array( 1, 2 ), array( 1, 2 ) ),
+			'nested array'        => array(
+				array( 1, array( 2 ), 'a', null, new stdClass() ),
+				array(
+					0 => 1,
+					2 => 'a',
+				),
+			),
 			'empty array'         => array( array(), array() ),
 			'empty string'        => array( '', array() ),
 			'zero'                => array( 0, array() ),
@@ -190,6 +197,23 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 		self::factory()->post->create();
 
 		$query = new WP_Query( array( $query_var => 'string' ) );
+
+		$this->assertIsArray( $query->posts );
+	}
+
+	/**
+	 * Tests that a list query var given a multidimensional array does not cause an error.
+	 *
+	 * @ticket 60745
+	 *
+	 * @dataProvider data_list_query_vars
+	 *
+	 * @param string $query_var Query var name.
+	 */
+	public function test_list_query_var_given_multidimensional_array_does_not_cause_error( string $query_var ): void {
+		self::factory()->post->create();
+
+		$query = new WP_Query( array( $query_var => array( 1, array( 'admin' ) ) ) );
 
 		$this->assertIsArray( $query->posts );
 	}
