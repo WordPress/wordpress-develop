@@ -725,7 +725,6 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * Output validation errors retain their message and data in the REST response.
 	 *
 	 * @ticket 64098
-	 * @ticket 66433
 	 */
 	public function test_output_validation(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/invalid-output/run' );

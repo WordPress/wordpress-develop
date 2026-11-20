@@ -1832,7 +1832,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 * Tests wp_ability_validate_output filter receives execution context on validation failure.
 	 *
 	 * @ticket 64311
-	 * @ticket 66433
 	 */
 	public function test_validate_output_filter_receives_error_on_invalid_output() {
 		$received_error   = null;
@@ -1874,7 +1873,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 * Custom output errors are returned unchanged.
 	 *
 	 * @ticket 64311
-	 * @ticket 66433
 	 */
 	public function test_validate_output_filter_replaces_error_with_custom() {
 		$original = new WP_Error( 'custom_output_error', 'Rejected.', array( 'status' => 422 ) );
