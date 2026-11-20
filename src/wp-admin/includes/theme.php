@@ -105,6 +105,9 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 		);
 	}
 
+	// The cached list of translation files can be out of date, so read the directory again.
+	wp_cache_delete( md5( WP_LANG_DIR . '/themes/' ), 'translation_files' );
+
 	$theme_translations = wp_get_installed_translations( 'themes' );
 
 	// Remove language files, silently.
@@ -121,6 +124,9 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 				array_map( array( $wp_filesystem, 'delete' ), $json_translation_files );
 			}
 		}
+
+		// Clear the cached list of translation files, which still includes the deleted ones.
+		wp_cache_delete( md5( WP_LANG_DIR . '/themes/' ), 'translation_files' );
 	}
 
 	// Remove the theme from allowed themes on the network.

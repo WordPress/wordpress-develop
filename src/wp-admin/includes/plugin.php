@@ -969,6 +969,9 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 	$plugins_dir = trailingslashit( $plugins_dir );
 
+	// The cached list of translation files can be out of date, so read the directory again.
+	wp_cache_delete( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' );
+
 	$plugin_translations = wp_get_installed_translations( 'plugins' );
 
 	$errors = array();
@@ -1035,6 +1038,9 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 					array_map( array( $wp_filesystem, 'delete' ), $json_translation_files );
 				}
 			}
+
+			// Clear the cached list of translation files, which still includes the deleted ones.
+			wp_cache_delete( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' );
 		}
 	}
 

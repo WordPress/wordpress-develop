@@ -1753,6 +1753,11 @@ function wp_get_installed_translations( $type ) {
 				continue;
 			}
 
+			// The list of files can be cached, so the PHP file may have been deleted since.
+			if ( ! file_exists( $file ) ) {
+				continue;
+			}
+
 			$language_data[ $textdomain ][ $language ] = wp_get_l10n_php_file_data( $file );
 		}
 	}
@@ -1825,7 +1830,7 @@ function wp_get_pomo_file_data( $po_file ) {
  * }
  */
 function wp_get_l10n_php_file_data( $php_file ) {
-	$data = (array) include $php_file;
+	$data = is_readable( $php_file ) ? (array) include $php_file : array();
 
 	unset( $data['messages'] );
 	$headers = array(

@@ -45,6 +45,8 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		$this->remove_translated_theme();
+
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
 		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
@@ -264,5 +266,78 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	public function test_get_theme_featured_list_hardcoded() {
 		$featured_list_hardcoded = get_theme_feature_list( false );
 		$this->assertNonEmptyMultidimensionalArray( $featured_list_hardcoded );
+	}
+
+	/**
+	 * Tests that deleting a theme clears the cached list of translation files,
+	 * so code that reads the installed translations afterward doesn't get the deleted files.
+	 *
+	 * @ticket 64236
+	 *
+	 * @covers ::delete_theme
+	 */
+	public function test_delete_theme_clears_cached_translation_files() {
+		global $wp_textdomain_registry;
+
+		$l10n_file = $this->create_translated_theme();
+
+		$deleted = delete_theme( 'delete-theme-translations' );
+
+		$this->assertTrue( $deleted, 'The theme should be deleted.' );
+		$this->assertFileDoesNotExist( $l10n_file, 'The theme translation should be deleted.' );
+		$this->assertArrayNotHasKey( 'delete-theme-translations', wp_get_installed_translations( 'themes' ), 'The deleted translation should not be listed.' );
+		$this->assertNotContains( $l10n_file, $wp_textdomain_registry->get_language_files_from_path( WP_LANG_DIR . '/themes/' ), 'The deleted translation should not be in the cached list of translation files.' );
+	}
+
+	/**
+	 * Tests that deleting a theme also deletes translations added after the list of
+	 * translation files was cached.
+	 *
+	 * @ticket 64236
+	 *
+	 * @covers ::delete_theme
+	 */
+	public function test_delete_theme_deletes_translations_added_after_the_list_was_cached() {
+		// Cache the list of translation files before the theme and its translation exist.
+		wp_get_installed_translations( 'themes' );
+
+		$l10n_file = $this->create_translated_theme();
+
+		delete_theme( 'delete-theme-translations' );
+
+		$this->assertFileDoesNotExist( $l10n_file );
+	}
+
+	/**
+	 * Creates the delete-theme-translations theme with a German translation.
+	 *
+	 * @return string Path to the theme translation file.
+	 */
+	private function create_translated_theme() {
+		$theme_dir = self::THEME_ROOT . '/delete-theme-translations';
+		$l10n_file = WP_LANG_DIR . '/themes/delete-theme-translations-de_DE.l10n.php';
+
+		mkdir( $theme_dir );
+		file_put_contents( $theme_dir . '/style.css', "/*\nTheme Name: Delete Theme Translations\n*/" );
+		copy( WP_LANG_DIR . '/plugins/internationalized-plugin-2-de_DE.l10n.php', $l10n_file );
+
+		return $l10n_file;
+	}
+
+	/**
+	 * Removes the delete-theme-translations theme and its translation, if a test left them behind.
+	 */
+	private function remove_translated_theme() {
+		$theme_dir = self::THEME_ROOT . '/delete-theme-translations';
+		$l10n_file = WP_LANG_DIR . '/themes/delete-theme-translations-de_DE.l10n.php';
+
+		if ( is_dir( $theme_dir ) ) {
+			$this->rmdir( $theme_dir );
+			$this->delete_folders( $theme_dir );
+		}
+
+		if ( file_exists( $l10n_file ) ) {
+			unlink( $l10n_file );
+		}
 	}
 }
