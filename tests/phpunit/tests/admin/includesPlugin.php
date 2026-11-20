@@ -50,6 +50,17 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		self::_restore_mu_plugins();
 	}
 
+	/**
+	 * Appends X-WP-Test-Extra for get_plugins() extra-header tests.
+	 *
+	 * @param string[] $headers Extra header names.
+	 * @return string[] Extra header names.
+	 */
+	public function filter_x_wp_test_extra_header( $headers ) {
+		$headers[] = 'X-WP-Test-Extra';
+		return $headers;
+	}
+
 	public function test_get_plugin_data() {
 		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
 
@@ -70,6 +81,321 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		foreach ( $default_headers as $name => $value ) {
 			$this->assertArrayHasKey( $name, $data );
 			$this->assertSame( $value, $data[ $name ] );
+		}
+	}
+
+	/**
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_adds_extra_headers_to_existing_cache() {
+		wp_clean_plugins_cache( false );
+
+		$before = get_plugins();
+		$this->assertNotEmpty( $before, 'Plugin list was empty before the extra header was registered.' );
+		$this->assertArrayNotHasKey(
+			'X-WP-Test-Extra',
+			reset( $before ),
+			'Extra header was present before the filter was added.'
+		);
+
+		add_filter( 'extra_plugin_headers', array( $this, 'filter_x_wp_test_extra_header' ) );
+
+		$after = get_plugins();
+		$this->assertArrayHasKey(
+			'X-WP-Test-Extra',
+			reset( $after ),
+			'Extra header was missing after the filter was added.'
+		);
+	}
+
+	/**
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_keeps_cached_fields_when_adding_extra_headers() {
+		wp_clean_plugins_cache( false );
+		get_plugins();
+
+		$cache = wp_cache_get( 'plugins', 'plugins' );
+		$file  = key( $cache[''] );
+
+		$cache[''][ $file ]['Version'] = 'cached-version';
+
+		wp_cache_set( 'plugins', $cache, 'plugins' );
+
+		add_filter( 'extra_plugin_headers', array( $this, 'filter_x_wp_test_extra_header' ) );
+
+		$after = get_plugins();
+		$this->assertSame(
+			'cached-version',
+			$after[ $file ]['Version'],
+			'Cached Version was replaced when the extra header was merged.'
+		);
+		$this->assertArrayHasKey(
+			'X-WP-Test-Extra',
+			$after[ $file ],
+			'Extra header was missing from the cached row.'
+		);
+	}
+
+	/**
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_rereads_extra_header_values_after_cache_was_warm() {
+		$plugin = $this->_create_plugin( "<?php\n/*\nPlugin Name: Extra Header Cache Test\nX-WP-Test-Extra: from-file\n*/" );
+
+		try {
+			wp_clean_plugins_cache( false );
+
+			$before = get_plugins();
+			$this->assertArrayHasKey( $plugin[0], $before, 'Test plugin was missing from the first scan.' );
+			$this->assertArrayNotHasKey(
+				'X-WP-Test-Extra',
+				$before[ $plugin[0] ],
+				'Extra header was present before the filter was added.'
+			);
+
+			add_filter( 'extra_plugin_headers', array( $this, 'filter_x_wp_test_extra_header' ) );
+
+			$after = get_plugins();
+			$this->assertSame(
+				'from-file',
+				$after[ $plugin[0] ]['X-WP-Test-Extra'],
+				'Extra header value was not read from the plugin file.'
+			);
+		} finally {
+			unlink( $plugin[1] );
+		}
+	}
+
+	/**
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_folder_argument_does_not_scan_other_plugins() {
+		wp_clean_plugins_cache( false );
+		get_plugins( '/custom-internationalized-plugin' );
+
+		$cache = wp_cache_get( 'plugins', 'plugins' );
+		$this->assertArrayNotHasKey( '', $cache, 'A folder scan filled the full plugin list.' );
+		$this->assertArrayHasKey(
+			'/custom-internationalized-plugin',
+			$cache,
+			'Folder scan was not cached under its folder key.'
+		);
+		$this->assertArrayHasKey(
+			'custom-internationalized-plugin.php',
+			$cache['/custom-internationalized-plugin'],
+			'Folder scan omitted its own plugin file.'
+		);
+		$this->assertArrayNotHasKey(
+			'hello.php',
+			$cache['/custom-internationalized-plugin'],
+			'Folder scan included a plugin from outside that folder.'
+		);
+	}
+
+	/**
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_fills_remaining_plugins_after_a_folder_call() {
+		wp_clean_plugins_cache( false );
+		get_plugins( '/custom-internationalized-plugin' );
+		get_plugins();
+
+		$cache = wp_cache_get( 'plugins', 'plugins' );
+		$this->assertArrayHasKey( 'hello.php', $cache[''], 'Full scan omitted hello.php after a folder scan.' );
+		$this->assertArrayHasKey(
+			'custom-internationalized-plugin/custom-internationalized-plugin.php',
+			$cache[''],
+			'Full scan omitted the plugin already cached by folder.'
+		);
+	}
+
+	/**
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_folder_cache_adds_extra_headers() {
+		wp_clean_plugins_cache( false );
+
+		$before = get_plugins( '/custom-internationalized-plugin' );
+		$this->assertArrayHasKey(
+			'custom-internationalized-plugin.php',
+			$before,
+			'Folder scan omitted its own plugin file.'
+		);
+		$this->assertArrayNotHasKey(
+			'X-WP-Test-Extra',
+			$before['custom-internationalized-plugin.php'],
+			'Extra header was present before the filter was added.'
+		);
+
+		add_filter( 'extra_plugin_headers', array( $this, 'filter_x_wp_test_extra_header' ) );
+
+		$after = get_plugins( '/custom-internationalized-plugin' );
+		$this->assertArrayHasKey(
+			'X-WP-Test-Extra',
+			$after['custom-internationalized-plugin.php'],
+			'Extra header was missing from the cached folder list.'
+		);
+	}
+
+	/**
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_caches_a_missing_folder() {
+		wp_clean_plugins_cache( false );
+
+		$missing = get_plugins( '/this-plugin-folder-does-not-exist' );
+		$this->assertSame( array(), $missing, 'A missing folder did not return an empty list.' );
+
+		$cache = wp_cache_get( 'plugins', 'plugins' );
+		$this->assertArrayHasKey(
+			'/this-plugin-folder-does-not-exist',
+			$cache,
+			'A missing folder was not cached.'
+		);
+		$this->assertSame(
+			array(),
+			$cache['/this-plugin-folder-does-not-exist'],
+			'A missing folder was cached as a non-empty list.'
+		);
+	}
+
+	/**
+	 * A later folder read still merges after another cache key already absorbed the new headers.
+	 *
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_merges_extra_headers_into_each_cached_folder() {
+		wp_clean_plugins_cache( false );
+		get_plugins();
+		get_plugins( '/custom-internationalized-plugin' );
+
+		add_filter( 'extra_plugin_headers', array( $this, 'filter_x_wp_test_extra_header' ) );
+
+		$all = get_plugins();
+		$this->assertArrayHasKey(
+			'X-WP-Test-Extra',
+			$all['custom-internationalized-plugin/custom-internationalized-plugin.php'],
+			'Extra header was missing from the full list.'
+		);
+
+		$folder = get_plugins( '/custom-internationalized-plugin' );
+		$this->assertArrayHasKey(
+			'X-WP-Test-Extra',
+			$folder['custom-internationalized-plugin.php'],
+			'Extra header was missing from the folder list after the full list was merged.'
+		);
+	}
+
+	/**
+	 * A full scan does not list foo/sub/*.php. A folder scan does, including
+	 * when the full list is already warm. Seeding the full list from a folder
+	 * cache must not add those deeper files.
+	 *
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_does_not_mix_folder_and_full_scan_depth() {
+		$dir       = WP_PLUGIN_DIR . '/wp-test-nested-plugin';
+		$root_file = $dir . '/wp-test-nested-plugin.php';
+		$sub_file  = $dir . '/sub/nested.php';
+
+		mkdir( $dir );
+		mkdir( $dir . '/sub' );
+		file_put_contents( $root_file, "<?php\n/*\nPlugin Name: Nested Root\n*/" );
+		file_put_contents( $sub_file, "<?php\n/*\nPlugin Name: Nested Deep\n*/" );
+
+		try {
+			wp_clean_plugins_cache( false );
+
+			$all_first = get_plugins();
+			$this->assertArrayNotHasKey(
+				'wp-test-nested-plugin/sub/nested.php',
+				$all_first,
+				'Full scan listed a nested plugin file.'
+			);
+
+			$folder = get_plugins( '/wp-test-nested-plugin' );
+			$this->assertArrayHasKey(
+				'wp-test-nested-plugin.php',
+				$folder,
+				'Folder scan omitted its own plugin file.'
+			);
+			$this->assertArrayHasKey(
+				'sub/nested.php',
+				$folder,
+				'Folder scan omitted the nested file while the full list was warm.'
+			);
+
+			wp_clean_plugins_cache( false );
+
+			$folder_first = get_plugins( '/wp-test-nested-plugin' );
+			$this->assertArrayHasKey(
+				'sub/nested.php',
+				$folder_first,
+				'Folder-first scan omitted the nested file.'
+			);
+
+			$all_second = get_plugins();
+			$this->assertArrayHasKey(
+				'wp-test-nested-plugin/wp-test-nested-plugin.php',
+				$all_second,
+				'Full scan omitted the plugin root file after a folder scan.'
+			);
+			$this->assertArrayNotHasKey(
+				'wp-test-nested-plugin/sub/nested.php',
+				$all_second,
+				'Full scan listed a nested file seeded from the folder cache.'
+			);
+		} finally {
+			unlink( $sub_file );
+			unlink( $root_file );
+			rmdir( $dir . '/sub' );
+			rmdir( $dir );
+		}
+	}
+
+	/**
+	 * Rows seeded from a folder cache still gain extra headers when a freshly scanned row sorts first.
+	 *
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_merges_extra_headers_into_seeded_rows() {
+		$early = $this->_create_plugin( "<?php\n/*\nPlugin Name: 000 Extra Sort First\n*/", 'extra-sort-first.php' );
+
+		try {
+			wp_clean_plugins_cache( false );
+			get_plugins( '/custom-internationalized-plugin' );
+
+			add_filter( 'extra_plugin_headers', array( $this, 'filter_x_wp_test_extra_header' ) );
+
+			$all = get_plugins();
+			$this->assertSame(
+				'extra-sort-first.php',
+				array_key_first( $all ),
+				'Freshly scanned plugin did not sort first.'
+			);
+			$this->assertArrayHasKey(
+				'X-WP-Test-Extra',
+				$all['extra-sort-first.php'],
+				'Extra header was missing from the freshly scanned row.'
+			);
+			$this->assertArrayHasKey(
+				'X-WP-Test-Extra',
+				$all['custom-internationalized-plugin/custom-internationalized-plugin.php'],
+				'Extra header was missing from the row seeded from the folder cache.'
+			);
+		} finally {
+			unlink( $early[1] );
 		}
 	}
 
