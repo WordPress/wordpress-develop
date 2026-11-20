@@ -722,8 +722,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 	/**
 	 * Test output validation against schema.
-	 * Note: When output validation fails in WP_Ability::execute(), it returns null,
-	 * which causes the REST controller to return 'ability_invalid_output'.
+	 * Output validation errors retain their diagnostics in the REST response.
 	 *
 	 * @ticket 64098
 	 */
@@ -737,17 +736,17 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$data = $response->get_data();
 		$this->assertSame( 'ability_invalid_output', $data['code'] );
 		$this->assertSame(
-			'Ability "test/invalid-output" has invalid output. Reason: output is not of type number.',
+			'Ability "test/invalid-output" has invalid output. Reason: output is not of type number. The ability ran, so its changes may already be saved. Check the current state before you run it again.',
 			$data['message']
 		);
 	}
 
 	/**
-	 * Tests that a REST client can see that the callback ran when the output is invalid.
+	 * Tests that a REST client can inspect the output when validation fails.
 	 *
 	 * @ticket 66433
 	 */
-	public function test_output_validation_error_says_the_callback_ran(): void {
+	public function test_output_validation_error_includes_output(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/invalid-output/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
 
@@ -756,7 +755,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertSame( 500, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'ability_invalid_output', $data['code'] );
-		$this->assertTrue( $data['data']['callback_executed'] );
+		$this->assertSame( 'not a number', $data['data']['output'] );
+		$this->assertNotFalse( wp_json_encode( $data ) );
 	}
 
 	/**
@@ -1227,7 +1227,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$data = $response->get_data();
 		$this->assertSame( 'ability_invalid_output', $data['code'] );
 		$this->assertSame(
-			'Ability "test/strict-output" has invalid output. Reason: status is a required property of output.',
+			'Ability "test/strict-output" has invalid output. Reason: status is a required property of output. The ability ran, so its changes may already be saved. Check the current state before you run it again.',
 			$data['message']
 		);
 	}

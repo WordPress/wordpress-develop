@@ -2866,11 +2866,11 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that an invalid output error says the callback already ran.
+	 * Tests that an invalid output error includes the result of the completed callback.
 	 *
 	 * @ticket 66433
 	 */
-	public function test_invalid_output_error_says_the_callback_ran() {
+	public function test_invalid_output_error_includes_output() {
 		$runs    = 0;
 		$ability = $this->create_ability_with_invalid_output( $runs );
 		$result  = $ability->execute();
@@ -2878,15 +2878,20 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( 'ability_invalid_output', $result->get_error_code() );
 		$this->assertSame( 1, $runs, 'The callback should have run before the output was checked.' );
-		$this->assertSame( array( 'callback_executed' => true ), $result->get_error_data() );
+		$this->assertSame(
+			array(
+				'output' => 42,
+			),
+			$result->get_error_data()
+		);
 	}
 
 	/**
-	 * Tests that the error says the callback ran when a filter rejects the output with `false`.
+	 * Tests that output is included when a filter rejects it with `false`.
 	 *
 	 * @ticket 66433
 	 */
-	public function test_output_rejected_by_filter_with_false_says_the_callback_ran() {
+	public function test_output_rejected_by_filter_with_false_includes_output() {
 		add_filter( 'wp_ability_validate_output', '__return_false' );
 
 		$runs    = 0;
@@ -2895,11 +2900,16 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'ability_invalid_output', $result->get_error_code() );
-		$this->assertSame( array( 'callback_executed' => true ), $result->get_error_data() );
+		$this->assertSame(
+			array(
+				'output' => 42,
+			),
+			$result->get_error_data()
+		);
 	}
 
 	/**
-	 * Tests that a filter's own error says the callback ran and keeps the filter's data.
+	 * Tests that a filter's own error includes output and keeps the filter's data.
 	 *
 	 * @ticket 66433
 	 */
@@ -2918,8 +2928,8 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertSame( 'custom_output_error', $result->get_error_code() );
 		$this->assertSame(
 			array(
-				'status'            => 422,
-				'callback_executed' => true,
+				'status' => 422,
+				'output' => 42,
 			),
 			$result->get_error_data()
 		);
@@ -2944,7 +2954,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( $error_code, $result->get_error_code() );
 		$this->assertSame( 0, $runs, 'The callback should not have run.' );
-		$this->assertArrayNotHasKey( 'callback_executed', (array) $result->get_error_data() );
+		$this->assertArrayNotHasKey( 'output', (array) $result->get_error_data() );
 	}
 
 	/**
@@ -2970,6 +2980,203 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'ability_invalid_permissions',
 			),
 		);
+	}
+
+	/**
+	 * Output diagnostics preserve the JSON representation without retaining live objects.
+	 *
+	 * @ticket 66433
+	 */
+	public function test_invalid_output_is_snapshotted_once() {
+		$output  = new class() implements JsonSerializable {
+			public $calls = 0;
+
+			public function jsonSerialize(): object {
+				++$this->calls;
+				return (object) array(
+					'id'       => 123,
+					'settings' => new stdClass(),
+				);
+			}
+		};
+		$runs    = 0;
+		$ability = $this->create_ability_with_invalid_output(
+			$runs,
+			array(
+				'execute_callback' => static function () use ( $output ) {
+					return $output;
+				},
+			)
+		);
+		$error   = $ability->execute();
+		$this->assertWPError( $error );
+		$data = $error->get_error_data();
+		$this->assertSame( '{"id":123,"settings":{}}', wp_json_encode( $data['output'] ) );
+		$this->assertSame( 1, $output->calls );
+		$this->assertNotSame( $output, $data['output'] );
+	}
+
+	/**
+	 * Serialization failures preserve the validation error without attaching output.
+	 *
+	 * @ticket 66433
+	 * @dataProvider data_unserializable_output
+	 *
+	 * @param string $kind Kind of output to construct.
+	 */
+	public function test_unserializable_output_preserves_validation_error( $kind ) {
+		switch ( $kind ) {
+			case 'resource':
+				$output = fopen( 'php://memory', 'r' );
+				break;
+			case 'recursion':
+				$output       = new stdClass();
+				$output->self = $output;
+				break;
+			case 'exception':
+				$output = new class() implements JsonSerializable {
+					public function jsonSerialize(): array {
+						throw new RuntimeException( 'Cannot serialize.' );
+					}
+				};
+				break;
+			default:
+				$output = INF;
+		}
+		$runs    = 0;
+		$ability = $this->create_ability_with_invalid_output(
+			$runs,
+			array(
+				'execute_callback' => static function () use ( $output ) {
+					return $output;
+				},
+			)
+		);
+		try {
+			$error = $ability->execute();
+			$this->assertWPError( $error );
+			$this->assertSame( array( 'ability_invalid_output' ), $error->get_error_codes() );
+			$this->assertArrayNotHasKey( 'output', (array) $error->get_error_data() );
+			$this->assertNotFalse( wp_json_encode( rest_convert_error_to_response( $error )->get_data() ) );
+		} finally {
+			if ( is_resource( $output ) ) {
+				fclose( $output );
+			}
+		}
+	}
+
+	/**
+	 * @return array[] Output kinds that JSON cannot represent.
+	 */
+	public static function data_unserializable_output() {
+		return array( array( 'resource' ), array( 'recursion' ), array( 'exception' ), array( 'infinity' ) );
+	}
+
+	/**
+	 * Null output is distinguishable from unavailable output.
+	 *
+	 * @ticket 66433
+	 */
+	public function test_invalid_null_output_is_included() {
+		add_filter( 'wp_ability_validate_output', '__return_false' );
+		$runs    = 0;
+		$ability = $this->create_ability_with_invalid_output( $runs, array( 'execute_callback' => '__return_null' ) );
+		$this->assertSame(
+			array(
+				'output' => null,
+			),
+			$ability->execute()->get_error_data()
+		);
+	}
+
+	/**
+	 * Retry guidance depends on readonly, not destructive or idempotent.
+	 *
+	 * @ticket 66433
+	 * @dataProvider data_output_retry_guidance
+	 *
+	 * @param bool|null $is_readonly Whether the ability declares itself read-only.
+	 */
+	public function test_output_retry_guidance( $is_readonly ) {
+		$runs    = 0;
+		$ability = $this->create_ability_with_invalid_output(
+			$runs,
+			array(
+				'meta' => array(
+					'annotations' => array(
+						'readonly'    => $is_readonly,
+						'destructive' => false,
+						'idempotent'  => true,
+					),
+				),
+			)
+		);
+		$error   = $ability->execute();
+		$this->assertSame( ( true !== $is_readonly ), false !== strpos( $error->get_error_message(), 'Check the current state before you run it again.' ) );
+		$this->assertSame( array( 'output' => 42 ), $error->get_error_data() );
+	}
+
+	/**
+	 * @return array[] Read-only annotation values.
+	 */
+	public static function data_output_retry_guidance() {
+		return array( array( true ), array( false ), array( null ) );
+	}
+
+	/**
+	 * Filter errors keep all codes, messages, data and the original instance.
+	 *
+	 * @ticket 66433
+	 */
+	public function test_output_error_preserves_filter_error() {
+		$original = new WP_Error( 'custom', 'Rejected.', array( 'status' => 422 ) );
+		$original->add( 'custom', 'Another reason.' );
+		$original->add( 'policy', 'Policy rejected.', array( 'field' => 'name' ) );
+		add_filter(
+			'wp_ability_validate_output',
+			static function () use ( $original ) {
+				return $original;
+			}
+		);
+		$runs    = 0;
+		$ability = $this->create_ability_with_invalid_output( $runs, array( 'meta' => array() ) );
+		$error   = $ability->execute();
+		$this->assertNotSame( $original, $error );
+		$this->assertSame( array( 'custom', 'policy' ), $error->get_error_codes() );
+		$this->assertSame( 'Another reason.', $error->get_error_messages( 'custom' )[1] );
+		$this->assertSame( 'Policy rejected.', $error->get_error_message( 'policy' ) );
+		$this->assertSame( array( 'field' => 'name' ), $error->get_error_data( 'policy' ) );
+		$this->assertSame( array( 'status' => 422 ), $original->get_error_data() );
+		$this->assertSame( array( 'Rejected.', 'Another reason.' ), $original->get_error_messages( 'custom' ) );
+		$this->assertSame( 422, rest_convert_error_to_response( $error )->get_status() );
+	}
+
+	/**
+	 * Callback and short-circuit errors are not output validation errors, even with the same code.
+	 *
+	 * @ticket 66433
+	 */
+	public function test_callback_and_short_circuit_errors_are_unchanged() {
+		$original = new WP_Error( 'ability_invalid_output', 'Nested failure.' );
+		$runs     = 0;
+		$ability  = $this->create_ability_with_invalid_output(
+			$runs,
+			array(
+				'execute_callback' => static function () use ( $original ) {
+					return $original;
+				},
+			)
+		);
+		$this->assertSame( $original, $ability->execute() );
+		add_filter(
+			'wp_pre_execute_ability',
+			static function () use ( $original ) {
+				return $original;
+			}
+		);
+		$this->assertSame( $original, $ability->execute() );
+		$this->assertNull( $original->get_error_data() );
+		$this->assertSame( 'Nested failure.', $original->get_error_message() );
 	}
 
 	/**

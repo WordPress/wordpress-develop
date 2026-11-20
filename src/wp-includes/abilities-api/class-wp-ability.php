@@ -975,12 +975,14 @@ class WP_Ability {
 	 * @since 7.1.0 Added the `wp_ability_invoked` action.
 	 * @since 7.1.0 Added the `wp_pre_execute_ability` filter.
 	 * @since 7.2.0 Prepares the input with `prepare_input()`, which also sanitizes it.
-	 * @since 7.2.0 Sets `callback_executed` in the error data when output validation fails.
+	 * @since 7.3.0 Adds JSON-serializable output and retry guidance to output validation errors.
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 *                        When the output fails validation, the callback has already run,
-	 *                        so the error data has `callback_executed` set to true.
+	 *                        and its changes may already be saved.
+	 *                        The `output` key contains a JSON-normalized copy of the result when
+	 *                        serialization succeeds, including null. Otherwise, it is omitted.
 	 */
 	public function execute( $input = null ) {
 		/**
@@ -1069,14 +1071,28 @@ class WP_Ability {
 
 		$is_valid = $this->validate_output( $result );
 		if ( is_wp_error( $is_valid ) ) {
-			// The callback has already run and may have changed something, so tell the caller.
+			// Do not mutate an error instance retained by an output validation filter.
+			$is_valid   = clone $is_valid;
 			$error_data = $is_valid->get_error_data();
-			$is_valid->add_data(
-				array_merge(
-					is_array( $error_data ) ? $error_data : array(),
-					array( 'callback_executed' => true )
-				)
-			);
+			$error_data = is_array( $error_data ) ? $error_data : array();
+
+			unset( $error_data['output'] );
+
+			// Snapshot the JSON representation so transports do not serialize the original objects again.
+			try {
+				$json                 = json_encode( $result, JSON_THROW_ON_ERROR );
+				$error_data['output'] = json_decode( $json, false, 512, JSON_THROW_ON_ERROR );
+			} catch ( Throwable $exception ) {
+				// Encoding can fail or JsonSerializable can throw. Keep the validation error without output.
+			}
+
+			$is_valid->add_data( $error_data );
+
+			$annotations = $this->get_meta_item( 'annotations' );
+			if ( true !== $annotations['readonly'] ) {
+				$error_code                          = $is_valid->get_error_code();
+				$is_valid->errors[ $error_code ][0] .= ' ' . __( 'The ability ran, so its changes may already be saved. Check the current state before you run it again.' );
+			}
 
 			return $is_valid;
 		}
