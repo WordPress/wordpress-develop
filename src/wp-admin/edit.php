@@ -15,11 +15,11 @@ require_once __DIR__ . '/admin.php';
 global $typenow;
 
 if ( ! $typenow ) {
-	wp_die( __( 'Invalid post type.' ) );
+	wp_die( __( 'Invalid post type.' ), 400 );
 }
 
 if ( ! in_array( $typenow, get_post_types( array( 'show_ui' => true ) ), true ) ) {
-	wp_die( __( 'Sorry, you are not allowed to edit posts in this post type.' ) );
+	wp_die( __( 'Sorry, you are not allowed to edit posts in this post type.' ), 403 );
 }
 
 if ( 'attachment' === $typenow ) {
@@ -38,7 +38,7 @@ $post_type        = $typenow;
 $post_type_object = get_post_type_object( $post_type );
 
 if ( ! $post_type_object ) {
-	wp_die( __( 'Invalid post type.' ) );
+	wp_die( __( 'Invalid post type.' ), 400 );
 }
 
 if ( ! current_user_can( $post_type_object->cap->edit_posts ) ) {
@@ -120,7 +120,7 @@ if ( $doaction ) {
 
 			foreach ( (array) $post_ids as $post_id ) {
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
-					wp_die( __( 'Sorry, you are not allowed to move this item to the Trash.' ) );
+					wp_die( __( 'Sorry, you are not allowed to move this item to the Trash.' ), 403 );
 				}
 
 				if ( wp_check_post_lock( $post_id ) ) {
@@ -153,7 +153,7 @@ if ( $doaction ) {
 
 			foreach ( (array) $post_ids as $post_id ) {
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
-					wp_die( __( 'Sorry, you are not allowed to restore this item from the Trash.' ) );
+					wp_die( __( 'Sorry, you are not allowed to restore this item from the Trash.' ), 403 );
 				}
 
 				if ( ! wp_untrash_post( $post_id ) ) {
@@ -173,7 +173,7 @@ if ( $doaction ) {
 				$post_del = get_post( $post_id );
 
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
-					wp_die( __( 'Sorry, you are not allowed to delete this item.' ) );
+					wp_die( __( 'Sorry, you are not allowed to delete this item.' ), 403 );
 				}
 
 				if ( 'attachment' === $post_del->post_type ) {
