@@ -40,6 +40,7 @@ class WP_Widget_Archives extends WP_Widget {
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Archives widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		$default_title = __( 'Archives' );
 		$title         = ! empty( $instance['title'] ) ? $instance['title'] : $default_title;
@@ -197,6 +198,7 @@ class WP_Widget_Archives extends WP_Widget {
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Updated settings to save.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$instance             = $old_instance;
 		$new_instance         = wp_parse_args(
@@ -221,6 +223,7 @@ class WP_Widget_Archives extends WP_Widget {
 	 *
 	 * @param array $instance Current settings.
 	 */
+	#[Override]
 	public function form( $instance ) {
 		$instance = wp_parse_args(
 			(array) $instance,

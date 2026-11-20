@@ -31,6 +31,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Page' ) ) {
 		 * @param array   $args              Optional. Array of arguments. Default empty array.
 		 * @param int     $current_object_id Optional. ID of the current page. Default 0.
 		 */
+		#[Override]
 		public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
 			// Restores the more descriptive, specific name for use within this method.
 			$page            = $data_object;

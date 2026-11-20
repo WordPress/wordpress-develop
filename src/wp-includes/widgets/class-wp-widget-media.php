@@ -100,6 +100,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @param int $number Optional. The unique order number of this widget instance
 	 *                    compared to other instances of the same class. Default -1.
 	 */
+	#[Override]
 	public function _register_one( $number = -1 ) {
 		parent::_register_one( $number );
 		if ( $this->registered ) {
@@ -226,6 +227,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @param array $args     Display arguments including before_title, after_title, before_widget, and after_widget.
 	 * @param array $instance Saved setting from the database.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		$instance = wp_parse_args( $instance, wp_list_pluck( $this->get_instance_schema(), 'default' ) );
 
@@ -274,6 +276,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @param array $old_instance Previously saved values from database.
 	 * @return array Updated safe values to be saved.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 
 		$schema = $this->get_instance_schema();
@@ -335,6 +338,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 *
 	 * @param array $instance Current settings.
 	 */
+	#[Override]
 	final public function form( $instance ) {
 		$instance_schema = $this->get_instance_schema();
 		$instance        = wp_array_slice_assoc(

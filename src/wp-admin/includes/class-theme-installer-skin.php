@@ -64,6 +64,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @since 2.8.0
 	 */
+	#[Override]
 	public function before() {
 		if ( ! empty( $this->api ) ) {
 			$this->upgrader->strings['process_success'] = sprintf(
@@ -82,6 +83,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	 * @param WP_Error $wp_error WP_Error object.
 	 * @return bool True if the error should be hidden, false otherwise.
 	 */
+	#[Override]
 	public function hide_process_failed( $wp_error ) {
 		if (
 			'upload' === $this->type &&
@@ -99,6 +101,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @since 2.8.0
 	 */
+	#[Override]
 	public function after() {
 		if ( $this->do_overwrite() ) {
 			return;

@@ -38,6 +38,7 @@ class WP_Widget_Links extends WP_Widget {
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Links widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		$show_description = $instance['description'] ?? false;
 		$show_name        = $instance['name'] ?? false;
@@ -90,6 +91,7 @@ class WP_Widget_Links extends WP_Widget {
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Updated settings to save.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$new_instance = (array) $new_instance;
 		$instance     = array(
@@ -122,6 +124,7 @@ class WP_Widget_Links extends WP_Widget {
 	 *
 	 * @param array $instance Current settings.
 	 */
+	#[Override]
 	public function form( $instance ) {
 
 		// Defaults.

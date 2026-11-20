@@ -60,6 +60,7 @@ class WP_AI_Client_Cache implements CacheInterface {
 	 * @param mixed  $default_value Default value to return if the key does not exist.
 	 * @return mixed The value of the item from the cache, or $default_value in case of cache miss.
 	 */
+	#[Override]
 	public function get( $key, $default_value = null ) {
 		$found = false;
 		$value = wp_cache_get( $key, $this->get_cache_group(), false, $found );
@@ -81,6 +82,7 @@ class WP_AI_Client_Cache implements CacheInterface {
 	 * @param null|int|DateInterval $ttl   Optional. The TTL value of this item.
 	 * @return bool True on success and false on failure.
 	 */
+	#[Override]
 	public function set( $key, $value, $ttl = null ): bool {
 		$expire = $this->ttl_to_seconds( $ttl );
 
@@ -95,6 +97,7 @@ class WP_AI_Client_Cache implements CacheInterface {
 	 * @param string $key The unique cache key of the item to delete.
 	 * @return bool True if the item was successfully removed. False if there was an error.
 	 */
+	#[Override]
 	public function delete( $key ): bool {
 		return wp_cache_delete( $key, $this->get_cache_group() );
 	}
@@ -109,6 +112,7 @@ class WP_AI_Client_Cache implements CacheInterface {
 	 *
 	 * @return bool True on success and false on failure.
 	 */
+	#[Override]
 	public function clear(): bool {
 		if ( ! function_exists( 'wp_cache_supports' ) || ! wp_cache_supports( 'flush_group' ) ) {
 			return false;
@@ -126,6 +130,7 @@ class WP_AI_Client_Cache implements CacheInterface {
 	 * @param mixed            $default_value Default value to return for keys that do not exist.
 	 * @return array<string, mixed> A list of key => value pairs.
 	 */
+	#[Override]
 	public function getMultiple( $keys, $default_value = null ): array {
 		/**
 		 * Keys array.
@@ -157,6 +162,7 @@ class WP_AI_Client_Cache implements CacheInterface {
 	 * @param null|int|DateInterval   $ttl    Optional. The TTL value of this item.
 	 * @return bool True on success and false on failure.
 	 */
+	#[Override]
 	public function setMultiple( $values, $ttl = null ): bool {
 		$values_array = $this->iterable_to_array( $values );
 		$expire       = $this->ttl_to_seconds( $ttl );
@@ -174,6 +180,7 @@ class WP_AI_Client_Cache implements CacheInterface {
 	 * @param iterable<string> $keys A list of string-based keys to be deleted.
 	 * @return bool True if the items were successfully removed. False if there was an error.
 	 */
+	#[Override]
 	public function deleteMultiple( $keys ): bool {
 		$keys_array = $this->iterable_to_array( $keys );
 		$results    = wp_cache_delete_multiple( $keys_array, $this->get_cache_group() );
@@ -190,6 +197,7 @@ class WP_AI_Client_Cache implements CacheInterface {
 	 * @param string $key The cache item key.
 	 * @return bool True if the item exists in the cache, false otherwise.
 	 */
+	#[Override]
 	public function has( $key ): bool {
 		$found = false;
 		wp_cache_get( $key, $this->get_cache_group(), false, $found );

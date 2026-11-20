@@ -55,6 +55,7 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 * @param SimplePie\Cache\Base::TYPE_FEED|SimplePie\Cache\Base::TYPE_IMAGE $type     Either `TYPE_FEED` ('spc') for SimplePie data,
 	 *                                                                                   or `TYPE_IMAGE` ('spi') for image data.
 	 */
+	#[Override]
 	public function __construct( $location, $name, $type ) {
 		$this->name     = 'feed_' . $name;
 		$this->mod_name = 'feed_mod_' . $name;
@@ -80,6 +81,7 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 *                                        only cache the `$data` property.
 	 * @return true Always true.
 	 */
+	#[Override]
 	public function save( $data ) {
 		if ( $data instanceof SimplePie\SimplePie ) {
 			$data = $data->data;
@@ -97,6 +99,7 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 *
 	 * @return array Data for `SimplePie::$data`.
 	 */
+	#[Override]
 	public function load() {
 		return get_site_transient( $this->name );
 	}
@@ -108,6 +111,7 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 *
 	 * @return int Timestamp.
 	 */
+	#[Override]
 	public function mtime() {
 		return get_site_transient( $this->mod_name );
 	}
@@ -119,6 +123,7 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 *
 	 * @return bool False if value was not set and true if value was set.
 	 */
+	#[Override]
 	public function touch() {
 		return set_site_transient( $this->mod_name, time(), $this->lifetime );
 	}
@@ -130,6 +135,7 @@ class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
 	 *
 	 * @return true Always true.
 	 */
+	#[Override]
 	public function unlink() {
 		delete_site_transient( $this->name );
 		delete_site_transient( $this->mod_name );

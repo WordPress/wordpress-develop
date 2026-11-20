@@ -40,6 +40,7 @@ class WP_Widget_Pages extends WP_Widget {
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Pages widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		$default_title = __( 'Pages' );
 		$title         = ! empty( $instance['title'] ) ? $instance['title'] : $default_title;
@@ -128,6 +129,7 @@ class WP_Widget_Pages extends WP_Widget {
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Updated settings to save.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$instance          = $old_instance;
 		$instance['title'] = sanitize_text_field( $new_instance['title'] );
@@ -149,6 +151,7 @@ class WP_Widget_Pages extends WP_Widget {
 	 *
 	 * @param array $instance Current settings.
 	 */
+	#[Override]
 	public function form( $instance ) {
 		// Defaults.
 		$instance = wp_parse_args(

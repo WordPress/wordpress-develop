@@ -141,6 +141,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[Override]
 	public function ajax_user_can() {
 		return current_user_can( get_post_type_object( $this->screen->post_type )->cap->edit_posts );
 	}
@@ -151,6 +152,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @global WP_Query $wp_query         WordPress Query object.
 	 * @global int      $per_page
 	 */
+	#[Override]
 	public function prepare_items() {
 		global $mode, $avail_post_stati, $wp_query, $per_page;
 
@@ -211,12 +213,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[Override]
 	public function has_items() {
 		return have_posts();
 	}
 
 	/**
 	 */
+	#[Override]
 	public function no_items() {
 		if ( isset( $_REQUEST['post_status'] ) && 'trash' === $_REQUEST['post_status'] ) {
 			echo get_post_type_object( $this->screen->post_type )->labels->not_found_in_trash;
@@ -286,6 +290,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @global array $avail_post_stati
 	 * @return array
 	 */
+	#[Override]
 	protected function get_views() {
 		global $locked_post_status, $avail_post_stati;
 
@@ -415,6 +420,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[Override]
 	protected function get_bulk_actions() {
 		$actions       = array();
 		$post_type_obj = get_post_type_object( $this->screen->post_type );
@@ -550,6 +556,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	/**
 	 * @param string $which
 	 */
+	#[Override]
 	protected function extra_tablenav( $which ) {
 		?>
 		<div class="alignleft actions">
@@ -608,6 +615,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	/**
 	 * @return string
 	 */
+	#[Override]
 	public function current_action() {
 		if ( isset( $_REQUEST['delete_all'] ) || isset( $_REQUEST['delete_all2'] ) ) {
 			return 'delete_all';
@@ -627,6 +635,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 *
 	 * @phpstan-return non-empty-list<string>
 	 */
+	#[Override]
 	protected function get_table_classes() {
 		global $mode;
 
@@ -644,6 +653,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	/**
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[Override]
 	public function get_columns() {
 		$post_type = $this->screen->post_type;
 
@@ -750,6 +760,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[Override]
 	protected function get_sortable_columns() {
 
 		$post_type = $this->screen->post_type;
@@ -791,6 +802,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param array $posts
 	 * @param int   $level
 	 */
+	#[Override]
 	public function display_rows( $posts = array(), $level = 0 ) {
 		global $wp_query, $per_page;
 
@@ -1046,6 +1058,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 *
 	 * @param WP_Post $item The current WP_Post object.
 	 */
+	#[Override]
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
@@ -1126,6 +1139,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param WP_Post $item The current post object.
 	 * @return string The post title, or 'no title' if no title.
 	 */
+	#[Override]
 	protected function get_primary_column_aria_label( $item ) {
 		return ! empty( $item->post_title ) ? $item->post_title : __( 'no title' );
 	}
@@ -1394,6 +1408,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param WP_Post $item        The current WP_Post object.
 	 * @param string  $column_name The current column name.
 	 */
+	#[Override]
 	public function column_default( $item, $column_name ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
@@ -1506,6 +1521,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param int|WP_Post $post
 	 * @param int         $level
 	 */
+	#[Override]
 	public function single_row( $post, $level = 0 ) {
 		$global_post = get_post();
 
@@ -1544,6 +1560,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 *
 	 * @return string Name of the default primary column, in this case, 'title'.
 	 */
+	#[Override]
 	protected function get_default_primary_column_name() {
 		return 'title';
 	}
@@ -1560,6 +1577,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @return string Row actions output for posts, or an empty string
 	 *                if the current column is not the primary column.
 	 */
+	#[Override]
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';

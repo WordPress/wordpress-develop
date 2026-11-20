@@ -38,6 +38,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param array $args
 	 * @return bool
 	 */
+	#[Override]
 	public static function test( $args = array() ) {
 		if ( ! extension_loaded( 'gd' ) || ! function_exists( 'gd_info' ) ) {
 			return false;
@@ -62,6 +63,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param string $mime_type
 	 * @return bool
 	 */
+	#[Override]
 	public static function supports_mime_type( $mime_type ) {
 		$image_types = imagetypes();
 		switch ( $mime_type ) {
@@ -87,6 +89,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @return true|WP_Error True if loaded successfully; WP_Error on failure.
 	 */
+	#[Override]
 	public function load() {
 		if ( $this->image ) {
 			return true;
@@ -148,6 +151,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param int|null $height Image height.
 	 * @return true
 	 */
+	#[Override]
 	protected function update_size( $width = null, $height = null ) {
 		if ( ! $width ) {
 			$width = imagesx( $this->image );
@@ -182,6 +186,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * }
 	 * @return true|WP_Error
 	 */
+	#[Override]
 	public function resize( $max_w, $max_h, $crop = false ) {
 		if ( ( $this->size['width'] === $max_w ) && ( $this->size['height'] === $max_h ) ) {
 			return true;
@@ -276,6 +281,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * }
 	 * @return array An array of resized images' metadata by size.
 	 */
+	#[Override]
 	public function multi_resize( $sizes ) {
 		$metadata = array();
 
@@ -351,6 +357,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param bool $src_abs Optional. If the source crop points are absolute.
 	 * @return true|WP_Error
 	 */
+	#[Override]
 	public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
 		/*
 		 * If destination width/height isn't specified,
@@ -405,6 +412,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param float $angle
 	 * @return true|WP_Error
 	 */
+	#[Override]
 	public function rotate( $angle ) {
 		if ( function_exists( 'imagerotate' ) ) {
 			$transparency = imagecolorallocatealpha( $this->image, 255, 255, 255, 127 );
@@ -438,6 +446,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param bool $vert Flip along Vertical Axis.
 	 * @return true|WP_Error
 	 */
+	#[Override]
 	public function flip( $horz, $vert ) {
 		if ( ! is_gd_image( $this->image ) ) {
 			return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
@@ -511,6 +520,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *     @type int    $filesize  File size of the image.
 	 * }
 	 */
+	#[Override]
 	public function save( $destfilename = null, $mime_type = null ) {
 		$saved = $this->_save( $this->image, $destfilename, $mime_type );
 
@@ -624,6 +634,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param array $dims    Optional. Image dimensions array with 'width' and 'height' keys.
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
 	 */
+	#[Override]
 	public function set_quality( $quality = null, $dims = array() ) {
 		$quality_result = parent::set_quality( $quality, $dims );
 		if ( is_wp_error( $quality_result ) ) {
@@ -656,6 +667,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param string $mime_type The mime type of the image.
 	 * @return bool True on success, false on failure.
 	 */
+	#[Override]
 	public function stream( $mime_type = null ) {
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( null, $mime_type );
 
@@ -697,6 +709,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param array    $arguments
 	 * @return bool
 	 */
+	#[Override]
 	protected function make_image( $filename, $callback, $arguments ) {
 		if ( wp_is_stream( $filename ) ) {
 			$arguments[1] = null;

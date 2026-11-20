@@ -64,6 +64,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	 *
 	 * @return array Schema for properties.
 	 */
+	#[Override]
 	public function get_instance_schema() {
 
 		$schema = array(
@@ -109,6 +110,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	 *
 	 * @param array $instance Widget instance props.
 	 */
+	#[Override]
 	public function render_media( $instance ) {
 		$instance   = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
 		$attachment = null;
@@ -171,6 +173,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	 *
 	 * @since 4.8.0
 	 */
+	#[Override]
 	public function enqueue_preview_scripts() {
 		/** This filter is documented in wp-includes/media.php */
 		if ( 'mediaelement' === apply_filters( 'wp_video_shortcode_library', 'mediaelement' ) ) {
@@ -185,6 +188,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	 *
 	 * @since 4.8.0
 	 */
+	#[Override]
 	public function enqueue_admin_scripts() {
 		parent::enqueue_admin_scripts();
 
@@ -223,6 +227,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	 *
 	 * @since 4.8.0
 	 */
+	#[Override]
 	public function render_control_template_scripts() {
 		parent::render_control_template_scripts()
 		?>

@@ -27,6 +27,7 @@ class WP_REST_Blocks_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_Post $post Post object that backs the block.
 	 * @return bool Whether the pattern can be read.
 	 */
+	#[Override]
 	public function check_read_permission( $post ) {
 		// By default the read_post capability is mapped to edit_posts.
 		if ( ! current_user_can( 'read_post', $post->ID ) ) {
@@ -46,6 +47,7 @@ class WP_REST_Blocks_Controller extends WP_REST_Posts_Controller {
 	 * @param string $context Context defined in the schema.
 	 * @return array Filtered response.
 	 */
+	#[Override]
 	public function filter_response_by_context( $data, $context ) {
 		$data = parent::filter_response_by_context( $data, $context );
 
@@ -70,6 +72,7 @@ class WP_REST_Blocks_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );

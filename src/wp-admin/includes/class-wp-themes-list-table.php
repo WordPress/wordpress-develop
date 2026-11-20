@@ -40,6 +40,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[Override]
 	public function ajax_user_can() {
 		// Do not check edit_theme_options here. Ajax calls for available themes require switch_themes.
 		return current_user_can( 'switch_themes' );
@@ -47,6 +48,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 
 	/**
 	 */
+	#[Override]
 	public function prepare_items() {
 		$themes = wp_get_themes( array( 'allowed' => true ) );
 
@@ -87,6 +89,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 
 	/**
 	 */
+	#[Override]
 	public function no_items() {
 		if ( $this->search_terms || $this->features ) {
 			_e( 'No items found.' );
@@ -163,6 +166,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 */
+	#[Override]
 	public function display() {
 		wp_nonce_field( 'fetch-list-' . get_class( $this ), '_ajax_fetch_list_nonce' );
 		?>
@@ -179,12 +183,14 @@ class WP_Themes_List_Table extends WP_List_Table {
 	/**
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[Override]
 	public function get_columns() {
 		return array();
 	}
 
 	/**
 	 */
+	#[Override]
 	public function display_rows_or_placeholder() {
 		if ( $this->has_items() ) {
 			$this->display_rows();
@@ -200,6 +206,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 */
+	#[Override]
 	public function display_rows() {
 		$themes = $this->items;
 
@@ -352,6 +359,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @param array $extra_args
 	 */
+	#[Override]
 	public function _js_vars( $extra_args = array() ) {
 		$search_string = isset( $_REQUEST['s'] ) ? esc_attr( wp_unslash( $_REQUEST['s'] ) ) : '';
 

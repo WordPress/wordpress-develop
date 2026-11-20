@@ -221,6 +221,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	 *                                   conversations.
 	 * @return PromptBuilder The SDK prompt builder instance.
 	 */
+	#[Override]
 	protected function create_sdk_builder( ProviderRegistry $registry, $prompt ): object {
 		return new PromptBuilder( $registry, $prompt, AiClient::getEventDispatcher() );
 	}
@@ -232,6 +233,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	 *
 	 * @return string The error code prefix.
 	 */
+	#[Override]
 	protected function get_error_code_prefix(): string {
 		return 'prompt';
 	}
@@ -243,6 +245,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	 *
 	 * @return string The translated error message.
 	 */
+	#[Override]
 	protected function get_prevented_error_message(): string {
 		return __( 'Prompt execution was prevented by a filter.' );
 	}
@@ -254,6 +257,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	 *
 	 * @return bool Whether the prompt is prevented.
 	 */
+	#[Override]
 	protected function is_prevented_by_filter(): bool {
 		/**
 		 * Filters whether to prevent the prompt from being executed.
@@ -273,6 +277,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	 *
 	 * @return array<string, bool> The generating methods map.
 	 */
+	#[Override]
 	protected function get_generating_methods(): array {
 		return self::$generating_methods;
 	}
@@ -284,6 +289,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	 *
 	 * @return array<string, bool> The support check methods map.
 	 */
+	#[Override]
 	protected function get_support_check_methods(): array {
 		return self::$support_check_methods;
 	}

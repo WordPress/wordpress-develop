@@ -23,6 +23,7 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 	 *
 	 * @return array Sessions of the user.
 	 */
+	#[Override]
 	protected function get_sessions() {
 		$sessions = get_user_meta( $this->user_id, 'session_tokens', true );
 
@@ -58,6 +59,7 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 	 * @param string $verifier Verifier for the session to retrieve.
 	 * @return array|null The session, or null if it does not exist
 	 */
+	#[Override]
 	protected function get_session( $verifier ) {
 		$sessions = $this->get_sessions();
 		return $sessions[ $verifier ] ?? null;
@@ -71,6 +73,7 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 	 * @param string $verifier Verifier for the session to update.
 	 * @param array  $session  Optional. Session. Omitting this argument destroys the session.
 	 */
+	#[Override]
 	protected function update_session( $verifier, $session = null ) {
 		$sessions = $this->get_sessions();
 
@@ -105,6 +108,7 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 	 *
 	 * @param string $verifier Verifier of the session to keep.
 	 */
+	#[Override]
 	protected function destroy_other_sessions( $verifier ) {
 		$session = $this->get_session( $verifier );
 		$this->update_sessions( array( $verifier => $session ) );
@@ -115,6 +119,7 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 	 *
 	 * @since 4.0.0
 	 */
+	#[Override]
 	protected function destroy_all_sessions() {
 		$this->update_sessions( array() );
 	}
@@ -124,6 +129,7 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 	 *
 	 * @since 4.0.0
 	 */
+	#[Override]
 	public static function drop_sessions() {
 		delete_metadata( 'user', 0, 'session_tokens', false, true );
 	}

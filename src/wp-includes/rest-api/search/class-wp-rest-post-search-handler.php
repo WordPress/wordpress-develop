@@ -52,6 +52,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	 *     @type int   $total Total count for the matching search results.
 	 * }
 	 */
+	#[Override]
 	public function search_items( WP_REST_Request $request ) {
 
 		// Get the post types to search for the current request.
@@ -120,6 +121,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	 *     @type string $type  Optional. Post type.
 	 * }
 	 */
+	#[Override]
 	public function prepare_item( $id, array $fields ) {
 		$post = get_post( $id );
 
@@ -164,6 +166,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	 * @param int $id Item ID.
 	 * @return array Links for the given item.
 	 */
+	#[Override]
 	public function prepare_item_links( $id ) {
 		$post = get_post( $id );
 

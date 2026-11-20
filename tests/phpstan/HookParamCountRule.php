@@ -80,6 +80,7 @@ class HookParamCountRule implements Rule {
 	 *
 	 * @return string
 	 */
+	#[\Override]
 	public function getNodeType(): string {
 		return FuncCall::class;
 	}
@@ -92,6 +93,7 @@ class HookParamCountRule implements Rule {
 	 * @return list<IdentifierRuleError>
 	 * @throws ShouldNotHappenException
 	 */
+	#[\Override]
 	public function processNode( Node $node, Scope $scope ): array {
 		if ( ! $node instanceof FuncCall || ! $node->name instanceof Name ) {
 			return array();

@@ -36,6 +36,7 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 	 * @param string $lang_path Optional. Unused. Path to the language file directory. Default empty string.
 	 * @return true Always returns true.
 	 */
+	#[Override]
 	public static function setLanguage( $langcode = 'en', $lang_path = '' ) {
 		static::$language = array(
 			'authenticate'         => __( 'SMTP Error: Could not authenticate.' ),

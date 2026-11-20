@@ -41,6 +41,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[Override]
 	public function register_routes(): void {
 		register_rest_route(
 			$this->namespace,
@@ -85,6 +86,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Response object on success.
 	 */
+	#[Override]
 	public function get_items( $request ) {
 		$query_args = array(
 			'meta' => array( 'show_in_rest' => true ),
@@ -159,6 +161,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		$ability = wp_has_ability( $request['name'] ) ? wp_get_ability( $request['name'] ) : null;
 		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
@@ -181,6 +184,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return bool True if the request has read access.
 	 */
+	#[Override]
 	public function get_items_permissions_check( $request ) {
 		return current_user_can( 'read' );
 	}
@@ -193,6 +197,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return bool True if the request has read access.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		return current_user_can( 'read' );
 	}
@@ -206,6 +211,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $ability, $request ) {
 		$data = array(
 			'name'                  => $ability->get_name(),
@@ -254,6 +260,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 *
 	 * @return array<string, mixed> Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema(): array {
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
@@ -351,6 +358,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 *
 	 * @return array<string, mixed> Collection parameters.
 	 */
+	#[Override]
 	public function get_collection_params(): array {
 		$query_params = array(
 			'context'                   => $this->get_context_param( array( 'default' => 'view' ) ),

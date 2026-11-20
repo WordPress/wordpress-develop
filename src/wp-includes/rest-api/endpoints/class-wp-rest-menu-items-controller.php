@@ -41,6 +41,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_items_permissions_check( $request ) {
 		$has_permission = parent::get_items_permissions_check( $request );
 
@@ -59,6 +60,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object or false otherwise.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		$permission_check = parent::get_item_permissions_check( $request );
 
@@ -124,6 +126,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error( 'rest_post_exists', __( 'Cannot create existing post.' ), array( 'status' => 400 ) );
@@ -215,6 +218,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function update_item( $request ) {
 		$valid_check = $this->get_nav_menu_item( $request['id'] );
 		if ( is_wp_error( $valid_check ) ) {
@@ -289,6 +293,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error True on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function delete_item( $request ) {
 		$menu_item = $this->get_nav_menu_item( $request['id'] );
 		if ( is_wp_error( $menu_item ) ) {
@@ -339,6 +344,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return object|WP_Error
 	 */
+	#[Override]
 	protected function prepare_item_for_database( $request ) {
 		$menu_item_db_id = $request['id'];
 		$menu_item_obj   = $this->get_nav_menu_item( $menu_item_db_id );
@@ -504,6 +510,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $item, $request ) {
 		// Base fields for every post.
 		$fields    = $this->get_fields_for_response( $request );
@@ -661,6 +668,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_Post $post Post object.
 	 * @return array Links for the given post.
 	 */
+	#[Override]
 	protected function prepare_links( $post ) {
 		$links     = parent::prepare_links( $post );
 		$menu_item = $this->get_nav_menu_item( $post->ID );
@@ -702,6 +710,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return array List of link relations.
 	 */
+	#[Override]
 	protected function get_available_actions( $post, $request ) {
 		$rels = parent::get_available_actions( $post, $request );
 
@@ -715,6 +724,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @return array
 	 */
+	#[Override]
 	protected function get_schema_links() {
 		$links   = parent::get_schema_links();
 		$links   = array_values( wp_list_filter( $links, array( 'rel' => 'https://api.w.org/action-trash' ), 'NOT' ) );
@@ -743,6 +753,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -964,6 +975,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[Override]
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
 
@@ -1013,6 +1025,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request       Optional. Full details about the request.
 	 * @return array Items query arguments.
 	 */
+	#[Override]
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = parent::prepare_items_query( $prepared_args, $request );
 

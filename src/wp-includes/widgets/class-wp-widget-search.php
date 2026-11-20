@@ -40,6 +40,7 @@ class WP_Widget_Search extends WP_Widget {
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Search widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		$title = ! empty( $instance['title'] ) ? $instance['title'] : '';
 
@@ -64,6 +65,7 @@ class WP_Widget_Search extends WP_Widget {
 	 *
 	 * @param array $instance Current settings.
 	 */
+	#[Override]
 	public function form( $instance ) {
 		$instance = wp_parse_args( (array) $instance, array( 'title' => '' ) );
 		$title    = $instance['title'];
@@ -85,6 +87,7 @@ class WP_Widget_Search extends WP_Widget {
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Updated settings.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$instance          = $old_instance;
 		$new_instance      = wp_parse_args( (array) $new_instance, array( 'title' => '' ) );

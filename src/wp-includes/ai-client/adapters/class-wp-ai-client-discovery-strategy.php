@@ -31,6 +31,7 @@ class WP_AI_Client_Discovery_Strategy extends AbstractClientDiscoveryStrategy {
 	 * @param Psr17Factory $psr17_factory The PSR-17 factory for creating HTTP messages.
 	 * @return ClientInterface The PSR-18 HTTP client.
 	 */
+	#[Override]
 	protected static function createClient( Psr17Factory $psr17_factory ): ClientInterface {
 		return new WP_AI_Client_HTTP_Client( $psr17_factory, $psr17_factory );
 	}

@@ -143,6 +143,7 @@ class WP_Styles extends WP_Dependencies {
 	 *                          Default false.
 	 * @return bool True on success, false on failure.
 	 */
+	#[Override]
 	public function do_item( $handle, $group = false ) {
 		if ( ! parent::do_item( $handle ) ) {
 			return false;
@@ -370,6 +371,7 @@ class WP_Styles extends WP_Dependencies {
 	 * @param mixed  $value  The data value.
 	 * @return bool True on success, false on failure.
 	 */
+	#[Override]
 	public function add_data( $handle, $key, $value ) {
 		if ( ! isset( $this->registered[ $handle ] ) ) {
 			return false;
@@ -396,6 +398,7 @@ class WP_Styles extends WP_Dependencies {
 	 *                                   Default false.
 	 * @return bool True on success, false on failure.
 	 */
+	#[Override]
 	public function all_deps( $handles, $recursion = false, $group = false ) {
 		$result = parent::all_deps( $handles, $recursion, $group );
 		if ( ! $recursion ) {
@@ -579,6 +582,7 @@ class WP_Styles extends WP_Dependencies {
 	 * @param string[] $missing_dependency_handles Missing dependency handles.
 	 * @return string Formatted, localized warning message.
 	 */
+	#[Override]
 	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
 		return sprintf(
 			/* translators: 1: Style handle, 2: List of missing dependency handles. */

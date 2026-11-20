@@ -56,6 +56,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @return bool Whether the user can manage sites.
 	 */
+	#[Override]
 	public function ajax_user_can() {
 		return current_user_can( 'manage_sites' );
 	}
@@ -68,6 +69,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @global string $s    Search string.
 	 * @global wpdb   $wpdb WordPress database abstraction object.
 	 */
+	#[Override]
 	public function prepare_items() {
 		global $s, $wpdb;
 
@@ -206,6 +208,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 */
+	#[Override]
 	public function no_items() {
 		_e( 'No sites found.' );
 	}
@@ -217,6 +220,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @return array
 	 */
+	#[Override]
 	protected function get_views() {
 		$counts = wp_count_sites();
 
@@ -291,6 +295,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @return array<string, string> An associative array of bulk actions.
 	 */
+	#[Override]
 	protected function get_bulk_actions() {
 		$actions = array();
 		if ( current_user_can( 'delete_sites' ) ) {
@@ -309,6 +314,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @param string $which The location of the extra table nav markup: Either 'top' or 'bottom'.
 	 */
+	#[Override]
 	protected function extra_tablenav( $which ) {
 		?>
 		<div class="alignleft actions">
@@ -353,6 +359,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[Override]
 	public function get_columns() {
 		$sites_columns = array(
 			'cb'          => '<input type="checkbox" />',
@@ -384,6 +391,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @return array<string, mixed> An array of sortable columns.
 	 */
+	#[Override]
 	protected function get_sortable_columns() {
 
 		if ( is_subdomain_install() ) {
@@ -409,6 +417,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @param array $item Current site.
 	 */
+	#[Override]
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$blog = $item;
@@ -559,6 +568,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @param array  $item        Current site.
 	 * @param string $column_name Current column name.
 	 */
+	#[Override]
 	public function column_default( $item, $column_name ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$blog = $item;
@@ -579,6 +589,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 */
+	#[Override]
 	public function display_rows() {
 		foreach ( $this->items as $blog ) {
 			$blog  = $blog->to_array();
@@ -661,6 +672,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @return string Name of the default primary column, in this case, 'blogname'.
 	 */
+	#[Override]
 	protected function get_default_primary_column_name() {
 		return 'blogname';
 	}
@@ -677,6 +689,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @return string Row actions output for sites in Multisite, or an empty string
 	 *                if the current column is not the primary column.
 	 */
+	#[Override]
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
@@ -837,6 +850,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @param array $blog The current site properties array.
 	 * @return string The site title, or the site URL (domain + path) if the title is empty.
 	 */
+	#[Override]
 	protected function get_primary_column_aria_label( $blog ) {
 		$blog_name = html_entity_decode( (string) get_blog_option( $blog['blog_id'], 'blogname', '' ), ENT_QUOTES, get_bloginfo( 'charset' ) );
 		$blog_name = wp_strip_all_tags( $blog_name );

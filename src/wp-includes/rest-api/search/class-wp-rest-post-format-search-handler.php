@@ -38,6 +38,7 @@ class WP_REST_Post_Format_Search_Handler extends WP_REST_Search_Handler {
 	 *     @type int      $total Total count for the matching search results.
 	 * }
 	 */
+	#[Override]
 	public function search_items( WP_REST_Request $request ) {
 		$format_strings = get_post_format_strings();
 		$format_slugs   = array_keys( $format_strings );
@@ -102,6 +103,7 @@ class WP_REST_Post_Format_Search_Handler extends WP_REST_Search_Handler {
 	 *     @type string $type  Optional. String 'post-format'.
 	 * }
 	 */
+	#[Override]
 	public function prepare_item( $id, array $fields ) {
 		$data = array();
 
@@ -132,6 +134,7 @@ class WP_REST_Post_Format_Search_Handler extends WP_REST_Search_Handler {
 	 * @param string $id Item ID, the post format slug.
 	 * @return array Links for the given item.
 	 */
+	#[Override]
 	public function prepare_item_links( $id ) {
 		return array();
 	}
