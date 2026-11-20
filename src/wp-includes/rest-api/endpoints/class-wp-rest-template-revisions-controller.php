@@ -90,6 +90,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 					'parent' => array(
 						'description'       => __( 'The id of a template' ),
 						'type'              => 'string',
+						'validate_callback' => 'rest_validate_request_arg',
 						'sanitize_callback' => array( $this->parent_controller, '_sanitize_template_id' ),
 					),
 				),
@@ -123,6 +124,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 					'parent' => array(
 						'description'       => __( 'The id of a template' ),
 						'type'              => 'string',
+						'validate_callback' => 'rest_validate_request_arg',
 						'sanitize_callback' => array( $this->parent_controller, '_sanitize_template_id' ),
 					),
 					'id'     => array(

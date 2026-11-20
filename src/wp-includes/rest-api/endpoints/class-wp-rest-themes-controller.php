@@ -64,6 +64,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'stylesheet' => array(
 						'description'       => __( "The theme's stylesheet. This uniquely identifies the theme." ),
 						'type'              => 'string',
+						'validate_callback' => 'rest_validate_request_arg',
 						'sanitize_callback' => array( $this, '_sanitize_stylesheet_callback' ),
 					),
 				),

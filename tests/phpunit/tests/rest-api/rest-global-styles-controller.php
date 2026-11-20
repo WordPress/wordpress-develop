@@ -372,6 +372,22 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
+	 * Tests that a non-string stylesheet does not cause a fatal error.
+	 *
+	 * @ticket 66660
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::register_routes
+	 */
+	public function test_get_theme_item_non_string_stylesheet() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/' . get_stylesheet() );
+		$request->set_query_params( array( 'stylesheet' => array( 'a' ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
 	 * @dataProvider data_get_theme_item_invalid_theme_dirname
 	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
 	 * @ticket 54596

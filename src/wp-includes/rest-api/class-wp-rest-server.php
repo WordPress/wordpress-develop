@@ -1726,7 +1726,7 @@ class WP_REST_Server {
 	public function get_namespace_index( $request ) {
 		$namespace = $request['namespace'];
 
-		if ( ! isset( $this->namespaces[ $namespace ] ) ) {
+		if ( ! is_string( $namespace ) || ! isset( $this->namespaces[ $namespace ] ) ) {
 			return new WP_Error(
 				'rest_invalid_namespace',
 				__( 'The specified namespace could not be found.' ),
