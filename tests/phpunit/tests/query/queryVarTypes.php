@@ -202,6 +202,26 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the 'cat' query var given an array ignores values which are not scalar.
+	 *
+	 * @ticket 60745
+	 */
+	public function test_cat_given_array_with_non_scalar_value_does_not_cause_error(): void {
+		$category_id = self::factory()->category->create();
+		$post_id     = self::factory()->post->create( array( 'post_category' => array( $category_id ) ) );
+		self::factory()->post->create();
+
+		$query = new WP_Query(
+			array(
+				'cat'    => array( $category_id, array( 'admin' ) ),
+				'fields' => 'ids',
+			)
+		);
+
+		$this->assertSame( array( $post_id ), $query->posts );
+	}
+
+	/**
 	 * Tests that a scalar post ID queries the same as an array containing that ID.
 	 *
 	 * @ticket 60745

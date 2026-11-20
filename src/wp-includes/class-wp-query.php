@@ -18,6 +18,118 @@
  * @phpstan-property-read bool                                      $query_vars_changed
  * @phpstan-property-read false|(lowercase-string&non-falsy-string) $query_vars_hash
  * @phpstan-method void init_query_flags()
+ *
+ * @phpstan-type Filled_Query_Vars array{
+ *     error: mixed,
+ *     m: mixed,
+ *     p: mixed,
+ *     post_parent: mixed,
+ *     subpost: mixed,
+ *     subpost_id: mixed,
+ *     attachment: mixed,
+ *     attachment_id: mixed,
+ *     name: mixed,
+ *     pagename: mixed,
+ *     page_id: mixed,
+ *     second: mixed,
+ *     minute: mixed,
+ *     hour: mixed,
+ *     day: mixed,
+ *     monthnum: mixed,
+ *     year: mixed,
+ *     w: mixed,
+ *     category_name: mixed,
+ *     tag: mixed,
+ *     cat: mixed,
+ *     tag_id: mixed,
+ *     author: mixed,
+ *     author_name: mixed,
+ *     feed: mixed,
+ *     tb: mixed,
+ *     paged: mixed,
+ *     meta_key: mixed,
+ *     meta_value: mixed,
+ *     preview: mixed,
+ *     s: mixed,
+ *     sentence: mixed,
+ *     title: mixed,
+ *     fields: mixed,
+ *     menu_order: mixed,
+ *     embed: mixed,
+ *     category__in: array<mixed>,
+ *     category__not_in: array<mixed>,
+ *     category__and: array<mixed>,
+ *     post__in: array<mixed>,
+ *     post__not_in: array<mixed>,
+ *     post_name__in: array<mixed>,
+ *     tag__in: array<mixed>,
+ *     tag__not_in: array<mixed>,
+ *     tag__and: array<mixed>,
+ *     tag_slug__in: array<mixed>,
+ *     tag_slug__and: array<mixed>,
+ *     post_parent__in: array<mixed>,
+ *     post_parent__not_in: array<mixed>,
+ *     author__in: array<mixed>,
+ *     author__not_in: array<mixed>,
+ *     search_columns: array<mixed>,
+ *     ...<array-key, mixed>
+ * }
+ *
+ * @phpstan-type Query_Vars array{
+ *     error: mixed,
+ *     m: string,
+ *     p: int<0, max>,
+ *     post_parent: mixed,
+ *     subpost: mixed,
+ *     subpost_id: mixed,
+ *     attachment: scalar,
+ *     attachment_id: int<0, max>,
+ *     name: string,
+ *     pagename: string,
+ *     page_id: int<0, max>,
+ *     second: int<0, max>|'',
+ *     minute: int<0, max>|'',
+ *     hour: int<0, max>|'',
+ *     day: int<0, max>,
+ *     monthnum: int<0, max>,
+ *     year: int<0, max>,
+ *     w: int<0, max>,
+ *     category_name: mixed,
+ *     tag: mixed,
+ *     cat: string,
+ *     tag_id: mixed,
+ *     author: string,
+ *     author_name: scalar,
+ *     feed: string,
+ *     tb: mixed,
+ *     paged: int<0, max>,
+ *     meta_key: mixed,
+ *     meta_value: mixed,
+ *     preview: mixed,
+ *     s: scalar,
+ *     sentence: mixed,
+ *     title: string,
+ *     fields: mixed,
+ *     menu_order: int<0, max>|'',
+ *     embed: mixed,
+ *     category__in: array<mixed>,
+ *     category__not_in: array<mixed>,
+ *     category__and: array<mixed>,
+ *     post__in: array<mixed>,
+ *     post__not_in: array<mixed>,
+ *     post_name__in: array<mixed>,
+ *     tag__in: array<mixed>,
+ *     tag__not_in: array<mixed>,
+ *     tag__and: array<mixed>,
+ *     tag_slug__in: array<mixed>,
+ *     tag_slug__and: array<mixed>,
+ *     post_parent__in: array<mixed>,
+ *     post_parent__not_in: array<mixed>,
+ *     author__in: array<mixed>,
+ *     author__not_in: array<mixed>,
+ *     search_columns: array<mixed>,
+ *     ...<array-key, mixed>
+ * }
  */
 #[AllowDynamicProperties]
 class WP_Query {
@@ -601,81 +713,95 @@ class WP_Query {
 	 *
 	 * @param array $query_vars Defined query variables.
 	 * @return array Complete query variables with undefined ones filled in empty.
+	 *
+	 * @phpstan-param array<mixed> $query_vars
+	 * @phpstan-return Filled_Query_Vars
 	 */
 	public function fill_query_vars( $query_vars ) {
-		$keys = array(
-			'error',
-			'm',
-			'p',
-			'post_parent',
-			'subpost',
-			'subpost_id',
-			'attachment',
-			'attachment_id',
-			'name',
-			'pagename',
-			'page_id',
-			'second',
-			'minute',
-			'hour',
-			'day',
-			'monthnum',
-			'year',
-			'w',
-			'category_name',
-			'tag',
-			'cat',
-			'tag_id',
-			'author',
-			'author_name',
-			'feed',
-			'tb',
-			'paged',
-			'meta_key',
-			'meta_value',
-			'preview',
-			's',
-			'sentence',
-			'title',
-			'fields',
-			'menu_order',
-			'embed',
+		/*
+		 * Each query var is listed explicitly, rather than filled in a loop over its key,
+		 * so that static analysis can infer the type of each one.
+		 */
+		return array_replace(
+			$query_vars,
+			array(
+				'error'               => $query_vars['error'] ?? '',
+				'm'                   => $query_vars['m'] ?? '',
+				'p'                   => $query_vars['p'] ?? '',
+				'post_parent'         => $query_vars['post_parent'] ?? '',
+				'subpost'             => $query_vars['subpost'] ?? '',
+				'subpost_id'          => $query_vars['subpost_id'] ?? '',
+				'attachment'          => $query_vars['attachment'] ?? '',
+				'attachment_id'       => $query_vars['attachment_id'] ?? '',
+				'name'                => $query_vars['name'] ?? '',
+				'pagename'            => $query_vars['pagename'] ?? '',
+				'page_id'             => $query_vars['page_id'] ?? '',
+				'second'              => $query_vars['second'] ?? '',
+				'minute'              => $query_vars['minute'] ?? '',
+				'hour'                => $query_vars['hour'] ?? '',
+				'day'                 => $query_vars['day'] ?? '',
+				'monthnum'            => $query_vars['monthnum'] ?? '',
+				'year'                => $query_vars['year'] ?? '',
+				'w'                   => $query_vars['w'] ?? '',
+				'category_name'       => $query_vars['category_name'] ?? '',
+				'tag'                 => $query_vars['tag'] ?? '',
+				'cat'                 => $query_vars['cat'] ?? '',
+				'tag_id'              => $query_vars['tag_id'] ?? '',
+				'author'              => $query_vars['author'] ?? '',
+				'author_name'         => $query_vars['author_name'] ?? '',
+				'feed'                => $query_vars['feed'] ?? '',
+				'tb'                  => $query_vars['tb'] ?? '',
+				'paged'               => $query_vars['paged'] ?? '',
+				'meta_key'            => $query_vars['meta_key'] ?? '',
+				'meta_value'          => $query_vars['meta_value'] ?? '',
+				'preview'             => $query_vars['preview'] ?? '',
+				's'                   => $query_vars['s'] ?? '',
+				'sentence'            => $query_vars['sentence'] ?? '',
+				'title'               => $query_vars['title'] ?? '',
+				'fields'              => $query_vars['fields'] ?? '',
+				'menu_order'          => $query_vars['menu_order'] ?? '',
+				'embed'               => $query_vars['embed'] ?? '',
+				'category__in'        => self::normalize_list_query_var( $query_vars['category__in'] ?? null ),
+				'category__not_in'    => self::normalize_list_query_var( $query_vars['category__not_in'] ?? null ),
+				'category__and'       => self::normalize_list_query_var( $query_vars['category__and'] ?? null ),
+				'post__in'            => self::normalize_list_query_var( $query_vars['post__in'] ?? null ),
+				'post__not_in'        => self::normalize_list_query_var( $query_vars['post__not_in'] ?? null ),
+				'post_name__in'       => self::normalize_list_query_var( $query_vars['post_name__in'] ?? null ),
+				'tag__in'             => self::normalize_list_query_var( $query_vars['tag__in'] ?? null ),
+				'tag__not_in'         => self::normalize_list_query_var( $query_vars['tag__not_in'] ?? null ),
+				'tag__and'            => self::normalize_list_query_var( $query_vars['tag__and'] ?? null ),
+				'tag_slug__in'        => self::normalize_list_query_var( $query_vars['tag_slug__in'] ?? null ),
+				'tag_slug__and'       => self::normalize_list_query_var( $query_vars['tag_slug__and'] ?? null ),
+				'post_parent__in'     => self::normalize_list_query_var( $query_vars['post_parent__in'] ?? null ),
+				'post_parent__not_in' => self::normalize_list_query_var( $query_vars['post_parent__not_in'] ?? null ),
+				'author__in'          => self::normalize_list_query_var( $query_vars['author__in'] ?? null ),
+				'author__not_in'      => self::normalize_list_query_var( $query_vars['author__not_in'] ?? null ),
+				'search_columns'      => self::normalize_list_query_var( $query_vars['search_columns'] ?? null ),
+			)
 		);
+	}
 
-		foreach ( $keys as $key ) {
-			$query_vars[ $key ] ??= '';
+	/**
+	 * Normalizes the value of a query variable which takes a list of values to an array.
+	 *
+	 * An empty value becomes an empty array, a scalar value becomes an array containing that value,
+	 * and any other value becomes an empty array.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $value Query variable value.
+	 * @return array<mixed> Normalized value.
+	 */
+	private static function normalize_list_query_var( $value ): array {
+		if ( empty( $value ) ) {
+			return array();
+		} elseif ( is_scalar( $value ) ) {
+			return array( $value );
+		} elseif ( is_array( $value ) ) {
+			return $value;
+		} else {
+			return array();
 		}
-
-		$array_keys = array(
-			'category__in',
-			'category__not_in',
-			'category__and',
-			'post__in',
-			'post__not_in',
-			'post_name__in',
-			'tag__in',
-			'tag__not_in',
-			'tag__and',
-			'tag_slug__in',
-			'tag_slug__and',
-			'post_parent__in',
-			'post_parent__not_in',
-			'author__in',
-			'author__not_in',
-			'search_columns',
-		);
-
-		foreach ( $array_keys as $key ) {
-			if ( empty( $query_vars[ $key ] ) ) {
-				$query_vars[ $key ] = array();
-			} elseif ( is_scalar( $query_vars[ $key ] ) ) {
-				$query_vars[ $key ] = array( $query_vars[ $key ] );
-			} elseif ( ! is_array( $query_vars[ $key ] ) ) {
-				$query_vars[ $key ] = array();
-			}
-		}
-
-		return $query_vars;
 	}
 
 	/**
@@ -686,24 +812,32 @@ class WP_Query {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param array<mixed> $query_vars Query variables, as filled by {@see WP_Query::fill_query_vars()}.
-	 * @return array<mixed> Query variables with sanitized values.
+	 * @param array $query_vars Query variables, as filled by {@see WP_Query::fill_query_vars()}.
+	 * @return array Query variables with sanitized values.
+	 *
+	 * @phpstan-param Filled_Query_Vars $query_vars
+	 * @phpstan-return Query_Vars
 	 */
 	private function sanitize_query_vars( array $query_vars ): array {
+		// Array or comma-separated list of positive or negative integers.
+		if ( is_array( $query_vars['cat'] ) ) {
+			$query_vars['cat'] = implode( ',', array_filter( $query_vars['cat'], 'is_scalar' ) );
+		}
+
 		$query_vars['p']           = is_scalar( $query_vars['p'] ) ? max( 0, (int) $query_vars['p'] ) : 0;
 		$query_vars['page_id']     = is_scalar( $query_vars['page_id'] ) ? absint( $query_vars['page_id'] ) : 0;
 		$query_vars['year']        = is_scalar( $query_vars['year'] ) ? absint( $query_vars['year'] ) : 0;
 		$query_vars['monthnum']    = is_scalar( $query_vars['monthnum'] ) ? absint( $query_vars['monthnum'] ) : 0;
 		$query_vars['day']         = is_scalar( $query_vars['day'] ) ? absint( $query_vars['day'] ) : 0;
 		$query_vars['w']           = is_scalar( $query_vars['w'] ) ? absint( $query_vars['w'] ) : 0;
-		$query_vars['m']           = is_scalar( $query_vars['m'] ) ? preg_replace( '|[^0-9]|', '', $query_vars['m'] ) : '';
+		$query_vars['m']           = is_scalar( $query_vars['m'] ) ? preg_replace( '|[^0-9]|', '', (string) $query_vars['m'] ) ?? '' : '';
 		$query_vars['paged']       = is_scalar( $query_vars['paged'] ) ? absint( $query_vars['paged'] ) : 0;
-		$query_vars['cat']         = preg_replace( '|[^0-9,-]|', '', $query_vars['cat'] ); // Array or comma-separated list of positive or negative integers.
-		$query_vars['author']      = is_scalar( $query_vars['author'] ) ? preg_replace( '|[^0-9,-]|', '', $query_vars['author'] ) : ''; // Comma-separated list of positive or negative integers.
-		$query_vars['pagename']    = is_scalar( $query_vars['pagename'] ) ? trim( $query_vars['pagename'] ) : '';
-		$query_vars['name']        = is_scalar( $query_vars['name'] ) ? trim( $query_vars['name'] ) : '';
-		$query_vars['title']       = is_scalar( $query_vars['title'] ) ? trim( $query_vars['title'] ) : '';
-		$query_vars['feed']        = is_scalar( $query_vars['feed'] ) ? trim( $query_vars['feed'] ) : '';
+		$query_vars['cat']         = is_scalar( $query_vars['cat'] ) ? preg_replace( '|[^0-9,-]|', '', (string) $query_vars['cat'] ) ?? '' : '';
+		$query_vars['author']      = is_scalar( $query_vars['author'] ) ? preg_replace( '|[^0-9,-]|', '', (string) $query_vars['author'] ) ?? '' : ''; // Comma-separated list of positive or negative integers.
+		$query_vars['pagename']    = is_scalar( $query_vars['pagename'] ) ? trim( (string) $query_vars['pagename'] ) : '';
+		$query_vars['name']        = is_scalar( $query_vars['name'] ) ? trim( (string) $query_vars['name'] ) : '';
+		$query_vars['title']       = is_scalar( $query_vars['title'] ) ? trim( (string) $query_vars['title'] ) : '';
+		$query_vars['feed']        = is_scalar( $query_vars['feed'] ) ? trim( (string) $query_vars['feed'] ) : '';
 		$query_vars['attachment']  = is_scalar( $query_vars['attachment'] ) ? $query_vars['attachment'] : '';
 		$query_vars['author_name'] = is_scalar( $query_vars['author_name'] ) ? $query_vars['author_name'] : '';
 
@@ -734,7 +868,7 @@ class WP_Query {
 		}
 
 		// Fairly large, potentially too large, upper bound for search string lengths.
-		if ( ! is_scalar( $query_vars['s'] ) || ( ! empty( $query_vars['s'] ) && strlen( $query_vars['s'] ) > 1600 ) ) {
+		if ( ! is_scalar( $query_vars['s'] ) || strlen( (string) $query_vars['s'] ) > 1600 ) {
 			$query_vars['s'] = '';
 		}
 
