@@ -371,21 +371,23 @@ switch ( $step ) {
 				$secret_keys[] = $key;
 			}
 		} catch ( Exception $ex ) {
-			$no_api = isset( $_POST['noapi'] );
+			$no_api      = isset( $_POST['noapi'] );
+			$secret_keys = array();
 
 			if ( ! $no_api ) {
-				$secret_keys = wp_remote_get( 'https://api.wordpress.org/secret-key/1.1/salt/' );
+				$response = wp_remote_get( 'https://api.wordpress.org/secret-key/1.1/salt/' );
+
+				if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
+					$parsed_keys = _wp_parse_secret_keys_response( wp_remote_retrieve_body( $response ) );
+					if ( is_array( $parsed_keys ) ) {
+						$secret_keys = $parsed_keys;
+					}
+				}
 			}
 
-			if ( $no_api || is_wp_error( $secret_keys ) ) {
-				$secret_keys = array();
+			if ( empty( $secret_keys ) ) {
 				for ( $i = 0; $i < 8; $i++ ) {
 					$secret_keys[] = wp_generate_password( 64, true, true );
-				}
-			} else {
-				$secret_keys = explode( "\n", wp_remote_retrieve_body( $secret_keys ) );
-				foreach ( $secret_keys as $k => $v ) {
-					$secret_keys[ $k ] = substr( $v, 28, 64 );
 				}
 			}
 		}
