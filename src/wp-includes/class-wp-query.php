@@ -128,6 +128,8 @@
  *     author__in: array<scalar>,
  *     author__not_in: array<scalar>,
  *     search_columns: array<scalar>,
+ *     post_type?: string|array<string>,
+ *     post_status?: string|array<string>,
  *     ...<array-key, mixed>
  * }
  */
@@ -833,6 +835,27 @@ class WP_Query {
 	}
 
 	/**
+	 * Normalizes the value of a query variable which takes a string or an array of strings.
+	 *
+	 * A scalar value becomes a string, an array has any values which are not scalar removed and
+	 * the rest converted to strings, and any other value becomes an empty string.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $value Query variable value.
+	 * @return string|string[] Normalized value.
+	 */
+	private static function normalize_string_or_array_query_var( $value ) {
+		if ( is_scalar( $value ) ) {
+			return (string) $value;
+		} elseif ( is_array( $value ) ) {
+			return array_map( 'strval', array_filter( $value, 'is_scalar' ) );
+		} else {
+			return '';
+		}
+	}
+
+	/**
 	 * Normalizes the values of query variables which take a single value.
 	 *
 	 * This runs in {@see WP_Query::parse_query()}, and again in {@see WP_Query::get_posts()}
@@ -855,6 +878,14 @@ class WP_Query {
 		// Array or comma-separated (either) or plus-separated (all) list of tag slugs.
 		if ( is_array( $query_vars['tag'] ) ) {
 			$query_vars['tag'] = implode( ',', $query_vars['tag'] );
+		}
+
+		// A post type or status, or an array of them. These are only set when given.
+		if ( isset( $query_vars['post_type'] ) ) {
+			$query_vars['post_type'] = self::normalize_string_or_array_query_var( $query_vars['post_type'] );
+		}
+		if ( isset( $query_vars['post_status'] ) ) {
+			$query_vars['post_status'] = self::normalize_string_or_array_query_var( $query_vars['post_status'] );
 		}
 
 		$query_vars['error']         = is_scalar( $query_vars['error'] ) ? $query_vars['error'] : '';
@@ -2810,7 +2841,8 @@ class WP_Query {
 			$post_type_cap = 'multiple_post_type';
 		} else {
 			if ( is_array( $post_type ) ) {
-				$post_type = reset( $post_type );
+				// An empty array yields false, which is cast to an empty string.
+				$post_type = (string) reset( $post_type );
 			}
 			$post_type_object = get_post_type_object( $post_type );
 			if ( empty( $post_type_object ) ) {
