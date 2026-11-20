@@ -1845,9 +1845,12 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		 * Line breaks in the comment author fields would end the header or line they
 		 * are placed in, letting the comment author add email headers or lines of their own.
 		 */
-		$comment_author       = trim( preg_replace( '/[\r\n]+/', ' ', $comment->comment_author ) );
-		$comment_author_email = trim( preg_replace( '/[\r\n]+/', ' ', $comment->comment_author_email ) );
-		$comment_author_url   = trim( preg_replace( '/[\r\n]+/', ' ', $comment->comment_author_url ) );
+		$isolate_header_value = static function ( $value ): string {
+			return trim( (string) preg_replace( '/[\r\n]+/', ' ', is_string( $value ) ? $value : '' ) );
+		};
+		$comment_author       = $isolate_header_value( $comment->comment_author );
+		$comment_author_email = $isolate_header_value( $comment->comment_author_email );
+		$comment_author_url   = $isolate_header_value( $comment->comment_author_url );
 
 		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );
 
@@ -2068,9 +2071,12 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		 * Line breaks in the comment author fields would end the header or line they
 		 * are placed in, letting the comment author add email headers or lines of their own.
 		 */
-		$comment_author       = trim( preg_replace( '/[\r\n]+/', ' ', $comment->comment_author ) );
-		$comment_author_email = trim( preg_replace( '/[\r\n]+/', ' ', $comment->comment_author_email ) );
-		$comment_author_url   = trim( preg_replace( '/[\r\n]+/', ' ', $comment->comment_author_url ) );
+		$isolate_header_value = static function ( $value ): string {
+			return trim( (string) preg_replace( '/[\r\n]+/', ' ', is_string( $value ) ? $value : '' ) );
+		};
+		$comment_author       = $isolate_header_value( $comment->comment_author );
+		$comment_author_email = $isolate_header_value( $comment->comment_author_email );
+		$comment_author_url   = $isolate_header_value( $comment->comment_author_url );
 
 		$message_headers = '';
 
