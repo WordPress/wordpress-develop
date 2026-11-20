@@ -913,10 +913,11 @@ class WP_Ability {
 	}
 
 	/**
-	 * Validates output data against the output schema.
+	 * Validates output data against the output schema after execution.
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `wp_ability_validate_output` filter.
+	 * @since 7.3.0 Clarifies that execution completed when output validation fails.
 	 *
 	 * @param mixed $output The output data to validate.
 	 * @return true|WP_Error Returns true if valid, or a WP_Error object if validation fails.
@@ -959,9 +960,20 @@ class WP_Ability {
 		 */
 		$validity = apply_filters( 'wp_ability_validate_output', $is_valid, $output, $this->name );
 		if ( false === $validity ) {
-			return new WP_Error( 'ability_invalid_output', __( 'Invalid output.' ) );
+			$validity = new WP_Error( 'ability_invalid_output', __( 'Invalid output.' ) );
 		}
 		if ( is_wp_error( $validity ) && $validity->has_errors() ) {
+			// Preserve error instances retained by output validation filters.
+			$validity   = clone $validity;
+			$error_code = $validity->get_error_code();
+
+			$annotations = $this->get_meta_item( 'annotations' );
+			$message     = true === $annotations['readonly']
+				? __( 'The ability ran, but its output failed validation.' )
+				: __( 'The ability ran, but its output failed validation. Its changes may already be saved. Check the current state before you run it again.' );
+
+			$validity->errors[ $error_code ][0] .= ' ' . $message;
+
 			return $validity;
 		}
 		return true;
@@ -975,14 +987,9 @@ class WP_Ability {
 	 * @since 7.1.0 Added the `wp_ability_invoked` action.
 	 * @since 7.1.0 Added the `wp_pre_execute_ability` filter.
 	 * @since 7.2.0 Prepares the input with `prepare_input()`, which also sanitizes it.
-	 * @since 7.3.0 Adds JSON-serializable output and retry guidance to output validation errors.
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
-	 *                        When the output fails validation, the callback has already run,
-	 *                        and its changes may already be saved.
-	 *                        The `output` key contains a JSON-normalized copy of the result when
-	 *                        serialization succeeds, including null. Otherwise, it is omitted.
 	 */
 	public function execute( $input = null ) {
 		/**
@@ -1071,29 +1078,6 @@ class WP_Ability {
 
 		$is_valid = $this->validate_output( $result );
 		if ( is_wp_error( $is_valid ) ) {
-			// Do not mutate an error instance retained by an output validation filter.
-			$is_valid   = clone $is_valid;
-			$error_data = $is_valid->get_error_data();
-			$error_data = is_array( $error_data ) ? $error_data : array();
-
-			unset( $error_data['output'] );
-
-			// Snapshot the JSON representation so transports do not serialize the original objects again.
-			try {
-				$json                 = json_encode( $result, JSON_THROW_ON_ERROR );
-				$error_data['output'] = json_decode( $json, false, 512, JSON_THROW_ON_ERROR );
-			} catch ( Throwable $exception ) {
-				// Encoding can fail or JsonSerializable can throw. Keep the validation error without output.
-			}
-
-			$is_valid->add_data( $error_data );
-
-			$annotations = $this->get_meta_item( 'annotations' );
-			if ( true !== $annotations['readonly'] ) {
-				$error_code                          = $is_valid->get_error_code();
-				$is_valid->errors[ $error_code ][0] .= ' ' . __( 'The ability ran, so its changes may already be saved. Check the current state before you run it again.' );
-			}
-
 			return $is_valid;
 		}
 

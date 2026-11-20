@@ -736,17 +736,17 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$data = $response->get_data();
 		$this->assertSame( 'ability_invalid_output', $data['code'] );
 		$this->assertSame(
-			'Ability "test/invalid-output" has invalid output. Reason: output is not of type number. The ability ran, so its changes may already be saved. Check the current state before you run it again.',
+			'Ability "test/invalid-output" has invalid output. Reason: output is not of type number. The ability ran, but its output failed validation. Its changes may already be saved. Check the current state before you run it again.',
 			$data['message']
 		);
 	}
 
 	/**
-	 * Tests that a REST client can inspect the output when validation fails.
+	 * Tests that a REST client receives retry guidance without exposing invalid output.
 	 *
 	 * @ticket 66433
 	 */
-	public function test_output_validation_error_includes_output(): void {
+	public function test_output_validation_error_includes_retry_guidance(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/invalid-output/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
 
@@ -755,7 +755,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertSame( 500, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'ability_invalid_output', $data['code'] );
-		$this->assertSame( 'not a number', $data['data']['output'] );
+		$this->assertNull( $data['data'] );
+		$this->assertStringContainsString( 'Check the current state before you run it again.', $data['message'] );
 		$this->assertNotFalse( wp_json_encode( $data ) );
 	}
 
@@ -1227,7 +1228,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$data = $response->get_data();
 		$this->assertSame( 'ability_invalid_output', $data['code'] );
 		$this->assertSame(
-			'Ability "test/strict-output" has invalid output. Reason: status is a required property of output. The ability ran, so its changes may already be saved. Check the current state before you run it again.',
+			'Ability "test/strict-output" has invalid output. Reason: status is a required property of output. The ability ran, but its output failed validation. Its changes may already be saved. Check the current state before you run it again.',
 			$data['message']
 		);
 	}
