@@ -166,9 +166,6 @@ if ( ! empty( $trackback_url ) && ! empty( $title ) ) {
 		'comment_type'
 	);
 
-	/**
-	 * @see Tests_Comment::test_trackback_cannot_inject_into_comment_notifications()
-	 */
 	$result = wp_new_comment( $commentdata );
 
 	if ( is_wp_error( $result ) ) {

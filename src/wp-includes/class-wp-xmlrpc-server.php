@@ -7093,8 +7093,6 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Retrieves a pingback and registers it.
 	 *
-	 * @see Tests_Comment::test_pingback_cannot_inject_into_comment_notifications()
-	 *
 	 * @since 1.5.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
