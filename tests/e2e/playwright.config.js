@@ -18,19 +18,10 @@ process.env.STORAGE_STATE_PATH ??= path.join(
 const SERIAL_SPECS = [
 	'install.test.js',
 	'maintenance-mode.test.js',
-	'fatal-error-handler.test.js',
-	'login-localize-script.test.js',
 	'gutenberg-plugin.test.js',
-	'plugins.test.js',
 	'themes.test.js',
-	// These delete all posts or media, including other workers' content.
-	'cache-control-headers-directives.test.js',
-	'dashboard.test.js',
-	'edit-posts.test.js',
-	'empty-trash-restore-trashed-posts.test.js',
-	'media-library-client-side-upload.test.js',
-	'media-modal-client-side-upload.test.js',
-	'media-new-client-side-upload.test.js',
+	// This deletes all posts, including other workers' content.
+	'empty-trash.test.js',
 ];
 
 const config = defineConfig( {
@@ -53,7 +44,7 @@ const config = defineConfig( {
 			name: 'parallel',
 			default: false,
 			testIgnore: SERIAL_SPECS,
-			fullyParallel: false,
+			fullyParallel: true,
 			use: { ...devices[ 'Desktop Chrome' ] },
 		},
 		{
