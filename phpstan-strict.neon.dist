@@ -68,6 +68,7 @@ parameters:
 		- src/wp-includes/sitemaps.php
 		- src/wp-includes/speculative-loading.php
 		- src/wp-includes/style-engine
+		- src/wp-includes/style-engine.php
 		- tests/phpstan
 
 	# The code outside the strict paths that they can use. The bundled themes are left out, since nothing in core uses
