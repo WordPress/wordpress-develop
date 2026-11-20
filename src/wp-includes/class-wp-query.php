@@ -3764,6 +3764,7 @@ class WP_Query {
 				$this->request = apply_filters( 'posts_request_ids', $this->request, $this );
 
 				$post_ids = $wpdb->get_col( $this->request );
+				$post_ids = array_map( 'intval', array_filter( $post_ids, 'is_scalar' ) );
 
 				if ( $post_ids ) {
 					$this->posts = $post_ids;
@@ -3812,7 +3813,8 @@ class WP_Query {
 
 		// Check post status to determine if post should be displayed.
 		if ( ! empty( $this->posts ) && ( $this->is_single || $this->is_page ) ) {
-			$status = get_post_status( $this->posts[0] );
+			// This is only false for a value which is not a post, for which no status object exists.
+			$status = (string) get_post_status( $this->posts[0] );
 
 			if ( 'attachment' === $this->posts[0]->post_type && 0 === (int) $this->posts[0]->post_parent ) {
 				$this->is_page       = false;
@@ -3911,7 +3913,8 @@ class WP_Query {
 
 		// Put sticky posts at the top of the posts array.
 		$sticky_posts = get_option( 'sticky_posts' );
-		if ( $this->is_home && $page <= 1 && is_array( $sticky_posts ) && ! empty( $sticky_posts ) && ! $query_vars['ignore_sticky_posts'] ) {
+		$sticky_posts = is_array( $sticky_posts ) ? array_map( 'intval', array_filter( $sticky_posts, 'is_scalar' ) ) : array();
+		if ( $this->is_home && $page <= 1 && ! empty( $sticky_posts ) && ! $query_vars['ignore_sticky_posts'] ) {
 			$num_posts     = count( $this->posts );
 			$sticky_offset = 0;
 			// Loop over posts and relocate stickies to the front.
@@ -3984,7 +3987,12 @@ class WP_Query {
 				if ( $is_unfiltered_query && $unfiltered_posts === $this->posts ) {
 					update_post_caches( $this->posts, $post_type, $query_vars['update_post_term_cache'], $query_vars['update_post_meta_cache'] );
 				} else {
-					$post_ids = wp_list_pluck( $this->posts, 'ID' );
+					$post_ids = array_map(
+						static function ( WP_Post $post ): int {
+							return $post->ID;
+						},
+						$this->posts
+					);
 					_prime_post_caches( $post_ids, $query_vars['update_post_term_cache'], $query_vars['update_post_meta_cache'] );
 				}
 			}
