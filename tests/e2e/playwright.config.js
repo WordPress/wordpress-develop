@@ -19,7 +19,6 @@ const SERIAL_SPECS = [
 	'install.test.js',
 	'maintenance-mode.test.js',
 	'gutenberg-plugin.test.js',
-	'plugins.test.js',
 	'theme-activation.test.js',
 	// This deletes all posts, including other workers' content.
 	'empty-trash.test.js',
