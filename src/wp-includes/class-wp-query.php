@@ -76,12 +76,12 @@
  * }
  *
  * @phpstan-type Query_Vars array{
- *     error: mixed,
+ *     error: scalar,
  *     m: string,
  *     p: int<0, max>,
- *     post_parent: mixed,
- *     subpost: mixed,
- *     subpost_id: mixed,
+ *     post_parent: scalar,
+ *     subpost: scalar,
+ *     subpost_id: scalar,
  *     attachment: scalar,
  *     attachment_id: int<0, max>,
  *     name: string,
@@ -94,24 +94,24 @@
  *     monthnum: int<0, max>,
  *     year: int<0, max>,
  *     w: int<0, max>,
- *     category_name: mixed,
- *     tag: mixed,
+ *     category_name: scalar,
+ *     tag: string,
  *     cat: string,
- *     tag_id: mixed,
+ *     tag_id: scalar,
  *     author: string,
  *     author_name: scalar,
  *     feed: string,
- *     tb: mixed,
+ *     tb: scalar,
  *     paged: int<0, max>,
  *     meta_key: mixed,
  *     meta_value: mixed,
- *     preview: mixed,
+ *     preview: scalar,
  *     s: scalar,
- *     sentence: mixed,
+ *     sentence: scalar,
  *     title: string,
- *     fields: mixed,
+ *     fields: scalar,
  *     menu_order: int<0, max>|'',
- *     embed: mixed,
+ *     embed: scalar,
  *     category__in: array<mixed>,
  *     category__not_in: array<mixed>,
  *     category__and: array<mixed>,
@@ -823,6 +823,24 @@ class WP_Query {
 		if ( is_array( $query_vars['cat'] ) ) {
 			$query_vars['cat'] = implode( ',', array_filter( $query_vars['cat'], 'is_scalar' ) );
 		}
+
+		// Array or comma-separated (either) or plus-separated (all) list of tag slugs.
+		if ( is_array( $query_vars['tag'] ) ) {
+			$query_vars['tag'] = implode( ',', array_filter( $query_vars['tag'], 'is_scalar' ) );
+		}
+
+		$query_vars['error']         = is_scalar( $query_vars['error'] ) ? $query_vars['error'] : '';
+		$query_vars['post_parent']   = is_scalar( $query_vars['post_parent'] ) ? $query_vars['post_parent'] : '';
+		$query_vars['subpost']       = is_scalar( $query_vars['subpost'] ) ? $query_vars['subpost'] : '';
+		$query_vars['subpost_id']    = is_scalar( $query_vars['subpost_id'] ) ? $query_vars['subpost_id'] : '';
+		$query_vars['category_name'] = is_scalar( $query_vars['category_name'] ) ? $query_vars['category_name'] : '';
+		$query_vars['tag']           = is_scalar( $query_vars['tag'] ) ? (string) $query_vars['tag'] : '';
+		$query_vars['tag_id']        = is_scalar( $query_vars['tag_id'] ) ? $query_vars['tag_id'] : '';
+		$query_vars['tb']            = is_scalar( $query_vars['tb'] ) ? $query_vars['tb'] : '';
+		$query_vars['preview']       = is_scalar( $query_vars['preview'] ) ? $query_vars['preview'] : '';
+		$query_vars['sentence']      = is_scalar( $query_vars['sentence'] ) ? $query_vars['sentence'] : '';
+		$query_vars['fields']        = is_scalar( $query_vars['fields'] ) ? $query_vars['fields'] : '';
+		$query_vars['embed']         = is_scalar( $query_vars['embed'] ) ? $query_vars['embed'] : '';
 
 		$query_vars['p']           = is_scalar( $query_vars['p'] ) ? max( 0, (int) $query_vars['p'] ) : 0;
 		$query_vars['page_id']     = is_scalar( $query_vars['page_id'] ) ? absint( $query_vars['page_id'] ) : 0;
