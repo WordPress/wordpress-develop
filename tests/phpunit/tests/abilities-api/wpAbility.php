@@ -1871,15 +1871,13 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Custom output errors gain execution context while retaining their details.
+	 * Custom output errors are returned unchanged.
 	 *
 	 * @ticket 64311
 	 * @ticket 66433
 	 */
 	public function test_validate_output_filter_replaces_error_with_custom() {
-		$original = new WP_Error( 'custom_output_error', 'Rejected.', array( 'status' => 422 ) );
-		$original->add( 'custom_output_error', 'Another reason.' );
-		$original->add( 'policy', 'Policy rejected.', array( 'field' => 'name' ) );
+		$original  = new WP_Error( 'custom_output_error', 'Rejected.', array( 'status' => 422 ) );
 		$unchanged = clone $original;
 		add_filter(
 			'wp_ability_validate_output',
@@ -1891,19 +1889,8 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
 		$result  = $ability->execute();
 
-		$this->assertEquals( $unchanged, $original );
-		$this->assertSame(
-			array(
-				'custom_output_error' => array(
-					'Ability "test/calculator" ran, but its output failed validation. Rejected.',
-					'Another reason.',
-				),
-				'policy'              => array( 'Policy rejected.' ),
-			),
-			$result->errors
-		);
-		$this->assertSame( $original->get_all_error_data(), $result->get_all_error_data() );
-		$this->assertSame( $original->get_error_data( 'policy' ), $result->get_error_data( 'policy' ) );
+		$this->assertSame( $original, $result );
+		$this->assertEquals( $unchanged, $result );
 	}
 
 	/**

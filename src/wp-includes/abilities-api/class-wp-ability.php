@@ -962,8 +962,8 @@ class WP_Ability {
 		 * override it. If default validation passed, the filter can add additional
 		 * validation checks and return a WP_Error if those checks fail.
 		 *
-		 * Error messages include execution context and, for abilities that are not read-only,
-		 * retry guidance. This context is also added to custom error messages returned by the filter.
+		 * Schema errors include execution context and, for abilities that are not read-only,
+		 * retry guidance. Custom errors returned by the filter are passed through unchanged.
 		 *
 		 * @since 7.1.0
 		 *
@@ -976,13 +976,6 @@ class WP_Ability {
 			return new WP_Error( 'ability_invalid_output', $message );
 		}
 		if ( is_wp_error( $validity ) && $validity->has_errors() ) {
-			if ( ! str_contains( $validity->get_error_message(), $message ) ) {
-				// Preserve filter-owned errors while adding context to custom or replaced messages.
-				$validity                           = clone $validity;
-				$error_code                         = $validity->get_error_code();
-				$validity->errors[ $error_code ][0] = $message . ' ' . $validity->get_error_message();
-			}
-
 			return $validity;
 		}
 		return true;
