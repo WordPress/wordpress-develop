@@ -3237,7 +3237,7 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
  *
  * @return string[] Comment types excluded by default.
  */
-function wp_get_default_excluded_comment_types() {
+function wp_get_default_excluded_comment_types(): array {
 	/**
 	 * Filters the comment types that are excluded from query results by default.
 	 *
@@ -3271,7 +3271,7 @@ function wp_get_default_excluded_comment_types() {
 	 */
 	$excluded_types = array_filter(
 		array_map( 'strval', $excluded_types ),
-		static function ( $excluded_type ) {
+		static function ( string $excluded_type ): bool {
 			return '' !== $excluded_type && ! in_array( strtolower( $excluded_type ), array( 'all', 'comment', 'comments', 'pings' ), true );
 		}
 	);
