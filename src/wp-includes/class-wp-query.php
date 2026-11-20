@@ -2717,8 +2717,9 @@ class WP_Query {
 		// Author/user stuff.
 
 		if ( ! empty( $query_vars['author'] ) && '0' != $query_vars['author'] ) {
-			$query_vars['author'] = wp_slash( '' . urldecode( $query_vars['author'] ) );
-			$authors              = array_unique( array_map( 'intval', preg_split( '/[,\s]+/', $query_vars['author'] ) ) );
+			$query_vars['author'] = wp_slash( urldecode( (string) $query_vars['author'] ) );
+			$authors              = preg_split( '/[,\s]+/', $query_vars['author'] );
+			$authors              = array_unique( array_map( 'intval', false !== $authors ? $authors : array() ) );
 			sort( $authors );
 			foreach ( $authors as $author ) {
 				$key                  = $author > 0 ? 'author__in' : 'author__not_in';
@@ -2750,6 +2751,8 @@ class WP_Query {
 		// Author stuff for nice URLs.
 
 		if ( '' !== $query_vars['author_name'] ) {
+			// It is sanitized as a string below anyway.
+			$query_vars['author_name'] = (string) $query_vars['author_name'];
 			if ( str_contains( $query_vars['author_name'], '/' ) ) {
 				$author_name_parts = explode( '/', $query_vars['author_name'] );
 				$last_part         = array_last( $author_name_parts );
