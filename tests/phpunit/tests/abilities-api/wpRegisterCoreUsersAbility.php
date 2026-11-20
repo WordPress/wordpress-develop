@@ -292,6 +292,8 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		}
 
 		$this->assertSame( 1, $where['properties']['ids']['items']['minimum'], 'The ids option should contain positive user IDs.' );
+		$this->assertSame( 1, $where['properties']['slugs']['items']['minLength'], 'The slugs option should not contain an empty slug.' );
+		$this->assertSame( 1, $where['properties']['usernames']['items']['minLength'], 'The usernames option should not contain an empty username.' );
 
 		$roles = $where['properties']['roles'];
 
@@ -1603,6 +1605,103 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 			'username' => array( 'username', 'core_users_ability_admin' ),
 			'slug'     => array( 'slug', 'core-users-ability-admin' ),
 			'include'  => array( 'include', array( 1 ) ),
+		);
+	}
+
+	/**
+	 * A slug or username list that holds an empty string fails schema validation, even next
+	 * to a value that names a user.
+	 *
+	 * @ticket 64657
+	 *
+	 * @dataProvider data_identifier_lists_with_an_empty_string
+	 *
+	 * @param string   $filter The `where` filter.
+	 * @param string[] $values The values given for the filter.
+	 */
+	public function test_identifier_list_with_an_empty_string_fails_schema_validation( string $filter, array $values ): void {
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/users-query' )->execute( array( 'where' => array( $filter => $values ) ) );
+
+		$this->assertWPError( $result, sprintf( 'An empty string in the %s filter should fail the request.', $filter ) );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), sprintf( 'An empty string in the %s filter should fail schema validation.', $filter ) );
+	}
+
+	/**
+	 * Data provider for slug and username lists that hold an empty string.
+	 *
+	 * @return array<string, array{0: string, 1: string[]}>
+	 */
+	public static function data_identifier_lists_with_an_empty_string(): array {
+		return array(
+			'empty slug'               => array( 'slugs', array( '' ) ),
+			'empty and valid slug'     => array( 'slugs', array( '', 'core-users-ability-admin' ) ),
+			'empty username'           => array( 'usernames', array( '' ) ),
+			'empty and valid username' => array( 'usernames', array( '', 'core_users_ability_admin' ) ),
+		);
+	}
+
+	/**
+	 * A slug or username made only of whitespace passes schema validation but names no user,
+	 * so it is dropped: a list that holds only such a value fails as an invalid filter, and
+	 * one next to a value that names a user still returns that user.
+	 *
+	 * @ticket 64657
+	 *
+	 * @dataProvider data_slug_and_username_filters
+	 *
+	 * @param string $filter The `where` filter.
+	 * @param string $value  A value of the filter that names the administrator.
+	 */
+	public function test_whitespace_only_identifier_is_dropped( string $filter, string $value ): void {
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		$ability = wp_get_ability( 'core/users-query' );
+
+		$result = $ability->execute( array( 'where' => array( $filter => array( ' ' ) ) ) );
+
+		$this->assertWPError( $result, sprintf( 'A list of %s holding only a whitespace-only string should fail the request.', $filter ) );
+		$this->assertSame( 'users_invalid_filter', $result->get_error_code(), sprintf( 'A list of %s holding only a whitespace-only string should fail closed as an invalid filter.', $filter ) );
+		$this->assertSame(
+			array( 'where[' . $filter . ']' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			sprintf( 'The error data should map the list of %s holding only a whitespace-only string to the error message.', $filter )
+		);
+
+		$result = $ability->execute(
+			array(
+				'where'  => array( $filter => array( ' ', $value ) ),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array( 'id' => self::$fixture_ids['administrator'] ),
+				),
+				'pagination' => array(
+					'total'       => 1,
+					'total_pages' => 1,
+				),
+			),
+			$result,
+			sprintf( 'A valid identifier alongside a whitespace-only string in the list of %s should still return the matching user.', $filter )
+		);
+	}
+
+	/**
+	 * Data provider for the slug and username filters, each with a value that names the administrator.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_slug_and_username_filters(): array {
+		return array(
+			'slugs'     => array( 'slugs', 'core-users-ability-admin' ),
+			'usernames' => array( 'usernames', 'core_users_ability_admin' ),
 		);
 	}
 
