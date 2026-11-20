@@ -1,9 +1,9 @@
 === Twenty Thirteen ===
 Contributors: wordpressdotorg
 Requires at least: 3.6
-Tested up to: 7.1
+Tested up to: 7.3
 Requires PHP: 5.2.4
-Stable tag: 4.7
+Stable tag: 4.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, two-columns, right-sidebar, custom-header, custom-menu, editor-style, featured-images, footer-widgets, microformats, post-formats, rtl-language-support, sticky-post, translation-ready, accessibility-ready, block-patterns
