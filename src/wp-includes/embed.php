@@ -787,7 +787,8 @@ function wp_oembed_ensure_format( $format ) {
 function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
 	$params = $request->get_params();
 
-	if ( '/oembed/1.0/embed' !== $request->get_route() || 'GET' !== $request->get_method() ) {
+	// Match the route the way WP_REST_Server::find_handler_for_request() does, ignoring case.
+	if ( 'GET' !== $request->get_method() || ! preg_match( '@^/oembed/1.0/embed$@i', $request->get_route() ) ) {
 		return $served;
 	}
 
