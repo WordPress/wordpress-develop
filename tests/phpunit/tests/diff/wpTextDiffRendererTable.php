@@ -27,35 +27,6 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 66095
-	 * @covers ::wp_text_diff
-	 */
-	public function test_wp_text_diff_highlights_a_changed_word_in_a_long_table() {
-		$rows = str_repeat( '<tr><td>unchanged cell</td></tr>', 599 );
-		$old  = "<table>$rows<tr><td>one old cell</td></tr></table>";
-		$new  = "<table>$rows<tr><td>one new cell</td></tr></table>";
-
-		$diff = wp_text_diff( $old, $new );
-
-		$this->assertStringContainsString( '<del>old</del>', $diff );
-		$this->assertStringContainsString( '<ins>new</ins>', $diff );
-		$this->assertStringContainsString( "class='diff-context'", $diff );
-	}
-
-	/**
-	 * @ticket 66095
-	 * @covers ::wp_text_diff
-	 */
-	public function test_wp_text_diff_shows_newlines_added_between_tags() {
-		$old  = '<pre>' . str_repeat( '<span>x</span>', 1000 ) . '</pre>';
-		$new  = str_replace( '><', ">\n<", $old );
-		$diff = wp_text_diff( $old, $new );
-
-		$this->assertNotSame( '', $diff );
-		$this->assertStringNotContainsString( "\x1F", $diff );
-	}
-
-	/**
-	 * @ticket 66095
 	 * @ticket 48973
 	 * @covers WP_Text_Diff_Renderer_Table::_changed
 	 */
@@ -92,7 +63,7 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	 * @ticket 66095
 	 * @covers WP_Text_Diff_Renderer_Table::_changed
 	 */
-	public function test_changed_keeps_long_unbroken_lines_in_one_escaped_row() {
+	public function test_changed_keeps_long_lines_in_one_escaped_row() {
 		$prefix   = str_repeat( 'x', 9000 );
 		$suffix   = str_repeat( 'y', 2999 );
 		$renderer = $this->diff_renderer_table;

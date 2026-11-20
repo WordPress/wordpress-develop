@@ -3417,12 +3417,9 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 
 		$left_lines  = explode( "\n", $left_string );
 		$right_lines = explode( "\n", $right_string );
-		$left_lines  = _wp_text_diff_split_long_lines( $left_lines );
-		$right_lines = _wp_text_diff_split_long_lines( $right_lines );
 		$text_diff   = new Text_Diff( $left_lines, $right_lines );
 		$renderer    = new WP_Text_Diff_Renderer_Table( $args );
 		$diff        = $renderer->render( $text_diff );
-		$diff        = str_replace( "\x1F", '', $diff );
 
 		if ( ! $diff ) {
 			return '';
