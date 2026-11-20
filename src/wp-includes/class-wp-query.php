@@ -98,7 +98,7 @@
  *     tag: string,
  *     cat: string,
  *     tag_id: scalar,
- *     author: string,
+ *     author: string|int|false,
  *     author_name: scalar,
  *     feed: string,
  *     tb: scalar,
@@ -2698,10 +2698,9 @@ class WP_Query {
 				}
 			}
 			$query_vars['author_name'] = sanitize_title_for_query( $query_vars['author_name'] );
-			$query_vars['author']      = get_user_by( 'slug', $query_vars['author_name'] );
-			if ( $query_vars['author'] ) {
-				$query_vars['author'] = $query_vars['author']->ID;
-			}
+			$author_user               = get_user_by( 'slug', $query_vars['author_name'] );
+			$query_vars['author']      = $author_user ? $author_user->ID : false;
+			unset( $author_user );
 			$whichauthor .= " AND ({$wpdb->posts}.post_author = " . absint( $query_vars['author'] ) . ')';
 		}
 
