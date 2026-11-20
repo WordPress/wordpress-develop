@@ -525,7 +525,7 @@ function wp_login_form( $args = array() ) {
 	$defaults = array(
 		'echo'              => true,
 		// Default 'redirect' value takes the user back to the request URI.
-		'redirect'          => ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
+		'redirect'          => wp_get_current_request_url(),
 		'form_id'           => 'loginform',
 		'label_username'    => __( 'Username or Email Address' ),
 		'label_password'    => __( 'Password' ),
