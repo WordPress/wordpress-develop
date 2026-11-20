@@ -50,6 +50,10 @@ function wptexturize( $text, $reset = false ) {
 		$closing_quote                   = null,
 		$opening_single_quote            = null,
 		$closing_single_quote            = null,
+		$use_html_api                    = false,
+		$html_api_depth                  = 0,
+		$html_api_no_texturize_tags      = null,
+		$html_api_no_texturize_shorts    = null,
 		$open_q_flag                     = '<!--oq-->',
 		$open_sq_flag                    = '<!--osq-->',
 		$apos_flag                       = '<!--apos-->';
@@ -79,6 +83,20 @@ function wptexturize( $text, $reset = false ) {
 		if ( false === $run_texturize ) {
 			return $text;
 		}
+
+		/**
+		 * Filters whether wptexturize() uses its legacy parser.
+		 *
+		 * Returning false opts in to an experimental implementation built on the
+		 * HTML API, which is meant to produce the same output. Like
+		 * {@see 'run_wptexturize'}, this filter runs only once, the first time
+		 * wptexturize() is called.
+		 *
+		 * @since 7.3.0
+		 *
+		 * @param bool $force_legacy_parser Whether to use the legacy parser. Default true.
+		 */
+		$use_html_api = ! apply_filters( 'wptexturize_force_legacy_parser', true );
 
 		/* translators: Opening curly double quote. */
 		$opening_quote = _x( '&#8220;', 'opening curly double quote' );
@@ -217,7 +235,7 @@ function wptexturize( $text, $reset = false ) {
 	 *
 	 * @param string[] $default_no_texturize_tags An array of HTML element names.
 	 */
-	$no_texturize_tags = apply_filters( 'no_texturize_tags', $default_no_texturize_tags );
+	$no_texturize_tags = $html_api_depth > 0 ? $html_api_no_texturize_tags : apply_filters( 'no_texturize_tags', $default_no_texturize_tags );
 	/**
 	 * Filters the list of shortcodes not to texturize.
 	 *
@@ -225,7 +243,24 @@ function wptexturize( $text, $reset = false ) {
 	 *
 	 * @param string[] $default_no_texturize_shortcodes An array of shortcode names.
 	 */
-	$no_texturize_shortcodes = apply_filters( 'no_texturize_shortcodes', $default_no_texturize_shortcodes );
+	$no_texturize_shortcodes = $html_api_depth > 0 ? $html_api_no_texturize_shorts : apply_filters( 'no_texturize_shortcodes', $default_no_texturize_shortcodes );
+
+	/*
+	 * When opted in, markup goes to the HTML API implementation. It calls back into
+	 * this function for the text it rewrites; the depth guard sends those calls to
+	 * the legacy code below, with the filtered lists above, so each filter runs once
+	 * per call. Text with no markup is handled the same either way.
+	 */
+	if ( $use_html_api && 0 === $html_api_depth && str_contains( $text, '<' ) ) {
+		$html_api_no_texturize_tags   = $no_texturize_tags;
+		$html_api_no_texturize_shorts = $no_texturize_shortcodes;
+		++$html_api_depth;
+		try {
+			return _wptexturize_html_api( $text, false, $no_texturize_tags );
+		} finally {
+			--$html_api_depth;
+		}
+	}
 
 	$no_texturize_tags_stack       = array();
 	$no_texturize_shortcodes_stack = array();
@@ -301,6 +336,365 @@ function wptexturize( $text, $reset = false ) {
 	}
 
 	return implode( '', $textarr );
+}
+
+/**
+ * Replaces common plain text characters with formatted entities, using the HTML API.
+ *
+ * Experimental. This is an alternative implementation of wptexturize() that finds
+ * text with the HTML Processor instead of a regular expression. Opt in with the
+ * {@see 'wptexturize_force_legacy_parser'} filter.
+ *
+ * The HTML Processor finds the text, and decides from each text node's real
+ * ancestors whether it sits inside a `no_texturize_tags` element. Only text that
+ * changes is replaced, in place; all other bytes, including every tag, comment,
+ * and character reference, are kept as they were. In this first step the
+ * replacements are still made by the legacy implementation, one run of adjacent
+ * text nodes at a time, so the output matches it.
+ *
+ * Markup is never texturized. To match the legacy output, a bare `&` in a tag
+ * still becomes `&#038;`, and the contents of an unprotected raw text element,
+ * such as TITLE or TEXTAREA, and of a CDATA section are texturized as text.
+ *
+ * The whole input goes to the legacy implementation when it contains registered
+ * shortcodes (pending a decision on how shortcodes and HTML are parsed together),
+ * when raw text such as a TEXTAREA or CDATA section sits inside a protected
+ * element, or when the HTML Processor cannot parse the input completely.
+ *
+ * @since 7.3.0
+ * @access private
+ * @internal
+ *
+ * @see wptexturize()
+ *
+ * @global array $shortcode_tags
+ *
+ * @param string        $text              The text to be formatted.
+ * @param bool          $reset             Set to true for unit testing. Translated patterns will reset.
+ * @param string[]|null $no_texturize_tags Optional. Element names not to texturize, as already
+ *                                         filtered by wptexturize(). Default null, which applies
+ *                                         the {@see 'no_texturize_tags'} filter.
+ * @return string The string replaced with HTML entities.
+ */
+function _wptexturize_html_api( $text, $reset = false, $no_texturize_tags = null ) {
+	global $shortcode_tags;
+	static $processor_class = null;
+
+	if ( $reset ) {
+		// Rebuilds the legacy tables. Text without markup never reaches the HTML API path.
+		wptexturize( ' ', true );
+	}
+
+	if ( ! is_string( $text ) || ! str_contains( $text, '<' ) ) {
+		return wptexturize( $text );
+	}
+
+	// Shortcodes can span HTML syntax, which the HTML Processor would split apart.
+	if ( ! empty( $shortcode_tags ) && str_contains( $text, '[' ) ) {
+		preg_match_all( '@\[/?([^<>&/\[\]\x00-\x20=]++)@', $text, $matches );
+		if ( array_intersect( array_keys( $shortcode_tags ), $matches[1] ) ) {
+			return wptexturize( $text );
+		}
+	}
+
+	if ( null === $processor_class ) {
+		$processor_class = new class( '', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
+			/**
+			 * Returns the byte span of the current token in the input.
+			 *
+			 * Only for tokens that appear in the input, such as text nodes.
+			 *
+			 * @return WP_HTML_Span|null Span of the token, or null if unavailable.
+			 */
+			public function get_token_span() {
+				if ( ! $this->set_bookmark( 'texturize' ) ) {
+					return null;
+				}
+				return $this->bookmarks['_texturize'] ?? null;
+			}
+
+			/**
+			 * Returns the byte span of the markup token under the tokenizer.
+			 *
+			 * Virtual tokens, such as implied closing tags, have no bytes of their
+			 * own; for them this is the span of the real token that caused them.
+			 *
+			 * @return WP_HTML_Span|null Span of the markup token, or null if there is none.
+			 */
+			public function get_markup_span() {
+				// The tokenizer's own name, since the HTML Processor's describes the virtual token.
+				$name = WP_HTML_Tag_Processor::get_token_name();
+				if ( null === $name || '#text' === $name || ! WP_HTML_Tag_Processor::set_bookmark( '_texturize' ) ) {
+					return null;
+				}
+				return $this->bookmarks['_texturize'] ?? null;
+			}
+		};
+	}
+
+	$processor = $processor_class::create_fragment( $text );
+	if ( null === $processor ) {
+		return wptexturize( $text );
+	}
+
+	if ( null === $no_texturize_tags ) {
+		/** This filter is documented in wp-includes/formatting.php */
+		$no_texturize_tags = apply_filters( 'no_texturize_tags', array( 'pre', 'code', 'kbd', 'style', 'script', 'tt' ) );
+	}
+	$protected_elements = array_flip( array_map( 'strtoupper', $no_texturize_tags ) );
+
+	// Elements whose content is a single raw-text token.
+	$raw_text_elements = array(
+		'IFRAME'   => true,
+		'NOEMBED'  => true,
+		'NOFRAMES' => true,
+		'SCRIPT'   => true,
+		'STYLE'    => true,
+		'TEXTAREA' => true,
+		'TITLE'    => true,
+		'XMP'      => true,
+	);
+
+	$replacements  = array();
+	$markup_spans  = array();
+	$covered       = array();
+	$has_ampersand = str_contains( $text, '&' );
+	$at            = 0;
+	$run_start     = null;
+	$run_end       = null;
+	$run_protected = false;
+	while ( $processor->next_token() ) {
+		$type        = $processor->get_token_type();
+		$breadcrumbs = $processor->get_breadcrumbs();
+
+		$protected = false;
+		foreach ( $breadcrumbs as $element ) {
+			if ( isset( $protected_elements[ $element ] ) ) {
+				$protected = true;
+				break;
+			}
+		}
+
+		if ( '#text' !== $type ) {
+			$is_raw_text = '#tag' === $type && isset( $raw_text_elements[ $processor->get_tag() ] ) && ! $processor->is_tag_closer();
+
+			// Raw text inside a protected element: only the legacy code keeps it whole.
+			if ( $is_raw_text || '#cdata-section' === $type ) {
+				array_pop( $breadcrumbs );
+				foreach ( $breadcrumbs as $element ) {
+					if ( isset( $protected_elements[ $element ] ) ) {
+						return wptexturize( $text );
+					}
+				}
+			}
+
+			/*
+			 * Several tokens can share one span when the HTML Processor adds virtual
+			 * tokens around a real one. Only the real token can be a raw text element
+			 * or a CDATA section.
+			 */
+			$is_cdata = '#cdata-section' === $type;
+			$span     = ( $is_raw_text || $is_cdata || $has_ampersand ) ? $processor->get_markup_span() : null;
+			if ( null !== $span && $span->length > 0 ) {
+				if ( ! isset( $markup_spans[ $span->start ] ) || $is_raw_text || $is_cdata ) {
+					$markup_spans[ $span->start ] = array( $span->length, $is_raw_text, $is_cdata, ! $protected );
+				}
+			}
+			continue;
+		}
+
+		$span = $processor->get_token_span();
+		if ( null === $span ) {
+			return wptexturize( $text );
+		}
+
+		/*
+		 * The HTML Processor can split one run of text into several nodes, and skips
+		 * some bytes, such as NULL, without a token. Markup always starts with "<",
+		 * so bytes between two text nodes without one belong to the same run.
+		 */
+		if (
+			null !== $run_start &&
+			$protected === $run_protected &&
+			( $span->start === $run_end || false === strpos( $text, '<', $run_end ) || strpos( $text, '<', $run_end ) >= $span->start )
+		) {
+			$run_end = $span->start + $span->length;
+			continue;
+		}
+
+		if ( null !== $run_start ) {
+			_wptexturize_html_api_run( $text, $run_start, $run_end, $run_protected, $replacements );
+			if ( $has_ampersand ) {
+				$covered[ $run_start ] = $run_end;
+			}
+			$at = $run_end;
+		}
+
+		// Bytes the parser skipped just before this text, after the last markup, belong to it.
+		$run_start = $span->start;
+		if ( $run_start > $at ) {
+			$markup_end = strrpos( substr( $text, $at, $run_start - $at ), '>' );
+			$run_start  = false === $markup_end ? $at : $at + $markup_end + 1;
+		}
+
+		$run_end       = $span->start + $span->length;
+		$run_protected = $protected;
+	}
+
+	if ( null !== $processor->get_last_error() || $processor->paused_at_incomplete_token() ) {
+		return wptexturize( $text );
+	}
+
+	if ( null !== $run_start ) {
+		_wptexturize_html_api_run( $text, $run_start, $run_end, $run_protected, $replacements );
+		if ( $has_ampersand ) {
+			$covered[ $run_start ] = $run_end;
+		}
+	}
+
+	foreach ( $markup_spans as $start => list( $length, $is_raw_text, $is_cdata, $texturize_contents ) ) {
+		if ( $has_ampersand ) {
+			$covered[ $start ] = $start + $length;
+		}
+		$markup = substr( $text, $start, $length );
+
+		// A CDATA section holds text; the legacy code reads it as it always has.
+		$updated = $is_cdata ? wptexturize( $markup ) : _wptexturize_html_api_markup( $markup, $is_raw_text, $texturize_contents );
+		if ( $updated !== $markup ) {
+			$replacements[] = array( $start, $length, $updated );
+		}
+	}
+
+	/*
+	 * The HTML Processor skips some markup without a token, such as a stray
+	 * closing tag or a DOCTYPE inside a fragment. Only a bare & would change it.
+	 */
+	if ( $has_ampersand ) {
+		ksort( $covered );
+		$covered[ strlen( $text ) ] = strlen( $text );
+		$at                         = 0;
+		foreach ( $covered as $start => $end ) {
+			if ( $start > $at ) {
+				$skipped = substr( $text, $at, $start - $at );
+				if ( str_contains( $skipped, '<!--' ) ) {
+					return wptexturize( $text );
+				}
+				$updated = _wptexturize_html_api_markup( $skipped, false, false );
+				if ( $updated !== $skipped ) {
+					$replacements[] = array( $at, $start - $at, $updated );
+				}
+			}
+			$at = max( $at, $end );
+		}
+	}
+
+	if ( empty( $replacements ) ) {
+		return $text;
+	}
+
+	usort(
+		$replacements,
+		static function ( $a, $b ) {
+			return $a[0] - $b[0];
+		}
+	);
+
+	// Splice in the changed spans. Overlapping spans mean the walk went wrong.
+	$output = '';
+	$at     = 0;
+	foreach ( $replacements as list( $start, $length, $replacement ) ) {
+		if ( $start < $at ) {
+			return wptexturize( $text );
+		}
+		$output .= substr( $text, $at, $start - $at ) . $replacement;
+		$at      = $start + $length;
+	}
+
+	return $output . substr( $text, $at );
+}
+
+/**
+ * Texturizes one run of text for _wptexturize_html_api().
+ *
+ * Extends the run over bytes the HTML Processor skipped before the next markup,
+ * such as NULL bytes, so the legacy code sees the same text it would have, and
+ * records a replacement only when the text changes.
+ *
+ * @since 7.3.0
+ * @access private
+ * @internal
+ *
+ * @param string  $text         The whole input.
+ * @param int     $start        Byte offset where the run starts.
+ * @param int     $end          Byte offset where the run ends. Updated to include skipped bytes.
+ * @param bool    $is_protected Whether the run is inside a `no_texturize_tags` element.
+ * @param array[] $replacements Replacements as start, length, and new text. Appended to.
+ */
+function _wptexturize_html_api_run( $text, $start, &$end, $is_protected, &$replacements ) {
+	$next_markup = strpos( $text, '<', $end );
+	$end         = false === $next_markup ? strlen( $text ) : $next_markup;
+
+	if ( $is_protected ) {
+		return;
+	}
+
+	$run = substr( $text, $start, $end - $start );
+	if ( '' === trim( $run ) ) {
+		return;
+	}
+
+	$texturized = wptexturize( $run );
+	if ( $texturized !== $run ) {
+		$replacements[] = array( $start, $end - $start, $texturized );
+	}
+}
+
+/**
+ * Applies the legacy handling of markup for _wptexturize_html_api().
+ *
+ * Markup is not texturized. As in the legacy implementation, a bare `&` outside
+ * an HTML comment becomes `&#038;`, and an unprotected raw text element's
+ * contents are texturized as text. Like the legacy implementation, the opening
+ * tag is taken to end at its first `>`.
+ *
+ * @since 7.3.0
+ * @access private
+ * @internal
+ *
+ * @param string $markup             One markup token from the input.
+ * @param bool   $is_raw_text        Whether the token is a whole raw text element.
+ * @param bool   $texturize_contents Whether a raw text element's contents are texturized.
+ * @return string The markup, updated as the legacy implementation would.
+ */
+function _wptexturize_html_api_markup( $markup, $is_raw_text, $texturize_contents ) {
+	if ( str_starts_with( $markup, '<!--' ) ) {
+		return $markup;
+	}
+
+	$contents = '';
+	$closer   = '';
+	if ( $is_raw_text ) {
+		$opener_end   = strpos( $markup, '>' );
+		$closer_start = strrpos( $markup, '</' );
+		if ( false !== $opener_end && false !== $closer_start && $closer_start > $opener_end ) {
+			$contents = substr( $markup, $opener_end + 1, $closer_start - $opener_end - 1 );
+			$closer   = substr( $markup, $closer_start );
+			$markup   = substr( $markup, 0, $opener_end + 1 );
+			if ( $texturize_contents && '' !== trim( $contents ) ) {
+				$contents = wptexturize( $contents );
+			}
+		}
+	}
+
+	// Replace each & in a tag with &#038; unless it already looks like an entity.
+	if ( str_contains( $markup, '&' ) ) {
+		$markup = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $markup );
+	}
+	if ( str_contains( $closer, '&' ) ) {
+		$closer = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $closer );
+	}
+
+	return $markup . $contents . $closer;
 }
 
 /**
