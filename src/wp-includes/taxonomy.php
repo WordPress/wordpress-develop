@@ -19,13 +19,25 @@
  *
  * @since 2.8.0
  * @since 5.9.0 Added `'wp_template_part_area'` taxonomy.
+ * @since 7.2.0 Registered taxonomies keep their object types when the locale is switched.
  *
- * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+ * @global WP_Rewrite    $wp_rewrite    WordPress rewrite component.
+ * @global WP_Taxonomy[] $wp_taxonomies The registered taxonomies.
  */
 function create_initial_taxonomies() {
-	global $wp_rewrite;
+	global $wp_rewrite, $wp_taxonomies;
 
 	WP_Taxonomy::reset_default_labels();
+
+	$registered_object_types = array();
+
+	if ( doing_action( 'change_locale' ) && is_array( $wp_taxonomies ) ) {
+		foreach ( $wp_taxonomies as $taxonomy ) {
+			if ( $taxonomy->_builtin ) {
+				$registered_object_types[ $taxonomy->name ] = $taxonomy->object_type;
+			}
+		}
+	}
 
 	if ( ! did_action( 'init' ) ) {
 		$rewrite = array(
@@ -261,6 +273,12 @@ function create_initial_taxonomies() {
 			'show_tagcloud'      => false,
 		)
 	);
+
+	foreach ( $registered_object_types as $taxonomy => $object_types ) {
+		if ( isset( $wp_taxonomies[ $taxonomy ] ) ) {
+			$wp_taxonomies[ $taxonomy ]->object_type = $object_types;
+		}
+	}
 }
 
 /**
