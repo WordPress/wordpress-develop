@@ -973,7 +973,7 @@ class WP_Ability {
 		 */
 		$validity = apply_filters( 'wp_ability_validate_output', $is_valid, $output, $this->name );
 		if ( false === $validity ) {
-			$validity = new WP_Error( 'ability_invalid_output', $message );
+			return new WP_Error( 'ability_invalid_output', $message );
 		}
 		if ( is_wp_error( $validity ) && $validity->has_errors() ) {
 			if ( ! str_contains( $validity->get_error_message(), $message ) ) {
