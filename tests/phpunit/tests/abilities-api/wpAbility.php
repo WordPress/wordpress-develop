@@ -2497,7 +2497,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 * Tests that sanitization errors stop permission checks, execution, and execution hooks.
 	 *
 	 * @ticket 66383
-	 * @ticket 66665
 	 * @dataProvider data_input_sanitization_errors
 	 *
 	 * @param array  $schema  Input schema.
