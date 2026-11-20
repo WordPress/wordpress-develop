@@ -1459,6 +1459,7 @@ class WP_Query {
 	 *
 	 * @phpstan-param Query_Vars $query_vars
 	 * @phpstan-param-out ($query_vars is Posts_Query_Vars ? Posts_Query_Vars : Query_Vars) $query_vars
+	 * @phpstan-assert WP_Tax_Query $this->tax_query
 	 */
 	public function parse_tax_query( &$query_vars ) {
 		if ( ! empty( $query_vars['tax_query'] ) && is_array( $query_vars['tax_query'] ) ) {
