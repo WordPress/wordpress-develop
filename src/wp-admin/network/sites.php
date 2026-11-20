@@ -122,25 +122,28 @@ if ( isset( $_GET['action'] ) ) {
 						$submit = __( 'Delete this site permanently' );
 						?>
 						<div class="notice notice-warning inline">
-							<p><?php _e( 'Deleting a site is a permanent action that cannot be undone. This will delete the entire site and its uploads directory.' ); ?>
+							<p><?php _e( 'Deleting a site is a permanent action that cannot be undone. This will delete the entire site and its uploads directory.' ); ?></p>
 						</div>
 						<?php
 					} elseif ( 'archiveblog' === $site_action ) {
 						?>
 						<div class="notice notice-warning inline">
-							<p><?php _e( 'Archiving a site makes the site unavailable to its users and visitors. This is a reversible action.' ); ?>
+							<p><?php _e( 'Archiving a site makes the site unavailable to its users and visitors. This is a reversible action.' ); ?></p>
 						</div>
 						<?php
 					} elseif ( 'deactivateblog' === $site_action ) {
 						?>
 						<div class="notice notice-warning inline">
-							<p><?php _e( 'Flagging a site for deletion makes the site unavailable to its users and visitors. This is a reversible action. A super admin can permanently delete the site at a later date.' ); ?>
+							<p><?php _e( 'Flagging a site for deletion makes the site unavailable to its users and visitors. This is a reversible action. A super admin can permanently delete the site at a later date.' ); ?></p>
 						</div>
 						<?php
 					}
 					?>
 					<p><?php printf( $manage_actions[ $site_action ], "<strong>{$site_address}</strong>" ); ?></p>
-					<?php submit_button( $submit, 'primary' ); ?>
+					<p class="submit">
+						<?php submit_button( $submit, 'primary', 'submit', false ); ?>
+						<a href="<?php echo esc_url( wp_get_referer() ? wp_get_referer() : network_admin_url( 'sites.php' ) ); ?>" class="button"><?php _e( 'Cancel' ); ?></a>
+					</p>
 				</form>
 			</div>
 		<?php
@@ -217,7 +220,7 @@ if ( isset( $_GET['action'] ) ) {
 										<input type="hidden" name="_wp_http_referer" value="<?php echo esc_attr( wp_get_referer() ); ?>" />
 										<?php wp_nonce_field( 'ms-delete-sites', '_wpnonce', false ); ?>
 										<div class="notice notice-warning inline">
-											<p><?php _e( 'Deleting a site is a permanent action that cannot be undone. This will delete the entire site and its uploads directory.' ); ?>
+											<p><?php _e( 'Deleting a site is a permanent action that cannot be undone. This will delete the entire site and its uploads directory.' ); ?></p>
 										</div>
 										<p><?php _e( 'You are about to delete the following sites:' ); ?></p>
 										<ul class="ul-disc">
@@ -234,7 +237,10 @@ if ( isset( $_GET['action'] ) ) {
 												</li>
 											<?php endforeach; ?>
 										</ul>
-										<?php submit_button( __( 'Delete these sites permanently' ), 'primary' ); ?>
+										<p class="submit">
+											<?php submit_button( __( 'Delete these sites permanently' ), 'primary', 'submit', false ); ?>
+											<a href="<?php echo esc_url( wp_get_referer() ? wp_get_referer() : network_admin_url( 'sites.php' ) ); ?>" class="button"><?php _e( 'Cancel' ); ?></a>
+										</p>
 									</form>
 								</div>
 								<?php
