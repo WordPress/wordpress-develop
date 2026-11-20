@@ -553,6 +553,105 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that full documents serialize content after the BODY and HTML end tags
+	 * at its place in the document tree.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_provider_serialize_content_after_body_and_html
+	 *
+	 * @covers ::serialize
+	 *
+	 * @param string $html     Full HTML document.
+	 * @param string $expected Expected serialization.
+	 */
+	public function test_full_document_serialize_includes_content_after_body_and_html( string $html, string $expected ) {
+		$processor = WP_HTML_Processor::create_full_parser( $html );
+		$this->assertSame( $expected, $processor->serialize() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_serialize_content_after_body_and_html(): array {
+		return array(
+			'Comment after BODY'                 => array(
+				'<html><body></body><!--c-->',
+				'<html><head></head><body></body><!--c--></html>',
+			),
+			'Processing instruction after BODY'  => array(
+				'<html><body></body><?pi data?>',
+				'<html><head></head><body></body><?pi data?></html>',
+			),
+			'Whitespace and comment after BODY'  => array(
+				'<html><body></body> <!--c-->',
+				'<html><head></head><body> </body><!--c--></html>',
+			),
+			'Comment after unclosed P and BODY'  => array(
+				'<p>x</body><!--c-->',
+				'<html><head></head><body><p>x</p></body><!--c--></html>',
+			),
+			'Comment after HTML'                 => array(
+				'<html><body></body></html><!--c-->',
+				'<html><head></head><body></body></html><!--c-->',
+			),
+			'Processing instruction after HTML'  => array(
+				'<html><body></body></html><?pi data?>',
+				'<html><head></head><body></body></html><?pi data?>',
+			),
+			'Whitespace and comments after HTML' => array(
+				'<html><body></body> </html> <!--a--><!--b-->',
+				'<html><head></head><body>  </body></html><!--a--><!--b-->',
+			),
+			'Comments after BODY and after HTML' => array(
+				'<html><body></body><!--a--></html><!--b-->',
+				'<html><head></head><body></body><!--a--></html><!--b-->',
+			),
+			'Comment after FRAMESET and HTML'    => array(
+				'<frameset></frameset></html><!--c-->',
+				'<html><head></head><frameset></frameset></html><!--c-->',
+			),
+			'Document with a trailing comment'   => array(
+				'<!DOCTYPE html><html><head><title>t</title></head><body><p>x</p></body></html><!-- generated -->',
+				'<!DOCTYPE html><html><head><title>t</title></head><body><p>x</p></body></html><!-- generated -->',
+			),
+		);
+	}
+
+	/**
+	 * Ensures that normalize(), which parses its input as a BODY fragment, keeps
+	 * content after BODY and HTML end tags inside BODY.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_provider_normalize_content_after_body_and_html
+	 *
+	 * @covers ::normalize
+	 *
+	 * @param string $html     HTML fragment.
+	 * @param string $expected Expected normalized HTML.
+	 */
+	public function test_normalize_keeps_content_after_body_and_html_in_body( string $html, string $expected ) {
+		$this->assertSame( $expected, WP_HTML_Processor::normalize( $html ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_normalize_content_after_body_and_html(): array {
+		return array(
+			'Comment after BODY'                  => array( '<p>x</p></body><!--c-->', '<p>x</p><!--c-->' ),
+			'Comment after unclosed P and BODY'   => array( '<p>x</body><!--c-->', '<p>x<!--c--></p>' ),
+			'Whitespace after comment after BODY' => array( '<p>x</p></body><!--c--> ', '<p>x</p><!--c--> ' ),
+			'Processing instruction and newline after HTML' => array( "<p>x</p></body></html><?pi data?>\n", "<p>x</p><?pi data?>\n" ),
+		);
+	}
+
+	/**
 	 * Ensures that leading newlines in PRE, LISTING, and TEXTAREA elements are normalized
 	 * according to their parsing namespace, and that normalization is idempotent in these cases.
 	 *

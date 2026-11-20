@@ -1226,4 +1226,54 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			$processor->set_bookmark( 'beyond the limit' )
 		);
 	}
+
+	/**
+	 * Ensures that after visiting a node outside of BODY, the processor bails
+	 * on any later token it cannot visit in document order.
+	 *
+	 * @ticket 65967
+	 *
+	 * @dataProvider data_unsupported_content_after_body_and_html
+	 *
+	 * @covers ::next_token
+	 *
+	 * @param string   $html                    Full HTML document.
+	 * @param string[] $breadcrumbs_before_bail Breadcrumbs of the last node visited before bailing.
+	 */
+	public function test_bails_on_unsupported_content_after_body_and_html( string $html, array $breadcrumbs_before_bail ) {
+		$processor = WP_HTML_Processor::create_full_parser( $html );
+
+		$breadcrumbs = array();
+		while ( $processor->next_token() ) {
+			$breadcrumbs = $processor->get_breadcrumbs();
+		}
+
+		$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $processor->get_last_error(), 'Failed to bail on unsupported content.' );
+		$this->assertSame( $breadcrumbs_before_bail, $breadcrumbs, 'Bailed at the wrong token.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_unsupported_content_after_body_and_html(): array {
+		return array(
+			'Whitespace after comment after BODY'          => array( '<html><body></body><!--a--> ', array( 'HTML', '#comment' ) ),
+			'Whitespace after processing instruction after BODY' => array( '<html><body></body><?pi data?> ', array( 'HTML', '#processing-instruction' ) ),
+			'Whitespace after presumptuous tag after BODY' => array( '<html><body></body></> ', array( 'HTML', '#presumptuous-tag' ) ),
+			'Whitespace into unclosed P after comment after BODY' => array( '<p>x</body><!--a--> ', array( 'HTML', '#comment' ) ),
+			'Text after comment after BODY'                => array( '<html><body></body><!--a-->x', array( 'HTML', '#comment' ) ),
+			'NULL byte after comment after BODY'           => array( "<html><body></body><!--a-->\x00", array( 'HTML', '#comment' ) ),
+			'Element after comment after BODY'             => array( '<html><body></body><!--a--><p>', array( 'HTML', '#comment' ) ),
+			'BODY end tag after comment after BODY'        => array( '<html><body></body><!--a--></body>', array( 'HTML', '#comment' ) ),
+			'Whitespace after HTML after comment after BODY' => array( '<html><body></body><!--a--></html> ', array( 'HTML', '#comment' ) ),
+			'Newline after comment after HTML'             => array( "<html><body></body></html><!--a-->\n", array( '#comment' ) ),
+			'Text after comment after HTML'                => array( '<html><body></body></html><!--a-->x', array( '#comment' ) ),
+			'Element after comment after HTML'             => array( '<html><body></body></html><!--a--><p>', array( '#comment' ) ),
+			'HTML end tag after comment after HTML'        => array( '<html><body></body></html><!--a--></html>', array( '#comment' ) ),
+			'Whitespace after comment after FRAMESET and HTML' => array( '<frameset></frameset></html><!--a--> ', array( '#comment' ) ),
+			'NOFRAMES after comment after FRAMESET and HTML' => array( '<frameset></frameset></html><!--a--><noframes></noframes>', array( '#comment' ) ),
+		);
+	}
 }
