@@ -722,9 +722,10 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 	/**
 	 * Test output validation against schema.
-	 * Output validation errors retain their diagnostics in the REST response.
+	 * Output validation errors retain their message and data in the REST response.
 	 *
 	 * @ticket 64098
+	 * @ticket 66433
 	 */
 	public function test_output_validation(): void {
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/invalid-output/run' );
@@ -735,29 +736,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertSame( 500, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'ability_invalid_output', $data['code'] );
+		$this->assertNull( $data['data'] );
 		$this->assertSame(
 			'Ability "test/invalid-output" ran, but its output failed validation. Its changes may already be saved. Check the current state before you run it again. Reason: output is not of type number.',
 			$data['message']
 		);
-	}
-
-	/**
-	 * Tests that a REST client receives retry guidance without exposing invalid output.
-	 *
-	 * @ticket 66433
-	 */
-	public function test_output_validation_error_includes_retry_guidance(): void {
-		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/invalid-output/run' );
-		$request->set_header( 'Content-Type', 'application/json' );
-
-		$response = $this->server->dispatch( $request );
-
-		$this->assertSame( 500, $response->get_status() );
-		$data = $response->get_data();
-		$this->assertSame( 'ability_invalid_output', $data['code'] );
-		$this->assertNull( $data['data'] );
-		$this->assertStringContainsString( 'Check the current state before you run it again.', $data['message'] );
-		$this->assertNotFalse( wp_json_encode( $data ) );
 	}
 
 	/**
