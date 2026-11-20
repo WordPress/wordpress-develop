@@ -2834,8 +2834,12 @@ class WP_Query {
 
 		if ( ! empty( $this->meta_query->queries ) ) {
 			$clauses = $this->meta_query->get_sql( 'post', $wpdb->posts, 'ID', $this );
-			$join   .= $clauses['join'];
-			$where  .= $clauses['where'];
+
+			// This is only false when there is no meta table for the type, and posts always have one.
+			if ( false !== $clauses ) {
+				$join  .= $clauses['join'];
+				$where .= $clauses['where'];
+			}
 		}
 
 		$rand = ( isset( $query_vars['orderby'] ) && 'rand' === $query_vars['orderby'] );
