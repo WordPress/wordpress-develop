@@ -923,15 +923,15 @@ class WP_Ability {
 	 * @return true|WP_Error Returns true if valid, or a WP_Error object if validation fails.
 	 */
 	protected function validate_output( $output ) {
-		$message = sprintf(
-			/* translators: %s: Ability name. */
-			__( 'Ability "%s" ran, but its output failed validation.' ),
+		$annotations = $this->get_meta_item( 'annotations' );
+		$message     = sprintf(
+			true === $annotations['readonly']
+				/* translators: %s: Ability name. */
+				? __( 'Ability "%s" ran, but its output failed validation.' )
+				/* translators: %s: Ability name. */
+				: __( 'Ability "%s" ran, but its output failed validation. Its changes may already be saved. Check the current state before you run it again.' ),
 			$this->name
 		);
-		$annotations = $this->get_meta_item( 'annotations' );
-		if ( true !== $annotations['readonly'] ) {
-			$message .= ' ' . __( 'Its changes may already be saved. Check the current state before you run it again.' );
-		}
 
 		$output_schema = $this->get_output_schema();
 		if ( empty( $output_schema ) ) {
