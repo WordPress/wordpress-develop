@@ -927,9 +927,9 @@ class WP_Ability {
 		$message     = sprintf(
 			is_array( $annotations ) && true === ( $annotations['readonly'] ?? null )
 				/* translators: %s: Ability name. */
-				? __( 'Ability "%s" ran, but its output failed validation.' )
+				? __( 'Ability "%s" returned a result that failed validation.' )
 				/* translators: %s: Ability name. */
-				: __( 'Ability "%s" ran, but its output failed validation. Its changes may already be saved. Check the current state before you run it again.' ),
+				: __( 'Ability "%s" ran, but its result failed validation. The requested action may already have taken effect. Check the outcome before retrying.' ),
 			$this->name
 		);
 

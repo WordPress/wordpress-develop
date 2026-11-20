@@ -1866,7 +1866,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$result  = $ability->execute();
 
 		$this->assertWPError( $received_error );
-		$this->assertSame( 'Ability "test/calculator" ran, but its output failed validation. Reason: output is not of type string.', $received_message );
+		$this->assertSame( 'Ability "test/calculator" returned a result that failed validation. Reason: output is not of type string.', $received_message );
 		$this->assertSame( $received_error, $result );
 	}
 
@@ -1886,8 +1886,10 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			}
 		);
 
-		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
-		$result  = $ability->execute();
+		$args                          = self::$test_ability_properties;
+		$args['output_schema']['type'] = 'string';
+		$ability                       = new WP_Ability( self::$test_ability_name, $args );
+		$result                        = $ability->execute();
 
 		$this->assertSame( $original, $result );
 		$this->assertEquals( $unchanged, $result );
@@ -2878,13 +2880,13 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 * @return array[] Read-only annotations and their expected messages.
 	 */
 	public static function data_output_retry_guidance() {
-		$message = 'Ability "test/calculator" ran, but its output failed validation.';
-		$warning = ' Its changes may already be saved. Check the current state before you run it again.';
+		$readonly_message = 'Ability "test/calculator" returned a result that failed validation.';
+		$write_message    = 'Ability "test/calculator" ran, but its result failed validation. The requested action may already have taken effect. Check the outcome before retrying.';
 
 		return array(
-			'read-only'     => array( true, $message ),
-			'not read-only' => array( false, $message . $warning ),
-			'default'       => array( null, $message . $warning ),
+			'read-only'     => array( true, $readonly_message ),
+			'not read-only' => array( false, $write_message ),
+			'default'       => array( null, $write_message ),
 		);
 	}
 }

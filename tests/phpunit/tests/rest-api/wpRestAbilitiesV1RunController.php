@@ -738,7 +738,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertSame( 'ability_invalid_output', $data['code'] );
 		$this->assertNull( $data['data'] );
 		$this->assertSame(
-			'Ability "test/invalid-output" ran, but its output failed validation. Its changes may already be saved. Check the current state before you run it again. Reason: output is not of type number.',
+			'Ability "test/invalid-output" ran, but its result failed validation. The requested action may already have taken effect. Check the outcome before retrying. Reason: output is not of type number.',
 			$data['message']
 		);
 	}
@@ -1211,7 +1211,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$data = $response->get_data();
 		$this->assertSame( 'ability_invalid_output', $data['code'] );
 		$this->assertSame(
-			'Ability "test/strict-output" ran, but its output failed validation. Its changes may already be saved. Check the current state before you run it again. Reason: status is a required property of output.',
+			'Ability "test/strict-output" ran, but its result failed validation. The requested action may already have taken effect. Check the outcome before retrying. Reason: status is a required property of output.',
 			$data['message']
 		);
 	}
