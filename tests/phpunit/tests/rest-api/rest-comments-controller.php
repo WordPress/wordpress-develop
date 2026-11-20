@@ -4501,10 +4501,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
 
+		$data = $response->get_data();
+
 		$this->assertSame( 200, $response->get_status(), 'The default collection should be readable.' );
+		$this->assertIsArray( $data, 'The default collection should be a list.' );
 		$this->assertNotContains(
 			$comment_id,
-			wp_list_pluck( $response->get_data(), 'id' ),
+			wp_list_pluck( $data, 'id' ),
 			'An excluded type should not appear in the default collection.'
 		);
 
@@ -4538,10 +4541,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
 
+		$data = $response->get_data();
+
 		$this->assertSame( 200, $response->get_status(), 'An authorized request for the type should succeed.' );
+		$this->assertIsArray( $data, 'The requested collection should be a list.' );
 		$this->assertContains(
 			$comment_id,
-			wp_list_pluck( $response->get_data(), 'id' ),
+			wp_list_pluck( $data, 'id' ),
 			'An explicitly requested excluded type should still be returned.'
 		);
 	}

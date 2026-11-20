@@ -320,7 +320,7 @@ OPTIONS;
 
 		$this->assertSameSets(
 			array( $regular_comment_id ),
-			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) )
+			wp_parse_id_list( wp_list_pluck( $this->table->items, 'comment_ID' ) )
 		);
 	}
 
@@ -370,7 +370,7 @@ OPTIONS;
 
 		$this->assertSameSets(
 			array( $private_comment_id ),
-			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) )
+			wp_parse_id_list( wp_list_pluck( $this->table->items, 'comment_ID' ) )
 		);
 	}
 
@@ -407,7 +407,7 @@ OPTIONS;
 
 		$this->assertSameSets(
 			array( $note_id, $regular_comment_id ),
-			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
+			wp_parse_id_list( wp_list_pluck( $this->table->items, 'comment_ID' ) ),
 			'An empty excluded set should surface notes in the untyped view.'
 		);
 
@@ -418,7 +418,7 @@ OPTIONS;
 
 			$this->assertSameSets(
 				array( $note_id, $regular_comment_id ),
-				array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
+				wp_parse_id_list( wp_list_pluck( $this->table->items, 'comment_ID' ) ),
 				"A request for '$requested_type' should be dropped rather than filter the table."
 			);
 		}
@@ -460,7 +460,7 @@ OPTIONS;
 
 		$this->assertSameSets(
 			array( $regular_comment_id ),
-			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
+			wp_parse_id_list( wp_list_pluck( $this->table->items, 'comment_ID' ) ),
 			'An array request should be treated as no type filter and keep the excluded type hidden.'
 		);
 	}
@@ -471,7 +471,7 @@ OPTIONS;
 	 * @param string[] $excluded_types Comment types excluded by default.
 	 * @return string[] Filtered comment types.
 	 */
-	public function filter_add_private_comment_type( $excluded_types ): array {
+	public function filter_add_private_comment_type( array $excluded_types ): array {
 		$excluded_types[] = 'private';
 
 		return $excluded_types;

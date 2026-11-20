@@ -124,7 +124,7 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 
 		add_filter(
 			'default_excluded_comment_types',
-			static function ( $types ) {
+			static function ( array $types ): array {
 				$types[] = 'review';
 				return $types;
 			}

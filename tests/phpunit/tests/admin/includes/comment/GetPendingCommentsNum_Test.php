@@ -15,7 +15,7 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 	 * @param string $comment_type Comment type slug.
 	 * @return int The new comment ID.
 	 */
-	private function make_pending( $post_id, $comment_type = 'comment' ) {
+	private function make_pending( int $post_id, string $comment_type = 'comment' ): int {
 		return self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
@@ -55,7 +55,7 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 
 		add_filter(
 			'default_excluded_comment_types',
-			static function ( $types ) {
+			static function ( array $types ): array {
 				$types[] = 'review';
 				return $types;
 			}
@@ -93,6 +93,7 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 
 		$counts = get_pending_comments_num( array( $post_a, $post_b ) );
 
+		$this->assertIsArray( $counts, 'An array of posts should return an array of counts.' );
 		$this->assertSameSetsWithIndex(
 			array(
 				$post_a => 1,

@@ -7,6 +7,20 @@
  * @covers ::get_lastcommentmodified
  */
 class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
+
+	/**
+	 * Retrieves the server date cached for the default excluded comment types.
+	 *
+	 * @return string Cached date.
+	 */
+	private function get_cached_server_date(): string {
+		$cached = wp_cache_get_salted( 'lastcommentmodified:server', 'timeinfo', 'note,reaction' );
+
+		$this->assertIsString( $cached, 'The last comment modified date should be cached.' );
+
+		return $cached;
+	}
+
 	public function test_no_comments() {
 		$this->assertFalse( get_lastcommentmodified() );
 	}
@@ -81,7 +95,7 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 		);
 
 		get_lastcommentmodified();
-		$this->assertSame( strtotime( '2015-04-01 10:00:00' ), strtotime( wp_cache_get_salted( 'lastcommentmodified:server', 'timeinfo', 'note,reaction' ) ) );
+		$this->assertSame( strtotime( '2015-04-01 10:00:00' ), strtotime( $this->get_cached_server_date() ) );
 	}
 
 	public function test_cache_is_cleared() {
@@ -95,7 +109,7 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 
 		get_lastcommentmodified();
 
-		$this->assertSame( strtotime( '2000-01-01 10:00:00' ), strtotime( wp_cache_get_salted( 'lastcommentmodified:server', 'timeinfo', 'note,reaction' ) ) );
+		$this->assertSame( strtotime( '2000-01-01 10:00:00' ), strtotime( $this->get_cached_server_date() ) );
 
 		self::factory()->comment->create_and_get(
 			array(
@@ -107,7 +121,7 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 
 		$this->assertFalse( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) );
 		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( get_lastcommentmodified() ) );
-		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( wp_cache_get_salted( 'lastcommentmodified:server', 'timeinfo', 'note,reaction' ) ) );
+		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( $this->get_cached_server_date() ) );
 	}
 
 	public function test_cache_is_cleared_when_comment_is_trashed() {
@@ -129,13 +143,13 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 
 		get_lastcommentmodified();
 
-		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( wp_cache_get_salted( 'lastcommentmodified:server', 'timeinfo', 'note,reaction' ) ) );
+		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( $this->get_cached_server_date() ) );
 
 		wp_trash_comment( $comment_2->comment_ID );
 
 		$this->assertFalse( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) );
 		$this->assertSame( strtotime( '1998-01-01 10:00:00' ), strtotime( get_lastcommentmodified() ) );
-		$this->assertSame( strtotime( '1998-01-01 10:00:00' ), strtotime( wp_cache_get_salted( 'lastcommentmodified:server', 'timeinfo', 'note,reaction' ) ) );
+		$this->assertSame( strtotime( '1998-01-01 10:00:00' ), strtotime( $this->get_cached_server_date() ) );
 	}
 	/**
 	 * Internal comment types are not user-facing discussion, so they must not

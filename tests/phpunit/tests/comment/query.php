@@ -5678,18 +5678,25 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns the comment types for a list of comment IDs.
+	 * Returns the comment types for the result of a comment query.
 	 *
-	 * @param int[] $comment_ids Comment IDs.
+	 * @param array<int|WP_Comment>|int $comments Comments or comment IDs, as returned by WP_Comment_Query::query().
 	 * @return string[] Comment types.
 	 */
-	private function get_comment_types_for_ids( array $comment_ids ): array {
-		return array_map(
-			static function ( int $comment_id ): string {
-				return get_comment( $comment_id )->comment_type;
-			},
-			$comment_ids
-		);
+	private function get_comment_types_for_ids( $comments ): array {
+		$this->assertIsArray( $comments, 'The query should return a list of comments.' );
+
+		$comment_types = array();
+
+		foreach ( $comments as $comment_id ) {
+			$comment = get_comment( $comment_id );
+
+			$this->assertInstanceOf( WP_Comment::class, $comment, 'Each found comment should exist.' );
+
+			$comment_types[] = $comment->comment_type;
+		}
+
+		return $comment_types;
 	}
 
 	/**
@@ -5881,6 +5888,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @ticket 65537
 	 * @covers ::wp_get_excluded_comment_types_clause
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function test_excluded_comment_types_clause_quotes_a_qualified_column(): void {
 		global $wpdb;
