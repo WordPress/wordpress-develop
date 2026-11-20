@@ -34,11 +34,11 @@ class Tests_Compat_wpScanUtf8 extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_counts_code_points_in_valid_utf8()}.
 	 *
-	 * @return array<string, array{0: string}>
+	 * @return array<non-falsy-string, array{ 0: string }>
 	 */
-	public static function data_valid_utf8() {
+	public static function data_valid_utf8(): array {
 		return array(
 			'Empty string'                       => array( '' ),
 			'US-ASCII'                           => array( 'Hello, World!' ),
@@ -67,9 +67,9 @@ class Tests_Compat_wpScanUtf8 extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_invalid_utf8
 	 *
-	 * @param string $text                 Text containing invalid UTF-8 bytes.
-	 * @param int[]  $expected_spans       Byte length of each invalid span, in order.
-	 * @param int    $expected_code_points Code points when each invalid span counts as one.
+	 * @param string             $text                 Text containing invalid UTF-8 bytes.
+	 * @param list<positive-int> $expected_spans       Byte length of each invalid span, in order.
+	 * @param positive-int       $expected_code_points Code points when each invalid span counts as one.
 	 */
 	public function test_finds_maximal_subparts_of_invalid_bytes( string $text, array $expected_spans, int $expected_code_points ) {
 		$end            = strlen( $text );
@@ -96,11 +96,11 @@ class Tests_Compat_wpScanUtf8 extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_finds_maximal_subparts_of_invalid_bytes()}.
 	 *
-	 * @return array<string, array{0: string, 1: int[], 2: int}>
+	 * @return array<non-falsy-string, array{ 0: string, 1: list<positive-int>, 2: positive-int }>
 	 */
-	public static function data_invalid_utf8() {
+	public static function data_invalid_utf8(): array {
 		return array(
 			'Lone continuation byte'               => array( "a\x80b", array( 1 ), 3 ),
 			'Run of continuation bytes'            => array( "a\x80\xBF\x80b", array( 1, 1, 1 ), 5 ),
@@ -139,11 +139,11 @@ class Tests_Compat_wpScanUtf8 extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for noncharacters.
+	 * Data provider for {@see self::test_scan_string_with_noncharacters()}.
 	 *
-	 * @return array<string, array{0: string}>
+	 * @return array<non-falsy-string, array{ 0: string }>
 	 */
-	public static function data_strings_with_noncharacters() {
+	public static function data_strings_with_noncharacters(): array {
 		return array(
 			'U+FFFF (3-byte noncharacter)'  => array( "test \xEF\xBF\xBF end" ),
 			'U+FFFE (3-byte noncharacter)'  => array( "test \xEF\xBF\xBE end" ),
