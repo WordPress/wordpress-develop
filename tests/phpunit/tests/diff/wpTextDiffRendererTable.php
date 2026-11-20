@@ -13,13 +13,66 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
+		require_once ABSPATH . 'wp-includes/Text/Diff.php';
 		require_once ABSPATH . 'wp-includes/Text/Diff/Renderer.php';
+		require_once ABSPATH . 'wp-includes/Text/Diff/Renderer/inline.php';
 		require_once ABSPATH . 'wp-includes/class-wp-text-diff-renderer-table.php';
+		require_once ABSPATH . 'wp-includes/class-wp-text-diff-renderer-inline.php';
 	}
 
 	public function set_up() {
 		parent::set_up();
 		$this->diff_renderer_table = new WP_Text_Diff_Renderer_Table();
+	}
+
+	/**
+	 * @ticket 66095
+	 * @covers ::wp_text_diff
+	 */
+	public function test_wp_text_diff_highlights_a_changed_word_in_a_long_table() {
+		$rows = str_repeat( '<tr><td>unchanged cell</td></tr>', 599 );
+		$old  = "<table>$rows<tr><td>one old cell</td></tr></table>";
+		$new  = "<table>$rows<tr><td>one new cell</td></tr></table>";
+
+		$diff = wp_text_diff( $old, $new );
+
+		$this->assertStringContainsString( '<del>old</del>', $diff );
+		$this->assertStringContainsString( '<ins>new</ins>', $diff );
+		$this->assertStringContainsString( "class='diff-context'", $diff );
+	}
+
+	/**
+	 * @ticket 66095
+	 * @ticket 48973
+	 * @covers WP_Text_Diff_Renderer_Table::_changed
+	 */
+	public function test_changed_lists_deletions_before_additions_above_the_pair_limit() {
+		$renderer = $this->diff_renderer_table;
+		$old      = array( 'alpha & old', 'bravo & old', 'charlie & old' );
+		$new      = array( 'alpha & new', 'bravo & new', 'charlie & new' );
+		$diff     = $renderer->_changed( $old, $new );
+
+		$this->assertStringContainsString( '<del>old</del>', $diff );
+		$this->assertStringContainsString( '<ins>new</ins>', $diff );
+
+		$renderer->_max_changed_line_pairs = 4;
+		$this->assertSame( $renderer->_deleted( $old ) . $renderer->_added( $new ), $renderer->_changed( $old, $new ) );
+	}
+
+	/**
+	 * @ticket 66095
+	 * @covers WP_Text_Diff_Renderer_Table::_changed
+	 */
+	public function test_changed_keeps_long_unbroken_lines_in_one_escaped_row() {
+		$prefix   = str_repeat( 'x', 9000 );
+		$suffix   = str_repeat( 'y', 2999 );
+		$renderer = $this->diff_renderer_table;
+		$diff     = $renderer->_changed( array( $prefix . '&old' ), array( $prefix . '&' . $suffix ) );
+
+		$this->assertSame(
+			'<tr>' . $renderer->deletedLine( $prefix . '&amp;old' ) . $renderer->addedLine( $prefix . '&amp;' . $suffix ) . "</tr>\n",
+			$diff
+		);
 	}
 
 	/**
@@ -148,17 +201,25 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	 */
 	public static function data_compat_fields() {
 		return array(
-			'_show_split_view'     => array(
+			'_show_split_view'           => array(
 				'property_name' => '_show_split_view',
 				'expected'      => true,
 			),
-			'inline_diff_renderer' => array(
+			'inline_diff_renderer'       => array(
 				'property_name' => 'inline_diff_renderer',
 				'expected'      => 'WP_Text_Diff_Renderer_inline',
 			),
-			'_diff_threshold'      => array(
+			'_diff_threshold'            => array(
 				'property_name' => '_diff_threshold',
 				'expected'      => 0.6,
+			),
+			'_max_word_diff_line_length' => array(
+				'property_name' => '_max_word_diff_line_length',
+				'expected'      => 10000,
+			),
+			'_max_changed_line_pairs'    => array(
+				'property_name' => '_max_changed_line_pairs',
+				'expected'      => 100000,
 			),
 		);
 	}

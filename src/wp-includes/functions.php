@@ -9725,3 +9725,53 @@ All at ###SITENAME###
 		$email['headers']
 	);
 }
+
+/**
+ * Splits long lines at content boundaries before comparing revisions.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param string[] $lines      Lines to compare.
+ * @param int      $max_length Optional. Maximum length in bytes, except for unbroken words. Default 10000.
+ * @return string[] Lines with their original text and whitespace preserved.
+ */
+function _wp_text_diff_split_long_lines( $lines, $max_length = 10000 ) {
+	$result = array();
+
+	foreach ( $lines as $line ) {
+		if ( strlen( $line ) <= $max_length ) {
+			$result[] = $line;
+			continue;
+		}
+
+		foreach ( preg_split( '/(?<=>)(?=<)/', $line ) as $fragment ) {
+			if ( strlen( $fragment ) <= $max_length ) {
+				$result[] = $fragment;
+				continue;
+			}
+
+			// Keep the sentence punctuation and all following ASCII whitespace together.
+			foreach ( preg_split( '/[.!?][\x09-\x0d ]++\K/', $fragment, -1, PREG_SPLIT_NO_EMPTY ) as $sentence ) {
+				if ( strlen( $sentence ) <= $max_length ) {
+					$result[] = $sentence;
+					continue;
+				}
+
+				$piece = '';
+				for ( $offset = 0; $offset < strlen( $sentence ); $offset += $length ) {
+					// Take a whole word or one byte of ASCII whitespace.
+					$length = max( 1, strcspn( $sentence, " \t\n\r\v\f", $offset ) );
+					if ( '' !== $piece && strlen( $piece ) + $length > $max_length ) {
+						$result[] = $piece;
+						$piece    = '';
+					}
+					$piece .= substr( $sentence, $offset, $length );
+				}
+				$result[] = $piece;
+			}
+		}
+	}
+
+	return $result;
+}

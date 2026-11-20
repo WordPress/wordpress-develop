@@ -15,6 +15,44 @@ final class Tests_Diff_TextDiff extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66095
+	 * @covers ::_wp_text_diff_split_long_lines
+	 * @dataProvider data_long_line_pieces
+	 *
+	 * @param string[] $pieces Expected pieces of a single input line.
+	 */
+	public function test_split_long_lines( $pieces ) {
+		$line   = implode( '', $pieces );
+		$actual = _wp_text_diff_split_long_lines( array( $line ) );
+
+		$this->assertSame( $pieces, $actual );
+		$this->assertSame( $line, implode( '', $actual ) );
+	}
+
+	/**
+	 * Data provider for test_split_long_lines().
+	 *
+	 * @return array
+	 */
+	public static function data_long_line_pieces() {
+		$table = array( '<table>' );
+		for ( $i = 1; $i <= 600; ++$i ) {
+			$table[] = '<tr>';
+			$table[] = "<td>cell $i</td>";
+			$table[] = '</tr>';
+		}
+		$table[] = '</table>';
+
+		return array(
+			'short markup' => array( array( '<p>One.</p><p>Two.</p>' ) ),
+			'long table'   => array( $table ),
+			'sentences'    => array( array_fill( 0, 600, "One more sentence! \t" ) ),
+			'whole words'  => array( array( str_repeat( 'café ', 1666 ), 'another word' ) ),
+			'unbroken'     => array( array( str_repeat( 'x', 12000 ) ) ),
+		);
+	}
+
+	/**
 	 * @ticket 66418
 	 *
 	 * @covers Text_Diff::countAddedLines
