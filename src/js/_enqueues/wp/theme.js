@@ -318,8 +318,8 @@ themes.Collection = Backbone.Collection.extend({
 					self.trigger( 'query:empty' );
 				}
 
-			}).fail( function() {
-				self.trigger( 'query:fail' );
+			}).fail( function(response) {
+				self.trigger( 'query:fail', response);
 			});
 		} else {
 			// If it's a paginated request we need to fetch more themes...
@@ -333,8 +333,8 @@ themes.Collection = Backbone.Collection.extend({
 					// We are done loading themes for now.
 					self.loadingThemes = false;
 
-				}).fail( function() {
-					self.trigger( 'query:fail' );
+				}).fail( function(response) {
+					self.trigger( 'query:fail', response);
 				});
 			}
 
@@ -1728,12 +1728,35 @@ themes.view.Installer = themes.view.Appearance.extend({
 			$( '.theme-browser' ).find( 'div.error' ).remove();
 		});
 
-		this.listenTo( this.collection, 'query:fail', function() {
+		this.listenTo( this.collection, 'query:fail', function( response ) {
+			var $error = $( '<div class="notice notice-error"></div>' );
+
 			$( 'body' ).removeClass( 'loading-content' );
-			$( '.theme-browser' ).find( 'div.error' ).remove();
-			/* translators: %s: Support forums URL. */
-			$( '.theme-browser' ).find( 'div.themes' ).before( '<div class="notice notice-error"><p>' + wp.i18n.sprintf( wp.i18n.__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ), wp.i18n.__( 'https://wordpress.org/support/forums/' ) ) + '</p><p><button class="button try-again">' + wp.i18n.__( 'Try Again' ) + '</button></p></div>' );
-			$( '.theme-browser .error .try-again' ).on( 'click', function( e ) {
+			$( '.theme-browser' ).find( 'div.error, div.notice-error' ).remove();
+
+			$error.append(
+				'<p>' +
+				wp.i18n.sprintf(
+					/* translators: %s: Support forums URL. */
+					wp.i18n.__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+					wp.i18n.__( 'https://wordpress.org/support/forums/' )
+				) +
+				'</p>'
+			);
+
+			if ( response && response.errorData ) {
+				$error.append(
+					$( '<p></p>' ).append(
+						$( '<strong></strong>' ).text( wp.i18n.__( 'Error details:' ) + ' ' ),
+						document.createTextNode( response.errorData )
+					)
+				);
+			}
+
+			$error.append( '<p><button class="button try-again">' + wp.i18n.__( 'Try Again' ) + '</button></p>' );
+
+			$( '.theme-browser' ).find( 'div.themes' ).before( $error );
+			$( '.theme-browser .notice-error .try-again' ).on( 'click', function( e ) {
 				e.preventDefault();
 				$( 'input.wp-filter-search' ).trigger( 'input' );
 			} );
