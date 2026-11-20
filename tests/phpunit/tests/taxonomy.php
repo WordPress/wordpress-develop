@@ -276,6 +276,66 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66743
+	 * @since 7.3.0
+	 */
+	public function test_register_taxonomy_show_in_abilities_defaults_to_false() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'public' => true ) );
+
+		$this->assertFalse( get_taxonomy( 'wptests_tax' )->show_in_abilities );
+	}
+
+	/**
+	 * @ticket 66743
+	 * @since 7.3.0
+	 */
+	public function test_register_taxonomy_show_in_abilities_true() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'show_in_abilities' => true ) );
+
+		$this->assertTrue( get_taxonomy( 'wptests_tax' )->show_in_abilities );
+	}
+
+	/**
+	 * @ticket 66743
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_register_taxonomy_show_in_abilities_values_other_than_true
+	 *
+	 * @param mixed $value The value passed as `show_in_abilities`.
+	 */
+	public function test_register_taxonomy_show_in_abilities_is_false_for_values_other_than_true( $value ) {
+		register_taxonomy( 'wptests_tax', 'post', array( 'show_in_abilities' => $value ) );
+
+		$this->assertFalse( get_taxonomy( 'wptests_tax' )->show_in_abilities );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array[]
+	 */
+	public static function data_register_taxonomy_show_in_abilities_values_other_than_true() {
+		return array(
+			'false'        => array( false ),
+			'array'        => array( array( 'create' ) ),
+			'string false' => array( 'false' ),
+			'string true'  => array( 'true' ),
+			'integer 1'    => array( 1 ),
+		);
+	}
+
+	/**
+	 * @ticket 66743
+	 * @since 7.3.0
+	 */
+	public function test_category_and_post_tag_show_in_abilities() {
+		$this->assertTrue( get_taxonomy( 'category' )->show_in_abilities, 'Categories should be exposed to abilities.' );
+		$this->assertTrue( get_taxonomy( 'post_tag' )->show_in_abilities, 'Tags should be exposed to abilities.' );
+	}
+
+	/**
 	 * @ticket 53212
 	 */
 	public function test_register_taxonomy_fires_registered_actions() {

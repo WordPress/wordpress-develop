@@ -78,6 +78,7 @@ function create_initial_taxonomies() {
 				'assign_terms' => 'assign_categories',
 			),
 			'show_in_rest'          => true,
+			'show_in_abilities'     => true,
 			'rest_base'             => 'categories',
 			'rest_controller_class' => 'WP_REST_Terms_Controller',
 		)
@@ -101,6 +102,7 @@ function create_initial_taxonomies() {
 				'assign_terms' => 'assign_post_tags',
 			),
 			'show_in_rest'          => true,
+			'show_in_abilities'     => true,
 			'rest_base'             => 'tags',
 			'rest_controller_class' => 'WP_REST_Terms_Controller',
 		)
@@ -434,6 +436,7 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  * @since 5.4.0 Added the registered taxonomy object as a return value.
  * @since 5.5.0 Introduced `default_term` argument.
  * @since 5.9.0 Introduced `rest_namespace` argument.
+ * @since 7.3.0 The `show_in_abilities` argument was added.
  *
  * @global WP_Taxonomy[] $wp_taxonomies Registered taxonomies.
  *
@@ -466,6 +469,9 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *                                                set, the default is inherited from `$public` (default true).
  *     @type bool          $show_in_rest          Whether to include the taxonomy in the REST API. Set this to true
  *                                                for the taxonomy to be available in the block editor.
+ *     @type bool          $show_in_abilities     Whether to expose this taxonomy through the Abilities API, so the
+ *                                                core term abilities can access its terms, subject to the current
+ *                                                user's capabilities. Default false.
  *     @type string        $rest_base             To change the base url of REST API route. Default is $taxonomy.
  *     @type string        $rest_namespace        To change the namespace URL of REST API route. Default is wp/v2.
  *     @type string        $rest_controller_class REST API Controller class name. Default is 'WP_REST_Terms_Controller'.
