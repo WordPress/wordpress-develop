@@ -73,13 +73,7 @@ switch ( $action ) {
 		// Restore the global $post as it was before.
 		$post = $backup_global_post;
 
-		$redirect = add_query_arg(
-			array(
-				'message'  => 5,
-				'revision' => $revision->ID,
-			),
-			get_edit_post_link( $post->ID, 'url' )
-		);
+		$redirect = _wp_get_revision_restore_redirect_url( $post, $revision->ID );
 		break;
 	case 'view':
 	case 'edit':

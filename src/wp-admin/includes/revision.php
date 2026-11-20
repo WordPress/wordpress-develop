@@ -477,3 +477,34 @@ function wp_print_revision_templates() {
 	</script>
 	<?php
 }
+
+/**
+ * Builds the redirect URL after restoring a post revision.
+ *
+ * Classic Editor uses the `revision` query parameter alongside `message=5` to
+ * display the "restored to revision" admin notice. In the block editor,
+ * `revision` triggers revision-viewing mode (and redirects back to
+ * `revision.php` when visual revisions are disabled, such as when classic
+ * metaboxes are active), so it is omitted when the block editor is enabled.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param WP_Post $post        Post object being edited.
+ * @param int     $revision_id Restored revision ID.
+ * @return string Redirect URL to the post edit screen.
+ */
+function _wp_get_revision_restore_redirect_url( $post, $revision_id ) {
+	$query_args = array(
+		'message' => 5,
+	);
+
+	if ( ! use_block_editor_for_post( $post ) ) {
+		$query_args['revision'] = $revision_id;
+	}
+
+	return add_query_arg(
+		$query_args,
+		get_edit_post_link( $post->ID, 'url' )
+	);
+}
