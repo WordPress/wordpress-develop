@@ -29,49 +29,64 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	 * @ticket 66095
 	 * @ticket 48973
 	 * @covers WP_Text_Diff_Renderer_Table::_changed
+	 * @dataProvider data_changed_block_limits
+	 *
+	 * @param string $limit Name of the limit property.
+	 * @param int    $value Limit that the 3 old and 3 new lines exceed.
 	 */
-	public function test_changed_lists_deletions_before_additions_above_the_pair_limit() {
+	public function test_changed_lists_deletions_before_additions_above_a_block_limit( $limit, $value ) {
 		$renderer = $this->diff_renderer_table;
 		$old      = array( 'alpha & old', 'bravo & old', 'charlie & old' );
 		$new      = array( 'alpha & new', 'bravo & new', 'charlie & new' );
-		$diff     = $renderer->_changed( $old, $new );
-
-		$this->assertStringContainsString( '<del>old</del>', $diff );
-		$this->assertStringContainsString( '<ins>new</ins>', $diff );
-
-		$renderer->_max_changed_line_pairs = 4;
-		$this->assertSame( $renderer->_deleted( $old ) . $renderer->_added( $new ), $renderer->_changed( $old, $new ) );
-	}
-
-	/**
-	 * @ticket 66095
-	 * @covers WP_Text_Diff_Renderer_Table::_changed
-	 */
-	public function test_changed_lists_deletions_before_additions_above_the_line_limit() {
-		$renderer = $this->diff_renderer_table;
-		$old      = array( 'alpha & old', 'bravo & old', 'charlie & old' );
-		$new      = array( 'alpha & new' );
 		$fallback = $renderer->_deleted( $old ) . $renderer->_added( $new );
 
 		$this->assertNotSame( $fallback, $renderer->_changed( $old, $new ) );
 
-		$renderer->_max_changed_lines = 3;
+		$renderer->$limit = $value;
 		$this->assertSame( $fallback, $renderer->_changed( $old, $new ) );
+	}
+
+	/**
+	 * Data provider for test_changed_lists_deletions_before_additions_above_a_block_limit().
+	 *
+	 * @return array
+	 */
+	public static function data_changed_block_limits() {
+		return array(
+			'line pairs' => array( '_max_changed_line_pairs', 8 ),
+			'lines'      => array( '_max_changed_lines', 5 ),
+		);
 	}
 
 	/**
 	 * @ticket 66095
 	 * @covers WP_Text_Diff_Renderer_Table::_changed
+	 * @dataProvider data_long_line_pairs
+	 *
+	 * @param string $old_line Old line.
+	 * @param string $new_line New line.
 	 */
-	public function test_changed_keeps_long_lines_in_one_escaped_row() {
-		$prefix   = str_repeat( 'x', 9000 );
-		$suffix   = str_repeat( 'y', 2999 );
+	public function test_changed_skips_word_highlighting_when_a_line_exceeds_the_length_limit( $old_line, $new_line ) {
 		$renderer = $this->diff_renderer_table;
-		$diff     = $renderer->_changed( array( $prefix . '&old' ), array( $prefix . '&' . $suffix ) );
 
 		$this->assertSame(
-			'<tr>' . $renderer->deletedLine( $prefix . '&amp;old' ) . $renderer->addedLine( $prefix . '&amp;' . $suffix ) . "</tr>\n",
-			$diff
+			'<tr>' . $renderer->deletedLine( str_replace( '&', '&amp;', $old_line ) ) . $renderer->addedLine( str_replace( '&', '&amp;', $new_line ) ) . "</tr>\n",
+			$renderer->_changed( array( $old_line ), array( $new_line ) )
+		);
+	}
+
+	/**
+	 * Data provider for test_changed_skips_word_highlighting_when_a_line_exceeds_the_length_limit().
+	 *
+	 * @return array
+	 */
+	public static function data_long_line_pairs() {
+		$short = str_repeat( 'x', 9000 ) . '&old';
+		$long  = str_repeat( 'x', 9000 ) . '&' . str_repeat( 'y', 2999 );
+
+		return array(
+			'long old line' => array( $long, $short ),
+			'long new line' => array( $short, $long ),
 		);
 	}
 
