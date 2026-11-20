@@ -634,6 +634,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
+		// The client sideloads the converted main file.
+		if ( false === $request['generate_sub_sizes'] ) {
+			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
+		}
+
 		/*
 		 * Post-process the upload (create image sub-sizes, make PDF thumbnails, etc.) and insert attachment meta.
 		 * At this point the server may run out of resources and post-processing of uploaded images may fail.

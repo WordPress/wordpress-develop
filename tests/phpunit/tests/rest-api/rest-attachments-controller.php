@@ -4491,6 +4491,43 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that the main file of a client-side upload is not converted when an
+	 * `image_editor_output_format` filter maps it to another format, since the
+	 * client sideloads the converted main file.
+	 *
+	 * @ticket 66763
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @requires function imagejpeg
+	 */
+	public function test_client_side_upload_main_file_is_not_converted() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires an image editor that can save WebP.' );
+		}
+
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'image_editor_output_format', array( $this, 'filter_output_format_jpeg_to_webp' ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=client-side-photo.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status(), 'Uploading the image should succeed.' );
+		$this->assertSame( 'image/webp', $data['image_output_format'], 'The client should still be asked to convert to WebP.' );
+
+		$attached_file = get_attached_file( $data['id'] );
+		$this->assertSame( 'client-side-photo.jpg', wp_basename( $attached_file ), 'The upload should stay the attached file.' );
+		$this->assertFileDoesNotExist( dirname( $attached_file ) . '/client-side-photo.webp', 'The server should not write a converted copy.' );
+	}
+
+	/**
 	 * Tests that sideloading scaled image requires authentication.
 	 *
 	 * @ticket 64737
