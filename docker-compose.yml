@@ -49,6 +49,13 @@ services:
       GITHUB_REF: ${GITHUB_REF-false}
       GITHUB_EVENT_NAME: ${GITHUB_EVENT_NAME-false}
       HOST_PATH: ${PWD-}/${LOCAL_DIR-src}
+      # Passed through for the live AI provider tests, and only when they are set.
+      WP_TESTS_AI_ANTHROPIC_API_KEY:
+      WP_TESTS_AI_GOOGLE_API_KEY:
+      WP_TESTS_AI_OPENAI_API_KEY:
+      WP_TESTS_AI_ANTHROPIC_MODEL:
+      WP_TESTS_AI_GOOGLE_MODEL:
+      WP_TESTS_AI_OPENAI_MODEL:
 
     volumes:
       - ./tools/local-env/php-config.ini:/usr/local/etc/php/conf.d/php-config.ini
