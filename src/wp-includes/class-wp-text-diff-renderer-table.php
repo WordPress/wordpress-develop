@@ -107,14 +107,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 */
 	protected $_show_split_view = true;
 
-	protected $compat_fields = array(
-		'_show_split_view',
-		'inline_diff_renderer',
-		'_diff_threshold',
-		'_max_word_diff_line_length',
-		'_max_changed_line_pairs',
-		'_max_changed_lines',
-	);
+	protected $compat_fields = array( '_show_split_view', 'inline_diff_renderer', '_diff_threshold' );
 
 	/**
 	 * Caches the output of count_chars() in compute_string_distance()

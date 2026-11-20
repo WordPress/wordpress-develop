@@ -31,7 +31,7 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	 * @covers WP_Text_Diff_Renderer_Table::_changed
 	 * @dataProvider data_changed_block_limits
 	 *
-	 * @param string $limit Name of the limit property.
+	 * @param string $limit Name of the limit argument.
 	 * @param int    $value Limit that the 3 old and 3 new lines exceed.
 	 */
 	public function test_changed_lists_deletions_before_additions_above_a_block_limit( $limit, $value ) {
@@ -42,8 +42,8 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 
 		$this->assertNotSame( $fallback, $renderer->_changed( $old, $new ) );
 
-		$renderer->$limit = $value;
-		$this->assertSame( $fallback, $renderer->_changed( $old, $new ) );
+		$limited = new WP_Text_Diff_Renderer_Table( array( $limit => $value ) );
+		$this->assertSame( $fallback, $limited->_changed( $old, $new ) );
 	}
 
 	/**
@@ -53,8 +53,8 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	 */
 	public static function data_changed_block_limits() {
 		return array(
-			'line pairs' => array( '_max_changed_line_pairs', 8 ),
-			'lines'      => array( '_max_changed_lines', 5 ),
+			'line pairs' => array( 'max_changed_line_pairs', 8 ),
+			'lines'      => array( 'max_changed_lines', 5 ),
 		);
 	}
 
@@ -228,29 +228,17 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	 */
 	public static function data_compat_fields() {
 		return array(
-			'_show_split_view'           => array(
+			'_show_split_view'     => array(
 				'property_name' => '_show_split_view',
 				'expected'      => true,
 			),
-			'inline_diff_renderer'       => array(
+			'inline_diff_renderer' => array(
 				'property_name' => 'inline_diff_renderer',
 				'expected'      => 'WP_Text_Diff_Renderer_inline',
 			),
-			'_diff_threshold'            => array(
+			'_diff_threshold'      => array(
 				'property_name' => '_diff_threshold',
 				'expected'      => 0.6,
-			),
-			'_max_word_diff_line_length' => array(
-				'property_name' => '_max_word_diff_line_length',
-				'expected'      => 10000,
-			),
-			'_max_changed_line_pairs'    => array(
-				'property_name' => '_max_changed_line_pairs',
-				'expected'      => 100000,
-			),
-			'_max_changed_lines'         => array(
-				'property_name' => '_max_changed_lines',
-				'expected'      => 5000,
 			),
 		);
 	}
