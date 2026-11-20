@@ -1877,8 +1877,19 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 		return $image;
 	}
 
-	$image_src         = preg_match( '/src="([^"]+)"/', $image, $match_src ) ? $match_src[1] : '';
-	list( $image_src ) = explode( '?', $image_src );
+	$processor = new WP_HTML_Tag_Processor( $image );
+
+	if ( ! $processor->next_tag( 'IMG' ) ) {
+		return $image;
+	}
+
+	$src = $processor->get_attribute( 'src' );
+
+	if ( ! is_string( $src ) || '' === $src ) {
+		return $image;
+	}
+
+	list( $image_src ) = explode( '?', $src );
 
 	// Return early if we couldn't get the image source.
 	if ( ! $image_src ) {
@@ -1892,8 +1903,11 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 		return $image;
 	}
 
-	$width  = preg_match( '/ width="([0-9]+)"/', $image, $match_width ) ? (int) $match_width[1] : 0;
-	$height = preg_match( '/ height="([0-9]+)"/', $image, $match_height ) ? (int) $match_height[1] : 0;
+	$width_attr  = $processor->get_attribute( 'width' );
+	$height_attr = $processor->get_attribute( 'height' );
+
+	$width  = ( is_string( $width_attr ) || is_int( $width_attr ) ) && is_numeric( $width_attr ) ? (int) $width_attr : 0;
+	$height = ( is_string( $height_attr ) || is_int( $height_attr ) ) && is_numeric( $height_attr ) ? (int) $height_attr : 0;
 
 	if ( $width && $height ) {
 		$size_array = array( $width, $height );
@@ -1908,23 +1922,23 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 
 	if ( $srcset ) {
 		// Check if there is already a 'sizes' attribute.
-		$sizes = strpos( $image, ' sizes=' );
+		$sizes_attr = $processor->get_attribute( 'sizes' );
 
-		if ( ! $sizes ) {
+		if ( null === $sizes_attr ) {
 			$sizes = wp_calculate_image_sizes( $size_array, $image_src, $image_meta, $attachment_id );
+		} else {
+			$sizes = true;
 		}
 	}
 
 	if ( $srcset && $sizes ) {
-		// Format the 'srcset' and 'sizes' string and escape attributes.
-		$attr = sprintf( ' srcset="%s"', esc_attr( $srcset ) );
+		$processor->set_attribute( 'srcset', $srcset );
 
 		if ( is_string( $sizes ) ) {
-			$attr .= sprintf( ' sizes="%s"', esc_attr( $sizes ) );
+			$processor->set_attribute( 'sizes', $sizes );
 		}
 
-		// Add the srcset and sizes attributes to the image markup.
-		return preg_replace( '/<img ([^>]+?)[\/ ]*>/', '<img $1' . $attr . ' />', $image );
+		return $processor->get_updated_html();
 	}
 
 	return $image;
