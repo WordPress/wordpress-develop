@@ -1896,6 +1896,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'precommit:php', 'Runs PHPStan and PHPUnit tests in preparation for a commit.', [
 		'phpstan',
+		'compat:php',
 		'phpunit'
 	] );
 
@@ -2015,11 +2016,11 @@ module.exports = function(grunt) {
 
 							// Find .php files that have been modified or added.
 							PHPfiles = PHPfiles.filter( function( file ) {
-								return /^\s*[MA]\s*.*\.php$/.test( file );
+								return /^\s*[MA]{1,2}\s+.*\.php$/.test( file );
 							} );
 
 							PHPfiles = PHPfiles.map( function( file ) {
-								return file.replace( /^\s*[MA]\s*/, '' );
+								return file.replace( /^\s*[MA]{1,2}\s+/, '' );
 							} );
 
 							changedFiles = {
@@ -2601,9 +2602,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'format:php', 'Runs the code formatter on changed files.', function() {
 		var done = this.async();
 		var flags = this.flags;
-		var args = changedFiles.php;
-
-		args.unshift( 'format' );
+		var args = [ 'format' ].concat( changedFiles.php );
 
 		grunt.util.spawn( {
 			cmd: 'composer',
@@ -2621,9 +2620,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'lint:php', 'Runs the code linter on changed files.', function() {
 		var done = this.async();
 		var flags = this.flags;
-		var args = changedFiles.php;
-
-		args.unshift( 'lint' );
+		var args = [ 'lint' ].concat( changedFiles.php );
 
 		grunt.util.spawn( {
 			cmd: 'composer',
@@ -2635,6 +2632,31 @@ module.exports = function(grunt) {
 			} else {
 				done( true );
 			}
+		} );
+	} );
+
+	grunt.registerTask( 'compat:php', 'Runs the PHPCompatibility ruleset on changed files.', function() {
+		var done = this.async();
+
+		// phpcompat.xml.dist only scans src/; paths passed on the command line bypass its <file> selection.
+		var files = changedFiles.php.filter( function( file ) {
+			return 0 === file.indexOf( 'src/' );
+		} );
+
+		if ( changedFiles.php.length && ! files.length ) {
+			grunt.log.writeln( 'No changed PHP files in src/. Skipping PHP compatibility checks.' );
+			done();
+			return;
+		}
+
+		var args = [ 'compat' ].concat( files );
+
+		grunt.util.spawn( {
+			cmd: 'composer',
+			args: args,
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
 		} );
 	} );
 
