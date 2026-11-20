@@ -158,8 +158,8 @@ class WP_Navigation_Fallback {
 		// Create a new navigation menu from the classic menu.
 		$classic_menu_fallback = wp_insert_post(
 			array(
-				'post_content' => $classic_nav_menu_blocks,
-				'post_title'   => $classic_nav_menu->name,
+				'post_content' => wp_slash( $classic_nav_menu_blocks ),
+				'post_title'   => wp_slash( $classic_nav_menu->name ),
 				'post_name'    => $classic_nav_menu->slug,
 				'post_status'  => 'publish',
 				'post_type'    => 'wp_navigation',
