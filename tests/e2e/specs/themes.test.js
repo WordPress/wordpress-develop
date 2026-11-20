@@ -11,7 +11,7 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 /**
  * Internal dependencies
  */
-import { E2E_TEST_THEME } from '../utils/locks';
+import { UPGRADER } from '../utils/locks';
 import {
 	deleteTheme,
 	themeName,
@@ -19,7 +19,7 @@ import {
 	uploadTheme,
 } from '../utils/themes';
 
-test.describe( 'Theme management', { lock: E2E_TEST_THEME }, () => {
+test.describe( 'Theme management', { lock: UPGRADER }, () => {
 	let previousTheme;
 
 	test.beforeEach( async ( { admin, page, requestUtils } ) => {
