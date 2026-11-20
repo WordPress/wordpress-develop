@@ -201,4 +201,62 @@ class Tests_Widgets_wpWidgetMediaGallery extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '<script type="text/html" id="tmpl-wp-media-widget-gallery-preview">', $output );
 	}
+
+	/**
+	 * The gallery only has content when every ID is an attachment.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers WP_Widget_Media_Gallery::has_content
+	 */
+	public function test_has_content() {
+		$attachment_ids = array();
+		foreach ( array( 'canola.jpg', 'waffles.jpg' ) as $file ) {
+			$attachment_ids[] = self::factory()->attachment->create_object(
+				array(
+					'file'           => DIR_TESTDATA . '/images/' . $file,
+					'post_parent'    => 0,
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
+		}
+		$post_id = self::factory()->post->create();
+
+		$widget = new WP_Widget_Media_Gallery();
+		$args   = array(
+			'before_widget' => '<aside>',
+			'after_widget'  => '</aside>',
+			'before_title'  => '<h2>',
+			'after_title'   => '</h2>',
+		);
+
+		$gallery_renderer = static function ( $output ) {
+			return 'gallery-rendered';
+		};
+		add_filter( 'post_gallery', $gallery_renderer );
+
+		$render_widget = static function ( $ids ) use ( $widget, $args ) {
+			ob_start();
+			try {
+				$widget->widget(
+					$args,
+					array(
+						'ids'   => $ids,
+						'title' => '',
+					)
+				);
+				return ob_get_contents();
+			} finally {
+				ob_end_clean();
+			}
+		};
+
+		try {
+			$this->assertSame( '<aside>gallery-rendered</aside>', $render_widget( $attachment_ids ), 'A gallery of attachments should render.' );
+			$this->assertSame( '', $render_widget( array( $attachment_ids[0], $post_id ) ), 'A mixed attachment and post selection should not render.' );
+			$this->assertSame( '', $render_widget( array() ), 'An empty selection should not render.' );
+		} finally {
+			remove_filter( 'post_gallery', $gallery_renderer );
+		}
+	}
 }
