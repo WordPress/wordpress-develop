@@ -13,6 +13,34 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	public function test_sanitize_option( $option_name, $sanitized, $original ) {
 		$this->assertSame( $sanitized, sanitize_option( $option_name, $original ) );
 	}
+
+	/**
+	 * Tests that an unchecked discussion setting, submitted as null, is sanitized to 'closed'.
+	 *
+	 * @ticket 66766
+	 *
+	 * @dataProvider data_sanitize_option_discussion_status_null
+	 *
+	 * @covers ::sanitize_option
+	 *
+	 * @param string $option_name Option name.
+	 */
+	public function test_sanitize_option_discussion_status_null( $option_name ) {
+		$this->assertSame( 'closed', sanitize_option( $option_name, null ) );
+	}
+
+	/**
+	 * Data provider for test_sanitize_option_discussion_status_null().
+	 *
+	 * @return array[]
+	 */
+	public static function data_sanitize_option_discussion_status_null() {
+		return array(
+			'default_comment_status' => array( 'default_comment_status' ),
+			'default_ping_status'    => array( 'default_ping_status' ),
+		);
+	}
+
 	/**
 	 * Data provider to test all of the sanitize_option() case
 	 *
