@@ -4807,7 +4807,8 @@ function wp_check_jsonp_callback( $callback ) {
  * }
  *
  * @return mixed Returns the value encoded in JSON in appropriate PHP type.
- *               `null` is returned if the file is not found, or its content can't be decoded.
+ *               `null` is returned if the file is not found, is not a readable file,
+ *               or its content can't be decoded.
  */
 function wp_json_file_decode( $filename, $options = array() ) {
 	$normalized_filename = wp_normalize_path( realpath( $filename ) );
