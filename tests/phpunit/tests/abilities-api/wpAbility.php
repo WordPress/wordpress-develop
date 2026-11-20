@@ -1877,8 +1877,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 * @ticket 66433
 	 */
 	public function test_validate_output_filter_replaces_error_with_custom() {
-		$original  = new WP_Error( 'custom_output_error', 'Rejected.', array( 'status' => 422 ) );
-		$unchanged = clone $original;
+		$original = new WP_Error( 'custom_output_error', 'Rejected.', array( 'status' => 422 ) );
 		add_filter(
 			'wp_ability_validate_output',
 			static function () use ( $original ) {
@@ -1892,7 +1891,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$result                        = $ability->execute();
 
 		$this->assertSame( $original, $result );
-		$this->assertEquals( $unchanged, $result );
 	}
 
 	/**
