@@ -2420,7 +2420,11 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $ability->execute( $input ) );
 		$this->assertSame( $input, $seen['invoked'] );
-		$this->assertSame( empty( $schema ) ? array() : array( $normalized ), $seen['validation'], 'Validate the normalized input exactly once.' );
+		$expected_validation = empty( $schema ) ? array() : array( $normalized );
+		if ( $expected !== $normalized ) {
+			$expected_validation[] = $expected;
+		}
+		$this->assertSame( $expected_validation, $seen['validation'], 'Validate normalized input, then sanitized input only when it changes.' );
 		$this->assertSame( $expected, $seen['permission'] );
 		$this->assertSame( $expected, $seen['before'] );
 		$this->assertSame( $expected, $seen['execute'] );
@@ -2471,8 +2475,8 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array( $input ),
 				'input[0][ids] has duplicate items.',
 			),
-			'whitespace below minLength'    => array( $text, array( 'title' => '   ' ), 'invalid input after sanitization' ),
-			'markup below minLength'        => array( $text, array( 'title' => '<b></b>' ), 'invalid input after sanitization' ),
+			'whitespace below minLength'    => array( $text, array( 'title' => '   ' ), 'input[title] must be at least 1 character long.' ),
+			'markup below minLength'        => array( $text, array( 'title' => '<b></b>' ), 'input[title] must be at least 1 character long.' ),
 			'infinite number below minimum' => array(
 				array(
 					'type'       => 'object',
@@ -2484,7 +2488,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 					),
 				),
 				array( 'page' => INF ),
-				'invalid input after sanitization',
+				'input[page] must be greater than or equal to 1',
 			),
 		);
 	}
@@ -2585,7 +2589,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 * @covers WP_Ability::prepare_input
 	 * @covers WP_Ability::sanitize_input
 	 */
-	public function test_input_accepted_by_the_validation_filter_is_not_checked_again(): void {
+	public function test_validation_filter_can_accept_raw_and_sanitized_input(): void {
 		$args                 = self::$test_ability_properties;
 		$args['input_schema'] = array(
 			'type'       => 'object',
@@ -2605,6 +2609,30 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'count' => 2 ), $prepared, 'Input the filter accepted should be returned as sanitized.' );
 		$this->assertSame( array( 'count' => 2 ), $unchanged, 'Unchanged input accepted by the filter should also be preserved.' );
+	}
+
+	/**
+	 * Validation filters can reject the sanitized value before callbacks receive it.
+	 *
+	 * @ticket 66665
+	 */
+	public function test_validation_filter_can_reject_sanitized_input(): void {
+		$args                 = self::$test_ability_properties;
+		$args['input_schema'] = array( 'type' => 'integer' );
+		$ability              = new WP_Ability( self::$test_ability_name, $args );
+		$error                = new WP_Error( 'sanitized_input_rejected' );
+		$seen                 = array();
+		$validate             = static function ( $valid, $input ) use ( &$seen, $error ) {
+			$seen[] = $input;
+			return is_int( $input ) ? $error : $valid;
+		};
+
+		add_filter( 'wp_ability_validate_input', $validate, 10, 2 );
+		$result = $ability->execute( '2' );
+		remove_filter( 'wp_ability_validate_input', $validate );
+
+		$this->assertSame( array( '2', 2 ), $seen, 'The filter should receive both raw and sanitized input.' );
+		$this->assertSame( $error, $result, 'Execution should propagate the filter rejection unchanged.' );
 	}
 
 	/**
