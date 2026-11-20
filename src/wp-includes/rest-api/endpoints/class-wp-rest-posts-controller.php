@@ -1707,7 +1707,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				continue;
 			}
 
-			$result = wp_set_object_terms( $post_id, $request[ $base ], $taxonomy->name );
+			if ( 'category' === $taxonomy->name && empty( $request[ $base ] ) ) {
+				/*
+				 * Use wp_set_post_categories() so that post types requiring a category
+				 * are assigned the default category instead of being left without one.
+				 */
+				$result = wp_set_post_categories( $post_id, array() );
+			} else {
+				$result = wp_set_object_terms( $post_id, $request[ $base ], $taxonomy->name );
+			}
 
 			if ( is_wp_error( $result ) ) {
 				return $result;
