@@ -3584,14 +3584,20 @@ class WP_Query {
 			if ( null === $this->posts ) {
 				$cached_results = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 
-				if ( $cached_results ) {
+				// Ignore a cached value which does not have the shape that is cached below.
+				if (
+					is_array( $cached_results )
+					&& isset( $cached_results['posts'], $cached_results['found_posts'], $cached_results['max_num_pages'] )
+					&& is_array( $cached_results['posts'] )
+					&& is_numeric( $cached_results['found_posts'] )
+					&& is_numeric( $cached_results['max_num_pages'] )
+				) {
 					$cache_found = true;
-					/** @var int[] */
-					$post_ids = array_map( 'intval', $cached_results['posts'] );
+					$post_ids    = array_map( 'intval', array_values( array_filter( $cached_results['posts'], 'is_scalar' ) ) );
 
 					$this->post_count    = count( $post_ids );
-					$this->found_posts   = $cached_results['found_posts'];
-					$this->max_num_pages = $cached_results['max_num_pages'];
+					$this->found_posts   = max( 0, (int) $cached_results['found_posts'] );
+					$this->max_num_pages = max( 0, (int) $cached_results['max_num_pages'] );
 
 					if ( 'ids' === $query_vars['fields'] ) {
 						$this->posts = $post_ids;
