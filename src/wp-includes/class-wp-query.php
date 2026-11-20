@@ -679,6 +679,69 @@ class WP_Query {
 	}
 
 	/**
+	 * Sanitizes the values of query variables which take a single value.
+	 *
+	 * This runs in {@see WP_Query::parse_query()}, and again in {@see WP_Query::get_posts()}
+	 * after the {@see 'pre_get_posts'} action, so that values set by callbacks are sanitized too.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $query_vars Query variables, as filled by {@see WP_Query::fill_query_vars()}.
+	 * @return array<mixed> Query variables with sanitized values.
+	 */
+	private function sanitize_query_vars( array $query_vars ): array {
+		$query_vars['p']           = is_scalar( $query_vars['p'] ) ? max( 0, (int) $query_vars['p'] ) : 0;
+		$query_vars['page_id']     = is_scalar( $query_vars['page_id'] ) ? absint( $query_vars['page_id'] ) : 0;
+		$query_vars['year']        = is_scalar( $query_vars['year'] ) ? absint( $query_vars['year'] ) : 0;
+		$query_vars['monthnum']    = is_scalar( $query_vars['monthnum'] ) ? absint( $query_vars['monthnum'] ) : 0;
+		$query_vars['day']         = is_scalar( $query_vars['day'] ) ? absint( $query_vars['day'] ) : 0;
+		$query_vars['w']           = is_scalar( $query_vars['w'] ) ? absint( $query_vars['w'] ) : 0;
+		$query_vars['m']           = is_scalar( $query_vars['m'] ) ? preg_replace( '|[^0-9]|', '', $query_vars['m'] ) : '';
+		$query_vars['paged']       = is_scalar( $query_vars['paged'] ) ? absint( $query_vars['paged'] ) : 0;
+		$query_vars['cat']         = preg_replace( '|[^0-9,-]|', '', $query_vars['cat'] ); // Array or comma-separated list of positive or negative integers.
+		$query_vars['author']      = is_scalar( $query_vars['author'] ) ? preg_replace( '|[^0-9,-]|', '', $query_vars['author'] ) : ''; // Comma-separated list of positive or negative integers.
+		$query_vars['pagename']    = is_scalar( $query_vars['pagename'] ) ? trim( $query_vars['pagename'] ) : '';
+		$query_vars['name']        = is_scalar( $query_vars['name'] ) ? trim( $query_vars['name'] ) : '';
+		$query_vars['title']       = is_scalar( $query_vars['title'] ) ? trim( $query_vars['title'] ) : '';
+		$query_vars['feed']        = is_scalar( $query_vars['feed'] ) ? trim( $query_vars['feed'] ) : '';
+		$query_vars['attachment']  = is_scalar( $query_vars['attachment'] ) ? $query_vars['attachment'] : '';
+		$query_vars['author_name'] = is_scalar( $query_vars['author_name'] ) ? $query_vars['author_name'] : '';
+
+		$query_vars['attachment_id'] = is_scalar( $query_vars['attachment_id'] ) ? absint( $query_vars['attachment_id'] ) : 0;
+
+		if ( is_scalar( $query_vars['hour'] ) && '' !== $query_vars['hour'] ) {
+			$query_vars['hour'] = absint( $query_vars['hour'] );
+		} else {
+			$query_vars['hour'] = '';
+		}
+
+		if ( is_scalar( $query_vars['minute'] ) && '' !== $query_vars['minute'] ) {
+			$query_vars['minute'] = absint( $query_vars['minute'] );
+		} else {
+			$query_vars['minute'] = '';
+		}
+
+		if ( is_scalar( $query_vars['second'] ) && '' !== $query_vars['second'] ) {
+			$query_vars['second'] = absint( $query_vars['second'] );
+		} else {
+			$query_vars['second'] = '';
+		}
+
+		if ( is_scalar( $query_vars['menu_order'] ) && '' !== $query_vars['menu_order'] ) {
+			$query_vars['menu_order'] = absint( $query_vars['menu_order'] );
+		} else {
+			$query_vars['menu_order'] = '';
+		}
+
+		// Fairly large, potentially too large, upper bound for search string lengths.
+		if ( ! is_scalar( $query_vars['s'] ) || ( ! empty( $query_vars['s'] ) && strlen( $query_vars['s'] ) > 1600 ) ) {
+			$query_vars['s'] = '';
+		}
+
+		return $query_vars;
+	}
+
+	/**
 	 * Parses a query string and sets query type booleans.
 	 *
 	 * @since 1.5.0
@@ -857,55 +920,7 @@ class WP_Query {
 		}
 
 		if ( ! is_scalar( $query_vars['p'] ) || (int) $query_vars['p'] < 0 ) {
-			$query_vars['p']     = 0;
 			$query_vars['error'] = '404';
-		} else {
-			$query_vars['p'] = (int) $query_vars['p'];
-		}
-
-		$query_vars['page_id']     = is_scalar( $query_vars['page_id'] ) ? absint( $query_vars['page_id'] ) : 0;
-		$query_vars['year']        = is_scalar( $query_vars['year'] ) ? absint( $query_vars['year'] ) : 0;
-		$query_vars['monthnum']    = is_scalar( $query_vars['monthnum'] ) ? absint( $query_vars['monthnum'] ) : 0;
-		$query_vars['day']         = is_scalar( $query_vars['day'] ) ? absint( $query_vars['day'] ) : 0;
-		$query_vars['w']           = is_scalar( $query_vars['w'] ) ? absint( $query_vars['w'] ) : 0;
-		$query_vars['m']           = is_scalar( $query_vars['m'] ) ? preg_replace( '|[^0-9]|', '', $query_vars['m'] ) : '';
-		$query_vars['paged']       = is_scalar( $query_vars['paged'] ) ? absint( $query_vars['paged'] ) : 0;
-		$query_vars['cat']         = preg_replace( '|[^0-9,-]|', '', $query_vars['cat'] ); // Array or comma-separated list of positive or negative integers.
-		$query_vars['author']      = is_scalar( $query_vars['author'] ) ? preg_replace( '|[^0-9,-]|', '', $query_vars['author'] ) : ''; // Comma-separated list of positive or negative integers.
-		$query_vars['pagename']    = is_scalar( $query_vars['pagename'] ) ? trim( $query_vars['pagename'] ) : '';
-		$query_vars['name']        = is_scalar( $query_vars['name'] ) ? trim( $query_vars['name'] ) : '';
-		$query_vars['title']       = is_scalar( $query_vars['title'] ) ? trim( $query_vars['title'] ) : '';
-		$query_vars['feed']        = is_scalar( $query_vars['feed'] ) ? trim( $query_vars['feed'] ) : '';
-		$query_vars['attachment']  = is_scalar( $query_vars['attachment'] ) ? $query_vars['attachment'] : '';
-		$query_vars['author_name'] = is_scalar( $query_vars['author_name'] ) ? $query_vars['author_name'] : '';
-
-		if ( is_scalar( $query_vars['hour'] ) && '' !== $query_vars['hour'] ) {
-			$query_vars['hour'] = absint( $query_vars['hour'] );
-		} else {
-			$query_vars['hour'] = '';
-		}
-
-		if ( is_scalar( $query_vars['minute'] ) && '' !== $query_vars['minute'] ) {
-			$query_vars['minute'] = absint( $query_vars['minute'] );
-		} else {
-			$query_vars['minute'] = '';
-		}
-
-		if ( is_scalar( $query_vars['second'] ) && '' !== $query_vars['second'] ) {
-			$query_vars['second'] = absint( $query_vars['second'] );
-		} else {
-			$query_vars['second'] = '';
-		}
-
-		if ( is_scalar( $query_vars['menu_order'] ) && '' !== $query_vars['menu_order'] ) {
-			$query_vars['menu_order'] = absint( $query_vars['menu_order'] );
-		} else {
-			$query_vars['menu_order'] = '';
-		}
-
-		// Fairly large, potentially too large, upper bound for search string lengths.
-		if ( ! is_scalar( $query_vars['s'] ) || ( ! empty( $query_vars['s'] ) && strlen( $query_vars['s'] ) > 1600 ) ) {
-			$query_vars['s'] = '';
 		}
 
 		// Compat. Map subpost to attachment.
@@ -916,11 +931,7 @@ class WP_Query {
 			$query_vars['attachment_id'] = $query_vars['subpost_id'];
 		}
 
-		$query_vars['attachment_id'] = is_scalar( $query_vars['attachment_id'] ) ? absint( $query_vars['attachment_id'] ) : 0;
-
-		if ( ! is_scalar( $query_vars['attachment'] ) ) {
-			$query_vars['attachment'] = '';
-		}
+		$query_vars = $this->sanitize_query_vars( $query_vars );
 
 		if ( ( '' !== $query_vars['attachment'] ) || ! empty( $query_vars['attachment_id'] ) ) {
 			$this->is_single     = true;
@@ -1964,8 +1975,8 @@ class WP_Query {
 		// Locally scoped reference for easy of use.
 		$query_vars = &$this->query_vars;
 
-		// Fill again in case 'pre_get_posts' unset some vars.
-		$query_vars = $this->fill_query_vars( $query_vars );
+		// Fill and sanitize again in case 'pre_get_posts' unset or changed some vars.
+		$query_vars = $this->sanitize_query_vars( $this->fill_query_vars( $query_vars ) );
 
 		/**
 		 * Filters whether an attachment query should include filenames or not.

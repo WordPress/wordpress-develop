@@ -52,6 +52,30 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a query var which takes a single value does not cause an error when set to an array in a 'pre_get_posts' callback.
+	 *
+	 * @ticket 60745
+	 *
+	 * @dataProvider data_single_value_query_vars
+	 *
+	 * @param string $query_var Query var name.
+	 */
+	public function test_single_value_query_var_set_to_array_in_pre_get_posts_does_not_cause_error( string $query_var ): void {
+		self::factory()->post->create();
+
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ) use ( $query_var ): void {
+				$query->set( $query_var, array( 'admin' ) );
+			}
+		);
+
+		$query = new WP_Query( array( 'post_type' => 'post' ) );
+
+		$this->assertIsArray( $query->posts );
+	}
+
+	/**
 	 * Data provider for {@see self::test_single_value_query_var_given_array_does_not_cause_error()}.
 	 *
 	 * @return array<non-falsy-string, array{ 0: string }>
