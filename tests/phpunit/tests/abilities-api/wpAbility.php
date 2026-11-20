@@ -2884,7 +2884,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 		$this->assertSame( $error_code, $result->get_error_code() );
 		$this->assertSame( 0, $runs, 'The callback should not have run.' );
-		$this->assertStringNotContainsString( 'The ability ran', $result->get_error_message() );
+		$this->assertStringNotContainsString( 'ran, but its output failed validation', $result->get_error_message() );
 	}
 
 	/**
@@ -2922,6 +2922,15 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 * @param string    $validation  How output validation fails.
 	 */
 	public function test_output_retry_guidance( $is_readonly, $validation ) {
+		$received_message = null;
+		add_filter(
+			'wp_ability_validate_output',
+			static function ( $error ) use ( &$received_message ) {
+				$received_message = $error->get_error_message();
+				return $error;
+			},
+			9
+		);
 		if ( 'false' === $validation ) {
 			add_filter( 'wp_ability_validate_output', '__return_false' );
 		} elseif ( 'custom' === $validation ) {
@@ -2929,6 +2938,17 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'wp_ability_validate_output',
 				static function () {
 					return new WP_Error( 'custom_output_error', 'Rejected.', array( 'status' => 422 ) );
+				}
+			);
+		}
+		if ( in_array( $validation, array( 'clone', 'rewritten' ), true ) ) {
+			add_filter(
+				'wp_ability_validate_output',
+				static function ( $error ) use ( $validation ) {
+					if ( 'rewritten' === $validation ) {
+						$error->errors['ability_invalid_output'][0] = 'Custom reason.';
+					}
+					return 'clone' === $validation ? clone $error : $error;
 				}
 			);
 		}
@@ -2946,9 +2966,15 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			)
 		);
 		$error   = $ability->execute();
+		$this->assertStringContainsString( 'Ability "test/calculator" ran, but its output failed validation.', $received_message );
+		$this->assertSame( ( true !== $is_readonly ), false !== strpos( $received_message, 'Check the current state before you run it again.' ) );
+		$this->assertSame( 1, substr_count( $error->get_error_message(), 'Ability "test/calculator" ran, but its output failed validation.' ) );
+		if ( 'rewritten' === $validation ) {
+			$this->assertStringContainsString( 'Custom reason.', $error->get_error_message() );
+		}
 		$this->assertSame( ( true !== $is_readonly ), false !== strpos( $error->get_error_message(), 'Check the current state before you run it again.' ) );
 		$this->assertSame( 1, $runs );
-		$this->assertStringContainsString( 'The ability ran, but its output failed validation.', $error->get_error_message() );
+		$this->assertStringContainsString( 'Ability "test/calculator" ran, but its output failed validation.', $error->get_error_message() );
 		$this->assertSame( 'custom' === $validation ? 'custom_output_error' : 'ability_invalid_output', $error->get_error_code() );
 		$this->assertSame( 'custom' === $validation ? array( 'status' => 422 ) : null, $error->get_error_data() );
 	}
@@ -2958,7 +2984,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 */
 	public static function data_output_retry_guidance() {
 		$cases = array();
-		foreach ( array( 'schema', 'false', 'custom' ) as $validation ) {
+		foreach ( array( 'schema', 'false', 'custom', 'clone', 'rewritten' ) as $validation ) {
 			$cases[ $validation . ': read-only' ]     = array( true, $validation );
 			$cases[ $validation . ': not read-only' ] = array( false, $validation );
 			$cases[ $validation . ': unspecified' ]   = array( null, $validation );
@@ -2991,7 +3017,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertSame( array( 'field' => 'name' ), $error->get_error_data( 'policy' ) );
 		$this->assertSame( array( 'status' => 422 ), $original->get_error_data() );
 		$this->assertSame( $original->get_all_error_data(), $error->get_all_error_data() );
-		$this->assertStringContainsString( 'The ability ran, but its output failed validation.', $error->get_error_message() );
+		$this->assertStringContainsString( 'Ability "test/calculator" ran, but its output failed validation.', $error->get_error_message() );
 		$this->assertSame( array( 'Rejected.', 'Another reason.' ), $original->get_error_messages( 'custom' ) );
 		$this->assertSame( 422, rest_convert_error_to_response( $error )->get_status() );
 	}

@@ -923,6 +923,16 @@ class WP_Ability {
 	 * @return true|WP_Error Returns true if valid, or a WP_Error object if validation fails.
 	 */
 	protected function validate_output( $output ) {
+		$message = sprintf(
+			/* translators: %s: Ability name. */
+			__( 'Ability "%s" ran, but its output failed validation.' ),
+			$this->name
+		);
+		$annotations = $this->get_meta_item( 'annotations' );
+		if ( true !== $annotations['readonly'] ) {
+			$message .= ' ' . __( 'Its changes may already be saved. Check the current state before you run it again.' );
+		}
+
 		$output_schema = $this->get_output_schema();
 		if ( empty( $output_schema ) ) {
 			$is_valid = true;
@@ -932,9 +942,9 @@ class WP_Ability {
 				$is_valid = new WP_Error(
 					'ability_invalid_output',
 					sprintf(
-						/* translators: %1$s ability name, %2$s error message. */
-						__( 'Ability "%1$s" has invalid output. Reason: %2$s' ),
-						$this->name,
+						/* translators: 1: Output validation message, 2: Schema validation error. */
+						__( '%1$s Reason: %2$s' ),
+						$message,
 						$valid_output->get_error_message()
 					)
 				);
@@ -952,6 +962,9 @@ class WP_Ability {
 		 * override it. If default validation passed, the filter can add additional
 		 * validation checks and return a WP_Error if those checks fail.
 		 *
+		 * Error messages include execution context and, for abilities that are not read-only,
+		 * retry guidance. This context is also added to custom error messages returned by the filter.
+		 *
 		 * @since 7.1.0
 		 *
 		 * @param true|WP_Error $is_valid     The validation result from default validation.
@@ -960,19 +973,15 @@ class WP_Ability {
 		 */
 		$validity = apply_filters( 'wp_ability_validate_output', $is_valid, $output, $this->name );
 		if ( false === $validity ) {
-			$validity = new WP_Error( 'ability_invalid_output', __( 'Invalid output.' ) );
+			$validity = new WP_Error( 'ability_invalid_output', $message );
 		}
 		if ( is_wp_error( $validity ) && $validity->has_errors() ) {
-			// Preserve error instances retained by output validation filters.
-			$validity   = clone $validity;
-			$error_code = $validity->get_error_code();
-
-			$annotations = $this->get_meta_item( 'annotations' );
-			$message     = true === $annotations['readonly']
-				? __( 'The ability ran, but its output failed validation.' )
-				: __( 'The ability ran, but its output failed validation. Its changes may already be saved. Check the current state before you run it again.' );
-
-			$validity->errors[ $error_code ][0] .= ' ' . $message;
+			if ( ! str_contains( $validity->get_error_message(), $message ) ) {
+				// Preserve filter-owned errors while adding context to custom or replaced messages.
+				$validity                           = clone $validity;
+				$error_code                         = $validity->get_error_code();
+				$validity->errors[ $error_code ][0] = $message . ' ' . $validity->get_error_message();
+			}
 
 			return $validity;
 		}
