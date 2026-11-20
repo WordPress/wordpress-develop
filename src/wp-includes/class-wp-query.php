@@ -3627,8 +3627,7 @@ class WP_Query {
 						return $post_parents;
 					} else {
 						_prime_post_caches( $post_ids, $query_vars['update_post_term_cache'], $query_vars['update_post_meta_cache'] );
-						/** @var WP_Post[] */
-						$this->posts = array_map( 'get_post', $post_ids );
+						$this->posts = self::convert_to_post_objects( $post_ids );
 					}
 				}
 			}
@@ -3768,14 +3767,13 @@ class WP_Query {
 
 		// Convert to WP_Post objects.
 		if ( $this->posts ) {
-			/** @var WP_Post[] */
-			$this->posts = array_map( 'get_post', $this->posts );
+			$this->posts = self::convert_to_post_objects( $this->posts );
 		}
 
 		$unfiltered_posts = $this->posts;
 
 		if ( $query_vars['cache_results'] && $id_query_is_cacheable && ! $cache_found ) {
-			$post_ids = wp_list_pluck( $this->posts, 'ID' );
+			$post_ids = wp_list_pluck( $this->posts ?? array(), 'ID' );
 
 			$cache_value = array(
 				'posts'         => $post_ids,
@@ -3962,11 +3960,10 @@ class WP_Query {
 		 * Ensure that any posts added/modified via one of the filters above are
 		 * of the type WP_Post and are filtered.
 		 */
+		$this->posts = is_array( $this->posts ) ? self::convert_to_post_objects( $this->posts ) : array();
+
 		if ( $this->posts ) {
 			$this->post_count = count( $this->posts );
-
-			/** @var WP_Post[] */
-			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $query_vars['cache_results'] ) {
 				if ( $is_unfiltered_query && $unfiltered_posts === $this->posts ) {
@@ -3977,8 +3974,7 @@ class WP_Query {
 				}
 			}
 
-			/** @var WP_Post */
-			$this->post = reset( $this->posts );
+			$this->post = $this->posts[0];
 		} else {
 			$this->post_count = 0;
 			$this->posts      = array();
@@ -3993,6 +3989,35 @@ class WP_Query {
 		}
 
 		return $this->posts;
+	}
+
+	/**
+	 * Converts posts to `WP_Post` objects.
+	 *
+	 * Each post ID, numeric string, or object is passed to {@see get_post()}. Any other value, and any
+	 * value which does not resolve to a post, is removed, and the array is reindexed.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $posts Post objects or IDs.
+	 * @return list<WP_Post> Post objects.
+	 */
+	private static function convert_to_post_objects( array $posts ): array {
+		$post_objects = array();
+		foreach ( $posts as $post ) {
+			if ( is_numeric( $post ) ) {
+				$post = get_post( (int) $post );
+			} elseif ( is_object( $post ) ) {
+				$post = get_post( $post );
+			} else {
+				continue;
+			}
+
+			if ( $post instanceof WP_Post ) {
+				$post_objects[] = $post;
+			}
+		}
+		return $post_objects;
 	}
 
 	/**
