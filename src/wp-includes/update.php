@@ -570,9 +570,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$update->plugin = $plugin_file;
 
 		// WordPress needs the version field specified as 'new_version'.
-		if ( ! isset( $update->new_version ) ) {
-			$update->new_version = $update->version;
-		}
+		$update->new_version ??= $update->version;
 
 		// Handle any translation updates.
 		if ( ! empty( $update->translations ) ) {
@@ -847,9 +845,7 @@ function wp_update_themes( $extra_stats = array() ) {
 		$update->id = $theme_data['UpdateURI'];
 
 		// WordPress needs the version field specified as 'new_version'.
-		if ( ! isset( $update->new_version ) ) {
-			$update->new_version = $update->version;
-		}
+		$update->new_version ??= $update->version;
 
 		// Handle any translation updates.
 		if ( ! empty( $update->translations ) ) {
