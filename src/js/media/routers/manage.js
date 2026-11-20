@@ -31,6 +31,9 @@ var Router = Backbone.Router.extend(/** @lends wp.media.view.MediaFrame.Manage.R
 
 	// Respond to the search route by filling the search field and triggering the input event.
 	search: function( query ) {
+		if ( query ) {
+			query = query.split( '&' )[0];
+		}
 		jQuery( '#media-search-input' ).val( query ).trigger( 'input' );
 	},
 
@@ -39,16 +42,17 @@ var Router = Backbone.Router.extend(/** @lends wp.media.view.MediaFrame.Manage.R
 		var media = wp.media,
 			frame = media.frames.browse,
 			library = frame.state().get('library'),
+			itemId = parseInt( query, 10 ),
 			item;
 
 		// Trigger the media frame to open the correct item.
-		item = library.findWhere( { id: parseInt( query, 10 ) } );
+		item = library.findWhere( { id: itemId } );
 
 		if ( item ) {
 			item.set( 'skipHistory', true );
 			frame.trigger( 'edit:attachment', item );
 		} else {
-			item = media.attachment( query );
+			item = media.attachment( itemId );
 			frame.listenTo( item, 'change', function( model ) {
 				frame.stopListening( item );
 				frame.trigger( 'edit:attachment', model );
