@@ -221,8 +221,11 @@ class WP_Query {
 	/**
 	 * Array of post objects or post IDs.
 	 *
+	 * When the 'fields' query var is 'id=>parent', this is an array of objects with only the
+	 * `ID` and `post_parent` properties.
+	 *
 	 * @since 1.5.0
-	 * @var WP_Post[]|int[]|null
+	 * @var WP_Post[]|int[]|stdClass[]|null
 	 */
 	public $posts;
 
@@ -3637,10 +3640,10 @@ class WP_Query {
 		}
 
 		if ( 'ids' === $query_vars['fields'] ) {
-			$this->posts ??= $wpdb->get_col( $this->request );
+			$post_ids = $this->posts ?? $wpdb->get_col( $this->request );
 
-			/** @var int[] */
-			$this->posts      = array_map( 'intval', $this->posts );
+			// Only a scalar is a valid post ID.
+			$this->posts      = array_map( 'intval', array_values( array_filter( $post_ids, 'is_scalar' ) ) );
 			$this->post_count = count( $this->posts );
 			$this->set_found_posts( $query_vars, $limits );
 
@@ -3658,25 +3661,32 @@ class WP_Query {
 		}
 
 		if ( 'id=>parent' === $query_vars['fields'] ) {
-			$this->posts ??= $wpdb->get_results( $this->request );
+			$posts = $this->posts ?? $wpdb->get_results( $this->request );
 
-			$this->post_count = count( $this->posts );
-			$this->set_found_posts( $query_vars, $limits );
-
-			/** @var int[] */
+			$this->posts        = array();
 			$post_parents       = array();
 			$post_ids           = array();
 			$post_parents_cache = array();
 
-			foreach ( $this->posts as $key => $post ) {
-				$this->posts[ $key ]->ID          = (int) $post->ID;
-				$this->posts[ $key ]->post_parent = (int) $post->post_parent;
+			foreach ( is_array( $posts ) ? $posts : array() as $post ) {
+				// Only an object with an ID is a valid post.
+				if ( ! ( $post instanceof stdClass || $post instanceof WP_Post ) || ! isset( $post->ID ) ) {
+					continue;
+				}
 
-				$post_parents[ (int) $post->ID ] = (int) $post->post_parent;
-				$post_ids[]                      = (int) $post->ID;
+				$post->ID          = (int) $post->ID;
+				$post->post_parent = (int) ( $post->post_parent ?? 0 );
+				$this->posts[]     = $post;
 
-				$post_parents_cache[ 'post_parent:' . (string) $post->ID ] = (int) $post->post_parent;
+				$post_parents[ $post->ID ] = $post->post_parent;
+				$post_ids[]                = $post->ID;
+
+				$post_parents_cache[ 'post_parent:' . $post->ID ] = $post->post_parent;
 			}
+			unset( $posts );
+
+			$this->post_count = count( $this->posts );
+			$this->set_found_posts( $query_vars, $limits );
 			// Prime post parent caches, so that on second run, there is not another database query.
 			wp_cache_add_multiple( $post_parents_cache, 'posts' );
 
