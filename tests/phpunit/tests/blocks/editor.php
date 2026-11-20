@@ -383,6 +383,17 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the default editor styles are provided without the removed block editor stylesheet.
+	 */
+	public function test_get_default_block_editor_settings_default_editor_styles() {
+		$settings = get_default_block_editor_settings();
+
+		$this->assertCount( 1, $settings['defaultEditorStyles'], 'There should be one default editor style.' );
+		$this->assertStringContainsString( 'font-size:18px', $settings['defaultEditorStyles'][0]['css'], 'The default editor style should set the body font size.' );
+		$this->assertStringContainsString( '.editor-post-title__block', $settings['defaultEditorStyles'][0]['css'], 'The default editor style should style the post title.' );
+	}
+
+	/**
 	 * @ticket 56815
 	 */
 	public function test_get_default_block_editor_settings_max_upload_file_size() {
