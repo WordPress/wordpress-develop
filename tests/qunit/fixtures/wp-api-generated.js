@@ -11421,7 +11421,13 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "description": "WordPress.org plugin directory slug.",
                             "pattern": "[\\w\\-]+",
-                            "required": true
+                            "required": false
+                        },
+                        "url": {
+                            "type": "string",
+                            "description": "A URL to a plugin zip archive hosted on downloads.wordpress.org.",
+                            "format": "uri",
+                            "required": false
                         },
                         "status": {
                             "description": "The plugin activation status.",
