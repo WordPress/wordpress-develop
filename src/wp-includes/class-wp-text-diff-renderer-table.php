@@ -84,6 +84,14 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	protected $_max_changed_line_pairs = 100000;
 
 	/**
+	 * Maximum total number of old and new lines to match in a changed block.
+	 *
+	 * @since 7.3.0
+	 * @var int
+	 */
+	protected $_max_changed_lines = 5000;
+
+	/**
 	 * Inline display helper object name.
 	 *
 	 * @var string
@@ -105,6 +113,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		'_diff_threshold',
 		'_max_word_diff_line_length',
 		'_max_changed_line_pairs',
+		'_max_changed_lines',
 	);
 
 	/**
@@ -307,7 +316,11 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @return string
 	 */
 	public function _changed( $orig, $final ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.finalFound
-		if ( count( $orig ) * count( $final ) > $this->_max_changed_line_pairs ) {
+		$old_count = count( $orig );
+		$new_count = count( $final );
+		if ( $old_count + $new_count > $this->_max_changed_lines
+			|| $old_count * $new_count > $this->_max_changed_line_pairs
+		) {
 			return $this->_deleted( $orig ) . $this->_added( $final );
 		}
 

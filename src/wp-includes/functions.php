@@ -9729,22 +9729,28 @@ All at ###SITENAME###
 /**
  * Splits long lines at content boundaries before comparing revisions.
  *
+ * Split pieces except the last end with "\x1F", which wp_text_diff() removes from its output.
+ *
  * @since 7.3.0
  * @access private
  *
  * @param string[] $lines      Lines to compare.
  * @param int      $max_length Optional. Maximum length in bytes, except for unbroken words. Default 10000.
- * @return string[] Lines with their original text and whitespace preserved.
+ * @return string[] Line pieces with input unit separators removed and synthetic boundaries marked.
+ *
+ * @phpstan-return list<string>
  */
 function _wp_text_diff_split_long_lines( $lines, $max_length = 10000 ) {
 	$result = array();
 
 	foreach ( $lines as $line ) {
+		$line = str_replace( "\x1F", '', $line );
 		if ( strlen( $line ) <= $max_length ) {
 			$result[] = $line;
 			continue;
 		}
 
+		$first_piece = count( $result );
 		foreach ( preg_split( '/(?<=>)(?=<)/', $line ) as $fragment ) {
 			if ( strlen( $fragment ) <= $max_length ) {
 				$result[] = $fragment;
@@ -9770,6 +9776,11 @@ function _wp_text_diff_split_long_lines( $lines, $max_length = 10000 ) {
 				}
 				$result[] = $piece;
 			}
+		}
+
+		$last_piece = count( $result ) - 1;
+		for ( $i = $first_piece; $i < $last_piece; ++$i ) {
+			$result[ $i ] .= "\x1F";
 		}
 	}
 

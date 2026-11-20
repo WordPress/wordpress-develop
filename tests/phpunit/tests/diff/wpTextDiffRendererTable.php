@@ -43,6 +43,19 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 66095
+	 * @covers ::wp_text_diff
+	 */
+	public function test_wp_text_diff_shows_newlines_added_between_tags() {
+		$old  = '<pre>' . str_repeat( '<span>x</span>', 1000 ) . '</pre>';
+		$new  = str_replace( '><', ">\n<", $old );
+		$diff = wp_text_diff( $old, $new );
+
+		$this->assertNotSame( '', $diff );
+		$this->assertStringNotContainsString( "\x1F", $diff );
+	}
+
+	/**
+	 * @ticket 66095
 	 * @ticket 48973
 	 * @covers WP_Text_Diff_Renderer_Table::_changed
 	 */
@@ -57,6 +70,22 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 
 		$renderer->_max_changed_line_pairs = 4;
 		$this->assertSame( $renderer->_deleted( $old ) . $renderer->_added( $new ), $renderer->_changed( $old, $new ) );
+	}
+
+	/**
+	 * @ticket 66095
+	 * @covers WP_Text_Diff_Renderer_Table::_changed
+	 */
+	public function test_changed_lists_deletions_before_additions_above_the_line_limit() {
+		$renderer = $this->diff_renderer_table;
+		$old      = array( 'alpha & old', 'bravo & old', 'charlie & old' );
+		$new      = array( 'alpha & new' );
+		$fallback = $renderer->_deleted( $old ) . $renderer->_added( $new );
+
+		$this->assertNotSame( $fallback, $renderer->_changed( $old, $new ) );
+
+		$renderer->_max_changed_lines = 3;
+		$this->assertSame( $fallback, $renderer->_changed( $old, $new ) );
 	}
 
 	/**
@@ -220,6 +249,10 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 			'_max_changed_line_pairs'    => array(
 				'property_name' => '_max_changed_line_pairs',
 				'expected'      => 100000,
+			),
+			'_max_changed_lines'         => array(
+				'property_name' => '_max_changed_lines',
+				'expected'      => 5000,
 			),
 		);
 	}

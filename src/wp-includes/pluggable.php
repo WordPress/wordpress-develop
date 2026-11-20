@@ -3422,6 +3422,7 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 		$text_diff   = new Text_Diff( $left_lines, $right_lines );
 		$renderer    = new WP_Text_Diff_Renderer_Table( $args );
 		$diff        = $renderer->render( $text_diff );
+		$diff        = str_replace( "\x1F", '', $diff );
 
 		if ( ! $diff ) {
 			return '';

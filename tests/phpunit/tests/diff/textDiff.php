@@ -22,11 +22,19 @@ final class Tests_Diff_TextDiff extends WP_UnitTestCase {
 	 * @param string[] $pieces Expected pieces of a single input line.
 	 */
 	public function test_split_long_lines( $pieces ) {
-		$line   = implode( '', $pieces );
+		$line   = str_replace( "\x1F", '', implode( '', $pieces ) );
 		$actual = _wp_text_diff_split_long_lines( array( $line ) );
 
 		$this->assertSame( $pieces, $actual );
-		$this->assertSame( $line, implode( '', $actual ) );
+		$this->assertSame( $line, str_replace( "\x1F", '', implode( '', $actual ) ) );
+	}
+
+	/**
+	 * @ticket 66095
+	 * @covers ::_wp_text_diff_split_long_lines
+	 */
+	public function test_split_long_lines_strips_input_markers() {
+		$this->assertSame( array( "one \x1F", 'two' ), _wp_text_diff_split_long_lines( array( "o\x1Fne two" ), 4 ) );
 	}
 
 	/**
@@ -35,19 +43,22 @@ final class Tests_Diff_TextDiff extends WP_UnitTestCase {
 	 * @return array
 	 */
 	public static function data_long_line_pieces() {
-		$table = array( '<table>' );
+		$table = array( "<table>\x1F" );
 		for ( $i = 1; $i <= 600; ++$i ) {
-			$table[] = '<tr>';
-			$table[] = "<td>cell $i</td>";
-			$table[] = '</tr>';
+			$table[] = "<tr>\x1F";
+			$table[] = "<td>cell $i</td>\x1F";
+			$table[] = "</tr>\x1F";
 		}
 		$table[] = '</table>';
+
+		$sentences   = array_fill( 0, 599, "One more sentence! \t\x1F" );
+		$sentences[] = "One more sentence! \t";
 
 		return array(
 			'short markup' => array( array( '<p>One.</p><p>Two.</p>' ) ),
 			'long table'   => array( $table ),
-			'sentences'    => array( array_fill( 0, 600, "One more sentence! \t" ) ),
-			'whole words'  => array( array( str_repeat( 'café ', 1666 ), 'another word' ) ),
+			'sentences'    => array( $sentences ),
+			'whole words'  => array( array( str_repeat( 'café ', 1666 ) . "\x1F", 'another word' ) ),
 			'unbroken'     => array( array( str_repeat( 'x', 12000 ) ) ),
 		);
 	}
