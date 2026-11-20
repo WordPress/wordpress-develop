@@ -87,7 +87,7 @@ function wp_apply_pattern_block_rendering( array $args, string $block_name ): ar
 				__( 'Block type "%s" was registered with both a pattern and a render callback. The pattern takes precedence, so the render callback is ignored.' ),
 				$block_name
 			),
-			'7.1.0'
+			'7.3.0'
 		);
 	}
 
