@@ -372,7 +372,7 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		);
 		$this->assertSame( 'ability_invalid_output', $actual->get_error_code() );
 		$this->assertSame(
-			'Ability "test/add-numbers" has invalid output. Reason: output is not of type number.',
+			'Ability "test/add-numbers" returned a result that failed validation. Reason: output is not of type number.',
 			$actual->get_error_message()
 		);
 	}
