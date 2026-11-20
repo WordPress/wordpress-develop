@@ -3763,9 +3763,7 @@ class WP_Query {
 		}
 
 		// Convert to WP_Post objects.
-		if ( $this->posts ) {
-			$this->posts = self::convert_to_post_objects( $this->posts );
-		}
+		$this->posts = is_array( $this->posts ) ? self::convert_to_post_objects( $this->posts ) : array();
 
 		$unfiltered_posts = $this->posts;
 
@@ -3791,6 +3789,9 @@ class WP_Query {
 			 * @param WP_Query  $query The WP_Query instance (passed by reference).
 			 */
 			$this->posts = apply_filters_ref_array( 'posts_results', array( $this->posts, &$this ) );
+
+			// Ensure that any posts added or modified by the filter are WP_Post objects.
+			$this->posts = is_array( $this->posts ) ? self::convert_to_post_objects( $this->posts ) : array();
 		}
 
 		// Check post status to determine if post should be displayed.
@@ -3847,7 +3848,11 @@ class WP_Query {
 				 * @param WP_Post  $post_preview  The Post object.
 				 * @param WP_Query $query         The WP_Query instance (passed by reference).
 				 */
-				$this->posts[0] = get_post( apply_filters_ref_array( 'the_preview', array( $this->posts[0], &$this ) ) );
+				$preview_post = apply_filters_ref_array( 'the_preview', array( $this->posts[0], &$this ) );
+
+				// Replace the first post with the preview, or remove it if the preview is not a post.
+				$this->posts = array_merge( self::convert_to_post_objects( array( $preview_post ) ), array_slice( $this->posts, 1 ) );
+				unset( $preview_post );
 			}
 		}
 

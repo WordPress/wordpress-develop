@@ -42,6 +42,62 @@ class Tests_Query_PostObjects extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that post IDs from the 'posts_results' filter are converted to post objects before the 'the_posts' filter.
+	 *
+	 * @ticket 60745
+	 */
+	public function test_posts_results_filter_values_are_converted_to_post_objects(): void {
+		$post_ids = self::factory()->post->create_many( 2 );
+
+		add_filter(
+			'posts_results',
+			static function () use ( $post_ids ): array {
+				return array( null, $post_ids[1], (string) $post_ids[0] );
+			}
+		);
+
+		$posts_seen_by_the_posts = null;
+		add_filter(
+			'the_posts',
+			static function ( $posts ) use ( &$posts_seen_by_the_posts ) {
+				$posts_seen_by_the_posts = $posts;
+				return $posts;
+			}
+		);
+
+		$query = new WP_Query( array( 'post_type' => 'post' ) );
+
+		$this->assertIsArray( $posts_seen_by_the_posts );
+		$this->assertContainsOnlyInstancesOf( WP_Post::class, $posts_seen_by_the_posts );
+		$this->assertSame( array( $post_ids[1], $post_ids[0] ), wp_list_pluck( $posts_seen_by_the_posts, 'ID' ) );
+		$this->assertIsArray( $query->posts );
+		$this->assertSame( array( $post_ids[1], $post_ids[0] ), wp_list_pluck( $query->posts, 'ID' ) );
+	}
+
+	/**
+	 * Tests that the post is removed when the 'the_preview' filter does not return a post.
+	 *
+	 * @ticket 60745
+	 */
+	public function test_the_preview_filter_value_which_is_not_a_post_removes_the_post(): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		add_filter( 'the_preview', '__return_null' );
+
+		$query = new WP_Query(
+			array(
+				'p'       => $post_id,
+				'preview' => 'true',
+			)
+		);
+
+		$this->assertTrue( $query->is_preview );
+		$this->assertSame( array(), $query->posts );
+		$this->assertSame( 0, $query->post_count );
+	}
+
+	/**
 	 * Tests that when no value from the 'the_posts' filter resolves to a post, the query has no posts.
 	 *
 	 * @ticket 60745
