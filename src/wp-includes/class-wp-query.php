@@ -1940,17 +1940,27 @@ class WP_Query {
 	 *
 	 * @param array $query_vars Query variables.
 	 * @return string ORDER BY clause.
+	 *
+	 * @phpstan-param Posts_Query_Vars $query_vars
+	 * @phpstan-param-out Posts_Query_Vars $query_vars
 	 */
 	protected function parse_search_order( &$query_vars ) {
 		global $wpdb;
 
-		if ( $query_vars['search_terms_count'] > 1 ) {
-			$num_terms = count( $query_vars['search_orderby_title'] );
+		// These are set by WP_Query::parse_search().
+		$search_terms_count   = $query_vars['search_terms_count'] ?? 0;
+		$search_terms_count   = is_int( $search_terms_count ) ? $search_terms_count : 0;
+		$search_orderby_title = $query_vars['search_orderby_title'] ?? array();
+		$search_orderby_title = is_array( $search_orderby_title ) ? array_filter( $search_orderby_title, 'is_string' ) : array();
+		$search               = (string) $query_vars['s'];
+
+		if ( $search_terms_count > 1 ) {
+			$num_terms = count( $search_orderby_title );
 
 			// If the search terms contain negative queries, don't bother ordering by sentence matches.
 			$like = '';
-			if ( ! preg_match( '/(?:\s|^)\-/', $query_vars['s'] ) ) {
-				$like = '%' . $wpdb->esc_like( $query_vars['s'] ) . '%';
+			if ( ! preg_match( '/(?:\s|^)\-/', $search ) ) {
+				$like = '%' . $wpdb->esc_like( $search ) . '%';
 			}
 
 			$search_orderby = '';
@@ -1966,10 +1976,10 @@ class WP_Query {
 			 */
 			if ( $num_terms < 7 ) {
 				// All words in title.
-				$search_orderby .= 'WHEN ' . implode( ' AND ', $query_vars['search_orderby_title'] ) . ' THEN 2 ';
+				$search_orderby .= 'WHEN ' . implode( ' AND ', $search_orderby_title ) . ' THEN 2 ';
 				// Any word in title, not needed when $num_terms == 1.
 				if ( $num_terms > 1 ) {
-					$search_orderby .= 'WHEN ' . implode( ' OR ', $query_vars['search_orderby_title'] ) . ' THEN 3 ';
+					$search_orderby .= 'WHEN ' . implode( ' OR ', $search_orderby_title ) . ' THEN 3 ';
 				}
 			}
 
@@ -1984,7 +1994,7 @@ class WP_Query {
 			}
 		} else {
 			// Single word or sentence search.
-			$search_orderby = reset( $query_vars['search_orderby_title'] ) . ' DESC';
+			$search_orderby = reset( $search_orderby_title ) . ' DESC';
 		}
 
 		return $search_orderby;
