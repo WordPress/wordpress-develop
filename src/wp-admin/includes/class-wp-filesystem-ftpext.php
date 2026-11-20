@@ -446,7 +446,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function delete( $file, $recursive = false, $type = false ) {
-		if ( empty( $file ) ) {
+		if ( empty( $file ) || ! $this->exists( $file ) ) {
 			return false;
 		}
 
@@ -635,7 +635,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	public function mkdir( $path, $chmod = false, $chown = false, $chgrp = false ) {
 		$path = untrailingslashit( $path );
 
-		if ( empty( $path ) ) {
+		if ( empty( $path ) || $this->exists( $path ) ) {
 			return false;
 		}
 
