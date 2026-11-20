@@ -98,4 +98,4 @@ jobs:
           path: ${{ runner.temp }}/wordpress-release/wordpress.zip
           if-no-files-found: error
           overwrite: true
-          retention-days: 1
+          retention-days: 30

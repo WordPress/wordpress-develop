@@ -64,7 +64,7 @@ jobs:
   # Downloads a release zip once for every matrix job, waiting until WordPress.org serves it.
   download-wordpress:
     name: Download WordPress
-    uses: ./.github/workflows/reusable-download-wordpress-release.yml
+    uses: $/.github/workflows/reusable-download-wordpress-release.yml
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
