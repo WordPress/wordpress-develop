@@ -686,6 +686,7 @@ class WP_Ability {
 		 * sanitization changes the value and completes without an error.
 		 *
 		 * @since 7.1.0
+		 * @since 7.2.0 Also runs with sanitized input when sanitization changes the value.
 		 *
 		 * @param true|WP_Error $is_valid     The validation result from default validation.
 		 * @param mixed         $input        The input data being validated.
