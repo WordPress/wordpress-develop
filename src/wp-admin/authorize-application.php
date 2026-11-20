@@ -155,13 +155,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<?php
 				printf(
 					/* translators: %s: Application name. */
-					__( 'Would you like to give the application identifying itself as %s access to your account? You should only do this if you trust the application in question.' ),
+					__( 'Would you like to give the application identifying itself as %s access to your account? It will have the same capabilities as your account. Only approve this request if you initiated it from an application you trust.' ),
 					'<strong>' . esc_html( $app_name ) . '</strong>'
 				);
 				?>
 			</p>
 		<?php else : ?>
-			<p><?php _e( 'Would you like to give this application access to your account? You should only do this if you trust the application in question.' ); ?></p>
+			<p><?php _e( 'Would you like to give this application access to your account? It will have the same capabilities as your account. Only approve this request if you initiated it from an application you trust.' ); ?></p>
 		<?php endif; ?>
 
 		<?php
