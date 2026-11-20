@@ -134,16 +134,16 @@
  * }
  *
  * @phpstan-type Posts_Query_Vars Query_Vars&array{
- *     ignore_sticky_posts: mixed,
- *     suppress_filters: mixed,
- *     cache_results: mixed,
- *     update_post_term_cache: mixed,
- *     update_menu_item_cache: mixed,
- *     lazy_load_term_meta: mixed,
- *     update_post_meta_cache: mixed,
+ *     ignore_sticky_posts: bool,
+ *     suppress_filters: bool,
+ *     cache_results: bool,
+ *     update_post_term_cache: bool,
+ *     update_menu_item_cache: bool,
+ *     lazy_load_term_meta: bool,
+ *     update_post_meta_cache: bool,
  *     post_type: string|array<string>,
  *     posts_per_page: int,
- *     nopaging: mixed,
+ *     nopaging: bool,
  *     comments_per_page: mixed,
  *     no_found_rows: bool,
  *     ...
@@ -2294,19 +2294,24 @@ class WP_Query {
 			$query_vars['ignore_sticky_posts'] ??= $query_vars['caller_get_posts'];
 		}
 
-		$query_vars['ignore_sticky_posts']    ??= false;
-		$query_vars['suppress_filters']       ??= false;
-		$query_vars['cache_results']          ??= true;
-		$query_vars['update_post_term_cache'] ??= true;
-		$query_vars['update_menu_item_cache'] ??= false;
+		$query_vars['ignore_sticky_posts']    = (bool) ( $query_vars['ignore_sticky_posts'] ?? false );
+		$query_vars['suppress_filters']       = (bool) ( $query_vars['suppress_filters'] ?? false );
+		$query_vars['cache_results']          = (bool) ( $query_vars['cache_results'] ?? true );
+		$query_vars['update_post_term_cache'] = (bool) ( $query_vars['update_post_term_cache'] ?? true );
+		$query_vars['update_menu_item_cache'] = (bool) ( $query_vars['update_menu_item_cache'] ?? false );
 
 		if ( ! isset( $query_vars['lazy_load_term_meta'] ) ) {
 			$query_vars['lazy_load_term_meta'] = $query_vars['update_post_term_cache'];
-		} elseif ( $query_vars['lazy_load_term_meta'] ) { // Lazy loading term meta only works if term caches are primed.
-			$query_vars['update_post_term_cache'] = true;
+		} else {
+			$query_vars['lazy_load_term_meta'] = (bool) $query_vars['lazy_load_term_meta'];
+
+			// Lazy loading term meta only works if term caches are primed.
+			if ( $query_vars['lazy_load_term_meta'] ) {
+				$query_vars['update_post_term_cache'] = true;
+			}
 		}
 
-		$query_vars['update_post_meta_cache'] ??= true;
+		$query_vars['update_post_meta_cache'] = (bool) ( $query_vars['update_post_meta_cache'] ?? true );
 
 		if ( ! isset( $query_vars['post_type'] ) ) {
 			if ( $this->is_search ) {
@@ -2332,6 +2337,8 @@ class WP_Query {
 			} else {
 				$query_vars['nopaging'] = false;
 			}
+		} else {
+			$query_vars['nopaging'] = (bool) $query_vars['nopaging'];
 		}
 
 		if ( $this->is_feed ) {
