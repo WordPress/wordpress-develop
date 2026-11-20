@@ -86,6 +86,7 @@ class Tests_Ajax_wpAjaxHeartbeat extends WP_Ajax_UnitTestCase {
 	 * Tests autosaving a locked post.
 	 */
 	public function test_autosave_locked_post() {
+
 		// Lock the post to another user.
 		wp_set_current_user( self::$editor_id );
 		wp_set_post_lock( self::$post_id );
@@ -133,6 +134,53 @@ class Tests_Ajax_wpAjaxHeartbeat extends WP_Ajax_UnitTestCase {
 		$this->assertStringContainsString( $md5, $autosave->post_content );
 	}
 
+	/**
+	 * Tests autosaving a post from a stale lock held by the same user.
+	 *
+	 * @ticket 28288
+	 */
+	public function test_autosave_stale_same_user_lock_creates_an_autosave() {
+		wp_set_current_user( self::$admin_id );
+
+		$stale_lock = ( time() - 1 ) . ':' . self::$admin_id;
+		$fresh_lock = time() . ':' . self::$admin_id;
+		$md5        = md5( uniqid() );
+		$_POST      = array(
+			'action' => 'heartbeat',
+			'_nonce' => wp_create_nonce( 'heartbeat-nonce' ),
+			'data'   => array(
+				'wp_autosave' => array(
+					'post_id'          => self::$post_id,
+					'_wpnonce'         => wp_create_nonce( 'update-post_' . self::$post_id ),
+					'post_content'     => self::$post->post_content . PHP_EOL . $md5,
+					'post_type'        => 'post',
+					'active_post_lock' => $stale_lock,
+				),
+			),
+		);
+
+		update_post_meta( self::$post_id, '_edit_lock', $fresh_lock );
+
+		$this->assertNotSame( $stale_lock, $fresh_lock );
+
+		try {
+			$this->_handleAjax( 'heartbeat' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$response = json_decode( $this->_last_response, true );
+
+		$this->assertNotEmpty( $response['wp_autosave'] );
+		$this->assertTrue( $response['wp_autosave']['success'] );
+
+		$post = get_post( self::$post_id );
+		$this->assertStringNotContainsString( $md5, $post->post_content );
+
+		$autosave = wp_get_post_autosave( self::$post_id, get_current_user_id() );
+		$this->assertNotEmpty( $autosave );
+		$this->assertStringContainsString( $md5, $autosave->post_content );
+	}
 	/**
 	 * Tests with an invalid nonce.
 	 */
