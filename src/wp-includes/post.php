@@ -6915,7 +6915,41 @@ function get_pages( $args = array() ) {
 	$pages = new WP_Query();
 	$pages = $pages->query( $query_args );
 
-	if ( $child_of || $hierarchical ) {
+	if ( $child_of && ( '' !== (string) $meta_key || '' !== (string) $meta_value ) && empty( $parsed_args['include'] ) ) {
+		/*
+		 * The meta query can match descendants whose own parents do not match,
+		 * which would break the parent chain `get_page_children()` walks down.
+		 * Temporarily add the missing ancestors so the tree is complete, then
+		 * return only the pages that actually matched the query.
+		 */
+		$matched_ids = array_flip( wp_list_pluck( $pages, 'ID' ) );
+		$tree_pages  = $pages;
+		$known_ids   = $matched_ids;
+
+		foreach ( $pages as $page ) {
+			$ancestor_id = (int) $page->post_parent;
+
+			while ( $ancestor_id && $ancestor_id !== $child_of && ! isset( $known_ids[ $ancestor_id ] ) ) {
+				$ancestor = get_post( $ancestor_id );
+				if ( ! $ancestor ) {
+					break;
+				}
+
+				$known_ids[ $ancestor_id ] = true;
+				$tree_pages[]              = $ancestor;
+				$ancestor_id               = (int) $ancestor->post_parent;
+			}
+		}
+
+		$pages = array_values(
+			array_filter(
+				get_page_children( $child_of, $tree_pages ),
+				static function ( $page ) use ( $matched_ids ) {
+					return isset( $matched_ids[ $page->ID ] );
+				}
+			)
+		);
+	} elseif ( $child_of || $hierarchical ) {
 		$pages = get_page_children( $child_of, $pages );
 	}
 
