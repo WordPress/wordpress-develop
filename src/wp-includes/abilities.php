@@ -10,6 +10,7 @@
 declare( strict_types = 1 );
 
 require_once __DIR__ . '/abilities/class-wp-abilities-content.php';
+require_once __DIR__ . '/abilities/class-wp-abilities-media.php';
 require_once __DIR__ . '/abilities/class-wp-abilities-settings.php';
 require_once __DIR__ . '/abilities/class-wp-abilities-users.php';
 
@@ -50,6 +51,7 @@ function wp_register_core_ability_categories(): void {
  *
  * @since 6.9.0
  * @since 7.2.0 Added the `core/content-query`, `core/settings-get`, and `core/users-query` abilities.
+ * @since 7.3.0 Added the `core/media-query`, `core/media-upload`, `core/media-update`, and `core/media-delete` abilities.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  */
@@ -379,4 +381,7 @@ function wp_register_core_abilities(): void {
 
 	// Register the content abilities (currently the read-only `core/content-query`).
 	( new WP_Abilities_Content() )->register();
+
+	// Register the media abilities.
+	( new WP_Abilities_Media() )->register();
 }
