@@ -1138,6 +1138,51 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 66434
+	 */
+	public function test_create_item_rejects_id_with_trailing_newline() {
+		$this->setup_widget(
+			'text',
+			1,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name' => 'Test sidebar',
+			),
+			array( 'text-1' )
+		);
+		$this->setup_sidebar(
+			'sidebar-2',
+			array(
+				'name' => 'Test sidebar 2',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
+		$request->set_body_params(
+			array(
+				'id'       => "text-1\n",
+				'sidebar'  => 'sidebar-2',
+				'instance' => array(
+					'raw' => array(
+						'text' => 'Updated text test',
+					),
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_widget', $response, 400 );
+		$this->assertSame( 'Custom text test', get_option( 'widget_text' )[1]['text'] );
+		$this->assertSame( array( 'text-1' ), get_option( 'sidebars_widgets' )['sidebar-1'] );
+		$this->assertSame( array(), get_option( 'sidebars_widgets' )['sidebar-2'] );
+	}
+
+	/**
 	 * @ticket 41683
 	 */
 	public function test_update_item() {
@@ -1413,6 +1458,69 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 			),
 			$data
 		);
+	}
+
+	/**
+	 * @ticket 66434
+	 */
+	public function test_update_item_unknown_id_returns_404() {
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name' => 'Test sidebar',
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/widgets/unknown-3' );
+		$request->set_body_params(
+			array(
+				'sidebar' => 'sidebar-1',
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_widget_not_found', $response, 404 );
+		$this->assertSame( array(), get_option( 'sidebars_widgets' )['sidebar-1'] );
+	}
+
+	/**
+	 * @ticket 66434
+	 */
+	public function test_update_item_rejects_id_with_trailing_newline() {
+		$this->setup_widget(
+			'text',
+			1,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name' => 'Test sidebar',
+			),
+			array( 'text-1' )
+		);
+		$this->setup_sidebar(
+			'sidebar-2',
+			array(
+				'name' => 'Test sidebar 2',
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/widgets/text-1' );
+		$request->set_body_params(
+			array(
+				'id'      => "text-1\n",
+				'sidebar' => 'sidebar-2',
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_widget_not_found', $response, 404 );
+		$this->assertSame( 'Custom text test', get_option( 'widget_text' )[1]['text'] );
+		$this->assertSame( array( 'text-1' ), get_option( 'sidebars_widgets' )['sidebar-1'] );
+		$this->assertSame( array(), get_option( 'sidebars_widgets' )['sidebar-2'] );
 	}
 
 	/**

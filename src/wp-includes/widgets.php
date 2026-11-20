@@ -1941,7 +1941,7 @@ function wp_use_widgets_block_editor() {
 function wp_parse_widget_id( $id ) {
 	$parsed = array();
 
-	if ( preg_match( '/^(.+)-(\d+)$/', $id, $matches ) ) {
+	if ( preg_match( '/^(.+)-(\d+)\z/', $id, $matches ) ) {
 		$parsed['id_base'] = $matches[1];
 		$parsed['number']  = (int) $matches[2];
 	} else {
