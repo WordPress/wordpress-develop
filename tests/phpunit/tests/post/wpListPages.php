@@ -341,7 +341,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string }>
 	 */
-	public function data_wp_list_pages_exclude_separators(): array {
+	public static function data_wp_list_pages_exclude_separators(): array {
 		return array(
 			'comma'            => array( ',' ),
 			'comma and spaces' => array( ' , ' ),
@@ -353,7 +353,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: callable(int): (int|decimal-int-string) }>
 	 */
-	public function data_wp_list_pages_id_list_callbacks(): array {
+	public static function data_wp_list_pages_id_list_callbacks(): array {
 		return array(
 			'integers'        => array( 'intval' ),
 			'numeric strings' => array(
@@ -504,7 +504,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ show_home: bool, show_on_front: 'page'|'posts' }>
 	 */
-	public function data_wp_page_menu_without_front_page_exclusion(): array {
+	public static function data_wp_page_menu_without_front_page_exclusion(): array {
 		return array(
 			'no Home link, static front page' => array(
 				'show_home'     => false,
@@ -541,7 +541,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: callable(int[]): (int[]|decimal-int-string[]|string) }>
 	 */
-	public function data_wp_page_menu_exclude_formats(): array {
+	public static function data_wp_page_menu_exclude_formats(): array {
 		return array(
 			'array of integers'        => array( 'array_values' ),
 			'array of numeric strings' => array(

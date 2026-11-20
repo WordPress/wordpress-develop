@@ -13,6 +13,11 @@
  * @covers ::wp_random_content_pre_get_posts
  * @covers ::wp_random_content_posts_orderby
  * @covers ::wp_random_content_post_limits
+ * @covers ::wp_random_content_posts_where
+ * @covers ::wp_random_content_posts_fields
+ * @covers ::wp_random_content_posts_pre_query
+ * @covers ::wp_get_random_content_sample_ids
+ * @covers ::_wp_random_content_sample_clause
  * @covers ::wp_is_random_content_query
  * @covers ::wp_get_random_content_post_types
  * @covers ::wp_random_content_flush_rewrite_rules_for_post
@@ -410,7 +415,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Asserts that the query does not select posts in a random order.
+	 * Asserts that the query does not select posts for a random content request.
 	 *
 	 * @param WP_Query $query   The query to check.
 	 * @param string   $message Message to display on failure.
@@ -418,6 +423,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	protected function assertQueryIsNotRandomized( WP_Query $query, string $message ): void {
 		$this->assertIsString( $query->request, "{$message} The query was not run." );
 		$this->assertStringNotContainsString( 'RAND()', $query->request, $message );
+		$this->assertFalse( $query->get( 'random_sample_ids', false ), $message );
 	}
 
 	/*
@@ -954,40 +960,18 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 	/**
 	 * Ensure sticky posts are not prepended to the random selection.
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function test_random_redirect_ignores_sticky_posts(): void {
-		global $wpdb;
-
 		$sticky = $this->create_post( array( 'post_title' => 'Sticky' ) );
 		stick_post( $sticky );
 
-		/*
-		 * Make the "random" order deterministic so the sticky post is never selected by the query.
-		 * The order is replaced after the random order is enforced on the 'posts_orderby' filter.
-		 */
-		$sticky_orderby = "{$wpdb->posts}.ID = {$sticky} ASC";
-		add_filter(
-			'posts_clauses',
-			/**
-			 * @param array<string, string> $clauses
-			 * @return array<string, string>
-			 */
-			static function ( array $clauses, WP_Query $query ) use ( $sticky_orderby ): array {
-				if ( $query->is_main_query() ) {
-					$clauses['orderby'] = $sticky_orderby;
-				}
-				return $clauses;
-			},
-			10,
-			2
-		);
-
 		$this->go_to( home_url( '/random/' ) );
 
-		$this->assertNotNull( $this->redirect_location, 'The request with a sticky post did not redirect.' );
-		$this->assertNotSame( get_permalink( $sticky ), $this->redirect_location, 'Sticky posts must not be prepended to the random selection.' );
+		$query = $this->get_main_query();
+
+		$this->assertTrue( $query->get( 'ignore_sticky_posts' ), 'Sticky posts should be ignored by the random query.' );
+		$this->assertCount( 1, $query->posts, 'Sticky posts must not be prepended to the random selection.' );
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post, $sticky ), 'The request with a sticky post did not redirect to an eligible post.' );
 	}
 
 	/*
@@ -2352,8 +2336,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The customized archive query was not run.' );
-		$this->assertStringContainsString( 'ORDER BY RAND()', $request, 'The random order should not be overridden by archive customizations.' );
-		$this->assertStringContainsString( 'LIMIT 0, 1', $request, 'Only one post should be selected when archive customizations set the number of posts.' );
+		$this->assertStringContainsString( '.ID IN (', $request, 'The random post IDs should be looked up when the archive is customized.' );
+		$this->assertStringNotContainsString( 'ORDER BY', $request, 'The order set by archive customizations should be removed.' );
+		$this->assertStringNotContainsString( 'LIMIT', $request, 'The number of posts set by archive customizations should be removed.' );
 	}
 
 	/**
@@ -2633,41 +2618,333 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 */
 
 	/**
-	 * The random order is applied to post IDs only, so the database sorts IDs rather than
-	 * full rows, including post content, of every eligible post.
+	 * Gets the recorded queries looking up random post IDs.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @return string[] Queries looking up random post IDs for a random content request.
+	 *
+	 * @phpstan-return list<string>
+	 */
+	protected function get_recorded_sample_queries(): array {
+		global $wpdb;
+
+		$queries = preg_grep( "/{$wpdb->posts}\.ID IN \(/", $this->queries );
+
+		return is_array( $queries ) ? array_values( $queries ) : array();
+	}
+
+	/**
+	 * Gets the recorded queries selecting a pool of randomly ordered posts.
+	 *
+	 * @return string[] Queries selecting a pool of posts for a random content request.
+	 *
+	 * @phpstan-return list<string>
+	 */
+	protected function get_recorded_pool_queries(): array {
+		$queries = preg_grep( '/ORDER BY RAND\(\) LIMIT 1000$/', $this->queries );
+
+		return is_array( $queries ) ? array_values( $queries ) : array();
+	}
+
+	/**
+	 * Sets the highest post ID seen by the random content query, as if the site had
+	 * that many posts.
+	 *
+	 * WP_UnitTestCase_Base::go_to() flushes the cache, so the query is filtered.
+	 *
+	 * @param int $max_id Highest post ID.
+	 */
+	protected function set_highest_post_id( int $max_id ): void {
+		add_filter(
+			'query',
+			static function ( string $query ) use ( $max_id ): string {
+				return str_contains( $query, 'SELECT MAX(ID)' ) ? "SELECT {$max_id}" : $query;
+			}
+		);
+	}
+
+	/**
+	 * Sets the random post IDs looked up first by the random content query.
+	 *
+	 * @param int[] $post_ids Post IDs.
+	 */
+	protected function set_sample_ids( array $post_ids ): void {
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ) use ( $post_ids ): void {
+				if ( wp_is_random_content_query( $query ) ) {
+					$query->set( 'random_sample_ids', $post_ids );
+				}
+			},
+			30
+		);
+	}
+
+	/**
+	 * Ensure the random post is selected by looking up random post IDs, so the database
+	 * reads a fixed number of posts rather than every eligible post.
+	 *
+	 * @ticket 66654
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
-	public function test_random_post_is_selected_by_a_single_random_id_query(): void {
+	public function test_random_post_is_selected_by_looking_up_random_ids(): void {
 		global $wpdb;
+
+		$this->set_sample_ids( array( self::$arts_post, self::$sport_post, $this->get_nonexistent_post_id() ) );
+
+		$this->go_to_and_record_queries( home_url( '/random/' ) );
+
+		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'One of the eligible posts looked up should be selected.' );
+
+		$sample_queries = $this->get_recorded_sample_queries();
+		$this->assertCount( 1, $sample_queries, "Random post IDs should be looked up once when one of them is eligible:\n" . implode( "\n", $this->queries ) );
+		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.ID\s+FROM/", $sample_queries[0], 'The query should select post IDs only.' );
+		$this->assertMatchesRegularExpression( "/AND {$wpdb->posts}\.ID IN \(\d+(,\d+)*\)/", $sample_queries[0], 'The query should be limited to the random post IDs.' );
+		$this->assertStringNotContainsString( 'ORDER BY', $sample_queries[0], 'The query should not be ordered.' );
+		$this->assertStringNotContainsString( 'LIMIT', $sample_queries[0], 'The query should not be limited.' );
+		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $sample_queries[0], 'The query should not count found rows.' );
+		$this->assertCount( 0, $this->get_recorded_pool_queries(), 'A pool of posts should not be selected when a random post ID is eligible.' );
+	}
+
+	/**
+	 * Ensure the random post is selected with a small, fixed number of queries.
+	 *
+	 * @ticket 66654
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_random_post_is_selected_with_a_fixed_number_of_queries(): void {
+		global $wpdb;
+
+		$this->set_sample_ids( array( self::$arts_post, self::$sport_post ) );
+
+		$this->go_to_and_record_queries( home_url( '/random/' ) );
+
+		$queries = implode( "\n", $this->queries );
+
+		// The highest post ID, the random post IDs, and the selected post.
+		$this->assertCount( 3, $this->queries, "Three database queries should be made to select the random post:\n{$queries}" );
+		$this->assertMatchesRegularExpression( "/^SELECT MAX\(ID\) FROM {$wpdb->posts}$/", $this->queries[0], 'The highest post ID should be queried first.' );
+		$this->assertMatchesRegularExpression( "/{$wpdb->posts}\.ID IN \(/", $this->queries[1], 'The random post IDs should be looked up second.' );
+		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+\*\s+FROM\s+{$wpdb->posts}\s+WHERE\s+ID\s+=\s+\d+\s+LIMIT\s+1\s*$/", $this->queries[2], 'The selected post should be loaded by its ID.' );
+	}
+
+	/**
+	 * Ensure only the posts of the requested archive are selected from the random post IDs.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_random_ids_outside_the_archive_are_not_selected(): void {
+		$page = $this->create_post( array( 'post_type' => 'page' ) );
+
+		$this->set_sample_ids( array( self::$arts_post, self::$sport_post, $page ) );
+
+		for ( $i = 0; $i < 10; $i++ ) {
+			$this->redirect_location = null;
+			$this->go_to( home_url( '/random/category/arts/' ) );
+
+			$this->assertRedirectedToOneOf( array( self::$arts_post ), 'Only the post in the category may be selected.' );
+		}
+	}
+
+	/**
+	 * Ensure other random post IDs are looked up, then a pool of posts selected, when
+	 * none of the random post IDs are eligible posts.
+	 *
+	 * @ticket 66654
+	 *
+	 * @dataProvider data_random_urls_for_queries
+	 *
+	 * @param string $path     Request path.
+	 * @param string $eligible Which of the posts are eligible.
+	 */
+	public function test_pool_is_selected_when_no_random_id_is_eligible( string $path, string $eligible ): void {
+		/*
+		 * With random post IDs of up to 4 billion, the probability of one of them being
+		 * a post is less than 1 in a million.
+		 */
+		$this->set_highest_post_id( 4000000000 );
+
+		$this->go_to_and_record_queries( home_url( $path ) );
+
+		$sample_queries = $this->get_recorded_sample_queries();
+		$this->assertCount( 3, $sample_queries, "Random post IDs should be looked up three times:\n" . implode( "\n", $this->queries ) );
+		$this->assertCount( 3, array_unique( $sample_queries ), 'Different random post IDs should be looked up each time.' );
+
+		$pool_queries = $this->get_recorded_pool_queries();
+		$this->assertCount( 1, $pool_queries, "A pool of posts should be selected once:\n" . implode( "\n", $this->queries ) );
+		$this->assertStringNotContainsString( '.ID IN (', $pool_queries[0], 'The pool should not be limited to random post IDs.' );
+		$this->assertSame( array_search( $pool_queries[0], $this->queries, true ), array_search( end( $sample_queries ), $this->queries, true ) + 1, 'The pool should be selected after the random post IDs are looked up.' );
+
+		$post_ids = 'arts' === $eligible ? array( self::$arts_post ) : array( self::$arts_post, self::$sport_post );
+		$this->assertRedirectedToOneOf( $post_ids, 'A post should be selected from the pool.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_pool_is_selected_when_no_random_id_is_eligible()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string }>
+	 */
+	public static function data_random_urls_for_queries(): array {
+		return array(
+			'home'     => array( '/random/', 'all' ),
+			'category' => array( '/random/category/arts/', 'arts' ),
+		);
+	}
+
+	/**
+	 * Ensure an empty archive is a 404 once random post IDs are looked up and no pool
+	 * of posts can be selected.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_empty_archive_is_a_404_when_no_random_id_is_eligible(): void {
+		$this->set_highest_post_id( 4000000000 );
+
+		$this->go_to_and_record_queries( home_url( '/random/category/empty/' ) );
+
+		$this->assertCount( 1, $this->get_recorded_pool_queries(), 'A pool of posts should be selected.' );
+		$this->assertNull( $this->redirect_location, 'An empty archive should not redirect.' );
+		$this->assertTrue( is_404(), 'An empty archive should be a 404.' );
+	}
+
+	/**
+	 * Ensure no query writes to the database.
+	 *
+	 * @ticket 66654
+	 *
+	 * @dataProvider data_highest_post_ids_for_queries
+	 *
+	 * @param int|null $max_id Highest post ID to set, or null to use the highest post ID.
+	 */
+	public function test_random_requests_do_not_write_to_the_database( ?int $max_id ): void {
+		if ( null !== $max_id ) {
+			$this->set_highest_post_id( $max_id );
+		}
 
 		$this->go_to_and_record_queries( home_url( '/random/' ) );
 
 		$this->assertNotNull( $this->redirect_location, 'The request did not redirect.' );
+		$this->assertNotEmpty( $this->queries, 'No database queries were recorded.' );
 
-		$random_queries = array_values( preg_grep( '/RAND\(\)/', $this->queries ) );
-		$this->assertCount( 1, $random_queries, "Exactly one random query should be made:\n" . implode( "\n", $this->queries ) );
-		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.ID\s+FROM/", $random_queries[0], 'The random query should select post IDs only.' );
-		$this->assertMatchesRegularExpression( '/ORDER BY RAND\(\)/', $random_queries[0], 'The query should use a random order.' );
-		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $random_queries[0], 'The query should select a single post.' );
-		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $random_queries[0], 'The query should not count found rows.' );
+		foreach ( $this->queries as $query ) {
+			$this->assertMatchesRegularExpression( '/^\s*(SELECT|SHOW)\b/i', $query, 'Queries must not write to the database.' );
+		}
 	}
 
 	/**
-	 * At most one more query is made, to load the selected post by its ID.
+	 * Data provider for {@see self::test_random_requests_do_not_write_to_the_database()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: int|null }>
+	 */
+	public static function data_highest_post_ids_for_queries(): array {
+		return array(
+			'random post IDs' => array( null ),
+			'pool of posts'   => array( 4000000000 ),
+		);
+	}
+
+	/**
+	 * Ensure the random post IDs are distinct and between 1 and the highest post ID.
+	 *
+	 * @ticket 66654
+	 *
+	 * @dataProvider data_highest_post_ids
+	 *
+	 * @param int $max_id Highest post ID.
+	 * @param int $count  Number of random post IDs expected.
+	 */
+	public function test_wp_get_random_content_sample_ids( int $max_id, int $count ): void {
+		wp_cache_set( 'max_post_id', $max_id, 'random-content' );
+
+		$sample_ids = wp_get_random_content_sample_ids();
+
+		$this->assertCount( $count, $sample_ids, 'An unexpected number of random post IDs was returned.' );
+		$this->assertSame( $sample_ids, array_values( array_unique( $sample_ids ) ), 'The random post IDs should be distinct.' );
+		$this->assertContainsOnly( 'int', $sample_ids, true, 'The random post IDs should be integers.' );
+		$this->assertGreaterThanOrEqual( 1, min( $sample_ids ), 'The random post IDs should be at least 1.' );
+		$this->assertLessThanOrEqual( max( 1, $max_id ), max( $sample_ids ), 'The random post IDs should not exceed the highest post ID.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_wp_get_random_content_sample_ids()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: int, 1: int }>
+	 */
+	public static function data_highest_post_ids(): array {
+		return array(
+			'no posts'          => array( 0, 1 ),
+			'one post ID'       => array( 1, 1 ),
+			'fewer than 50 IDs' => array( 20, 20 ),
+			'exactly 50 IDs'    => array( 50, 50 ),
+			'51 IDs'            => array( 51, 50 ),
+			'many IDs'          => array( 1000000, 50 ),
+		);
+	}
+
+	/**
+	 * Ensure every post ID is looked up when there are no more than 50, so a post is
+	 * always selected by the first query.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_wp_get_random_content_sample_ids_returns_every_id_of_a_small_site(): void {
+		wp_cache_set( 'max_post_id', 20, 'random-content' );
+
+		$this->assertSame( range( 1, 20 ), wp_get_random_content_sample_ids(), 'Every post ID should be returned.' );
+	}
+
+	/**
+	 * Ensure the highest post ID is cached, so it is only queried once.
+	 *
+	 * @ticket 66654
+	 */
+	public function test_wp_get_random_content_sample_ids_caches_the_highest_post_id(): void {
+		wp_get_random_content_sample_ids();
+
+		$queries = new MockAction();
+		add_filter( 'query', array( $queries, 'filter' ) );
+
+		wp_get_random_content_sample_ids();
+
+		$this->assertSame( 0, $queries->get_call_count(), 'The highest post ID should not be queried again once it is cached.' );
+	}
+
+	/**
+	 * Ensure posts are selected evenly when there are gaps between their IDs.
+	 *
+	 * @ticket 66654
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
-	public function test_random_post_is_loaded_by_id_after_the_random_query(): void {
+	public function test_posts_following_a_gap_in_post_ids_are_not_selected_more_often(): void {
 		global $wpdb;
 
-		$this->go_to_and_record_queries( home_url( '/random/' ) );
+		// The post IDs of the fixtures are followed by a gap, then the IDs of these posts.
+		$max_id   = (int) $wpdb->get_var( "SELECT MAX(ID) FROM {$wpdb->posts}" );
+		$post_ids = array( self::$arts_post, self::$sport_post );
+		for ( $i = 1; $i <= 2; $i++ ) {
+			$post_id = $this->create_post( array( 'import_id' => $max_id + 300 + $i ) );
 
-		$this->assertLessThanOrEqual( 2, count( $this->queries ), "No more than two database queries should be made to select the random post:\n" . implode( "\n", $this->queries ) );
-		$this->assertStringContainsString( 'RAND()', $this->queries[0], 'The random query should be made first.' );
+			$this->assertSame( $max_id + 300 + $i, $post_id, 'The post was not created following a gap in post IDs.' );
 
-		if ( isset( $this->queries[1] ) ) {
-			$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.\*\s+FROM\s+{$wpdb->posts}\s+WHERE\s+ID\s+IN\s+\(\d+\)/", $this->queries[1], 'The second query should load the selected post by its ID.' );
+			$post_ids[] = $post_id;
+		}
+
+		$selected = array_fill_keys( array_map( 'get_permalink', $post_ids ), 0 );
+		for ( $i = 0; $i < 200; $i++ ) {
+			$this->redirect_location = null;
+			$this->go_to( home_url( '/random/' ) );
+
+			$this->assertArrayHasKey( $this->redirect_location, $selected, 'An unexpected post was selected.' );
+			++$selected[ $this->redirect_location ];
+		}
+
+		// Each post is expected to be selected 50 times, fewer than 20 has a probability of less than 1 in 10^7.
+		foreach ( $selected as $permalink => $count ) {
+			$this->assertGreaterThan( 20, $count, "The post at {$permalink} was selected too rarely: " . implode( ', ', $selected ) );
 		}
 	}
 
@@ -2708,11 +2985,11 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/*
-	 * Query arguments that would otherwise override the single random post.
+	 * Query arguments that would otherwise override the posts selected from.
 	 */
 
 	/**
-	 * Ensure the random query selects a single post when a theme overrides the limit.
+	 * Ensure the random query is not limited, and a single post selected, when a theme overrides the limit.
 	 *
 	 * @dataProvider data_query_vars_overriding_the_limit
 	 *
@@ -2720,7 +2997,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * @param string $query_var Query variable set by a theme.
 	 * @param mixed  $value     Query variable value.
 	 */
-	public function test_random_query_is_limited_to_one_post_when_a_theme_overrides_the_limit( string $path, string $query_var, $value ): void {
+	public function test_random_query_selects_one_post_when_a_theme_overrides_the_limit( string $path, string $query_var, $value ): void {
 		add_action(
 			'pre_get_posts',
 			static function ( WP_Query $query ) use ( $query_var, $value ): void {
@@ -2734,12 +3011,14 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The random query with a theme limit override was not run.' );
-		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $request, 'The random query should select a single post.' );
+		$this->assertStringContainsString( '.ID IN (', $request, 'The random post IDs should be looked up.' );
+		$this->assertStringNotContainsString( 'LIMIT', $request, 'The limit set by the theme should be removed.' );
+		$this->assertCount( 1, $this->get_main_query()->posts, 'A single post should be selected.' );
 		$this->assertRedirectedToOneOf( array( self::$arts_post, self::$sport_post ), 'Theme limit overrides should not prevent a single post being selected.' );
 	}
 
 	/**
-	 * Data provider for {@see self::test_random_query_is_limited_to_one_post_when_a_theme_overrides_the_limit()}.
+	 * Data provider for {@see self::test_random_query_selects_one_post_when_a_theme_overrides_the_limit()}.
 	 *
 	 * The limit is applied differently to the home page and archives, see WP_Query::get_posts().
 	 *
@@ -3225,6 +3504,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->assertFalse( has_action( 'pre_get_posts', 'wp_random_content_pre_get_posts' ), 'The pre_get_posts callback should be removed after the main query.' );
 		$this->assertFalse( has_filter( 'posts_orderby', 'wp_random_content_posts_orderby' ), 'The posts_orderby callback should be removed after the main query.' );
 		$this->assertFalse( has_filter( 'post_limits', 'wp_random_content_post_limits' ), 'The post_limits callback should be removed after the main query.' );
+		$this->assertFalse( has_filter( 'posts_where', 'wp_random_content_posts_where' ), 'The posts_where callback should be removed after the main query.' );
+		$this->assertFalse( has_filter( 'posts_fields', 'wp_random_content_posts_fields' ), 'The posts_fields callback should be removed after the main query.' );
+		$this->assertFalse( has_filter( 'posts_pre_query', 'wp_random_content_posts_pre_query' ), 'The posts_pre_query callback should be removed after the main query.' );
 	}
 
 	/**
@@ -3248,8 +3530,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The random query with SQL customizations was not run.' );
-		$this->assertStringContainsString( 'ORDER BY RAND()', $request, 'The posts_orderby filter should not override the random order.' );
-		$this->assertStringContainsString( 'LIMIT 0, 1', $request, 'The post_limits filter should not override the random limit.' );
+		$this->assertStringContainsString( '.ID IN (', $request, 'The random post IDs should be looked up when the SQL is customized.' );
+		$this->assertStringNotContainsString( 'ORDER BY', $request, 'The posts_orderby filter should not order the random query.' );
+		$this->assertStringNotContainsString( 'LIMIT', $request, 'The post_limits filter should not limit the random query.' );
 	}
 
 	/**
@@ -3269,8 +3552,9 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 
 		$request = $this->get_main_query()->request;
 		$this->assertIsString( $request, 'The random query with suppressed filters was not run.' );
-		$this->assertStringContainsString( 'ORDER BY RAND()', $request, 'Suppressing filters should not bypass the random order.' );
-		$this->assertStringContainsString( 'LIMIT 0, 1', $request, 'Suppressing filters should not bypass the random limit.' );
+		$this->assertStringContainsString( '.ID IN (', $request, 'Suppressing filters should not bypass the lookup of random post IDs.' );
+		$this->assertStringNotContainsString( 'ORDER BY', $request, 'Suppressing filters should not order the random query.' );
+		$this->assertStringNotContainsString( 'LIMIT', $request, 'Suppressing filters should not limit the random query.' );
 	}
 
 	/*

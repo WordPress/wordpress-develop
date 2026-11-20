@@ -2,6 +2,7 @@
  * Internal dependencies
  */
 import { test, expect } from '../fixtures';
+import { adminNotice } from '../utils/admin';
 
 const POST_TITLE = 'Test Title';
 
@@ -27,7 +28,7 @@ test.describe( 'Empty Trash', () => {
 		await page.getByRole( 'link', { name: 'Trash' } ).click();
 		await page.getByRole( 'button', { name: 'Empty Trash' } ).first().click();
 
-		await expect( page.locator( '#message' ) ).toContainText( '1 post permanently deleted.' );
+		await expect( adminNotice( page ) ).toContainText( '1 post permanently deleted.' );
 	} );
 
 	test('Restore trash post', async ( { admin, editor, page }) => {
@@ -50,6 +51,6 @@ test.describe( 'Empty Trash', () => {
 		await listTable.getByRole( 'link', { name: `Restore “${POST_TITLE}” from the Trash` } ).click();
 
 		// Expect for success message for restored post.
-		await expect( page.locator( '#message' ) ).toContainText( '1 post restored from the Trash.' );
+		await expect( adminNotice( page ) ).toContainText( '1 post restored from the Trash.' );
 	} );
 } );
