@@ -18,6 +18,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Include the `WP_Site_Health` file.
 		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
+		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 	}
 
 	/**
@@ -741,5 +742,94 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$this->assertSame( 'good', $result['status'] );
 		$this->assertStringContainsString( 'Your site does not have any installed themes.', $result['description'] );
+	}
+
+	/**
+	 * Tests that the image format support tests pass when the server can process the format.
+	 *
+	 * @ticket 55814
+	 *
+	 * @covers ::get_test_webp_support
+	 * @covers ::get_test_avif_support
+	 *
+	 * @dataProvider data_image_format_support_tests
+	 *
+	 * @param string $method Test method name.
+	 * @param string $format Image format name.
+	 */
+	public function test_image_format_support_when_supported( string $method, string $format ) {
+		add_filter(
+			'wp_image_editors',
+			static function () {
+				return array( 'WP_Image_Editor_Mock' );
+			}
+		);
+
+		$result = $this->instance->$method();
+
+		$this->assertSame( 'good', $result['status'] );
+		$this->assertSame( "Your server can process $format images", $result['label'] );
+		$this->assertSame( '', $result['actions'] );
+	}
+
+	/**
+	 * Tests that the image format support tests recommend contacting the host when the server cannot process the format.
+	 *
+	 * @ticket 55814
+	 *
+	 * @covers ::get_test_webp_support
+	 * @covers ::get_test_avif_support
+	 *
+	 * @dataProvider data_image_format_support_tests
+	 *
+	 * @param string $method Test method name.
+	 * @param string $format Image format name.
+	 */
+	public function test_image_format_support_when_not_supported( string $method, string $format ) {
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_false' );
+
+		$result = $this->instance->$method();
+
+		$this->assertSame( 'recommended', $result['status'] );
+		$this->assertSame( "Your server cannot process $format images", $result['label'] );
+		$this->assertStringContainsString( "so $format images cannot be uploaded.", $result['description'] );
+		$this->assertStringContainsString( 'contact them for more information', $result['actions'] );
+	}
+
+	/**
+	 * Tests that the image format support tests mention browser processing when client-side media processing is enabled.
+	 *
+	 * @ticket 55814
+	 *
+	 * @covers ::get_test_webp_support
+	 * @covers ::get_test_avif_support
+	 *
+	 * @dataProvider data_image_format_support_tests
+	 *
+	 * @param string $method Test method name.
+	 * @param string $format Image format name.
+	 */
+	public function test_image_format_support_when_not_supported_with_client_side_media_processing( string $method, string $format ) {
+		add_filter( 'wp_image_editors', '__return_empty_array' );
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		$result = $this->instance->$method();
+
+		$this->assertSame( 'recommended', $result['status'] );
+		$this->assertSame( "Your server cannot process $format images", $result['label'] );
+		$this->assertStringContainsString( "Supported browsers create them during upload instead, but $format uploads from other browsers will fail.", $result['description'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string, 1: string }>
+	 */
+	public static function data_image_format_support_tests(): array {
+		return array(
+			'WebP' => array( 'get_test_webp_support', 'WebP' ),
+			'AVIF' => array( 'get_test_avif_support', 'AVIF' ),
+		);
 	}
 }
