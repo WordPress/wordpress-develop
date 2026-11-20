@@ -2103,7 +2103,57 @@ function wp_filter_content_tags( $content, $context = null ) {
 		}
 	}
 
-	return $content;
+	return wp_remove_auto_sizes_from_cropped_galleries( $content );
+}
+
+/**
+ * Removes auto sizes from images in cropped Gallery blocks.
+ *
+ * A cropped image can be wider than its layout box. In that case, using the
+ * layout box for `sizes="auto"` can select a source too small for the crop.
+ *
+ * @since 7.2.0
+ *
+ * @param string $content The HTML content to filter.
+ * @return string The filtered HTML content.
+ */
+function wp_remove_auto_sizes_from_cropped_galleries( $content ) {
+	if ( ! str_contains( $content, 'is-cropped' ) || false === stripos( $content, 'auto' ) ) {
+		return $content;
+	}
+
+	$processor      = WP_HTML_Processor::create_fragment( $content );
+	$gallery_depths = array();
+
+	while ( $processor->next_tag() ) {
+		$depth = $processor->get_current_depth();
+		while ( $gallery_depths && $depth <= end( $gallery_depths ) ) {
+			array_pop( $gallery_depths );
+		}
+
+		if ( $processor->has_class( 'wp-block-gallery' ) && $processor->has_class( 'is-cropped' ) ) {
+			$gallery_depths[] = $depth;
+			continue;
+		}
+
+		if ( ! $gallery_depths || 'IMG' !== $processor->get_tag() ) {
+			continue;
+		}
+
+		$sizes = $processor->get_attribute( 'sizes' );
+		if ( ! is_string( $sizes ) || ! wp_sizes_attribute_includes_valid_auto( $sizes ) ) {
+			continue;
+		}
+
+		$sizes = preg_replace( '/^\s*auto\s*,\s*/i', '', $sizes, 1 );
+		if ( '' === $sizes || 'auto' === strtolower( trim( $sizes ) ) ) {
+			$processor->remove_attribute( 'sizes' );
+		} else {
+			$processor->set_attribute( 'sizes', $sizes );
+		}
+	}
+
+	return $processor->get_updated_html();
 }
 
 /**
