@@ -2141,6 +2141,9 @@ class WP_Query {
 	 *
 	 * @param string $order The 'order' query variable.
 	 * @return string The sanitized 'order' query variable.
+	 *
+	 * @phpstan-param mixed $order
+	 * @phpstan-return 'ASC'|'DESC'
 	 */
 	protected function parse_order( $order ) {
 		if ( ! is_string( $order ) || empty( $order ) ) {
