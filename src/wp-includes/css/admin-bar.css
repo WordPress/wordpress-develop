@@ -727,6 +727,40 @@ html:lang(he-il) .rtl #wpadminbar * {
 	transform: scaleX(-1) /*rtl:none*/;
 }
 
+#wpadminbar #wp-admin-bar-command-palette .ab-icon {
+	position: relative;
+}
+
+#wpadminbar #wp-admin-bar-command-palette.is-loading .ab-icon svg {
+	visibility: hidden;
+}
+
+#wpadminbar #wp-admin-bar-command-palette.is-loading .ab-icon::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 14px;
+	height: 14px;
+	margin: -9px 0 0 -9px;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	animation: wp-admin-bar-command-palette-loading 0.8s linear infinite;
+}
+
+@keyframes wp-admin-bar-command-palette-loading {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#wpadminbar #wp-admin-bar-command-palette.is-loading .ab-icon::after {
+		animation: none;
+	}
+}
+
 /**
  * Customize support classes
  */

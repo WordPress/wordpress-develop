@@ -1011,11 +1011,12 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
  * for opening the command palette.
  *
  * @since 7.0.0
+ * @since 7.3.0 Opens the palette through the script enqueued by wp_enqueue_command_palette_loader().
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
 function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
-	if ( ! is_admin() || ! wp_script_is( 'wp-core-commands', 'enqueued' ) ) {
+	if ( ! is_admin() || ! wp_script_is( 'wp-command-palette-loader', 'enqueued' ) ) {
 		return;
 	}
 
@@ -1064,9 +1065,8 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 			'title' => $title,
 			'href'  => '#',
 			'meta'  => array(
-				'class'   => 'hide-if-no-js',
-				'onclick' => 'wp.data.dispatch( "core/commands" ).open(); return false;',
-				'html'    => wp_get_inline_script_tag( $script ),
+				'class' => 'hide-if-no-js',
+				'html'  => wp_get_inline_script_tag( $script ),
 			),
 		)
 	);
