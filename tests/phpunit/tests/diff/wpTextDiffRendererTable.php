@@ -91,6 +91,18 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66095
+	 * @covers ::wp_text_diff
+	 */
+	public function test_wp_text_diff_limits_can_be_raised_through_args() {
+		$old = str_repeat( 'x', 12000 ) . ' old';
+		$new = str_repeat( 'x', 12000 ) . ' new';
+
+		$this->assertStringNotContainsString( '<del>old</del>', wp_text_diff( $old, $new ) );
+		$this->assertStringContainsString( '<del>old</del>', wp_text_diff( $old, $new, array( 'max_word_diff_line_length' => 20000 ) ) );
+	}
+
+	/**
 	 * @dataProvider data_compat_fields
 	 * @ticket 58898
 	 *
