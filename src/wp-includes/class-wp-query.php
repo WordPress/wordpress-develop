@@ -1621,18 +1621,29 @@ class WP_Query {
 				// @todo Handle normalizing `tag` query string.
 				$tags = preg_split( '/[,\r\n\t ]+/', $query_vars['tag'] );
 				foreach ( (array) $tags as $tag ) {
-					$tag                          = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
-					$query_vars['tag_slug__in'][] = $tag;
+					$tag = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
+
+					// A filter on the slug may return any type, but only a scalar is a valid slug.
+					if ( is_scalar( $tag ) ) {
+						$query_vars['tag_slug__in'][] = $tag;
+					}
 					sort( $query_vars['tag_slug__in'] );
 				}
 			} elseif ( preg_match( '/[+\r\n\t ]+/', $query_vars['tag'] ) || ! empty( $query_vars['cat'] ) ) {
 				$tags = preg_split( '/[+\r\n\t ]+/', $query_vars['tag'] );
 				foreach ( (array) $tags as $tag ) {
-					$tag                           = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
-					$query_vars['tag_slug__and'][] = $tag;
+					$tag = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
+
+					// A filter on the slug may return any type, but only a scalar is a valid slug.
+					if ( is_scalar( $tag ) ) {
+						$query_vars['tag_slug__and'][] = $tag;
+					}
 				}
 			} else {
-				$query_vars['tag']            = sanitize_term_field( 'slug', $query_vars['tag'], 0, 'post_tag', 'db' );
+				$tag = sanitize_term_field( 'slug', $query_vars['tag'], 0, 'post_tag', 'db' );
+
+				// A filter on the slug may return any type, but only a scalar is a valid slug.
+				$query_vars['tag']            = is_scalar( $tag ) ? (string) $tag : '';
 				$query_vars['tag_slug__in'][] = $query_vars['tag'];
 				sort( $query_vars['tag_slug__in'] );
 			}
