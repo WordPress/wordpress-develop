@@ -4511,7 +4511,8 @@ function wp_plupload_default_settings() {
 	}
 
 	$max_upload_size    = wp_max_upload_size();
-	$allowed_extensions = array_keys( get_allowed_mime_types() );
+	$allowed_mime_types = get_allowed_mime_types();
+	$allowed_extensions = array_keys( $allowed_mime_types );
 	$extensions         = array();
 	foreach ( $allowed_extensions as $extension ) {
 		$extensions = array_merge( $extensions, explode( '|', $extension ) );
@@ -4585,6 +4586,7 @@ function wp_plupload_default_settings() {
 
 	$settings = array(
 		'defaults'      => $defaults,
+		'mimeTypes'     => $allowed_mime_types,
 		'browser'       => array(
 			'mobile'    => wp_is_mobile(),
 			'supported' => _device_can_upload(),

@@ -337,6 +337,31 @@ window.wp = window.wp || {};
 		} );
 
 		/**
+		 * Rechecks file types before upload handlers consume an accepted batch.
+		 *
+		 * A context can change after FileFiltered. Run before both the classic
+		 * handler and the client-side media pipeline's priority-100 handler.
+		 *
+		 * @param {plupload.Uploader} up    Uploader instance.
+		 * @param {Array}             files Files originally accepted by Plupload.
+		 */
+		this.uploader.bind( 'FilesAdded', function( up, files ) {
+			var index, file;
+
+			for ( index = files.length - 1; index >= 0; index-- ) {
+				file = files[ index ];
+				if ( ! self.isFileTypeSupported( file ) ) {
+					up.trigger( 'Error', {
+						code: plupload.FILE_EXTENSION_ERROR,
+						file: file
+					} );
+					files.splice( index, 1 );
+					up.removeFile( file );
+				}
+			}
+		}, this, 1000 );
+
+		/**
 		 * After files were filtered and added to the queue, create a model for each.
 		 *
 		 * @param {plupload.Uploader} up    Uploader instance.
@@ -458,6 +483,10 @@ window.wp = window.wp || {};
 				}
 			}
 
+			if ( pluploadError.code === plupload.FILE_EXTENSION_ERROR && up.getOption( 'context_extensions' ) ) {
+				message = pluploadL10n.unsupported_filetype;
+			}
+
 			error( message, pluploadError, pluploadError.file );
 			up.refresh();
 		});
@@ -494,6 +523,23 @@ window.wp = window.wp || {};
 	};
 
 	$.extend( Uploader.prototype, /** @lends wp.Uploader.prototype */{
+		/**
+		 * Checks a file against the uploader's current extension filters.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param {plupload.File} file The file to check.
+		 * @return {boolean} Whether the file type is allowed.
+		 */
+		isFileTypeSupported: function( file ) {
+			var types = this.uploader.getOption( 'filters' ).mime_types,
+				context = this.uploader.getOption( 'context_extensions' ),
+				extension = /\.([^.]+)$/.exec( file.name );
+
+			return ( ! types || ! types.length || types.regexp.test( file.name ) ) &&
+				( ! context || !! extension && _.contains( context, extension[1].toLowerCase() ) );
+		},
+
 		/**
 		 * Acts as a shortcut to extending the uploader's multipart_params object.
 		 *
