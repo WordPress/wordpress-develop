@@ -31,7 +31,7 @@ function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
 		$date_field = 'comment_date_gmt';
 	}
 
-	$stored = _wp_encode_4byte_chars_in_fields( array( 'comment_author' => stripslashes( $comment_author ) ), $wpdb->comments, array( 'comment_author' ) );
+	$stored = _wp_encode_field_values_for_database( array( 'comment_author' => stripslashes( $comment_author ) ), $wpdb->comments, array( 'comment_author' ) );
 
 	return $wpdb->get_var(
 		$wpdb->prepare(

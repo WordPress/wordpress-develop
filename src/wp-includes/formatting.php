@@ -6194,6 +6194,67 @@ function wp_encode_emoji( $content ) {
 }
 
 /**
+ * Escapes a UTF-8-encoded HTML document for a given MySQL charset, replacing
+ * unrepresentable characters with their character-reference equivalents.
+ *
+ * Because WordPress only supports charsets compatible in the ASCII range,
+ * this function will return a common-demoninator for unrecognized encodings
+ * as the ASCII-safe escaping of the input HTML.
+ *
+ * In the future this function may perform conversion differently in certain
+ * cases, as not all content may be safely transformed; specifically, there
+ * is no representation in HTML for tag names, attribute names, comment
+ * content, using bytes that aren’t valid in the document encoding.
+ *
+ * Example:
+ *
+ *     '&#x1F170;' === _wp_escape_html_for_mysql_charset( 'latin1', '🅰' );
+ *     '&#x1F170;' === _wp_escape_html_for_mysql_charset( 'utf8mb3', '🅰' );
+ *     '🅰'        === _wp_escape_html_for_mysql_charset( 'utf8mb4', '🅰' );
+ *
+ * Because invalid byte spans are not generally safe for database storage, this
+ * function will replace those spans with an appropriate substitution character.
+ *
+ * Example:
+ *
+ *     '�'        === _wp_escape_html_for_mysql_charset( 'utf8mb4', "\xC0" );
+ *     '&#xFFFD;' === _wp_escape_html_for_mysql_charset( 'utf8mb3', "\xC0" );
+ *
+ * Future improvement would scan through the HTML using the HTML API and make
+ * semantic substitutions where appropriate. For example, JavaScript, JSON,
+ * and JSON attributes in block deloimiters should use JavaScript Unicode
+ * escaping, CSS should use CSS Unicode escaping, CDATA sections should be
+ * split apart and escaped, while other syntax tokens will not be able to
+ * be properly escaped.
+ *
+ * @since 7.2.0
+ * @access private
+ * @ignore
+ *
+ * @param string $mysql_charset Convert into this encoding, according to MySQL charset names.
+ * @param string $html_in_utf8  Convert this HTML.
+ * @return string Transformed input safe for storing in a MySQL column of the given charset.
+ */
+function _wp_escape_html_for_mysql_charset( string $mysql_charset, string $html_in_utf8 ): string {
+	if ( 'utf8mb4' === $mysql_charset ) {
+		return wp_scrub_utf8( $html_in_utf8 );
+	}
+
+	$is_utf8mb3           = 'utf8' === $mysql_charset || 'utf8mb3' === $mysql_charset;
+	$substitute_character = $is_utf8mb3 ? 0xFFFD : 0x3F;
+	$replacement_range    = $is_utf8mb3
+		? array( 0x10000, 0x10FFFF, 0, 0x1FFFFF ) // Replace four-byte UTF-8 code points.
+		: array( 0x80, 0x10FFFF, 0, 0x1FFFFF );   // Replace all multi-byte UTF-8 code points.
+
+	$previous_substitute_character = mb_substitute_character();
+	mb_substitute_character( $substitute_character );
+	$transformed = mb_encode_numericentity( $html_in_utf8, $replacement_range, 'UTF-8', true );
+	mb_substitute_character( $previous_substitute_character );
+
+	return $transformed;
+}
+
+/**
  * Replaces four-byte UTF-8 characters with HTML character references in fields whose database
  * columns use `utf8` or `utf8mb3`.
  *
@@ -6212,7 +6273,7 @@ function wp_encode_emoji( $content ) {
  * @param string[] $fields Names of the fields to check.
  * @return array Field values with four-byte characters encoded where needed.
  */
-function _wp_encode_4byte_chars_in_fields( $data, $table, $fields ) {
+function _wp_encode_field_values_for_database( $data, $table, $fields ) {
 	global $wpdb;
 
 	foreach ( $fields as $field ) {
@@ -6220,37 +6281,8 @@ function _wp_encode_4byte_chars_in_fields( $data, $table, $fields ) {
 			continue;
 		}
 
-		$charset = $wpdb->get_col_charset( $table, $field );
-
-		/*
-		 * Note that the `utf8` character set is a deprecated alias of `utf8mb3`.
-		 *
-		 * Table 3-7 of the Unicode Standard gives these ranges for four-byte UTF-8 sequences.
-		 *
-		 *  ╭─────────────────────┬────────────┬──────────────┬─────────────┬──────────────╮
-		 *  │ Code Points         │ First Byte │ Second Byte  │ Third Byte  │ Fourth Byte  │
-		 *  ├─────────────────────┼────────────┼──────────────┼─────────────┼──────────────┤
-		 *  │ U+10000..U+3FFFF    │ F0         │ 90..BF       │ 80..BF      │ 80..BF       │
-		 *  │ U+40000..U+FFFFF    │ F1..F3     │ 80..BF       │ 80..BF      │ 80..BF       │
-		 *  │ U+100000..U+10FFFF  │ F4         │ 80..8F       │ 80..BF      │ 80..BF       │
-		 *  ╰─────────────────────┴────────────┴──────────────┴─────────────┴──────────────╯
-		 *
-		 * @link https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G27506
-		 */
-		if ( 'utf8' === $charset || 'utf8mb3' === $charset ) {
-			$data[ $field ] = preg_replace_callback(
-				'/
-					# Match bytes so malformed UTF-8 elsewhere in the field does not prevent a match.
-					    \xF0        [\x90-\xBF] [\x80-\xBF] [\x80-\xBF] # U+10000..U+3FFFF
-					|   [\xF1-\xF3] [\x80-\xBF] [\x80-\xBF] [\x80-\xBF] # U+40000..U+FFFFF
-					|   \xF4        [\x80-\x8F] [\x80-\xBF] [\x80-\xBF] # U+100000..U+10FFFF
-				/x',
-				static function ( $match ) {
-					return sprintf( '&#x%x;', mb_ord( $match[0], 'UTF-8' ) );
-				},
-				$data[ $field ]
-			) ?? $data[ $field ];
-		}
+		$charset        = $wpdb->get_col_charset( $table, $field );
+		$data[ $field ] = _wp_escape_html_for_mysql_charset( $charset, $data[ $field ] );
 	}
 
 	return $data;

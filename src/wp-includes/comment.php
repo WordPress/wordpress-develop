@@ -145,7 +145,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 					)
 				);
 			} else {
-				$stored = _wp_encode_4byte_chars_in_fields( array( 'comment_author' => $author ), $wpdb->comments, array( 'comment_author' ) );
+				$stored = _wp_encode_field_values_for_database( array( 'comment_author' => $author ), $wpdb->comments, array( 'comment_author' ) );
 
 				// expected_slashed ($author, $email)
 				$ok_to_comment = $wpdb->get_var(
@@ -770,7 +770,7 @@ function sanitize_comment_cookies() {
 function wp_allow_comment( $commentdata, $wp_error = false ) {
 	global $wpdb;
 
-	$stored = _wp_encode_4byte_chars_in_fields( $commentdata, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+	$stored = _wp_encode_field_values_for_database( $commentdata, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
 	/*
 	 * Simple duplicate check.
@@ -1338,7 +1338,7 @@ function wp_get_comment_fields_max_lengths() {
 function wp_check_comment_data_max_lengths( $comment_data ) {
 	global $wpdb;
 
-	$comment_data = _wp_encode_4byte_chars_in_fields( $comment_data, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+	$comment_data = _wp_encode_field_values_for_database( $comment_data, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 	$max_lengths  = wp_get_comment_fields_max_lengths();
 
 	if ( isset( $comment_data['comment_author'] ) && mb_strlen( $comment_data['comment_author'], '8bit' ) > $max_lengths['comment_author'] ) {
@@ -2313,7 +2313,7 @@ function wp_insert_comment( $commentdata ) {
 		'user_id'
 	);
 
-	$compacted = _wp_encode_4byte_chars_in_fields( $compacted, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+	$compacted = _wp_encode_field_values_for_database( $compacted, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
 	if ( ! $wpdb->insert( $wpdb->comments, $compacted ) ) {
 		return false;
@@ -2573,7 +2573,7 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 	if ( ! $comment_id ) {
 		$fields    = array( 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content' );
 		$unslashed = wp_unslash( $commentdata );
-		$stored    = _wp_encode_4byte_chars_in_fields( $unslashed, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+		$stored    = _wp_encode_field_values_for_database( $unslashed, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
 		foreach ( $fields as $field ) {
 			if ( ! isset( $commentdata[ $field ] ) ) {
@@ -3120,7 +3120,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 
 	$data = wp_array_slice_assoc( $data, $keys );
 
-	$data = _wp_encode_4byte_chars_in_fields( $data, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+	$data = _wp_encode_field_values_for_database( $data, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
 	$result = $wpdb->update( $wpdb->comments, $data, array( 'comment_ID' => $comment_id ) );
 

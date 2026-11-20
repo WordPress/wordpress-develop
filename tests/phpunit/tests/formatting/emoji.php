@@ -380,7 +380,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	/**
 	 * @ticket 65700
 	 *
-	 * @covers ::_wp_encode_4byte_chars_in_fields
+	 * @covers ::_wp_encode_field_values_for_database
 	 */
 	public function test_wp_encode_4byte_chars_in_fields_only_touches_requested_utf8mb3_fields(): void {
 		$data = array(
@@ -391,7 +391,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
 		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_for_encode_4byte_chars_in_fields_test' ), 10, 3 );
 
-		$result = _wp_encode_4byte_chars_in_fields( $data, 'some_table', array( 'legacy_field', 'modern_field' ) );
+		$result = _wp_encode_field_values_for_database( $data, 'some_table', array( 'legacy_field', 'modern_field' ) );
 
 		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_for_encode_4byte_chars_in_fields_test' ), 10 );
 
@@ -415,14 +415,14 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	/**
 	 * @ticket 65700
 	 *
-	 * @covers ::_wp_encode_4byte_chars_in_fields
+	 * @covers ::_wp_encode_field_values_for_database
 	 */
 	public function test_wp_encode_4byte_chars_in_fields_recognizes_the_utf8_alias(): void {
 		$data = array( 'legacy_field' => '🙂' );
 
 		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8_alias_for_encode_4byte_chars_in_fields_test' ) );
 
-		$result = _wp_encode_4byte_chars_in_fields( $data, 'some_table', array( 'legacy_field' ) );
+		$result = _wp_encode_field_values_for_database( $data, 'some_table', array( 'legacy_field' ) );
 
 		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8_alias_for_encode_4byte_chars_in_fields_test' ) );
 
@@ -436,7 +436,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	/**
 	 * @ticket 65700
 	 *
-	 * @covers ::_wp_encode_4byte_chars_in_fields
+	 * @covers ::_wp_encode_field_values_for_database
 	 */
 	public function test_wp_encode_4byte_chars_in_fields_ignores_fields_missing_from_data(): void {
 		$data = array( 'present_field' => '🙂' );
@@ -445,7 +445,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		// nonexistent 'some_table' table in the test database.
 		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb4_for_encode_4byte_chars_in_fields_test' ) );
 
-		$result = _wp_encode_4byte_chars_in_fields( $data, 'some_table', array( 'present_field', 'absent_field' ) );
+		$result = _wp_encode_field_values_for_database( $data, 'some_table', array( 'present_field', 'absent_field' ) );
 
 		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb4_for_encode_4byte_chars_in_fields_test' ) );
 
