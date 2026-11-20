@@ -19,6 +19,83 @@ require_once ABSPATH . 'wp-admin/includes/admin.php';
 /** WordPress Schema API */
 require_once ABSPATH . 'wp-admin/includes/schema.php';
 
+/**
+ * Generates authentication keys and salts when the local secure generator fails.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string[] $key_names Names of the authentication key and salt constants.
+ * @param bool     $no_api    Whether to skip the WordPress.org API request.
+ * @return string[] Keys and salts indexed by constant name.
+ */
+function _wp_generate_fallback_auth_keys( $key_names, $no_api ) {
+	if ( ! $no_api ) {
+		$keys = _wp_fetch_installation_auth_keys( $key_names );
+		if ( $keys ) {
+			return $keys;
+		}
+	}
+
+	$keys = array();
+	foreach ( $key_names as $name ) {
+		$keys[ $name ] = wp_generate_password( 64, true, true );
+	}
+
+	return $keys;
+}
+
+/**
+ * Fetches and validates the installer authentication keys and salts from WordPress.org.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string[] $key_names Expected authentication key and salt constant names.
+ * @return string[] Keys and salts indexed by constant name, or an empty array on failure.
+ */
+function _wp_fetch_installation_auth_keys( $key_names ) {
+	$max_size = 4096;
+	$response = wp_remote_get(
+		'https://api.wordpress.org/secret-key/1.1/salt/',
+		array( 'limit_response_size' => $max_size )
+	);
+
+	if ( ! is_array( $response ) || 200 !== ( $response['response']['code'] ?? null ) ) {
+		return array();
+	}
+
+	$body = wp_remote_retrieve_body( $response );
+	if ( ! is_string( $body ) || strlen( $body ) >= $max_size ) {
+		return array();
+	}
+
+	$lines = preg_split( '/\r?\n/', rtrim( $body, "\r\n" ) );
+	if ( count( $lines ) !== count( $key_names ) ) {
+		return array();
+	}
+
+	$keys = array();
+	foreach ( $lines as $line ) {
+		// Each record contains a constant name and a 64-character printable ASCII value.
+		if ( ! preg_match( '/\Adefine\([ \t]*\'([A-Z_]+)\'[ \t]*,[ \t]*\'([\x20-\x7e]{64})\'[ \t]*\);[ \t]*\z/', $line, $matches ) ) {
+			return array();
+		}
+
+		list( , $name, $value ) = $matches;
+		if ( ! in_array( $name, $key_names, true ) || isset( $keys[ $name ] ) ) {
+			return array();
+		}
+		if ( false !== strpbrk( $value, "'\\" ) || in_array( $value, $keys, true ) ) {
+			return array();
+		}
+
+		$keys[ $name ] = $value;
+	}
+
+	return $keys;
+}
+
 if ( ! function_exists( 'wp_install' ) ) :
 	/**
 	 * Installs the site.
