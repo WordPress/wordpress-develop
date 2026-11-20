@@ -2427,7 +2427,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides top-level and nested collisions introduced by sanitization.
+	 * Provides input that sanitization rejects or makes invalid.
 	 *
 	 * @return array
 	 */
@@ -2449,16 +2449,42 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			'ids'  => '1,01',
 		);
 
+		$text = array(
+			'type'       => 'object',
+			'properties' => array(
+				'title' => array(
+					'type'      => 'string',
+					'format'    => 'text-field',
+					'minLength' => 1,
+				),
+			),
+		);
+
 		return array(
-			'top-level array' => array( $unique, array( '1', '01' ), 'input' ),
-			'nested object'   => array( $object, $input, 'input[ids]' ),
-			'object in list'  => array(
+			'top-level array'               => array( $unique, array( '1', '01' ), 'input has duplicate items.' ),
+			'nested object'                 => array( $object, $input, 'input[ids] has duplicate items.' ),
+			'object in list'                => array(
 				array(
 					'type'  => 'array',
 					'items' => $object,
 				),
 				array( $input ),
-				'input[0][ids]',
+				'input[0][ids] has duplicate items.',
+			),
+			'whitespace below minLength'    => array( $text, array( 'title' => '   ' ), 'invalid input after sanitization' ),
+			'markup below minLength'        => array( $text, array( 'title' => '<b></b>' ), 'invalid input after sanitization' ),
+			'infinite number below minimum' => array(
+				array(
+					'type'       => 'object',
+					'properties' => array(
+						'page' => array(
+							'type'    => 'integer',
+							'minimum' => 1,
+						),
+					),
+				),
+				array( 'page' => INF ),
+				'invalid input after sanitization',
 			),
 		);
 	}
@@ -2467,13 +2493,14 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 * Tests that sanitization errors stop permission checks, execution, and execution hooks.
 	 *
 	 * @ticket 66383
+	 * @ticket 66665
 	 * @dataProvider data_input_sanitization_errors
 	 *
-	 * @param array  $schema Input schema.
-	 * @param mixed  $input  Input accepted by validation but rejected by sanitization.
-	 * @param string $path   Path of the duplicate items in the error message.
+	 * @param array  $schema  Input schema.
+	 * @param mixed  $input   Input accepted by validation but rejected by sanitization.
+	 * @param string $message Expected error message fragment.
 	 */
-	public function test_input_sanitization_errors( array $schema, $input, string $path ): void {
+	public function test_input_sanitization_errors( array $schema, $input, string $message ): void {
 		$args                 = self::$test_ability_properties;
 		$args['input_schema'] = $schema;
 		$unexpected_callback  = function () {
@@ -2491,8 +2518,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$error = $ability->prepare_input( $input );
 		$this->assertWPError( $error );
 		$this->assertSame( 'ability_invalid_input', $error->get_error_code() );
-		$this->assertStringContainsString( $path . ' has duplicate items.', $error->get_error_message() );
-		// Keep assertEquals() because the objects are intentionally compared by value.
+		$this->assertStringContainsString( $message, $error->get_error_message() );
 		$this->assertEquals( $error, $ability->execute( $input ), 'Execution should propagate the sanitization error.' );
 	}
 
@@ -2549,89 +2575,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		);
 		remove_filter( 'wp_ability_validate_input', '__return_true' );
 		$this->assertSame( array( array( 'count' => 10 ) ), $seen );
-	}
-
-	/**
-	 * Provides input that matches the input schema until it is sanitized.
-	 *
-	 * @return array<string, array{0: array, 1: mixed}>
-	 */
-	public static function data_input_made_invalid_by_sanitization(): array {
-		return array(
-			'whitespace below minLength'    => array(
-				array(
-					'type'       => 'object',
-					'properties' => array(
-						'title' => array(
-							'type'      => 'string',
-							'format'    => 'text-field',
-							'minLength' => 1,
-						),
-					),
-				),
-				array( 'title' => '   ' ),
-			),
-			'markup below minLength'        => array(
-				array(
-					'type'       => 'object',
-					'properties' => array(
-						'title' => array(
-							'type'      => 'string',
-							'format'    => 'text-field',
-							'minLength' => 1,
-						),
-					),
-				),
-				array( 'title' => '<b></b>' ),
-			),
-			'infinite number below minimum' => array(
-				array(
-					'type'       => 'object',
-					'properties' => array(
-						'page' => array(
-							'type'    => 'integer',
-							'minimum' => 1,
-						),
-					),
-				),
-				array( 'page' => INF ),
-			),
-		);
-	}
-
-	/**
-	 * Ensure that input which sanitization makes invalid is rejected before the callbacks run.
-	 *
-	 * @ticket 66665
-	 *
-	 * @covers WP_Ability::prepare_input
-	 * @covers WP_Ability::sanitize_input
-	 * @covers WP_Ability::execute
-	 *
-	 * @dataProvider data_input_made_invalid_by_sanitization
-	 *
-	 * @param array $schema Ability input schema.
-	 * @param mixed $input  Input that is valid until it is sanitized.
-	 */
-	public function test_input_made_invalid_by_sanitization_is_rejected( array $schema, $input ): void {
-		$args                 = self::$test_ability_properties;
-		$args['input_schema'] = $schema;
-		$unexpected_callback  = function () {
-			$this->fail( 'Input made invalid by sanitization must not reach the callbacks.' );
-		};
-
-		$args['permission_callback'] = $unexpected_callback;
-		$args['execute_callback']    = $unexpected_callback;
-		$ability                     = new WP_Ability( self::$test_ability_name, $args );
-
-		$this->assertTrue( $ability->validate_input( $input ), 'The raw input should pass validation.' );
-
-		$prepared = $ability->prepare_input( $input );
-
-		$this->assertWPError( $prepared, 'prepare_input() should reject input that sanitization makes invalid.' );
-		$this->assertSame( 'ability_invalid_input', $prepared->get_error_code(), 'The error should use the invalid input code.' );
-		$this->assertStringContainsString( 'invalid input after sanitization', $prepared->get_error_message(), 'The error should identify sanitization as the cause.' );
-		$this->assertEquals( $prepared, $ability->execute( $input ), 'execute() should propagate the input error without running the callbacks.' );
 	}
 
 	/**
