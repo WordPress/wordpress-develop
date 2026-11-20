@@ -111,6 +111,11 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		// No profile links as the user doesn't have any permissions on the site.
 		$this->assertFalse( $node_my_account->href );
 		$this->assertFalse( $node_user_info->href );
+
+		// The unlinked My Account item is focusable and does not offer to edit the profile.
+		$this->assertSame( 0, $node_my_account->meta['tabindex'], 'An unlinked my-account item should be focusable.' );
+		$this->assertStringNotContainsString( 'edit-profile', $node_user_info->title );
+		$this->assertStringNotContainsString( 'Edit Profile', $node_user_info->title );
 	}
 
 	/**
@@ -754,7 +759,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @group ms-required
 	 * @dataProvider data_my_sites_network_menu_items
 	 */
-	public function test_my_sites_network_menu_for_super_admin( $id, $cap ) {
+	public function test_my_sites_network_menu_for_super_admin( $id, $cap, $expected_parent, $path ) {
 		wp_set_current_user( self::$editor_id );
 
 		grant_super_admin( self::$editor_id );
@@ -763,6 +768,13 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $wp_admin_bar->get_nodes();
 		$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %s must display for a super admin.', $id ) );
+		$this->assertSame( $expected_parent, $nodes[ $id ]->parent, sprintf( 'Menu item %s must have the expected parent.', $id ) );
+
+		if ( null === $path ) {
+			$this->assertFalse( $nodes[ $id ]->href, sprintf( 'Menu item %s must not link anywhere.', $id ) );
+		} else {
+			$this->assertSame( network_admin_url( $path ), $nodes[ $id ]->href, sprintf( 'Menu item %s must link to the expected network admin screen.', $id ) );
+		}
 	}
 
 	/**
@@ -794,26 +806,30 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_my_sites_network_menu_for_regular_user() and
-	 * test_my_sites_network_menu_for_super_admin().
+	 * Data provider for test_my_sites_network_menu_for_regular_user(),
+	 * test_my_sites_network_menu_for_super_admin() and
+	 * test_my_sites_network_menu_for_regular_user_with_network_caps().
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @type string $id  The ID of the menu item.
-	 *         @type string $cap The capability required to see the menu item.
+	 *         @type string      $id     The ID of the menu item.
+	 *         @type string      $cap    The capability required to see the menu item.
+	 *         @type string      $expected_parent The ID of the parent of the menu item.
+	 *         @type string|null $path   The network admin screen the menu item links to,
+	 *                                   or null when the menu item does not link anywhere.
 	 *     }
 	 * }
 	 */
 	public static function data_my_sites_network_menu_items() {
 		return array(
-			array( 'my-sites-super-admin', 'manage_network' ),
-			array( 'network-admin', 'manage_network' ),
-			array( 'network-admin-d', 'manage_network' ),
-			array( 'network-admin-s', 'manage_sites' ),
-			array( 'network-admin-u', 'manage_network_users' ),
-			array( 'network-admin-t', 'manage_network_themes' ),
-			array( 'network-admin-p', 'manage_network_plugins' ),
-			array( 'network-admin-o', 'manage_network_options' ),
+			array( 'my-sites-super-admin', 'manage_network', 'my-sites', null ),
+			array( 'network-admin', 'manage_network', 'my-sites-super-admin', '' ),
+			array( 'network-admin-d', 'manage_network', 'network-admin', '' ),
+			array( 'network-admin-s', 'manage_sites', 'network-admin', 'sites.php' ),
+			array( 'network-admin-u', 'manage_network_users', 'network-admin', 'users.php' ),
+			array( 'network-admin-t', 'manage_network_themes', 'network-admin', 'themes.php' ),
+			array( 'network-admin-p', 'manage_network_plugins', 'network-admin', 'plugins.php' ),
+			array( 'network-admin-o', 'manage_network_options', 'network-admin', 'settings.php' ),
 		);
 	}
 
@@ -1056,30 +1072,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$this->assertSame( '', $node_my_account->meta['tabindex'], 'A linked my-account item should not set a tabindex.' );
 		$this->assertStringContainsString( "<span class='display-name edit-profile'>Edit Profile</span>", $node_user_info->title );
-	}
-
-	/**
-	 * The "Edit Profile" label is omitted and the item is focusable
-	 * when the user has no profile screen to link to.
-	 *
-	 * @ticket 66491
-	 * @group ms-excluded
-	 *
-	 * @covers ::wp_admin_bar_my_account_item
-	 * @covers ::wp_admin_bar_my_account_menu
-	 */
-	public function test_my_account_without_profile_link_omits_edit_profile_label() {
-		$this->assertFalse( user_can( self::$no_role_id, 'read' ) );
-
-		wp_set_current_user( self::$no_role_id );
-
-		$wp_admin_bar    = $this->get_standard_admin_bar();
-		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
-		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
-
-		$this->assertSame( 0, $node_my_account->meta['tabindex'], 'An unlinked my-account item should be focusable.' );
-		$this->assertStringNotContainsString( 'edit-profile', $node_user_info->title );
-		$this->assertStringNotContainsString( 'Edit Profile', $node_user_info->title );
 	}
 
 	/**
@@ -1326,7 +1318,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The network admin items link to the matching network admin screens.
+	 * The site list is styled as secondary for network admins.
 	 *
 	 * @ticket 66491
 	 * @group multisite
@@ -1334,34 +1326,14 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_admin_bar_my_sites_menu
 	 */
-	public function test_my_sites_menu_network_admin_items_have_expected_urls() {
+	public function test_my_sites_menu_site_list_is_secondary_for_network_admins() {
 		wp_set_current_user( self::$editor_id );
 
 		grant_super_admin( self::$editor_id );
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		revoke_super_admin( self::$editor_id );
 
-		$this->assertSame( 'my-sites', $wp_admin_bar->get_node( 'my-sites-super-admin' )->parent );
-		$this->assertSame( 'my-sites-super-admin', $wp_admin_bar->get_node( 'network-admin' )->parent );
-		$this->assertSame( network_admin_url(), $wp_admin_bar->get_node( 'network-admin' )->href );
 		$this->assertSame( 'ab-sub-secondary', $wp_admin_bar->get_node( 'my-sites-list' )->meta['class'], 'The site list should be styled as secondary for network admins.' );
-
-		$expected_urls = array(
-			'network-admin-d' => network_admin_url(),
-			'network-admin-s' => network_admin_url( 'sites.php' ),
-			'network-admin-u' => network_admin_url( 'users.php' ),
-			'network-admin-t' => network_admin_url( 'themes.php' ),
-			'network-admin-p' => network_admin_url( 'plugins.php' ),
-			'network-admin-o' => network_admin_url( 'settings.php' ),
-		);
-
-		foreach ( $expected_urls as $id => $expected_url ) {
-			$node = $wp_admin_bar->get_node( $id );
-
-			$this->assertNotNull( $node, "The $id node should exist." );
-			$this->assertSame( 'network-admin', $node->parent, "The $id node should be a child of Network Admin." );
-			$this->assertSame( $expected_url, $node->href, "The $id node should have the expected URL." );
-		}
 	}
 
 	/**
