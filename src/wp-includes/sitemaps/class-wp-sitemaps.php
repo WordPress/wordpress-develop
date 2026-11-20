@@ -183,7 +183,7 @@ class WP_Sitemaps {
 		}
 
 		/**
-		 * Fires when a sitemap or sitemap stylesheet is being rendered.
+		 * Fires when a sitemap is being rendered.
 		 *
 		 * @since 7.3.0
 		 */
