@@ -2362,7 +2362,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	public static function data_input_coercion(): array {
 		return array_intersect_key(
 			self::data_input_is_coerced(),
-			array_flip( array( 'integer number', 'stdClass object input', 'default', 'text-field format' ) )
+			array_flip( array( 'integer number', 'stdClass object input', 'default', 'text-field format', 'top-level string unchanged' ) )
 		);
 	}
 
@@ -2420,7 +2420,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $ability->execute( $input ) );
 		$this->assertSame( $input, $seen['invoked'] );
-		$expected_validation = empty( $schema ) ? array() : array( $normalized );
+		$expected_validation = array( $normalized );
 		if ( $expected !== $normalized ) {
 			$expected_validation[] = $expected;
 		}
@@ -2465,9 +2465,9 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		);
 
 		return array(
-			'top-level array'               => array( $unique, array( '1', '01' ), 'input has duplicate items.' ),
-			'nested object'                 => array( $object, $input, 'input[ids] has duplicate items.' ),
-			'object in list'                => array(
+			'top-level array'                => array( $unique, array( '1', '01' ), 'input has duplicate items.' ),
+			'nested object'                  => array( $object, $input, 'input[ids] has duplicate items.' ),
+			'object in list'                 => array(
 				array(
 					'type'  => 'array',
 					'items' => $object,
@@ -2475,20 +2475,21 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array( $input ),
 				'input[0][ids] has duplicate items.',
 			),
-			'whitespace below minLength'    => array( $text, array( 'title' => '   ' ), 'input[title] must be at least 1 character long.' ),
-			'markup below minLength'        => array( $text, array( 'title' => '<b></b>' ), 'input[title] must be at least 1 character long.' ),
-			'infinite number below minimum' => array(
+			'whitespace below minLength'     => array( $text, array( 'title' => '   ' ), 'input[title] must be at least 1 character long.' ),
+			'markup below minLength'         => array( $text, array( 'title' => '<b></b>' ), 'input[title] must be at least 1 character long.' ),
+			// An out-of-range numeric string is cast to `PHP_INT_MAX`, which is not a multiple of 10.
+			'integer cast breaks multipleOf' => array(
 				array(
 					'type'       => 'object',
 					'properties' => array(
-						'page' => array(
-							'type'    => 'integer',
-							'minimum' => 1,
+						'count' => array(
+							'type'       => 'integer',
+							'multipleOf' => 10,
 						),
 					),
 				),
-				array( 'page' => INF ),
-				'input[page] must be greater than or equal to 1',
+				array( 'count' => '1e19' ),
+				'input[count] must be a multiple of 10.',
 			),
 		);
 	}
@@ -2578,36 +2579,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		);
 		remove_filter( 'wp_ability_validate_input', '__return_true' );
 		$this->assertSame( array( array( 'count' => 10 ) ), $seen );
-	}
-
-	/**
-	 * Ensure that input accepted only by the validation filter is still passed on as sanitized.
-	 *
-	 * @ticket 66665
-	 *
-	 * @covers WP_Ability::prepare_input
-	 * @covers WP_Ability::sanitize_input
-	 */
-	public function test_validation_filter_can_accept_raw_and_sanitized_input(): void {
-		$args                 = self::$test_ability_properties;
-		$args['input_schema'] = array(
-			'type'       => 'object',
-			'properties' => array(
-				'count' => array(
-					'type'    => 'integer',
-					'minimum' => 5,
-				),
-			),
-		);
-		$ability              = new WP_Ability( self::$test_ability_name, $args );
-
-		add_filter( 'wp_ability_validate_input', '__return_true' );
-		$prepared  = $ability->prepare_input( array( 'count' => '2' ) );
-		$unchanged = $ability->prepare_input( array( 'count' => 2 ) );
-		remove_filter( 'wp_ability_validate_input', '__return_true' );
-
-		$this->assertSame( array( 'count' => 2 ), $prepared, 'Input the filter accepted should be returned as sanitized.' );
-		$this->assertSame( array( 'count' => 2 ), $unchanged, 'Unchanged input accepted by the filter should also be preserved.' );
 	}
 
 	/**

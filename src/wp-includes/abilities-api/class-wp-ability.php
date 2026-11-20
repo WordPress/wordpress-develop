@@ -737,8 +737,9 @@ class WP_Ability {
 
 		/*
 		 * Sanitization can make valid input invalid, for example by trimming a string
-		 * below its `minLength` or casting a number below its `minimum`. Validate changed
-		 * input again so validation filters also evaluate the value callbacks will receive.
+		 * below its `minLength` or casting an out-of-range number to a different integer.
+		 * Validate changed input again so validation filters also evaluate the value
+		 * callbacks will receive.
 		 */
 		if ( $sanitized !== $input ) {
 			$is_valid = $this->validate_input( $sanitized );
