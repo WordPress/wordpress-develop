@@ -78,15 +78,15 @@
  * @phpstan-type Query_Vars array{
  *     error: scalar,
  *     m: string,
- *     p: int<0, max>,
+ *     p: int,
  *     post_parent: scalar,
  *     subpost: scalar,
  *     subpost_id: scalar,
  *     attachment: scalar,
- *     attachment_id: int<0, max>,
+ *     attachment_id: int,
  *     name: string,
  *     pagename: string,
- *     page_id: int<0, max>,
+ *     page_id: int,
  *     second: int<0, max>|'',
  *     minute: int<0, max>|'',
  *     hour: int<0, max>|'',
@@ -1323,7 +1323,7 @@ class WP_Query {
 			if ( empty( $_query ) || ! array_diff( array_keys( $_query ), array( 'preview', 'page', 'paged', 'cpage' ) ) ) {
 				$this->is_page         = true;
 				$this->is_home         = false;
-				$query_vars['page_id'] = get_option( 'page_on_front' );
+				$query_vars['page_id'] = (int) get_option( 'page_on_front' );
 				// Correct <!--nextpage--> for 'page_on_front'.
 				if ( ! empty( $query_vars['paged'] ) ) {
 					$query_vars['page'] = $query_vars['paged'];
@@ -2302,7 +2302,7 @@ class WP_Query {
 		if ( $this->is_home && ( empty( $this->query ) || 'true' === $query_vars['preview'] ) && ( 'page' === get_option( 'show_on_front' ) ) && get_option( 'page_on_front' ) ) {
 			$this->is_page         = true;
 			$this->is_home         = false;
-			$query_vars['page_id'] = get_option( 'page_on_front' );
+			$query_vars['page_id'] = (int) get_option( 'page_on_front' );
 		}
 
 		if ( isset( $query_vars['page'] ) ) {
