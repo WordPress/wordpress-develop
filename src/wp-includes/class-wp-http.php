@@ -476,7 +476,8 @@ class WP_Http {
 	 *
 	 * @param array<int|string, WP_Http_Cookie|scalar> $cookies Array of cookies to send with the request,
 	 *                                                          as WP_Http_Cookie objects or name/value pairs.
-	 *                                                          Cookies without a scalar value are ignored.
+	 *                                                          Cookies without a name or a scalar value
+	 *                                                          are ignored.
 	 * @return WpOrg\Requests\Cookie\Jar Cookie holder object.
 	 */
 	public static function normalize_cookies( $cookies ) {
@@ -484,7 +485,7 @@ class WP_Http {
 
 		foreach ( $cookies as $name => $value ) {
 			if ( $value instanceof WP_Http_Cookie ) {
-				$cookie_name  = (string) $value->name;
+				$cookie_name  = $value->get_sendable_name();
 				$cookie_value = $value->value;
 				$attributes   = array_filter(
 					$value->get_attributes(),
@@ -494,14 +495,18 @@ class WP_Http {
 				);
 				$flags        = array( 'host-only' => $value->host_only );
 			} else {
-				$cookie_name  = (string) $name;
+				$cookie_name  = trim( (string) $name );
 				$cookie_value = $value;
 				$attributes   = array();
 				$flags        = array();
 			}
 
-			// A cookie without a value is not sent by WP_Http_Cookie::getHeaderValue() either, and a non-scalar value cannot be represented.
-			if ( ! is_scalar( $cookie_value ) ) {
+			/*
+			 * A cookie without a name cannot be sent, though an empty name is valid per RFC 6265bis.
+			 * One without a value is not sent by WP_Http_Cookie::getHeaderValue() either, and a
+			 * non-scalar value cannot be represented.
+			 */
+			if ( null === $cookie_name || ! is_scalar( $cookie_value ) ) {
 				continue;
 			}
 
@@ -793,7 +798,12 @@ class WP_Http {
 				$newheaders[ $key ] = $value;
 			}
 			if ( 'set-cookie' === $key ) {
-				$cookies[] = new WP_Http_Cookie( $value, $url );
+				$cookie = new WP_Http_Cookie( $value, $url );
+
+				// Ignore a cookie with neither a name nor a value, which the constructor leaves unset.
+				if ( null !== $cookie->get_sendable_name() ) {
+					$cookies[] = $cookie;
+				}
 			}
 		}
 
@@ -832,12 +842,30 @@ class WP_Http {
 				}
 			}
 
-			$cookies_header = '';
+			$cookie_header_values = array();
 			foreach ( (array) $r['cookies'] as $cookie ) {
-				$cookies_header .= $cookie->getHeaderValue() . '; ';
+				// Objects are not upgraded above, so skip any that cannot provide a header value.
+				if ( ! is_object( $cookie ) || ! method_exists( $cookie, 'getHeaderValue' ) ) {
+					continue;
+				}
+
+				$cookie_header_value = $cookie->getHeaderValue();
+
+				// Omit cookies that cannot be sent, such as those without a name or value.
+				if ( is_string( $cookie_header_value ) && '' !== $cookie_header_value ) {
+					$cookie_header_values[] = $cookie_header_value;
+				}
 			}
 
-			$cookies_header         = substr( $cookies_header, 0, -2 );
+			// Replace any Cookie header supplied, as when cookies are sent, but avoid sending an empty one.
+			if ( array() === $cookie_header_values ) {
+				if ( isset( $r['headers'] ) && is_array( $r['headers'] ) ) {
+					unset( $r['headers']['cookie'] );
+				}
+				return;
+			}
+
+			$cookies_header         = implode( '; ', $cookie_header_values );
 			$r['headers']['cookie'] = $cookies_header;
 		}
 	}
