@@ -136,7 +136,7 @@ function wp_apply_pattern_block_rendering( array $args, string $block_name ): ar
 		);
 		// `refresh_context_dependents()` does not clear existing inner blocks
 		// when the new parsed list is empty.
-		$block->inner_blocks = array();
+		$block->inner_blocks = new WP_Block_List( array() );
 		$block->refresh_context_dependents();
 
 		// Apply the same child filters as `WP_Block::render()` without rendering the
