@@ -380,9 +380,11 @@ jQuery( function() {
 		} );
 	} );
 
+	const longUrl = 'https://example.test/resource/' + '0123456789abcdef'.repeat( 12 );
 	[
-		[ 'description', 'https://example.test/resource/' + '0123456789abcdef'.repeat( 12 ) ],
+		[ 'description', longUrl ],
 		[ 'email', 'a'.repeat( 60 ) + '@' + 'b'.repeat( 60 ) + '.example' ],
+		[ 'parent', longUrl ],
 	].forEach( function( [ column, value ] ) {
 		QUnit.test( 'Wraps long links in the ' + column + ' column', async function( assert ) {
 			const frame = await desktopFrame( 'ltr', '<div class="wp-list-table-scroll" style="width: 600px">' +
