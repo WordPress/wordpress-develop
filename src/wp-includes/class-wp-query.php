@@ -1576,7 +1576,7 @@ class WP_Query {
 			$query_vars['category__and']  = (array) $query_vars['category__and'];
 			$query_vars['category__in'] ??= array();
 			$query_vars['category__in'][] = absint( reset( $query_vars['category__and'] ) );
-			unset( $query_vars['category__and'] );
+			$query_vars['category__and']  = array();
 		}
 
 		if ( ! empty( $query_vars['category__in'] ) ) {
