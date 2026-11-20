@@ -171,8 +171,12 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 	$templates = get_block_templates( $query );
 
 	// Order these templates per slug priority.
-	// Build map of template slugs to their priority in the current hierarchy.
-	$slug_priorities = array_flip( $slugs );
+	/*
+	 * Build map of template slugs to their priority in the current hierarchy.
+	 * The slugs are sanitized to match the template slugs, which are sanitized
+	 * in the same way when the template is saved or loaded from a file.
+	 */
+	$slug_priorities = array_flip( array_map( '_sanitize_block_template_slug', $slugs ) );
 
 	usort(
 		$templates,

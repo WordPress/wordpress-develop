@@ -311,6 +311,24 @@ function _get_block_templates_paths( $base_directory ) {
 }
 
 /**
+ * Sanitizes a block template slug the way the slug of a customized template is sanitized.
+ *
+ * When a template is customized, wp_insert_post() runs its slug through sanitize_title(),
+ * which, for example, collapses consecutive hyphens. Template files are sanitized the same
+ * way, so that a file and its customized version share a slug. Each segment of a slug
+ * in a subdirectory is sanitized separately to keep the directory separator.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param string $slug Template slug.
+ * @return string Sanitized template slug.
+ */
+function _sanitize_block_template_slug( $slug ) {
+	return implode( '/', array_map( 'sanitize_title', explode( '/', $slug ) ) );
+}
+
+/**
  * Retrieves the template file from the theme for a given slug.
  *
  * @since 5.9.0
@@ -363,15 +381,26 @@ function _get_block_template_file( $template_type, $slug ) {
 			);
 
 			if ( 'wp_template_part' === $template_type ) {
-				return _add_block_template_part_area_info( $new_template_item );
+				$new_template_item = _add_block_template_part_area_info( $new_template_item );
+			} else {
+				// If it's not a `wp_template_part`, it must be a `wp_template`.
+				$new_template_item = _add_block_template_info( $new_template_item );
 			}
 
-			// If it's not a `wp_template_part`, it must be a `wp_template`.
-			return _add_block_template_info( $new_template_item );
+			// Match the slug that a customized version of the template is saved with.
+			$new_template_item['slug'] = _sanitize_block_template_slug( $slug );
+
+			return $new_template_item;
 		}
 	}
 
-	return null;
+	/*
+	 * The slug can be the sanitized form of a file name that sanitizing changes,
+	 * such as `one-two` for `one--two.html`, so look for a file with a matching slug.
+	 */
+	$template_files = _get_block_templates_files( $template_type, array( 'slug__in' => array( $slug ) ) );
+
+	return $template_files[0] ?? null;
 }
 
 /**
@@ -408,8 +437,8 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 	}
 
 	// Prepare metadata from $query.
-	$slugs_to_include = $query['slug__in'] ?? array();
-	$slugs_to_skip    = $query['slug__not_in'] ?? array();
+	$slugs_to_include = array_map( '_sanitize_block_template_slug', $query['slug__in'] ?? array() );
+	$slugs_to_skip    = array_map( '_sanitize_block_template_slug', $query['slug__not_in'] ?? array() );
 	$area             = $query['area'] ?? null;
 	$post_type        = $query['post_type'] ?? '';
 
@@ -428,13 +457,16 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 		$theme_template_files = _get_block_templates_paths( $theme_dir . '/' . $template_base_paths[ $template_type ] );
 		foreach ( $theme_template_files as $template_file ) {
 			$template_base_path = $template_base_paths[ $template_type ];
-			$template_slug      = substr(
+			$template_file_name = substr(
 				$template_file,
 				// Starting position of the slug - the theme directory and the template base path.
 				strlen( $theme_dir . DIRECTORY_SEPARATOR . $template_base_path . DIRECTORY_SEPARATOR ),
 				// Subtract ending '.html'.
 				-5
 			);
+
+			// Use the slug that a customized version of the template is saved with.
+			$template_slug = _sanitize_block_template_slug( $template_file_name );
 
 			// Skip this item if its slug doesn't match any of the slugs to include.
 			if ( ! empty( $slugs_to_include ) && ! in_array( $template_slug, $slugs_to_include, true ) ) {
@@ -454,23 +486,26 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 				continue;
 			}
 
+			// Look up the theme.json metadata by the file name, which is what theme.json uses.
 			$new_template_item = array(
-				'slug'  => $template_slug,
+				'slug'  => $template_file_name,
 				'path'  => $template_file,
 				'theme' => $theme_slug,
 				'type'  => $template_type,
 			);
 
 			if ( 'wp_template_part' === $template_type ) {
-				$candidate = _add_block_template_part_area_info( $new_template_item );
+				$candidate         = _add_block_template_part_area_info( $new_template_item );
+				$candidate['slug'] = $template_slug;
 				if ( ! isset( $area ) || $area === $candidate['area'] ) {
 					$template_files[ $template_slug ] = $candidate;
 				}
 			}
 
 			if ( 'wp_template' === $template_type ) {
-				$candidate = _add_block_template_info( $new_template_item );
-				$is_custom = ! isset( $default_template_types[ $candidate['slug'] ] );
+				$candidate         = _add_block_template_info( $new_template_item );
+				$candidate['slug'] = $template_slug;
+				$is_custom         = ! isset( $default_template_types[ $candidate['slug'] ] );
 
 				if (
 					! $post_type ||
