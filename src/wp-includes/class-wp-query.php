@@ -1728,6 +1728,9 @@ class WP_Query {
 	 *
 	 * @param array $query_vars Query variables.
 	 * @return string WHERE clause.
+	 *
+	 * @phpstan-param Posts_Query_Vars $query_vars
+	 * @phpstan-param-out Posts_Query_Vars $query_vars
 	 */
 	protected function parse_search( &$query_vars ) {
 		global $wpdb;
@@ -1735,7 +1738,7 @@ class WP_Query {
 		$search = '';
 
 		// Added slashes screw with quote grouping when done early, so done later.
-		$query_vars['s'] = stripslashes( $query_vars['s'] );
+		$query_vars['s'] = stripslashes( (string) $query_vars['s'] );
 		if ( empty( $_GET['s'] ) && $this->is_main_query() ) {
 			$query_vars['s'] = urldecode( $query_vars['s'] );
 		}
@@ -1760,6 +1763,7 @@ class WP_Query {
 		$n                                  = ! empty( $query_vars['exact'] ) ? '' : '%';
 		$searchand                          = '';
 		$query_vars['search_orderby_title'] = array();
+		$search_orderby_title               = array();
 
 		$default_search_columns = array( 'post_title', 'post_excerpt', 'post_content' );
 		$search_columns         = ! empty( $query_vars['search_columns'] ) ? $query_vars['search_columns'] : $default_search_columns;
@@ -1810,8 +1814,8 @@ class WP_Query {
 			}
 
 			if ( $n && ! $exclude ) {
-				$like                                 = '%' . $wpdb->esc_like( $term ) . '%';
-				$query_vars['search_orderby_title'][] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
+				$like                   = '%' . $wpdb->esc_like( $term ) . '%';
+				$search_orderby_title[] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
 			}
 
 			$like = $n . $wpdb->esc_like( $term ) . $n;
@@ -1829,6 +1833,8 @@ class WP_Query {
 
 			$searchand = ' AND ';
 		}
+
+		$query_vars['search_orderby_title'] = $search_orderby_title;
 
 		if ( ! empty( $search ) ) {
 			$search = " AND ({$search}) ";
