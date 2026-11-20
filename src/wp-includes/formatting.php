@@ -2940,8 +2940,12 @@ function stripslashes_from_strings_only( $value ) {
  *
  * @since 2.2.0
  *
- * @param mixed $value The array or string to be encoded.
- * @return mixed The encoded value.
+ * @param mixed[]|object|scalar $value The array, object, or scalar to be encoded.
+ * @return mixed[]|object|string The encoded value.
+ *
+ * @phpstan-template T of mixed[]|object|scalar
+ * @phpstan-param T $value
+ * @phpstan-return (T is array ? array<key-of<T>, mixed> : (T is object ? T : string))
  */
 function urlencode_deep( $value ) {
 	return map_deep( $value, 'urlencode' );
@@ -2952,8 +2956,12 @@ function urlencode_deep( $value ) {
  *
  * @since 3.4.0
  *
- * @param mixed $value The array or string to be encoded.
- * @return mixed The encoded value.
+ * @param mixed[]|object|scalar $value The array, object, or scalar to be encoded.
+ * @return mixed[]|object|string The encoded value.
+ *
+ * @phpstan-template T of mixed[]|object|scalar
+ * @phpstan-param T $value
+ * @phpstan-return (T is array ? array<key-of<T>, mixed> : (T is object ? T : string))
  */
 function rawurlencode_deep( $value ) {
 	return map_deep( $value, 'rawurlencode' );
@@ -2964,8 +2972,12 @@ function rawurlencode_deep( $value ) {
  *
  * @since 4.4.0
  *
- * @param mixed $value The array or string to be decoded.
- * @return mixed The decoded value.
+ * @param mixed[]|object|scalar $value The array, object, or scalar to be decoded.
+ * @return mixed[]|object|string The decoded value.
+ *
+ * @phpstan-template T of mixed[]|object|scalar
+ * @phpstan-param T $value
+ * @phpstan-return (T is array ? array<key-of<T>, mixed> : (T is object ? T : string))
  */
 function urldecode_deep( $value ) {
 	return map_deep( $value, 'urldecode' );
