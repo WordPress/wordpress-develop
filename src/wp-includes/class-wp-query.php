@@ -3218,11 +3218,8 @@ class WP_Query {
 				$comment_ids = $wpdb->get_col( $comments_request );
 				wp_cache_set_salted( $cache_key, $comment_ids, 'comment-queries', $last_changed );
 			}
-			_prime_comment_caches( $comment_ids );
-
 			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
-			$this->comments      = array_map( 'get_comment', $comment_ids );
+			$this->comments      = self::get_comments_by_ids( $comment_ids );
 			$this->comment_count = count( $this->comments );
 
 			$post_ids = array();
@@ -3886,11 +3883,8 @@ class WP_Query {
 				$comment_ids = $wpdb->get_col( $comments_request );
 				wp_cache_set_salted( $comment_cache_key, $comment_ids, 'comment-queries', $comment_last_changed );
 			}
-			_prime_comment_caches( $comment_ids );
-
 			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
-			$this->comments      = array_map( 'get_comment', $comment_ids );
+			$this->comments      = self::get_comments_by_ids( $comment_ids );
 			$this->comment_count = count( $this->comments );
 		}
 
@@ -4018,6 +4012,39 @@ class WP_Query {
 			}
 		}
 		return $post_objects;
+	}
+
+	/**
+	 * Gets comment objects for comment IDs, priming the comment caches.
+	 *
+	 * Any value which is not a numeric comment ID, and any ID which does not resolve to a comment,
+	 * is removed.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $comment_ids Comment IDs, as queried or as cached.
+	 * @return list<WP_Comment> Comment objects.
+	 */
+	private static function get_comments_by_ids( $comment_ids ): array {
+		$ids = array();
+		if ( is_array( $comment_ids ) ) {
+			foreach ( $comment_ids as $comment_id ) {
+				if ( is_numeric( $comment_id ) ) {
+					$ids[] = (int) $comment_id;
+				}
+			}
+		}
+
+		_prime_comment_caches( $ids );
+
+		$comments = array();
+		foreach ( $ids as $comment_id ) {
+			$comment = get_comment( $comment_id );
+			if ( $comment instanceof WP_Comment ) {
+				$comments[] = $comment;
+			}
+		}
+		return $comments;
 	}
 
 	/**
