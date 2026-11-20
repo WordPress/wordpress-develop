@@ -2551,13 +2551,12 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertSame( array( array( 'count' => 10 ) ), $seen );
 	}
 
-
 	/**
 	 * Provides input that matches the input schema until it is sanitized.
 	 *
 	 * @return array<string, array{0: array, 1: mixed}>
 	 */
-	public function data_input_made_invalid_by_sanitization(): array {
+	public static function data_input_made_invalid_by_sanitization(): array {
 		return array(
 			'whitespace below minLength'    => array(
 				array(
@@ -2631,7 +2630,8 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertWPError( $prepared, 'prepare_input() should reject input that sanitization makes invalid.' );
 		$this->assertSame( 'ability_invalid_input', $prepared->get_error_code(), 'The error should use the invalid input code.' );
-		$this->assertWPError( $ability->execute( $input ), 'execute() should return the error without running the callbacks.' );
+		$this->assertStringContainsString( 'invalid input after sanitization', $prepared->get_error_message(), 'The error should identify sanitization as the cause.' );
+		$this->assertEquals( $prepared, $ability->execute( $input ), 'execute() should propagate the input error without running the callbacks.' );
 	}
 
 	/**
@@ -2656,10 +2656,12 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability              = new WP_Ability( self::$test_ability_name, $args );
 
 		add_filter( 'wp_ability_validate_input', '__return_true' );
-		$prepared = $ability->prepare_input( array( 'count' => '2' ) );
+		$prepared  = $ability->prepare_input( array( 'count' => '2' ) );
+		$unchanged = $ability->prepare_input( array( 'count' => 2 ) );
 		remove_filter( 'wp_ability_validate_input', '__return_true' );
 
 		$this->assertSame( array( 'count' => 2 ), $prepared, 'Input the filter accepted should be returned as sanitized.' );
+		$this->assertSame( array( 'count' => 2 ), $unchanged, 'Unchanged input accepted by the filter should also be preserved.' );
 	}
 
 	/**

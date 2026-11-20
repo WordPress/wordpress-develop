@@ -605,6 +605,11 @@ class WP_Ability {
 			);
 		}
 
+		// Unchanged input has already been validated, including any filter override.
+		if ( $sanitized === $input ) {
+			return $sanitized;
+		}
+
 		/*
 		 * Sanitizing can also make valid input invalid, for example by trimming a string
 		 * below its `minLength` or casting an out of range number to an integer. Callbacks
@@ -617,7 +622,7 @@ class WP_Ability {
 				'ability_invalid_input',
 				sprintf(
 					/* translators: %1$s ability name, %2$s error message. */
-					__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
+					__( 'Ability "%1$s" has invalid input after sanitization. Reason: %2$s' ),
 					$this->name,
 					$sanitized_validity->get_error_message()
 				)
