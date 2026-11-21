@@ -140,6 +140,11 @@
  *     withoutcomments?: scalar,
  *     taxonomy?: scalar,
  *     term?: scalar,
+ *     exact?: scalar,
+ *     robots?: scalar,
+ *     favicon?: scalar,
+ *     perm?: scalar,
+ *     order?: scalar,
  *     ...<array-key, mixed>
  * }
  *
@@ -962,6 +967,23 @@ class WP_Query {
 		}
 		if ( isset( $query_vars['term'] ) && ! is_scalar( $query_vars['term'] ) ) {
 			unset( $query_vars['term'] );
+		}
+
+		// Other query vars which take a single value. These are only set when given, so any other value is removed.
+		if ( isset( $query_vars['exact'] ) && ! is_scalar( $query_vars['exact'] ) ) {
+			unset( $query_vars['exact'] );
+		}
+		if ( isset( $query_vars['robots'] ) && ! is_scalar( $query_vars['robots'] ) ) {
+			unset( $query_vars['robots'] );
+		}
+		if ( isset( $query_vars['favicon'] ) && ! is_scalar( $query_vars['favicon'] ) ) {
+			unset( $query_vars['favicon'] );
+		}
+		if ( isset( $query_vars['perm'] ) && ! is_scalar( $query_vars['perm'] ) ) {
+			unset( $query_vars['perm'] );
+		}
+		if ( isset( $query_vars['order'] ) && ! is_scalar( $query_vars['order'] ) ) {
+			unset( $query_vars['order'] );
 		}
 
 		$query_vars['error']         = is_scalar( $query_vars['error'] ) ? $query_vars['error'] : '';

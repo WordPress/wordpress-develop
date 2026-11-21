@@ -436,6 +436,37 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a non-scalar order is replaced with the default.
+	 *
+	 * @ticket 60745
+	 */
+	public function test_order_given_non_scalar_uses_default(): void {
+		$query = new WP_Query( array( 'order' => array( 'ASC' ) ) );
+
+		$this->assertSame( 'DESC', $query->query_vars['order'] );
+	}
+
+	/**
+	 * Tests that a non-scalar permission is ignored.
+	 *
+	 * @ticket 60745
+	 */
+	public function test_perm_given_non_scalar_is_ignored(): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'private' ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$query = new WP_Query(
+			array(
+				'fields'      => 'ids',
+				'post_status' => 'private',
+				'perm'        => array( 'readable' ),
+			)
+		);
+
+		$this->assertSame( array( $post_id ), $query->posts );
+	}
+
+	/**
 	 * Data provider for the optional single-value query var tests.
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
@@ -449,6 +480,9 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 			'withoutcomments'        => array( 'withoutcomments' ),
 			'taxonomy'               => array( 'taxonomy' ),
 			'term'                   => array( 'term' ),
+			'exact'                  => array( 'exact' ),
+			'robots'                 => array( 'robots' ),
+			'favicon'                => array( 'favicon' ),
 		);
 	}
 }
