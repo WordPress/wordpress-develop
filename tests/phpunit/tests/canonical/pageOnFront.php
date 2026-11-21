@@ -68,4 +68,40 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 			array( '/blog-page/?paged=2', '/blog-page/page/2/', 20385 ),
 		);
 	}
+
+	/**
+	 * @ticket 55993
+	 *
+	 * @dataProvider data_posts_page_id_redirect
+	 *
+	 * @param string $query_suffix Additional arguments to append to the posts page ID.
+	 * @param string $expected     Expected canonical path and query string.
+	 */
+	public function test_posts_page_id_redirect( $query_suffix, $expected ) {
+		$this->assertCanonical( '/?page_id=' . get_option( 'page_for_posts' ) . $query_suffix, $expected, 55993 );
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public static function data_posts_page_id_redirect() {
+		return array(
+			'no pagination'  => array( '', '/blog-page/' ),
+			'page one'       => array( '&paged=1', '/blog-page/' ),
+			'page two'       => array( '&paged=2', '/blog-page/page/2/' ),
+			'with extra arg' => array( '&paged=2&test=one%20two', '/blog-page/page/2/?test=one%20two' ),
+			'posts feed'     => array( '&feed=rss2', '/feed/' ),
+		);
+	}
+
+	/**
+	 * @ticket 55993
+	 */
+	public function test_paged_posts_page_pretty_permalink_keeps_canonical_path() {
+		$this->assertCanonical( '/blog-page/page/2/', '/blog-page/page/2/', 55993 );
+
+		$this->assertTrue( is_home() );
+		$this->assertTrue( is_paged() );
+		$this->assertFalse( is_404() );
+	}
 }
