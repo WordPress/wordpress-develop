@@ -1,4 +1,4 @@
-// 4.9.11 (2020-07-13)
+// 4.9.11 (revised 2026-10-23 to use 'pagehide' event)
 (function () {
 (function (domGlobals) {
     'use strict';
@@ -1253,7 +1253,7 @@
       documentIsHTML = !isXML(doc);
       if (parent && parent !== getTop(parent)) {
         if (parent.addEventListener) {
-          parent.addEventListener('unload', function () {
+          parent.addEventListener('pagehide', function () {
             setDocument();
           }, false);
         } else if (parent.attachEvent) {
