@@ -35,8 +35,8 @@ $post_id = isset( $post_id ) ? (int) $post_id : 0;
 // Require an ID for the edit screen.
 if ( isset( $action ) && 'edit' === $action && ! $ID ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName
 	wp_die(
-		'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-		'<p>' . __( 'Invalid item ID.' ) . '</p>',
+		'<h1>' . __( 'An error occurred during the upload process.' ) . '</h1>' .
+		'<p>' . __( 'Invalid item ID. You can view all media items in the <a href="upload.php">Media Library</a>.' ) . '</p>',
 		403
 	);
 }
@@ -116,4 +116,3 @@ if ( 'type' === $tab || 'type_url' === $tab || ! array_key_exists( $tab, media_u
 	 */
 	do_action( "media_upload_{$tab}" );
 }
-

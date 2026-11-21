@@ -118,7 +118,7 @@ class WP_Locale {
 	 * Default is 'words'.
 	 *
 	 * @since 6.2.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $word_count_type;
 
@@ -264,6 +264,8 @@ class WP_Locale {
 	 *
 	 * @param int $weekday_number 0 for Sunday through 6 Saturday.
 	 * @return string Full translated weekday.
+	 *
+	 * @phpstan-param int<0, 6> $weekday_number
 	 */
 	public function get_weekday( $weekday_number ) {
 		return $this->weekday[ $weekday_number ];
@@ -315,10 +317,14 @@ class WP_Locale {
 	 * @since 2.1.0
 	 *
 	 * @param string|int $month_number '01' through '12'.
-	 * @return string Translated full month name.
+	 * @return string Translated full month name. If the month number is not found, an empty string is returned.
 	 */
 	public function get_month( $month_number ) {
-		return $this->month[ zeroise( $month_number, 2 ) ];
+		$month_number = zeroise( $month_number, 2 );
+		if ( ! isset( $this->month[ $month_number ] ) ) {
+			return '';
+		}
+		return $this->month[ $month_number ];
 	}
 
 	/**
@@ -337,6 +343,28 @@ class WP_Locale {
 	}
 
 	/**
+	 * Retrieves translated version of month genitive string.
+	 *
+	 * The $month_number parameter has to be a string
+	 * because it must have the '0' in front of any number
+	 * that is less than 10. Starts from '01' and ends at
+	 * '12'.
+	 *
+	 * You can use an integer instead and it will add the
+	 * '0' before the numbers less than 10 for you.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string|int $month_number '01' through '12'.
+	 * @return string Translated genitive month name.
+	 *
+	 * @phpstan-param int<1, 12>|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'10'|'11'|'12'|'01'|'02'|'03'|'04'|'05'|'06'|'07'|'08'|'09' $month_number
+	 */
+	public function get_month_genitive( $month_number ) {
+		return $this->month_genitive[ zeroise( $month_number, 2 ) ];
+	}
+
+	/**
 	 * Retrieves translated version of meridiem string.
 	 *
 	 * The $meridiem parameter is expected to not be translated.
@@ -345,6 +373,8 @@ class WP_Locale {
 	 *
 	 * @param string $meridiem Either 'am', 'pm', 'AM', or 'PM'. Not translated version.
 	 * @return string Translated version
+	 *
+	 * @phpstan-param 'am'|'pm'|'AM'|'PM' $meridiem
 	 */
 	public function get_meridiem( $meridiem ) {
 		return $this->meridiem[ $meridiem ];
@@ -355,6 +385,7 @@ class WP_Locale {
 	 *
 	 * For backward compatibility only.
 	 *
+	 * @since 2.1.0
 	 * @deprecated For backward compatibility only.
 	 *
 	 * @global array $weekday
@@ -362,8 +393,6 @@ class WP_Locale {
 	 * @global array $weekday_abbrev
 	 * @global array $month
 	 * @global array $month_abbrev
-	 *
-	 * @since 2.1.0
 	 */
 	public function register_globals() {
 		$GLOBALS['weekday']         = $this->weekday;
@@ -419,6 +448,8 @@ class WP_Locale {
 	 *
 	 * @return string Localized word count type. Possible values are `characters_excluding_spaces`,
 	 *                `characters_including_spaces`, or `words`. Defaults to `words`.
+	 *
+	 * @phpstan-return 'characters_excluding_spaces'|'characters_including_spaces'|'words'
 	 */
 	public function get_word_count_type() {
 
@@ -427,7 +458,7 @@ class WP_Locale {
 		 * enter 'characters_excluding_spaces' or 'characters_including_spaces'. Otherwise, enter 'words'.
 		 * Do not translate into your own language.
 		 */
-		$word_count_type = is_null( $this->word_count_type ) ? _x( 'words', 'Word count type. Do not translate!' ) : $this->word_count_type;
+		$word_count_type = $this->word_count_type ?? _x( 'words', 'Word count type. Do not translate!' );
 
 		// Check for valid types.
 		if ( 'characters_excluding_spaces' !== $word_count_type && 'characters_including_spaces' !== $word_count_type ) {

@@ -75,6 +75,9 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 		// Block rendering add some extra blank lines, but we're not worried about them.
 		$block_filtered_content = preg_replace( "/\n{2,}/", "\n", $block_filtered_content );
 
+		// Paragraph blocks now add a class, strip it for comparison with classic content.
+		$block_filtered_content = str_replace( ' class="wp-block-paragraph"', '', $block_filtered_content );
+
 		remove_shortcode( 'someshortcode' );
 
 		$this->assertSame( trim( $classic_filtered_content ), trim( $block_filtered_content ) );
@@ -180,7 +183,7 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 	/**
 	 * @ticket 45109
 	 */
-	public function data_do_block_test_filenames() {
+	public static function data_do_block_test_filenames() {
 		self::$fixtures_dir = DIR_TESTDATA . '/blocks/fixtures';
 
 		$fixture_filenames = array_merge(
@@ -191,14 +194,14 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 		$fixture_filenames = array_values(
 			array_unique(
 				array_map(
-					array( $this, 'clean_fixture_filename' ),
+					array( __CLASS__, 'clean_fixture_filename' ),
 					$fixture_filenames
 				)
 			)
 		);
 
 		return array_map(
-			array( $this, 'pass_parser_fixture_filenames' ),
+			array( __CLASS__, 'pass_parser_fixture_filenames' ),
 			$fixture_filenames
 		);  }
 
@@ -218,9 +221,9 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 
 		$html = do_blocks( self::strip_r( file_get_contents( $html_path ) ) );
 		// If blocks opt into Gutenberg's layout implementation
-		// the container will receive an added classname of `wp_unique_id( 'wp-container-' )`
+		// the container will receive an additional, unique classname based on "wp-container-[blockname]-layout"
 		// so we need to normalize the random id.
-		$normalized_html = preg_replace( '/wp-container-\d+/', 'wp-container-1', $html );
+		$normalized_html = preg_replace( '/wp-container-[a-z-]+\d+/', 'wp-container-1', $html );
 
 		// The gallery block uses a unique class name of `wp_unique_id( 'wp-block-gallery-' )`
 		// so we need to normalize the random id.
@@ -282,6 +285,56 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 			'between' .
 			'3:b2' .
 			'4:b2' .
+			'after'
+		);
+	}
+
+	/**
+	 * @ticket 62114
+	 */
+	public function test_dynamic_block_with_default_attributes() {
+		$settings = array(
+			'attributes'      => array(
+				'content'         => array(
+					'type'    => 'string',
+					'default' => 'Default content.',
+				),
+				'align'           => array(
+					'type'    => 'string',
+					'default' => 'full',
+				),
+				'backgroundColor' => array(
+					'type'    => 'string',
+					'default' => 'blueberry-1',
+				),
+				'textColor'       => array(
+					'type'    => 'string',
+					'default' => 'white',
+				),
+			),
+			'supports'        => array(
+				'align' => array( 'wide', 'full' ),
+				'color' => array(
+					'background' => true,
+					'text'       => true,
+				),
+			),
+			'render_callback' => function ( $attributes ) {
+				return '<p ' . get_block_wrapper_attributes() . '>' . $attributes['content'] . '</p>';
+			},
+		);
+		register_block_type( 'core/dynamic', $settings );
+
+		$post_content =
+			'before' .
+			'<!-- wp:core/dynamic --><!-- /wp:core/dynamic -->' .
+			'after';
+
+		$updated_post_content = do_blocks( $post_content );
+		$this->assertSame(
+			$updated_post_content,
+			'before' .
+			'<p class="alignfull wp-block-dynamic has-text-color has-white-color has-background has-blueberry-1-background-color">Default content.</p>' .
 			'after'
 		);
 	}
@@ -423,7 +476,7 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 	 * @param string $filename The filename to clean.
 	 * @return string The cleaned fixture name.
 	 */
-	protected function clean_fixture_filename( $filename ) {
+	protected static function clean_fixture_filename( $filename ) {
 		$filename = wp_basename( $filename );
 		$filename = preg_replace( '/\..+$/', '', $filename );
 		return $filename;
@@ -437,7 +490,7 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 	 * @param string $filename The cleaned fixture name.
 	 * @return array The input and expected output filenames for that fixture.
 	 */
-	protected function pass_parser_fixture_filenames( $filename ) {
+	protected static function pass_parser_fixture_filenames( $filename ) {
 		return array(
 			"$filename.html",
 			"$filename.server.html",
@@ -521,5 +574,4 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 
 		return $content;
 	}
-
 }

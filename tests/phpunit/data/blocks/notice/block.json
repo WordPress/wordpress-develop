@@ -1,4 +1,5 @@
 {
+	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 2,
 	"name": "tests/notice",
 	"title": "Notice",
@@ -29,6 +30,12 @@
 	},
 	"selectors": {
 		"root": ".wp-block-notice"
+	},
+	"blockHooks": {
+		"tests/before": "before",
+		"tests/after": "after",
+		"tests/first-child": "firstChild",
+		"tests/last-child": "lastChild"
 	},
 	"supports": {
 		"align": true,
@@ -61,7 +68,9 @@
 	"editorScript": "tests-notice-editor-script",
 	"script": "tests-notice-script",
 	"viewScript": [ "tests-notice-view-script", "tests-notice-view-script-2" ],
+	"viewScriptModule": [ "tests-notice-view-script-module", "tests-notice-view-script-module-2" ],
 	"editorStyle": "tests-notice-editor-style",
 	"style": [ "tests-notice-style", "tests-notice-style-2" ],
+	"viewStyle": [ "tests-notice-view-style" ],
 	"render": "file:./render.php"
 }

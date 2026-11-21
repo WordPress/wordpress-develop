@@ -12,6 +12,7 @@ use WpOrg\Requests\Iri;
 use WpOrg\Requests\Response\Headers;
 use WpOrg\Requests\Utility\CaseInsensitiveDictionary;
 use WpOrg\Requests\Utility\InputValidator;
+use WpOrg\Requests\Utility\Trim;
 
 /**
  * Cookie storage object
@@ -439,8 +440,8 @@ class Cookie {
 			list($name, $value) = explode('=', $kvparts, 2);
 		}
 
-		$name  = trim($name);
-		$value = trim($value);
+		$name  = trim($name, Trim::WHITESPACE_CHARS_NO_FF);
+		$value = trim($value, Trim::WHITESPACE_CHARS_NO_FF);
 
 		// Attribute keys are handled case-insensitively
 		$attributes = new CaseInsensitiveDictionary();
@@ -452,10 +453,10 @@ class Cookie {
 					$part_value = true;
 				} else {
 					list($part_key, $part_value) = explode('=', $part, 2);
-					$part_value                  = trim($part_value);
+					$part_value                  = trim($part_value, Trim::WHITESPACE_CHARS_NO_FF);
 				}
 
-				$part_key              = trim($part_key);
+				$part_key              = trim($part_key, Trim::WHITESPACE_CHARS_NO_FF);
 				$attributes[$part_key] = $part_value;
 			}
 		}
@@ -470,11 +471,17 @@ class Cookie {
 	 * @param \WpOrg\Requests\Iri|null $origin URI for comparing cookie origins
 	 * @param int|null $time Reference time for expiration calculation
 	 * @return array
+	 *
+	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed $origin argument is not null or an instance of the Iri class.
 	 */
-	public static function parse_from_headers(Headers $headers, Iri $origin = null, $time = null) {
+	public static function parse_from_headers(Headers $headers, $origin = null, $time = null) {
 		$cookie_headers = $headers->getValues('Set-Cookie');
 		if (empty($cookie_headers)) {
 			return [];
+		}
+
+		if ($origin !== null && !($origin instanceof Iri)) {
+			throw InvalidArgument::create(2, '$origin', Iri::class . ' or null', gettype($origin));
 		}
 
 		$cookies = [];

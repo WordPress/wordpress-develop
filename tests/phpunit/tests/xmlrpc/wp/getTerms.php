@@ -46,6 +46,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', 'category' ) );
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $term ) {
 			$this->assertIsInt( $term['count'] );
@@ -100,8 +101,6 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$results4 = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', $tax_name, $filter ) );
 		$this->assertNotIXRError( $results4 );
 		$this->assertCount( 0, $results4 );
-
-		unset( $GLOBALS['wp_taxonomies'][ $tax_name ] );
 	}
 
 	public function test_term_ordering() {
@@ -142,7 +141,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results );
 		$this->assertCount( 1, $results );
 		$this->assertSame( $name, $results[0]['name'] );
-		$this->assertEquals( $name_id, $results[0]['term_id'] );
+		$this->assertSame( (string) $name_id, $results[0]['term_id'] );
 
 		// Search by partial name.
 		$filter   = array( 'search' => substr( $name, 0, 10 ) );
@@ -150,6 +149,6 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results2 );
 		$this->assertCount( 1, $results2 );
 		$this->assertSame( $name, $results2[0]['name'] );
-		$this->assertEquals( $name_id, $results2[0]['term_id'] );
+		$this->assertSame( (string) $name_id, $results2[0]['term_id'] );
 	}
 }

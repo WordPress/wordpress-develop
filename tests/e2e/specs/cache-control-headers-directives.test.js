@@ -1,38 +1,53 @@
-import {
-	visitAdminPage,
-	createNewPost,
-	publishPost,
-	trashAllPosts,
-	createURL,
-	logout,
-} from "@wordpress/e2e-test-utils";
+/**
+ * Internal dependencies
+ */
+import { test, expect } from '../fixtures';
 
-describe( 'Cache Control header directives', () => {
+test.describe( 'Cache Control header directives', () => {
+	test(
+		'No private directive present in cache control when user not logged in.',
+		async ( { loggedOutPage, postFactory }
+		) => {
+		const post = await postFactory.create( {
+			title: postFactory.uniqueTitle( 'Cache control' ),
+			status: 'publish',
+		} );
+		const { pathname, search } = new URL( post.link );
 
-	beforeEach( async () => {
-		await trashAllPosts();
-	} );
-
-	it( 'No private directive present in cache control when user not logged in.', async () => {
-		await createNewPost( { title: 'Hello World' } );
-		await publishPost();
-		await logout();
-
-		const response = await page.goto( createURL( '/hello-world/' ) );
+		const response = await loggedOutPage.goto( pathname + search );
 		const responseHeaders = response.headers();
 
-		expect( responseHeaders ).toEqual( expect.not.objectContaining( { "cache-control": "no-store" } ) );
-		expect( responseHeaders ).toEqual( expect.not.objectContaining( { "cache-control": "private" } ) );
+		const cacheControl = responseHeaders[ 'cache-control' ] ?? '';
+		expect( cacheControl ).not.toContain( 'no-cache' );
+		expect( cacheControl ).not.toContain( 'no-store' );
+		expect( cacheControl ).not.toContain( 'private' );
 	} );
 
-	it( 'Private directive header present in cache control when logged in.', async () => {
-		await visitAdminPage( '/' );
+	test(
+		'Private directive header present in cache control when logged in.',
+		async ( { page, admin }
+		) => {
+		await admin.visitAdminPage( '/' );
 
-		const response = await page.goto( createURL( '/wp-admin' ) );
+		const response = await page.goto( '/wp-admin' );
 		const responseHeaders = response.headers();
 
+		expect( responseHeaders[ 'cache-control' ] ).toContain( 'no-cache' );
 		expect( responseHeaders[ 'cache-control' ] ).toContain( 'no-store' );
 		expect( responseHeaders[ 'cache-control' ] ).toContain( 'private' );
 	} );
 
+	test(
+		'Correct directives present in cache control header when not logged in on 404 page.',
+		async ( { loggedOutPage }
+		) => {
+		const response = await loggedOutPage.goto( '/this-does-not-exist/' );
+		const responseHeaders = response.headers();
+		const responseStatus = response.status();
+
+		expect( responseStatus ).toBe( 404 );
+		expect( responseHeaders[ 'cache-control' ] ).toContain( 'no-cache' );
+		expect( responseHeaders[ 'cache-control' ] ).toContain( 'no-store' );
+		expect( responseHeaders[ 'cache-control' ] ).toContain( 'private' );
+	} );
 } );

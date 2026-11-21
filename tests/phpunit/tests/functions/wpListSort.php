@@ -3,7 +3,8 @@
 /**
  * Test wp_list_sort().
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_list_sort
  */
 class Tests_Functions_wpListSort extends WP_UnitTestCase {
@@ -19,7 +20,12 @@ class Tests_Functions_wpListSort extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_list_sort( $input_list, $orderby, $order ) );
 	}
 
-	public function data_wp_list_sort() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_list_sort() {
 		return array(
 			'single orderby ascending'        => array(
 				array(
@@ -344,7 +350,12 @@ class Tests_Functions_wpListSort extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_list_sort( $input_list, $orderby, $order, true ) );
 	}
 
-	public function data_wp_list_sort_preserve_keys() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_list_sort_preserve_keys() {
 		return array(
 			'single orderby ascending'        => array(
 				array(

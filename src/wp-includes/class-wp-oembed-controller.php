@@ -160,7 +160,7 @@ final class WP_oEmbed_Controller {
 	 * @since 4.8.0
 	 *
 	 * @see WP_oEmbed::get_html()
-	 * @global WP_Embed   $wp_embed
+	 * @global WP_Embed   $wp_embed   WordPress Embed object.
 	 * @global WP_Scripts $wp_scripts
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
@@ -176,6 +176,10 @@ final class WP_oEmbed_Controller {
 		$cache_key = 'oembed_' . md5( serialize( $args ) );
 		$data      = get_transient( $cache_key );
 		if ( ! empty( $data ) ) {
+			// Only embed handlers return scripts, and their responses are not cached.
+			if ( is_object( $data ) ) {
+				unset( $data->scripts );
+			}
 			return $data;
 		}
 
@@ -220,6 +224,11 @@ final class WP_oEmbed_Controller {
 			}
 
 			return new WP_Error( 'oembed_invalid_url', get_status_header_desc( 404 ), array( 'status' => 404 ) );
+		}
+
+		// Only embed handlers return scripts.
+		if ( is_object( $data ) ) {
+			unset( $data->scripts );
 		}
 
 		/** This filter is documented in wp-includes/class-wp-oembed.php */

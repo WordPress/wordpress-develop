@@ -20,6 +20,8 @@
  * exists, then this file will not be included.
  *
  * @since 2.0.0
+ *
+ * @property array<string, true> $global_groups Global cache groups, keyed by group name.
  */
 #[AllowDynamicProperties]
 class WP_Object_Cache {
@@ -49,10 +51,10 @@ class WP_Object_Cache {
 	public $cache_misses = 0;
 
 	/**
-	 * List of global cache groups.
+	 * Global cache groups, keyed by group name.
 	 *
 	 * @since 3.0.0
-	 * @var string[]
+	 * @var array<string, true>
 	 */
 	protected $global_groups = array();
 
@@ -73,7 +75,7 @@ class WP_Object_Cache {
 	private $multisite;
 
 	/**
-	 * Sets up object properties; PHP 5 style constructor.
+	 * Sets up object properties.
 	 *
 	 * @since 2.0.8
 	 */
@@ -101,10 +103,9 @@ class WP_Object_Cache {
 	 *
 	 * @param string $name  Property to set.
 	 * @param mixed  $value Property value.
-	 * @return mixed Newly-set property.
 	 */
 	public function __set( $name, $value ) {
-		return $this->$name = $value;
+		$this->$name = $value;
 	}
 
 	/**
@@ -356,7 +357,7 @@ class WP_Object_Cache {
 	 * @param string     $group Optional. Where the cache contents are grouped. Default 'default'.
 	 * @param bool       $force Optional. Unused. Whether to force an update of the local cache
 	 *                          from the persistent cache. Default false.
-	 * @param bool       $found Optional. Whether the key was found in the cache (passed by reference).
+	 * @param bool|null  $found Optional. Whether the key was found in the cache (passed by reference).
 	 *                          Disambiguates a return of false, a storable value. Default null.
 	 * @return mixed|false The cache contents on success, false on failure to retrieve contents.
 	 */
@@ -421,6 +422,8 @@ class WP_Object_Cache {
 	 * @param string     $group      Optional. Where the cache contents are grouped. Default 'default'.
 	 * @param bool       $deprecated Optional. Unused. Default false.
 	 * @return bool True on success, false if the contents were not deleted.
+	 *
+	 * @phpstan-param false $deprecated
 	 */
 	public function delete( $key, $group = 'default', $deprecated = false ) {
 		if ( ! $this->is_valid_key( $key ) ) {

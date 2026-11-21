@@ -18,6 +18,14 @@
 class Theme_Upgrader_Skin extends WP_Upgrader_Skin {
 
 	/**
+	 * The upgrader instance.
+	 *
+	 * @since 2.8.0
+	 * @var Theme_Upgrader
+	 */
+	public $upgrader;
+
+	/**
 	 * Holds the theme slug in the Theme Directory.
 	 *
 	 * @since 2.8.0
@@ -110,7 +118,7 @@ class Theme_Upgrader_Skin extends WP_Upgrader_Skin {
 					'<a href="%s" class="activatelink">' .
 					'<span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 					esc_url( $activate_link ),
-					__( 'Activate' ),
+					_x( 'Activate', 'theme' ),
 					/* translators: Hidden accessibility text. %s: Theme name. */
 					sprintf( _x( 'Activate &#8220;%s&#8221;', 'theme' ), $name )
 				);

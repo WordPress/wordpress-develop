@@ -1,0 +1,9 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"title": "Hooked Block (before)",
+	"name": "tests/hooked-before",
+	"blockHooks": {
+		"core/navigation": "before"
+	},
+	"render": "file:render.php"
+}
