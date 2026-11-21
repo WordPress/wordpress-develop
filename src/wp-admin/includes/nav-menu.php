@@ -1540,12 +1540,14 @@ function _wp_expand_nav_menu_post_data() {
 	$data = json_decode( stripslashes( $_POST['nav-menu-data'] ) );
 
 	if ( ! is_null( $data ) && $data ) {
+		$new_post_data = array();
+
 		foreach ( $data as $post_input_data ) {
 			/*
 			 * For input names that are arrays (e.g. `menu-item-db-id[3][4][5]`),
-			 * derive the array path keys via regex and set the value in $_POST.
+			 * derive the array path keys, including empty keys for appended values.
 			 */
-			preg_match( '#([^\[]*)(\[(.+)\])?#', $post_input_data->name, $matches );
+			preg_match( '#([^\[]*)(\[(.*)\])?#', $post_input_data->name, $matches );
 
 			$array_bits = array( $matches[1] );
 
@@ -1553,18 +1555,24 @@ function _wp_expand_nav_menu_post_data() {
 				$array_bits = array_merge( $array_bits, explode( '][', $matches[3] ) );
 			}
 
-			$new_post_data = array();
+			$post_data = &$new_post_data;
+			foreach ( $array_bits as $i => $key ) {
+				if ( ! is_array( $post_data ) ) {
+					$post_data = array();
+				}
 
-			// Build the new array value from leaf to trunk.
-			for ( $i = count( $array_bits ) - 1; $i >= 0; $i-- ) {
-				if ( count( $array_bits ) - 1 === $i ) {
-					$new_post_data[ $array_bits[ $i ] ] = wp_slash( $post_input_data->value );
+				if ( $i > 0 && '' === $key ) {
+					$post_data[] = null;
+					$post_data   = &$post_data[ array_key_last( $post_data ) ];
 				} else {
-					$new_post_data = array( $array_bits[ $i ] => $new_post_data );
+					$post_data = &$post_data[ $key ];
 				}
 			}
-
-			$_POST = array_replace_recursive( $_POST, $new_post_data );
+			$post_data = wp_slash( $post_input_data->value );
+			unset( $post_data );
 		}
+
+		// The complete JSON replaces these roots, which PHP may have only partially parsed.
+		$_POST = array_replace( $_POST, $new_post_data );
 	}
 }
