@@ -1307,6 +1307,85 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 40497
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_should_update_without_user_login() {
+		$user     = $this->author;
+		$userdata = $user->to_array();
+		unset( $userdata['user_login'] );
+		$userdata['display_name'] = 'Updated display name';
+
+		$result = wp_insert_user( $userdata );
+
+		$this->assertSame( $user->ID, $result );
+		$updated_user = get_userdata( $user->ID );
+		$this->assertSame( 'Updated display name', $updated_user->display_name );
+		$this->assertSame( $user->user_login, $updated_user->user_login );
+	}
+
+	/**
+	 * @ticket 40497
+	 * @covers ::wp_insert_user
+	 * @dataProvider data_wp_insert_user_with_empty_user_login
+	 *
+	 * @param bool  $update Whether to update an existing user.
+	 * @param array $data   Username input.
+	 */
+	public function test_wp_insert_user_should_reject_empty_user_login( $update, $data ) {
+		$userdata = array_merge( array( 'user_pass' => 'password' ), $data );
+		if ( $update ) {
+			$userdata['ID'] = $this->author->ID;
+		}
+
+		$result = wp_insert_user( $userdata );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'empty_user_login', $result->get_error_code() );
+	}
+
+	/**
+	 * @return array
+	 */
+	public static function data_wp_insert_user_with_empty_user_login() {
+		return array(
+			'create with omitted login' => array( false, array() ),
+			'create with empty login'   => array( false, array( 'user_login' => '' ) ),
+			'update with empty login'   => array( true, array( 'user_login' => '' ) ),
+			'update with null login'    => array( true, array( 'user_login' => null ) ),
+		);
+	}
+
+	/**
+	 * @ticket 40497
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_without_user_login_should_apply_filters() {
+		$userdata = $this->author->to_array();
+		unset( $userdata['user_login'] );
+		$filtered_login = null;
+		$raw_userdata   = null;
+		$login_filter   = static function ( $user_login ) use ( &$filtered_login ) {
+			$filtered_login = $user_login;
+			return $user_login;
+		};
+		$data_filter    = static function ( $data, $update, $user_id, $data_input ) use ( &$raw_userdata ) {
+			$raw_userdata = $data_input;
+			return $data;
+		};
+		add_filter( 'pre_user_login', $login_filter );
+		add_filter( 'wp_pre_insert_user_data', $data_filter, 10, 4 );
+
+		$result = wp_insert_user( $userdata );
+
+		remove_filter( 'pre_user_login', $login_filter );
+		remove_filter( 'wp_pre_insert_user_data', $data_filter, 10 );
+		$this->assertSame( $this->author->ID, $result );
+		$this->assertSame( $this->author->user_login, $filtered_login );
+		$this->assertSame( $userdata, $raw_userdata );
+	}
+
+	/**
 	 * @ticket 29696
 	 */
 	public function test_wp_insert_user_should_sanitize_user_nicename_parameter() {
