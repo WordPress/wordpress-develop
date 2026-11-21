@@ -112,6 +112,7 @@ if ( $_POST ) {
 		'WPLANG',
 		'new_admin_email',
 		'first_comment_email',
+		'first_note',
 	);
 
 	// Handle translation installation.
@@ -424,6 +425,16 @@ $pending_new_network_admin_email = $new_network_admin_email && get_site_option( 
 					<input type="text" size="40" name="first_comment_url" id="first_comment_url" aria-describedby="first-comment-url-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_url' ) ); ?>" />
 					<p class="description" id="first-comment-url-desc">
 						<?php _e( 'The URL for the first comment on a new site.' ); ?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="first_note"><?php _e( 'First Note' ); ?></label></th>
+				<td>
+					<textarea name="first_note" id="first_note" aria-describedby="first-note-desc" rows="5" cols="45" class="large-text">
+<?php echo esc_textarea( get_site_option( 'first_note' ) ); ?></textarea>
+					<p class="description" id="first-note-desc">
+						<?php _e( 'The first note on the first post of a new site.' ); ?>
 					</p>
 				</td>
 			</tr>
