@@ -20,6 +20,14 @@ abstract class WP_Image_Editor {
 	protected $default_mime_type = 'image/jpeg';
 	protected $quality           = false;
 
+	/**
+	 * Crop position of the sub-size being created, used to build a unique file name suffix.
+	 *
+	 * @since 7.3.0
+	 * @var bool|array
+	 */
+	protected $crop_position = false;
+
 	// Deprecated since 5.8.1. See get_default_quality() below.
 	protected $default_quality = 82;
 
@@ -464,6 +472,7 @@ abstract class WP_Image_Editor {
 	 * Builds and returns proper suffix for file based on height and width.
 	 *
 	 * @since 3.5.0
+	 * @since 7.3.0 A crop position hash is appended for sub-sizes cropped from a non-center position.
 	 *
 	 * @return string|false suffix
 	 */
@@ -472,7 +481,44 @@ abstract class WP_Image_Editor {
 			return false;
 		}
 
-		return "{$this->size['width']}x{$this->size['height']}";
+		$suffix = "{$this->size['width']}x{$this->size['height']}";
+
+		$crop_hash = $this->get_crop_hash();
+
+		if ( $crop_hash ) {
+			$suffix .= "-{$crop_hash}";
+		}
+
+		return $suffix;
+	}
+
+	/**
+	 * Gets a short hash identifying the crop position of the sub-size being created.
+	 *
+	 * Sub-sizes with the same dimensions but different crop positions would otherwise
+	 * be saved to the same file and overwrite each other. Center cropping is the default,
+	 * so no hash is returned for it and existing file names remain unchanged.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return string|false 8-character hash, or false if the crop position is the default.
+	 */
+	protected function get_crop_hash() {
+		if ( ! is_array( $this->crop_position ) || count( $this->crop_position ) !== 2 ) {
+			return false;
+		}
+
+		list( $x, $y ) = array_values( $this->crop_position );
+
+		// Match the crop positions supported by image_resize_dimensions(), which treats anything else as center.
+		$x = in_array( $x, array( 'left', 'right' ), true ) ? $x : 'center';
+		$y = in_array( $y, array( 'top', 'bottom' ), true ) ? $y : 'center';
+
+		if ( 'center' === $x && 'center' === $y ) {
+			return false;
+		}
+
+		return substr( md5( "{$x}-{$y}" ), 0, 8 );
 	}
 
 	/**

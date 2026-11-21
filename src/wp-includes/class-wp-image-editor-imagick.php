@@ -888,7 +888,11 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		if ( is_wp_error( $resized ) ) {
 			$saved = $resized;
 		} else {
+			$this->crop_position = $size_data['crop'];
+
 			$saved = $this->_save( $this->image );
+
+			$this->crop_position = false;
 
 			$this->image->clear();
 			$this->image->destroy();
