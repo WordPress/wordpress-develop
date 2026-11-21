@@ -21,6 +21,10 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 		self::$user_ids['subscriber'] = $factory->user->create( array( 'role' => 'subscriber' ) );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_taxonomy( 'wptests_tax' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$user_ids['admin'] );
@@ -42,8 +46,8 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 	 * @since 5.9.0
 	 *
 	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
-	 * @return WP_Term|int If $use_id is true, term ID is returned; else instance of WP_Term.
+	 * @param bool   $use_id   Whether to return term ID or term object.
+	 * @return WP_Term|int Term ID if `$use_id` is true, WP_Term instance otherwise.
 	 */
 	private function get_term( $taxonomy, $use_id ) {
 		$term = self::$terms[ $taxonomy ];
@@ -145,11 +149,11 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 50225
 	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
-	 * @param string $expected Expected URL within admin of edit link.
+	 * @param string $taxonomy Taxonomy being tested.
+	 * @param bool   $use_id   Whether to pass term ID or term object to `get_edit_term_link()`.
+	 * @param string $expected Expected part of admin URL for the edit link.
 	 */
-	public function test_get_edit_term_link_for_permitted_user( $taxonomy, $use_id, $expected ) {
+	public function test_get_edit_term_link_should_return_the_link_for_permitted_user( $taxonomy, $use_id, $expected ) {
 		$term = $this->get_term( $taxonomy, $use_id );
 
 		// Term IDs are not known by the data provider so need to be replaced.
@@ -157,7 +161,6 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 		$expected = admin_url( $expected );
 
 		$this->assertSame( $expected, get_edit_term_link( $term, $taxonomy ) );
-		$this->assertSame( $expected, get_edit_term_link( get_term( $term, $taxonomy ), $taxonomy ) );
 	}
 
 	/**
@@ -165,15 +168,14 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 50225
 	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
+	 * @param string $taxonomy Taxonomy being tested.
+	 * @param bool   $use_id   Whether to pass term ID or term object to `get_edit_term_link()`.
 	 */
-	public function test_get_edit_term_link_for_denied_user( $taxonomy, $use_id ) {
+	public function test_get_edit_term_link_should_return_null_for_denied_user( $taxonomy, $use_id ) {
 		wp_set_current_user( self::$user_ids['subscriber'] );
 		$term = $this->get_term( $taxonomy, $use_id );
 
 		$this->assertNull( get_edit_term_link( $term, $taxonomy ) );
-		$this->assertNull( get_edit_term_link( get_term( $term, $taxonomy ), $taxonomy ) );
 	}
 
 	/**
@@ -181,15 +183,15 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 	 *
 	 * @ticket 50225
 	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
+	 * @param string $taxonomy Taxonomy being tested.
+	 * @param bool   $use_id   Whether to pass term ID or term object to `get_edit_term_link()`.
 	 */
-	public function test_get_edit_term_link_filter_is_int_by_term_id( $taxonomy, $use_id ) {
+	public function test_get_edit_term_link_filter_should_receive_term_id( $taxonomy, $use_id ) {
 		$term = $this->get_term( $taxonomy, $use_id );
 
 		add_filter(
 			'get_edit_term_link',
-			function( $location, $term ) {
+			function ( $location, $term ) {
 				$this->assertIsInt( $term );
 			},
 			10,
@@ -200,34 +202,11 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_get_edit_term_link
-	 *
-	 * @ticket 50225
-	 *
-	 * @param string $taxonomy Taxonomy being tested (used for index of term keys).
-	 * @param bool   $use_id   When true, pass term ID. Else, pass term object.
-	 */
-	public function test_get_edit_term_link_filter_is_int_by_term_object( $taxonomy, $use_id ) {
-		$term = $this->get_term( $taxonomy, $use_id );
-
-		add_filter(
-			'get_edit_term_link',
-			function( $location, $term ) {
-				$this->assertIsInt( $term );
-			},
-			10,
-			2
-		);
-
-		get_edit_term_link( get_term( $term, $taxonomy ), $taxonomy );
-	}
-
-	/**
 	 * Data provider.
 	 *
 	 * @return array
 	 */
-	public function data_get_edit_term_link() {
+	public static function data_get_edit_term_link() {
 		return array(
 			'category passing term_id'              => array(
 				'taxonomy' => 'category',
@@ -260,5 +239,18 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 				'expected' => 'term.php?taxonomy=wptests_tax&tag_ID=%ID%&post_type=post',
 			),
 		);
+	}
+
+	/**
+	 * Checks that `get_edit_term_link()` produces the correct URL when called without taxonomy.
+	 *
+	 * @ticket 61726
+	 */
+	public function test_get_edit_term_link_without_taxonomy() {
+		$term = $this->get_term( 'wptests_tax', true );
+
+		$actual   = get_edit_term_link( $term );
+		$expected = sprintf( admin_url( 'term.php?taxonomy=wptests_tax&tag_ID=%d&post_type=post' ), $term );
+		$this->assertSame( $expected, $actual );
 	}
 }

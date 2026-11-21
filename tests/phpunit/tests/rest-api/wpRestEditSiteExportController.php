@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_Edit_Site_Export_Controller tests.
+ * Unit tests covering WP_REST_Edit_Site_Export_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.9.0
- */
-
-/**
- * Tests for WP_REST_Edit_Site_Export_Controller.
- *
  * @since 5.9.0
  *
  * @covers WP_REST_Edit_Site_Export_Controller
@@ -28,6 +22,15 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 	const REQUEST_ROUTE = '/wp-block-editor/v1/export';
 
 	/**
+	 * Administrator user ID.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @var int
+	 */
+	protected static $admin_id;
+
+	/**
 	 * Subscriber user ID.
 	 *
 	 * @since 5.9.0
@@ -44,6 +47,11 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 	 * @param WP_UnitTest_Factory $factory WordPress unit test factory.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$admin_id      = $factory->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
 		self::$subscriber_id = $factory->user->create(
 			array(
 				'role' => 'subscriber',
@@ -57,6 +65,7 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 	 * @since 5.9.0
 	 */
 	public static function wpTearDownAfterClass() {
+		self::delete_user( self::$admin_id );
 		self::delete_user( self::$subscriber_id );
 	}
 
@@ -99,58 +108,118 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 	}
 
 	/**
-	 * @ticket 54448
+	 * Edit Site Export endpoint does not support the context request parameter.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not implement context_param().' );
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNotEmpty( $data['endpoints'] );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
-	 * @ticket 54448
+	 * Edit Site Export has no item route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_get_item() {
-		$this->markTestSkipped( 'Controller does not implement get_item().' );
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE . '/example' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @ticket 54448
+	 * Edit Site Export has no collection list operation; GET on the export route downloads a ZIP.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_items() {
-		$this->markTestSkipped( 'Controller does not implement get_items().' );
+		// Controller does not implement get_items().
 	}
 
 	/**
-	 * @ticket 54448
+	 * Edit Site Export is read-only; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not implement create_item().' );
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'POST', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @ticket 54448
+	 * Edit Site Export is read-only; update requests should not match a route.
+	 *
+	 * Uses OPTIONS (not GET) to prove the route exists, because a successful GET
+	 * triggers the ZIP export and exits the request.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not implement update_item().' );
+		wp_set_current_user( self::$admin_id );
+
+		$route = static::REQUEST_ROUTE;
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $route, $response->get_matched_route() );
+
+		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, $route );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		}
 	}
 
 	/**
-	 * @ticket 54448
+	 * Edit Site Export is read-only; delete requests should not match a route.
+	 *
+	 * Uses OPTIONS (not GET) to prove the route exists, because a successful GET
+	 * triggers the ZIP export and exits the request.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not implement delete_item().' );
+		wp_set_current_user( self::$admin_id );
+
+		$route = static::REQUEST_ROUTE;
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $route, $response->get_matched_route() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @ticket 54448
+	 * @doesNotPerformAssertions
 	 */
 	public function test_prepare_item() {
-		$this->markTestSkipped( 'Controller does not implement prepare_item().' );
+		// Controller does not implement prepare_item().
 	}
 
 	/**
-	 * @ticket 54448
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_item_schema() {
-		$this->markTestSkipped( 'Controller does not implement get_item_schema().' );
+		// Controller does not implement get_item_schema().
 	}
 }

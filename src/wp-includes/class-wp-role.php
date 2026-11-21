@@ -12,6 +12,7 @@
  *
  * @since 2.0.0
  */
+#[AllowDynamicProperties]
 class WP_Role {
 	/**
 	 * Role name.
@@ -25,8 +26,8 @@ class WP_Role {
 	 * List of capabilities the role contains.
 	 *
 	 * @since 2.0.0
-	 * @var bool[] Array of key/value pairs where keys represent a capability name and boolean values
-	 *             represent whether the role has that capability.
+	 * @var array<string, bool> Array of key/value pairs where keys represent a capability name and
+	 *                          boolean values represent whether the role has that capability.
 	 */
 	public $capabilities;
 
@@ -99,5 +100,4 @@ class WP_Role {
 			return false;
 		}
 	}
-
 }

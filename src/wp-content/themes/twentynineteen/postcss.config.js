@@ -1,13 +1,11 @@
 var postcssFocusWithin = require('postcss-focus-within');
-
-module.exports = {
-    plugins: {
-        autoprefixer: {}
-    }
-};
+var autoprefixer = require('autoprefixer');
 
 module.exports = {
     plugins: [
-        postcssFocusWithin(/* pluginOptions */)
+        postcssFocusWithin({
+            disablePolyfillReadyClass: true
+        }),
+        autoprefixer()
     ]
 };

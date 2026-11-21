@@ -8,7 +8,7 @@
 class Tests_Utils extends WP_UnitTestCase {
 
 	/**
-	 * @covers ::test_strip_ws
+	 * @covers ::strip_ws
 	 */
 	public function test_strip_ws() {
 		$this->assertSame( '', strip_ws( '' ) );
@@ -34,7 +34,6 @@ class Tests_Utils extends WP_UnitTestCase {
 		$expected .= 'foo';
 
 		$this->assertSame( $expected, strip_ws( $in ) );
-
 	}
 
 	/**

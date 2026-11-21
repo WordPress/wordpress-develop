@@ -16,17 +16,9 @@ html {
 	box-sizing: inherit;
 }
 
-body {
-	background-color: $color__background-body;
-}
-
 a {
 	@include link-transition;
 	color: $color__link;
-}
-
-a:visited {
-
 }
 
 a:hover,
@@ -40,6 +32,7 @@ a:focus {
 	outline: thin;
 	outline-style: dotted;
 	text-decoration: underline;
+	text-decoration-thickness: 2px;
 }
 
 h1,

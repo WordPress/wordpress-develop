@@ -8,7 +8,7 @@
  */
 
 /**
- * Core wrapper object for a Requests_Response for standardisation.
+ * Core wrapper object for a WpOrg\Requests\Response for standardization.
  *
  * @since 4.6.0
  *
@@ -19,7 +19,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 * Requests Response object.
 	 *
 	 * @since 4.6.0
-	 * @var Requests_Response
+	 * @var \WpOrg\Requests\Response
 	 */
 	protected $response;
 
@@ -36,10 +36,10 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param Requests_Response $response HTTP response.
-	 * @param string            $filename Optional. File name. Default empty.
+	 * @param \WpOrg\Requests\Response $response HTTP response.
+	 * @param string                   $filename Optional. File name. Default empty.
 	 */
-	public function __construct( Requests_Response $response, $filename = '' ) {
+	public function __construct( WpOrg\Requests\Response $response, $filename = '' ) {
 		$this->response = $response;
 		$this->filename = $filename;
 	}
@@ -49,7 +49,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @return Requests_Response HTTP response.
+	 * @return WpOrg\Requests\Response HTTP response.
 	 */
 	public function get_response_object() {
 		return $this->response;
@@ -60,11 +60,11 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @return \Requests_Utility_CaseInsensitiveDictionary Map of header name to header value.
+	 * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary Map of header name to header value.
 	 */
 	public function get_headers() {
 		// Ensure headers remain case-insensitive.
-		$converted = new Requests_Utility_CaseInsensitiveDictionary();
+		$converted = new WpOrg\Requests\Utility\CaseInsensitiveDictionary();
 
 		foreach ( $this->response->headers->getAll() as $key => $value ) {
 			if ( count( $value ) === 1 ) {
@@ -85,7 +85,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 * @param array $headers Map of header name to header value.
 	 */
 	public function set_headers( $headers ) {
-		$this->response->headers = new Requests_Response_Headers( $headers );
+		$this->response->headers = new WpOrg\Requests\Response\Headers( $headers );
 	}
 
 	/**
@@ -155,7 +155,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @return WP_HTTP_Cookie[] List of cookie objects.
+	 * @return WP_Http_Cookie[] List of cookie objects.
 	 */
 	public function get_cookies() {
 		$cookies = array();
@@ -164,10 +164,10 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 				array(
 					'name'      => $cookie->name,
 					'value'     => urldecode( $cookie->value ),
-					'expires'   => isset( $cookie->attributes['expires'] ) ? $cookie->attributes['expires'] : null,
-					'path'      => isset( $cookie->attributes['path'] ) ? $cookie->attributes['path'] : null,
-					'domain'    => isset( $cookie->attributes['domain'] ) ? $cookie->attributes['domain'] : null,
-					'host_only' => isset( $cookie->flags['host-only'] ) ? $cookie->flags['host-only'] : null,
+					'expires'   => $cookie->attributes['expires'] ?? null,
+					'path'      => $cookie->attributes['path'] ?? null,
+					'domain'    => $cookie->attributes['domain'] ?? null,
+					'host_only' => $cookie->flags['host-only'] ?? null,
 				)
 			);
 		}

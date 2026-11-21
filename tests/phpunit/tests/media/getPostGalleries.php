@@ -28,7 +28,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 	 * @ticket 43826
 	 */
 	public function test_returns_empty_array_with_post_with_no_gallery() {
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => '<p>A post with no gallery</p>',
 			)
@@ -49,7 +49,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 	 * @param string $needle  The content of a non-gallery block.
 	 */
 	public function test_returns_only_galleries( $content, $needle ) {
-		$image_id = $this->factory->attachment->create_object(
+		$image_id = self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => 0,
@@ -58,7 +58,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+		$image_url = _upload_get_url( 'test.jpg' );
 
 		$content = str_replace(
 			array( 'IMAGE_ID', 'IMAGE_URL' ),
@@ -66,7 +66,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 			$content
 		);
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => $content,
 			)
@@ -83,7 +83,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_returns_only_galleries() {
+	public static function data_returns_only_galleries() {
 		$gallery = '
 		<!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
 		<figure
@@ -124,7 +124,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 	 */
 	public function test_returns_no_srcs_with_shortcode_in_post_with_no_attached_images() {
 		// Set up an unattached image.
-		$this->factory->attachment->create_object(
+		self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => 0,
@@ -133,7 +133,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 			)
 		);
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => '[gallery]',
 			)
@@ -173,7 +173,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 	 */
 	public function test_returns_no_srcs_with_block_in_post_with_no_attached_images() {
 		// Set up an unattached image.
-		$this->factory->attachment->create_object(
+		self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => 0,
@@ -182,7 +182,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 			)
 		);
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => '<!-- wp:gallery -->',
 			)
@@ -231,7 +231,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 	 */
 	public function test_returns_no_srcs_with_block_v2_in_post_with_no_attached_images() {
 		// Set up an unattached image.
-		$image_id = $this->factory->attachment->create_object(
+		$image_id = self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => 0,
@@ -240,7 +240,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+		$image_url = _upload_get_url( 'test.jpg' );
 
 		$blob = <<< BLOB
 <!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
@@ -260,7 +260,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 <!-- /wp:gallery -->
 BLOB;
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => $blob,
 			)
@@ -309,19 +309,19 @@ BLOB;
 	 * @group shortcode
 	 */
 	public function test_returns_html_with_shortcode_gallery() {
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'I have no gallery',
 			)
 		);
 
-		$post_id_two = $this->factory->post->create(
+		$post_id_two = self::factory()->post->create(
 			array(
 				'post_content' => "[gallery id='$post_id']",
 			)
 		);
 
-		$this->factory->attachment->create_object(
+		self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => $post_id,
@@ -330,7 +330,7 @@ BLOB;
 			)
 		);
 
-		$expected  = 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg"';
+		$expected  = 'src="' . _upload_get_url( 'test.jpg' ) . '"';
 		$galleries = get_post_galleries( $post_id_two );
 
 		// The method can return an empty array.
@@ -363,14 +363,14 @@ BLOB;
 	 * @group blocks
 	 */
 	public function test_returns_html_with_block_gallery() {
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'I have no gallery.',
 			)
 		);
 
 		// Set up an unattached image.
-		$image_id = $this->factory->attachment->create(
+		$image_id = self::factory()->attachment->create(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => $post_id,
@@ -379,7 +379,7 @@ BLOB;
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+		$image_url = _upload_get_url( 'test.jpg' );
 
 		$blob = <<< BLOB
 <!-- wp:gallery -->
@@ -387,13 +387,13 @@ BLOB;
 <!-- /wp:gallery -->
 BLOB;
 
-		$post_id_two = $this->factory->post->create(
+		$post_id_two = self::factory()->post->create(
 			array(
 				'post_content' => $blob,
 			)
 		);
 
-		$expected  = 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg"';
+		$expected  = 'src="' . _upload_get_url( 'test.jpg' ) . '"';
 		$galleries = get_post_galleries( $post_id_two );
 
 		// The method can return an empty array.
@@ -426,7 +426,7 @@ BLOB;
 	 * @group blocks
 	 */
 	public function test_returns_html_with_block_gallery_v2() {
-		$image_id = $this->factory->attachment->create_object(
+		$image_id = self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => 0,
@@ -435,7 +435,7 @@ BLOB;
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+		$image_url = _upload_get_url( 'test.jpg' );
 
 		$blob = <<< BLOB
 <!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
@@ -455,13 +455,13 @@ BLOB;
 <!-- /wp:gallery -->
 BLOB;
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => $blob,
 			)
 		);
 
-		$expected  = 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg"';
+		$expected  = 'src="' . _upload_get_url( 'test.jpg' ) . '"';
 		$galleries = get_post_galleries( $post_id );
 
 		// The method can return an empty array.
@@ -495,17 +495,17 @@ BLOB;
 	 * @group shortcode
 	 */
 	public function test_respects_post_id_with_shortcode_gallery() {
-		$global_post_id = $this->factory->post->create(
+		$global_post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'Global Post',
 			)
 		);
-		$post_id        = $this->factory->post->create(
+		$post_id        = self::factory()->post->create(
 			array(
 				'post_content' => '[gallery]',
 			)
 		);
-		$this->factory->attachment->create_object(
+		self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => $post_id,
@@ -514,7 +514,7 @@ BLOB;
 			)
 		);
 		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+			_upload_get_url( 'test.jpg' ),
 		);
 
 		// Set the global $post context to the other post.
@@ -569,15 +569,15 @@ BLOB;
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
-			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$url        = _upload_get_url( "image$i.jpg" );
 			$ids_srcs[] = $url;
 			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 
 		}
 
-		$ids_joined = join( ',', $ids );
+		$ids_joined = implode( ',', $ids );
 
-		$global_post_id = $this->factory->post->create(
+		$global_post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'Global Post',
 			)
@@ -588,12 +588,12 @@ BLOB;
 <!-- /wp:gallery -->
 BLOB;
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => $blob,
 			)
 		);
-		$this->factory->attachment->create_object(
+		self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => $post_id,
@@ -602,7 +602,7 @@ BLOB;
 			)
 		);
 		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+			_upload_get_url( 'test.jpg' ),
 		);
 
 		// Set the global $post context to the other post.
@@ -656,8 +656,8 @@ BLOB;
 			)
 		);
 		$metadata       = array_merge( array( 'file' => 'image1.jpg' ), self::IMG_META );
-		$url            = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . 'image1.jpg';
-		$global_post_id = $this->factory->post->create(
+		$url            = _upload_get_url( 'image1.jpg' );
+		$global_post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'Global Post',
 			)
@@ -683,12 +683,12 @@ BLOB;
 <!-- /wp:gallery -->
 BLOB;
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => $blob,
 			)
 		);
-		$this->factory->attachment->create_object(
+		self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => $post_id,
@@ -697,7 +697,7 @@ BLOB;
 			)
 		);
 		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+			_upload_get_url( 'test.jpg' ),
 		);
 
 		// Set the global $post context to the other post.
@@ -742,17 +742,17 @@ BLOB;
 	 * @group shortcode
 	 */
 	public function test_respects_shortcode_id_attribute() {
-		$post_id     = $this->factory->post->create(
+		$post_id     = self::factory()->post->create(
 			array(
 				'post_content' => 'No gallery defined',
 			)
 		);
-		$post_id_two = $this->factory->post->create(
+		$post_id_two = self::factory()->post->create(
 			array(
 				'post_content' => "[gallery id='$post_id']",
 			)
 		);
-		$this->factory->attachment->create_object(
+		self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => $post_id,
@@ -761,7 +761,7 @@ BLOB;
 			)
 		);
 		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+			_upload_get_url( 'test.jpg' ),
 		);
 
 		$galleries = get_post_galleries( $post_id_two, false );
@@ -838,14 +838,14 @@ BLOB;
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
-			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$url        = _upload_get_url( "image$i.jpg" );
 			$ids_srcs[] = $url;
 			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 
 		}
 
-		$ids1_joined = join( ',', array_slice( $ids, 0, 3 ) );
-		$ids2_joined = join( ',', array_slice( $ids, 3, 3 ) );
+		$ids1_joined = implode( ',', array_slice( $ids, 0, 3 ) );
+		$ids2_joined = implode( ',', array_slice( $ids, 3, 3 ) );
 
 		$blob = <<<BLOB
 [gallery ids="$ids1_joined"]
@@ -870,7 +870,6 @@ BLOB;
 			),
 			$galleries
 		);
-
 	}
 
 	/**
@@ -902,14 +901,14 @@ BLOB;
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
-			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$url        = _upload_get_url( "image$i.jpg" );
 			$ids_srcs[] = $url;
 			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 
 		}
 
-		$ids1_joined = join( ',', array_slice( $ids, 0, 3 ) );
-		$ids2_joined = join( ',', array_slice( $ids, 3, 3 ) );
+		$ids1_joined = implode( ',', array_slice( $ids, 0, 3 ) );
+		$ids2_joined = implode( ',', array_slice( $ids, 3, 3 ) );
 		$blob        = <<<BLOB
 [gallery ids="$ids1_joined" type="type" foo="bar"]
 
@@ -937,7 +936,6 @@ BLOB;
 			),
 			$galleries
 		);
-
 	}
 
 	/**
@@ -950,7 +948,7 @@ BLOB;
 	 */
 	public function test_returns_srcs_from_html_with_block_with_no_json_blob() {
 		// Set up an unattached image.
-		$image_id = $this->factory->attachment->create_object(
+		$image_id = self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => 0,
@@ -959,7 +957,7 @@ BLOB;
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+		$image_url = _upload_get_url( 'test.jpg' );
 
 		$blob = <<< BLOB
 <!-- wp:gallery -->
@@ -972,7 +970,7 @@ BLOB;
 <!-- /wp:gallery -->
 BLOB;
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => $blob,
 			)
@@ -1022,12 +1020,12 @@ BLOB;
 	 * @group blocks
 	 */
 	public function test_returns_srcs_with_nested_block_gallery() {
-		$post_id  = $this->factory->post->create(
+		$post_id  = self::factory()->post->create(
 			array(
 				'post_content' => 'I have no gallery.',
 			)
 		);
-		$image_id = $this->factory->attachment->create_object(
+		$image_id = self::factory()->attachment->create_object(
 			array(
 				'file'           => 'test.jpg',
 				'post_parent'    => $post_id,
@@ -1045,7 +1043,7 @@ BLOB;
 <!-- /wp:columns -->
 BLOB;
 
-		$post_id_two = $this->factory->post->create( array( 'post_content' => $blob ) );
+		$post_id_two = self::factory()->post->create( array( 'post_content' => $blob ) );
 
 		$galleries = get_post_galleries( $post_id_two, false );
 

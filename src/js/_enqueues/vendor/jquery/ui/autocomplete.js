@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Autocomplete 1.13.1
- * http://jqueryui.com
+ * jQuery UI Autocomplete 1.14.2
+ * https://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
- * http://jquery.org/license
+ * https://jquery.org/license
  */
 
 //>>label: Autocomplete
 //>>group: Widgets
 //>>description: Lists suggested words as the user is typing.
-//>>docs: http://api.jqueryui.com/autocomplete/
-//>>demos: http://jqueryui.com/autocomplete/
+//>>docs: https://api.jqueryui.com/autocomplete/
+//>>demos: https://jqueryui.com/autocomplete/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/autocomplete.css
 //>>css.theme: ../../themes/base/theme.css
@@ -25,7 +25,10 @@
 		define( [
 			"jquery",
 			"./menu",
-			"./core"
+			"../keycode",
+			"../position",
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 
@@ -36,7 +39,7 @@
 "use strict";
 
 $.widget( "ui.autocomplete", {
-	version: "1.13.1",
+	version: "1.14.2",
 	defaultElement: "<input>",
 	options: {
 		appendTo: null,
@@ -80,9 +83,9 @@ $.widget( "ui.autocomplete", {
 
 		// Textareas are always multi-line
 		// Inputs are always single-line, even if inside a contentEditable element
-		// IE also treats inputs as contentEditable
-		// All other element types are determined by whether or not they're contentEditable
-		this.isMultiLine = isTextarea || !isInput && this._isContentEditable( this.element );
+		// All other element types are determined by whether they're contentEditable
+		this.isMultiLine = isTextarea ||
+			!isInput && this.element.prop( "contentEditable" ) === "true";
 
 		this.valueMethod = this.element[ isTextarea || isInput ? "val" : "text" ];
 		this.isNewMenu = true;
@@ -104,58 +107,57 @@ $.widget( "ui.autocomplete", {
 				suppressKeyPressRepeat = false;
 				var keyCode = $.ui.keyCode;
 				switch ( event.keyCode ) {
-					case keyCode.PAGE_UP:
-						suppressKeyPress = true;
-						this._move( "previousPage", event );
-						break;
-					case keyCode.PAGE_DOWN:
-						suppressKeyPress = true;
-						this._move( "nextPage", event );
-						break;
-					case keyCode.UP:
-						suppressKeyPress = true;
-						this._keyEvent( "previous", event );
-						break;
-					case keyCode.DOWN:
-						suppressKeyPress = true;
-						this._keyEvent( "next", event );
-						break;
-					case keyCode.ENTER:
+				case keyCode.PAGE_UP:
+					suppressKeyPress = true;
+					this._move( "previousPage", event );
+					break;
+				case keyCode.PAGE_DOWN:
+					suppressKeyPress = true;
+					this._move( "nextPage", event );
+					break;
+				case keyCode.UP:
+					suppressKeyPress = true;
+					this._keyEvent( "previous", event );
+					break;
+				case keyCode.DOWN:
+					suppressKeyPress = true;
+					this._keyEvent( "next", event );
+					break;
+				case keyCode.ENTER:
 
-						// when menu is open and has focus
-						if ( this.menu.active ) {
+					// when menu is open and has focus
+					if ( this.menu.active ) {
 
-							// #6055 - Opera still allows the keypress to occur
-							// which causes forms to submit
-							suppressKeyPress = true;
-							event.preventDefault();
-							this.menu.select( event );
+						// #6055 - Opera still allows the keypress to occur
+						// which causes forms to submit
+						suppressKeyPress = true;
+						event.preventDefault();
+						this.menu.select( event );
+					}
+					break;
+				case keyCode.TAB:
+					if ( this.menu.active ) {
+						this.menu.select( event );
+					}
+					break;
+				case keyCode.ESCAPE:
+					if ( this.menu.element.is( ":visible" ) ) {
+						if ( !this.isMultiLine ) {
+							this._value( this.term );
 						}
-						break;
-					case keyCode.TAB:
-						if ( this.menu.active ) {
-							this.menu.select( event );
-						}
-						break;
-					case keyCode.ESCAPE:
-						if ( this.menu.element.is( ":visible" ) ) {
-							if ( !this.isMultiLine ) {
-								this._value( this.term );
-							}
-							this.close( event );
+						this.close( event );
 
-							// Different browsers have different default behavior for escape
-							// Single press can mean undo or clear
-							// Double press in IE means clear the whole form
-							event.preventDefault();
-						}
-						break;
-					default:
-						suppressKeyPressRepeat = true;
+						// Different browsers have different default behavior for escape
+						// Single press can mean undo or clear
+						event.preventDefault();
+					}
+					break;
+				default:
+					suppressKeyPressRepeat = true;
 
-						// search timeout should be triggered before the input value is changed
-						this._searchTimeout( event );
-						break;
+					// search timeout should be triggered before the input value is changed
+					this._searchTimeout( event );
+					break;
 				}
 			},
 			keypress: function( event ) {
@@ -173,18 +175,18 @@ $.widget( "ui.autocomplete", {
 				// Replicate some key handlers to allow them to repeat in Firefox and Opera
 				var keyCode = $.ui.keyCode;
 				switch ( event.keyCode ) {
-					case keyCode.PAGE_UP:
-						this._move( "previousPage", event );
-						break;
-					case keyCode.PAGE_DOWN:
-						this._move( "nextPage", event );
-						break;
-					case keyCode.UP:
-						this._keyEvent( "previous", event );
-						break;
-					case keyCode.DOWN:
-						this._keyEvent( "next", event );
-						break;
+				case keyCode.PAGE_UP:
+					this._move( "previousPage", event );
+					break;
+				case keyCode.PAGE_DOWN:
+					this._move( "nextPage", event );
+					break;
+				case keyCode.UP:
+					this._keyEvent( "previous", event );
+					break;
+				case keyCode.DOWN:
+					this._keyEvent( "next", event );
+					break;
 				}
 			},
 			input: function( event ) {
@@ -215,16 +217,6 @@ $.widget( "ui.autocomplete", {
 				role: null
 			} )
 			.hide()
-
-			// Support: IE 11 only, Edge <= 14
-			// For other browsers, we preventDefault() on the mousedown event
-			// to keep the dropdown from taking focus from the input. This doesn't
-			// work for IE/Edge, causing problems with selection and scrolling (#9638)
-			// Happily, IE and Edge support an "unselectable" attribute that
-			// prevents an element from receiving focus, exactly what we want here.
-			.attr( {
-				"unselectable": "on"
-			} )
 			.menu( "instance" );
 
 		this._addClass( this.menu.element, "ui-autocomplete", "ui-front" );
@@ -237,7 +229,7 @@ $.widget( "ui.autocomplete", {
 			menufocus: function( event, ui ) {
 				var label, item;
 
-				// support: Firefox
+				// Support: Firefox
 				// Prevent accidental activation of menu items in Firefox (#7024 #9118)
 				if ( this.isNewMenu ) {
 					this.isNewMenu = false;
@@ -275,17 +267,9 @@ $.widget( "ui.autocomplete", {
 					previous = this.previous;
 
 				// Only trigger when focus was lost (click on menu)
-				if ( this.element[ 0 ] !== $.ui.safeActiveElement( this.document[ 0 ] ) ) {
+				if ( this.element[ 0 ] !== this.document[ 0 ].activeElement ) {
 					this.element.trigger( "focus" );
 					this.previous = previous;
-
-					// #6109 - IE triggers two focus events and the second
-					// is asynchronous, so we need to reset the previous
-					// term synchronously and asynchronously :-(
-					this._delay( function() {
-						this.previous = previous;
-						this.selectedItem = item;
-					} );
 				}
 
 				if ( false !== this._trigger( "select", event, { item: item } ) ) {
@@ -577,7 +561,7 @@ $.widget( "ui.autocomplete", {
 			return;
 		}
 		if ( this.menu.isFirstItem() && /^previous/.test( direction ) ||
-			this.menu.isLastItem() && /^next/.test( direction ) ) {
+				this.menu.isLastItem() && /^next/.test( direction ) ) {
 
 			if ( !this.isMultiLine ) {
 				this._value( this.term );
@@ -604,24 +588,6 @@ $.widget( "ui.autocomplete", {
 			// Prevents moving cursor to beginning/end of the text field in some browsers
 			event.preventDefault();
 		}
-	},
-
-	// Support: Chrome <=50
-	// We should be able to just use this.element.prop( "isContentEditable" )
-	// but hidden elements always report false in Chrome.
-	// https://code.google.com/p/chromium/issues/detail?id=313082
-	_isContentEditable: function( element ) {
-		if ( !element.length ) {
-			return false;
-		}
-
-		var editable = element.prop( "contentEditable" );
-
-		if ( editable === "inherit" ) {
-			return this._isContentEditable( element.parent() );
-		}
-
-		return editable === "true";
 	}
 } );
 

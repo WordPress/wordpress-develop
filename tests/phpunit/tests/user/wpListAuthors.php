@@ -27,8 +27,6 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 	 * 'html'          => true,
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		global $wp_rewrite;
-
 		self::$user_ids[] = $factory->user->create(
 			array(
 				'user_login'   => 'zack',
@@ -63,12 +61,6 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 			)
 		);
 
-		/*
-		 * Re-initialize WP_Rewrite, so that get_author_posts_url() uses
-		 * the default permalink structure, not affected by other tests.
-		 */
-		$wp_rewrite->init();
-
 		$count = 0;
 		foreach ( self::$user_ids as $userid ) {
 			$count = $count + 1;
@@ -87,18 +79,18 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 
 	public function test_wp_list_authors_default() {
 		$expected['default'] =
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a></li>' .
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a></li>' .
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a></li>';
+			'<li><a href="' . self::$user_urls[1] . '">bob</a></li>' .
+			'<li><a href="' . self::$user_urls[2] . '">paul</a></li>' .
+			'<li><a href="' . self::$user_urls[0] . '">zack</a></li>';
 
 		$this->assertSame( $expected['default'], wp_list_authors( array( 'echo' => false ) ) );
 	}
 
 	public function test_wp_list_authors_orderby() {
 		$expected['post_count'] =
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a></li>' .
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a></li>' .
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a></li>';
+			'<li><a href="' . self::$user_urls[0] . '">zack</a></li>' .
+			'<li><a href="' . self::$user_urls[1] . '">bob</a></li>' .
+			'<li><a href="' . self::$user_urls[2] . '">paul</a></li>';
 
 		$this->assertSame(
 			$expected['post_count'],
@@ -113,9 +105,9 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 
 	public function test_wp_list_authors_order() {
 		$expected['id'] =
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a></li>' .
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a></li>' .
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a></li>';
+			'<li><a href="' . self::$user_urls[2] . '">paul</a></li>' .
+			'<li><a href="' . self::$user_urls[1] . '">bob</a></li>' .
+			'<li><a href="' . self::$user_urls[0] . '">zack</a></li>';
 
 		$this->assertSame(
 			$expected['id'],
@@ -131,9 +123,9 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 
 	public function test_wp_list_authors_optioncount() {
 		$expected['optioncount'] =
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a> (2)</li>' .
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a> (3)</li>' .
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a> (1)</li>';
+			'<li><a href="' . self::$user_urls[1] . '">bob</a> (2)</li>' .
+			'<li><a href="' . self::$user_urls[2] . '">paul</a> (3)</li>' .
+			'<li><a href="' . self::$user_urls[0] . '">zack</a> (1)</li>';
 
 		$this->assertSame(
 			$expected['optioncount'],
@@ -146,6 +138,31 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Ensures the 'optioncount' parameter does not throw an error when there are authors without posts.
+	 *
+	 * @ticket 57011
+	 */
+	public function test_wp_list_authors_optioncount_should_not_error_for_empty_authors() {
+		/*
+		 * The main purpose of this test is to ensure that the error below is not thrown:
+		 *
+		 * Error: Object of class stdClass could not be converted to string
+		 *
+		 * In place of direct testing we ensure `wp_list_authors()` returns a list of authors
+		 * at least one of which is empty.
+		 */
+		$actual = wp_list_authors(
+			array(
+				'optioncount'   => true,
+				'hide_empty'    => false,
+				'exclude_admin' => false,
+				'echo'          => false,
+			)
+		);
+		$this->assertStringContainsString( '(0)', $actual );
+	}
+
 	public function test_wp_list_authors_exclude_admin() {
 		self::factory()->post->create(
 			array(
@@ -155,10 +172,10 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 		);
 
 		$expected['exclude_admin'] =
-			'<li><a href="' . get_author_posts_url( 1 ) . '" title="Posts by admin">admin</a></li>' .
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a></li>' .
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a></li>' .
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a></li>';
+			'<li><a href="' . get_author_posts_url( 1 ) . '">admin</a></li>' .
+			'<li><a href="' . self::$user_urls[1] . '">bob</a></li>' .
+			'<li><a href="' . self::$user_urls[2] . '">paul</a></li>' .
+			'<li><a href="' . self::$user_urls[0] . '">zack</a></li>';
 
 		$this->assertSame(
 			$expected['exclude_admin'],
@@ -173,9 +190,9 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 
 	public function test_wp_list_authors_show_fullname() {
 		$expected['show_fullname'] =
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob reno</a></li>' .
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul norris</a></li>' .
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack moon</a></li>';
+			'<li><a href="' . self::$user_urls[1] . '">bob reno</a></li>' .
+			'<li><a href="' . self::$user_urls[2] . '">paul norris</a></li>' .
+			'<li><a href="' . self::$user_urls[0] . '">zack moon</a></li>';
 
 		$this->assertSame(
 			$expected['show_fullname'],
@@ -192,10 +209,10 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 		$fred_id = self::$fred_id;
 
 		$expected['hide_empty'] =
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a></li>' .
-			'<li><a href="' . get_author_posts_url( $fred_id ) . '" title="Posts by fred">fred</a></li>' .
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a></li>' .
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a></li>';
+			'<li><a href="' . self::$user_urls[1] . '">bob</a></li>' .
+			'<li><a href="' . get_author_posts_url( $fred_id ) . '">fred</a></li>' .
+			'<li><a href="' . self::$user_urls[2] . '">paul</a></li>' .
+			'<li><a href="' . self::$user_urls[0] . '">zack</a></li>';
 
 		$this->assertSame(
 			$expected['hide_empty'],
@@ -210,9 +227,9 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 
 	public function test_wp_list_authors_echo() {
 		$expected['echo'] =
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a></li>' .
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a></li>' .
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a></li>';
+			'<li><a href="' . self::$user_urls[1] . '">bob</a></li>' .
+			'<li><a href="' . self::$user_urls[2] . '">paul</a></li>' .
+			'<li><a href="' . self::$user_urls[0] . '">zack</a></li>';
 
 		$this->expectOutputString( $expected['echo'] );
 		wp_list_authors( array( 'echo' => true ) );
@@ -224,9 +241,9 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 		$url2 = get_author_feed_link( self::$user_ids[2] );
 
 		$expected['feed'] =
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a> (<a href="' . $url1 . '">link to feed</a>)</li>' .
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a> (<a href="' . $url2 . '">link to feed</a>)</li>' .
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a> (<a href="' . $url0 . '">link to feed</a>)</li>';
+			'<li><a href="' . self::$user_urls[1] . '">bob</a> (<a href="' . $url1 . '">link to feed</a>)</li>' .
+			'<li><a href="' . self::$user_urls[2] . '">paul</a> (<a href="' . $url2 . '">link to feed</a>)</li>' .
+			'<li><a href="' . self::$user_urls[0] . '">zack</a> (<a href="' . $url0 . '">link to feed</a>)</li>';
 
 		$this->assertSame(
 			$expected['feed'],
@@ -245,16 +262,16 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 		$url2 = get_author_feed_link( self::$user_ids[2] );
 
 		$expected['feed_image'] =
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a> <a href="' . $url1 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;" /></a></li>' .
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a> <a href="' . $url2 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;" /></a></li>' .
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a> <a href="' . $url0 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;" /></a></li>';
+			'<li><a href="' . self::$user_urls[1] . '">bob</a> <a href="' . $url1 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;" /></a></li>' .
+			'<li><a href="' . self::$user_urls[2] . '">paul</a> <a href="' . $url2 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;" /></a></li>' .
+			'<li><a href="' . self::$user_urls[0] . '">zack</a> <a href="' . $url0 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;" /></a></li>';
 
 		$this->assertSame(
 			$expected['feed_image'],
 			wp_list_authors(
 				array(
 					'echo'       => false,
-					'feed_image' => WP_TESTS_DOMAIN . '/path/to/a/graphic.png',
+					'feed_image' => 'http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png',
 				)
 			)
 		);
@@ -269,9 +286,9 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 		$url2 = get_author_feed_link( self::$user_ids[2], 'atom' );
 
 		$expected['feed_type'] =
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a> (<a href="' . $url1 . '">link to feed</a>)</li>' .
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a> (<a href="' . $url2 . '">link to feed</a>)</li>' .
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a> (<a href="' . $url0 . '">link to feed</a>)</li>';
+			'<li><a href="' . self::$user_urls[1] . '">bob</a> (<a href="' . $url1 . '">link to feed</a>)</li>' .
+			'<li><a href="' . self::$user_urls[2] . '">paul</a> (<a href="' . $url2 . '">link to feed</a>)</li>' .
+			'<li><a href="' . self::$user_urls[0] . '">zack</a> (<a href="' . $url0 . '">link to feed</a>)</li>';
 
 		$this->assertSame(
 			$expected['feed_type'],
@@ -287,9 +304,9 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 
 	public function test_wp_list_authors_style() {
 		$expected['style'] =
-			'<a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a>, ' .
-			'<a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a>, ' .
-			'<a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a>';
+			'<a href="' . self::$user_urls[1] . '">bob</a>, ' .
+			'<a href="' . self::$user_urls[2] . '">paul</a>, ' .
+			'<a href="' . self::$user_urls[0] . '">zack</a>';
 
 		$this->assertSame(
 			$expected['style'],

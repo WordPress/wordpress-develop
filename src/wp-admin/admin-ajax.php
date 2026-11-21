@@ -5,7 +5,7 @@
  * @package WordPress
  * @subpackage Administration
  *
- * @link https://codex.wordpress.org/AJAX_in_Plugins
+ * @link https://developer.wordpress.org/plugins/javascript/ajax
  */
 
 /**
@@ -47,7 +47,6 @@ do_action( 'admin_init' );
 $core_actions_get = array(
 	'fetch-list',
 	'ajax-tag-search',
-	'wp-compression-test',
 	'imgedit-preview',
 	'oembed-cache',
 	'autocomplete-user',
@@ -79,6 +78,7 @@ $core_actions_post = array(
 	'add-user',
 	'closed-postboxes',
 	'hidden-columns',
+	'meta-box-reordering',
 	'update-welcome-panel',
 	'menu-get-metabox',
 	'wp-link-ajax',
@@ -117,6 +117,7 @@ $core_actions_post = array(
 	'parse-media-shortcode',
 	'destroy-sessions',
 	'install-plugin',
+	'activate-plugin',
 	'update-plugin',
 	'crop-image',
 	'generate-password',
@@ -168,6 +169,9 @@ if ( ! empty( $_POST['action'] ) && in_array( $_POST['action'], $core_actions_po
 add_action( 'wp_ajax_nopriv_generate-password', 'wp_ajax_nopriv_generate_password' );
 
 add_action( 'wp_ajax_nopriv_heartbeat', 'wp_ajax_nopriv_heartbeat', 1 );
+
+// Register Plugin Dependencies Ajax calls.
+add_action( 'wp_ajax_check_plugin_dependencies', array( 'WP_Plugin_Dependencies', 'check_plugin_dependencies_during_ajax' ) );
 
 $action = $_REQUEST['action'];
 

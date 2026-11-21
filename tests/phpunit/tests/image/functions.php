@@ -1,5 +1,7 @@
 <?php
 
+require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
+
 /**
  * @group image
  * @group media
@@ -27,12 +29,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
+
 	/**
 	 * Gets the available image editor engine classes.
 	 *
 	 * @return string[] Available image editor classes; empty array when none are available.
 	 */
-	private function get_image_editor_engine_classes() {
+	private static function get_image_editor_engine_classes() {
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
 		foreach ( $classes as $key => $class ) {
@@ -50,8 +53,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_image_editor_engine_classes() {
-		return $this->text_array_to_dataprovider( $this->get_image_editor_engine_classes() );
+	public static function data_image_editor_engine_classes() {
+		return self::text_array_to_dataprovider( self::get_image_editor_engine_classes() );
 	}
 
 	/**
@@ -92,7 +95,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_valid_image_positive() {
+	public static function data_file_is_valid_image_positive() {
 		// These are all image files recognized by PHP.
 		$files = array(
 			'test-image-cmyk.jpg',
@@ -111,9 +114,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'webp-lossless.webp',
 			'webp-lossy.webp',
 			'webp-transparent.webp',
+			'avif-animated.avif',
+			'avif-lossless.avif',
+			'avif-lossy.avif',
+			'avif-transparent.avif',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -136,7 +143,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_valid_image_negative() {
+	public static function data_file_is_valid_image_negative() {
 		// These are actually image files but aren't recognized or usable by PHP.
 		$files = array(
 			'test-image.pct',
@@ -144,7 +151,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.sgi',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -166,7 +173,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_displayable_image_positive() {
+	public static function data_file_is_displayable_image_positive() {
 		// These are all usable in typical web browsers.
 		$files = array(
 			'test-image.gif',
@@ -186,7 +193,18 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$files[] = 'webp-transparent.webp';
 		}
 
-		return $this->text_array_to_dataprovider( $files );
+		// Add AVIF images if the image editor supports them.
+		$file   = DIR_TESTDATA . '/images/avif-lossless.avif';
+		$editor = wp_get_image_editor( $file );
+
+		if ( ! is_wp_error( $editor ) && $editor->supports_mime_type( 'image/avif' ) ) {
+			$files[] = 'avif-animated.avif';
+			$files[] = 'avif-lossless.avif';
+			$files[] = 'avif-lossy.avif';
+			$files[] = 'avif-transparent.avif';
+		}
+
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -208,7 +226,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_file_is_displayable_image_negative() {
+	public static function data_file_is_displayable_image_negative() {
 		// These are image files but aren't suitable for web pages because of compatibility or size issues.
 		$files = array(
 			// 'test-image-cmyk.jpg',      Allowed in r9727.
@@ -222,9 +240,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.jp2',
 			'test-image.psd',
 			'test-image-zip.tiff',
+			'test-image.heic',
 		);
 
-		return $this->text_array_to_dataprovider( $files );
+		return self::text_array_to_dataprovider( $files );
 	}
 
 	/**
@@ -283,8 +302,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image does not match.' );
 
 		// Clean up.
@@ -298,8 +317,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_save_image_file() {
-		$classes = $this->get_image_editor_engine_classes();
+	public static function data_wp_save_image_file() {
+		$classes = self::get_image_editor_engine_classes();
 
 		// Mime types.
 		$mime_types = array(
@@ -328,6 +347,147 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_save_image_file() throws a deprecated argument notice when passed a GD resource.
+	 *
+	 * @ticket 6821
+	 * @expectedDeprecated wp_save_image_file
+	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_save_image_file
+	 */
+	public function test_wp_save_image_file_deprecated_argument_with_gd_resource() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// Call wp_save_image_file().
+		$file = wp_tempnam();
+		$img  = imagecreatefromjpeg( DIR_TESTDATA . '/images/canola.jpg' );
+		$ret  = wp_save_image_file( $file, $img, 'image/jpeg', 1 );
+
+		if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+			imagedestroy( $img );
+		}
+
+		unlink( $file );
+
+		$this->assertTrue( $ret, 'Image failed to save.' );
+	}
+
+	/**
+	 * Tests that `wp_image_editor()` applies 'image_edit_thumbnails_separately' filters.
+	 *
+	 * @ticket 53161
+	 *
+	 * @covers ::wp_image_editor
+	 */
+	public function test_wp_image_editor_should_apply_image_edit_thumbnails_separately_filters() {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$id = $this->create_image_editor_test_attachment();
+
+		$filter = new MockAction();
+		add_filter( 'image_edit_thumbnails_separately', array( &$filter, 'filter' ) );
+
+		ob_start();
+		wp_image_editor( $id );
+		ob_end_clean();
+
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * Tests that `wp_image_editor()` conditionally outputs markup for editing thumbnails separately
+	 * based on the result of applying 'image_edit_thumbnails_separately' filters.
+	 *
+	 * @ticket 53161
+	 *
+	 * @covers ::wp_image_editor
+	 *
+	 * @dataProvider data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters
+	 *
+	 * @param string $callback The name of the callback for the 'image_edit_thumbnails_separately' hook.
+	 * @param bool   $expected Whether the markup should be output.
+	 */
+	public function test_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters( $callback, $expected ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$id = $this->create_image_editor_test_attachment();
+
+		add_filter( 'image_edit_thumbnails_separately', $callback );
+
+		ob_start();
+		wp_image_editor( $id );
+		$actual = ob_get_clean();
+
+		if ( $expected ) {
+			$this->assertStringContainsString(
+				'imgedit-applyto',
+				$actual,
+				'The markup should have been output.'
+			);
+		} else {
+			$this->assertStringNotContainsString(
+				'imgedit-applyto',
+				$actual,
+				'The markup should not have been output.'
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters() {
+		return array(
+			'true'  => array(
+				'callback' => '__return_true',
+				'expected' => true,
+			),
+			'false' => array(
+				'callback' => '__return_false',
+				'expected' => false,
+			),
+		);
+	}
+
+	/**
+	 * Creates a minimal image attachment for wp_image_editor() filter tests.
+	 *
+	 * Uses static metadata instead of generating real thumbnails. A thumbnail
+	 * size entry is needed for the imgedit-applyto section to render.
+	 *
+	 * @return int Attachment post ID.
+	 */
+	private function create_image_editor_test_attachment() {
+		$attachment_id = self::factory()->attachment->create(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => DIR_TESTDATA . '/images/canola.jpg',
+			)
+		);
+
+		wp_update_attachment_metadata(
+			$attachment_id,
+			array(
+				'width'  => 640,
+				'height' => 480,
+				'file'   => 'canola.jpg',
+				'sizes'  => array(
+					'thumbnail' => array(
+						'file'      => 'canola-150x150.jpg',
+						'width'     => 150,
+						'height'    => 150,
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			)
+		);
+
+		return $attachment_id;
+	}
+
+	/**
 	 * Tests that a passed mime type overrides the extension in the filename when saving an image.
 	 *
 	 * @dataProvider data_image_editor_engine_classes
@@ -351,8 +511,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret       = $img->save( $file, $mime_type );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP_Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image did not override file name.' );
 
 		// Clean up.
@@ -397,8 +557,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$ret  = $img->save( trailingslashit( $temp ) . $file );
 
 		// Make assertions.
-		$this->assertNotEmpty( $ret, 'Image failed to save - "empty" response returned.' );
 		$this->assertNotWPError( $ret, 'Image failed to save - WP Error returned.' );
+		$this->assertIsArray( $ret, 'Image failed to save - non-array response returned.' );
 		$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ), 'Mime type of the saved image was not inferred correctly.' );
 
 		// Clean up.
@@ -411,8 +571,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_inferred_mime_types_when_saving_an_image() {
-		$classes = $this->get_image_editor_engine_classes();
+	public static function data_inferred_mime_types_when_saving_an_image() {
+		$classes = self::get_image_editor_engine_classes();
 
 		// Mime types.
 		$mime_types = array(
@@ -460,7 +620,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_image_editor_should_fail_with_wp_error_object_when_loading_a_directory() {
 		$editor = wp_get_image_editor( DIR_TESTDATA );
-		$this->assertInstanceOf( 'WP_Error', $editor );
+		$this->assertWPError( $editor );
 	}
 
 	/**
@@ -478,7 +638,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$editor = new $class_name( DIR_TESTDATA );
 		$loaded = $editor->load();
 
-		$this->assertInstanceOf( 'WP_Error', $loaded, 'Loading a directory did not result in a WP_Error.' );
+		$this->assertWPError( $loaded, 'Loading a directory did not result in a WP_Error.' );
 		$this->assertSame( 'error_loading_image', $loaded->get_error_code(), 'Error code from WP_Error did not match expectation.' );
 	}
 
@@ -514,20 +674,25 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_with_url() {
-		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100,
-			false,
-			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg'
-		);
+		stream_wrapper_unregister( 'https' );
+		stream_wrapper_register( 'https', 'WP_Test_Stream_Http_Mock' );
+		WP_Test_Stream::$data['s.w.org']['/screenshots/3.9/dashboard.png'] = file_get_contents( DIR_TESTDATA . '/images/canola.jpg' );
 
-		if ( is_wp_error( $file ) && $file->get_error_code() === 'invalid_image' ) {
-			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() cannot access remote image.' );
+		try {
+			$file = wp_crop_image(
+				'https://s.w.org/screenshots/3.9/dashboard.png',
+				0,
+				0,
+				100,
+				100,
+				100,
+				100,
+				false,
+				DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
+			);
+		} finally {
+			stream_wrapper_restore( 'https' );
+			WP_Test_Stream::$data = array();
 		}
 
 		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
@@ -555,7 +720,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		$this->assertWPError( $file );
 	}
 
 	/**
@@ -563,16 +728,25 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
-		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100
-		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		stream_wrapper_unregister( 'https' );
+		stream_wrapper_register( 'https', 'WP_Test_Stream_Http_Mock' );
+
+		try {
+			$file = wp_crop_image(
+				'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
+				0,
+				0,
+				100,
+				100,
+				100,
+				100
+			);
+		} finally {
+			stream_wrapper_restore( 'https' );
+		}
+
+		$this->assertWPError( $file );
+		$this->assertSame( 'error_loading_image', $file->get_error_code() );
 	}
 
 	/**
@@ -584,7 +758,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_image_editors',
-			static function( $editors ) {
+			static function ( $editors ) {
 				return array( 'WP_Image_Editor_Mock' );
 			}
 		);
@@ -598,7 +772,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		$this->assertWPError( $file );
 
 		WP_Image_Editor_Mock::$save_return = array();
 	}
@@ -610,7 +784,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_crop_image_should_return_correct_file_extension_if_output_format_was_modified() {
 		add_filter(
 			'image_editor_output_format',
-			static function() {
+			static function () {
 				return array_fill_keys( array( 'image/jpg', 'image/jpeg', 'image/png' ), 'image/webp' );
 			}
 		);
@@ -639,9 +813,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
 
-		// Use legacy JPEG output.
-		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
-
 		$orig_file = DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf';
 		$test_file = get_temp_dir() . 'wordpress-gsoc-flyer.pdf';
 		copy( $orig_file, $test_file );
@@ -651,7 +822,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$test_file,
 			0,
 			array(
@@ -659,7 +830,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		$temp_dir = get_temp_dir();
 
@@ -680,12 +852,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-232x300.jpg' ),
-					'sources'   => array(
-						'image/jpeg' => array(
-							'file'     => 'wordpress-gsoc-flyer-pdf-232x300.jpg',
-							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-232x300.jpg' ),
-						),
-					),
 				),
 				'large'     => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
@@ -693,12 +859,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'height'    => 1024,
 					'mime-type' => 'image/jpeg',
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
-					'sources'   => array(
-						'image/jpeg' => array(
-							'file'     => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
-							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
-						),
-					),
 				),
 				'thumbnail' => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
@@ -706,12 +866,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'height'    => 150,
 					'mime-type' => 'image/jpeg',
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
-					'sources'   => array(
-						'image/jpeg' => array(
-							'file'     => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
-							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
-						),
-					),
 				),
 			),
 			'filesize' => wp_filesize( $test_file ),
@@ -723,7 +877,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( $temp_dir . $size['file'] );
 		}
-		remove_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
 	}
 
 	/**
@@ -738,9 +891,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		update_option( 'medium_crop', 1 );
 
-		// Use legacy JPEG output.
-		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
-
 		$orig_file = DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf';
 		$test_file = get_temp_dir() . 'wordpress-gsoc-flyer.pdf';
 		copy( $orig_file, $test_file );
@@ -750,7 +900,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$test_file,
 			0,
 			array(
@@ -758,7 +908,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		$temp_dir = get_temp_dir();
 
@@ -779,12 +930,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-300x300.jpg' ),
-					'sources'   => array(
-						'image/jpeg' => array(
-							'file'     => 'wordpress-gsoc-flyer-pdf-300x300.jpg',
-							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-300x300.jpg' ),
-						),
-					),
 				),
 				'large'     => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
@@ -792,13 +937,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'height'    => 1024,
 					'mime-type' => 'image/jpeg',
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
-					'sources'   => array(
-						'image/jpeg' => array(
-							'file'     => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
-							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
-						),
-					),
-
 				),
 				'thumbnail' => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
@@ -806,12 +944,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'height'    => 150,
 					'mime-type' => 'image/jpeg',
 					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
-					'sources'   => array(
-						'image/jpeg' => array(
-							'file'     => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
-							'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
-						),
-					),
 				),
 			),
 			'filesize' => wp_filesize( $test_file ),
@@ -823,8 +955,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( $temp_dir . $size['file'] );
 		}
-		remove_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
-
 	}
 
 	/**
@@ -835,9 +965,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
 
-		// Use legacy JPEG output.
-		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
-
 		$orig_file = DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf';
 		$test_file = get_temp_dir() . 'wordpress-gsoc-flyer.pdf';
 		copy( $orig_file, $test_file );
@@ -847,7 +974,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$test_file,
 			0,
 			array(
@@ -855,7 +982,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotEmpty( $attachment_id );
+		$this->assertNotWPError( $attachment_id, 'Could not create attachment - WP_Error returned.' );
+		$this->assertIsInt( $attachment_id, 'Could not create attachment - non-integer response returned.' );
 
 		add_image_size( 'test-size', 100, 100 );
 		add_filter( 'fallback_intermediate_image_sizes', array( $this, 'filter_fallback_intermediate_image_sizes' ), 10, 2 );
@@ -870,12 +998,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'height'    => 100,
 			'mime-type' => 'image/jpeg',
 			'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-77x100.jpg' ),
-			'sources'   => array(
-				'image/jpeg' => array(
-					'file'     => 'wordpress-gsoc-flyer-pdf-77x100.jpg',
-					'filesize' => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-77x100.jpg' ),
-				),
-			),
 		);
 
 		// Different environments produce slightly different filesize results.
@@ -891,7 +1013,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( $temp_dir . $size['file'] );
 		}
-		remove_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
 	}
 
 	public function filter_fallback_intermediate_image_sizes( $fallback_sizes, $metadata ) {
@@ -928,7 +1049,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_object(
+		$attachment_id = self::factory()->attachment->create_object(
 			$pdf_path,
 			0,
 			array(
@@ -940,12 +1061,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$preview_path = $temp_dir . $metadata['sizes']['full']['file'];
 
 		// PDF preview didn't overwrite PDF.
-		$this->assertNotEquals( $pdf_path, $preview_path );
+		$this->assertNotSame( $pdf_path, $preview_path );
 		// PDF preview didn't overwrite JPG with same name.
-		$this->assertNotEquals( $jpg1_path, $preview_path );
+		$this->assertNotSame( $jpg1_path, $preview_path );
 		$this->assertSame( 'asdf', file_get_contents( $jpg1_path ) );
 		// PDF preview didn't overwrite PDF preview with same name.
-		$this->assertNotEquals( $jpg2_path, $preview_path );
+		$this->assertNotSame( $jpg2_path, $preview_path );
 		$this->assertSame( 'fdsa', file_get_contents( $jpg2_path ) );
 
 		// Cleanup.
@@ -978,7 +1099,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_exif_frac2dec() {
+	public static function data_wp_exif_frac2dec() {
 		return array(
 			'invalid input: null'              => array(
 				'fraction' => null,
@@ -1084,429 +1205,281 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 55443
+	 * Tests that _flip_image_resource() mirrors every pixel for each flip mode.
+	 *
+	 * A small non-square image with a distinct color per pixel is used so that
+	 * mixed up axes, off-by-one shifts and duplicated edges are all detected.
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
 	 */
-	public function test_wp_upload_image_mime_transforms_generates_webp_and_jpeg_for_both_by_default() {
-		$result = wp_upload_image_mime_transforms( 42 );
-		$this->assertArrayHasKey( 'image/jpeg', $result );
-		$this->assertArrayHasKey( 'image/webp', $result );
-		$this->assertSameSets( array( 'image/jpeg', 'image/webp' ), $result['image/jpeg'] );
-		$this->assertSameSets( array( 'image/jpeg', 'image/webp' ), $result['image/webp'] );
-	}
+	public function test_flip_image_resource( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-	/**
-	 * @ticket 55443
-	 */
-	public function test_wp_upload_image_mime_transforms_filter_always_use_webp_instead_of_jpeg() {
-		add_filter(
-			'wp_upload_image_mime_transforms',
-			function( $transforms ) {
-				// Ensure JPG only results in WebP files.
-				$transforms['image/jpeg'] = array( 'image/webp' );
-				// Unset WebP since it does not need any transformation in that case.
-				unset( $transforms['image/webp'] );
-				return $transforms;
+		$w     = 3;
+		$h     = 2;
+		$color = static function ( $x, $y ) {
+			return ( ( $x * 40 + 10 ) << 16 ) | ( ( $y * 90 + 20 ) << 8 ) | 0x77;
+		};
+
+		$image = imagecreatetruecolor( $w, $h );
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				imagesetpixel( $image, $x, $y, $color( $x, $y ) );
 			}
-		);
-
-		$result = wp_upload_image_mime_transforms( 42 );
-		$this->assertArrayHasKey( 'image/jpeg', $result );
-		$this->assertArrayNotHasKey( 'image/webp', $result );
-		$this->assertSameSets( array( 'image/webp' ), $result['image/jpeg'] );
-	}
-
-	/**
-	 * @ticket 55443
-	 */
-	public function test_wp_upload_image_mime_transforms_filter_receives_parameters() {
-		$attachment_id = null;
-		add_filter(
-			'wp_upload_image_mime_transforms',
-			function( $transforms, $param1 ) use ( &$attachment_id ) {
-				$attachment_id = $param1;
-				return $transforms;
-			},
-			10,
-			2
-		);
-
-		wp_upload_image_mime_transforms( 23 );
-		$this->assertSame( 23, $attachment_id );
-	}
-
-	/**
-	 * @ticket 55443
-	 */
-	public function test_wp_upload_image_mime_transforms_filter_with_empty_array() {
-		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
-		$result = wp_upload_image_mime_transforms( 42 );
-		$this->assertSame( array(), $result );
-	}
-
-	/**
-	 * @ticket 55443
-	 */
-	public function test_wp_upload_image_mime_transforms_filter_with_invalid_usage() {
-		$default = wp_upload_image_mime_transforms( 42 );
-
-		add_filter( 'wp_upload_image_mime_transforms', '__return_false' );
-		$result = wp_upload_image_mime_transforms( 42 );
-		$this->assertSame( $default, $result );
-	}
-
-	/**
-	 * @ticket 55443
-	 */
-	public function test__wp_get_primary_and_additional_mime_types_default() {
-		$jpeg_file = DIR_TESTDATA . '/images/test-image-large.jpg';
-
-		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
-		$this->assertSame( 'image/jpeg', $primary_mime_type );
-
-		// WebP may not be supported by the server, in which case it will be stripped from the results.
-		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->assertSame( array( 'image/webp' ), $additional_mime_types );
-		} else {
-			$this->assertSame( array(), $additional_mime_types );
 		}
-	}
 
-	/**
-	 * @ticket 55443
-	 */
-	public function test__wp_get_primary_and_additional_mime_types_prefer_original_mime() {
-		$jpeg_file = DIR_TESTDATA . '/images/test-image-large.jpg';
+		$flipped = _flip_image_resource( $image, $horz, $vert );
 
-		// Set 'image/jpeg' only as secondary output MIME type.
-		// Still, because it is the original, it should be chosen as primary over 'image/webp'.
-		add_filter(
-			'wp_upload_image_mime_transforms',
-			function( $transforms ) {
-				$transforms['image/jpeg'] = array( 'image/webp', 'image/jpeg' );
-				return $transforms;
+		$this->assertTrue( is_gd_image( $flipped ), 'A GD image should be returned.' );
+		$this->assertSame( $w, imagesx( $flipped ), 'The width should not change.' );
+		$this->assertSame( $h, imagesy( $flipped ), 'The height should not change.' );
+
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$source_x = $vert ? $w - 1 - $x : $x;
+				$source_y = $horz ? $h - 1 - $y : $y;
+
+				$this->assertSame(
+					$color( $source_x, $source_y ),
+					imagecolorat( $flipped, $x, $y ),
+					"Pixel ($source_x,$source_y) did not move to ($x,$y)."
+				);
 			}
-		);
-
-		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
-		$this->assertSame( 'image/jpeg', $primary_mime_type );
-
-		// WebP may not be supported by the server, in which case it will be stripped from the results.
-		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->assertSame( array( 'image/webp' ), $additional_mime_types );
-		} else {
-			$this->assertSame( array(), $additional_mime_types );
 		}
 	}
 
 	/**
-	 * @ticket 55443
+	 * Data provider for test_flip_image_resource().
+	 *
+	 * @return array[]
 	 */
-	public function test__wp_get_primary_and_additional_mime_types_use_original_mime_when_no_transformation_rules() {
-		$jpeg_file = DIR_TESTDATA . '/images/test-image-large.jpg';
-
-		// Strip all transformation rules.
-		add_filter( 'wp_upload_image_mime_transforms', '__return_empty_array' );
-
-		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
-		$this->assertSame( 'image/jpeg', $primary_mime_type );
-		$this->assertSame( array(), $additional_mime_types );
-	}
-
-	/**
-	 * @ticket 55443
-	 */
-	public function test__wp_get_primary_and_additional_mime_types_different_output_mime() {
-		$jpeg_file = DIR_TESTDATA . '/images/test-image-large.jpg';
-
-		// Set 'image/webp' as the only output MIME type.
-		// In that case, JPEG is not generated at all, so WebP becomes the primary MIME type.
-		add_filter(
-			'wp_upload_image_mime_transforms',
-			function( $transforms ) {
-				$transforms['image/jpeg'] = array( 'image/webp' );
-				return $transforms;
-			}
-		);
-
-		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
-
-		// WebP may not be supported by the server, in which case it will fall back to the original MIME type.
-		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->assertSame( 'image/webp', $primary_mime_type );
-		} else {
-			$this->assertSame( 'image/jpeg', $primary_mime_type );
-		}
-
-		$this->assertSame( array(), $additional_mime_types );
-	}
-
-	/**
-	 * @ticket 55443
-	 */
-	public function test__wp_get_primary_and_additional_mime_types_different_output_mimes() {
-		$jpeg_file = DIR_TESTDATA . '/images/test-image-large.jpg';
-
-		// Set 'image/webp' and 'image/avif' as output MIME types.
-		// In that case, JPEG is not generated at all, with WebP being the primary MIME type and AVIF the secondary.
-		add_filter(
-			'wp_upload_image_mime_transforms',
-			function( $transforms ) {
-				$transforms['image/jpeg'] = array( 'image/webp', 'image/avif' );
-				return $transforms;
-			}
-		);
-
-		list( $primary_mime_type, $additional_mime_types ) = _wp_get_primary_and_additional_mime_types( $jpeg_file, 42 );
-
-		// WebP may not be supported by the server, in which case it will fall back to the original MIME type.
-		if ( wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-			$this->assertSame( 'image/webp', $primary_mime_type );
-		} else {
-			$this->assertSame( 'image/jpeg', $primary_mime_type );
-		}
-
-		// AVIF may not be supported by the server, in which case it will be stripped from the results.
-		if ( wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
-			$this->assertSame( array( 'image/avif' ), $additional_mime_types );
-		} else {
-			$this->assertSame( array(), $additional_mime_types );
-		}
-	}
-
-	/**
-	 * @ticket 55443
-	 * @dataProvider data__wp_filter_image_sizes_additional_mime_type_support
-	 */
-	public function test__wp_filter_image_sizes_additional_mime_type_support( $input_size_data, $filter_callback, $expected_size_names ) {
-		remove_all_filters( 'wp_image_sizes_with_additional_mime_type_support' );
-		if ( $filter_callback ) {
-			add_filter( 'wp_image_sizes_with_additional_mime_type_support', $filter_callback );
-		}
-
-		$expected_size_data = array_intersect_key( $input_size_data, array_flip( $expected_size_names ) );
-
-		$output_size_data = _wp_filter_image_sizes_additional_mime_type_support( $input_size_data, 42 );
-		$this->assertEqualSetsWithIndex( $expected_size_data, $output_size_data );
-	}
-
-	public function data__wp_filter_image_sizes_additional_mime_type_support() {
-		$thumbnail_data    = array(
-			'width'  => 150,
-			'height' => 150,
-			'crop'   => true,
-		);
-		$medium_data       = array(
-			'width'  => 300,
-			'height' => 300,
-			'crop'   => false,
-		);
-		$medium_large_data = array(
-			'width'  => 768,
-			'height' => 0,
-			'crop'   => false,
-		);
-		$large_data        = array(
-			'width'  => 1024,
-			'height' => 1024,
-			'crop'   => false,
-		);
-		$custom_data       = array(
-			'width'  => 512,
-			'height' => 512,
-			'crop'   => true,
-		);
-
+	public static function data_flip_image_resource() {
 		return array(
-			array(
-				array(
-					'thumbnail'    => $thumbnail_data,
-					'medium'       => $medium_data,
-					'medium_large' => $medium_large_data,
-					'large'        => $large_data,
-				),
-				null,
-				array( 'thumbnail', 'medium', 'medium_large', 'large' ),
-			),
-			array(
-				array(
-					'thumbnail' => $thumbnail_data,
-					'medium'    => $medium_data,
-					'custom'    => $custom_data,
-				),
-				null,
-				array( 'thumbnail', 'medium' ),
-			),
-			array(
-				array(
-					'thumbnail'    => $thumbnail_data,
-					'medium'       => $medium_data,
-					'medium_large' => $medium_large_data,
-					'large'        => $large_data,
-				),
-				function( $enabled_sizes ) {
-					unset( $enabled_sizes['medium_large'], $enabled_sizes['large'] );
-					return $enabled_sizes;
-				},
-				array( 'thumbnail', 'medium' ),
-			),
-			array(
-				array(
-					'thumbnail'    => $thumbnail_data,
-					'medium'       => $medium_data,
-					'medium_large' => $medium_large_data,
-					'large'        => $large_data,
-				),
-				function( $enabled_sizes ) {
-					$enabled_sizes['medium_large'] = false;
-					$enabled_sizes['large']        = false;
-					return $enabled_sizes;
-				},
-				array( 'thumbnail', 'medium' ),
-			),
-			array(
-				array(
-					'thumbnail' => $thumbnail_data,
-					'medium'    => $medium_data,
-					'custom'    => $custom_data,
-				),
-				function( $enabled_sizes ) {
-					unset( $enabled_sizes['medium'] );
-					$enabled_sizes['custom'] = true;
-					return $enabled_sizes;
-				},
-				array( 'thumbnail', 'custom' ),
-			),
+			'no flip'         => array( false, false ),
+			'vertical flip'   => array( true, false ),
+			'horizontal flip' => array( false, true ),
+			'both'            => array( true, true ),
 		);
 	}
 
 	/**
-	 * Test the `_wp_maybe_scale_and_rotate_image()` function.
+	 * Tests that _flip_image_resource() returns a truecolor image for a palette image.
 	 *
-	 * @dataProvider data_test__wp_maybe_scale_and_rotate_image
+	 * The previous implementation always copied into a new truecolor image.
+	 * A small palette image with a distinct color per pixel is used, so every
+	 * pixel can be checked at its mirrored position.
 	 *
-	 * @ticket 55443
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
 	 */
-	public function test__wp_maybe_scale_and_rotate_image( $file, $imagesize, $mime_type, $expected ) {
-		if ( ! wp_image_editor_supports( array( 'mime_type' => $mime_type ) ) ) {
-			$this->markTestSkipped( sprintf( 'This test requires %s support.', $mime_type ) );
+	public function test_flip_image_resource_converts_palette_image_to_truecolor( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$w     = 3;
+		$h     = 2;
+		$color = static function ( $x, $y ) {
+			return ( ( $x * 40 + 10 ) << 16 ) | ( ( $y * 90 + 20 ) << 8 ) | 0x77;
+		};
+
+		$image = imagecreate( $w, $h );
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$rgb = $color( $x, $y );
+				imagesetpixel( $image, $x, $y, imagecolorallocate( $image, ( $rgb >> 16 ) & 0xFF, ( $rgb >> 8 ) & 0xFF, $rgb & 0xFF ) );
+			}
 		}
 
-		$attributes    = array( 'post_mime_type' => $mime_type );
-		$attachment_id = $this->factory->attachment->create_object( $file, 0, $attributes );
-		$exif_meta     = wp_read_image_metadata( $file );
+		$this->assertFalse( imageistruecolor( $image ), 'The test image should be a palette image.' );
 
-		list( $editor, $resized, $rotated ) = _wp_maybe_scale_and_rotate_image( $file, $attachment_id, $imagesize, $exif_meta, $mime_type );
+		$flipped = _flip_image_resource( $image, $horz, $vert );
 
-		$this->assertSame( $expected['rotated'], $rotated );
-		$this->assertSame( $expected['resized'], $resized );
-		$this->assertSame( $expected['size'], $editor->get_size() );
+		$this->assertTrue( imageistruecolor( $flipped ), 'The flipped image should be a truecolor image.' );
+		$this->assertSame( $w, imagesx( $flipped ), 'The width should not change.' );
+		$this->assertSame( $h, imagesy( $flipped ), 'The height should not change.' );
+
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$source_x = $vert ? $w - 1 - $x : $x;
+				$source_y = $horz ? $h - 1 - $y : $y;
+
+				$this->assertSame(
+					$color( $source_x, $source_y ),
+					imagecolorat( $flipped, $x, $y ),
+					"Pixel ($source_x,$source_y) did not move to ($x,$y)."
+				);
+			}
+		}
 	}
 
 	/**
-	 * Data provider for the `test__wp_maybe_scale_and_rotate_image()` test.
+	 * Tests that _flip_image_resource() returns an image that keeps its alpha channel when saved as PNG.
 	 *
-	 * @return array
-	 */
-	public function data_test__wp_maybe_scale_and_rotate_image() {
-		return array(
-
-			// Image that will be scaled.
-			array(
-				DIR_TESTDATA . '/images/test-image-large.jpg',
-				array( 3000, 2250 ),
-				'image/jpeg',
-				array(
-					'rotated' => false,
-					'resized' => true,
-					'size'    => array(
-						'width'  => 2560,
-						'height' => 1920,
-					),
-				),
-			),
-
-			// Image that will not be scaled.
-			array(
-				DIR_TESTDATA . '/images/canola.jpg',
-				array( 640, 480 ),
-				'image/jpeg',
-				array(
-					'rotated' => false,
-					'resized' => false,
-					'size'    => array(
-						'width'  => 640,
-						'height' => 480,
-					),
-				),
-			),
-
-			// Image that will be flipped.
-			array(
-				DIR_TESTDATA . '/images/test-image-upside-down.jpg',
-				array( 600, 450 ),
-				'image/jpeg',
-				array(
-					'rotated' => true,
-					'resized' => false,
-					'size'    => array(
-						'width'  => 600,
-						'height' => 450,
-					),
-				),
-			),
-
-			// Image that will be rotated.
-			array(
-				DIR_TESTDATA . '/images/test-image-rotated-90ccw.jpg',
-				array( 1200, 1800 ),
-				'image/jpeg',
-				array(
-					'rotated' => true,
-					'resized' => false,
-					'size'    => array(
-						'width'  => 1800,
-						'height' => 1200,
-					),
-				),
-			),
-
-			// Image that will not be rotated - WebP Exif is not supported in PHP.
-			array(
-				DIR_TESTDATA . '/images/test-image-rotated-90cw.webp',
-				array( 1024, 768 ),
-				'image/webp',
-				array(
-					'rotated' => false,
-					'resized' => false,
-					'size'    => array(
-						'width'  => 1024,
-						'height' => 768,
-					),
-				),
-			),
-
-		);
-	}
-
-	/**
-	 * Test the `_wp_get_image_suffix()` function.
-	 * @dataProvider data_test__wp_get_image_suffix
+	 * The previous implementation always returned a new image with alpha saving
+	 * enabled, even if the input had it disabled and no axis was flipped.
 	 *
-	 * @ticket 55443
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
 	 */
-	public function test__wp_get_image_suffix( $resized, $rotated, $expected ) {
-		$this->assertSame( $expected, _wp_get_image_suffix( $resized, $rotated ) );
+	public function test_flip_image_resource_enables_alpha_saving( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// A single half-transparent pixel, so its position does not change when flipped.
+		$image = imagecreatetruecolor( 1, 1 );
+		imagealphablending( $image, false );
+		imagesavealpha( $image, false );
+		imagesetpixel( $image, 0, 0, imagecolorallocatealpha( $image, 200, 100, 50, 64 ) );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$file = get_temp_dir() . wp_unique_filename( get_temp_dir(), 'flip-image-resource-alpha.png' );
+		imagepng( $flipped, $file );
+		$reloaded = imagecreatefrompng( $file );
+		unlink( $file );
+
+		$this->assertSame( 64, ( imagecolorat( $reloaded, 0, 0 ) >> 24 ) & 0x7F, 'The alpha channel should be kept when saving as PNG.' );
 	}
 
 	/**
-	 * Data provider for the `test__wp_get_image_suffix()` test.
+	 * Tests that _flip_image_resource() returns an image with alpha blending disabled.
+	 *
+	 * The previous implementation always returned a new image with alpha blending
+	 * disabled, even if the input had it enabled and no axis was flipped.
+	 *
+	 * Alpha blending only affects drawing onto the image, so it is detected by
+	 * drawing a fully transparent pixel: with blending disabled, it replaces the
+	 * existing pixel instead of being blended into it.
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
 	 */
-	public function data_test__wp_get_image_suffix() {
-		return array(
-			array( false, false, '' ),
-			array( true, false, 'scaled' ),
-			array( false, true, 'rotated' ),
-			array( true, true, 'scaled' ),
+	public function test_flip_image_resource_disables_alpha_blending( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// New truecolor images have alpha blending enabled.
+		$image = imagecreatetruecolor( 3, 2 );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		imagesetpixel( $flipped, 0, 0, imagecolorallocatealpha( $flipped, 0, 0, 0, 127 ) );
+
+		$this->assertSame( 127, ( imagecolorat( $flipped, 0, 0 ) >> 24 ) & 0x7F, 'Alpha blending should be disabled after flipping.' );
+	}
+
+	/**
+	 * Tests that _flip_image_resource() resets the resolution and interlace setting to GD's defaults.
+	 *
+	 * The previous implementation always copied into a new image, which starts
+	 * at 96 DPI with interlacing disabled, like _rotate_image_resource() and
+	 * _crop_image_resource().
+	 *
+	 * @ticket 66113
+	 *
+	 * @requires extension gd
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource_resets_resolution_and_interlace( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$image = imagecreatetruecolor( 3, 2 );
+		imageresolution( $image, 300, 150 );
+		imageinterlace( $image, true );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$this->assertSame( array( 96, 96 ), imageresolution( $flipped ), 'The resolution should be reset to 96 DPI.' );
+		$this->assertFalse( (bool) imageinterlace( $flipped ), 'Interlacing should be disabled.' );
+	}
+}
+
+/**
+ * Mock stream wrapper for simulating HTTP/HTTPS image requests.
+ */
+class WP_Test_Stream_Http_Mock extends WP_Test_Stream {
+
+	/**
+	 * Opens a URL. Fails if no fixture data has been registered for the path.
+	 *
+	 * @param string $path        URL to open.
+	 * @param string $mode        Mode used to open the file.
+	 * @param int    $options     Options.
+	 * @param string $opened_path Opened path.
+	 * @return bool True on success, false if file does not exist.
+	 */
+	public function stream_open( $path, $mode, $options, &$opened_path ) {
+		$components = array_merge(
+			array(
+				'host' => '',
+				'path' => '',
+			),
+			parse_url( $path )
 		);
+		$bucket     = $components['host'];
+		$file       = $components['path'] ? $components['path'] : '/';
+
+		if ( ! isset( self::$data[ $bucket ][ $file ] ) ) {
+			return false;
+		}
+
+		return parent::stream_open( $path, $mode, $options, $opened_path );
+	}
+
+	/**
+	 * Simulates url_stat() for URLs. Real HTTP/HTTPS URLs return false from url_stat()/is_file().
+	 *
+	 * @param string $path  URL.
+	 * @param int    $flags Flags.
+	 * @return false Always false for remote URLs.
+	 */
+	public function url_stat( $path, $flags ) {
+		return false;
 	}
 }

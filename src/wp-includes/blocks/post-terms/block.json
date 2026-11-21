@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/post-terms",
 	"title": "Post Terms",
 	"category": "theme",
@@ -10,17 +10,33 @@
 		"term": {
 			"type": "string"
 		},
-		"textAlign": {
-			"type": "string"
-		},
 		"separator": {
 			"type": "string",
 			"default": ", "
+		},
+		"prefix": {
+			"type": "string",
+			"default": "",
+			"role": "content"
+		},
+		"suffix": {
+			"type": "string",
+			"default": "",
+			"role": "content"
 		}
 	},
 	"usesContext": [ "postId", "postType" ],
+	"example": {
+		"viewportWidth": 350
+	},
 	"supports": {
+		"anchor": true,
 		"html": false,
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"gradient": true
+		},
 		"color": {
 			"gradients": true,
 			"link": true,
@@ -30,15 +46,42 @@
 				"link": true
 			}
 		},
+		"dimensions": {
+			"minHeight": true,
+			"minWidth": true
+		},
+		"shadow": true,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
 		"typography": {
-			"lineHeight": true,
 			"fontSize": true,
-			"__experimentalFontStyle": true,
+			"lineHeight": true,
+			"textAlign": true,
+			"__experimentalFontFamily": true,
 			"__experimentalFontWeight": true,
-			"__experimentalLetterSpacing": true,
+			"__experimentalFontStyle": true,
 			"__experimentalTextTransform": true,
+			"__experimentalTextDecoration": true,
+			"__experimentalLetterSpacing": true,
 			"__experimentalDefaultControls": {
 				"fontSize": true
+			}
+		},
+		"interactivity": {
+			"clientNavigation": true
+		},
+		"__experimentalBorder": {
+			"radius": true,
+			"color": true,
+			"width": true,
+			"style": true,
+			"__experimentalDefaultControls": {
+				"radius": true,
+				"color": true,
+				"width": true,
+				"style": true
 			}
 		}
 	},

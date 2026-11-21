@@ -5,6 +5,8 @@
  * @group query
  */
 class Tests_Post_GetPosts extends WP_UnitTestCase {
+	private $posts_where_filter_fired = false;
+
 	public function test_offset_should_be_null_by_default() {
 		$p1 = self::factory()->post->create(
 			array(
@@ -162,5 +164,88 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array( $p3 ), $found );
+	}
+
+	/**
+	 * Verifies that get_posts() accepts a query string for the `$args` parameter.
+	 *
+	 * @ticket 64813
+	 */
+	public function test_should_accept_query_string_args(): void {
+		self::factory()->post->create();
+		$second_post_id = self::factory()->post->create();
+		$found_post_ids = get_posts( 'numberposts=1&fields=ids' );
+
+		$this->assertSame( array( $second_post_id ), $found_post_ids );
+	}
+
+	/**
+	 * Verifies what get_posts() returns for the `id=>parent` fields value.
+	 *
+	 * The second call is served from the `post-queries` cache, which previously returned
+	 * the parent IDs keyed by the `post_parent:{$post_id}` cache keys they are stored
+	 * under rather than by post ID.
+	 *
+	 * The cache hit is not specific to an external object cache being in use: the second
+	 * call is served from the cache with the default in-memory implementation as well.
+	 *
+	 * @ticket 65817
+	 */
+	public function test_should_return_parent_ids_keyed_by_post_id_when_cached(): void {
+		$parent_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+
+		$child_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent_id,
+			)
+		);
+
+		$args = array(
+			'post_type'   => 'page',
+			'fields'      => 'id=>parent',
+			'numberposts' => -1,
+			'orderby'     => 'ID',
+			'order'       => 'ASC',
+		);
+
+		$expected = array(
+			$parent_id => 0,
+			$child_id  => $parent_id,
+		);
+
+		$this->assertSame( $expected, get_posts( $args ), 'The uncached call is not of the expected form.' );
+		$this->assertSame( $expected, get_posts( $args ), 'The cached call is not of the expected form.' );
+	}
+
+	/**
+	 * @ticket 7326
+	 */
+	public function test_should_suppress_posts_where_filter_by_default() {
+		self::factory()->post->create();
+
+		add_filter( 'posts_where', array( $this, 'filter_posts_where_set_flag' ) );
+		get_posts();
+		remove_filter( 'posts_where', array( $this, 'filter_posts_where_set_flag' ) );
+
+		$this->assertFalse( $this->posts_where_filter_fired );
+	}
+
+	/**
+	 * @ticket 7326
+	 */
+	public function test_suppress_filters_false_should_apply_posts_where_filter() {
+		self::factory()->post->create();
+
+		add_filter( 'posts_where', array( $this, 'filter_posts_where_set_flag' ) );
+		get_posts( array( 'suppress_filters' => false ) );
+		remove_filter( 'posts_where', array( $this, 'filter_posts_where_set_flag' ) );
+
+		$this->assertTrue( $this->posts_where_filter_fired );
+	}
+
+	public function filter_posts_where_set_flag( $where ) {
+		$this->posts_where_filter_fired = true;
+		return $where;
 	}
 }

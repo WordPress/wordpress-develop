@@ -19,12 +19,9 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 
 		add_theme_support( 'post-thumbnails' );
 
-		$filename = ( DIR_TESTDATA . '/images/waffles.jpg' );
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-
-		$this->attachment_id   = $this->_make_attachment( $upload, self::$post_id );
+		$this->attachment_id   = self::factory()->attachment->create_upload_object( ( DIR_TESTDATA . '/images/waffles.jpg' ), self::$post_id );
 		$this->attachment_data = get_post( $this->attachment_id, ARRAY_A );
+		update_post_meta( $this->attachment_id, '_wp_attachment_image_alt', 'Waffle has alt text' );
 
 		set_post_thumbnail( self::$post_id, $this->attachment_id );
 	}
@@ -60,6 +57,7 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		$this->assertIsString( $result['link'] );
 		$this->assertIsString( $result['thumbnail'] );
 		$this->assertIsArray( $result['metadata'] );
+		$this->assertIsString( $result['alt'] );
 
 		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['attachment_id'] );

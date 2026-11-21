@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/group",
 	"title": "Group",
 	"category": "design",
@@ -14,29 +14,48 @@
 		},
 		"templateLock": {
 			"type": [ "string", "boolean" ],
-			"enum": [ "all", "insert", false ]
+			"enum": [ "all", "insert", "contentOnly", false ]
 		}
 	},
 	"supports": {
+		"__experimentalOnEnter": true,
+		"__experimentalSettings": true,
 		"align": [ "wide", "full" ],
 		"anchor": true,
+		"ariaLabel": true,
 		"html": false,
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"gradient": true,
+			"__experimentalDefaultControls": {
+				"backgroundImage": true,
+				"gradient": true
+			}
+		},
 		"color": {
 			"gradients": true,
+			"heading": true,
+			"button": true,
 			"link": true,
 			"__experimentalDefaultControls": {
 				"background": true,
 				"text": true
 			}
 		},
+		"shadow": true,
 		"spacing": {
 			"margin": [ "top", "bottom" ],
 			"padding": true,
-			"blockGap": true,
+			"blockGap": [ "horizontal", "vertical" ],
 			"__experimentalDefaultControls": {
 				"padding": true,
 				"blockGap": true
 			}
+		},
+		"dimensions": {
+			"minHeight": true,
+			"minWidth": true
 		},
 		"__experimentalBorder": {
 			"color": true,
@@ -50,18 +69,30 @@
 				"width": true
 			}
 		},
+		"position": {
+			"sticky": true
+		},
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
-			"__experimentalFontStyle": true,
+			"textColumns": true,
+			"__experimentalFontFamily": true,
 			"__experimentalFontWeight": true,
-			"__experimentalLetterSpacing": true,
+			"__experimentalFontStyle": true,
 			"__experimentalTextTransform": true,
+			"__experimentalTextDecoration": true,
+			"__experimentalLetterSpacing": true,
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
 		},
-		"__experimentalLayout": true
+		"layout": {
+			"allowSizingOnChildren": true
+		},
+		"interactivity": {
+			"clientNavigation": true
+		},
+		"allowedBlocks": true
 	},
 	"editorStyle": "wp-block-group-editor",
 	"style": "wp-block-group"

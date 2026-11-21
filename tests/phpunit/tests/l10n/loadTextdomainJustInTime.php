@@ -8,7 +8,6 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	protected $orig_theme_dir;
 	protected $theme_root;
 	protected static $user_id;
-	private $locale_count;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
@@ -24,7 +23,6 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 		$this->theme_root     = DIR_TESTDATA . '/themedir1';
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
-		$this->locale_count   = 0;
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
@@ -37,7 +35,7 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
-		$wp_textdomain_registry->reset();
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
 	}
 
 	public function tear_down() {
@@ -48,7 +46,11 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
-		$wp_textdomain_registry->reset();
+		$wp_textdomain_registry = new WP_Textdomain_Registry();
+
+		unload_textdomain( 'internationalized-plugin' );
+		unload_textdomain( 'internationalized-plugin-2' );
+		unload_textdomain( 'internationalized-theme' );
 
 		parent::tear_down();
 	}
@@ -77,6 +79,27 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		$is_textdomain_loaded_before = is_textdomain_loaded( 'internationalized-plugin' );
 		$actual_output               = i18n_plugin_test();
 		$is_textdomain_loaded_after  = is_textdomain_loaded( 'internationalized-plugin' );
+
+		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		$this->assertFalse( $is_textdomain_loaded_before );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $actual_output );
+		$this->assertTrue( $is_textdomain_loaded_after );
+	}
+
+	/**
+	 * @ticket 59656
+	 *
+	 * @covers ::is_textdomain_loaded
+	 */
+	public function test_plugin_translation_should_be_translated_with_only_an_l10n_php_file() {
+		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		require_once DIR_TESTDATA . '/plugins/internationalized-plugin-2.php';
+
+		$is_textdomain_loaded_before = is_textdomain_loaded( 'internationalized-plugin-2' );
+		$actual_output               = i18n_plugin_2_test();
+		$is_textdomain_loaded_after  = is_textdomain_loaded( 'internationalized-plugin-2' );
 
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
 
@@ -121,6 +144,27 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
 
 		$this->assertInstanceOf( 'NOOP_Translations', $translations );
+	}
+
+	/**
+	 * @ticket 58321
+	 *
+	 * @covers ::get_translations_for_domain
+	 */
+	public function test_get_translations_for_domain_get_locale_is_called_only_once() {
+		$filter_locale = new MockAction();
+		add_filter( 'locale', array( $filter_locale, 'filter' ) );
+
+		get_translations_for_domain( 'internationalized-plugin' );
+		get_translations_for_domain( 'internationalized-plugin' );
+		get_translations_for_domain( 'internationalized-plugin' );
+		$translations = get_translations_for_domain( 'internationalized-plugin' );
+
+		remove_filter( 'locale', array( $filter_locale, 'filter' ) );
+
+		$this->assertSame( 1, $filter_locale->get_call_count() );
+		$this->assertInstanceOf( 'NOOP_Translations', $translations );
+		$this->assertFalse( is_textdomain_loaded( 'internationalized-plugin' ) );
 	}
 
 	/**
@@ -262,7 +306,8 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	public function test_get_locale_is_called_only_once_per_textdomain() {
 		$textdomain = 'foo-bar-baz';
 
-		add_filter( 'locale', array( $this, '_filter_locale_count' ) );
+		$filter = new MockAction();
+		add_filter( 'locale', array( $filter, 'filter' ) );
 
 		__( 'Foo', $textdomain );
 		__( 'Bar', $textdomain );
@@ -270,15 +315,129 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		__( 'Foo Bar', $textdomain );
 		__( 'Foo Bar Baz', $textdomain );
 
-		remove_filter( 'locale', array( $this, '_filter_locale_count' ) );
-
 		$this->assertFalse( is_textdomain_loaded( $textdomain ) );
-		$this->assertSame( 1, $this->locale_count );
+		$this->assertSame( 1, $filter->get_call_count() );
 	}
 
-	public function _filter_locale_count( $locale ) {
-		++$this->locale_count;
+	/**
+	 * @ticket 37997
+	 * @ticket 39210
+	 *
+	 * @covers ::_load_textdomain_just_in_time
+	 */
+	public function test_get_locale_is_called_only_once_per_textdomain_with_custom_lang_dir() {
+		load_plugin_textdomain( 'custom-internationalized-plugin', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
-		return $locale;
+		$textdomain = 'custom-internationalized-plugin';
+
+		$filter = new MockAction();
+		add_filter( 'locale', array( $filter, 'filter' ) );
+
+		__( 'Foo', $textdomain );
+		__( 'Bar', $textdomain );
+		__( 'Baz', $textdomain );
+		__( 'Foo Bar', $textdomain );
+		__( 'Foo Bar Baz', $textdomain );
+
+		$this->assertFalse( is_textdomain_loaded( $textdomain ) );
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * @ticket 44937
+	 * @ticket 62337
+	 *
+	 * @covers ::load_plugin_textdomain
+	 * @covers ::is_textdomain_loaded
+	 * @covers WP_Textdomain_Registry::set_custom_path
+	 */
+	public function test_plugin_translation_should_be_translated_when_calling_load_plugin_textdomain_too_late() {
+		require_once DIR_TESTDATA . '/plugins/custom-internationalized-plugin/custom-internationalized-plugin.php';
+
+		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		$is_textdomain_loaded_before = is_textdomain_loaded( 'custom-internationalized-plugin' );
+		$output_before               = custom_i18n_plugin_test();
+
+		$is_textdomain_loaded_middle = is_textdomain_loaded( 'custom-internationalized-plugin' );
+
+		custom_i18n_load_textdomain();
+
+		$output_after               = custom_i18n_plugin_test();
+		$is_textdomain_loaded_after = is_textdomain_loaded( 'custom-internationalized-plugin' );
+
+		$this->assertFalse( $is_textdomain_loaded_before );
+		$this->assertFalse( $is_textdomain_loaded_middle );
+		$this->assertSame( 'This is a dummy plugin', $output_before );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $output_after );
+		$this->assertTrue( $is_textdomain_loaded_after );
+	}
+
+	/**
+	 * Text domains that merely share a prefix with a translated one must not be
+	 * treated as translated themselves.
+	 *
+	 * "internationalized-plugin-de_DE.mo" exists, but there is no
+	 * "internationalized-de_DE.mo", so the "internationalized" text domain has no
+	 * translations at all.
+	 *
+	 * @ticket 62348
+	 *
+	 * @covers ::_load_textdomain_just_in_time
+	 * @covers ::is_textdomain_loaded
+	 */
+	public function test_text_domain_sharing_a_prefix_with_a_translated_one_is_not_translated() {
+		add_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		$actual = __( 'This is a dummy plugin', 'internationalized' );
+
+		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
+
+		$this->assertFalse(
+			is_textdomain_loaded( 'internationalized' ),
+			'The "internationalized" text domain should not be considered loaded'
+		);
+		$this->assertSame(
+			'This is a dummy plugin',
+			$actual,
+			'A text domain sharing a prefix with a translated one should not be translated'
+		);
+	}
+
+	/**
+	 * Calling load_plugin_textdomain() after translations have already been loaded
+	 * for one locale and missed for another must not stop just-in-time loading.
+	 *
+	 * Since 6.7.0 load_plugin_textdomain() only registers a custom path and leaves
+	 * the loading to _load_textdomain_just_in_time(), which bails out early when
+	 * WP_Textdomain_Registry::has() returns false.
+	 *
+	 * @ticket 62348
+	 *
+	 * @covers ::_load_textdomain_just_in_time
+	 * @covers ::load_plugin_textdomain
+	 */
+	public function test_plugin_translations_survive_a_late_load_plugin_textdomain_call() {
+		require_once DIR_TESTDATA . '/plugins/internationalized-plugin.php';
+
+		// de_DE translations are found in the WordPress languages directory.
+		switch_to_locale( 'de_DE' );
+		$before = i18n_plugin_test();
+
+		// A locale without any translations for this plugin is used in between.
+		switch_to_locale( 'ja_JP' );
+		$untranslated = i18n_plugin_test();
+
+		// Only now does the plugin register its own languages directory.
+		load_plugin_textdomain( 'internationalized-plugin', false, 'internationalized-plugin/languages' );
+
+		restore_previous_locale();
+		$after = i18n_plugin_test();
+
+		restore_current_locale();
+
+		$this->assertSame( 'Das ist ein Dummy Plugin', $before, 'de_DE translations should be loaded up front' );
+		$this->assertSame( 'This is a dummy plugin', $untranslated, 'There should be no ja_JP translations' );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $after, 'de_DE translations should survive load_plugin_textdomain()' );
 	}
 }

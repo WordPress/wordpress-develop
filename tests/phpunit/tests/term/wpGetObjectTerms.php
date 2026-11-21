@@ -5,11 +5,31 @@
  * @covers ::wp_get_object_terms
  */
 class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
-	private $taxonomy = 'wptests_tax';
+	/**
+	 * Name of the taxonomy registered for each test.
+	 */
+	private string $taxonomy = 'wptests_tax';
+
+	/**
+	 * Temporary storage for taxonomies for tests using filter callbacks.
+	 *
+	 * Used in the `test_taxonomies_passed_to_wp_get_object_terms_filter_should_be_quoted()` method.
+	 * This is a SQL fragment of taxonomy names from which terms were retrieved.
+	 */
+	private ?string $taxonomies = null;
 
 	public function set_up() {
 		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
+	}
+
+	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		$this->taxonomies = null;
+
+		parent::tear_down();
 	}
 
 	public function test_get_object_terms_by_slug() {
@@ -92,6 +112,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		add_filter( 'wp_get_object_terms', array( $this, 'filter_get_object_terms' ) );
 		$terms = wp_get_object_terms( $post_id, $this->taxonomy );
 		remove_filter( 'wp_get_object_terms', array( $this, 'filter_get_object_terms' ) );
+
+		$this->assertNotEmpty( $terms );
+
 		foreach ( $terms as $term ) {
 			$this->assertIsObject( $term );
 		}
@@ -106,7 +129,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 		add_filter( 'wp_get_object_terms', array( $this, 'wp_get_object_terms_callback' ), 10, 3 );
 		$terms = wp_get_object_terms( 1, array( 'wptests_tax', 'wptests_tax_2' ) );
-		remove_filter( 'wp_get_object_terms', array( $this, 'wp_get_object_terms_callback' ), 10, 3 );
+		remove_filter( 'wp_get_object_terms', array( $this, 'wp_get_object_terms_callback' ) );
 
 		$this->assertSame( "'wptests_tax', 'wptests_tax_2'", $this->taxonomies );
 	}
@@ -596,10 +619,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10142
+	 * @ticket 57701
 	 */
-	public function test_termmeta_cache_should_be_primed_by_default() {
-		global $wpdb;
-
+	public function test_termmeta_cache_should_not_be_lazy_loaded_by_default() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
 		add_term_meta( $terms[0], 'foo', 'bar' );
@@ -611,21 +633,20 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 		$found = wp_get_object_terms( $p, 'wptests_tax' );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		foreach ( $terms as $t ) {
 			$this->assertSame( 'bar', get_term_meta( $t, 'foo', true ) );
 		}
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		// Here we had extra queries as the term meta cache was not primed by default.
+		$this->assertSame( 3, get_num_queries() - $num_queries );
 	}
 
 	/**
 	 * @ticket 10142
 	 */
 	public function test_termmeta_cache_should_not_be_primed_when_update_term_meta_cache_is_false() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax', 'post' );
 		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
 		add_term_meta( $terms[0], 'foo', 'bar' );
@@ -643,21 +664,19 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		foreach ( $terms as $t ) {
 			$this->assertSame( 'bar', get_term_meta( $t, 'foo', true ) );
 		}
 
-		$this->assertSame( $num_queries + 3, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 3, get_num_queries() );
 	}
 
 	/**
 	 * @ticket 36932
 	 */
 	public function test_termmeta_cache_should_be_primed_when_fields_is_all_with_object_id() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax', 'post' );
 		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
 		add_term_meta( $terms[0], 'foo', 'bar' );
@@ -676,21 +695,19 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		foreach ( $terms as $t ) {
 			$this->assertSame( 'bar', get_term_meta( $t, 'foo', true ) );
 		}
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 	}
 
 	/**
 	 * @ticket 36932
 	 */
 	public function test_termmeta_cache_should_be_primed_when_fields_is_ids() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax', 'post' );
 		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
 		add_term_meta( $terms[0], 'foo', 'bar' );
@@ -709,13 +726,13 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		foreach ( $terms as $t ) {
 			$this->assertSame( 'bar', get_term_meta( $t, 'foo', true ) );
 		}
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 	}
 
 	/**
@@ -766,9 +783,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		);
 
 		$this->assertNotEmpty( $found );
-		foreach ( $found as $f ) {
-			$this->assertInstanceOf( 'WP_Term', $f );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Term', $found );
 	}
 
 	/**
@@ -789,17 +804,13 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		);
 
 		$this->assertNotEmpty( $found );
-		foreach ( $found as $f ) {
-			$this->assertInstanceOf( 'WP_Term', $f );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Term', $found );
 	}
 
 	/**
 	 * @ticket 14162
 	 */
 	public function test_should_prime_cache_for_found_terms() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax', 'post' );
 		$p = self::factory()->post->create();
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
@@ -813,9 +824,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$term        = get_term( $t );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -835,20 +846,20 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertNotEmpty( $found );
+
 		foreach ( $found as $f ) {
 			$this->assertSame( $p, $f->object_id );
 		}
 
 		$term = get_term( $t );
-		$this->assertObjectNotHasAttribute( 'object_id', $term );
+		$this->assertObjectNotHasProperty( 'object_id', $term );
 	}
 
 	/**
 	 * @ticket 14162
 	 */
 	public function test_term_cache_should_be_primed_for_all_taxonomies() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax1', 'post' );
 		register_taxonomy( 'wptests_tax2', 'post' );
 		$p  = self::factory()->post->create();
@@ -870,10 +881,10 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 		$this->assertSameSets( array( $t1, $t2 ), wp_list_pluck( $found, 'term_id' ) );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$term1       = get_term( $t1 );
 		$term2       = get_term( $t2 );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -1002,5 +1013,211 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSets( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 61936
+	 */
+	public function test_should_return_numeric_string_for_fields_count() {
+		$fields = array( 'fields' => 'count' );
+
+		$taxonomies = array( 'wptests_tax', 'wptests_tax_2' );
+
+		register_taxonomy( $taxonomies[0], 'post' );
+		register_taxonomy( $taxonomies[1], 'post' );
+
+		$term_1_id = self::factory()->term->create( array( 'taxonomy' => $taxonomies[0] ) );
+		$term_2_id = self::factory()->term->create( array( 'taxonomy' => $taxonomies[1] ) );
+
+		$post_ids = self::factory()->post->create_many( 2 );
+		wp_set_object_terms( $post_ids[0], $term_1_id, $taxonomies[0] );
+		wp_set_object_terms( $post_ids[1], $term_1_id, $taxonomies[0] );
+		wp_set_object_terms( $post_ids[1], $term_2_id, $taxonomies[1] );
+
+		$terms_count = wp_get_object_terms( 0, $taxonomies[0], $fields );
+		$this->assertSame( '0', $terms_count, 'Incorrect term count with empty object_ids.' );
+
+		$terms_count = wp_get_object_terms( $post_ids[0], '', $fields );
+		$this->assertSame( '0', $terms_count, 'Incorrect term count with empty taxonomies.' );
+
+		$terms_count = wp_get_object_terms( $post_ids[0], $taxonomies[0], $fields );
+		$this->assertSame( '1', $terms_count, 'Incorrect term count with single object_id and single taxonomy.' );
+
+		$terms_count = wp_get_object_terms( $post_ids[0], $taxonomies, $fields );
+		$this->assertSame( '1', $terms_count, 'Incorrect term count with single object_id and multiple taxonomies.' );
+
+		$terms_count = wp_get_object_terms( $post_ids[1], $taxonomies, $fields );
+		$this->assertSame( '2', $terms_count, 'Incorrect term count with single object_id and multiple taxonomies.' );
+
+		$terms_count = wp_get_object_terms( $post_ids, $taxonomies, $fields );
+		$this->assertSame( '3', $terms_count, 'Incorrect term count with multiple object_ids and multiple taxonomies.' );
+	}
+
+	/**
+	 * Ensures that a count can be requested with the `$args` parameter in query string form.
+	 *
+	 * An empty object ID or taxonomy list short-circuits before `$args` would otherwise be
+	 * parsed, so the query string has to be parsed up front for the `fields` value to be read.
+	 *
+	 * @ticket 61936
+	 */
+	public function test_should_return_numeric_string_for_fields_count_passed_as_query_string() {
+		$post_id = self::factory()->post->create();
+
+		$term_id = self::factory()->term->create( array( 'taxonomy' => $this->taxonomy ) );
+
+		wp_set_object_terms( $post_id, $term_id, $this->taxonomy );
+
+		$terms_count = wp_get_object_terms( 0, $this->taxonomy, 'fields=count' );
+		$this->assertSame( '0', $terms_count, 'Incorrect term count with empty object_ids.' );
+
+		$terms_count = wp_get_object_terms( $post_id, '', 'fields=count' );
+		$this->assertSame( '0', $terms_count, 'Incorrect term count with empty taxonomies.' );
+
+		$terms_count = wp_get_object_terms( $post_id, $this->taxonomy, 'fields=count' );
+		$this->assertSame( '1', $terms_count, 'Incorrect term count.' );
+	}
+
+	/**
+	 * Ensures that a count is summed across a taxonomy registered with an 'args' array.
+	 *
+	 * Such a taxonomy is queried by a recursive call rather than alongside the others,
+	 * and that call returns the count as a numeric string rather than as an array.
+	 *
+	 * @ticket 61936
+	 */
+	public function test_should_return_numeric_string_for_fields_count_with_taxonomy_registered_with_args() {
+		$taxonomy1 = 'wptests_tax';
+		$taxonomy2 = 'wptests_tax_2';
+
+		// Any non-empty 'args' array sends the taxonomy down the recursive path.
+		register_taxonomy( $taxonomy1, 'post', array( 'args' => array( 0 ) ) );
+		register_taxonomy( $taxonomy2, 'post' );
+
+		$post_id = self::factory()->post->create();
+
+		$term_1_id = self::factory()->term->create( array( 'taxonomy' => $taxonomy1 ) );
+
+		$term_2_id = self::factory()->term->create( array( 'taxonomy' => $taxonomy2 ) );
+
+		wp_set_object_terms( $post_id, $term_1_id, $taxonomy1 );
+		wp_set_object_terms( $post_id, $term_2_id, $taxonomy2 );
+
+		$terms_count = wp_get_object_terms( $post_id, $taxonomy1, array( 'fields' => 'count' ) );
+		$this->assertSame( '1', $terms_count, 'Incorrect term count with the single taxonomy registered with args.' );
+
+		$terms_count = wp_get_object_terms( $post_id, array( $taxonomy1, $taxonomy2 ), array( 'fields' => 'count' ) );
+		$this->assertSame( '2', $terms_count, 'Incorrect term count across both taxonomies.' );
+	}
+
+	/**
+	 * Verifies that the `id=>` values of the `fields` argument key the results by term ID.
+	 *
+	 * These are the values for which the results are merged with `+` rather than with
+	 * array_merge(), so that the term ID keys survive.
+	 *
+	 * @ticket 61936
+	 */
+	public function test_should_return_terms_keyed_by_term_id_for_id_fields() {
+		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
+
+		$parent_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'name'     => 'Parent',
+				'slug'     => 'parent',
+			)
+		);
+
+		$child_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_hierarchical',
+				'name'     => 'Child',
+				'slug'     => 'child',
+				'parent'   => $parent_id,
+			)
+		);
+
+		$post_id = self::factory()->post->create();
+
+		wp_set_object_terms( $post_id, array( $parent_id, $child_id ), 'wptests_tax_hierarchical' );
+
+		$expected = array(
+			'id=>parent' => array(
+				$parent_id => 0,
+				$child_id  => $parent_id,
+			),
+			'id=>name'   => array(
+				$parent_id => 'Parent',
+				$child_id  => 'Child',
+			),
+			'id=>slug'   => array(
+				$parent_id => 'parent',
+				$child_id  => 'child',
+			),
+		);
+
+		foreach ( $expected as $fields => $expected_terms ) {
+			$actual = wp_get_object_terms(
+				$post_id,
+				'wptests_tax_hierarchical',
+				array(
+					'fields'  => $fields,
+					'orderby' => 'term_id',
+					'order'   => 'ASC',
+				)
+			);
+
+			$this->assertSame( $expected_terms, $actual, "Incorrect terms for the '$fields' fields value." );
+		}
+	}
+
+	/**
+	 * Ensures the term ID keys survive for a taxonomy registered with an 'args' array.
+	 *
+	 * Such a taxonomy is queried by a recursive call, and those results were merged with
+	 * array_merge(), which renumbers the integer keys the `id=>` values rely on.
+	 *
+	 * @ticket 61936
+	 */
+	public function test_should_return_terms_keyed_by_term_id_for_id_fields_with_taxonomy_registered_with_args() {
+		$taxonomy1 = 'wptests_tax';
+		$taxonomy2 = 'wptests_tax_2';
+
+		// Any non-empty 'args' array sends the taxonomy down the recursive path.
+		register_taxonomy( $taxonomy1, 'post', array( 'args' => array( 0 ) ) );
+		register_taxonomy( $taxonomy2, 'post' );
+
+		$post_id = self::factory()->post->create();
+
+		$term_1_id = self::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy1,
+				'name'     => 'Alpha',
+			)
+		);
+
+		$term_2_id = self::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy2,
+				'name'     => 'Beta',
+			)
+		);
+
+		wp_set_object_terms( $post_id, $term_1_id, $taxonomy1 );
+		wp_set_object_terms( $post_id, $term_2_id, $taxonomy2 );
+
+		$actual = wp_get_object_terms(
+			$post_id,
+			array( $taxonomy1, $taxonomy2 ),
+			array( 'fields' => 'id=>name' )
+		);
+
+		$expected = array(
+			$term_1_id => 'Alpha',
+			$term_2_id => 'Beta',
+		);
+
+		$this->assertSame( $expected, $actual, 'Terms are not keyed by term ID.' );
 	}
 }
