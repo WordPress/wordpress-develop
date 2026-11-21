@@ -87,6 +87,45 @@ body.js .theme-browser.search-loading {
 	background: #fff;
 }
 
+.theme-browser .theme .theme-status-badge {
+	display: inline-block;
+	font-size: 11px;
+	line-height: 1.4;
+	font-weight: 600;
+	padding: 1px 6px;
+	border-radius: 3px;
+	margin-left: 6px;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.theme-browser .theme .theme-status-badge-closed {
+	background-color: #d63638;
+	color: #fff;
+}
+
+.theme-browser .theme .theme-status-badge-outdated {
+	background-color: #dba617;
+	color: #1d2327;
+}
+
+[dir="rtl"] .theme-browser .theme .theme-status-badge {
+	margin-left: 0;
+	margin-right: 6px;
+}
+
+.theme-browser .theme.closed {
+	border-color: #d63638;
+}
+
+.theme-browser .theme.outdated {
+	border-color: #dba617;
+}
+
+.theme-browser .theme .theme-status-notice {
+	z-index: 10;
+}
+
 /* Activate and Customize buttons, shown on hover and focus */
 .theme-browser .theme .theme-actions {
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";

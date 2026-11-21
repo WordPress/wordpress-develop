@@ -422,18 +422,35 @@ function get_plugin_updates() {
  * @since 2.9.0
  */
 function wp_plugin_update_rows() {
-	if ( ! current_user_can( 'update_plugins' ) ) {
+	if ( ! current_user_can( 'update_plugins' ) && ! current_user_can( 'activate_plugins' ) ) {
 		return;
 	}
 
 	$plugins = get_site_transient( 'update_plugins' );
 
-	if ( isset( $plugins->response ) && is_array( $plugins->response ) ) {
-		$plugins = array_keys( $plugins->response );
+	if ( ! is_object( $plugins ) ) {
+		return;
+	}
 
-		foreach ( $plugins as $plugin_file ) {
-			add_action( "after_plugin_row_{$plugin_file}", 'wp_plugin_update_row', 10, 2 );
+	$plugin_files = array();
+
+	if ( isset( $plugins->response ) && is_array( $plugins->response ) ) {
+		$plugin_files = array_keys( $plugins->response );
+	}
+
+	if ( isset( $plugins->no_update ) && is_array( $plugins->no_update ) ) {
+		foreach ( $plugins->no_update as $plugin_file => $plugin_item ) {
+			$item = (object) $plugin_item;
+			if ( ! empty( $item->closed ) || ! empty( $item->is_outdated ) || ! empty( $item->is_security ) || 'closed' === ( $item->status ?? '' ) || 'disabled' === ( $item->status ?? '' ) ) {
+				$plugin_files[] = $plugin_file;
+			}
 		}
+	}
+
+	$plugin_files = array_unique( $plugin_files );
+
+	foreach ( $plugin_files as $plugin_file ) {
+		add_action( "after_plugin_row_{$plugin_file}", 'wp_plugin_update_row', 10, 2 );
 	}
 }
 
@@ -449,11 +466,28 @@ function wp_plugin_update_rows() {
 function wp_plugin_update_row( $file, $plugin_data ) {
 	$current = get_site_transient( 'update_plugins' );
 
-	if ( ! isset( $current->response[ $file ] ) ) {
+	if ( ! is_object( $current ) ) {
 		return false;
 	}
 
-	$response = $current->response[ $file ];
+	$response = null;
+	if ( isset( $current->response[ $file ] ) ) {
+		$response = (object) $current->response[ $file ];
+	} elseif ( isset( $current->no_update[ $file ] ) ) {
+		$response = (object) $current->no_update[ $file ];
+	}
+
+	if ( ! $response ) {
+		return false;
+	}
+
+	$is_closed   = ! empty( $response->closed ) || 'closed' === ( $response->status ?? '' ) || 'disabled' === ( $response->status ?? '' );
+	$is_security = ! empty( $response->is_security ) || 'security-issue' === ( $response->reason ?? '' ) || 'security-issue' === ( $response->closed_reason ?? '' );
+	$is_outdated = ! empty( $response->is_outdated );
+
+	if ( ! isset( $current->response[ $file ] ) && ! $is_closed && ! $is_outdated ) {
+		return false;
+	}
 
 	$plugins_allowedtags = array(
 		'a'       => array(
@@ -468,7 +502,7 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 	);
 
 	$plugin_name = wp_kses( $plugin_data['Name'], $plugins_allowedtags );
-	$plugin_slug = $response->slug ?? $response->id;
+	$plugin_slug = $response->slug ?? ( $response->id ?? sanitize_title( $plugin_data['Name'] ) );
 
 	if ( isset( $response->slug ) ) {
 		$details_url = self_admin_url( 'plugin-install.php?tab=plugin-information&plugin=' . $plugin_slug . '&section=changelog' );
@@ -506,19 +540,77 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 		$compatible_php = is_php_version_compatible( $requires_php );
 		$notice_type    = $compatible_php ? 'notice-warning' : 'notice-error';
 
+		if ( $is_closed ) {
+			$notice_type = $is_security ? 'notice-error' : 'notice-warning';
+		} elseif ( $is_outdated && ! isset( $current->response[ $file ] ) ) {
+			$notice_type = 'notice-warning';
+		}
+
+		$role_attr = ( $is_closed && $is_security ) || ! $compatible_php ? ' role="alert"' : ' role="status"';
+
 		printf(
 			'<tr class="plugin-update-tr%s" id="%s" data-slug="%s" data-plugin="%s">' .
 			'<td colspan="%s" class="plugin-update colspanchange">' .
-			'<div class="update-message notice inline %s notice-alt"><p>',
+			'<div class="update-message notice inline %s notice-alt"%s><p>',
 			$active_class,
 			esc_attr( $plugin_slug . '-update' ),
 			esc_attr( $plugin_slug ),
 			esc_attr( $file ),
 			esc_attr( $wp_list_table->get_column_count() ),
-			$notice_type
+			$notice_type,
+			$role_attr
 		);
 
-		if ( ! current_user_can( 'update_plugins' ) ) {
+		if ( $is_closed ) {
+			$closed_date = '';
+			if ( ! empty( $response->closed_date ) ) {
+				$closed_timestamp = strtotime( $response->closed_date );
+				$closed_date      = $closed_timestamp ? wp_date( get_option( 'date_format' ), $closed_timestamp ) : $response->closed_date;
+			}
+
+			$reason = $response->reason_text ?? ( $response->closed_reason ?? ( $response->reason ?? '' ) );
+
+			if ( $is_security ) {
+				if ( $closed_date ) {
+					printf(
+						/* translators: %s: Plugin closure date. */
+						__( 'Warning: This plugin was closed on %s due to a security issue and is no longer available for download. It should be uninstalled or replaced immediately.' ),
+						esc_html( $closed_date )
+					);
+				} else {
+					_e( 'Warning: This plugin was closed due to a security issue and is no longer available for download. It should be uninstalled or replaced immediately.' );
+				}
+			} else {
+				if ( $closed_date && $reason ) {
+					printf(
+						/* translators: 1: Plugin closure date, 2: Plugin closure reason. */
+						__( 'Notice: This plugin was closed on %1$s (%2$s) and is no longer available for download.' ),
+						esc_html( $closed_date ),
+						esc_html( $reason )
+					);
+				} elseif ( $closed_date ) {
+					printf(
+						/* translators: %s: Plugin closure date. */
+						__( 'Notice: This plugin was closed on %s and is no longer available for download.' ),
+						esc_html( $closed_date )
+					);
+				} elseif ( $reason ) {
+					printf(
+						/* translators: %s: Plugin closure reason. */
+						__( 'Notice: This plugin was closed (%s) and is no longer available for download.' ),
+						esc_html( $reason )
+					);
+				} else {
+					_e( 'Notice: This plugin was closed and is no longer available for download.' );
+				}
+			}
+		} elseif ( $is_outdated && ! isset( $current->response[ $file ] ) ) {
+			if ( ! empty( $response->outdated_notice ) ) {
+				echo esc_html( $response->outdated_notice );
+			} else {
+				_e( 'This plugin has not been tested with the latest 3 major releases of WordPress and may no longer be maintained.' );
+			}
+		} elseif ( ! current_user_can( 'update_plugins' ) ) {
 			printf(
 				/* translators: 1: Plugin name, 2: Details URL, 3: Additional link attributes, 4: Version number. */
 				__( 'There is a new version of %1$s available. <a href="%2$s" %3$s>View version %4$s details</a>.' ),
@@ -579,6 +671,15 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 					esc_url( wp_get_update_php_url() )
 				);
 				wp_update_php_annotation( '<br><em>', '</em>' );
+			}
+		}
+
+		if ( ! $is_closed && $is_outdated && isset( $current->response[ $file ] ) ) {
+			echo '<br>';
+			if ( ! empty( $response->outdated_notice ) ) {
+				echo esc_html( $response->outdated_notice );
+			} else {
+				_e( 'This plugin has not been tested with the latest 3 major releases of WordPress and may no longer be maintained.' );
 			}
 		}
 
