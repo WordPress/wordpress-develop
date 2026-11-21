@@ -20,7 +20,13 @@ if ( ! current_user_can( 'install_plugins' ) ) {
 }
 
 if ( is_multisite() && ! is_network_admin() ) {
-	wp_redirect( network_admin_url( 'plugin-install.php' ) );
+	$path = 'plugin-install.php';
+
+	if ( ! empty( $_SERVER['QUERY_STRING'] ) ) {
+		$path .= '?' . $_SERVER['QUERY_STRING'];
+	}
+
+	wp_redirect( network_admin_url( $path ) );
 	exit;
 }
 
