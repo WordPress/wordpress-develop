@@ -1013,6 +1013,18 @@
 				}
 			});
 
+			/*
+			 * Touch Punch treats any touchmove on the sortable handle as a drag and
+			 * suppresses the click, so a tap on the edit link that moves even one
+			 * pixel never opens the menu item. Keep touches on the link from reaching
+			 * the sortable, and let the browser fire the click.
+			 */
+			api.menuList[0].addEventListener( 'touchstart', function( event ) {
+				if ( event.target.closest && event.target.closest( '.item-edit' ) ) {
+					event.stopPropagation();
+				}
+			}, true );
+
 			/**
 			 * Updates the shared variables used to determine the depth of the menu item being moved.
 			 *
