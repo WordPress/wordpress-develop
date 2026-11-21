@@ -2164,4 +2164,513 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 
 		$this->assertSameSets( array( $posts[1], $posts[2] ), $q->posts );
 	}
+
+	/**
+	 * Default behavior is unchanged: objects without the meta key are excluded.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_key_orderby_excludes_posts_without_key_by_default() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'foo', 'b' );
+		add_post_meta( $p2, 'foo', 'a' );
+
+		$q = new WP_Query(
+			array(
+				'fields'   => 'ids',
+				'meta_key' => 'foo',
+				'orderby'  => 'meta_value',
+				'order'    => 'ASC',
+			)
+		);
+
+		$this->assertSame( array( $p2, $p1 ), $q->posts );
+		$this->assertStringNotContainsString( 'LEFT JOIN', $q->request );
+	}
+
+	/**
+	 * @ticket 19653
+	 */
+	public function test_meta_exclude_empty_true_excludes_posts_without_key() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'foo', 'b' );
+		add_post_meta( $p2, 'foo', 'a' );
+
+		$q = new WP_Query(
+			array(
+				'fields'             => 'ids',
+				'meta_key'           => 'foo',
+				'meta_exclude_empty' => true,
+				'orderby'            => 'meta_value',
+				'order'              => 'ASC',
+			)
+		);
+
+		$this->assertSame( array( $p2, $p1 ), $q->posts );
+	}
+
+	/**
+	 * @ticket 19653
+	 */
+	public function test_meta_exclude_empty_false_includes_posts_without_key_when_ordering() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+		$p4 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'foo', 'b' );
+		add_post_meta( $p2, 'foo', 'a' );
+		add_post_meta( $p4, 'bar', 'z' );
+
+		$q = new WP_Query(
+			array(
+				'fields'             => 'ids',
+				'meta_key'           => 'foo',
+				'meta_exclude_empty' => false,
+				'orderby'            => array(
+					'meta_value' => 'DESC',
+					'ID'         => 'ASC',
+				),
+			)
+		);
+
+		// Posts with the key come first (DESC), then posts without it (NULL), in ID order.
+		$this->assertSame( array( $p1, $p2, $p3, $p4 ), $q->posts );
+	}
+
+	/**
+	 * @ticket 19653
+	 */
+	public function test_meta_exclude_empty_false_with_meta_value_num() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'num', '10' );
+		add_post_meta( $p2, 'num', '9' );
+
+		$q = new WP_Query(
+			array(
+				'fields'             => 'ids',
+				'meta_key'           => 'num',
+				'meta_exclude_empty' => false,
+				'orderby'            => array(
+					'meta_value_num' => 'DESC',
+					'ID'             => 'ASC',
+				),
+			)
+		);
+
+		$this->assertSame( array( $p1, $p2, $p3 ), $q->posts );
+	}
+
+	/**
+	 * Values such as the string 'false' from a URL should be honored.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_exclude_empty_accepts_string_false() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'foo', 'bar' );
+
+		$q = new WP_Query(
+			array(
+				'fields'             => 'ids',
+				'meta_key'           => 'foo',
+				'meta_exclude_empty' => 'false',
+			)
+		);
+
+		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
+	}
+
+	/**
+	 * 'meta_exclude_empty' without 'meta_key' does nothing.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_exclude_empty_without_meta_key_is_ignored() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+
+		$q = new WP_Query(
+			array(
+				'fields'             => 'ids',
+				'meta_exclude_empty' => false,
+			)
+		);
+
+		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
+		$this->assertStringNotContainsString( 'JOIN', $q->request );
+	}
+
+	/**
+	 * A value condition applies only to posts that have the key.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_query_exclude_empty_false_with_value() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'color', 'red' );
+		add_post_meta( $p2, 'color', 'blue' );
+
+		$q = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'           => 'color',
+						'value'         => 'red',
+						'exclude_empty' => false,
+					),
+				),
+			)
+		);
+
+		$this->assertSameSets( array( $p1, $p3 ), $q->posts );
+	}
+
+	/**
+	 * @ticket 19653
+	 */
+	public function test_meta_query_exclude_empty_false_with_numeric_compare() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'num', '5' );
+		add_post_meta( $p2, 'num', '15' );
+
+		$q = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'           => 'num',
+						'value'         => 10,
+						'compare'       => '>',
+						'type'          => 'NUMERIC',
+						'exclude_empty' => false,
+					),
+				),
+			)
+		);
+
+		$this->assertSameSets( array( $p2, $p3 ), $q->posts );
+	}
+
+	/**
+	 * The top-level clause keeps empty values while a separate meta_query still filters.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_exclude_empty_false_combined_with_meta_query() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+		$p4 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'sort', '2' );
+		add_post_meta( $p1, 'type', 'yes' );
+		add_post_meta( $p2, 'sort', '1' );
+		add_post_meta( $p2, 'type', 'no' );
+		add_post_meta( $p3, 'type', 'yes' );
+		add_post_meta( $p4, 'sort', '3' );
+
+		$q = new WP_Query(
+			array(
+				'fields'             => 'ids',
+				'meta_key'           => 'sort',
+				'meta_exclude_empty' => false,
+				'orderby'            => array(
+					'meta_value' => 'DESC',
+					'ID'         => 'ASC',
+				),
+				'meta_query'         => array(
+					array(
+						'key'   => 'type',
+						'value' => 'yes',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( array( $p1, $p3 ), $q->posts );
+	}
+
+	/**
+	 * Several clauses that keep empty values each get their own key-restricted LEFT JOIN.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_query_multiple_clauses_exclude_empty_false() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+		$p4 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'a', '1' );
+		add_post_meta( $p1, 'b', '2' );
+		add_post_meta( $p2, 'a', '2' );
+		add_post_meta( $p3, 'b', '1' );
+
+		$q = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					'a_clause' => array(
+						'key'           => 'a',
+						'exclude_empty' => false,
+					),
+					'b_clause' => array(
+						'key'           => 'b',
+						'exclude_empty' => false,
+					),
+				),
+				'orderby'    => array(
+					'a_clause' => 'DESC',
+					'b_clause' => 'DESC',
+					'ID'       => 'ASC',
+				),
+			)
+		);
+
+		$this->assertSame( array( $p2, $p1, $p3, $p4 ), $q->posts );
+		$this->assertSame( 2, substr_count( $q->request, 'LEFT JOIN' ) );
+	}
+
+	/**
+	 * Mixing a clause that keeps empty values with a regular one.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_query_mixed_exclude_empty_clauses() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'a', '1' );
+		add_post_meta( $p1, 'b', '1' );
+		add_post_meta( $p2, 'b', '1' );
+		add_post_meta( $p3, 'a', '1' );
+
+		$q = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'           => 'a',
+						'exclude_empty' => false,
+					),
+					array(
+						'key' => 'b',
+					),
+				),
+			)
+		);
+
+		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
+	}
+
+	/**
+	 * A clause that keeps empty values must not share its key-restricted join with an OR sibling.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_query_exclude_empty_false_or_relation_does_not_share_join() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'a', 'x' );
+		add_post_meta( $p2, 'a', 'y' );
+		add_post_meta( $p2, 'b', 'y' );
+		add_post_meta( $p3, 'a', 'y' );
+
+		$q = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					'relation' => 'OR',
+					array(
+						'key'           => 'a',
+						'value'         => 'x',
+						'exclude_empty' => false,
+					),
+					array(
+						'key'   => 'b',
+						'value' => 'y',
+					),
+				),
+			)
+		);
+
+		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
+	}
+
+	/**
+	 * Nested queries.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_query_exclude_empty_false_nested() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'a', 'x' );
+		add_post_meta( $p1, 'c', '1' );
+		add_post_meta( $p2, 'c', '1' );
+		add_post_meta( $p3, 'a', 'z' );
+		add_post_meta( $p3, 'c', '1' );
+
+		$q = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					'relation' => 'AND',
+					array(
+						'key'   => 'c',
+						'value' => '1',
+					),
+					array(
+						'relation' => 'OR',
+						array(
+							'key'           => 'a',
+							'value'         => 'x',
+							'exclude_empty' => false,
+						),
+						array(
+							'key'   => 'a',
+							'value' => 'never',
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
+	}
+
+	/**
+	 * Array of keys with compare_key 'IN'.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_query_exclude_empty_false_key_in() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'a', '1' );
+		add_post_meta( $p2, 'b', '2' );
+
+		$q = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'           => array( 'a', 'b' ),
+						'value'         => '1',
+						'exclude_empty' => false,
+					),
+				),
+			)
+		);
+
+		$this->assertSameSets( array( $p1, $p3 ), $q->posts );
+	}
+
+	/**
+	 * 'exclude_empty' is ignored for compare_key operators that can't be expressed in the JOIN.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_query_exclude_empty_false_ignored_for_compare_key_like() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'foobar', '1' );
+
+		$q = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'           => 'foo',
+						'compare_key'   => 'LIKE',
+						'exclude_empty' => false,
+					),
+				),
+			)
+		);
+
+		$this->assertSameSets( array( $p1 ), $q->posts );
+	}
+
+	/**
+	 * 'exclude_empty' has no effect on NOT EXISTS.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_query_exclude_empty_false_ignored_for_not_exists() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'foo', '1' );
+
+		$q = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'meta_query' => array(
+					array(
+						'key'           => 'foo',
+						'compare'       => 'NOT EXISTS',
+						'exclude_empty' => false,
+					),
+				),
+			)
+		);
+
+		$this->assertSameSets( array( $p2 ), $q->posts );
+	}
+
+	/**
+	 * Other object types share the implementation.
+	 *
+	 * @ticket 19653
+	 */
+	public function test_meta_exclude_empty_false_user_query() {
+		$u1 = self::factory()->user->create();
+		$u2 = self::factory()->user->create();
+		$u3 = self::factory()->user->create();
+
+		update_user_meta( $u1, 'rank', 'b' );
+		update_user_meta( $u2, 'rank', 'a' );
+
+		$args = array(
+			'fields'   => 'ID',
+			'include'  => array( $u1, $u2, $u3 ),
+			'meta_key' => 'rank',
+			'orderby'  => 'meta_value',
+			'order'    => 'DESC',
+		);
+
+		$q = new WP_User_Query( $args );
+		$this->assertSame( array( $u1, $u2 ), array_map( 'intval', $q->get_results() ) );
+
+		$q = new WP_User_Query( array_merge( $args, array( 'meta_exclude_empty' => false ) ) );
+		$this->assertSame( array( $u1, $u2, $u3 ), array_map( 'intval', $q->get_results() ) );
+	}
 }
