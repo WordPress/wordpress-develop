@@ -79,6 +79,24 @@ class Tests_Functions_wpApplicationPasswordCreatedNotification extends WP_UnitTe
 	}
 
 	/**
+	 * Ensures the slashed application password name is unslashed in the email.
+	 *
+	 * @ticket 63927
+	 */
+	public function test_email_contains_unslashed_application_password_name() {
+		$created = WP_Application_Passwords::create_new_application_password(
+			self::$user->ID,
+			wp_slash( array( 'name' => 'Bob\'s "Tool" \\ Backslash' ) )
+		);
+
+		$this->assertNotWPError( $created, 'The application password should be created.' );
+
+		$body = tests_retrieve_phpmailer_instance()->get_sent()->body;
+
+		$this->assertStringContainsString( 'Application password name: Bob\'s "Tool" \\ Backslash', $body );
+	}
+
+	/**
 	 * @ticket 63927
 	 */
 	public function test_does_not_send_email_when_disabled_by_filter() {

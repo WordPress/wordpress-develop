@@ -512,6 +512,8 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @ticket 33392
 	 */
 	public function test_wp_insert_post_should_invalidate_post_cache_before_generating_guid_when_post_name_is_empty_and_is_generated_from_the_post_ID() {
+		$this->set_permalink_structure( '' );
+
 		register_post_type( 'wptests_pt' );
 
 		$post_id = wp_insert_post(
@@ -573,8 +575,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	 * @ticket 5305
 	 */
 	public function test_permalink_without_title() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$data = array(
 			'post_status'  => 'publish',
 			'post_content' => 'content',

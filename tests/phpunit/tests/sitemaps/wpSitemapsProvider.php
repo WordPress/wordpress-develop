@@ -9,6 +9,11 @@
  */
 class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+		$this->set_permalink_structure( '' );
+	}
+
 	/**
 	 * Creates a provider that only implements the abstract methods.
 	 *
@@ -293,7 +298,7 @@ class Tests_Sitemaps_wpSitemapsProvider extends WP_UnitTestCase {
 	 * @param string $expected Expected path with pretty permalinks.
 	 */
 	public function test_get_sitemap_url_with_pretty_permalinks( $name, $page, $unused, $expected ) {
-		$this->set_permalink_structure( '/%year%/%postname%/' );
+		$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 
 		$this->assertSame(
 			'http://' . WP_TESTS_DOMAIN . $expected,

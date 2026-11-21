@@ -66,6 +66,12 @@ class Tests_User_wpListUsers extends WP_UnitTestCase {
 		}
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '' );
+	}
+
 	/**
 	 * Test that wp_list_users() creates the expected list of users.
 	 *

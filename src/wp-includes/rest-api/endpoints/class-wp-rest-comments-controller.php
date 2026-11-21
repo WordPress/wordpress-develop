@@ -586,7 +586,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Limit who can set comment `author`, `author_ip` or `status` to anything other than the default.
-		if ( isset( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( 'moderate_comments' ) ) {
+		if ( isset( $request['author'] ) && get_current_user_id() !== $request['author'] && ! $this->check_assign_author_permission( $request['author'] ) ) {
 			return new WP_Error(
 				'rest_comment_invalid_author',
 				/* translators: %s: Request parameter. */
@@ -787,21 +787,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			 * reactions from then on. Hold requests from stale editor sessions
 			 * to that too, for the root note and for every reply in its thread.
 			 */
-			$thread_root = $parent_comment;
-			$visited     = array( (int) $thread_root->comment_ID => true );
-			while ( $thread_root->comment_parent ) {
-				$ancestor = get_comment( $thread_root->comment_parent );
-
-				// Stop at a missing ancestor or a corrupt, cyclic chain.
-				if ( ! $ancestor || isset( $visited[ (int) $ancestor->comment_ID ] ) ) {
-					break;
-				}
-
-				$visited[ (int) $ancestor->comment_ID ] = true;
-				$thread_root                            = $ancestor;
-			}
-
-			if ( '1' === $thread_root->comment_approved ) {
+			if ( $this->is_thread_resolved( $parent_comment ) ) {
 				return new WP_Error(
 					'rest_comment_invalid_parent',
 					__( 'A reaction cannot be added to a resolved note.' ),
@@ -1183,6 +1169,24 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		/*
+		 * Reassigning a comment copies the new author's email address onto it,
+		 * which is then returned in the response.
+		 */
+		if (
+			isset( $request['author'] ) &&
+			(int) $request['author'] !== (int) $comment->user_id &&
+			get_current_user_id() !== (int) $request['author'] &&
+			! $this->check_assign_author_permission( $request['author'] )
+		) {
+			return new WP_Error(
+				'rest_comment_invalid_author',
+				/* translators: %s: Request parameter. */
+				sprintf( __( "Sorry, you are not allowed to edit '%s' for comments." ), 'author' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		/*
 		 * check_edit_permission() above only establishes that the comment may be
 		 * edited where it currently sits, because 'edit_comment' maps to 'edit_post'
 		 * on the comment's current parent. When the parent is being changed, the new
@@ -1227,6 +1231,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				__( 'Sorry, you are not allowed to change the comment type.' ),
 				array( 'status' => 404 )
 			);
+		}
+
+		/*
+		 * Re-sending the current author is a no-op. Otherwise the author's details
+		 * would be refreshed from their user account, exposing any change to their
+		 * email address to whoever can edit the comment.
+		 */
+		if ( isset( $request['author'] ) && (int) $request['author'] === (int) $comment->user_id ) {
+			unset( $request['author'] );
 		}
 
 		$prepared_args = $this->prepare_item_for_database( $request );
@@ -1350,6 +1363,28 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
+
+		if ( 'reaction' === strtolower( $comment->comment_type ) ) {
+			// A reaction speaks for its author, so only they can remove it.
+			if ( get_current_user_id() !== (int) $comment->user_id ) {
+				return new WP_Error(
+					'rest_cannot_delete',
+					__( 'Sorry, you can only remove your own reactions.' ),
+					array( 'status' => rest_authorization_required_code() )
+				);
+			}
+
+			// Reactions on a resolved thread are frozen, like adding new ones.
+			$note = get_comment( $comment->comment_parent );
+			if ( $note instanceof WP_Comment && $this->is_thread_resolved( $note ) ) {
+				return new WP_Error(
+					'rest_cannot_delete',
+					__( 'A reaction cannot be removed from a resolved note.' ),
+					array( 'status' => 403 )
+				);
+			}
+		}
+
 		return true;
 	}
 
@@ -2452,6 +2487,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks whether the current user can attribute a comment to another user.
+	 *
+	 * @since 7.1.5
+	 *
+	 * @param int $author_id ID of the user the comment is being attributed to.
+	 * @return bool Whether the comment can be attributed to the user.
+	 */
+	protected function check_assign_author_permission( $author_id ) {
+		return current_user_can( 'moderate_comments' ) && is_user_member_of_blog( $author_id );
+	}
+
+	/**
 	 * Checks a comment author email for validity.
 	 *
 	 * Accepts either a valid email address or empty string as a valid comment
@@ -2650,6 +2697,34 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Checks whether a note belongs to a resolved thread.
+	 *
+	 * Resolving a thread approves its root note.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Comment $note A root note or a reply.
+	 * @return bool True if the note's thread is resolved.
+	 */
+	private function is_thread_resolved( WP_Comment $note ): bool {
+		$thread_root = $note;
+		$visited     = array( (int) $thread_root->comment_ID => true );
+		while ( $thread_root->comment_parent ) {
+			$ancestor = get_comment( $thread_root->comment_parent );
+
+			// Stop at a missing ancestor or a corrupt, cyclic chain.
+			if ( ! $ancestor || isset( $visited[ (int) $ancestor->comment_ID ] ) ) {
+				break;
+			}
+
+			$visited[ (int) $ancestor->comment_ID ] = true;
+			$thread_root                            = $ancestor;
+		}
+
+		return '1' === $thread_root->comment_approved;
 	}
 
 	/**

@@ -9,11 +9,6 @@
  * @ticket 51173
  */
 class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
-	public function set_up() {
-		parent::set_up();
-		$this->set_permalink_structure( '/%postname%/' );
-	}
-
 	/**
 	 * Returns the redirect URL triggered by wp_redirect_admin_locations()
 	 * for the given REQUEST_URI, or null if no redirect fires.
