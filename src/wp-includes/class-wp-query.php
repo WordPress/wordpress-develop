@@ -138,6 +138,8 @@
  *     posts_per_archive_page?: scalar,
  *     withcomments?: scalar,
  *     withoutcomments?: scalar,
+ *     taxonomy?: scalar,
+ *     term?: scalar,
  *     ...<array-key, mixed>
  * }
  *
@@ -952,6 +954,14 @@ class WP_Query {
 		}
 		if ( isset( $query_vars['comments_per_page'] ) && ! is_scalar( $query_vars['comments_per_page'] ) ) {
 			unset( $query_vars['comments_per_page'] );
+		}
+
+		// A taxonomy and a term slug in it. These are only set when given, so any other value is removed.
+		if ( isset( $query_vars['taxonomy'] ) && ! is_scalar( $query_vars['taxonomy'] ) ) {
+			unset( $query_vars['taxonomy'] );
+		}
+		if ( isset( $query_vars['term'] ) && ! is_scalar( $query_vars['term'] ) ) {
+			unset( $query_vars['term'] );
 		}
 
 		$query_vars['error']         = is_scalar( $query_vars['error'] ) ? $query_vars['error'] : '';
@@ -2722,7 +2732,7 @@ class WP_Query {
 			 */
 			if ( ! isset( $query_vars['taxonomy'] ) ) {
 				foreach ( $this->tax_query->queried_terms as $queried_taxonomy => $queried_items ) {
-					if ( empty( $queried_items['terms'][0] ) ) {
+					if ( empty( $queried_items['terms'][0] ) || ! is_scalar( $queried_items['terms'][0] ) ) {
 						continue;
 					}
 

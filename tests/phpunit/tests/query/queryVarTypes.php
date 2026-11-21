@@ -447,6 +447,8 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 			'posts_per_archive_page' => array( 'posts_per_archive_page' ),
 			'withcomments'           => array( 'withcomments' ),
 			'withoutcomments'        => array( 'withoutcomments' ),
+			'taxonomy'               => array( 'taxonomy' ),
+			'term'                   => array( 'term' ),
 		);
 	}
 }
