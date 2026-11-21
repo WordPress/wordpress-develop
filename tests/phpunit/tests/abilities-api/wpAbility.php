@@ -2336,7 +2336,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that validated input is coerced to the ability input schema.
+	 * Tests that `prepare_input()` sanitizes input to the ability input schema.
 	 *
 	 * @ticket 65594
 	 *
@@ -2344,16 +2344,14 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 *
 	 * @param array $schema   Ability input schema.
 	 * @param mixed $input    Raw ability input.
-	 * @param mixed $expected Expected input value after coercion.
+	 * @param mixed $expected Expected input value after preparation.
 	 */
-	public function test_input_is_coerced( array $schema, $input, $expected ): void {
+	public function test_prepare_input( array $schema, $input, $expected ): void {
 		$args                 = self::$test_ability_properties;
 		$args['input_schema'] = $schema;
 		$ability              = new WP_Ability( self::$test_ability_name, $args );
-		$input                = $ability->normalize_input( $input );
 
-		$this->assertTrue( $ability->validate_input( $input ) );
-		$this->assertSame( $expected, $ability->coerce_input( $input ) );
+		$this->assertSame( $expected, $ability->prepare_input( $input ) );
 	}
 
 	/**
@@ -2429,11 +2427,11 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides top-level and nested collisions introduced by coercion.
+	 * Provides top-level and nested collisions introduced by sanitization.
 	 *
 	 * @return array
 	 */
-	public static function data_input_coercion_errors(): array {
+	public static function data_input_sanitization_errors(): array {
 		$unique = array(
 			'type'        => 'array',
 			'items'       => array( 'type' => 'integer' ),
@@ -2466,20 +2464,20 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that coercion errors stop permission checks, execution, and execution hooks.
+	 * Tests that sanitization errors stop permission checks, execution, and execution hooks.
 	 *
 	 * @ticket 66383
-	 * @dataProvider data_input_coercion_errors
+	 * @dataProvider data_input_sanitization_errors
 	 *
 	 * @param array  $schema Input schema.
-	 * @param mixed  $input  Input accepted by validation but rejected by coercion.
+	 * @param mixed  $input  Input accepted by validation but rejected by sanitization.
 	 * @param string $path   Path of the duplicate items in the error message.
 	 */
-	public function test_input_coercion_errors( array $schema, $input, string $path ): void {
+	public function test_input_sanitization_errors( array $schema, $input, string $path ): void {
 		$args                 = self::$test_ability_properties;
 		$args['input_schema'] = $schema;
 		$unexpected_callback  = function () {
-			$this->fail( 'Coercion errors must stop permission checks and execution.' );
+			$this->fail( 'Sanitization errors must stop permission checks and execution.' );
 		};
 
 		$args['permission_callback'] = $unexpected_callback;
@@ -2489,21 +2487,21 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		add_action( 'wp_before_execute_ability', $unexpected_callback );
 		add_action( 'wp_after_execute_ability', $unexpected_callback );
 
-		$this->assertTrue( $ability->validate_input( $input ), 'The error should arise during coercion.' );
-		$error = $ability->coerce_input( $input );
+		$this->assertTrue( $ability->validate_input( $input ), 'The error should arise during sanitization.' );
+		$error = $ability->prepare_input( $input );
 		$this->assertWPError( $error );
 		$this->assertSame( 'ability_invalid_input', $error->get_error_code() );
 		$this->assertStringContainsString( $path . ' has duplicate items.', $error->get_error_message() );
 		// Keep assertEquals() because the objects are intentionally compared by value.
-		$this->assertEquals( $error, $ability->execute( $input ), 'Execution should propagate the coercion error.' );
+		$this->assertEquals( $error, $ability->execute( $input ), 'Execution should propagate the sanitization error.' );
 	}
 
 	/**
-	 * Tests that coercion cannot rescue invalid input or bypass validation filters.
+	 * Tests that sanitization cannot rescue invalid input or bypass validation filters.
 	 *
 	 * @ticket 66383
 	 */
-	public function test_coercion_respects_input_validation(): void {
+	public function test_sanitization_respects_input_validation(): void {
 		$seen                        = array();
 		$args                        = self::$test_ability_properties;
 		$args['input_schema']        = array(

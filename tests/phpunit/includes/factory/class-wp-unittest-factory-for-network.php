@@ -16,7 +16,7 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 			'domain'            => WP_TESTS_DOMAIN,
 			'title'             => new WP_UnitTest_Generator_Sequence( 'Network %s' ),
 			'path'              => new WP_UnitTest_Generator_Sequence( '/testpath%s/' ),
-			'network_id'        => new WP_UnitTest_Generator_Sequence( '%s', 2 ),
+			'network_id'        => new WP_UnitTest_Generator_Sequence( '%s' ),
 			'subdomain_install' => false,
 		);
 	}

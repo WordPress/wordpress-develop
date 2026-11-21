@@ -140,6 +140,59 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The `date` panel of the default form is summarized by the
+	 * `publish_date` field, which reads "Immediately" while the post has no
+	 * date of its own.
+	 *
+	 * @ticket 65981
+	 *
+	 * @covers ::_wp_get_default_posttype_form
+	 *
+	 * @dataProvider data_default_form_post_types
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_date_panel_is_summarized_by_publish_date( $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			register_post_type( $post_type );
+		}
+
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+
+		$this->assertSame(
+			array(
+				'type'    => 'panel',
+				'summary' => 'publish_date',
+			),
+			$this->get_form_field( $config, 'date' )['layout']
+		);
+
+		if ( 'page' !== $post_type && 'post' !== $post_type ) {
+			unregister_post_type( $post_type );
+		}
+	}
+
+	/**
+	 * Post types with their own form keep their `date` member, if any, as it
+	 * is.
+	 *
+	 * @ticket 65981
+	 *
+	 * @dataProvider data_post_types_with_own_form
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_own_form_post_types_do_not_get_date_summary( $post_type ) {
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+		$date   = $this->get_form_field( $config, 'date' );
+
+		$this->assertFalse(
+			isset( $date['layout']['summary'] ),
+			"The `date` member of the $post_type form should not have a summary."
+		);
+	}
+
+	/**
 	 * Post types with their own form do not receive the default form groups.
 	 *
 	 * @ticket 66229

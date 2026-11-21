@@ -1485,6 +1485,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertTrue( $wpdb->close() );
 
 		$wpdb->check_connection();
+		self::$_wpdb->db_connect();
 	}
 
 	/**
@@ -1503,6 +1504,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( compact( 'charset', 'collate' ), $result );
 
 		$wpdb->check_connection();
+		self::$_wpdb->db_connect();
 	}
 
 	/**
