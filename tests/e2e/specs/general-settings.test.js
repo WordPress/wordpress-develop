@@ -1,6 +1,7 @@
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { GENERAL_SETTINGS } from '../utils/locks';
 
-test.describe( 'Settings -> General', () => {
+test.describe( 'Settings -> General', { lock: GENERAL_SETTINGS }, () => {
 	test( 'Saving General Settings preserves the active theme options', async ( {
 		admin,
 		page,

@@ -5,7 +5,7 @@
  * Categories: navigation
  * Block Types: core/template-part/navigation-overlay
  * Viewport width: 1280
- * Description: The theme’s default navigation overlay — centered logo, site title and tagline, and a large vertical menu on a dark background.
+ * Description: The theme’s default navigation overlay, on an inverted background. It has a centered logo, site title and tagline, and a large vertical menu.
  *
  * @package Ipsum
  * @since Ipsum 1.0
@@ -31,7 +31,7 @@
 <!-- /wp:group -->
 
 <!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Navigation', 'Name of the navigation group', 'ipsum' ); ?>"},"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|40","bottom":"var:preset|spacing|40"}}},"layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40)"><!-- wp:navigation {"showSubmenuIcon":false,"submenuVisibility":"always","overlayMenu":"never","style":{"typography":{"textTransform":"uppercase"}},"fontSize":"2-x-large","layout":{"type":"flex","orientation":"vertical","justifyContent":"center"},"ariaLabel":"<?php echo esc_attr_x( 'Expanded', 'Accessible name of the navigation in the overlay', 'ipsum' ); ?>"} /--></div>
+<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40)"><!-- wp:navigation {"showSubmenuIcon":false,"submenuVisibility":"always","overlayMenu":"never","style":{"typography":{"textTransform":"uppercase"}},"fontSize":"2-x-large","layout":{"type":"flex","orientation":"vertical","justifyContent":"center"},"ariaLabel":"<?php echo esc_attr_x( 'Primary', 'Accessible name of the main site navigation', 'ipsum' ); ?>"} /--></div>
 <!-- /wp:group --></div>
 <!-- /wp:group --></div>
 <!-- /wp:group -->
