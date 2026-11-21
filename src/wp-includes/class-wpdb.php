@@ -2623,7 +2623,7 @@ class wpdb {
 		}
 
 		$data = $this->process_fields( $table, $data, $format );
-		if ( false === $data ) {
+		if ( false === $data || array() === $data ) {
 			return false;
 		}
 
@@ -2639,8 +2639,9 @@ class wpdb {
 			$values[]  = $value['value'];
 		}
 
-		$fields  = '`' . implode( '`, `', array_keys( $data ) ) . '`';
+		$fields  = implode( ', ', array_fill( 0, count( $data ), '%i' ) );
 		$formats = implode( ', ', $formats );
+		$values  = array_merge( array_keys( $data ), $values );
 
 		$sql = "$type INTO `$table` ($fields) VALUES ($formats)";
 
@@ -2727,21 +2728,23 @@ class wpdb {
 		$conditions = array();
 		$values     = array();
 		foreach ( $data as $field => $value ) {
+			$values[] = $field;
 			if ( is_null( $value['value'] ) ) {
-				$fields[] = "`$field` = NULL";
+				$fields[] = '%i = NULL';
 				continue;
 			}
 
-			$fields[] = "`$field` = " . $value['format'];
+			$fields[] = '%i = ' . $value['format'];
 			$values[] = $value['value'];
 		}
 		foreach ( $where as $field => $value ) {
+			$values[] = $field;
 			if ( is_null( $value['value'] ) ) {
-				$conditions[] = "`$field` IS NULL";
+				$conditions[] = '%i IS NULL';
 				continue;
 			}
 
-			$conditions[] = "`$field` = " . $value['format'];
+			$conditions[] = '%i = ' . $value['format'];
 			$values[]     = $value['value'];
 		}
 
@@ -2807,12 +2810,13 @@ class wpdb {
 		$conditions = array();
 		$values     = array();
 		foreach ( $where as $field => $value ) {
+			$values[] = $field;
 			if ( is_null( $value['value'] ) ) {
-				$conditions[] = "`$field` IS NULL";
+				$conditions[] = '%i IS NULL';
 				continue;
 			}
 
-			$conditions[] = "`$field` = " . $value['format'];
+			$conditions[] = '%i = ' . $value['format'];
 			$values[]     = $value['value'];
 		}
 
