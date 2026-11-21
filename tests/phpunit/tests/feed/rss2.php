@@ -197,6 +197,29 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that a channel title containing an apostrophe is correctly parsed.
+	 *
+	 * @ticket 34128
+	 */
+	public function test_channel_title_with_apostrophe() {
+		$original_title = get_option( 'blogname' );
+		$test_title     = "Rob's Test Blog";
+
+		update_option( 'blogname', $test_title );
+
+		try {
+			$this->go_to( '/?feed=rss2' );
+			$feed = $this->do_rss2();
+			$xml  = xml_to_array( $feed );
+
+			$title = xml_find( $xml, 'rss', 'channel', 'title' );
+			$this->assertSame( $test_title, $title[0]['content'] );
+		} finally {
+			update_option( 'blogname', $original_title );
+		}
+	}
+
+	/**
 	 * Test that translated feeds have a valid listed date.
 	 *
 	 * @ticket 39141
