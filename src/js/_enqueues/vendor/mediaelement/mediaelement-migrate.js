@@ -38,17 +38,32 @@
 		init.call( this );
 	};
 
+	// `player.container`, `player.controls`, and `player.layers` must remain HTML
+	// elements: MediaElement.js 7.x internals call native DOM methods on them
+	// (e.g. `setResponsiveMode()` calls `container.querySelector()` for players
+	// with percentage-based widths, such as playlists). Expose jQuery wrappers
+	// under separate names for code written against the 4.x jQuery API.
 	var ready = MediaElementPlayer.prototype._meReady;
 	MediaElementPlayer.prototype._meReady = function () {
-		this.container = $( this.container) ;
-		this.controls = $( this.controls );
-		this.layers = $( this.layers );
+		this.$container = $( this.container );
+		this.$controls = $( this.controls );
+		this.$layers = $( this.layers );
 		ready.apply( this, arguments );
 	};
 
 	// Override method so certain elements can be called with jQuery
 	MediaElementPlayer.prototype.getElement = function ( el ) {
 		return $ !== undefined && el instanceof $ ? el[0] : el;
+	};
+
+	// Since MediaElement.js 7.0, `remove()` no longer removes the destroyed player
+	// from the `mejs.players` registry; restore that behavior so code iterating the
+	// registry (e.g. `wp.media.mixin.removeAllPlayers()`) does not act on dead players.
+	var remove = MediaElementPlayer.prototype.remove;
+	MediaElementPlayer.prototype.remove = function () {
+		var id = this.id;
+		remove.apply( this, arguments );
+		delete mejs.players[ id ];
 	};
 
 	// Add jQuery ONLY to most of custom features' arguments for backward compatibility; default features rely 100%
