@@ -354,4 +354,84 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 		$this->assertSame( array( $post_ids[2] ), $query->posts );
 		$this->assertSame( array( $post_ids[2] ), $query->query_vars['post__in'] );
 	}
+
+	/**
+	 * Tests that an optional single-value query var given a non-scalar value is removed.
+	 *
+	 * @ticket 60745
+	 *
+	 * @dataProvider data_optional_single_value_query_vars
+	 *
+	 * @param string $query_var Query var name.
+	 */
+	public function test_optional_single_value_query_var_given_non_scalar_is_removed( string $query_var ): void {
+		$query = new WP_Query( array( $query_var => array( 'admin' ) ) );
+		$this->assertArrayNotHasKey( $query_var, $query->query_vars, 'Expected an array value to be removed.' );
+
+		$query = new WP_Query( array( $query_var => new stdClass() ) );
+		$this->assertArrayNotHasKey( $query_var, $query->query_vars, 'Expected an object value to be removed.' );
+	}
+
+	/**
+	 * Tests that an optional single-value query var given a scalar value is kept.
+	 *
+	 * @ticket 60745
+	 *
+	 * @dataProvider data_optional_single_value_query_vars
+	 *
+	 * @param string $query_var Query var name.
+	 */
+	public function test_optional_single_value_query_var_given_scalar_is_kept( string $query_var ): void {
+		$query = new WP_Query( array( $query_var => '2' ) );
+
+		$this->assertArrayHasKey( $query_var, $query->query_vars );
+	}
+
+	/**
+	 * Tests that an optional single-value query var set to a non-scalar value in a 'pre_get_posts' callback does not cause an error.
+	 *
+	 * @ticket 60745
+	 *
+	 * @dataProvider data_optional_single_value_query_vars
+	 *
+	 * @param string $query_var Query var name.
+	 */
+	public function test_optional_single_value_query_var_set_to_array_in_pre_get_posts_does_not_cause_error( string $query_var ): void {
+		self::factory()->post->create();
+
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ) use ( $query_var ): void {
+				$query->set( $query_var, array( 'admin' ) );
+			}
+		);
+
+		$query = new WP_Query( array( 'fields' => 'ids' ) );
+
+		$this->assertArrayNotHasKey( $query_var, $query->query_vars );
+	}
+
+	/**
+	 * Tests that a non-scalar page number is set to 0.
+	 *
+	 * @ticket 60745
+	 */
+	public function test_page_given_non_scalar_is_set_to_zero(): void {
+		$query = new WP_Query( array( 'page' => new stdClass() ) );
+
+		$this->assertSame( 0, $query->query_vars['page'] );
+	}
+
+	/**
+	 * Data provider for the optional single-value query var tests.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
+	 */
+	public static function data_optional_single_value_query_vars(): array {
+		return array(
+			'offset'                 => array( 'offset' ),
+			'showposts'              => array( 'showposts' ),
+			'posts_per_archive_page' => array( 'posts_per_archive_page' ),
+		);
+	}
 }

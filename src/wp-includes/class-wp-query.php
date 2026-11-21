@@ -132,6 +132,10 @@
  *     post_status?: string|array<string>,
  *     post_mime_type?: string|array<string>,
  *     orderby?: string|array<string>|false,
+ *     page?: scalar,
+ *     offset?: scalar,
+ *     showposts?: scalar,
+ *     posts_per_archive_page?: scalar,
  *     ...<array-key, mixed>
  * }
  *
@@ -918,6 +922,23 @@ class WP_Query {
 		 */
 		if ( isset( $query_vars['orderby'] ) && false !== $query_vars['orderby'] ) {
 			$query_vars['orderby'] = self::normalize_string_or_array_query_var( $query_vars['orderby'] );
+		}
+
+		/*
+		 * Paging query vars which take a single value. These are only set when given, so any other
+		 * value is removed, as though it were not given. A page number is set to 0 instead, as before.
+		 */
+		if ( isset( $query_vars['page'] ) && ! is_scalar( $query_vars['page'] ) ) {
+			$query_vars['page'] = 0;
+		}
+		if ( isset( $query_vars['offset'] ) && ! is_scalar( $query_vars['offset'] ) ) {
+			unset( $query_vars['offset'] );
+		}
+		if ( isset( $query_vars['showposts'] ) && ! is_scalar( $query_vars['showposts'] ) ) {
+			unset( $query_vars['showposts'] );
+		}
+		if ( isset( $query_vars['posts_per_archive_page'] ) && ! is_scalar( $query_vars['posts_per_archive_page'] ) ) {
+			unset( $query_vars['posts_per_archive_page'] );
 		}
 
 		$query_vars['error']         = is_scalar( $query_vars['error'] ) ? $query_vars['error'] : '';
