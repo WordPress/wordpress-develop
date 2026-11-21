@@ -1482,6 +1482,71 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66772
+	 */
+	public function test_wp_insert_user_should_reject_user_email_over_100_characters() {
+		$user_email = str_repeat( 'a', 60 ) . '@' . str_repeat( 'b', 30 ) . '.example.com';
+		$this->assertGreaterThan( 100, strlen( $user_email ) );
+		$this->assertSame( $user_email, is_email( $user_email ) );
+
+		$user_register_count = did_action( 'user_register' );
+
+		$u = wp_insert_user(
+			array(
+				'user_login' => 'emailtoolong',
+				'user_email' => $user_email,
+				'user_pass'  => 'password',
+			)
+		);
+
+		$this->assertWPError( $u );
+		$this->assertSame( 'user_email_too_long', $u->get_error_code() );
+		$this->assertFalse( get_user_by( 'login', 'emailtoolong' ) );
+		$this->assertSame( $user_register_count, did_action( 'user_register' ) );
+	}
+
+	/**
+	 * @ticket 66772
+	 */
+	public function test_wp_insert_user_should_accept_user_email_of_100_characters() {
+		$user_email = str_repeat( 'a', 60 ) . '@' . str_repeat( 'b', 27 ) . '.example.com';
+		$this->assertSame( 100, strlen( $user_email ) );
+
+		$u = wp_insert_user(
+			array(
+				'user_login' => 'emailatlimit',
+				'user_email' => $user_email,
+				'user_pass'  => 'password',
+			)
+		);
+
+		$this->assertNotWPError( $u );
+		$this->assertSame( $user_email, get_userdata( $u )->user_email );
+	}
+
+	/**
+	 * @ticket 66772
+	 */
+	public function test_wp_update_user_should_reject_user_email_over_100_characters() {
+		$user_id    = self::factory()->user->create( array( 'user_email' => 'emailupdate@example.com' ) );
+		$user_email = str_repeat( 'a', 60 ) . '@' . str_repeat( 'b', 30 ) . '.example.com';
+
+		$profile_update_count = did_action( 'profile_update' );
+
+		$u = wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'user_email' => $user_email,
+			)
+		);
+
+		$this->assertWPError( $u );
+		$this->assertSame( 'user_email_too_long', $u->get_error_code() );
+		$this->assertSame( 'emailupdate@example.com', get_userdata( $user_id )->user_email );
+		$this->assertSame( $profile_update_count, did_action( 'profile_update' ) );
+	}
+
+	/**
 	 * @ticket 28004
 	 */
 	public function test_wp_insert_user_with_invalid_user_id() {

@@ -2423,6 +2423,10 @@ function wp_insert_user( $userdata ) {
 	 */
 	$user_email = apply_filters( 'pre_user_email', $raw_user_email );
 
+	if ( mb_strlen( $user_email ) > 100 ) {
+		return new WP_Error( 'user_email_too_long', __( 'Email address may not be longer than 100 characters.' ) );
+	}
+
 	/*
 	 * If there is no update, just check for `email_exists`. If there is an update,
 	 * check if current email and new email are the same, and check `email_exists`
