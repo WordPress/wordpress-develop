@@ -1,0 +1,26 @@
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2016-01-05 18:45:32+1000\n"
+
+msgid "original"
+msgstr "translation"
+
+msgctxt "context"
+msgid "original with context"
+msgstr "translation with context"
+
+msgid "plural0"
+msgid_plural "plural1"
+msgstr[0] "translation0"
+msgstr[1] "translation1"
+
+msgctxt "context"
+msgid "plural0 with context"
+msgid_plural "plural1 with context"
+msgstr[0] "translation0 with context"
+msgstr[1] "translation1 with context"
+
+msgid "Product"
+msgid_plural "Products"
+msgstr[0] "Produkt"
+msgstr[1] "Produkte"

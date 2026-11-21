@@ -8,6 +8,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	className: 'attachments',
 
 	attributes: {
+		role:     'group',
 		tabIndex: -1
 	},
 
@@ -17,20 +18,16 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 * The constructor binds events to the collection this view represents when
 	 * adding or removing attachments or resetting the entire collection.
 	 *
+	 * Listens for `collection:add`, `collection:remove`, `collection:reset`,
+	 * `controller:library:selection:add`, `scrollElement:scroll`, `this:ready`,
+	 * and `controller:open` events.
+	 *
 	 * @since 3.5.0
 	 *
 	 * @constructs
 	 * @memberof wp.media.view
 	 *
 	 * @augments wp.media.View
-	 *
-	 * @listens collection:add
-	 * @listens collection:remove
-	 * @listens collection:reset
-	 * @listens controller:library:selection:add
-	 * @listens scrollElement:scroll
-	 * @listens this:ready
-	 * @listens controller:open
 	 */
 	initialize: function() {
 		this.el.id = _.uniqueId('__attachments-view-');
@@ -120,9 +117,9 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 * Adjusts the amount of columns accordingly. First removes any existing event
 	 * handlers to prevent duplicate listeners.
 	 *
-	 * @since 4.0.0
+	 * Listens for the `window:resize` event.
 	 *
-	 * @listens window:resize
+	 * @since 4.0.0
 	 *
 	 * @return {void}
 	 */
@@ -268,9 +265,9 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 * Fails gracefully if jQuery sortable doesn't exist or isn't passed
 	 * in the options.
 	 *
-	 * @since 3.5.0
+	 * Fires `collection:reset`.
 	 *
-	 * @fires collection:reset
+	 * @since 3.5.0
 	 *
 	 * @return {void}
 	 */
@@ -365,7 +362,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param {wp.media.model.Attachment} attachment
+	 * @param {wp.media.model.Attachment} attachment The attachment model for which to create a view.
 	 *
 	 * @return {wp.media.View} The created view.
 	 */

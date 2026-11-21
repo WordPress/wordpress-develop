@@ -15,7 +15,7 @@
 class WP_Paused_Extensions_Storage {
 
 	/**
-	 * Type of extension. Used to key extension storage.
+	 * Type of extension. Used to key extension storage. Either 'plugin' or 'theme'.
 	 *
 	 * @since 5.2.0
 	 * @var string
@@ -72,7 +72,7 @@ class WP_Paused_Extensions_Storage {
 
 		$paused_extensions[ $this->type ][ $extension ] = $error;
 
-		return update_option( $option_name, $paused_extensions );
+		return update_option( $option_name, $paused_extensions, false );
 	}
 
 	/**
@@ -112,7 +112,7 @@ class WP_Paused_Extensions_Storage {
 			return delete_option( $option_name );
 		}
 
-		return update_option( $option_name, $paused_extensions );
+		return update_option( $option_name, $paused_extensions, false );
 	}
 
 	/**
@@ -161,7 +161,7 @@ class WP_Paused_Extensions_Storage {
 
 		$paused_extensions = (array) get_option( $option_name, array() );
 
-		return isset( $paused_extensions[ $this->type ] ) ? $paused_extensions[ $this->type ] : array();
+		return $paused_extensions[ $this->type ] ?? array();
 	}
 
 	/**
@@ -190,7 +190,7 @@ class WP_Paused_Extensions_Storage {
 			return delete_option( $option_name );
 		}
 
-		return update_option( $option_name, $paused_extensions );
+		return update_option( $option_name, $paused_extensions, false );
 	}
 
 	/**

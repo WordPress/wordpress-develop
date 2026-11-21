@@ -26,7 +26,7 @@ class WP_Http_Cookie {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $name;
 
@@ -35,16 +35,18 @@ class WP_Http_Cookie {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $value;
 
 	/**
-	 * When the cookie expires. Unix timestamp or formatted date.
+	 * When the cookie expires, as a Unix timestamp.
+	 *
+	 * False if the expiration date could not be parsed, or null if not provided.
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var string|int|null
+	 * @var int|false|null
 	 */
 	public $expires;
 
@@ -62,7 +64,7 @@ class WP_Http_Cookie {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $domain;
 
@@ -71,16 +73,18 @@ class WP_Http_Cookie {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var int|string
+	 * @var int|string|null
 	 */
 	public $port;
 
 	/**
-	 * host-only flag.
+	 * Host-only flag.
+	 *
+	 * Null if not provided.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @var bool
+	 * @var bool|null
 	 */
 	public $host_only;
 
@@ -99,10 +103,10 @@ class WP_Http_Cookie {
 	 *     @type string          $name      Cookie name.
 	 *     @type mixed           $value     Value. Should NOT already be urlencoded.
 	 *     @type string|int|null $expires   Optional. Unix timestamp or formatted date. Default null.
-	 *     @type string          $path      Optional. Path. Default '/'.
-	 *     @type string          $domain    Optional. Domain. Default host of parsed $requested_url.
-	 *     @type int|string      $port      Optional. Port or comma-separated list of ports. Default null.
-	 *     @type bool            $host_only Optional. host-only storage flag. Default true.
+	 *     @type string|null     $path      Optional. Path. Default '/'.
+	 *     @type string|null     $domain    Optional. Domain. Default host of parsed $requested_url.
+	 *     @type int|string|null $port      Optional. Port or comma-separated list of ports. Default null.
+	 *     @type bool|null       $host_only Optional. Host-only storage flag. Default null.
 	 * }
 	 * @param string       $requested_url The URL which the cookie was set on, used for default $domain
 	 *                                    and $port values.
@@ -114,8 +118,8 @@ class WP_Http_Cookie {
 		if ( isset( $parsed_url['host'] ) ) {
 			$this->domain = $parsed_url['host'];
 		}
-		$this->path = isset( $parsed_url['path'] ) ? $parsed_url['path'] : '/';
-		if ( '/' !== substr( $this->path, -1 ) ) {
+		$this->path = $parsed_url['path'] ?? '/';
+		if ( ! str_ends_with( $this->path, '/' ) ) {
 			$this->path = dirname( $this->path ) . '/';
 		}
 
@@ -136,7 +140,7 @@ class WP_Http_Cookie {
 			foreach ( $pairs as $pair ) {
 				$pair = rtrim( $pair );
 
-				// Handle the cookie ending in ; which results in a empty final pair.
+				// Handle the cookie ending in ; which results in an empty final pair.
 				if ( empty( $pair ) ) {
 					continue;
 				}
@@ -189,21 +193,21 @@ class WP_Http_Cookie {
 		}
 
 		// Get details on the URL we're thinking about sending to.
-		$url         = parse_url( $url );
-		$url['port'] = isset( $url['port'] ) ? $url['port'] : ( 'https' === $url['scheme'] ? 443 : 80 );
-		$url['path'] = isset( $url['path'] ) ? $url['path'] : '/';
+		$url           = parse_url( $url );
+		$url['port'] ??= ( 'https' === $url['scheme'] ? 443 : 80 );
+		$url['path'] ??= '/';
 
 		// Values to use for comparison against the URL.
-		$path   = isset( $this->path ) ? $this->path : '/';
-		$port   = isset( $this->port ) ? $this->port : null;
+		$path   = $this->path;
+		$port   = $this->port;
 		$domain = isset( $this->domain ) ? strtolower( $this->domain ) : strtolower( $url['host'] );
 		if ( false === stripos( $domain, '.' ) ) {
 			$domain .= '.local';
 		}
 
 		// Host - very basic check that the request URL ends with the domain restriction (minus leading dot).
-		$domain = ( '.' === substr( $domain, 0, 1 ) ) ? substr( $domain, 1 ) : $domain;
-		if ( substr( $url['host'], -strlen( $domain ) ) !== $domain ) {
+		$domain = ( str_starts_with( $domain, '.' ) ) ? substr( $domain, 1 ) : $domain;
+		if ( ! str_ends_with( $url['host'], $domain ) ) {
 			return false;
 		}
 
@@ -213,7 +217,7 @@ class WP_Http_Cookie {
 		}
 
 		// Path - request path must start with path restriction.
-		if ( substr( $url['path'], 0, strlen( $path ) ) !== $path ) {
+		if ( ! str_starts_with( $url['path'], $path ) ) {
 			return false;
 		}
 
@@ -262,9 +266,9 @@ class WP_Http_Cookie {
 	 * @return array {
 	 *     List of attributes.
 	 *
-	 *     @type string|int|null $expires When the cookie expires. Unix timestamp or formatted date.
-	 *     @type string          $path    Cookie URL path.
-	 *     @type string          $domain  Cookie domain.
+	 *     @type int|false|null $expires When the cookie expires, as a Unix timestamp.
+	 *     @type string         $path    Cookie URL path.
+	 *     @type string|null    $domain  Cookie domain.
 	 * }
 	 */
 	public function get_attributes() {

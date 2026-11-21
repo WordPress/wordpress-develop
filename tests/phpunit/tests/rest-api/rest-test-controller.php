@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_REST_Test_Controller extends WP_REST_Controller {
@@ -182,5 +180,4 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 
 		return $this->add_additional_fields_schema( $schema );
 	}
-
 }

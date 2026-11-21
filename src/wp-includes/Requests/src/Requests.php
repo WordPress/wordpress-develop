@@ -24,6 +24,7 @@ use WpOrg\Requests\Response;
 use WpOrg\Requests\Transport\Curl;
 use WpOrg\Requests\Transport\Fsockopen;
 use WpOrg\Requests\Utility\InputValidator;
+use WpOrg\Requests\Utility\Trim;
 
 /**
  * Requests for PHP
@@ -35,6 +36,13 @@ use WpOrg\Requests\Utility\InputValidator;
  * @package Requests
  */
 class Requests {
+	/**
+	 * Current version of Requests
+	 *
+	 * @var string
+	 */
+	const VERSION = '2.0.21';
+
 	/**
 	 * POST method
 	 *
@@ -142,13 +150,6 @@ class Requests {
 		Curl::class      => Curl::class,
 		Fsockopen::class => Fsockopen::class,
 	];
-
-	/**
-	 * Current version of Requests
-	 *
-	 * @var string
-	 */
-	const VERSION = '2.0.5';
 
 	/**
 	 * Selected transport name
@@ -642,12 +643,14 @@ class Requests {
 	/**
 	 * Set the default values
 	 *
+	 * The $options parameter is updated with the results.
+	 *
 	 * @param string $url URL to request
 	 * @param array $headers Extra headers to send with the request
 	 * @param array|null $data Data to send either as a query string for GET/HEAD requests, or in the body for POST requests
 	 * @param string $type HTTP request type
 	 * @param array $options Options for the request
-	 * @return void $options is updated with the results
+	 * @return void
 	 *
 	 * @throws \WpOrg\Requests\Exception When the $url is not an http(s) URL.
 	 */
@@ -761,7 +764,7 @@ class Requests {
 
 		foreach ($headers as $header) {
 			list($key, $value) = explode(':', $header, 2);
-			$value             = trim($value);
+			$value             = trim($value, Trim::WHITESPACE_CHARS_NO_FF);
 			preg_replace('#(\s+)#i', ' ', $value);
 			$return->headers[$key] = $value;
 		}
@@ -788,7 +791,7 @@ class Requests {
 					$options['type'] = self::GET;
 				}
 
-				$options['redirected']++;
+				++$options['redirected'];
 				$location = $return->headers['location'];
 				if (strpos($location, 'http://') !== 0 && strpos($location, 'https://') !== 0) {
 					// relative redirect, for compatibility make it absolute
@@ -824,9 +827,11 @@ class Requests {
 	 * Internal use only. Converts a raw HTTP response to a \WpOrg\Requests\Response
 	 * while still executing a multiple request.
 	 *
+	 * `$response` is either set to a \WpOrg\Requests\Response instance, or a \WpOrg\Requests\Exception object
+	 *
 	 * @param string $response Full response text including headers and body (will be overwritten with Response instance)
 	 * @param array $request Request data as passed into {@see \WpOrg\Requests\Requests::request_multiple()}
-	 * @return void `$response` is either set to a \WpOrg\Requests\Response instance, or a \WpOrg\Requests\Exception object
+	 * @return void
 	 */
 	public static function parse_multiple(&$response, $request) {
 		try {
@@ -848,7 +853,7 @@ class Requests {
 	 * @return string Decoded body
 	 */
 	protected static function decode_chunked($data) {
-		if (!preg_match('/^([0-9a-f]+)(?:;(?:[\w-]*)(?:=(?:(?:[\w-]*)*|"(?:[^\r\n])*"))?)*\r\n/i', trim($data))) {
+		if (!preg_match('/^([0-9a-f]+)(?:;(?:[\w-]*)(?:=(?:(?:[\w-]*)*|"(?:[^\r\n])*"))?)*\r\n/i', trim($data, Trim::WHITESPACE_CHARS_NO_FF))) {
 			return $data;
 		}
 
@@ -862,7 +867,7 @@ class Requests {
 				return $data;
 			}
 
-			$length = hexdec(trim($matches[1]));
+			$length = hexdec(trim($matches[1], Trim::WHITESPACE_CHARS_NO_FF));
 			if ($length === 0) {
 				// Ignore trailer headers
 				return $decoded;
@@ -872,7 +877,7 @@ class Requests {
 			$decoded     .= substr($encoded, $chunk_length, $length);
 			$encoded      = substr($encoded, $chunk_length + $length + 2);
 
-			if (trim($encoded) === '0' || empty($encoded)) {
+			if (trim($encoded, Trim::WHITESPACE_CHARS_NO_FF) === '0' || empty($encoded)) {
 				return $decoded;
 			}
 		}
@@ -919,7 +924,7 @@ class Requests {
 			throw InvalidArgument::create(1, '$data', 'string', gettype($data));
 		}
 
-		if (trim($data) === '') {
+		if (trim($data, Trim::WHITESPACE_CHARS_NO_FF) === '') {
 			// Empty body does not need further processing.
 			return $data;
 		}
@@ -986,7 +991,7 @@ class Requests {
 			throw InvalidArgument::create(1, '$gz_data', 'string', gettype($gz_data));
 		}
 
-		if (trim($gz_data) === '') {
+		if (trim($gz_data, Trim::WHITESPACE_CHARS_NO_FF) === '') {
 			return false;
 		}
 

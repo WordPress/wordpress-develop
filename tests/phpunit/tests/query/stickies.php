@@ -8,8 +8,12 @@
  */
 class Tests_Query_Stickies extends WP_UnitTestCase {
 	public static $posts = array();
+	private static $original_sticky_posts;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$original_sticky_posts = get_option( 'sticky_posts' );
+		update_option( 'sticky_posts', array() );
+
 		// Set post times to get a reliable order.
 		$now = time();
 		for ( $i = 0; $i <= 22; $i++ ) {
@@ -24,6 +28,10 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 		stick_post( self::$posts[2] );
 		stick_post( self::$posts[14] );
 		stick_post( self::$posts[8] );
+	}
+
+	public static function wpTearDownAfterClass() {
+		update_option( 'sticky_posts', self::$original_sticky_posts );
 	}
 
 	public function test_stickies_should_be_ignored_when_is_home_is_false() {
@@ -136,7 +144,7 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 		$post_ids     = self::factory()->post->create_many( $sticky_count, array( 'post_date' => $post_date ) );
 		add_filter(
 			'pre_option_sticky_posts',
-			function () use ( $post_ids ) {
+			static function () use ( $post_ids ) {
 				return $post_ids;
 			}
 		);

@@ -64,7 +64,6 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 			$count['avail_roles']
 		);
-
 	}
 
 	/**
@@ -174,7 +173,6 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 			$count['avail_roles']
 		);
-
 	}
 
 	/**
@@ -248,7 +246,6 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 			$count['avail_roles']
 		);
-
 	}
 
 	/**
@@ -281,7 +278,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		$this->assertSameSets( $count, $count2 );
 	}
 
-	public function data_count_users_strategies() {
+	public static function data_count_users_strategies() {
 		return array(
 			array(
 				'time',
@@ -291,5 +288,4 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

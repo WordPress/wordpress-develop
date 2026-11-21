@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ *
  * @covers ::wp_date
  */
 class Tests_Date_wpDate extends WP_UnitTestCase {
@@ -31,6 +32,34 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 	 */
 	public function test_should_return_false_on_invalid_timestamp() {
 		$this->assertFalse( wp_date( DATE_RFC3339, 'invalid' ) );
+	}
+
+	/**
+	 * Tests that a numeric timestamp which {@see date_create()} cannot parse returns false.
+	 *
+	 * @ticket 64522
+	 *
+	 * @dataProvider data_should_return_false_on_unparsable_numeric_timestamp
+	 *
+	 * @param int|float|string $timestamp Numeric timestamp.
+	 */
+	public function test_should_return_false_on_unparsable_numeric_timestamp( $timestamp ): void {
+		$this->assertTrue( is_numeric( $timestamp ), 'Expected the timestamp to pass the is_numeric() check.' );
+		$this->assertFalse( wp_date( DATE_RFC3339, $timestamp ) ); // @phpstan-ignore argument.type (Intentionally invalid input.)
+	}
+
+	/**
+	 * Data provider for {@see self::test_should_return_false_on_unparsable_numeric_timestamp()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: int|float|string }>
+	 */
+	public static function data_should_return_false_on_unparsable_numeric_timestamp(): array {
+		return array(
+			'exponent notation'  => array( '1e3' ),
+			'out-of-range float' => array( 1e20 ),
+			'leading whitespace' => array( ' 5' ),
+			'leading decimal'    => array( '.5' ),
+		);
 	}
 
 	/**
@@ -105,7 +134,7 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_format_date() {
+	public static function data_should_format_date() {
 		return array(
 			'Swatch Internet Time'                        => array(
 				'expected' => '041',

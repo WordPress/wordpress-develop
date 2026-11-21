@@ -85,20 +85,6 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 28404
-	 *
-	 * @covers ::wp_script_is
-	 */
-	public function test_wp_script_is_dep_enqueued() {
-		wp_enqueue_script( 'jquery-ui-accordion' );
-
-		$this->assertTrue( wp_script_is( 'jquery', 'enqueued' ) );
-		$this->assertFalse( wp_script_is( 'underscore', 'enqueued' ) );
-
-		unset( $GLOBALS['wp_scripts'] );
-	}
-
-	/**
 	 * Test placing of jQuery in footer.
 	 *
 	 * @ticket 25247
