@@ -95,6 +95,46 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tests that feed items missing a title, link, description or author name
+	 * are output without PHP deprecation notices.
+	 *
+	 * @ticket 61179
+	 * @covers ::wp_widget_rss_output
+	 */
+	public function test_wp_widget_rss_output_should_handle_incomplete_feed_items() {
+		add_filter( 'pre_http_request', array( $this, 'mocked_incomplete_items_rss_response' ) );
+
+		ob_start();
+		wp_widget_rss_output(
+			'https://example.org/feed/',
+			array(
+				'show_author'  => 1,
+				'show_date'    => 1,
+				'show_summary' => 1,
+			)
+		);
+		$actual = ob_get_clean();
+
+		$expected = '<ul>' .
+			'<li>Title only<div class="rssSummary"></div></li>' .
+			"<li><a class='rsswidget' href='https://example.org/link-only/'>Untitled</a><div class=\"rssSummary\"></div></li>" .
+			'<li>Untitled<div class="rssSummary">Description only.</div></li>' .
+			'<li>Author without a name<div class="rssSummary"></div> <cite></cite></li>' .
+			'<li>Untitled <span class="rss-date">December 16, 2020</span><div class="rssSummary"></div></li>' .
+			"<li><a class='rsswidget' href='https://example.org/complete-item/'>Complete item</a> <span class=\"rss-date\">December 15, 2020</span><div class=\"rssSummary\">Complete item description.</div> <cite>Complete Author</cite></li>" .
+			'</ul>';
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	public function mocked_incomplete_items_rss_response() {
+		$response         = $this->mocked_rss_response();
+		$response['body'] = file_get_contents( DIR_TESTDATA . '/feed/rss-incomplete-items.xml' );
+
+		return $response;
+	}
+
 	public function mocked_rss_response() {
 		$single_value_headers = array(
 			'Content-Type' => 'application/rss+xml; charset=UTF-8',

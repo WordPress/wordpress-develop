@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	>
+<channel>
+	<title>Incomplete Items</title>
+	<link>https://example.org/</link>
+	<description>A feed whose items are missing required elements.</description>
+	<item>
+		<title>Complete item</title>
+		<link>https://example.org/complete-item/</link>
+		<description>Complete item description.</description>
+		<dc:creator>Complete Author</dc:creator>
+		<pubDate>Tue, 15 Dec 2020 13:00:00 +0000</pubDate>
+	</item>
+	<item>
+		<pubDate>Wed, 16 Dec 2020 13:00:00 +0000</pubDate>
+	</item>
+	<item>
+		<title>Title only</title>
+	</item>
+	<item>
+		<link>https://example.org/link-only/</link>
+	</item>
+	<item>
+		<description>Description only.</description>
+	</item>
+	<item>
+		<title>Author without a name</title>
+		<author>nameless@example.org</author>
+	</item>
+</channel>
+</rss>
