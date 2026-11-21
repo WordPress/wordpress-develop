@@ -370,7 +370,7 @@ final class WP_Privacy_Policy_Content {
 				$message,
 				array(
 					'type'               => 'warning',
-					'additional_classes' => array( 'inline', 'wp-pp-notice' ),
+					'additional_classes' => array( 'wp-pp-notice' ),
 				)
 			);
 		}
