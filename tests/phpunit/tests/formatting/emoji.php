@@ -427,7 +427,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8_alias_for_encode_4byte_chars_in_fields_test' ) );
 
 		$this->assertSame(
-			'&#x1f642;',
+			'&#x1F642;',
 			$result['legacy_field'],
 			'Expected emoji to be encoded for a field reporting the deprecated utf8 charset alias.'
 		);
