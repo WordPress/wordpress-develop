@@ -22,7 +22,8 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 * Result of the language pack upgrade.
 	 *
 	 * @since 3.7.0
-	 * @var array|WP_Error $result
+	 * @var array|WP_Error|null $result
+	 * @phpstan-var non-empty-array<string, mixed>|WP_Error|null
 	 * @see WP_Upgrader::$result
 	 */
 	public $result;
@@ -67,8 +68,14 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			return;
 		}
 
+		$deferred_updates = wp_get_deferred_translation_updates( $language_updates );
+
 		foreach ( $language_updates as $key => $language_update ) {
 			$update = ! empty( $language_update->autoupdate );
+
+			if ( $update && wp_is_translation_update_deferred( $language_update, $deferred_updates ) ) {
+				$update = false;
+			}
 
 			/**
 			 * Filters whether to asynchronously update translation for core, a plugin, or a theme.
@@ -127,10 +134,13 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string|false $update Optional. Whether an update offer is available. Default false.
+	 * @param object|false $update Optional. The language pack update offer, or false to upgrade all
+	 *                             available language packs. Default false.
 	 * @param array        $args   Optional. Other optional arguments, see
 	 *                             Language_Pack_Upgrader::bulk_upgrade(). Default empty array.
-	 * @return array|bool|WP_Error The result of the upgrade, or a WP_Error object instead.
+	 * @return array|bool|WP_Error|null The result of the upgrade, or a WP_Error object instead. Null if the
+	 *                                  upgrade failed before the package was installed, for example when
+	 *                                  the package could not be downloaded.
 	 */
 	public function upgrade( $update = false, $args = array() ) {
 		if ( $update ) {
@@ -226,6 +236,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		}
 
 		$language_updates_results = array();
+		$successful_update_ids    = array();
 
 		foreach ( $language_updates as $language_update ) {
 
@@ -262,12 +273,25 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 				break;
 			}
 
+			if ( is_array( $result ) ) {
+				$successful_update_ids[ wp_get_translation_update_id( $language_update ) ] = true;
+			}
+
 			$language_updates_results[] = array(
 				'language' => $language_update->language,
 				'type'     => $language_update->type,
 				'slug'     => $language_update->slug ?? 'default',
 				'version'  => $language_update->version,
 			);
+		}
+
+		if ( $successful_update_ids ) {
+			$deferred_updates = wp_get_deferred_translation_updates();
+			$remaining        = array_diff_key( $deferred_updates, $successful_update_ids );
+
+			if ( $remaining !== $deferred_updates ) {
+				wp_set_deferred_translation_updates( $remaining );
+			}
 		}
 
 		// Remove upgrade hooks which are not required for translation updates.

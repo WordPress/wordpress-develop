@@ -143,14 +143,17 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 Supports filtering by collection.
+	 * @since 7.2.0 Icons belonging to non-public collections are omitted.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$collection = $request->get_param( 'collection' );
+		$collection            = $request->get_param( 'collection' );
+		$collections_registry  = WP_Icon_Collections_Registry::get_instance();
+		$registered_collection = null !== $collection ? $collections_registry->get_registered( $collection ) : null;
 
-		if ( null !== $collection && ! WP_Icon_Collections_Registry::get_instance()->is_registered( $collection ) ) {
+		if ( null !== $collection && ( null === $registered_collection || ! $registered_collection['public'] ) ) {
 			return new WP_Error(
 				'rest_icon_collection_not_found',
 				sprintf(
@@ -168,6 +171,10 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 
 		foreach ( $icons as $icon ) {
 			if ( null !== $collection && ( ! isset( $icon['collection'] ) || $icon['collection'] !== $collection ) ) {
+				continue;
+			}
+			$icon_collection = isset( $icon['collection'] ) ? $collections_registry->get_registered( $icon['collection'] ) : null;
+			if ( null === $icon_collection || ! $icon_collection['public'] ) {
 				continue;
 			}
 			$prepared_icon = $this->prepare_item_for_response( $icon, $request );
@@ -198,6 +205,7 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	 * Retrieves a specific icon from the registry.
 	 *
 	 * @since 7.0.0
+	 * @since 7.2.0 Icons belonging to non-public collections are reported as not found.
 	 *
 	 * @param string $name Icon name.
 	 * @return array|WP_Error Icon data on success, or WP_Error object on failure.
@@ -206,7 +214,11 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 		$registry = WP_Icons_Registry::get_instance();
 		$icon     = $registry->get_registered_icon( $name );
 
-		if ( null === $icon ) {
+		$collection = null !== $icon && isset( $icon['collection'] )
+			? WP_Icon_Collections_Registry::get_instance()->get_registered( $icon['collection'] )
+			: null;
+
+		if ( null === $icon || null === $collection || ! $collection['public'] ) {
 			return new WP_Error(
 				'rest_icon_not_found',
 				sprintf(
@@ -224,8 +236,12 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare a raw icon before it gets output in a REST API response.
 	 *
+	 * Adds `collection` and `keywords` fields to the base response while keeping
+	 * the namespaced icon name (e.g. `core/arrow-left`) as the `name` field.
+	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 Added the `collection` field.
+	 * @since 7.2.0 Added the `keywords` field.
 	 *
 	 * @param array           $item    Raw icon as registered, before any changes.
 	 * @param WP_REST_Request $request Request object.
@@ -246,6 +262,14 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 			}
 		}
 
+		/*
+		 * Keywords are optional at registration time, but the field is always
+		 * present in the response so consumers do not have to handle its absence.
+		 */
+		if ( rest_is_field_included( 'keywords', $fields ) ) {
+			$data['keywords'] = isset( $item['keywords'] ) ? array_values( $item['keywords'] ) : array();
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data    = $this->add_additional_fields_to_object( $data, $request );
 		$data    = $this->filter_response_by_context( $data, $context );
@@ -257,6 +281,7 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 Added the `collection` property.
+	 * @since 7.2.0 Added the `keywords` property.
 	 *
 	 * @return array Item schema data.
 	 */
@@ -291,6 +316,15 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 				'collection' => array(
 					'description' => __( 'The slug of the collection this icon belongs to.' ),
 					'type'        => 'string',
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'keywords'   => array(
+					'description' => __( 'Additional search terms for the icon.' ),
+					'type'        => 'array',
+					'items'       => array(
+						'type' => 'string',
+					),
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
