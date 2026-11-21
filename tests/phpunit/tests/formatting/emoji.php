@@ -396,7 +396,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_for_encode_4byte_chars_in_fields_test' ), 10 );
 
 		$this->assertSame(
-			'™&#x1f642;&#x20bb7;',
+			'™&#x1F642;&#x20BB7;',
 			$result['legacy_field'],
 			'Expected four-byte characters to be encoded for a field on a utf8/utf8mb3 column.'
 		);
