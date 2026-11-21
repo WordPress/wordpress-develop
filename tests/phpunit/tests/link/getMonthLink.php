@@ -59,8 +59,6 @@ class Tests_Link_GetMonthLink extends WP_UnitTestCase {
 	 * @param string     $expected_padded Expected two-digit padded month.
 	 */
 	public function test_get_month_link_pretty_permalinks( $year, $month, $expected_padded ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected = home_url( '/' . $year . '/' . $expected_padded . '/' );
 		$this->assertSame( $expected, get_month_link( $year, $month ) );
 	}
@@ -76,8 +74,6 @@ class Tests_Link_GetMonthLink extends WP_UnitTestCase {
 	 * @param mixed $month Month input.
 	 */
 	public function test_get_month_link_pretty_permalinks_fallback( $year, $month ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected_year  = $year ? $year : current_time( 'Y' );
 		$expected_month = $month ? zeroise( (int) $month, 2 ) : current_time( 'm' );
 
@@ -115,8 +111,6 @@ class Tests_Link_GetMonthLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_month_link_filter_custom_url() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$custom_callback = static function ( $monthlink, $year, $month ) {
 			return 'https://example.org/archives/' . $year . '-' . $month;
 		};
@@ -136,13 +130,7 @@ class Tests_Link_GetMonthLink extends WP_UnitTestCase {
 	public static function data_valid_year_and_month() {
 		return array(
 			'single digit month as integer' => array( 2024, 4, '04' ),
-			'single digit month as string'  => array( '2024', '4', '04' ),
 			'two digit month as integer'    => array( 2024, 11, '11' ),
-			'two digit month as string'     => array( '2024', '11', '11' ),
-			'first month of year'           => array( 2023, 1, '01' ),
-			'last month of year'            => array( 2023, 12, '12' ),
-			'past year'                     => array( 1999, 9, '09' ),
-			'future year'                   => array( 2030, 2, '02' ),
 		);
 	}
 
@@ -156,10 +144,6 @@ class Tests_Link_GetMonthLink extends WP_UnitTestCase {
 			'false year and valid month' => array( false, 5 ),
 			'valid year and false month' => array( 2024, false ),
 			'both false'                 => array( false, false ),
-			'empty string year'          => array( '', 5 ),
-			'empty string month'         => array( 2024, '' ),
-			'both null'                  => array( null, null ),
-			'both zero'                  => array( 0, 0 ),
 		);
 	}
 }

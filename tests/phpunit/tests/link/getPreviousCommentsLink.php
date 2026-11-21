@@ -4,8 +4,14 @@
  * @group link
  * @group comment
  * @covers ::get_previous_comments_link
+ * @covers ::previous_comments_link
  */
 class Tests_Link_GetPreviousCommentsLink extends WP_UnitTestCase {
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '' );
+	}
 
 	public function test_page_should_respect_value_of_cpage_query_var() {
 		$p = self::factory()->post->create();
@@ -52,5 +58,45 @@ class Tests_Link_GetPreviousCommentsLink extends WP_UnitTestCase {
 		set_query_var( 'cpage', $old_cpage );
 
 		$this->assertStringContainsString( 'cpage=2', $link );
+	}
+
+	/**
+	 * Tests that previous_comments_link() echoes get_previous_comments_link().
+	 *
+	 * @ticket 65819
+	 */
+	public function test_previous_comments_link_echoes_get_previous_comments_link() {
+		$p = self::factory()->post->create();
+		$this->go_to( get_permalink( $p ) );
+
+		$old_cpage = get_query_var( 'cpage' );
+		set_query_var( 'cpage', 3 );
+
+		$expected = get_previous_comments_link( 'Previous Page' );
+		$actual   = get_echo( 'previous_comments_link', array( 'Previous Page' ) );
+
+		set_query_var( 'cpage', $old_cpage );
+
+		$this->assertNotEmpty( $actual );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Tests that previous_comments_link() outputs nothing when on the first page.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_previous_comments_link_outputs_nothing_on_first_page() {
+		$p = self::factory()->post->create();
+		$this->go_to( get_permalink( $p ) );
+
+		$old_cpage = get_query_var( 'cpage' );
+		set_query_var( 'cpage', 1 );
+
+		$actual = get_echo( 'previous_comments_link', array( 'Previous Page' ) );
+
+		set_query_var( 'cpage', $old_cpage );
+
+		$this->assertSame( '', $actual );
 	}
 }

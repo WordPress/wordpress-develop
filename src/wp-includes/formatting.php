@@ -2187,7 +2187,7 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @since 3.0.0
  *
- * @param string $key String key.
+ * @param mixed $key String key. Other scalars are cast to a string; any other type yields an empty string.
  * @return string Sanitized key.
  * @phpstan-return lowercase-string
  */
@@ -2195,7 +2195,7 @@ function sanitize_key( $key ) {
 	$sanitized_key = '';
 
 	if ( is_scalar( $key ) ) {
-		$sanitized_key = strtolower( $key );
+		$sanitized_key = strtolower( (string) $key );
 		$sanitized_key = preg_replace( '/[^a-z0-9_\-]/', '', $sanitized_key );
 	}
 
@@ -2205,7 +2205,8 @@ function sanitize_key( $key ) {
 	 * @since 3.0.0
 	 *
 	 * @param string $sanitized_key Sanitized key.
-	 * @param string $key           The key prior to sanitization.
+	 * @param mixed  $key           The key prior to sanitization.
+	 * @phpstan-param lowercase-string $sanitized_key
 	 */
 	return apply_filters( 'sanitize_key', $sanitized_key, $key );
 }
@@ -4964,6 +4965,7 @@ function wp_make_link_relative( $link ) {
  * of functions depending on the $option.
  *
  * @since 2.0.5
+ * @since 7.1.5 The `show_on_front` option is sanitized.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -5201,6 +5203,13 @@ function sanitize_option( $option, $value ) {
 					__( 'A structure tag is required when using custom permalinks. <a href="%s">Learn more</a>' ),
 					__( 'https://wordpress.org/documentation/article/customize-permalinks/#choosing-your-permalink-structure' )
 				);
+			}
+			break;
+
+		case 'show_on_front':
+			// Any value other than 'page' is treated as 'posts'.
+			if ( 'page' !== $value ) {
+				$value = 'posts';
 			}
 			break;
 
