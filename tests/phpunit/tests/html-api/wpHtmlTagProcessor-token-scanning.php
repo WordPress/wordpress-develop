@@ -579,11 +579,55 @@ HTML
 	 * @ticket 60170
 	 *
 	 * @since 6.5.0
+	 * @since 7.1.0 Processing instructions produce their own token type.
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_token
 	 */
 	public function test_basic_assertion_processing_instruction() {
 		$processor = new WP_HTML_Tag_Processor( '<?wp-bit {"just": "kidding"}?>' );
+		$processor->next_token();
+
+		$this->assertSame(
+			'#processing-instruction',
+			$processor->get_token_name(),
+			"Should have found processing instruction token but found {$processor->get_token_name()} instead."
+		);
+
+		$this->assertNull(
+			$processor->get_comment_type(),
+			'Should not have detected a comment type on a non-comment token.'
+		);
+
+		$this->assertSame(
+			'wp-bit',
+			$processor->get_tag(),
+			"Should have found PI target as tag name but found {$processor->get_tag()} instead."
+		);
+
+		$this->assertNull(
+			$processor->get_attribute( 'type' ),
+			'Should not have been able to query attributes on non-element token.'
+		);
+
+		$this->assertSame(
+			'{"just": "kidding"}',
+			$processor->get_modifiable_text(),
+			'Found incorrect modifiable text.'
+		);
+	}
+
+	/**
+	 * Ensures that Processing Instruction nodes with reserved XML targets
+	 * are properly parsed as bogus comments.
+	 *
+	 * @ticket 60170
+	 *
+	 * @since 7.1.0
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_token
+	 */
+	public function test_basic_assertion_xml_processing_instruction(): void {
+		$processor = new WP_HTML_Tag_Processor( '<?xml version="1.0"?>' );
 		$processor->next_token();
 
 		$this->assertSame(
@@ -599,20 +643,26 @@ HTML
 		);
 
 		$this->assertSame(
-			'wp-bit',
+			'xml',
 			$processor->get_tag(),
 			"Should have found PI target as tag name but found {$processor->get_tag()} instead."
 		);
 
 		$this->assertNull(
-			$processor->get_attribute( 'type' ),
+			$processor->get_attribute( 'version' ),
 			'Should not have been able to query attributes on non-element token.'
 		);
 
 		$this->assertSame(
-			' {"just": "kidding"}',
+			' version="1.0"',
 			$processor->get_modifiable_text(),
 			'Found incorrect modifiable text.'
+		);
+
+		$this->assertSame(
+			'?xml version="1.0"?',
+			$processor->get_full_comment_text(),
+			'Found incorrect full comment text.'
 		);
 	}
 

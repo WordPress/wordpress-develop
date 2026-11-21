@@ -59,6 +59,7 @@ class PHPMailer
     const ICAL_METHOD_REFRESH = 'REFRESH';
     const ICAL_METHOD_COUNTER = 'COUNTER';
     const ICAL_METHOD_DECLINECOUNTER = 'DECLINECOUNTER';
+    const RFC822_DATE_FORMAT = 'D, j M Y H:i:s O';
 
     /**
      * Email priority.
@@ -77,7 +78,7 @@ class PHPMailer
     public $CharSet = self::CHARSET_ISO88591;
 
     /**
-     * The MIME Content-type of the message.
+     * The MIME Content-Type of the message.
      *
      * @var string
      */
@@ -159,7 +160,7 @@ class PHPMailer
     public $Ical = '';
 
     /**
-     * Value-array of "method" in Contenttype header "text/calendar"
+     * Value-array of "method" in Content-Type header "text/calendar"
      *
      * @var string[]
      */
@@ -768,7 +769,7 @@ class PHPMailer
      *
      * @var string
      */
-    const VERSION = '7.0.2';
+    const VERSION = '7.2.0';
 
     /**
      * Error severity: message only, continue processing.
@@ -1283,26 +1284,28 @@ class PHPMailer
     /**
      * Parse and validate a string containing one or more RFC822-style comma-separated email addresses
      * of the form "display name <address>" into an array of name/address pairs.
-     * Uses the imap_rfc822_parse_adrlist function if the IMAP extension is available.
+     * Uses the imap_rfc822_parse_adrlist function if the IMAP extension is available and
+     * the deprecated $useimap argument is truthy.
      * Note that quotes in the name part are removed.
      *
+     * @deprecated This method will be removed in the next major release of PHPMailer.
      * @see https://www.andrew.cmu.edu/user/agreen1/testing/mrbs/web/Mail/RFC822.php A more careful implementation
      *
      * @param string $addrstr The address list string
-     * @param null   $useimap Unused. Argument has been deprecated in PHPMailer 6.11.0.
-     *                        Previously this argument determined whether to use
-     *                        the IMAP extension to parse the list and accepted a boolean value.
+     * @param bool|null $useimap Deprecated in PHPMailer 6.11.0.
+     *                           Truthy values request the deprecated IMAP parser
+     *                           and trigger a deprecation warning.
      * @param string $charset The charset to use when decoding the address list string.
      *
      * @return array
      */
     public static function parseAddresses($addrstr, $useimap = null, $charset = self::CHARSET_ISO88591)
     {
-        if ($useimap !== null) {
+        if ($useimap) {
             trigger_error(self::lang('deprecated_argument') . '$useimap', E_USER_DEPRECATED);
         }
         $addresses = [];
-        if (function_exists('imap_rfc822_parse_adrlist')) {
+        if ($useimap !== false && function_exists('imap_rfc822_parse_adrlist')) {
             //Use this built-in parser if it's available
             // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.imap_rfc822_parse_adrlistRemoved -- wrapped in function_exists()
             $list = imap_rfc822_parse_adrlist($addrstr, '');
@@ -1484,8 +1487,8 @@ class PHPMailer
      * Check that a string looks like an email address.
      * Validation patterns supported:
      * * `auto` Pick best pattern automatically;
-     * * `pcre8` Use the squiloople.com pattern, requires PCRE > 8.0;
-     * * `pcre` Use old PCRE implementation;
+     * * `pcre8` (deprecated, will convert to PHP validator) Use the squiloople.com pattern, requires PCRE > 8.0
+     * * `pcre` (deprecated, will convert to PHP validator) Use old PCRE implementation, kept for BC;
      * * `php` Use PHP built-in FILTER_VALIDATE_EMAIL;
      * * `html5` Use the pattern given by the HTML5 spec for 'email' type form input elements.
      * * `eai` Use a pattern similar to the HTML5 spec for 'email' and to firefox, extended to support EAI (RFC6530).
@@ -1501,7 +1504,8 @@ class PHPMailer
      * You can also set the PHPMailer::$validator static to a callable, allowing built-in methods to use your validator.
      *
      * @param string          $address       The email address to check
-     * @param string|callable $patternselect Which pattern to use
+     * @param string|callable $patternselect Which pattern to use;
+     *                                        the `pcre` and `pcre8` patterns are deprecated
      *
      * @return bool
      */
@@ -1519,7 +1523,7 @@ class PHPMailer
             return false;
         }
         switch ($patternselect) {
-            case 'pcre': //Kept for BC
+            case 'pcre': //Deprecated, kept for BC
             case 'pcre8':
                 /*
                  * A more complex and more permissive version of the RFC5322 regex on which FILTER_VALIDATE_EMAIL
@@ -1779,6 +1783,8 @@ class PHPMailer
 
             //Trim subject consistently
             $this->Subject = trim($this->Subject);
+
+
             //Create body before headers in case body makes changes to headers (e.g. altering transfer encoding)
             $this->MIMEHeader = '';
             $this->MIMEBody = $this->createBody();
@@ -1853,7 +1859,7 @@ class PHPMailer
                     return $this->mailSend($this->MIMEHeader, $this->MIMEBody);
                 default:
                     $sendMethod = $this->Mailer . 'Send';
-                    if (method_exists($this, $sendMethod)) {
+                    if (!empty($this->Mailer) && method_exists($this, $sendMethod)) {
                         return $this->{$sendMethod}($this->MIMEHeader, $this->MIMEBody);
                     }
 
@@ -1911,7 +1917,7 @@ class PHPMailer
 
         // CVE-2016-10033, CVE-2016-10045: Don't pass -f if characters will be escaped.
         // Also don't add the -f automatically unless it has been set either via Sender
-        // or sendmail_path. Otherwise it can introduce new problems.
+        // or sendmail_path. Otherwise, it can introduce new problems.
         // @see http://github.com/PHPMailer/PHPMailer/issues/2298
         if (!empty($this->Sender) && static::validateAddress($this->Sender) && self::isShellSafe($this->Sender)) {
             $sendmailArgs[] = '-f' . $this->Sender;
@@ -2187,12 +2193,17 @@ class PHPMailer
      */
     public function setSMTPXclientAttribute($name, $value)
     {
-        if (!in_array($name, SMTP::$xclient_allowed_attributes)) {
+        if (!in_array($name, SMTP::$xclient_allowed_attributes, true)) {
             return false;
         }
         if (isset($this->SMTPXClient[$name]) && $value === null) {
             unset($this->SMTPXClient[$name]);
         } elseif ($value !== null) {
+            if (!is_string($value)) {
+                //Reject invalid XCLIENT attributes
+                return false;
+            }
+            //Values are stored raw and xtext-encoded at send time
             $this->SMTPXClient[$name] = $value;
         }
 
@@ -2243,7 +2254,17 @@ class PHPMailer
             $smtp_from = $this->Sender;
         }
         if (count($this->SMTPXClient)) {
-            $this->smtp->xclient($this->SMTPXClient);
+            if (!$this->smtp->xclient($this->SMTPXClient)) {
+                throw new Exception($this->smtp->getError()['error'], self::STOP_CRITICAL);
+            }
+            //XCLIENT success resets the session to the greeting protocol stage,
+            //so the client must send EHLO again before starting a transaction.
+            if ($this->Helo) {
+                $hello = $this->Helo;
+            } else {
+                $hello = $this->serverHostname();
+            }
+            $this->smtp->hello($hello);
         }
         if (!$this->smtp->mail($smtp_from)) {
             $this->setError(self::lang('from_failed') . $smtp_from . ' : ' . implode(',', $this->smtp->getError()));
@@ -2510,7 +2531,7 @@ class PHPMailer
             'authenticate' => 'SMTP Error: Could not authenticate.',
             'buggy_php' => 'Your version of PHP is affected by a bug that may result in corrupted messages.' .
                 ' To fix it, switch to sending using SMTP, disable the mail.add_x_header option in' .
-                ' your php.ini, switch to MacOS or Linux, or upgrade your PHP to version 7.0.17+ or 7.1.3+.',
+                ' your php.ini, switch to macOS or Linux, or upgrade your PHP to version 7.0.17+ or 7.1.3+.',
             'connect_host' => 'SMTP Error: Could not connect to SMTP host.',
             'data_not_accepted' => 'SMTP Error: data not accepted.',
             'empty_message' => 'Message body empty',
@@ -2642,7 +2663,22 @@ class PHPMailer
             $addresses[] = $this->addrFormat($address);
         }
 
-        return $type . ': ' . implode(', ', $addresses) . static::$LE;
+        //Fold between addresses so that no line exceeds the RFC 2822 line length limit
+        $header = $type . ': ' . array_shift($addresses);
+        $lineLength = strlen($header);
+        foreach ($addresses as $address) {
+            //The address goes after ', ' and must still leave room for the ',' that ends
+            //the line if the next address gets folded
+            if ($lineLength + strlen(', ') + strlen($address) + strlen(',') > static::MAX_LINE_LENGTH) {
+                $header .= ',' . static::$LE . ' ' . $address;
+                $lineLength = strlen(' ') + strlen($address);
+            } else {
+                $header .= ', ' . $address;
+                $lineLength += strlen(', ') + strlen($address);
+            }
+        }
+
+        return $header . static::$LE;
     }
 
     /**
@@ -2847,7 +2883,10 @@ class PHPMailer
     {
         $result = '';
 
-        $result .= $this->headerLine('Date', '' === $this->MessageDate ? self::rfcDate() : $this->MessageDate);
+        $result .= $this->headerLine(
+            'Date',
+            self::sanitiseDate($this->MessageDate)
+        );
 
         //The To header is created automatically by mail(), so needs to be omitted here
         if ('mail' !== $this->Mailer) {
@@ -2916,7 +2955,7 @@ class PHPMailer
             );
         } elseif (is_string($this->XMailer) && trim($this->XMailer) !== '') {
             //Some string
-            $result .= $this->headerLine('X-Mailer', trim($this->XMailer));
+            $result .= $this->headerLine('X-Mailer', $this->secureHeader(trim($this->XMailer)));
         } //Other values result in no X-Mailer header
 
         if ('' !== $this->ConfirmReadingTo) {
@@ -2966,13 +3005,20 @@ class PHPMailer
                 break;
             default:
                 //Catches case 'plain': and case '':
-                $result .= $this->textLine('Content-Type: ' . $this->ContentType . '; charset=' . $this->CharSet);
+                $result .= $this->textLine(
+                    'Content-Type: ' .
+                    $this->secureHeader($this->ContentType) .
+                    '; charset=' . $this->secureHeader($this->CharSet)
+                );
                 $ismultipart = false;
                 break;
         }
+        if (!$this->validateEncoding($this->Encoding)) {
+            throw new Exception(self::lang('encoding') . $this->Encoding);
+        }
         //RFC1341 part 5 says 7bit is assumed if not specified
         if (static::ENCODING_7BIT !== $this->Encoding) {
-            //RFC 2045 section 6.4 says multipart MIME parts may only use 7bit, 8bit or binary CTE
+            //RFC 2045 section 6.4 says multipart MIME parts may only use 7bit, 8bit, or binary CTE
             if ($ismultipart) {
                 if (static::ENCODING_8BIT === $this->Encoding) {
                     $result .= $this->headerLine('Content-Transfer-Encoding', static::ENCODING_8BIT);
@@ -3047,6 +3093,9 @@ class PHPMailer
 
         $this->setWordWrap();
 
+        if (!$this->validateEncoding($this->Encoding)) {
+            throw new Exception(self::lang('encoding') . $this->Encoding);
+        }
         $bodyEncoding = $this->Encoding;
         $bodyCharSet = $this->CharSet;
         //Can we do a 7-bit downgrade?
@@ -3302,8 +3351,9 @@ class PHPMailer
                     @unlink($signed);
                     //The message returned by openssl contains both headers and body, so need to split them up
                     $parts = explode("\n\n", $body, 2);
-                    $this->MIMEHeader .= $parts[0] . static::$LE . static::$LE;
-                    $body = $parts[1];
+                    //openssl emits bare LF breaks, which SMTP servers may reject
+                    $this->MIMEHeader .= static::normalizeBreaks($parts[0]) . static::$LE . static::$LE;
+                    $body = static::normalizeBreaks($parts[1]);
                 } else {
                     @unlink($signed);
                     throw new Exception(self::lang('signing') . openssl_error_string());
@@ -4166,7 +4216,7 @@ class PHPMailer
     protected function validateEncoding($encoding)
     {
         return in_array(
-            $encoding,
+            strtolower($encoding),
             [
                 self::ENCODING_7BIT,
                 self::ENCODING_QUOTED_PRINTABLE,
@@ -4426,7 +4476,7 @@ class PHPMailer
     }
 
     /**
-     * Return an RFC 822 formatted date.
+     * Return the current date and time as an RFC 822 formatted date.
      *
      * @return string
      */
@@ -4436,7 +4486,51 @@ class PHPMailer
         //Will default to UTC if it's not set properly in php.ini
         date_default_timezone_set(@date_default_timezone_get());
 
-        return date('D, j M Y H:i:s O');
+        return date(self::RFC822_DATE_FORMAT);
+    }
+
+    /**
+     * Normalise a user-supplied date into a correctly-formatted RFC 5322 date value
+     * string suitable for use in the Date header.
+     *
+     * Accepts:
+     *  - A {@see \DateTime} (or \DateTimeImmutable) object
+     *  - Any date/time string understood by PHP's DateTime constructor (RFC 5322, ISO 8601,
+     *    Unix timestamp with leading "@", natural-language strings, etc.)
+     *
+     * Dates in the future are not permitted for email headers; if the parsed date is later
+     * than "now" the method falls back to the current time via {@see self::rfcDate()}.
+     * An empty value, a non-string/non-DateTime argument, or any value that cannot be
+     * parsed will likewise fall back to {@see self::rfcDate()}.
+     *
+     * @param \DateTime|\DateTimeImmutable|string $date The date to normalise
+     *
+     * @return string An RFC 5322-formatted date string
+     */
+    private static function sanitiseDate($date)
+    {
+        try {
+            //Ensure the default timezone is set properly
+            date_default_timezone_set(@date_default_timezone_get());
+
+            if ($date instanceof \DateTimeInterface) {
+                $dt = $date;
+            } elseif (is_string($date) && $date !== '') {
+                $dt = new \DateTime($date);
+            } else {
+                //Empty string, null, or any unsupported type
+                return self::rfcDate();
+            }
+
+            //Reject future dates — they are invalid for outgoing message headers
+            if ($dt->getTimestamp() > time()) {
+                return self::rfcDate();
+            }
+
+            return $dt->format(self::RFC822_DATE_FORMAT);
+        } catch (\Exception $e) {
+            return self::rfcDate();
+        }
     }
 
     /**

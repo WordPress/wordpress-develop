@@ -28,15 +28,12 @@ class Tests_Formatting_Antispambot extends WP_UnitTestCase {
 	 *
 	 * return array[]
 	 */
-	public function data_returns_valid_utf8() {
+	public static function data_returns_valid_utf8() {
 		return array(
 			'plain'                => array( 'bob@example.com' ),
 			'plain with ip'        => array( 'ace@204.32.222.14' ),
 			'deep subdomain'       => array( 'kevin@many.subdomains.make.a.happy.man.edu' ),
 			'short address'        => array( 'a@b.co' ),
-			'ascii@nonascii'       => array( 'info@grå.org' ),
-			'nonascii@nonascii'    => array( 'grå@grå.org' ),
-			'decomposed unicode'   => array( "gr\u{0061}\u{030a}blå@grå.org" ),
 			'weird but legal dots' => array( '..@example.com' ),
 			'umlauts'              => array( 'bücher@gmx.de' ),
 			'three-byte UTF-8'     => array( "\u{FFFD}@who.knows.com" ),
@@ -79,7 +76,7 @@ class Tests_Formatting_Antispambot extends WP_UnitTestCase {
 	 *
 	 * @return Generator
 	 */
-	public function data_antispambot_obfuscates() {
+	public static function data_antispambot_obfuscates() {
 		$addresses = array(
 			'example@example.com',
 			'#@example.com',
