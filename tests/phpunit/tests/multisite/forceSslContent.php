@@ -39,7 +39,7 @@ class Tests_Functions_ForceSslContent extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_force_ssl_content() {
+	public static function data_force_ssl_content() {
 		return array(
 			'default'          => array( null, false ),
 			'true'             => array( true, true ),

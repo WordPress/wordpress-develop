@@ -58,7 +58,7 @@ class Tests_Menu_WpNavMenuRemoveMenuItemHasChildrenClass extends WP_UnitTestCase
 	 *
 	 * @return array
 	 */
-	public function data_menu_item_has_children_class_should_be_removed_or_retained_as_expected() {
+	public static function data_menu_item_has_children_class_should_be_removed_or_retained_as_expected() {
 		return array(
 			'Depth not set'                          => array(
 				'args'               => (object) array( 'depth' => 1 ),

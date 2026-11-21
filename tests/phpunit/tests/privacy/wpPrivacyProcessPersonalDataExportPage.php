@@ -195,6 +195,14 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	public function set_up() {
 		parent::set_up();
 
+		// Ensure the request is confirmed so that email sending succeeds.
+		wp_update_post(
+			array(
+				'ID'          => self::$request_id,
+				'post_status' => 'request-confirmed',
+			)
+		);
+
 		// Avoid writing export files to disk. Using `WP_Filesystem_MockFS` is blocked by #44204.
 		remove_action( 'wp_privacy_personal_data_export_file', 'wp_privacy_generate_personal_data_export_file', 10 );
 
@@ -295,7 +303,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *     }
 	 * }
 	 */
-	public function data_wp_privacy_process_personal_data_export_page() {
+	public static function data_wp_privacy_process_personal_data_export_page() {
 		return array(
 			// Response is not an array.
 			array(
@@ -340,7 +348,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *     }
 	 * }
 	 */
-	public function data_send_as_email_options() {
+	public static function data_send_as_email_options() {
 		return array(
 			array(
 				true,
@@ -358,7 +366,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_send_error_when_invalid_request_id( $send_as_email ) {
 		$response           = array(
@@ -388,7 +396,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_send_error_when_invalid_request_action_name( $send_as_email ) {
 		$response = array(
@@ -420,8 +428,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
-	 *
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_raw_data_post_meta( $send_as_email ) {
 		$this->assertEmpty( get_post_meta( self::$request_id, '_export_data_raw', true ) );
@@ -461,7 +468,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_add_post_meta_with_groups_data_only_available_when_export_file_generated( $send_as_email ) {
 		// Adds post meta when processing data, given the first exporter on the first page and send as email.
@@ -514,6 +521,40 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 			true,
 			self::$exporter_key_last
 		);
+	}
+
+	/**
+	 * When the request has not been confirmed, the function should send a JSON error on the last page
+	 * of the last exporter when sending as email, and leave the request status unchanged.
+	 *
+	 * @ticket 65758
+	 */
+	public function test_send_error_on_last_page_of_last_exporter_when_request_is_not_confirmed() {
+		wp_update_post(
+			array(
+				'ID'          => self::$request_id,
+				'post_status' => 'request-pending',
+			)
+		);
+
+		$this->expectOutputString( '{"success":false,"data":"Invalid request status when sending personal data export email."}' );
+
+		try {
+			wp_privacy_process_personal_data_export_page(
+				self::$response_last_page,
+				self::$exporter_index_last,
+				self::$requester_email,
+				self::$page_index_last,
+				self::$request_id,
+				true,
+				self::$exporter_key_last
+			);
+			$this->fail( 'Expected a WPDieException.' );
+		} catch ( WPDieException $e ) {
+			// Expected; fall through to check the request status.
+		}
+
+		$this->assertSame( 'request-pending', get_post_status( self::$request_id ) );
 	}
 
 	/**
@@ -635,7 +676,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *     }
 	 * }
 	 */
-	public function data_export_page_status_transitions() {
+	public static function data_export_page_status_transitions() {
 		return array(
 			// Mark the request as completed for the last exporter on the last page, with email.
 			array(
@@ -646,20 +687,20 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 				true,
 				'last',
 			),
-			// Leave the request as pending for the last exporter on the last page, without email.
+			// Leave the request as confirmed for the last exporter on the last page, without email.
 			// This check was updated to account for admin vs user export.
 			// Don't mark the request as completed when it's an admin download.
 			array(
-				'request-pending',
+				'request-confirmed',
 				'last',
 				'last',
 				'last',
 				false,
 				'last',
 			),
-			// Leave the request as pending when not the last exporter and not on the last page.
+			// Leave the request as confirmed when not the last exporter and not on the last page.
 			array(
-				'request-pending',
+				'request-confirmed',
 				'first',
 				'first',
 				'first',
@@ -667,16 +708,16 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 				'first',
 			),
 			array(
-				'request-pending',
+				'request-confirmed',
 				'first',
 				'first',
 				'first',
 				false,
 				'first',
 			),
-			// Leave the request as pending when last exporter and not on the last page.
+			// Leave the request as confirmed when last exporter and not on the last page.
 			array(
-				'request-pending',
+				'request-confirmed',
 				'first',
 				'last',
 				'first',
@@ -684,16 +725,16 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 				'last',
 			),
 			array(
-				'request-pending',
+				'request-confirmed',
 				'first',
 				'last',
 				'first',
 				false,
 				'last',
 			),
-			// Leave the request as pending when not last exporter on the last page.
+			// Leave the request as confirmed when not last exporter on the last page.
 			array(
-				'request-pending',
+				'request-confirmed',
 				'last',
 				'first',
 				'last',
@@ -701,7 +742,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 				'last',
 			),
 			array(
-				'request-pending',
+				'request-confirmed',
 				'last',
 				'first',
 				'last',

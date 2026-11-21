@@ -503,6 +503,25 @@ class Tests_AI_Client_AbilityFunctionResolver extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an empty object result is prepared for the AI client.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_execute_ability_prepares_empty_object_result() {
+		$resolver = new WP_AI_Client_Ability_Function_Resolver( 'wpaiclienttests/empty-object' );
+		$call     = new FunctionCall(
+			'test-id',
+			'wpab__wpaiclienttests__empty-object',
+			array()
+		);
+
+		$response = $resolver->execute_ability( $call );
+
+		$this->assertSame( '{}', wp_json_encode( $response->getResponse() ) );
+		$this->assertSame( array(), wp_get_ability( 'wpaiclienttests/empty-object' )->execute() );
+	}
+
+	/**
 	 * Test execute_ability with parameters.
 	 *
 	 * @ticket 64591
