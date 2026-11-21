@@ -14,8 +14,8 @@ class Tests_Comment_wpUpdateComment extends WP_UnitTestCase {
 	protected static $author_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$post_id  = $factory->post->create();
-		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$post_id   = $factory->post->create();
+		self::$admin_id  = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$author_id = $factory->user->create( array( 'role' => 'author' ) );
 	}
 
