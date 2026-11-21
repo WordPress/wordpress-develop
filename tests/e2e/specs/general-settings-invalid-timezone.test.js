@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
+import { GENERAL_SETTINGS } from '../utils/locks';
 
-test.describe( 'Settings -> General', () => {
+test.describe( 'Settings -> General', { lock: GENERAL_SETTINGS }, () => {
 	const invalidTimezones = [ '', '0', 'Barry/Gary' ];
 
 	test.beforeEach( async ( { admin } ) => {
@@ -9,10 +10,7 @@ test.describe( 'Settings -> General', () => {
 
 	for ( const invalidTimezone of invalidTimezones ) {
 		test( `Does not allow saving an invalid timezone string with "${invalidTimezone}"`, async ( { admin, page, siteOptions } ) => {
-			const originalOptions = await siteOptions.get( [ 'timezone_string', 'gmt_offset' ] );
-
-			// The settings form can normalize stored UTC offsets, so register the options for the fixture to restore directly.
-			await siteOptions.set( originalOptions );
+			const originalOptions = await siteOptions.remember( [ 'timezone_string', 'gmt_offset' ] );
 
 			const validTimezone = originalOptions.timezone_string === 'Europe/Lisbon' ? 'Africa/Libreville' : 'Europe/Lisbon';
 
