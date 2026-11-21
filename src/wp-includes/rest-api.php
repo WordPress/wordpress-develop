@@ -3688,3 +3688,5 @@ function wp_is_rest_endpoint() {
 	 */
 	return (bool) apply_filters( 'wp_is_rest_endpoint', $is_rest_endpoint );
 }
+
+require_once __DIR__ . '/rest-api-filters.php';
