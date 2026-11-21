@@ -11,6 +11,19 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 const themeSlug = 'e2e-test-theme';
 const themeName = 'E2E Test Theme';
 
+async function uploadTheme( admin, page, fixture ) {
+	await admin.visitAdminPage( 'theme-install.php' );
+	await page
+		.getByRole( 'button', { name: 'Upload Theme', exact: true } )
+		.click();
+	await page
+		.locator( '#themezip' )
+		.setInputFiles( `tests/e2e/assets/${ fixture }` );
+	await page
+		.getByRole( 'button', { name: 'Install Now', exact: true } )
+		.click();
+}
+
 async function deleteTheme( requestUtils ) {
 	const themes = await requestUtils.rest( { path: '/wp/v2/themes' } );
 	if ( ! themes.some( ( theme ) => theme.stylesheet === themeSlug ) ) {
@@ -47,16 +60,7 @@ test.describe( 'Theme management', () => {
 		previousTheme = themes.find(
 			( theme ) => theme.status === 'active'
 		).stylesheet;
-		await admin.visitAdminPage( 'theme-install.php' );
-		await page
-			.getByRole( 'button', { name: 'Upload Theme', exact: true } )
-			.click();
-		await page
-			.locator( '#themezip' )
-			.setInputFiles( 'tests/e2e/assets/e2e-test-theme.zip' );
-		await page
-			.getByRole( 'button', { name: 'Install Now', exact: true } )
-			.click();
+		await uploadTheme( admin, page, 'e2e-test-theme.zip' );
 		await expect(
 			page.getByText( 'Theme installed successfully.', { exact: true } )
 		).toBeVisible();
@@ -150,6 +154,46 @@ test.describe( 'Theme management', () => {
 		expect(
 			themes.find( ( theme ) => theme.status === 'active' ).stylesheet
 		).toBe( previousTheme );
+	} );
+
+	test( 'replaces an installed theme with an uploaded version', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		expect(
+			(
+				await requestUtils.rest( {
+					path: `/wp/v2/themes/${ themeSlug }`,
+				} )
+			).version
+		).toBe( '1.0' );
+		await uploadTheme( admin, page, 'e2e-test-theme-2.0.zip' );
+		await expect(
+			page.getByRole( 'heading', {
+				name: 'This theme is already installed.',
+				exact: true,
+			} )
+		).toBeVisible();
+		await expect(
+			page.getByRole( 'row', { name: 'Version 1.0 2.0', exact: true } )
+		).toBeVisible();
+		await page
+			.getByRole( 'link', {
+				name: 'Replace installed with uploaded',
+				exact: true,
+			} )
+			.click();
+		await expect(
+			page.getByText( 'Theme updated successfully.', { exact: true } )
+		).toBeVisible();
+		expect(
+			(
+				await requestUtils.rest( {
+					path: `/wp/v2/themes/${ themeSlug }`,
+				} )
+			).version
+		).toBe( '2.0' );
 	} );
 
 	test( 'searches for an installed theme', async ( { admin, page } ) => {

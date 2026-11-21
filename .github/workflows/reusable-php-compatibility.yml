@@ -35,7 +35,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   php-compatibility:
     name: Run compatibility checks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     timeout-minutes: 20
