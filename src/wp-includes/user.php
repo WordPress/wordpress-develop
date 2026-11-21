@@ -2198,6 +2198,8 @@ function validate_username( $username ) {
  * @since 5.3.0 The `user_activation_key` field can be passed to `$userdata`.
  * @since 5.3.0 The `spam` field can be passed to `$userdata` (Multisite only).
  * @since 5.9.0 The `meta_input` field can be passed to `$userdata` to allow addition of user meta data.
+ * @since 7.2.0 Default `display_name`, `nickname`, and `user_nicename` avoid using an email address
+ *              when `$user_login` is an email address.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -2208,13 +2210,15 @@ function validate_username( $username ) {
  *     @type string $user_pass            The plain-text user password for new users.
  *                                        Hashed password for existing users.
  *     @type string $user_login           The user's login username.
- *     @type string $user_nicename        The URL-friendly user name.
+ *     @type string $user_nicename        The URL-friendly user name. Default is a URL-safe version
+ *                                        of the user's login, or a generated slug (user-{random})
+ *                                        if the login is an email address.
  *     @type string $user_url             The user URL.
  *     @type string $user_email           The user email address.
- *     @type string $display_name         The user's display name.
- *                                        Default is the user's username.
- *     @type string $nickname             The user's nickname.
- *                                        Default is the user's username.
+ *     @type string $display_name         The user's display name. Default is the user's username,
+ *                                        or 'User {random}' if the username is an email address.
+ *     @type string $nickname             The user's nickname. Default is the user's username,
+ *                                        or 'User {random}' if the username is an email address.
  *     @type string $first_name           The user's first name. For new users, will be used
  *                                        to build the first part of the user's display name
  *                                        if `$display_name` is not specified.
@@ -2370,12 +2374,22 @@ function wp_insert_user( $userdata ) {
 		return new WP_Error( 'invalid_username', __( 'Sorry, that username is not allowed.' ) );
 	}
 
+	$email_login_suffix = '';
+	if ( is_email( $user_login ) ) {
+		$email_login_suffix = bin2hex( random_bytes( 4 ) );
+	}
+
 	/*
 	 * If a nicename is provided, remove unsafe user characters before using it.
-	 * Otherwise build a nicename from the user_login.
+	 * If updating an email-login user and no nicename is provided, preserve existing nicename.
+	 * Otherwise build a nicename from a random slug (if login is an email) or the user_login.
 	 */
 	if ( ! empty( $userdata['user_nicename'] ) ) {
 		$user_nicename = sanitize_user( $userdata['user_nicename'], true );
+	} elseif ( $update && is_email( $user_login ) && ! empty( $old_user_data->user_nicename ) ) {
+		$user_nicename = $old_user_data->user_nicename;
+	} elseif ( is_email( $user_login ) ) {
+		$user_nicename = 'user-' . $email_login_suffix;
 	} else {
 		$user_nicename = mb_substr( $user_login, 0, 50 );
 	}
@@ -2463,7 +2477,17 @@ function wp_insert_user( $userdata ) {
 	// Store values to save in user meta.
 	$meta = array();
 
-	$nickname = empty( $userdata['nickname'] ) ? $user_login : $userdata['nickname'];
+	if ( empty( $userdata['nickname'] ) ) {
+		if ( $update && is_email( $user_login ) && ! empty( $old_user_data->nickname ) ) {
+			$nickname = $old_user_data->nickname;
+		} elseif ( is_email( $user_login ) ) {
+			$nickname = 'User ' . $email_login_suffix;
+		} else {
+			$nickname = $user_login;
+		}
+	} else {
+		$nickname = $userdata['nickname'];
+	}
 
 	/**
 	 * Filters a user's nickname before the user is created or updated.
@@ -2498,7 +2522,13 @@ function wp_insert_user( $userdata ) {
 
 	if ( empty( $userdata['display_name'] ) ) {
 		if ( $update ) {
-			$display_name = $user_login;
+			if ( is_email( $user_login ) && ! empty( $old_user_data->display_name ) ) {
+				$display_name = $old_user_data->display_name;
+			} elseif ( is_email( $user_login ) ) {
+				$display_name = 'User ' . $email_login_suffix;
+			} else {
+				$display_name = $user_login;
+			}
 		} elseif ( $meta['first_name'] && $meta['last_name'] ) {
 			$display_name = sprintf(
 				/* translators: 1: User's first name, 2: Last name. */
@@ -2510,6 +2540,8 @@ function wp_insert_user( $userdata ) {
 			$display_name = $meta['first_name'];
 		} elseif ( $meta['last_name'] ) {
 			$display_name = $meta['last_name'];
+		} elseif ( is_email( $user_login ) ) {
+			$display_name = 'User ' . $email_login_suffix;
 		} else {
 			$display_name = $user_login;
 		}
@@ -2581,8 +2613,10 @@ function wp_insert_user( $userdata ) {
 	 *     @type string $user_pass       The user's password.
 	 *     @type string $user_email      The user's email.
 	 *     @type string $user_url        The user's url.
-	 *     @type string $user_nicename   The user's nice name. Defaults to a URL-safe version of user's login.
-	 *     @type string $display_name    The user's display name.
+	 *     @type string $user_nicename   The user's nice name. Defaults to a URL-safe version of user's login,
+	 *                                   or a generated slug (user-{random}) if the login is an email address.
+	 *     @type string $display_name    The user's display name. Defaults to the user's username, or
+	 *                                   'User {random}' if the username is an email address.
 	 *     @type string $user_registered MySQL timestamp describing the moment when the user registered. Defaults to
 	 *                                   the current UTC timestamp.
 	 * }
