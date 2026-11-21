@@ -1,5 +1,6 @@
 var Frame = wp.media.view.Frame,
 	MediaFrame = wp.media.view.MediaFrame,
+	l10n = wp.media.view.l10n,
 
 	$ = jQuery,
 	EditAttachments;
@@ -32,6 +33,30 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		'click .left':  'previousMediaItem',
 		'click .right': 'nextMediaItem'
 	},
+
+	/**
+	 * Announces to screen readers the attachment shown after previous/next navigation.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param {Object} model The attachment model.
+	 * @return {void}
+	 */
+	announceMediaItemDebounced: _.debounce( function( model ) {
+		var title;
+
+		if ( ! model ) {
+			return;
+		}
+
+		title = model.get( 'title' ) || model.get( 'filename' ) || model.get( 'id' );
+
+		if ( ! title ) {
+			return;
+		}
+
+		wp.a11y.speak( l10n.mediaItemViewed.replace( '%s', title ) );
+	}, 500 ),
 
 	initialize: function() {
 		Frame.prototype.initialize.apply( this, arguments );
@@ -96,6 +121,8 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 				// Move focus back to the original item in the grid if possible.
 				$( 'li.attachment[data-id="' + this.model.get( 'id' ) +'"]' ).trigger( 'focus' );
 				this.resetRoute();
+				// Cancel any pending navigation announcement.
+				this.announceMediaItemDebounced.cancel();
 			}, this ) );
 
 			// Set this frame as the modal's content.
@@ -174,12 +201,13 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	},
 
 	toggleNav: function() {
-		this.$( '.left' ).prop( 'disabled', ! this.hasPrevious() );
-		this.$( '.right' ).prop( 'disabled', ! this.hasNext() );
+		this.$( '.left' ).attr( 'aria-disabled', ! this.hasPrevious() );
+		this.$( '.right' ).attr( 'aria-disabled', ! this.hasNext() );
 	},
 
 	/**
 	 * Rerender the view.
+	 * @param {wp.media.model.Attachment} model The attachment model to render.
 	 */
 	rerender: function( model ) {
 		this.stopListening( this.model );
@@ -202,37 +230,30 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	 * Click handler to switch to the previous media item.
 	 */
 	previousMediaItem: function() {
+		var model;
+
 		if ( ! this.hasPrevious() ) {
 			return;
 		}
 
-		this.trigger( 'refresh', this.library.at( this.getCurrentIndex() - 1 ) );
-		// Move focus to the Previous button. When there are no more items, to the Next button.
-		this.focusNavButton( this.hasPrevious() ? '.left' : '.right' );
+		model = this.library.at( this.getCurrentIndex() - 1 );
+		this.trigger( 'refresh', model );
+		this.announceMediaItemDebounced( model );
 	},
 
 	/**
 	 * Click handler to switch to the next media item.
 	 */
 	nextMediaItem: function() {
+		var model;
+
 		if ( ! this.hasNext() ) {
 			return;
 		}
 
-		this.trigger( 'refresh', this.library.at( this.getCurrentIndex() + 1 ) );
-		// Move focus to the Next button. When there are no more items, to the Previous button.
-		this.focusNavButton( this.hasNext() ? '.right' : '.left' );
-	},
-
-	/**
-	 * Set focus to the navigation buttons depending on the browsing direction.
-	 *
-	 * @since 5.3.0
-	 *
-	 * @param {string} which A CSS selector to target the button to focus.
-	 */
-	focusNavButton: function( which ) {
-		$( which ).trigger( 'focus' );
+		model = this.library.at( this.getCurrentIndex() + 1 );
+		this.trigger( 'refresh', model );
+		this.announceMediaItemDebounced( model );
 	},
 
 	getCurrentIndex: function() {
@@ -247,25 +268,30 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		return ( this.getCurrentIndex() - 1 ) > -1;
 	},
 	/**
-	 * Respond to the keyboard events: right arrow, left arrow, except when
-	 * focus is in a textarea or input field.
+	 * Respond to the keyboard events: Alt + right arrow, Alt + left arrow,
+	 * except when focus is in a form field. Requires the Alt modifier key to
+	 * avoid interfering with screen reader navigation.
+	 *
+	 * @param {Event} event The keyboard event.
 	 */
 	keyEvent: function( event ) {
-		if ( ( 'INPUT' === event.target.nodeName || 'TEXTAREA' === event.target.nodeName ) && ! event.target.disabled ) {
+		if ( ( 'INPUT' === event.target.nodeName || 'TEXTAREA' === event.target.nodeName || 'SELECT' === event.target.nodeName ) && ! event.target.disabled ) {
 			return;
 		}
 
-		// Return if Ctrl + Shift or Shift key pressed
-		if ( event.shiftKey || ( event.ctrlKey && event.shiftKey ) ) {
+		// Arrow key navigation requires Alt key to avoid interfering with screen reader navigation.
+		if ( ! event.altKey ) {
 			return;
 		}
 
-		// The right arrow key.
+		// Alt + right arrow key.
 		if ( 39 === event.keyCode ) {
+			event.preventDefault();
 			this.nextMediaItem();
 		}
-		// The left arrow key.
+		// Alt + left arrow key.
 		if ( 37 === event.keyCode ) {
+			event.preventDefault();
 			this.previousMediaItem();
 		}
 	},

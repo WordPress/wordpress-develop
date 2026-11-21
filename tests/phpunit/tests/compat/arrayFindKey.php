@@ -5,7 +5,7 @@
  *
  * @covers ::array_find_key
  */
-class Test_Compat_arrayFindKey extends WP_UnitTestCase {
+class Tests_Compat_arrayFindKey extends WP_UnitTestCase {
 
 	/**
 	 * Test that array_find_key() is always available (either from PHP or WP).
@@ -34,7 +34,7 @@ class Test_Compat_arrayFindKey extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_array_find_key(): array {
+	public static function data_array_find_key(): array {
 		return array(
 			'empty array'          => array(
 				'expected' => null,
