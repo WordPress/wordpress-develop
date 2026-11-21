@@ -142,10 +142,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			self::delete_user( $author );
 		}
 
-		_unregister_post_type( 'r_true_p_true' );
-		_unregister_post_type( 'r_true_p_false' );
-		_unregister_post_type( 'r_false_p_true' );
-		_unregister_post_type( 'r_false_p_false' );
+		unregister_post_type( 'r_true_p_true' );
+		unregister_post_type( 'r_true_p_false' );
+		unregister_post_type( 'r_false_p_true' );
+		unregister_post_type( 'r_false_p_false' );
 
 		if ( is_multisite() ) {
 			wp_delete_site( self::$site );
