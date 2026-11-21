@@ -136,6 +136,9 @@
  *     offset?: scalar,
  *     showposts?: scalar,
  *     posts_per_archive_page?: scalar,
+ *     withcomments?: scalar,
+ *     withoutcomments?: scalar,
+ *     comments_per_page?: scalar,
  *     ...<array-key, mixed>
  * }
  *
@@ -939,6 +942,17 @@ class WP_Query {
 		}
 		if ( isset( $query_vars['posts_per_archive_page'] ) && ! is_scalar( $query_vars['posts_per_archive_page'] ) ) {
 			unset( $query_vars['posts_per_archive_page'] );
+		}
+
+		// Comment query vars which take a single value. These are only set when given, so any other value is removed.
+		if ( isset( $query_vars['withcomments'] ) && ! is_scalar( $query_vars['withcomments'] ) ) {
+			unset( $query_vars['withcomments'] );
+		}
+		if ( isset( $query_vars['withoutcomments'] ) && ! is_scalar( $query_vars['withoutcomments'] ) ) {
+			unset( $query_vars['withoutcomments'] );
+		}
+		if ( isset( $query_vars['comments_per_page'] ) && ! is_scalar( $query_vars['comments_per_page'] ) ) {
+			unset( $query_vars['comments_per_page'] );
 		}
 
 		$query_vars['error']         = is_scalar( $query_vars['error'] ) ? $query_vars['error'] : '';

@@ -423,6 +423,19 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a non-scalar number of comments per page is replaced with the option.
+	 *
+	 * @ticket 60745
+	 */
+	public function test_comments_per_page_given_non_scalar_uses_option(): void {
+		update_option( 'comments_per_page', 7 );
+
+		$query = new WP_Query( array( 'comments_per_page' => array( 'admin' ) ) );
+
+		$this->assertSame( 7, $query->query_vars['comments_per_page'] );
+	}
+
+	/**
 	 * Data provider for the optional single-value query var tests.
 	 *
 	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
@@ -432,6 +445,8 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 			'offset'                 => array( 'offset' ),
 			'showposts'              => array( 'showposts' ),
 			'posts_per_archive_page' => array( 'posts_per_archive_page' ),
+			'withcomments'           => array( 'withcomments' ),
+			'withoutcomments'        => array( 'withoutcomments' ),
 		);
 	}
 }
