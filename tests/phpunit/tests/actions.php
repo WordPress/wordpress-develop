@@ -57,6 +57,26 @@ class Tests_Actions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 36786
+	 */
+	public function test_get_call_count_by_hook_name_for_actions() {
+		$a           = new MockAction();
+		$hook_name_1 = __FUNCTION__ . '_1';
+		$hook_name_2 = __FUNCTION__ . '_2';
+
+		add_action( $hook_name_1, array( $a, 'action' ) );
+		add_action( $hook_name_2, array( $a, 'action' ) );
+		do_action( $hook_name_1 );
+		do_action( $hook_name_2 );
+		do_action( $hook_name_2 );
+
+		$this->assertSame( 1, $a->get_call_count( $hook_name_1 ), 'Calls to the first hook should be counted.' );
+		$this->assertSame( 2, $a->get_call_count( $hook_name_2 ), 'Calls to the second hook should be counted.' );
+		$this->assertSame( 0, $a->get_call_count( 'action' ), 'The callback method name should not be counted as a hook name.' );
+		$this->assertSame( 3, $a->get_call_count(), 'All calls should be counted when no hook name is passed.' );
+	}
+
+	/**
 	 * @covers ::remove_action
 	 */
 	public function test_remove_action() {
