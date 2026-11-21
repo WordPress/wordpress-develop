@@ -326,7 +326,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_context_param_with_data_provider() {
+	public static function data_context_param_with_data_provider() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
@@ -420,7 +420,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_items_with_data_provider() {
+	public static function data_get_items_with_data_provider() {
 		return array(
 			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
@@ -462,7 +462,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_items_endpoint_should_return_unauthorized_https_status_code_for_unauthorized_request() {
+	public static function data_get_items_endpoint_should_return_unauthorized_https_status_code_for_unauthorized_request() {
 		return array(
 			'templates, GET request'       => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'GET' ),
 			'templates, HEAD request'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'HEAD' ),
@@ -493,7 +493,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_items_endpoint_should_return_forbidden_https_status_code_for_users_with_insufficient_permissions() {
+	public static function data_get_items_endpoint_should_return_forbidden_https_status_code_for_users_with_insufficient_permissions() {
 		return array(
 			'templates, GET request'       => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'GET' ),
 			'templates, HEAD request'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'HEAD' ),
@@ -529,7 +529,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_items_for_templates_based_on_theme_files_should_return_bad_response_status() {
+	public static function data_get_items_for_templates_based_on_theme_files_should_return_bad_response_status() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
 			'template parts' => array( 'template-parts', self::TEST_THEME . '//small-header' ),
@@ -563,7 +563,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_item_for_templates_based_on_theme_files_should_return_bad_response_status() {
+	public static function data_get_item_for_templates_based_on_theme_files_should_return_bad_response_status() {
 		return array(
 			'templates'      => array( 'templates', self::TEST_THEME . '//page-home' ),
 			'template parts' => array( 'template-parts', self::TEST_THEME . '//small-header' ),
@@ -635,7 +635,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_item_with_data_provider() {
+	public static function data_get_item_with_data_provider() {
 		return array(
 			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
@@ -729,7 +729,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_item_not_found() {
+	public static function data_get_item_not_found() {
 		return array(
 			'templates, GET request'       => array( 'template_post', 'templates', 'GET' ),
 			'templates, HEAD request'      => array( 'template_post', 'templates', 'HEAD' ),
@@ -772,7 +772,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_item_invalid_parent_id() {
+	public static function data_get_item_invalid_parent_id() {
 		return array(
 			'templates, GET request'       => array(
 				'template_post',
@@ -881,7 +881,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_prepare_item_with_data_provider() {
+	public static function data_prepare_item_with_data_provider() {
 		return array(
 			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
@@ -943,7 +943,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_get_item_schema_with_data_provider() {
+	public static function data_get_item_schema_with_data_provider() {
 		return array(
 			'templates'      => array(
 				'templates',
@@ -1051,7 +1051,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_delete_item_with_data_provider() {
+	public static function data_delete_item_with_data_provider() {
 		return array(
 			'templates'      => array(
 				'template_post',
@@ -1097,7 +1097,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_delete_item_incorrect_permission() {
+	public static function data_delete_item_incorrect_permission() {
 		return array(
 			'templates'      => array(
 				'template_post',
@@ -1144,7 +1144,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_delete_item_no_permission() {
+	public static function data_delete_item_no_permission() {
 		return array(
 			'templates'      => array(
 				'template_post',
@@ -1190,7 +1190,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 *
 	 * @return array
 	 */
-	public function data_delete_item_not_found() {
+	public static function data_delete_item_not_found() {
 		return array(
 			'templates'      => array(
 				'template_post',

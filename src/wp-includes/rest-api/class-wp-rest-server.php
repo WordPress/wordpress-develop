@@ -1066,9 +1066,7 @@ class WP_REST_Server {
 				$handlers = array( $handlers );
 			}
 
-			if ( ! isset( $this->route_options[ $route ] ) ) {
-				$this->route_options[ $route ] = array();
-			}
+			$this->route_options[ $route ] ??= array();
 
 			foreach ( $handlers as $key => &$handler ) {
 
@@ -1859,12 +1857,6 @@ class WP_REST_Server {
 
 			if ( $callback_batch ) {
 				$endpoint_data['allow_batch'] = $callback_batch;
-			}
-
-			$data_processing = self::resolve_data_processing( $callback, $route_options );
-
-			if ( in_array( false, $data_processing, true ) ) {
-				$endpoint_data['data_processing'] = $data_processing;
 			}
 
 			if ( isset( $callback['args'] ) ) {

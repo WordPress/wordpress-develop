@@ -181,8 +181,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.7.1
 	 *
-	 * @param bool    $required Whether the post requires a password check.
-	 * @param WP_Post $post     The post been password checked.
+	 * @param bool         $required Whether the post requires a password check.
+	 * @param WP_Post|null $post     The post being password checked, or null if no post is found.
 	 * @return bool Result of password check taking into account REST API considerations.
 	 */
 	public function check_password_required( $required, $post ) {
@@ -1392,12 +1392,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Author.
 		if ( ! empty( $schema['properties']['author'] ) && ! empty( $request['author'] ) ) {
-			$post_author = (int) $request['author'];
+			$post_author    = (int) $request['author'];
+			$current_author = isset( $existing_post ) ? (int) $existing_post->post_author : 0;
 
-			if ( get_current_user_id() !== $post_author ) {
-				$user_obj = get_userdata( $post_author );
-
-				if ( ! $user_obj ) {
+			if ( get_current_user_id() !== $post_author && $current_author !== $post_author ) {
+				if ( ! is_user_member_of_blog( $post_author ) ) {
 					return new WP_Error(
 						'rest_invalid_author',
 						__( 'Invalid author ID.' ),

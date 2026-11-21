@@ -26,7 +26,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 *
 	 * @var string[]
 	 */
-	const EVERY_POST_TYPE_FIELDS = array( 'date', 'last_edited_date', 'password', 'scheduled_date', 'status', 'template' );
+	const EVERY_POST_TYPE_FIELDS = array( 'date', 'last_edited_date', 'password', 'publish_date', 'scheduled_date', 'status', 'template' );
 
 	/**
 	 * The script module of the default fields of the post types.
@@ -63,9 +63,6 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 * Restores the theme features a test changed.
 	 */
 	public function tear_down() {
-		unregister_post_type( 'test_book' );
-		unregister_post_type( 'test_note' );
-
 		global $_wp_theme_features;
 
 		$_wp_theme_features = $this->theme_features;
@@ -243,7 +240,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 * @return array[] The id of each field and whether the design post types
 	 *                 exclude it.
 	 */
-	public function data_default_fields_of_every_post_type() {
+	public static function data_default_fields_of_every_post_type() {
 		return array(
 			'date'             => array( 'date', true ),
 			'last_edited_date' => array( 'last_edited_date', false ),
@@ -285,7 +282,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 *
 	 * @return array[] The id of each field and the supports that give it.
 	 */
-	public function data_default_fields_and_their_supports() {
+	public static function data_default_fields_and_their_supports() {
 		return array(
 			'discussion'        => array( 'discussion', array( 'comments', 'trackbacks' ) ),
 			'excerpt'           => array( 'excerpt', array( 'excerpt' ) ),

@@ -143,8 +143,6 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 	 * @covers ::get_page_link
 	 */
 	public function test_get_page_link_accepts_post_object() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$this->assertSame( home_url( '/parent-page/child-page/' ), get_page_link( get_post( self::$child_page_id ) ) );
 	}
 
@@ -156,8 +154,6 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 	 * @covers ::get_page_link
 	 */
 	public function test_get_page_link_defaults_to_global_post() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$GLOBALS['post'] = get_post( self::$child_page_id );
 
 		$this->assertSame( home_url( '/parent-page/child-page/' ), get_page_link() );
@@ -172,8 +168,6 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 	 * @covers ::_get_page_link
 	 */
 	public function test_get_page_link_leavename_keeps_placeholder() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$this->assertSame( home_url( '/%pagename%/' ), get_page_link( self::$parent_page_id, true ) );
 	}
 
@@ -186,8 +180,6 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 	 * @covers ::_get_page_link
 	 */
 	public function test_get_page_link_draft_page() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$this->assertSame( home_url( '?page_id=' . self::$draft_page_id ), get_page_link( self::$draft_page_id ), 'A draft page should use a plain link.' );
 		$this->assertSame( home_url( '/draft-page/' ), get_page_link( self::$draft_page_id, false, true ), 'A sample permalink should use the page path.' );
 	}
@@ -201,8 +193,6 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 	 * @covers ::_get_page_link
 	 */
 	public function test_get_page_link_private_page_depends_on_capability() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$this->assertSame( home_url( '?page_id=' . self::$private_page_id ), get_page_link( self::$private_page_id ), 'A logged-out user should get a plain link.' );
 
 		wp_set_current_user( self::$subscriber_id );
@@ -222,8 +212,6 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 	 * @covers ::get_page_link
 	 */
 	public function test_get_page_link_static_front_page_returns_home_url() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', self::$parent_page_id );
 
@@ -239,8 +227,6 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 	 * @covers ::get_page_link
 	 */
 	public function test_get_page_link_ignores_page_on_front_when_showing_posts() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		update_option( 'show_on_front', 'posts' );
 		update_option( 'page_on_front', self::$parent_page_id );
 
@@ -255,8 +241,6 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 	 * @covers ::_get_page_link
 	 */
 	public function test_private_get_page_link_ignores_static_front_page() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', self::$parent_page_id );
 
@@ -271,8 +255,6 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 	 * @covers ::get_page_link
 	 */
 	public function test_get_page_link_page_link_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$filter = new MockAction();
 		add_filter( 'page_link', array( $filter, 'filter' ), 10, 3 );
 		add_filter(
@@ -329,8 +311,6 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 	 * @covers ::get_page_link
 	 */
 	public function test_get_page_link_private_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$filter = new MockAction();
 		add_filter( '_get_page_link', array( $filter, 'filter' ), 10, 2 );
 		add_filter(

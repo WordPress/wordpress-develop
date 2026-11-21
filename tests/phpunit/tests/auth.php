@@ -973,6 +973,23 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures an ID that does not belong to a user request is rejected without warnings.
+	 *
+	 * @ticket 66389
+	 */
+	public function test_user_request_key_handling_for_missing_request() {
+		$post_id = self::factory()->post->create();
+
+		$check = wp_validate_user_request_key( $post_id, 'invalid' );
+		$this->assertWPError( $check );
+		$this->assertSame( 'invalid_request', $check->get_error_code() );
+
+		$check = wp_validate_user_request_key( PHP_INT_MAX, 'invalid' );
+		$this->assertWPError( $check );
+		$this->assertSame( 'invalid_request', $check->get_error_code() );
+	}
+
+	/**
 	 * @ticket 21022
 	 */
 	public function test_user_request_key_handling() {
