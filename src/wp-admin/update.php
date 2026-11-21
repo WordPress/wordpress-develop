@@ -22,7 +22,7 @@ wp_enqueue_script( 'wp-a11y' );
 if ( isset( $_GET['action'] ) ) {
 	$plugin = isset( $_REQUEST['plugin'] ) ? trim( $_REQUEST['plugin'] ) : '';
 	$theme  = isset( $_REQUEST['theme'] ) ? urldecode( $_REQUEST['theme'] ) : '';
-	$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
+	$action = $_REQUEST['action'] ?? '';
 
 	if ( 'update-selected' === $action ) {
 		if ( ! current_user_can( 'update_plugins' ) ) {
@@ -87,7 +87,7 @@ if ( isset( $_GET['action'] ) ) {
 			wp_redirect( admin_url( 'update.php?action=activate-plugin&success=true&plugin=' . urlencode( $plugin ) . '&_wpnonce=' . $_GET['_wpnonce'] ) );
 			die();
 		}
-		iframe_header( __( 'Plugin Reactivation' ), true );
+		iframe_header( __( 'Plugin Reactivation' ) );
 		if ( isset( $_GET['success'] ) ) {
 			echo '<p>' . __( 'Plugin reactivated successfully.' ) . '</p>';
 		}
@@ -179,7 +179,7 @@ if ( isset( $_GET['action'] ) ) {
 		$upgrader = new Plugin_Upgrader( new Plugin_Installer_Skin( compact( 'type', 'title', 'nonce', 'url', 'overwrite' ) ) );
 		$result   = $upgrader->install( $file_upload->package, array( 'overwrite_package' => $overwrite ) );
 
-		if ( $result || is_wp_error( $result ) ) {
+		if ( $result ) {
 			$file_upload->cleanup();
 		}
 
@@ -283,7 +283,7 @@ if ( isset( $_GET['action'] ) ) {
 		// Used in the HTML title tag.
 		$title        = __( 'Install Themes' );
 		$parent_file  = 'themes.php';
-		$submenu_file = 'themes.php';
+		$submenu_file = 'theme-install.php';
 
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
@@ -331,7 +331,7 @@ if ( isset( $_GET['action'] ) ) {
 		$upgrader = new Theme_Upgrader( new Theme_Installer_Skin( compact( 'type', 'title', 'nonce', 'url', 'overwrite' ) ) );
 		$result   = $upgrader->install( $file_upload->package, array( 'overwrite_package' => $overwrite ) );
 
-		if ( $result || is_wp_error( $result ) ) {
+		if ( $result ) {
 			$file_upload->cleanup();
 		}
 

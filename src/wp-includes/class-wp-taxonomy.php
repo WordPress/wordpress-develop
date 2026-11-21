@@ -160,8 +160,17 @@ final class WP_Taxonomy {
 	/**
 	 * Capabilities for this taxonomy.
 	 *
+	 * @see register_taxonomy()
+	 *
 	 * @since 4.7.0
-	 * @var stdClass
+	 * @var stdClass {
+	 *     Object with all the capabilities as member variables.
+	 *
+	 *     @type string $manage_terms Capability to manage terms. Default 'manage_categories'.
+	 *     @type string $edit_terms   Capability to edit terms. Default 'manage_categories'.
+	 *     @type string $delete_terms Capability to delete terms. Default 'manage_categories'.
+	 *     @type string $assign_terms Capability to assign terms. Default 'edit_posts'.
+	 * }
 	 */
 	public $cap;
 
@@ -367,9 +376,7 @@ final class WP_Taxonomy {
 		$args = array_merge( $defaults, $args );
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['publicly_queryable'] ) {
-			$args['publicly_queryable'] = $args['public'];
-		}
+		$args['publicly_queryable'] ??= $args['public'];
 
 		if ( false !== $args['query_var'] && ( is_admin() || false !== $args['publicly_queryable'] ) ) {
 			if ( true === $args['query_var'] ) {
@@ -398,9 +405,7 @@ final class WP_Taxonomy {
 		}
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['show_ui'] ) {
-			$args['show_ui'] = $args['public'];
-		}
+		$args['show_ui'] ??= $args['public'];
 
 		// If not set, default to the setting for 'show_ui'.
 		if ( null === $args['show_in_menu'] || ! $args['show_ui'] ) {
@@ -408,19 +413,13 @@ final class WP_Taxonomy {
 		}
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['show_in_nav_menus'] ) {
-			$args['show_in_nav_menus'] = $args['public'];
-		}
+		$args['show_in_nav_menus'] ??= $args['public'];
 
 		// If not set, default to the setting for 'show_ui'.
-		if ( null === $args['show_tagcloud'] ) {
-			$args['show_tagcloud'] = $args['show_ui'];
-		}
+		$args['show_tagcloud'] ??= $args['show_ui'];
 
 		// If not set, default to the setting for 'show_ui'.
-		if ( null === $args['show_in_quick_edit'] ) {
-			$args['show_in_quick_edit'] = $args['show_ui'];
-		}
+		$args['show_in_quick_edit'] ??= $args['show_ui'];
 
 		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
 		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {
@@ -624,7 +623,7 @@ final class WP_Taxonomy {
 			'edit_item'                  => array( __( 'Edit Tag' ), __( 'Edit Category' ) ),
 			'view_item'                  => array( __( 'View Tag' ), __( 'View Category' ) ),
 			'update_item'                => array( __( 'Update Tag' ), __( 'Update Category' ) ),
-			'add_new_item'               => array( __( 'Add Tag' ), __( 'Add New Category' ) ),
+			'add_new_item'               => array( __( 'Add Tag' ), __( 'Add Category' ) ),
 			'new_item_name'              => array( __( 'New Tag Name' ), __( 'New Category Name' ) ),
 			'separate_items_with_commas' => array( __( 'Separate tags with commas' ), null ),
 			'add_or_remove_items'        => array( __( 'Add or remove tags' ), null ),

@@ -47,6 +47,8 @@ AttachmentFilters = wp.media.View.extend(/** @lends wp.media.view.AttachmentFilt
 	},
 
 	/**
+	 * Creates the filters for the view.
+	 *
 	 * @abstract
 	 */
 	createFilters: function() {
@@ -54,7 +56,7 @@ AttachmentFilters = wp.media.View.extend(/** @lends wp.media.view.AttachmentFilt
 	},
 
 	/**
-	 * When the selected filter changes, update the Attachment Query properties to match.
+	 * Updates the Attachment Query properties to match when the selected filter changes.
 	 */
 	change: function() {
 		var filter = this.filters[ this.el.value ];
@@ -63,6 +65,9 @@ AttachmentFilters = wp.media.View.extend(/** @lends wp.media.view.AttachmentFilt
 		}
 	},
 
+	/**
+	 * Selects the filter based on the Attachment Query properties.
+	 */
 	select: function() {
 		var model = this.model,
 			value = 'all',

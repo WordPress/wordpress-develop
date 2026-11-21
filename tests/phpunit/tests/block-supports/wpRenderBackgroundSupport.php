@@ -24,11 +24,21 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @ticket 65893
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
-		$this->test_block_name = null;
-		$this->theme_root      = realpath( DIR_TESTDATA . '/themedir1' );
-		$this->orig_theme_dir  = $GLOBALS['wp_theme_directories'];
+		$this->test_block_name     = null;
+		$this->original_stylesheet = get_stylesheet();
+		$this->theme_root          = realpath( DIR_TESTDATA . '/themedir1' );
+		$this->orig_theme_dir      = $GLOBALS['wp_theme_directories'];
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
@@ -40,7 +50,6 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 	}
 
 	public function tear_down() {
@@ -53,7 +62,11 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		unregister_block_type( $this->test_block_name );
 		$this->test_block_name = null;
 		parent::tear_down();
@@ -71,6 +84,8 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 * @ticket 61123
 	 * @ticket 61720
 	 * @ticket 61858
+	 * @ticket 64974
+	 * @ticket 66094
 	 *
 	 * @covers ::wp_render_background_support
 	 *
@@ -125,9 +140,9 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_background_block_support() {
+	public static function data_background_block_support() {
 		return array(
-			'background image style is applied' => array(
+			'background image style is applied'      => array(
 				'theme_name'          => 'block-theme-child-with-fluid-typography',
 				'block_name'          => 'test/background-rules-are-output',
 				'background_settings' => array(
@@ -138,7 +153,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 						'url' => 'https://example.com/image.jpg',
 					),
 				),
-				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
+				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&apos;https://example.com/image.jpg&apos;);background-size:cover;">Content</div>',
 				'wrapper'             => '<div>Content</div>',
 			),
 			'background image style with contain, position, attachment, and repeat is applied' => array(
@@ -155,7 +170,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 					'backgroundSize'       => 'contain',
 					'backgroundAttachment' => 'fixed',
 				),
-				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&#039;https://example.com/image.jpg&#039;);background-position:50% 50%;background-repeat:no-repeat;background-size:contain;background-attachment:fixed;">Content</div>',
+				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&apos;https://example.com/image.jpg&apos;);background-position:50% 50%;background-repeat:no-repeat;background-size:contain;background-attachment:fixed;">Content</div>',
 				'wrapper'             => '<div>Content</div>',
 			),
 			'background image style is appended if a style attribute already exists' => array(
@@ -169,7 +184,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 						'url' => 'https://example.com/image.jpg',
 					),
 				),
-				'expected_wrapper'    => '<div class="wp-block-test has-background" style="color: red;background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
+				'expected_wrapper'    => '<div class="wp-block-test has-background" style="color: red;background-image:url(&apos;https://example.com/image.jpg&apos;);background-size:cover;">Content</div>',
 				'wrapper'             => '<div class="wp-block-test" style="color: red">Content</div>',
 			),
 			'background image style is appended if a style attribute containing multiple styles already exists' => array(
@@ -183,8 +198,91 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 						'url' => 'https://example.com/image.jpg',
 					),
 				),
-				'expected_wrapper'    => '<div class="wp-block-test has-background" style="color: red;font-size: 15px;background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
+				'expected_wrapper'    => '<div class="wp-block-test has-background" style="color: red;font-size: 15px;background-image:url(&apos;https://example.com/image.jpg&apos;);background-size:cover;">Content</div>',
 				'wrapper'             => '<div class="wp-block-test" style="color: red;font-size: 15px;">Content</div>',
+			),
+			'background image style is appended if a boolean style attribute already exists' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-rules-are-output',
+				'background_settings' => array(
+					'backgroundImage' => true,
+				),
+				'background_style'    => array(
+					'backgroundImage' => array(
+						'url'    => 'https://example.com/image.jpg',
+						'source' => 'file',
+					),
+				),
+				'expected_wrapper'    => '<div class="has-background" classname="wp-block-test" style="background-image:url(&apos;https://example.com/image.jpg&apos;);background-size:cover;">Content</div>',
+				'wrapper'             => '<div classname="wp-block-test" style>Content</div>',
+			),
+			'background gradient style is applied'   => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-gradient-rules-are-output',
+				'background_settings' => array(
+					'gradient' => true,
+				),
+				'background_style'    => array(
+					'gradient' => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+				),
+				'expected_wrapper'    => '<div class="has-background" style="background-image:linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%);">Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background gradient style is not applied if the block does not support it' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-gradient-rules-are-not-output',
+				'background_settings' => array(
+					'gradient' => false,
+				),
+				'background_style'    => array(
+					'gradient' => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+				),
+				'expected_wrapper'    => '<div>Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background gradient style with preset slug is applied' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-gradient-preset-slug',
+				'background_settings' => array(
+					'gradient' => true,
+				),
+				'background_style'    => array(
+					'gradient' => 'var:preset|gradient|vivid-cyan-blue',
+				),
+				'expected_wrapper'    => '<div class="has-background" style="background-image:var(--wp--preset--gradient--vivid-cyan-blue);">Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background gradient and image combined' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-gradient-and-image-combined',
+				'background_settings' => array(
+					'backgroundImage' => true,
+					'gradient'        => true,
+				),
+				'background_style'    => array(
+					'backgroundImage' => array(
+						'url' => 'https://example.com/image.jpg',
+					),
+					'gradient'        => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+				),
+				'expected_wrapper'    => '<div class="has-background" style="background-image:linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%), url(&apos;https://example.com/image.jpg&apos;);background-size:cover;">Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background gradient with hsl colors and image combined' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-gradient-hsl-and-image',
+				'background_settings' => array(
+					'backgroundImage' => true,
+					'gradient'        => true,
+				),
+				'background_style'    => array(
+					'backgroundImage' => array(
+						'url' => 'https://example.com/image.jpg',
+					),
+					'gradient'        => 'linear-gradient(135deg,hsl(0,100%,50%) 0%,hsl(240,100%,50%) 100%)',
+				),
+				'expected_wrapper'    => '<div class="has-background" style="background-image:linear-gradient(135deg,hsl(0,100%,50%) 0%,hsl(240,100%,50%) 100%), url(&apos;https://example.com/image.jpg&apos;);background-size:cover;">Content</div>',
+				'wrapper'             => '<div>Content</div>',
 			),
 			'background image style is not applied if the block does not support background image' => array(
 				'theme_name'          => 'block-theme-child-with-fluid-typography',
@@ -199,6 +297,188 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 				),
 				'expected_wrapper'    => '<div>Content</div>',
 				'wrapper'             => '<div>Content</div>',
+			),
+			'background clip alone does not add has-background' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-clip-is-output',
+				'background_settings' => array(
+					'backgroundClip' => true,
+				),
+				'background_style'    => array(
+					'backgroundClip' => 'border-box',
+				),
+				'expected_wrapper'    => '<div style="background-clip:border-box;-webkit-text-fill-color:currentColor;">Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background clip text style is applied with vendor prefixes' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-clip-text-is-output',
+				'background_settings' => array(
+					'backgroundClip' => true,
+				),
+				'background_style'    => array(
+					'backgroundClip' => 'text',
+				),
+				'expected_wrapper'    => '<div style="background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background clip alone does not add has-background for block with only backgroundClip support' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-clip-only-support',
+				'background_settings' => array(
+					'backgroundClip' => true,
+				),
+				'background_style'    => array(
+					'backgroundClip' => 'padding-box',
+				),
+				'expected_wrapper'    => '<p style="background-clip:padding-box;-webkit-text-fill-color:currentColor;">Content</p>',
+				'wrapper'             => '<p>Content</p>',
+			),
+			'background clip style is not applied if the block does not support it' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-clip-not-supported',
+				'background_settings' => array(
+					'backgroundClip' => false,
+				),
+				'background_style'    => array(
+					'backgroundClip' => 'text',
+				),
+				'expected_wrapper'    => '<div>Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background clip keeps has-background when a background is painted into a box' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-clip-with-gradient',
+				'background_settings' => array(
+					'gradient'       => true,
+					'backgroundClip' => true,
+				),
+				'background_style'    => array(
+					'gradient'       => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+					'backgroundClip' => 'padding-box',
+				),
+				'expected_wrapper'    => '<div class="has-background" style="background-image:linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%);background-clip:padding-box;-webkit-text-fill-color:currentColor;">Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background clipped to text drops has-background from a gradient' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-clip-text-with-gradient',
+				'background_settings' => array(
+					'gradient'       => true,
+					'backgroundClip' => true,
+				),
+				'background_style'    => array(
+					'gradient'       => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+					'backgroundClip' => 'text',
+				),
+				'expected_wrapper'    => '<div style="background-image:linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background clipped to text keeps has-background when the block does not support the clip' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-clip-text-without-clip-support',
+				'background_settings' => array(
+					'gradient'       => true,
+					'backgroundClip' => false,
+				),
+				'background_style'    => array(
+					'gradient'       => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+					'backgroundClip' => 'text',
+				),
+				'expected_wrapper'    => '<div class="has-background" style="background-image:linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%);">Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background clip style is appended to existing styles' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-clip-appends-styles',
+				'background_settings' => array(
+					'backgroundClip' => true,
+				),
+				'background_style'    => array(
+					'backgroundClip' => 'content-box',
+				),
+				'expected_wrapper'    => '<div class="wp-block-test" style="color: red;background-clip:content-box;-webkit-text-fill-color:currentColor;">Content</div>',
+				'wrapper'             => '<div class="wp-block-test" style="color: red">Content</div>',
+			),
+		);
+	}
+
+	/**
+	 * Tests that gradient background CSS values pass KSES.
+	 *
+	 * safecss_filter_attr() removes each url() and gradient from its safety test
+	 * string, so gradients that use functions beyond rgb()/rgba(), and gradients
+	 * combined with a url() background image (in either order), survive
+	 * sanitization.
+	 *
+	 * @ticket 64974
+	 *
+	 * @covers ::safecss_filter_attr
+	 *
+	 * @dataProvider data_background_gradient_values_pass_kses
+	 *
+	 * @param string $css The CSS declaration to test.
+	 */
+	public function test_background_gradient_values_pass_kses( $css ) {
+		$result = safecss_filter_attr( $css );
+		$this->assertNotEmpty( $result, "Expected CSS to be allowed: $css" );
+		$this->assertStringContainsString( 'background-image', $result );
+	}
+
+	/**
+	 * Data provider for gradient background-image KSES tests.
+	 *
+	 * @return array[]
+	 */
+	public static function data_background_gradient_values_pass_kses() {
+		return array(
+			'gradient first with rgb colors'     => array(
+				'background-image: linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%), url(https://example.com/image.jpg)',
+			),
+			'url first with rgb colors'          => array(
+				'background-image: url(https://example.com/image.jpg), linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%)',
+			),
+			'gradient first with rgba colors'    => array(
+				'background-image: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(255,255,255,0.2) 100%), url(https://example.com/image.jpg)',
+			),
+			'gradient first with hsl colors'     => array(
+				'background-image: linear-gradient(135deg, hsl(0, 100%, 50%) 0%, hsl(240, 100%, 50%) 100%), url(https://example.com/image.jpg)',
+			),
+			'gradient first with hsla colors'    => array(
+				'background-image: linear-gradient(135deg, hsla(0, 100%, 50%, 0.8) 0%, hsla(240, 100%, 50%, 0.5) 100%), url(https://example.com/image.jpg)',
+			),
+			'gradient first with oklch colors'   => array(
+				'background-image: linear-gradient(135deg, oklch(0.7 0.15 30) 0%, oklch(0.5 0.2 260) 100%), url(https://example.com/image.jpg)',
+			),
+			'gradient first with lab colors'     => array(
+				'background-image: linear-gradient(135deg, lab(50% 40 59.5) 0%, lab(70% -45 0) 100%), url(https://example.com/image.jpg)',
+			),
+			'radial gradient with url'           => array(
+				'background-image: radial-gradient(circle, rgb(255,0,0) 0%, rgb(0,0,255) 100%), url(https://example.com/image.jpg)',
+			),
+			'conic gradient with url'            => array(
+				'background-image: conic-gradient(rgb(255,0,0), rgb(0,0,255)), url(https://example.com/image.jpg)',
+			),
+			'repeating-linear gradient with url' => array(
+				'background-image: repeating-linear-gradient(45deg, rgb(255,0,0) 0px, rgb(0,0,255) 40px), url(https://example.com/image.jpg)',
+			),
+			'var preset gradient first with url' => array(
+				'background-image: var(--wp--preset--gradient--vivid-cyan-blue), url(https://example.com/image.jpg)',
+			),
+			'url first with var preset gradient' => array(
+				'background-image: url(https://example.com/image.jpg), var(--wp--preset--gradient--vivid-cyan-blue)',
+			),
+			'gradient with hex colors'           => array(
+				'background-image: linear-gradient(135deg, #ff0000 0%, #0000ff 100%), url(https://example.com/image.jpg)',
+			),
+			'standalone hsl gradient'            => array(
+				'background-image: linear-gradient(135deg, hsl(0, 100%, 50%) 0%, hsl(240, 100%, 50%) 100%)',
+			),
+			'standalone oklch gradient'          => array(
+				'background-image: linear-gradient(oklch(0.7 0.15 30), oklch(0.5 0.2 260))',
+			),
+			'standalone gradient with calc'      => array(
+				'background-image: linear-gradient(red 0%, blue calc(50% + 10px))',
 			),
 		);
 	}

@@ -2,14 +2,10 @@
 
 /**
  * @group rewrite
+ *
+ * @covers ::add_rewrite_rule
  */
 class Tests_Rewrite_AddRewriteRule extends WP_UnitTestCase {
-
-	public function set_up() {
-		parent::set_up();
-
-		$this->set_permalink_structure( '/%postname%/' );
-	}
 
 	/**
 	 * @ticket 16840

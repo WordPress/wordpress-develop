@@ -29,7 +29,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 		$template_name = 'test-plugin//test-template';
 		$template      = self::$registry->register( $template_name );
 
-		$this->assertSame( $template->slug, 'test-template' );
+		$this->assertSame( 'test-template', $template->slug );
 
 		self::$registry->unregister( $template_name );
 	}
@@ -248,6 +248,15 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63957
+	 *
+	 * @covers ::is_registered
+	 */
+	public function test_is_registered_with_null_template_name() {
+		$this->assertFalse( self::$registry->is_registered( null ) );
+	}
+
+	/**
 	 * Tests that unregister() correctly unregisters a registered template.
 	 *
 	 * @ticket 61804
@@ -264,7 +273,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 
 		$unregistered_template = self::$registry->unregister( $template_name );
 
-		$this->assertEquals( $template, $unregistered_template, 'Unregistered template should be the same as the registered one.' );
+		$this->assertSame( $template, $unregistered_template, 'Unregistered template should be the same as the registered one.' );
 		$this->assertFalse( self::$registry->is_registered( $template_name ), 'Template should not be registered after unregistering.' );
 	}
 

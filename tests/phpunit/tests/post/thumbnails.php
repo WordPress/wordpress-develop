@@ -287,7 +287,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	 * @ticket 12922
 	 */
 	public function test__wp_preview_post_thumbnail_filter() {
-		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$old_post = $GLOBALS['post'] ?? null;
 
 		$GLOBALS['post']           = self::$post;
 		$_REQUEST['_thumbnail_id'] = self::$attachment_id;
@@ -300,14 +300,14 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		unset( $_REQUEST['_thumbnail_id'] );
 		unset( $_REQUEST['preview_id'] );
 
-		$this->assertEquals( self::$attachment_id, $result );
+		$this->assertSame( (string) self::$attachment_id, $result );
 	}
 
 	/**
 	 * @ticket 37697
 	 */
 	public function test__wp_preview_post_thumbnail_filter_secondary_post() {
-		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$old_post = $GLOBALS['post'] ?? null;
 
 		$secondary_post = self::factory()->post->create(
 			array(
@@ -480,7 +480,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( ' loading="lazy"', $html );
 	}
 
-	public function data_post_thumbnail_size_filter_complex() {
+	public static function data_post_thumbnail_size_filter_complex() {
 		return array(
 			array( 0, 'medium' ),
 			array( 1, 'thumbnail' ),
