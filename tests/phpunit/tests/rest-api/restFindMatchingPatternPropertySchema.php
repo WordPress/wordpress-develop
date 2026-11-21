@@ -70,6 +70,13 @@ class Tests_REST_API_RestFindMatchingPatternPropertySchema extends WP_UnitTestCa
 				),
 				array( 'type' => 'string' ),
 			),
+			'integer name and pattern'  => array(
+				123,
+				array(
+					'123' => array( 'type' => 'string' ),
+				),
+				array( 'type' => 'string' ),
+			),
 		);
 	}
 
