@@ -2783,6 +2783,11 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
 /**
  * Retrieves a post meta field for the given post ID.
  *
+ * Unlike add_post_meta(), update_post_meta() and delete_post_meta(), which act on
+ * the parent post when given a revision ID, this function reads the meta stored on
+ * the revision itself. Revisions only store meta for keys registered with
+ * `revisions_enabled`, see register_post_meta().
+ *
  * @since 1.5.0
  *
  * @param int    $post_id Post ID.
@@ -2815,12 +2820,6 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  * )
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
-	// Make sure meta is get for the post, not for a revision.
-	$the_post = wp_is_post_revision( $post_id );
-	if ( $the_post ) {
-		$post_id = $the_post;
-	}
-
 	return get_metadata( 'post', $post_id, $key, $single );
 }
 
