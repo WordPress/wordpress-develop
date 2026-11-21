@@ -68,7 +68,8 @@ $preload_paths = array(
 	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'wp_block' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'wp_template' ), 'OPTIONS' ),
-	sprintf( '%s/autosaves?context=edit', $rest_path ),
+	// The editor requests only the current user's autosave.
+	sprintf( '%s/autosaves?context=edit&author=%d', $rest_path, get_current_user_id() ),
 	'/wp/v2/settings',
 	array( '/wp/v2/settings', 'OPTIONS' ),
 	'/wp/v2/global-styles/themes/' . $active_theme . '?context=view',
