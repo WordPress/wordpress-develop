@@ -1200,6 +1200,56 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		return $saved;
 	}
+	/**
+	 * Tests that sub-sizes with the same dimensions but different crop positions are saved to different files.
+	 *
+	 * @ticket 40370
+	 */
+	public function test_multi_resize_with_same_dimensions_and_different_crop_positions() {
+		$file = DIR_TESTDATA . '/images/waffles.jpg';
+
+		$image_editor = new WP_Image_Editor_GD( $file );
+		$image_editor->load();
+
+		$sizes = array(
+			'cropped'       => array(
+				'width'  => 50,
+				'height' => 50,
+				'crop'   => true,
+			),
+			'center-center' => array(
+				'width'  => 50,
+				'height' => 50,
+				'crop'   => array( 'center', 'center' ),
+			),
+			'center-top'    => array(
+				'width'  => 50,
+				'height' => 50,
+				'crop'   => array( 'center', 'top' ),
+			),
+			'center-bottom' => array(
+				'width'  => 50,
+				'height' => 50,
+				'crop'   => array( 'center', 'bottom' ),
+			),
+		);
+
+		$resized = $image_editor->multi_resize( $sizes );
+
+		$this->assertSame( 'waffles-50x50.jpg', $resized['cropped']['file'], 'Center cropped sub-sizes should keep the existing file name.' );
+		$this->assertSame( 'waffles-50x50.jpg', $resized['center-center']['file'], 'An explicit center crop position should keep the existing file name.' );
+		$this->assertMatchesRegularExpression( '/^waffles-50x50-[0-9a-f]{8}\.jpg$/', $resized['center-top']['file'], 'Non-center crop positions should have a hash in the file name.' );
+		$this->assertMatchesRegularExpression( '/^waffles-50x50-[0-9a-f]{8}\.jpg$/', $resized['center-bottom']['file'], 'Non-center crop positions should have a hash in the file name.' );
+		$this->assertNotSame( $resized['center-top']['file'], $resized['center-bottom']['file'], 'Different crop positions should be saved to different files.' );
+
+		foreach ( $resized as $size_data ) {
+			$this->assertFileExists( dirname( $file ) . '/' . $size_data['file'] );
+		}
+
+		// The editor should not carry the crop position over to images saved later.
+		$image_editor->resize( 25, 25, array( 'center', 'top' ) );
+		$this->assertSame( '25x25', $image_editor->get_suffix() );
+	}
 }
 
 /**
