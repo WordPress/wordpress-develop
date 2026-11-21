@@ -20,7 +20,7 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_option() {
+	public static function data_sanitize_option() {
 		return array(
 			array( 'admin_email', 'mail@example.com', 'mail@example.com' ),
 			array( 'admin_email', get_option( 'admin_email' ), 'invalid' ),
@@ -105,7 +105,7 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 		$this->assertSame( $expected, sanitize_option( 'upload_path', $provided ) );
 	}
 
-	public function data_sanitize_option_upload_path() {
+	public static function data_sanitize_option_upload_path() {
 		return array(
 			array( '<a href="http://www.example.com">Link</a>', 'Link' ),
 			array( '<scr' . 'ipt>url</scr' . 'ipt>', 'url' ),
@@ -143,6 +143,13 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	public function test_sanitize_option_permalink_structure( $provided, $expected, $valid ) {
 		global $wp_settings_errors;
 
+		$known_structure = WP_TESTS_DEFAULT_PERMALINK_STRUCTURE;
+		update_option( 'permalink_structure', $known_structure );
+
+		if ( false === $expected ) {
+			$expected = $known_structure;
+		}
+
 		$old_wp_settings_errors = (array) $wp_settings_errors;
 
 		$actual = sanitize_option( 'permalink_structure', $provided );
@@ -158,10 +165,10 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			$this->assertSame( 'invalid_permalink_structure', $errors[0]['code'] );
 		}
 
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_sanitize_option_permalink_structure() {
+	public static function data_sanitize_option_permalink_structure() {
 		return array(
 			array( '', '', true ),
 			array( '%postname', false, false ),

@@ -39,7 +39,7 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ input_list: mixed[]|string|int, expected: array<non-negative-int> }>
 	 */
-	public function data_wp_parse_id_list(): array {
+	public static function data_wp_parse_id_list(): array {
 		return array(
 			'regular'                  => array(
 				'input_list' => '1,2,3,4',
@@ -94,7 +94,7 @@ class Tests_Functions_wpParseIdList extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ input_list: mixed[]|string|int, expected: array<non-negative-int> }>
 	 */
-	public function data_unexpected_input(): array {
+	public static function data_unexpected_input(): array {
 		return array(
 			'string with commas' => array(
 				'input_list' => '1,2,string with spaces',

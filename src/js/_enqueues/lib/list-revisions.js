@@ -1,6 +1,11 @@
 /**
- * @param {Window} w The global window object.
  * @output wp-includes/js/wp-list-revisions.js
+ */
+
+/**
+ * Hides the revisions radio buttons to stop selecting reverse comparisons
+ *
+ * @param {Window} w The global window object.
  */
 
 (function(w) {

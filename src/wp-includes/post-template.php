@@ -37,14 +37,15 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  * @param string $before  Optional. Markup to prepend to the title. Default empty.
  * @param string $after   Optional. Markup to append to the title. Default empty.
  * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
- * @return void|string Void if `$display` argument is true or the title is empty,
- *                     current post title if `$display` is false.
+ * @return string|null|void Current post title when `$display` is false, null when the
+ *                          title is empty. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function the_title( $before = '', $after = '', $display = true ) {
 	$title = get_the_title();
 
 	if ( strlen( $title ) === 0 ) {
-		return;
+		return null;
 	}
 
 	$title = $before . $title . $after;
@@ -76,7 +77,13 @@ function the_title( $before = '', $after = '', $display = true ) {
  *     @type bool    $echo   Whether to echo or return the title. Default true for echo.
  *     @type WP_Post $post   Current post object to retrieve the title for.
  * }
- * @return void|string Void if 'echo' argument is true, the title attribute if 'echo' is false.
+ * @return string|null|void The title attribute when 'echo' is false, null when the title
+ *                          is empty. Nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string|null
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function the_title_attribute( $args = '' ) {
 	$defaults    = array(
@@ -90,7 +97,7 @@ function the_title_attribute( $args = '' ) {
 	$title = get_the_title( $parsed_args['post'] );
 
 	if ( strlen( $title ) === 0 ) {
-		return;
+		return null;
 	}
 
 	$title = $parsed_args['before'] . $title . $parsed_args['after'];
@@ -907,9 +914,9 @@ function post_password_required( $post = null ) {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param bool    $required Whether the user needs to supply a password. True if password has not been
-	 *                          provided or is incorrect, false if password has been supplied or is not required.
-	 * @param WP_Post $post     Post object.
+	 * @param bool         $required Whether the user needs to supply a password. True if password has not been
+	 *                               provided or is incorrect, false if password has been supplied or is not required.
+	 * @param WP_Post|null $post     Post object, or null if no post is found.
 	 */
 	return apply_filters( 'post_password_required', $required, $post );
 }
@@ -1103,8 +1110,11 @@ function _wp_link_page( $i ) {
  * @since 1.5.0
  *
  * @param string $key Meta data key name.
- * @return array|string|false Array of values, or single value if only one element exists.
- *                            False if the key does not exist.
+ * @return string[]|string|false Array of values, or single value if only one element exists.
+ *                               False if the key does not exist.
+ *                               Values are always strings, as described for {@see get_post_custom()}.
+ *
+ * @phpstan-return list<string>|string|false
  */
 function post_custom( $key = '' ) {
 	$custom = get_post_custom();
@@ -1264,6 +1274,7 @@ function wp_dropdown_pages( $args = '' ) {
  *
  * @since 1.5.0
  * @since 4.7.0 Added the `item_spacing` argument.
+ * @since 7.2.0 The `exclude` argument now accepts an array of page IDs (a comma-separated list string of IDs remains supported).
  *
  * @see get_pages()
  *
@@ -1280,8 +1291,8 @@ function wp_dropdown_pages( $args = '' ) {
  *                                           Accepts -1 (any depth), 0 (all pages), 1 (top-level pages only), and n (pages to
  *                                           the given n depth). Default 0.
  *     @type bool              $echo         Whether or not to echo the list of pages. Default true.
- *     @type string            $exclude      Comma-separated list of page IDs to exclude. Default empty.
- *     @type array             $include      Comma-separated list of page IDs to include. Default empty.
+ *     @type int[]             $exclude      Array of page IDs to exclude. Default empty array.
+ *     @type int[]             $include      Array of page IDs to include. Default empty array.
  *     @type string            $link_after   Text or HTML to follow the page link label. Default null.
  *     @type string            $link_before  Text or HTML to precede the page link label. Default null.
  *     @type string            $post_type    Post type to query for. Default 'page'.
@@ -1298,7 +1309,12 @@ function wp_dropdown_pages( $args = '' ) {
  *     @type Walker            $walker       Walker instance to use for listing pages. Default empty which results in a
  *                                           Walker_Page instance being used.
  * }
- * @return void|string Void if 'echo' argument is true, HTML list of pages if 'echo' is false.
+ * @return string|void HTML list of pages if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_list_pages( $args = '' ) {
 	$defaults = array(
@@ -1306,7 +1322,7 @@ function wp_list_pages( $args = '' ) {
 		'show_date'    => '',
 		'date_format'  => get_option( 'date_format' ),
 		'child_of'     => 0,
-		'exclude'      => '',
+		'exclude'      => array(),
 		'title_li'     => __( 'Pages' ),
 		'echo'         => 1,
 		'authors'      => '',
@@ -1327,11 +1343,8 @@ function wp_list_pages( $args = '' ) {
 	$output       = '';
 	$current_page = 0;
 
-	// Sanitize, mostly to keep spaces out.
-	$parsed_args['exclude'] = preg_replace( '/[^0-9,]/', '', $parsed_args['exclude'] );
-
-	// Allow plugins to filter an array of excluded pages (but don't put a nullstring into the array).
-	$exclude_array = ( $parsed_args['exclude'] ) ? explode( ',', $parsed_args['exclude'] ) : array();
+	// Allow plugins to filter a list of excluded page IDs, cast to strings for back-compat with the filter's original input.
+	$exclude_array = array_map( 'strval', array_values( array_filter( wp_parse_id_list( $parsed_args['exclude'] ) ) ) );
 
 	/**
 	 * Filters the array of pages to exclude from the pages list.
@@ -1339,6 +1352,7 @@ function wp_list_pages( $args = '' ) {
 	 * @since 2.1.0
 	 *
 	 * @param string[] $exclude_array An array of page IDs to exclude.
+	 * @phpstan-param list<decimal-int-string> $exclude_array
 	 */
 	$parsed_args['exclude'] = implode( ',', apply_filters( 'wp_list_pages_excludes', $exclude_array ) );
 
@@ -1399,6 +1413,7 @@ function wp_list_pages( $args = '' ) {
  * @since 2.7.0
  * @since 4.4.0 Added `menu_id`, `container`, `before`, `after`, and `walker` arguments.
  * @since 4.7.0 Added the `item_spacing` argument.
+ * @since 7.2.0 The `exclude` argument now accepts an array of page IDs (a comma-separated list string of IDs remains supported).
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a page menu. See wp_list_pages() for additional arguments.
@@ -1421,7 +1436,12 @@ function wp_list_pages( $args = '' ) {
  *     @type Walker          $walker       Walker instance to use for listing pages. Default empty which results in a
  *                                         Walker_Page instance being used.
  * }
- * @return void|string Void if 'echo' argument is true, HTML menu if 'echo' is false.
+ * @return string|void HTML menu if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_page_menu( $args = array() ) {
 	$defaults = array(
@@ -1482,12 +1502,8 @@ function wp_page_menu( $args = array() ) {
 		$menu .= '<li ' . $class . '><a href="' . esc_url( home_url( '/' ) ) . '">' . $args['link_before'] . $text . $args['link_after'] . '</a></li>';
 		// If the front page is a page, add it to the exclude list.
 		if ( 'page' === get_option( 'show_on_front' ) ) {
-			if ( ! empty( $list_args['exclude'] ) ) {
-				$list_args['exclude'] .= ',';
-			} else {
-				$list_args['exclude'] = '';
-			}
-			$list_args['exclude'] .= get_option( 'page_on_front' );
+			$list_args['exclude']   = wp_parse_id_list( $list_args['exclude'] ?? array() );
+			$list_args['exclude'][] = (int) get_option( 'page_on_front' );
 		}
 	}
 
@@ -1619,7 +1635,9 @@ function walk_page_dropdown_tree( ...$args ) {
  * @param int|WP_Post $post       Optional. Post ID or post object.
  * @param bool        $fullsize   Optional. Whether to use full size. Default false.
  * @param bool        $deprecated Deprecated. Not used.
- * @param bool        $permalink Optional. Whether to include permalink. Default false.
+ * @param bool        $permalink  Optional. Whether to include permalink. Default false.
+ *
+ * @phpstan-param false $deprecated
  */
 function the_attachment_link( $post = 0, $fullsize = false, $deprecated = false, $permalink = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -1840,9 +1858,9 @@ function get_the_password_form( $post = 0 ) {
 	 * @since 5.8.0 Added the `$post` parameter.
 	 * @since 6.8.0 Added the `$invalid_password` parameter.
 	 *
-	 * @param string  $output           The password form HTML output.
-	 * @param WP_Post $post             Post object.
-	 * @param string  $invalid_password The invalid password message.
+	 * @param string       $output           The password form HTML output.
+	 * @param WP_Post|null $post             Post object, or null if no post is found.
+	 * @param string       $invalid_password The invalid password message.
 	 */
 	return apply_filters( 'the_password_form', $output, $post, $invalid_password );
 }

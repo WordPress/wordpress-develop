@@ -3,12 +3,10 @@
 /**
  * Unit test factory for sites on a multisite network.
  *
- * Note: The below @method notations are defined solely for the benefit of IDEs,
- * as a way to indicate expected return values from the given factory methods.
+ * Note: The below @method notation is defined solely for the benefit of IDEs,
+ * as a way to indicate the expected return value from the given factory method.
  *
- * @method int|WP_Error     create( $args = array(), $generation_definitions = null )
- * @method WP_Site|WP_Error create_and_get( $args = array(), $generation_definitions = null )
- * @method (int|WP_Error)[] create_many( $count, $args = array(), $generation_definitions = null )
+ * @method WP_Site create_and_get( $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 
@@ -26,8 +24,11 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Creates a site object.
 	 *
-	 * @param array $args Arguments for the site object.
-	 * @return int|WP_Error The site ID on success, WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
+	 *
+	 * @param array<string, mixed> $args Arguments for the site object.
+	 * @return positive-int The site ID.
+	 * @throws WP_UnitTest_Factory_Exception When the site could not be created.
 	 */
 	public function create_object( $args ) {
 		global $wpdb;
@@ -64,24 +65,47 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 		// Tell WP we're done installing.
 		wp_installing( false );
 
+		$this->assert_valid_object_id( $blog, 'Unable to create the site' );
+
 		return $blog;
 	}
 
 	/**
-	 * Updates a site object. Not implemented.
+	 * Updates a site object.
 	 *
-	 * @param int   $blog_id ID of the site to update.
-	 * @param array $fields  The fields to update.
+	 * Not implemented. This throws rather than doing nothing so that an after-create
+	 * callback, whose result create() feeds through here, cannot look as though it was
+	 * applied when nothing was written.
+	 *
+	 * @todo Implement via wp_update_site(), so that after-create callbacks work with this factory.
+	 *
+	 * @since 7.2.0 Throws an exception instead of silently doing nothing.
+	 *
+	 * @param int                  $blog_id ID of the site to update.
+	 * @param array<string, mixed> $fields  The fields to update.
+	 * @return never
+	 * @throws WP_UnitTest_Factory_Exception Always, since updating a site is not supported.
 	 */
-	public function update_object( $blog_id, $fields ) {}
+	public function update_object( $blog_id, $fields ) {
+		throw new WP_UnitTest_Factory_Exception(
+			'Updating a site is not implemented in ' . __CLASS__ . '.'
+		);
+	}
 
 	/**
 	 * Retrieves a site by a given ID.
 	 *
+	 * @since 7.2.0 Throws an exception instead of returning null when the object cannot be retrieved.
+	 *
 	 * @param int $blog_id ID of the site to retrieve.
-	 * @return WP_Site|null The site object on success, null on failure.
+	 * @return WP_Site The site object.
+	 * @throws WP_UnitTest_Factory_Exception When the site could not be retrieved.
 	 */
 	public function get_object_by_id( $blog_id ) {
-		return get_site( $blog_id );
+		$site = get_site( $blog_id );
+
+		$this->assert_valid_object( $site, $blog_id, WP_Site::class );
+
+		return $site;
 	}
 }
