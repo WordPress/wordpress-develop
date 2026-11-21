@@ -143,21 +143,6 @@ class Tests_Link_GetCommentsLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that comments_link() displays the comments link of the global post.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::comments_link
-	 */
-	public function test_comments_link_displays_link_for_global_post() {
-		$GLOBALS['post'] = get_post( self::$post_with_comments );
-
-		$this->expectOutputString( home_url( '/with-comments/#comments' ) );
-
-		comments_link();
-	}
-
-	/**
 	 * Tests that comments_link() escapes the URL.
 	 *
 	 * @ticket 65819

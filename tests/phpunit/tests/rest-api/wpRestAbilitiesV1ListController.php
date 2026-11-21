@@ -600,7 +600,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$page1_names    = wp_list_pluck( $page1_response->get_data(), 'name' );
 		$page2_names    = wp_list_pluck( $data, 'name' );
 
-		$this->assertNotEquals( $page1_names, $page2_names );
+		$this->assertNotSame( $page1_names, $page2_names );
 	}
 
 	/**
@@ -735,7 +735,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_invalid_ability_names_provider(): array {
+	public static function data_invalid_ability_names_provider(): array {
 		return array(
 			'@ symbol'          => array( 'test@ability' ),
 			'space'             => array( 'test ability' ),
@@ -786,7 +786,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array<string, mixed>}>
 	 */
-	public function data_invalid_pagination_params_provider(): array {
+	public static function data_invalid_pagination_params_provider(): array {
 		return array(
 			'Zero page'            => array( array( 'page' => 0 ) ),
 			'Negative page'        => array( array( 'page' => -1 ) ),

@@ -449,4 +449,36 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	public function test_custom_elements( $source, $expected ) {
 		$this->assertSame( $expected, balanceTags( $source, true ) );
 	}
+
+	/**
+	 * Comment fixtures that force_balance_tags() should preserve while still balancing tags.
+	 *
+	 * @ticket 65819
+	 *
+	 * @dataProvider data_preserves_html_comments
+	 *
+	 * @param string $input    Input markup.
+	 * @param string $expected Expected balanced markup.
+	 */
+	public function test_preserves_html_comments( $input, $expected ) {
+		$this->assertSame( $expected, balanceTags( $input, true ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_preserves_html_comments() {
+		return array(
+			'preserves html comments'         => array(
+				'<!-- comment --><p>Hi',
+				'<!-- comment --><p>Hi</p>',
+			),
+			'preserves spaced comment opener' => array(
+				'< !-- comment --><p>Hi',
+				'< !-- comment --><p>Hi</p>',
+			),
+		);
+	}
 }

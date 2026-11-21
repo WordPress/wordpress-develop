@@ -2,13 +2,17 @@
  * External dependencies
  */
 import { writeFileSync, readFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 /**
  * WordPress dependencies
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+
+/**
+ * Internal dependencies
+ */
+import { wpCli } from '../utils/wp-cli';
 
 let wpConfigOriginal;
 
@@ -48,20 +52,7 @@ function dropE2eTables() {
 		}
 	`;
 
-	execFileSync(
-		process.execPath,
-		[
-			join( process.cwd(), 'tools/local-env/scripts/docker.js' ),
-			'exec',
-			'--user',
-			'wp_php',
-			'cli',
-			'wp',
-			'eval',
-			dropTablesPhp,
-		],
-		{ stdio: 'inherit' }
-	);
+	wpCli( [ 'eval', dropTablesPhp ], { stdio: 'inherit' } );
 }
 
 test.describe( 'WordPress installation process', () => {

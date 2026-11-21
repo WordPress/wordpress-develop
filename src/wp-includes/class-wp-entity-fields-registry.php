@@ -445,8 +445,12 @@ class WP_Entity_Fields_Registry {
 	 * @param string $kind The entity kind (e.g. `postType`).
 	 * @param string $name The entity name (e.g. `page`).
 	 * @return array[] The list of field definitions, in registration order.
+	 *                 Empty when the entity is invalid.
 	 */
 	public function get_registered( $kind, $name ) {
+		if ( ! $this->validate_entity( __METHOD__, $kind, $name ) ) {
+			return array();
+		}
 		$this->initialize();
 		return array_values( $this->fields[ $kind ][ $name ] ?? array() );
 	}
@@ -477,13 +481,31 @@ class WP_Entity_Fields_Registry {
 	 *
 	 * @param string $kind The entity kind (e.g. `postType`).
 	 * @param string $name The entity name (e.g. `page`).
-	 * @return array<string, string[]> The ids of the fields each module
-	 *                                 applies to, keyed by module id, in
-	 *                                 registration order.
+	 * @return array[] {
+	 *     The script modules, in registration order. Empty when the entity
+	 *     is invalid.
+	 *
+	 *     @type array ...$0 {
+	 *         @type string   $id     The id of the script module.
+	 *         @type string[] $fields The ids of the fields the module applies
+	 *                                to, in registration order.
+	 *     }
+	 * }
 	 */
 	public function get_registered_field_modules( $kind, $name ) {
+		if ( ! $this->validate_entity( __METHOD__, $kind, $name ) ) {
+			return array();
+		}
 		$this->initialize();
-		return $this->field_modules[ $kind ][ $name ] ?? array();
+		$modules = array();
+		foreach ( $this->field_modules[ $kind ][ $name ] ?? array() as $module => $field_ids ) {
+			$modules[] = array(
+				// A numeric module id is an integer as an array key.
+				'id'     => (string) $module,
+				'fields' => $field_ids,
+			);
+		}
+		return $modules;
 	}
 
 	/**
@@ -497,9 +519,25 @@ class WP_Entity_Fields_Registry {
 	 */
 	public function get_all_registered_field_modules() {
 		$this->initialize();
+		/*
+		 * Keeps the module ids and drops the field ids they apply to, e.g.:
+		 *
+		 *     array(
+		 *         'postType' => array(
+		 *             'page' => array( 'my-plugin/fields', '123' ),
+		 *             'post' => array( 'my-plugin/fields' ),
+		 *         ),
+		 *     )
+		 */
 		return array_map(
 			static function ( $entities ) {
-				return array_map( 'array_keys', $entities );
+				return array_map(
+					static function ( $modules ) {
+						// A numeric module id is an integer as an array key.
+						return array_map( 'strval', array_keys( $modules ) );
+					},
+					$entities
+				);
 			},
 			$this->field_modules
 		);
@@ -731,7 +769,7 @@ class WP_Entity_Fields_Registry {
 		$valid   = array();
 		$invalid = array();
 		foreach ( $fields as $position => $field ) {
-			if ( is_array( $field ) && ! empty( $field['id'] ) && is_string( $field['id'] ) ) {
+			if ( is_array( $field ) && isset( $field['id'] ) && is_string( $field['id'] ) && '' !== $field['id'] ) {
 				$valid[] = $field;
 			} else {
 				$invalid[] = '#' . ( $position + 1 );

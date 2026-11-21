@@ -34,14 +34,29 @@ class Tests_Load_TimerFloat extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
+	 *
+	 * @dataProvider data_request_ages
+	 *
+	 * @param float $request_age     Age of the request in seconds.
+	 * @param float $minimum_elapsed Minimum expected elapsed seconds.
 	 */
-	public function test_returns_elapsed_seconds_as_float() {
-		$_SERVER['REQUEST_TIME_FLOAT'] = microtime( true ) - 1.25;
+	public function test_returns_elapsed_seconds_as_float( $request_age, $minimum_elapsed ) {
+		$_SERVER['REQUEST_TIME_FLOAT'] = microtime( true ) - $request_age;
 
 		$result = timer_float();
 
 		$this->assertIsFloat( $result );
-		$this->assertGreaterThanOrEqual( 1.25, $result );
+		$this->assertGreaterThanOrEqual( $minimum_elapsed, $result );
 		$this->assertLessThanOrEqual( microtime( true ) - $_SERVER['REQUEST_TIME_FLOAT'], $result );
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public static function data_request_ages() {
+		return array(
+			'recent request' => array( 1.25, 1.25 ),
+			'older request'  => array( 10.0, 10.0 ),
+		);
 	}
 }

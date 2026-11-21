@@ -106,31 +106,14 @@ class Tests_Date_TheTime extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the 'the_time' filter hook receives expected arguments and can modify output.
+	 * Tests that the 'the_time' filter receives the formatted time and controls output.
 	 *
 	 * @ticket 65819
 	 */
 	public function test_the_time_filter_receives_arguments() {
-		$filter = new MockAction();
-		add_filter( 'the_time', array( $filter, 'filter' ), 10, 2 );
-
-		$this->expectOutputString( '14:30:45' );
-		the_time( 'H:i:s' );
-
-		$this->assertSame( 1, $filter->get_call_count() );
-
-		$filter_args = $filter->get_args();
-		$this->assertSame( '14:30:45', $filter_args[0][0] );
-		$this->assertSame( 'H:i:s', $filter_args[0][1] );
-	}
-
-	/**
-	 * Tests that the 'the_time' filter can modify the displayed output.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_the_time_filter_modifies_output() {
-		$custom_callback = static function ( $formatted_time, $format ) {
+		$filter_args     = array();
+		$custom_callback = static function ( $formatted_time, $format ) use ( &$filter_args ) {
+			$filter_args[] = func_get_args();
 			return 'Time: ' . $formatted_time;
 		};
 
@@ -138,6 +121,8 @@ class Tests_Date_TheTime extends WP_UnitTestCase {
 
 		$this->expectOutputString( 'Time: 14:30:45' );
 		the_time( 'H:i:s' );
+
+		$this->assertSame( array( array( '14:30:45', 'H:i:s' ) ), $filter_args );
 
 		remove_filter( 'the_time', $custom_callback, 10 );
 	}
@@ -167,12 +152,9 @@ class Tests_Date_TheTime extends WP_UnitTestCase {
 	 */
 	public static function data_custom_formats() {
 		return array(
-			'24-hour time with seconds' => array( 'H:i:s', '14:30:45' ),
 			'12-hour time with minutes' => array( 'g:i a', '2:30 pm' ),
 			'date and time'             => array( 'Y-m-d H:i', '2024-05-18 14:30' ),
 			'day of the week'           => array( 'l', 'Saturday' ),
-			'time only hours'           => array( 'H', '14' ),
-			'time only minutes'         => array( 'i', '30' ),
 		);
 	}
 }

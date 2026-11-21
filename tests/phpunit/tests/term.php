@@ -300,7 +300,7 @@ class Tests_Term extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_set_term_objects_finds_term_name_with_special_characters() {
+	public static function data_wp_set_term_objects_finds_term_name_with_special_characters() {
 		return array(
 			'ampersand'               => array( 'name' => 'Foo & Bar' ),
 			'ndash and mdash'         => array( 'name' => 'Foo – Bar' ),
@@ -406,7 +406,7 @@ class Tests_Term extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_term_filter() {
+	public static function data_get_term_filter() {
 		return self::text_array_to_dataprovider( array( 'edit', 'db', 'display', 'attribute', 'js', 'rss', 'raw' ) );
 	}
 }

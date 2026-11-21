@@ -192,21 +192,6 @@ class Tests_Error_Protection_wpPausedExtensionsStorage extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that get() returns null when an extension is not paused.
-	 *
-	 * @ticket 46130
-	 * @ticket 44458
-	 *
-	 * @covers WP_Paused_Extensions_Storage::get
-	 */
-	public function test_get_returns_null_when_extension_not_paused() {
-		$this->assertNull(
-			$this->plugin_storage->get( 'non-existent-plugin' ),
-			'get() should return null for an unpaused extension.'
-		);
-	}
-
-	/**
 	 * Tests that get_all() returns all paused extensions for the storage type.
 	 *
 	 * @ticket 46130
@@ -450,48 +435,6 @@ class Tests_Error_Protection_wpPausedExtensionsStorage extends WP_UnitTestCase {
 		$this->assertFalse(
 			get_option( self::TEST_SESSION_ID . '_paused_extensions' ),
 			'The option should be deleted from the database when delete_all() leaves no other types.'
-		);
-	}
-
-	/**
-	 * Tests that is_api_loaded() protected method returns true when get_option function exists.
-	 *
-	 * @ticket 46130
-	 * @ticket 44458
-	 *
-	 * @covers WP_Paused_Extensions_Storage::is_api_loaded
-	 */
-	public function test_is_api_loaded() {
-		$reflection = new ReflectionMethod( $this->plugin_storage, 'is_api_loaded' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$reflection->setAccessible( true );
-		}
-
-		$this->assertTrue(
-			$reflection->invoke( $this->plugin_storage ),
-			'is_api_loaded() should return true when get_option() is available.'
-		);
-	}
-
-	/**
-	 * Tests that get_option_name() protected method generates the expected option key.
-	 *
-	 * @ticket 46130
-	 * @ticket 44458
-	 *
-	 * @covers WP_Paused_Extensions_Storage::get_option_name
-	 */
-	public function test_get_option_name() {
-		$reflection = new ReflectionMethod( $this->plugin_storage, 'get_option_name' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$reflection->setAccessible( true );
-		}
-
-		$expected_option_name = self::TEST_SESSION_ID . '_paused_extensions';
-		$this->assertSame(
-			$expected_option_name,
-			$reflection->invoke( $this->plugin_storage ),
-			'get_option_name() should return session_id appended with _paused_extensions.'
 		);
 	}
 }

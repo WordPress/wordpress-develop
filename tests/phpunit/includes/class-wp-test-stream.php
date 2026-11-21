@@ -111,6 +111,22 @@ class WP_Test_Stream {
 	}
 
 	/**
+	 * Flushes the output.
+	 *
+	 * Writes are stored directly in memory, so there is nothing to flush.
+	 *
+	 * This method must be implemented. As of PHP 8.6, `fclose()`, `file_put_contents()`,
+	 * and `copy()` return false when a stream wrapper does not implement it.
+	 *
+	 * @see streamWrapper::stream_flush
+	 *
+	 * @return bool Always true.
+	 */
+	public function stream_flush() {
+		return true;
+	}
+
+	/**
 	 * Seeks to specific location in a stream.
 	 *
 	 * @see streamWrapper::stream_seek

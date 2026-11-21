@@ -405,6 +405,12 @@ class WP_REST_Entity_Fields_Controller_Test extends WP_Test_REST_TestCase {
 
 		$missing_kind = $this->dispatch_request( null, 'page' );
 		$this->assertErrorResponse( 'rest_missing_callback_param', $missing_kind, 400 );
+
+		$empty_kind = $this->dispatch_request( '', 'page' );
+		$this->assertErrorResponse( 'rest_invalid_param', $empty_kind, 400 );
+
+		$empty_name = $this->dispatch_request( 'postType', '' );
+		$this->assertErrorResponse( 'rest_invalid_param', $empty_name, 400 );
 	}
 
 	/**
@@ -587,6 +593,41 @@ class WP_REST_Entity_Fields_Controller_Test extends WP_Test_REST_TestCase {
 				array(
 					'id'     => 'plugin/sizes',
 					'fields' => array( 'size' ),
+				),
+			),
+			$data['script_modules']
+		);
+	}
+
+	/**
+	 * A numeric script module id is returned as a string, like any other.
+	 *
+	 * @covers ::get_items
+	 *
+	 * @ticket 66229
+	 */
+	public function test_get_items_returns_a_numeric_module_id_as_a_string() {
+		$this->register_fields(
+			'customKind',
+			'customName',
+			array(
+				array(
+					'id'    => 'color',
+					'type'  => 'text',
+					'label' => 'Color',
+				),
+			),
+			'123'
+		);
+
+		wp_set_current_user( self::$editor_id );
+		$data = $this->dispatch_request( 'customKind', 'customName' )->get_data();
+
+		$this->assertSame(
+			array(
+				array(
+					'id'     => '123',
+					'fields' => array( 'color' ),
 				),
 			),
 			$data['script_modules']

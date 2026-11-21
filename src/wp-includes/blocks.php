@@ -979,12 +979,6 @@ function get_hooked_blocks() {
 			continue;
 		}
 		foreach ( $block_type->block_hooks as $anchor_block_type => $relative_position ) {
-			if ( ! isset( $hooked_blocks[ $anchor_block_type ] ) ) {
-				$hooked_blocks[ $anchor_block_type ] = array();
-			}
-			if ( ! isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] ) ) {
-				$hooked_blocks[ $anchor_block_type ][ $relative_position ] = array();
-			}
 			$hooked_blocks[ $anchor_block_type ][ $relative_position ][] = $block_type->name;
 		}
 	}
@@ -1490,9 +1484,6 @@ function update_ignored_hooked_blocks_postmeta( $post ) {
 			$ignored_hooked_blocks          = array_unique( array_merge( $ignored_hooked_blocks, $existing_ignored_hooked_blocks ) );
 		}
 
-		if ( ! isset( $post->meta_input ) ) {
-			$post->meta_input = array();
-		}
 		$post->meta_input['_wp_ignored_hooked_blocks'] = json_encode( $ignored_hooked_blocks );
 	}
 
@@ -1928,8 +1919,40 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * @since 6.6.0
  * @since 7.0.0 Adds metadata to attributes of single-pattern container blocks.
  *
- * @param array $blocks An array blocks.
- * @return array An array of blocks with patterns replaced by their content.
+ * @param array[] $blocks {
+ *     An array of blocks.
+ *
+ *     @type array ...$0 {
+ *         An associative array of a single parsed block object. See {@see WP_Block_Parser_Block}.
+ *
+ *         @type string|null $blockName    Required. Name of block.
+ *         @type array       $attrs        Required. Attributes from block comment delimiters.
+ *         @type array[]     $innerBlocks  Required. List of inner blocks. An array of arrays that
+ *                                         have the same structure as this one.
+ *         @type string      $innerHTML    Required. HTML from inside block comment delimiters.
+ *         @type array       $innerContent Required. List of string fragments and null markers where
+ *                                         inner blocks were found.
+ *     }
+ * }
+ * @return array[] {
+ *     An array of blocks with patterns replaced by their content.
+ *
+ *     @type array ...$0 {
+ *         An associative array of a single parsed block object. See {@see WP_Block_Parser_Block}.
+ *
+ *         @type string|null $blockName    Name of block.
+ *         @type array       $attrs        Attributes from block comment delimiters.
+ *         @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+ *                                         have the same structure as this one.
+ *         @type string      $innerHTML    HTML from inside block comment delimiters.
+ *         @type array       $innerContent List of string fragments and null markers where
+ *                                         inner blocks were found.
+ *         @type mixed       ...$key       Any other keys a block passed in carries, which
+ *                                         are kept, except where a `core/pattern` block is
+ *                                         replaced by its pattern's blocks, or removed as
+ *                                         recursive.
+ *     }
+ * }
  */
 function resolve_pattern_blocks( $blocks ) {
 	static $inner_content;
@@ -2333,24 +2356,147 @@ function excerpt_remove_blocks( $content ) {
 }
 
 /**
- * Parses footnotes markup out of a content string,
- * and renders those appropriate for the excerpt.
+ * Removes recognized footnote reference markup from a given string.
+ *
+ * Example:
+ *
+ *    $content = 'Never<sup data-fn="abc-123" class="fn"><a href="#abc-123" id="abc-123">1</a></sup> say never.';
+ *    'Never say never' === excerpt_remove_footnotes( $content );
  *
  * @since 6.3.0
  *
- * @param string $content The content to parse.
- * @return string The parsed and filtered content.
+ * @param string $content HTML which might contain footnote references from the block editor.
+ * @return string Given input HTML without the footnote references.
  */
 function excerpt_remove_footnotes( $content ) {
-	if ( ! str_contains( $content, 'data-fn=' ) ) {
+	if ( ! str_contains( $content, 'data-fn' ) ) {
 		return $content;
 	}
 
-	return preg_replace(
-		'_<sup data-fn="[^"]+" class="[^"]+">\s*<a href="[^"]+" id="[^"]+">\d+</a>\s*</sup>_',
-		'',
-		$content
-	);
+	$processor = new class( $content ) extends WP_HTML_Tag_Processor {
+		public function is_whitespace_text_node(): bool {
+			if ( self::STATE_TEXT_NODE !== $this->parser_state ) {
+				return false;
+			}
+
+			$this->subdivide_text_appropriately();
+			return self::TEXT_IS_WHITESPACE === $this->text_node_classification;
+		}
+
+		public function get_span(): WP_HTML_Span {
+			$this->set_bookmark( 'here' );
+
+			return $this->bookmarks['here'];
+		}
+	};
+
+	$output          = '';
+	$at              = 0;
+	$reprocess_token = false;
+
+	while ( $reprocess_token || $processor->next_token() ) {
+		$reprocess_token = false;
+
+		// Match the <sup data-fn="..." class="..."> opening tag.
+		if (
+			$processor->is_tag_closer() ||
+			'SUP' !== $processor->get_tag() ||
+			null === $processor->get_attribute( 'data-fn' ) ||
+			null === $processor->get_attribute( 'class' )
+		) {
+			continue;
+		}
+
+		$footnote_opening = $processor->get_span();
+
+		if ( ! $processor->next_token() ) {
+			break;
+		}
+
+		// Skip any whitespace-only text between the tags.
+		if ( '#text' === $processor->get_token_name() ) {
+			if ( ! $processor->is_whitespace_text_node() ) {
+				$reprocess_token = true;
+				continue;
+			}
+
+			$processor->next_token();
+		}
+
+		// Match the <a href="..." id="..."> opening tag.
+		if (
+			$processor->is_tag_closer() ||
+			'A' !== $processor->get_token_name() ||
+			null === $processor->get_attribute( 'href' ) ||
+			null === $processor->get_attribute( 'id' )
+		) {
+			$reprocess_token = true;
+			continue;
+		}
+
+		// Match an all-digit text node.
+		if ( ! $processor->next_token() || '#text' !== $processor->get_token_name() ) {
+			$reprocess_token = true;
+			continue;
+		}
+
+		$footnote_number = $processor->get_modifiable_text();
+		$digit_count     = strspn( $footnote_number, '0123456789' );
+		if ( 0 === $digit_count || strlen( $footnote_number ) !== $digit_count ) {
+			$reprocess_token = true;
+			continue;
+		}
+
+		// Match the closing </a> tag.
+		if (
+			! $processor->next_token() ||
+			'A' !== $processor->get_token_name() ||
+			! $processor->is_tag_closer()
+		) {
+			$reprocess_token = true;
+			continue;
+		}
+
+		if ( ! $processor->next_token() ) {
+			break;
+		}
+
+		// Skip any whitespace-only text between the tags.
+		if ( '#text' === $processor->get_token_name() ) {
+			if ( ! $processor->is_whitespace_text_node() ) {
+				$reprocess_token = true;
+				continue;
+			}
+
+			$processor->next_token();
+		}
+
+		// Match the closing </sup> tag.
+		if (
+			'SUP' !== $processor->get_token_name() ||
+			! $processor->is_tag_closer()
+		) {
+			$reprocess_token = true;
+			continue;
+		}
+
+		$footnote_closing = $processor->get_span();
+
+		// Remove the section and continue.
+		$output .= substr( $content, $at, $footnote_opening->start - $at );
+		$at      = $footnote_closing->start + $footnote_closing->length;
+	}
+
+	// No footnotes were found and removed: return the original input.
+	if ( 0 === $at ) {
+		return $content;
+	}
+
+	if ( $at < strlen( $content ) ) {
+		$output .= substr( $content, $at );
+	}
+
+	return $output;
 }
 
 /**

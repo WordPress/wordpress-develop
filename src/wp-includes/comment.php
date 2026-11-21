@@ -584,7 +584,7 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  *               the type it was registered with, which may be an integer, float, or
  *               boolean.
  *
- * @phpstan-param int|numeric-string $comment_id
+ * @phpstan-param int|decimal-int-string $comment_id
  * @phpstan-return (
  *     $key is ''|'0'
  *         ? array<array-key, list<string>>|false
@@ -1074,19 +1074,17 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
 		return 1;
 	}
 
-	if ( ! isset( $per_page ) ) {
-		$per_page = (int) get_query_var( 'comments_per_page' );
-	}
+	$per_page ??= (int) get_query_var( 'comments_per_page' );
+
 	if ( 0 === $per_page ) {
 		$per_page = (int) get_option( 'comments_per_page' );
 	}
+
 	if ( 0 === $per_page ) {
 		return 1;
 	}
 
-	if ( ! isset( $threaded ) ) {
-		$threaded = get_option( 'thread_comments' );
-	}
+	$threaded ??= get_option( 'thread_comments' );
 
 	if ( $threaded ) {
 		$walker = new Walker_Comment();
@@ -1676,6 +1674,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
  * @since 2.9.0
  * @since 6.9.0 Any child notes are deleted when deleting a note.
  * @since 7.2.0 A note's reactions are trashed along with it.
+ * @since 7.2.0 The child notes trashed along with a note are recorded, so that they can be restored with it.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1748,8 +1747,7 @@ function wp_trash_comment( $comment_id ) {
 		 * own reactions along through this same branch.
 		 *
 		 * Restoring the note does not bring its reactions back:
-		 * wp_untrash_comment() restores no children of any type, so restoring
-		 * children is left to a cascade that covers every child type together.
+		 * wp_untrash_comment() only restores the child notes recorded below.
 		 */
 		if ( 'note' === $comment->comment_type ) {
 			$reaction_ids = get_comments(
@@ -1776,6 +1774,22 @@ function wp_trash_comment( $comment_id ) {
 				)
 			);
 
+			// Skip children already in the Trash, so that they are not restored with the parent.
+			$children = array_values(
+				array_filter(
+					array_map( 'intval', $children ),
+					static function ( $child_id ) {
+						return 'trash' !== wp_get_comment_status( $child_id );
+					}
+				)
+			);
+
+			// Record the children trashed along with the parent, so that they can be restored with it.
+			delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_children' );
+			if ( $children ) {
+				add_comment_meta( $comment->comment_ID, '_wp_trash_meta_children', $children );
+			}
+
 			$success = true;
 			foreach ( $children as $child_id ) {
 				if ( ! wp_trash_comment( $child_id ) ) {
@@ -1795,6 +1809,7 @@ function wp_trash_comment( $comment_id ) {
  * Removes a comment from the Trash
  *
  * @since 2.9.0
+ * @since 7.2.0 Any child notes trashed along with a note are restored when restoring the note.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1835,6 +1850,36 @@ function wp_untrash_comment( $comment_id ) {
 		 * @param WP_Comment $comment    The untrashed comment.
 		 */
 		do_action( 'untrashed_comment', $comment->comment_ID, $comment );
+
+		// For top level 'note' type comments, also restore the children trashed along with it.
+		if ( 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
+			$children = get_comment_meta( $comment->comment_ID, '_wp_trash_meta_children', true );
+			delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_children' );
+
+			if ( ! is_array( $children ) ) {
+				return true;
+			}
+
+			$success = true;
+			foreach ( $children as $child_id ) {
+				$child = get_comment( (int) $child_id );
+
+				// Skip children that have been deleted, moved, or restored in the meantime.
+				if (
+					! $child ||
+					'note' !== $child->comment_type ||
+					(int) $child->comment_parent !== (int) $comment->comment_ID ||
+					'trash' !== wp_get_comment_status( $child )
+				) {
+					continue;
+				}
+
+				if ( ! wp_untrash_comment( $child ) ) {
+					$success = false;
+				}
+			}
+			return $success;
+		}
 
 		return true;
 	}
@@ -2450,13 +2495,8 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 
 	$prefiltered_user_id = ( isset( $commentdata['user_id'] ) ) ? (int) $commentdata['user_id'] : 0;
 
-	if ( ! isset( $commentdata['comment_author_IP'] ) ) {
-		$commentdata['comment_author_IP'] = $_SERVER['REMOTE_ADDR'];
-	}
-
-	if ( ! isset( $commentdata['comment_agent'] ) ) {
-		$commentdata['comment_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? '';
-	}
+	$commentdata['comment_author_IP'] ??= $_SERVER['REMOTE_ADDR'];
+	$commentdata['comment_agent']     ??= $_SERVER['HTTP_USER_AGENT'] ?? '';
 
 	/**
 	 * Filters a comment's data before it is sanitized and inserted into the database.

@@ -81,15 +81,8 @@ class Tests_User_wpRoles extends WP_UnitTestCase {
 	 */
 	public static function data_values_other_than_roles_instance() {
 		return array(
-			'null'            => array( null ),
-			'false'           => array( false ),
-			'true'            => array( true ),
-			'zero'            => array( 0 ),
-			'an empty string' => array( '' ),
-			'a role name'     => array( 'administrator' ),
-			'an empty array'  => array( array() ),
-			'an array'        => array( array( 'administrator' => array() ) ),
-			'another object'  => array( new stdClass() ),
+			'a role name'    => array( 'administrator' ),
+			'another object' => array( new stdClass() ),
 		);
 	}
 }

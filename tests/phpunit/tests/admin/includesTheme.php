@@ -19,9 +19,19 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @ticket 65893
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
+		$this->original_stylesheet       = get_stylesheet();
 		$this->orig_theme_dir            = $GLOBALS['wp_theme_directories'];
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', self::THEME_ROOT );
 
@@ -42,6 +52,11 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		parent::tear_down();
 	}
 
