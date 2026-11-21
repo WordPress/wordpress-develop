@@ -160,6 +160,8 @@ function get_page_templates( $post = null, $post_type = 'page' ) {
  * @param string $fullpath         Full path to the theme file
  * @param string $containingfolder Path of the theme parent folder
  * @return string
+ *
+ * @phpstan-pure
  */
 function _get_template_edit_filename( $fullpath, $containingfolder ) {
 	return str_replace( dirname( $containingfolder, 2 ), '', $fullpath );

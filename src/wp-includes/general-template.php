@@ -2518,6 +2518,8 @@ function wp_get_archives( $args = '' ) {
  *
  * @param int $num Number of day.
  * @return float Days since the start of the week.
+ *
+ * @phpstan-pure
  */
 function calendar_week_mod( $num ) {
 	$base = 7;

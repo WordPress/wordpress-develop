@@ -363,6 +363,8 @@ function update_recently_edited( $file ) {
  *
  * @param array $allowed_files List of theme file paths.
  * @return array Tree structure for listing theme files.
+ *
+ * @phpstan-pure
  */
 function wp_make_theme_file_tree( $allowed_files ) {
 	$tree_list = array();

@@ -94,6 +94,8 @@ function wp_apply_dimensions_support( $block_type, $block_attributes ) {
  *
  * @param mixed $aspect_ratio Aspect-ratio value.
  * @return bool Whether the value is an explicit aspect ratio.
+ *
+ * @phpstan-pure
  */
 function wp_is_explicit_aspect_ratio_value( $aspect_ratio ) {
 	if ( ! is_string( $aspect_ratio ) && ! is_numeric( $aspect_ratio ) ) {
