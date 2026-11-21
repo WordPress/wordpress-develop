@@ -4197,6 +4197,8 @@ class WP_Query {
 	 *
 	 * @param array  $query_vars Query variables.
 	 * @param string $limits     LIMIT clauses of the query.
+	 *
+	 * @phpstan-param Posts_Query_Vars $query_vars
 	 */
 	private function set_found_posts( $query_vars, $limits ) {
 		global $wpdb;
