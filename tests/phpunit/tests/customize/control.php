@@ -18,11 +18,27 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	public $wp_customize;
 
 	/**
+	 * Shared user ID for the tests.
+
+	 * @var int
+	 */
+	public static $user_id = 0;
+
+	/**
+	 * Set up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$user_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
+	/**
 	 * Set up.
 	 */
 	public function set_up() {
 		parent::set_up();
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$user_id );
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->wp_customize      = $GLOBALS['wp_customize'];

@@ -242,7 +242,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$menu_items = wp_get_nav_menu_items( $this->menu_id );
 		$this->assertSame( $term->name, $menu_items[0]->title );
-		$this->assertEquals( $t, $menu_items[0]->object_id );
+		$this->assertSame( (string) $t, $menu_items[0]->object_id );
 	}
 
 	/**
@@ -748,19 +748,19 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		 * Remove test filters.
 		 */
 		// In function.
-		remove_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
-		remove_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ), 10, 2 );
+		remove_filter( 'pre_wp_nav_menu', array( $this, 'confirm_second_param_args_object' ) );
+		remove_filter( 'wp_nav_menu_objects', array( $this, 'confirm_second_param_args_object' ) );
+		remove_filter( 'wp_nav_menu_items', array( $this, 'confirm_second_param_args_object' ) );
 
 		// In walker.
 		remove_filter( 'nav_menu_item_args', array( $this, 'confirm_nav_menu_item_args_object' ) );
 
-		remove_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
-		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
+		remove_filter( 'nav_menu_css_class', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_item_id', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_link_attributes', array( $this, 'confirm_third_param_args_object' ) );
+		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ) );
 
-		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ), 10, 4 );
+		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ) );
 	}
 
 	/**
@@ -951,6 +951,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 * @ticket 39800
 	 */
 	public function test_parent_ancestor_for_post_archive() {
+		$this->set_permalink_structure( '' );
 
 		register_post_type(
 			'books',
@@ -1065,7 +1066,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Provides IRI matching data for _wp_menu_item_classes_by_context() test.
 	 */
-	public function data_iri_current_menu_item() {
+	public static function data_iri_current_menu_item() {
 		return array(
 			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ) ),
 			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ) ),
@@ -1164,7 +1165,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Provides data for test_trim_url_for_custom_item().
 	 */
-	public function data_trim_url_for_custom_item() {
+	public static function data_trim_url_for_custom_item() {
 		return array(
 			array( 'https://wordpress.org ', 'https://wordpress.org' ),
 			array( ' https://wordpress.org', 'https://wordpress.org' ),
@@ -1188,6 +1189,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSame( 'Test Cat - "Pre-Slashed" Cat Name &amp; &gt;', $category->name );
+
 		$category_item_id = wp_update_nav_menu_item(
 			$this->menu_id,
 			0,
@@ -1196,11 +1199,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-object'    => 'category',
 				'menu-item-object-id' => $category->term_id,
 				'menu-item-status'    => 'publish',
-				/*
-				 * Interestingly enough, if we use `$cat->name` for the menu item title,
-				 * we won't be able to replicate the bug because it's in htmlentities form.
-				 */
-				'menu-item-title'     => $category_name,
+				'menu-item-title'     => $category->name,
 			)
 		);
 
@@ -1393,5 +1392,236 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$post = get_post( $menu_item_id );
 		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+	}
+
+	/**
+	 * Adds a nav menu item via the public API.
+	 *
+	 * @param int   $menu_id Menu term ID.
+	 * @param array $args    Overrides for wp_update_nav_menu_item() data.
+	 * @return int Menu item post ID.
+	 */
+	protected function add_nav_menu_item( $menu_id, $args = array() ) {
+		$id = wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array_merge(
+				array(
+					'menu-item-type'   => 'custom',
+					'menu-item-title'  => 'Item',
+					'menu-item-url'    => 'https://example.org/',
+					'menu-item-status' => 'publish',
+				),
+				$args
+			)
+		);
+		$this->assertNotWPError( $id );
+		return (int) $id;
+	}
+
+	/**
+	 * Plucks db_id values from a wp_get_nav_menu_items() result.
+	 *
+	 * @param int|string|WP_Term $menu Menu.
+	 * @param array              $args Args.
+	 * @return int[]
+	 */
+	protected function get_nav_menu_item_db_ids( $menu, $args = array() ) {
+		$items = wp_get_nav_menu_items( $menu, $args );
+		$this->assertIsArray( $items, 'wp_get_nav_menu_items() did not return an array.' );
+		return array_map( 'intval', wp_list_pluck( $items, 'db_id' ) );
+	}
+
+	/**
+	 * Runs the same query wp_get_nav_menu_items() would run, directly through
+	 * get_posts(), bypassing the menu term count.
+	 *
+	 * @param WP_Term $menu       Menu term object.
+	 * @param array   $extra_args Args merged over the function's own defaults.
+	 * @return int[] Post IDs the direct query returns.
+	 */
+	protected function direct_nav_menu_item_query_ids( $menu, $extra_args = array() ) {
+		$args = wp_parse_args(
+			$extra_args,
+			array(
+				'order'       => 'ASC',
+				'orderby'     => 'menu_order',
+				'post_type'   => 'nav_menu_item',
+				'post_status' => 'publish',
+				'nopaging'    => true,
+				'tax_query'   => array(
+					array(
+						'taxonomy' => 'nav_menu',
+						'field'    => 'term_taxonomy_id',
+						'terms'    => $menu->term_taxonomy_id,
+					),
+				),
+			)
+		);
+		return array_map( 'intval', wp_list_pluck( get_posts( $args ), 'ID' ) );
+	}
+
+	/**
+	 * Draft-only menu: the term count is 0 because only published items are
+	 * counted, but a caller asking for 'draft' items must still get them.
+	 *
+	 * @ticket 66102
+	 * @covers ::wp_get_nav_menu_items
+	 */
+	public function test_wp_get_nav_menu_items_draft_only_menu_draft_query() {
+		$d = $this->add_nav_menu_item( $this->menu_id, array( 'menu-item-status' => 'draft' ) );
+
+		$menu = wp_get_nav_menu_object( $this->menu_id );
+		$this->assertSame( 0, (int) $menu->count, 'Premise failed: draft item was counted.' );
+
+		// Premise: a direct identical query does return the item.
+		$this->assertSame( array( $d ), $this->direct_nav_menu_item_query_ids( $menu, array( 'post_status' => 'draft' ) ) );
+
+		$this->assertSame(
+			array( $d ),
+			$this->get_nav_menu_item_db_ids( $this->menu_id, array( 'post_status' => 'draft' ) ),
+			'Draft item in a draft-only menu was hidden by the $menu->count > 0 gate.'
+		);
+	}
+
+	/**
+	 * Draft-only menu queried with post_status 'any'.
+	 *
+	 * @ticket 66102
+	 * @covers ::wp_get_nav_menu_items
+	 */
+	public function test_wp_get_nav_menu_items_draft_only_menu_any_query() {
+		$d = $this->add_nav_menu_item( $this->menu_id, array( 'menu-item-status' => 'draft' ) );
+
+		$menu = wp_get_nav_menu_object( $this->menu_id );
+		$this->assertSame( 0, (int) $menu->count, 'Premise failed: draft item was counted.' );
+		$this->assertSame( array( $d ), $this->direct_nav_menu_item_query_ids( $menu, array( 'post_status' => 'any' ) ) );
+
+		$this->assertSame(
+			array( $d ),
+			$this->get_nav_menu_item_db_ids( $this->menu_id, array( 'post_status' => 'any' ) ),
+			'Draft item hidden from post_status=any by the $menu->count > 0 gate.'
+		);
+	}
+
+	/**
+	 * Draft-only menu queried with 'publish,draft' — the same post_status core
+	 * itself uses inside wp_update_nav_menu_item().
+	 *
+	 * @ticket 66102
+	 * @covers ::wp_get_nav_menu_items
+	 */
+	public function test_wp_get_nav_menu_items_draft_only_menu_publish_draft_query() {
+		$d = $this->add_nav_menu_item( $this->menu_id, array( 'menu-item-status' => 'draft' ) );
+
+		$menu = wp_get_nav_menu_object( $this->menu_id );
+		$this->assertSame( 0, (int) $menu->count, 'Premise failed: draft item was counted.' );
+		$this->assertSame( array( $d ), $this->direct_nav_menu_item_query_ids( $menu, array( 'post_status' => 'publish,draft' ) ) );
+
+		$this->assertSame(
+			array( $d ),
+			$this->get_nav_menu_item_db_ids( $this->menu_id, array( 'post_status' => 'publish,draft' ) ),
+			'Draft item hidden from post_status=publish,draft by the $menu->count > 0 gate.'
+		);
+	}
+
+	/**
+	 * Adding a second draft item to a draft-only menu must position it after
+	 * the first. wp_update_nav_menu_item() computes the position from the
+	 * publish,draft item list, which the count gate must not empty.
+	 *
+	 * @ticket 66102
+	 * @covers ::wp_get_nav_menu_items
+	 */
+	public function test_wp_get_nav_menu_items_second_draft_item_position() {
+		$d1 = $this->add_nav_menu_item( $this->menu_id, array( 'menu-item-status' => 'draft' ) );
+		$d2 = $this->add_nav_menu_item( $this->menu_id, array( 'menu-item-status' => 'draft' ) );
+
+		$pos1 = (int) get_post( $d1 )->menu_order;
+		$pos2 = (int) get_post( $d2 )->menu_order;
+
+		$this->assertGreaterThan(
+			$pos1,
+			$pos2,
+			"Second draft item got menu_order {$pos2} <= first item's {$pos1} — the count gate hid the first item from wp_update_nav_menu_item()."
+		);
+	}
+
+	/**
+	 * A published item attached while wp_defer_term_counting() is enabled
+	 * leaves the term count stale at 0; the default publish query must still
+	 * return the item.
+	 *
+	 * @ticket 66102
+	 * @covers ::wp_get_nav_menu_items
+	 */
+	public function test_wp_get_nav_menu_items_deferred_term_counting() {
+		wp_defer_term_counting( true );
+		$item = $this->add_nav_menu_item( $this->menu_id );
+
+		$menu = wp_get_nav_menu_object( $this->menu_id );
+		$this->assertSame( 0, (int) $menu->count, 'Premise failed: count was not deferred.' );
+		$this->assertSame( array( $item ), $this->direct_nav_menu_item_query_ids( $menu ), 'Premise failed: direct query does not see the item.' );
+
+		$items = $this->get_nav_menu_item_db_ids( $this->menu_id );
+		wp_defer_term_counting( false );
+
+		$this->assertSame(
+			array( $item ),
+			$items,
+			'Published item attached during deferred term counting was hidden by the stale $menu->count gate.'
+		);
+	}
+
+	/**
+	 * A caller holding a stale WP_Term snapshot (count fetched before the item
+	 * was added) must still get the item: wp_get_nav_menu_object() returns a
+	 * passed object verbatim, so a stale count must not short-circuit the
+	 * query.
+	 *
+	 * @ticket 66102
+	 * @covers ::wp_get_nav_menu_items
+	 */
+	public function test_wp_get_nav_menu_items_stale_term_object() {
+		$stale_obj = wp_get_nav_menu_object( $this->menu_id ); // count = 0 snapshot.
+		$this->assertSame( 0, (int) $stale_obj->count, 'Premise failed.' );
+
+		$a = $this->add_nav_menu_item( $this->menu_id ); // count is now 1 in DB.
+
+		// Sanity: a fresh fetch sees count 1 and returns the item.
+		$this->assertSame( array( $a ), $this->get_nav_menu_item_db_ids( $this->menu_id ) );
+
+		$items = wp_get_nav_menu_items( $stale_obj );
+		$this->assertIsArray( $items );
+		$this->assertSame(
+			array( $a ),
+			array_map( 'intval', wp_list_pluck( $items, 'db_id' ) ),
+			'A stale WP_Term snapshot hid a real published item.'
+		);
+	}
+
+	/**
+	 * Trash-only menu: once the last published item is trashed the term count
+	 * returns to 0, but a post_status 'trash' query must still see the
+	 * trashed item.
+	 *
+	 * @ticket 66102
+	 * @covers ::wp_get_nav_menu_items
+	 */
+	public function test_wp_get_nav_menu_items_trash_only_menu_trash_query() {
+		$a = $this->add_nav_menu_item( $this->menu_id );
+		$this->assertSame( array( $a ), $this->get_nav_menu_item_db_ids( $this->menu_id ) );
+
+		wp_trash_post( $a );
+
+		$menu = wp_get_nav_menu_object( $this->menu_id );
+		$this->assertSame( 0, (int) $menu->count, 'Premise failed: trashed item still counted.' );
+		$this->assertSame( array( $a ), $this->direct_nav_menu_item_query_ids( $menu, array( 'post_status' => 'trash' ) ) );
+
+		$this->assertSame(
+			array( $a ),
+			$this->get_nav_menu_item_db_ids( $this->menu_id, array( 'post_status' => 'trash' ) ),
+			'Trashed item hidden by the $menu->count > 0 gate.'
+		);
 	}
 }

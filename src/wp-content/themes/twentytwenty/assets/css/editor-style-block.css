@@ -716,7 +716,7 @@ hr.wp-block-separator.is-style-dots::before {
 }
 
 
-/* Block: Code, Verse and Preformatted ------- */
+/* Block: Code, Poetry (Verse) and Preformatted ------- */
 
 .editor-styles-wrapper .wp-block-code {
 	color: inherit;
@@ -889,7 +889,7 @@ hr.wp-block-separator.is-style-dots::before {
 	font-size: 16px;
 	font-weight: 500;
 	margin-top: 12px;
-	text-transform: none;
+	text-transform: inherit;
 }
 
 .editor-styles-wrapper .wp-block-pullquote.has-text-color cite,
@@ -924,7 +924,7 @@ hr.wp-block-separator.is-style-dots::before {
 }
 
 
-/* Block: Verse ------------------------------ */
+/* Block: Poetry (Verse) ------------------------------ */
 
 .editor-styles-wrapper .wp-block-verse pre,
 .editor-styles-wrapper pre.wp-block-verse {
@@ -961,6 +961,11 @@ hr.wp-block-separator.is-style-dots::before {
 	line-height: 1.1;
 }
 
+/*
+ * In the editor, these elements are editable text fields. A focus underline
+ * would only appear while typing, so it is intentionally omitted here.
+ */
+/* stylelint-disable-next-line a11y/selector-pseudo-class-focus */
 .editor-styles-wrapper .wp-block-button__link:hover,
 .editor-styles-wrapper .wp-block-file__button:hover {
 	text-decoration: underline;
@@ -1066,6 +1071,10 @@ hr.wp-block-separator.is-style-dots::before {
 	font-size: 0.95em;
 	line-height: 1.4;
 	margin-top: 15px;
+}
+
+.wp-block-latest-posts__post-full-content p {
+	font-family: inherit;
 }
 
 .wp-block-latest-posts__post-full-content > p:first-child {

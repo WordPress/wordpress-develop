@@ -1,37 +1,26 @@
 /**
  * External dependencies
  */
-import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
 
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../fixtures';
 
 test.describe( 'Fatal error handler', () => {
-	const muPlugins = join(
-		process.cwd(),
-		process.env.LOCAL_DIR ?? 'src',
-		'wp-content/mu-plugins'
-	);
-	const muPluginFile = join( muPlugins, 'fatal-error.php' );
+	test( 'should display fatal error notice', async ( { admin, page, muPlugin } ) => {
+		// Other workers share the site, so only this test's request fails.
+		const trigger = randomUUID();
+		await muPlugin.write(
+			'fatal-error.php',
+			`<?php
+			if ( isset( $_GET['${ trigger }'] ) ) {
+				new NonExistentClass();
+			}`
+		);
 
-	test.beforeAll( async () => {
-		const muPluginCode = `<?php new NonExistentClass();`;
-
-		if ( ! existsSync( muPlugins ) ) {
-			mkdirSync( muPlugins, { recursive: true } );
-		}
-		writeFileSync( muPluginFile, muPluginCode );
-	} );
-
-	test.afterAll( async () => {
-		unlinkSync( muPluginFile );
-	} );
-
-	test( 'should display fatal error notice', async ( { admin, page } ) => {
-		await admin.visitAdminPage( '/' );
+		await admin.visitAdminPage( '/', trigger );
 
 		await expect(
 			page.getByText( /Fatal error:/ ),

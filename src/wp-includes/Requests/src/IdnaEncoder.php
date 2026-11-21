@@ -212,22 +212,22 @@ class IdnaEncoder {
 					$character |= ($value & 0x3F) << ($remaining * 6);
 				}
 
-				$position--;
+				--$position;
 			}
 
 			if (// Non-shortest form sequences are invalid
-				$length > 1 && $character <= 0x7F
-				|| $length > 2 && $character <= 0x7FF
-				|| $length > 3 && $character <= 0xFFFF
+				($length > 1 && $character <= 0x7F)
+				|| ($length > 2 && $character <= 0x7FF)
+				|| ($length > 3 && $character <= 0xFFFF)
 				// Outside of range of ucschar codepoints
 				// Noncharacters
 				|| ($character & 0xFFFE) === 0xFFFE
-				|| $character >= 0xFDD0 && $character <= 0xFDEF
+				|| ($character >= 0xFDD0 && $character <= 0xFDEF)
 				|| (
 					// Everything else not in ucschar
-					$character > 0xD7FF && $character < 0xF900
+					($character > 0xD7FF && $character < 0xF900)
 					|| $character < 0x20
-					|| $character > 0x7E && $character < 0xA0
+					|| ($character > 0x7E && $character < 0xA0)
 					|| $character > 0xEFFFD
 				)
 			) {
@@ -270,7 +270,7 @@ class IdnaEncoder {
 				// Character is valid ASCII
 				// TODO: this should also check if it's valid for a URL
 				$output .= chr($char);
-				$h++;
+				++$h;
 
 				// Check if the character is non-ASCII, but below initial n
 				// This never occurs for Punycode, so ignore in coverage
@@ -307,7 +307,7 @@ class IdnaEncoder {
 				$c = $codepoints[$num];
 				// if c < n then increment delta, fail on overflow
 				if ($c < $n) {
-					$delta++;
+					++$delta;
 				} elseif ($c === $n) { // if c == n then begin
 					// let q = delta
 					$q = $delta;
@@ -341,12 +341,12 @@ class IdnaEncoder {
 					// let delta = 0
 					$delta = 0;
 					// increment h
-					$h++;
+					++$h;
 				} // end
 			} // end
 			// increment delta and n
-			$delta++;
-			$n++;
+			++$delta;
+			++$n;
 		} // end
 
 		return $output;

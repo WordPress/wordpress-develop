@@ -304,6 +304,10 @@ figcaption,
 		}
 	}
 
+	h2 {
+		@include non-latin-fonts();
+	}
+
 	@include media(tablet) {
 		padding-left: 10%;
 		padding-right: 10%;
@@ -515,6 +519,12 @@ figcaption,
 		color: $color__text-light;
 	}
 
+	&.has-text-color .wp-block-pullquote__citation,
+	&.has-primary-background-color blockquote p,
+	&.has-dark-gray-background-color blockquote p {
+		color: inherit;
+	}
+
 	&.is-style-solid-color {
 
 		blockquote {
@@ -570,6 +580,14 @@ figcaption,
 
 	em {
 		font-style: normal;
+	}
+}
+
+.wp-block[data-type="core/pullquote"][data-align="left"],
+.wp-block[data-type="core/pullquote"][data-align="right"] {
+
+	.wp-block-pullquote__citation {
+		@include non-latin-fonts();
 	}
 }
 
@@ -654,7 +672,7 @@ figcaption,
 
 }
 
-/** === Verse === */
+/** === Poetry (Verse) === */
 
 .wp-block-verse,
 .wp-block-verse pre {
@@ -780,6 +798,16 @@ ul.wp-block-archives,
 .wp-block[data-align="center"] > .wp-block-archives,
 .wp-block[data-align="center"] > .wp-block-categories {
 	text-align: center;
+}
+
+.wp-block[data-align="center"] .wp-block-file__button {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.wp-block[data-align="right"] .wp-block-file__button {
+	margin-left: auto;
+	margin-right: 0;
 }
 
 /** === Latest Posts === */
@@ -1078,4 +1106,10 @@ $group-block-background__padding: $font__size_base;
 .avatar,
 .wp-block-post-author__avatar img {
 	border-radius: 100%;
+}
+
+/** === Calendar Block === */
+
+.wp-calendar-table {
+	@include font-family( $font__heading );
 }

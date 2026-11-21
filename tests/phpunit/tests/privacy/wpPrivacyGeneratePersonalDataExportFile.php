@@ -226,7 +226,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 	}
 
-	public function data_export_data_grouped_invalid_type() {
+	public static function data_export_data_grouped_invalid_type() {
 		return array(
 			array( 10 ),
 			array( 'WordPress' ),
@@ -331,7 +331,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$expected .= "<html>\n";
 		$expected .= "<head>\n";
 		$expected .= "<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />\n";
-		$expected .= "<style type='text/css'>body { color: black; font-family: Arial, sans-serif; font-size: 11pt; margin: 15px auto; width: 860px; }table { background: #f0f0f0; border: 1px solid #ddd; margin-bottom: 20px; width: 100%; }th { padding: 5px; text-align: left; width: 20%; }td { padding: 5px; }tr:nth-child(odd) { background-color: #fafafa; }.return-to-top { text-align: right; }</style><title>Personal Data Export for {$request->email}</title></head>\n";
+		$expected .= "<style>body { color: black; font-family: Arial, sans-serif; font-size: 11pt; margin: 15px auto; width: 860px; }table { background: #f0f0f0; border: 1px solid #ddd; margin-bottom: 20px; width: 100%; }th { padding: 5px; text-align: left; width: 20%; }td { padding: 5px; }tr:nth-child(odd) { background-color: #fafafa; }.return-to-top { text-align: right; }</style><title>Personal Data Export for {$request->email}</title></head>\n";
 		$expected .= "<body>\n";
 		$expected .= '<h1 id="top">Personal Data Export</h1>';
 
@@ -448,7 +448,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		return str_replace( '{{TIMESTAMP}}', $timestamp, $expected_content );
 	}
 
-	public function data_contents() {
+	public static function data_contents() {
 		return array(
 			// Unhappy path.
 			'should contain null when integer'           => array(

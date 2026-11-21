@@ -565,13 +565,15 @@ abstract class WP_REST_Controller {
 	 * Included fields are based on item schema and `_fields=` request argument.
 	 *
 	 * @since 4.9.6
+	 * @since 7.2.0 The `_fields` argument is ignored when the matched route turns off
+	 *              the `fields` data processing.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return string[] Fields to be included in the response.
 	 */
 	public function get_fields_for_response( $request ) {
 		$schema     = $this->get_item_schema();
-		$properties = isset( $schema['properties'] ) ? $schema['properties'] : array();
+		$properties = $schema['properties'] ?? array();
 
 		$additional_fields = $this->get_additional_fields();
 
@@ -609,7 +611,9 @@ abstract class WP_REST_Controller {
 
 		$fields = array_unique( $fields );
 
-		if ( ! isset( $request['_fields'] ) ) {
+		$processing = WP_REST_Server::resolve_data_processing( $request->get_attributes() );
+
+		if ( ! isset( $request['_fields'] ) || ! $processing['fields'] ) {
 			return $fields;
 		}
 		$requested_fields = wp_parse_list( $request['_fields'] );
@@ -662,13 +666,13 @@ abstract class WP_REST_Controller {
 	/**
 	 * Sanitizes the slug value.
 	 *
+	 * {@internal We can't use sanitize_title() directly, as the second
+	 * parameter is the fallback title, which would end up being set to the
+	 * request object.}
+	 *
 	 * @since 4.7.0
 	 *
-	 * @internal We can't use sanitize_title() directly, as the second
-	 * parameter is the fallback title, which would end up being set to the
-	 * request object.
-	 *
-	 * @see https://github.com/WP-API/WP-API/issues/1585
+	 * @link https://github.com/WP-API/WP-API/issues/1585
 	 *
 	 * @todo Remove this in favour of https://core.trac.wordpress.org/ticket/34659
 	 *

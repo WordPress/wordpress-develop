@@ -25,7 +25,7 @@ class Tests_Functions_wpListSort extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_sort() {
+	public static function data_wp_list_sort() {
 		return array(
 			'single orderby ascending'        => array(
 				array(
@@ -355,7 +355,7 @@ class Tests_Functions_wpListSort extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_sort_preserve_keys() {
+	public static function data_wp_list_sort_preserve_keys() {
 		return array(
 			'single orderby ascending'        => array(
 				array(

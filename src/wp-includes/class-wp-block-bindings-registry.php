@@ -45,19 +45,6 @@ final class WP_Block_Bindings_Registry {
 	);
 
 	/**
-	 * Supported blocks that can use the block bindings API.
-	 *
-	 * @since 6.5.0
-	 * @var string[]
-	 */
-	private $supported_blocks = array(
-		'core/paragraph',
-		'core/heading',
-		'core/image',
-		'core/button',
-	);
-
-	/**
 	 * Registers a new block bindings source.
 	 *
 	 * This is a low-level method. For most use cases, it is recommended to use
@@ -93,6 +80,8 @@ final class WP_Block_Bindings_Registry {
 	 *     @type string[] $uses_context       Optional. Array of values to add to block `uses_context` needed by the source.
 	 * }
 	 * @return WP_Block_Bindings_Source|false Source when the registration was successful, or `false` on failure.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $source_name
 	 */
 	public function register( string $source_name, array $source_properties ) {
 		if ( ! is_string( $source_name ) ) {
@@ -249,11 +238,11 @@ final class WP_Block_Bindings_Registry {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $source_name The name of the source.
+	 * @param string|null $source_name The name of the source.
 	 * @return bool `true` if the block bindings source is registered, `false` otherwise.
 	 */
 	public function is_registered( $source_name ) {
-		return isset( $this->sources[ $source_name ] );
+		return isset( $source_name, $this->sources[ $source_name ] );
 	}
 
 	/**
@@ -285,9 +274,7 @@ final class WP_Block_Bindings_Registry {
 	 * @return WP_Block_Bindings_Registry The main instance.
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
+		self::$instance ??= new self();
 
 		return self::$instance;
 	}

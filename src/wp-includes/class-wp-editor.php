@@ -913,7 +913,10 @@ final class _WP_Editors {
 
 		self::enqueue_scripts( true );
 
-		// Also add wp-includes/css/editor.css.
+		/*
+		 * Also add wp-includes/css/editor.css. It is prefetched for the block editor by
+		 * wp_prefetch_admin_assets(), which needs updating if this changes.
+		 */
 		wp_enqueue_style( 'editor-buttons' );
 
 		if ( is_admin() ) {
@@ -978,7 +981,7 @@ final class _WP_Editors {
 		}
 
 		?>
-		<script type="text/javascript">
+		<script>
 		window.wp = window.wp || {};
 		window.wp.editor = window.wp.editor || {};
 		window.wp.editor.getDefaultSettings = function() {
@@ -1252,7 +1255,7 @@ final class _WP_Editors {
 				'Nonbreaking space'                    => __( 'Nonbreaking space' ),
 				'Page break'                           => __( 'Page break' ),
 				'Paste as text'                        => __( 'Paste as text' ),
-				'Preview'                              => __( 'Preview' ),
+				'Preview'                              => _x( 'Preview', 'verb' ),
 				'Print'                                => __( 'Print' ),
 				'Save'                                 => __( 'Save' ),
 				'Fullscreen'                           => __( 'Fullscreen' ),
@@ -1364,7 +1367,7 @@ final class _WP_Editors {
 				/* translators: Word count. */
 				'Words: {0}'                           => sprintf( __( 'Words: %s' ), '{0}' ),
 				'Paste is now in plain text mode. Contents will now be pasted as plain text until you toggle this option off.' =>
-					__( 'Paste is now in plain text mode. Contents will now be pasted as plain text until you toggle this option off.' ) . "\n\n" .
+					__( 'Paste is now in plain text mode. Contents will now be pasted as plain text until you turn this option off.' ) . "\n\n" .
 					__( 'If you are looking to paste rich content from Microsoft Word, try turning this option off. The editor will clean up text pasted from Word automatically.' ),
 				'Rich Text Area. Press ALT-F9 for menu. Press ALT-F10 for toolbar. Press ALT-0 for help' =>
 					__( 'Rich Text Area. Press Alt-Shift-H for help.' ),
@@ -1384,7 +1387,7 @@ final class _WP_Editors {
 				'Format'                               => _x( 'Format', 'TinyMCE menu' ),
 
 				// WordPress strings.
-				'Toolbar Toggle'                       => array( __( 'Toolbar Toggle' ), 'accessZ' ),
+				'Toolbar Toggle'                       => array( __( 'Extended Toolbar' ), 'accessZ' ),
 				'Insert Read More tag'                 => array( __( 'Insert Read More tag' ), 'accessT' ),
 				'Insert Page Break tag'                => array( __( 'Insert Page Break tag' ), 'accessP' ),
 				'Read more...'                         => __( 'Read more...' ), // Title on the placeholder inside the editor (no ellipsis).
@@ -1396,7 +1399,7 @@ final class _WP_Editors {
 				'Apply'                                => __( 'Apply' ),        // Tooltip for the 'apply' button in the inline link dialog.
 				'Link options'                         => __( 'Link options' ), // Tooltip for the 'link options' button in the inline link dialog.
 				'Visual'                               => _x( 'Visual', 'Name for the Visual editor tab' ),             // Editor switch tab label.
-				'Code'                                 => _x( 'Code', 'Name for the Code editor tab (formerly Text)' ), // Editor switch tab label.
+				'Code|tab'                             => _x( 'Code', 'Name for the Code editor tab (formerly Text)' ), // Editor switch tab label.
 				'Add Media'                            => array( __( 'Add Media' ), 'accessM' ), // Tooltip for the 'Add Media' button in the block editor Classic block.
 
 				// Shortcuts help modal.
@@ -1516,9 +1519,10 @@ final class _WP_Editors {
 	/**
 	 * Force uncompressed TinyMCE when a custom theme has been defined.
 	 *
-	 * The compressed TinyMCE file cannot deal with custom themes, so this makes
-	 * sure that WordPress uses the uncompressed TinyMCE file if a theme is defined.
-	 * Even if the website is running on a production environment.
+	 * The `wp-tinymce.js` bundle cannot deal with custom themes. Core registers
+	 * the separate TinyMCE files, but a site can still register the bundle under
+	 * the `wp-tinymce` handle, so this makes sure that the separate files are used
+	 * if a theme is defined.
 	 *
 	 * @since 5.0.0
 	 */
@@ -1538,32 +1542,24 @@ final class _WP_Editors {
 		$wp_scripts = wp_scripts();
 
 		$wp_scripts->remove( 'wp-tinymce' );
-		wp_register_tinymce_scripts( $wp_scripts, true );
+		wp_register_tinymce_scripts( $wp_scripts );
 	}
 
 	/**
 	 * Print (output) the main TinyMCE scripts.
 	 *
 	 * @since 4.8.0
-	 *
-	 * @global bool $concatenate_scripts
 	 */
 	public static function print_tinymce_scripts() {
-		global $concatenate_scripts;
-
 		if ( self::$tinymce_scripts_printed ) {
 			return;
 		}
 
 		self::$tinymce_scripts_printed = true;
 
-		if ( ! isset( $concatenate_scripts ) ) {
-			script_concat_settings();
-		}
-
 		wp_print_scripts( array( 'wp-tinymce' ) );
 
-		echo "<script type='text/javascript'>\n" . self::wp_mce_translation() . "</script>\n";
+		echo "<script>\n" . self::wp_mce_translation() . "</script>\n";
 	}
 
 	/**
@@ -1620,7 +1616,7 @@ final class _WP_Editors {
 		do_action( 'before_wp_tiny_mce', self::$mce_settings );
 		?>
 
-		<script type="text/javascript">
+		<script>
 		tinyMCEPreInit = {
 			baseURL: "<?php echo $baseurl; ?>",
 			suffix: "<?php echo $suffix; ?>",
@@ -1644,7 +1640,7 @@ final class _WP_Editors {
 
 			if ( self::$ext_plugins ) {
 				// Load the old-format English strings to prevent unsightly labels in old style popups.
-				echo "<script type='text/javascript' src='{$baseurl}/langs/wp-langs-en.js?$version'></script>\n";
+				echo "<script src='{$baseurl}/langs/wp-langs-en.js?$version'></script>\n";
 			}
 		}
 
@@ -1659,7 +1655,7 @@ final class _WP_Editors {
 		do_action( 'wp_tiny_mce_init', self::$mce_settings );
 
 		?>
-		<script type="text/javascript">
+		<script>
 		<?php
 
 		if ( self::$ext_plugins ) {
@@ -1766,7 +1762,7 @@ final class _WP_Editors {
 	 *     @type int    $pagenum Page number. Default 1.
 	 *     @type string $s       Search keywords.
 	 * }
-	 * @return array|false $results {
+	 * @return array|false {
 	 *     An array of associative arrays of query results, false if there are none.
 	 *
 	 *     @type array ...$0 {

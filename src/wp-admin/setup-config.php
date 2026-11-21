@@ -14,6 +14,52 @@
  */
 define( 'WP_INSTALLING', true );
 
+if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
+}
+
+/*
+ * Check whether a wp-config.php file already exists, either in the WordPress root
+ * or one level above it (but not as part of another installation).
+ * This mirrors the lookup in wp-load.php.
+ */
+if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
+	$existing_config_location = 'root';
+} elseif ( @file_exists( dirname( ABSPATH ) . '/wp-config.php' ) && ! @file_exists( dirname( ABSPATH ) . '/wp-settings.php' ) ) {
+	$existing_config_location = 'parent';
+} else {
+	$existing_config_location = '';
+}
+
+if ( $existing_config_location ) {
+	/*
+	 * A configuration file already exists, so there is nothing to set up here.
+	 * Load WordPress through that file, like any other request would, so that the
+	 * site's locale is known and the message below can be translated.
+	 */
+	require_once ABSPATH . 'wp-load.php';
+
+	nocache_headers();
+
+	if ( 'root' === $existing_config_location ) {
+		$message = sprintf(
+			/* translators: 1: wp-config.php, 2: install.php */
+			__( 'The file %1$s already exists. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
+			'<code>wp-config.php</code>',
+			'install.php'
+		);
+	} else {
+		$message = sprintf(
+			/* translators: 1: wp-config.php, 2: install.php */
+			__( 'The file %1$s already exists one level above your WordPress installation. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
+			'<code>wp-config.php</code>',
+			'install.php'
+		);
+	}
+
+	wp_die( '<p>' . $message . '</p>', 409 );
+}
+
 /**
  * We are blissfully unaware of anything.
  */
@@ -25,10 +71,6 @@ define( 'WP_SETUP_CONFIG', true );
  * Set this to error_reporting( -1 ) for debugging
  */
 error_reporting( 0 );
-
-if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
-}
 
 require ABSPATH . 'wp-settings.php';
 
@@ -55,32 +97,6 @@ if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
 	);
 }
 
-// Check if wp-config.php has been created.
-if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
-	wp_die(
-		'<p>' . sprintf(
-			/* translators: 1: wp-config.php, 2: install.php */
-			__( 'The file %1$s already exists. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
-			'<code>wp-config.php</code>',
-			'install.php'
-		) . '</p>',
-		409
-	);
-}
-
-// Check if wp-config.php exists above the root directory but is not part of another installation.
-if ( @file_exists( ABSPATH . '../wp-config.php' ) && ! @file_exists( ABSPATH . '../wp-settings.php' ) ) {
-	wp_die(
-		'<p>' . sprintf(
-			/* translators: 1: wp-config.php, 2: install.php */
-			__( 'The file %1$s already exists one level above your WordPress installation. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
-			'<code>wp-config.php</code>',
-			'install.php'
-		) . '</p>',
-		409
-	);
-}
-
 $step = isset( $_GET['step'] ) ? (int) $_GET['step'] : -1;
 
 /**
@@ -94,16 +110,16 @@ $step = isset( $_GET['step'] ) ? (int) $_GET['step'] : -1;
 function setup_config_display_header( $body_classes = array() ) {
 	$body_classes   = (array) $body_classes;
 	$body_classes[] = 'wp-core-ui';
-	$dir_attr       = '';
+	$body_classes[] = 'admin-color-modern';
+
 	if ( is_rtl() ) {
 		$body_classes[] = 'rtl';
-		$dir_attr       = ' dir="rtl"';
 	}
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 	?>
 <!DOCTYPE html>
-<html<?php echo $dir_attr; ?>>
+<html <?php language_attributes(); ?>>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -133,7 +149,7 @@ switch ( $step ) {
 			$languages = wp_get_available_translations();
 			if ( $languages ) {
 				setup_config_display_header( 'language-chooser' );
-				echo '<h1 class="screen-reader-text">Select a default language</h1>';
+				echo '<h1 class="screen-reader-text">Welcome to WordPress</h1>';
 				echo '<form id="setup" method="post" action="?step=0">';
 				wp_install_language_form( $languages );
 				echo '</form>';
@@ -240,7 +256,7 @@ switch ( $step ) {
 			<td>
 				<div class="wp-pwd">
 					<input name="pwd" id="pwd" type="password" class="regular-text" data-reveal="1" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" spellcheck="false" />
-					<button type="button" class="button pwd-toggle hide-if-no-js" data-toggle="0" data-start-masked="1" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
+					<button type="button" class="button wp-hide-pw user-new-password-toggle pwd-toggle hide-if-no-js" data-toggle="0" data-start-masked="1" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility"></span>
 						<span class="text"><?php _e( 'Show' ); ?></span>
 					</button>
