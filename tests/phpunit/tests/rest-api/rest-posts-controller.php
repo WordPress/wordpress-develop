@@ -2622,6 +2622,232 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 0, $data['content']['block_version'] );
 	}
 
+	/**
+	 * Requests a post with the given query parameters as an editor.
+	 *
+	 * @param array<string, mixed> $params Query parameters.
+	 * @return array<mixed> The `content` field of the response.
+	 */
+	private function get_content_for_blocks_test( array $params ): array {
+		$editor_id = self::$editor_id;
+		$this->assertIsInt( $editor_id );
+		wp_set_current_user( $editor_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => "<!-- wp:paragraph {\"align\":\"center\"} -->\n<p class=\"has-text-align-center\">Hello</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:group -->\n<div class=\"wp-block-group\"><!-- wp:paragraph -->\n<p>Inner</p>\n<!-- /wp:paragraph --></div>\n<!-- /wp:group -->",
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_query_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = rest_get_server()->response_to_data( $response, false );
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['content'] );
+
+		return $data['content'];
+	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_item_returns_blocks_when_requested_in_edit_context(): void {
+		$content = $this->get_content_for_blocks_test(
+			array(
+				'context' => 'edit',
+				'_fields' => 'content.blocks',
+			)
+		);
+
+		$keys   = array( 'name', 'attributes', 'inner_blocks', 'inner_html', 'inner_content' );
+		$blocks = $content['blocks'];
+		$this->assertIsArray( $blocks );
+		$this->assertCount( 2, $blocks, 'Whitespace between blocks should be dropped.' );
+		$this->assertIsArray( $blocks[0] );
+		$this->assertIsArray( $blocks[1] );
+		$this->assertSame( $keys, array_keys( $blocks[0] ) );
+		$this->assertSame( 'core/paragraph', $blocks[0]['name'] );
+		$this->assertEquals( (object) array( 'align' => 'center' ), $blocks[0]['attributes'] );
+		$this->assertSame( 'core/group', $blocks[1]['name'] );
+		$this->assertEquals( new stdClass(), $blocks[1]['attributes'], 'Empty attributes should encode as a JSON object.' );
+
+		$inner_blocks = $blocks[1]['inner_blocks'];
+		$this->assertIsArray( $inner_blocks );
+		$this->assertCount( 1, $inner_blocks );
+		$this->assertIsArray( $inner_blocks[0] );
+		$this->assertSame( $keys, array_keys( $inner_blocks[0] ) );
+		$this->assertSame( 'core/paragraph', $inner_blocks[0]['name'] );
+	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_item_does_not_return_blocks_unless_requested(): void {
+		$content = $this->get_content_for_blocks_test( array( 'context' => 'edit' ) );
+
+		$this->assertArrayNotHasKey( 'blocks', $content );
+	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_item_does_not_return_blocks_for_content_field(): void {
+		$content = $this->get_content_for_blocks_test(
+			array(
+				'context' => 'edit',
+				'_fields' => 'content',
+			)
+		);
+
+		$this->assertArrayNotHasKey( 'blocks', $content );
+	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_item_does_not_return_blocks_in_view_context(): void {
+		$content = $this->get_content_for_blocks_test( array( '_fields' => 'content.blocks' ) );
+
+		$this->assertArrayNotHasKey( 'blocks', $content );
+	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_item_schema_includes_content_blocks(): void {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['schema'] );
+		$this->assertIsArray( $data['schema']['properties'] );
+		$this->assertIsArray( $data['schema']['properties']['content'] );
+		$this->assertIsArray( $data['schema']['properties']['content']['properties'] );
+		$properties = $data['schema']['properties']['content']['properties'];
+
+		$this->assertArrayHasKey( 'blocks', $properties );
+		$this->assertIsArray( $properties['blocks'] );
+		$this->assertSame( array( 'edit' ), $properties['blocks']['context'] );
+		$this->assertTrue( $properties['blocks']['readonly'] );
+	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_item_returns_blocks_for_fields_array(): void {
+		$content = $this->get_content_for_blocks_test(
+			array(
+				'context' => 'edit',
+				'_fields' => array( 'id', 'content.blocks' ),
+			)
+		);
+
+		$this->assertIsArray( $content['blocks'] );
+		$this->assertCount( 2, $content['blocks'] );
+	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_item_returns_freeform_content_as_one_block(): void {
+		$editor_id = self::$editor_id;
+		$this->assertIsInt( $editor_id );
+		wp_set_current_user( $editor_id );
+
+		$html    = "<p>Classic</p>\n<p>Content</p>";
+		$post_id = self::factory()->post->create( array( 'post_content' => $html ) );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_query_params(
+			array(
+				'context' => 'edit',
+				'_fields' => 'content.blocks',
+			)
+		);
+		$data = rest_get_server()->response_to_data( rest_get_server()->dispatch( $request ), false );
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['content'] );
+		$blocks = $data['content']['blocks'];
+
+		$this->assertIsArray( $blocks );
+		$this->assertCount( 1, $blocks );
+		$this->assertIsArray( $blocks[0] );
+		$this->assertNull( $blocks[0]['name'] );
+		$this->assertSame( $html, $blocks[0]['inner_html'] );
+	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_item_blocks_include_hooked_blocks_like_raw_content(): void {
+		register_block_type(
+			'tests/hooked-block',
+			array(
+				'block_hooks' => array( 'core/group' => 'after' ),
+			)
+		);
+
+		$content = $this->get_content_for_blocks_test(
+			array(
+				'context' => 'edit',
+				'_fields' => 'content.raw,content.blocks',
+			)
+		);
+
+		unregister_block_type( 'tests/hooked-block' );
+
+		$this->assertIsString( $content['raw'] );
+		$this->assertIsArray( $content['blocks'] );
+		$raw_names = array_values( array_filter( wp_list_pluck( parse_blocks( $content['raw'] ), 'blockName' ) ) );
+		$this->assertSame( array( 'core/paragraph', 'core/group', 'tests/hooked-block' ), $raw_names );
+		$this->assertSame( $raw_names, wp_list_pluck( $content['blocks'], 'name' ) );
+	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_items_returns_blocks_only_for_posts_the_user_can_edit(): void {
+		$contributor_id = self::$contributor_id;
+		$editor_id      = self::$editor_id;
+		$this->assertIsInt( $contributor_id );
+		$this->assertIsInt( $editor_id );
+
+		$own_post_id   = self::factory()->post->create(
+			array(
+				'post_author'  => $contributor_id,
+				'post_status'  => 'draft',
+				'post_content' => '<!-- wp:paragraph --><p>Own</p><!-- /wp:paragraph -->',
+			)
+		);
+		$other_post_id = self::factory()->post->create( array( 'post_author' => $editor_id ) );
+		wp_set_current_user( $contributor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params(
+			array(
+				'context' => 'edit',
+				'_fields' => 'id,content.blocks',
+				'status'  => 'draft,publish',
+			)
+		);
+		$items = rest_get_server()->response_to_data( rest_get_server()->dispatch( $request ), false );
+		$this->assertIsArray( $items );
+
+		$blocks_by_id = array();
+		foreach ( $items as $item ) {
+			$this->assertIsArray( $item );
+			$this->assertIsInt( $item['id'] );
+			$this->assertIsArray( $item['content'] );
+			$blocks_by_id[ $item['id'] ] = $item['content']['blocks'] ?? null;
+		}
+
+		$this->assertArrayNotHasKey( $other_post_id, $blocks_by_id, 'Posts the user cannot edit should be left out.' );
+		$this->assertArrayHasKey( $own_post_id, $blocks_by_id );
+		$this->assertIsArray( $blocks_by_id[ $own_post_id ] );
+		$this->assertCount( 1, $blocks_by_id[ $own_post_id ] );
+	}
+
 	public function test_get_item_read_permission_custom_post_status_not_authenticated() {
 		register_post_status( 'testpubstatus', array( 'public' => true ) );
 		register_post_status( 'testprivtatus', array( 'public' => false ) );
