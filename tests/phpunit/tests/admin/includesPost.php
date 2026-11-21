@@ -1369,4 +1369,72 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['_wpnonce'] );
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['metabox_loader_nonce'] );
 	}
+
+	/**
+	 * Ensures that edit_post() allows a post to be both sticky and password protected.
+	 *
+	 * @ticket 64810
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_edit_post_retains_sticky_when_password_visibility_is_set() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_author' => self::$admin_id,
+			)
+		);
+		stick_post( $post_id );
+		$this->assertTrue( is_sticky( $post_id ), 'The post was not sticky to begin with.' );
+
+		edit_post(
+			array(
+				'post_ID'       => $post_id,
+				'post_title'    => 'Protected and sticky',
+				'post_status'   => 'publish',
+				'post_password' => 'secret',
+				'visibility'    => 'password',
+				'sticky'        => 'sticky',
+			)
+		);
+
+		$this->assertSame( 'secret', get_post( $post_id )->post_password );
+		$this->assertTrue( is_sticky( $post_id ), 'The post should remain sticky when password protected.' );
+	}
+
+	/**
+	 * Ensures that an existing password protected post can be set to sticky via edit_post().
+	 *
+	 * @ticket 64810
+	 *
+	 * @covers ::edit_post
+	 */
+	public function test_edit_post_allows_sticking_password_protected_post() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status'   => 'publish',
+				'post_password' => 'secret',
+				'post_author'   => self::$admin_id,
+			)
+		);
+		$this->assertFalse( is_sticky( $post_id ), 'The post was sticky to begin with.' );
+
+		edit_post(
+			array(
+				'post_ID'       => $post_id,
+				'post_title'    => 'Protected and sticky',
+				'post_status'   => 'publish',
+				'post_password' => 'secret',
+				'visibility'    => 'password',
+				'sticky'        => 'sticky',
+			)
+		);
+
+		$this->assertSame( 'secret', get_post( $post_id )->post_password );
+		$this->assertTrue( is_sticky( $post_id ), 'The password protected post should be made sticky.' );
+	}
 }
