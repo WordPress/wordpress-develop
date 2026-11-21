@@ -402,6 +402,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$max_pages      = (int) ceil( $total_comments / $request['per_page'] );
 		}
 
+		if ( empty( $request['offset'] ) && $request['page'] > $max_pages && $total_comments > 0 ) {
+			return new WP_Error(
+				'rest_comment_invalid_page_number',
+				__( 'The page number requested is larger than the number of pages available.' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $comments );
 		$response->header( 'X-WP-Total', (string) $total_comments );
 		$response->header( 'X-WP-TotalPages', (string) $max_pages );
