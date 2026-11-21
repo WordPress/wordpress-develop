@@ -18,10 +18,7 @@ process.env.STORAGE_STATE_PATH ??= path.join(
 const SERIAL_SPECS = [
 	'install.test.js',
 	'maintenance-mode.test.js',
-	'fatal-error-handler.test.js',
-	'login-localize-script.test.js',
 	'gutenberg-plugin.test.js',
-	'plugins.test.js',
 	'themes.test.js',
 	// This deletes all posts, including other workers' content.
 	'empty-trash.test.js',

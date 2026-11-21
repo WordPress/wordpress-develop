@@ -134,7 +134,7 @@ class Tests_Theme_IpsumDesignGuide extends WP_UnitTestCase {
 
 		$this->assertContains( 'block-theme-with-hooked-blocks-child/child-pattern', $expected, 'The child theme should have a pattern of its own.' );
 		$this->assertContains( 'block-theme-with-hooked-blocks/footer-default', $expected, 'The parent theme should have a pattern.' );
-		$this->assertSame( $expected, $this->get_design_guide_pattern_slugs(), 'The theme pattern slugs to not match.' );
+		$this->assertSame( $expected, $this->get_design_guide_pattern_slugs(), 'The theme pattern slugs do not match.' );
 	}
 
 	/**
