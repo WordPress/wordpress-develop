@@ -384,7 +384,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_get_block_name_from_theme_json_path() {
+	public static function data_wp_get_block_name_from_theme_json_path() {
 		return array(
 			'core block styles'             => array(
 				array( 'styles', 'blocks', 'core/navigation' ),

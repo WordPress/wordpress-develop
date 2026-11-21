@@ -1163,7 +1163,7 @@ function update_meta( $meta_id, $meta_key, $meta_value ) {
  * @access private
  *
  * @param int|WP_Post $post Post ID or post object.
- * @return void|int|WP_Error Void if nothing fixed. 0 or WP_Error on update failure. The post ID on update success.
+ * @return void|int Void if nothing fixed. 0 on update failure. The post ID on update success.
  */
 function _fix_attachment_links( $post ) {
 	$post    = get_post( $post, ARRAY_A );
@@ -1411,6 +1411,21 @@ function wp_edit_attachments_query_vars( $q = false ) {
  *
  *     @type array<string, array{0: string, 1: string, 2: array}> $0 Post mime types. See get_post_mime_types().
  *     @type string[]                                             $1 Available post mime types.
+ * }
+ *
+ * @phpstan-return array{
+ *     0: array<string, array{
+ *         0: string,
+ *         1: string,
+ *         2: array{
+ *             singular: literal-string,
+ *             plural: literal-string,
+ *             context: literal-string|null,
+ *             domain: literal-string|null,
+ *             ...
+ *         },
+ *     }>,
+ *     1: string[],
  * }
  */
 function wp_edit_attachments_query( $q = false ) {
@@ -2349,9 +2364,7 @@ function get_block_editor_server_block_settings() {
 				continue;
 			}
 
-			if ( ! isset( $blocks[ $block_name ] ) ) {
-				$blocks[ $block_name ] = array();
-			}
+			$blocks[ $block_name ] ??= array();
 
 			$blocks[ $block_name ][ $key ] = $block_type->{ $field };
 		}

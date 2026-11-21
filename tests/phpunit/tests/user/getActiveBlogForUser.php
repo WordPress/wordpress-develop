@@ -69,8 +69,6 @@ class Tests_User_GetActiveBlogForUser extends WP_UnitTestCase {
 
 		$result = get_active_blog_for_user( self::$user_id );
 
-		wp_delete_site( $primary_site_id );
-
 		$this->assertSame( $primary_site_id, $result->id );
 	}
 

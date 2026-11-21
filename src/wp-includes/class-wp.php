@@ -13,9 +13,10 @@ class WP {
 	 * Long list of public query variables.
 	 *
 	 * @since 2.0.0
+	 * @since 7.2.0 Added the `random` query variable.
 	 * @var string[]
 	 */
-	public $public_query_vars = array( 'm', 'p', 'posts', 'w', 'cat', 'withcomments', 'withoutcomments', 's', 'search', 'exact', 'sentence', 'calendar', 'page', 'paged', 'more', 'tb', 'pb', 'author', 'order', 'orderby', 'year', 'monthnum', 'day', 'hour', 'minute', 'second', 'name', 'category_name', 'tag', 'feed', 'author_name', 'pagename', 'page_id', 'error', 'attachment', 'attachment_id', 'subpost', 'subpost_id', 'preview', 'robots', 'favicon', 'taxonomy', 'term', 'cpage', 'post_type', 'embed' );
+	public $public_query_vars = array( 'm', 'p', 'posts', 'w', 'cat', 'withcomments', 'withoutcomments', 's', 'search', 'exact', 'sentence', 'calendar', 'page', 'paged', 'more', 'tb', 'pb', 'author', 'order', 'orderby', 'year', 'monthnum', 'day', 'hour', 'minute', 'second', 'name', 'category_name', 'tag', 'feed', 'author_name', 'pagename', 'page_id', 'error', 'attachment', 'attachment_id', 'subpost', 'subpost_id', 'preview', 'robots', 'favicon', 'taxonomy', 'term', 'cpage', 'post_type', 'embed', 'random' );
 
 	/**
 	 * Private query variables.
@@ -277,10 +278,8 @@ class WP {
 				// Parse the query.
 				parse_str( $query, $perma_query_vars );
 
-				// If we're processing a 404 request, clear the error var since we found something.
-				if ( '404' === $error ) {
-					unset( $error, $_GET['error'] );
-				}
+				// Clear the 404 error var since we found something.
+				unset( $error, $_GET['error'] );
 			}
 
 			// If req_uri is empty or if it is a request for ourself, unset error.
@@ -705,6 +704,246 @@ class WP {
 	}
 
 	/**
+	 * Redirects random content requests to a randomly selected post.
+	 *
+	 * For random content requests, runs the main query to select a single random post
+	 * from the requested archive and redirects to it. The post is selected by looking up
+	 * random post IDs, see {@see wp_random_content_posts_pre_query()}, as sorting posts
+	 * randomly requires the database to read every eligible post. For example, `example.com/random/`
+	 * redirects to a random post and `example.com/random/category/news/` redirects to a
+	 * random post in the "news" category.
+	 *
+	 * The random post is selected by the main query, so {@see 'pre_get_posts'} callbacks
+	 * customizing the archive apply to the selection. While the query runs, callbacks
+	 * enforcing the eligible posts, order and limit are added after any other callbacks:
+	 *
+	 * - {@see wp_random_content_pre_get_posts()} on the {@see 'pre_get_posts'} action.
+	 * - {@see wp_random_content_posts_where()} on the {@see 'posts_where'} filter.
+	 * - {@see wp_random_content_posts_orderby()} on the {@see 'posts_orderby'} filter.
+	 * - {@see wp_random_content_post_limits()} on the {@see 'post_limits'} filter.
+	 * - {@see wp_random_content_posts_fields()} on the {@see 'posts_fields'} filter.
+	 * - {@see wp_random_content_posts_pre_query()} on the {@see 'posts_pre_query'} filter.
+	 *
+	 * If a post is selected, the redirect is sent by {@see wp_random_content_redirect()}
+	 * on the {@see 'template_redirect'} action at priority 100, so the request is set up
+	 * and the {@see 'wp'} action has fired before the redirect.
+	 *
+	 * If no post is selected, for example on an empty archive, the request is a 404 as
+	 * there is no post to redirect to. If a post is selected, the request ends with
+	 * the redirect. Otherwise the request continues with the results of the main
+	 * query, which is not run again.
+	 *
+	 * Search requests are never random content requests. A search request that includes
+	 * the `random` query variable is redirected to the search results without it, see
+	 * {@see WP::redirect_random_search()}.
+	 *
+	 * Requests that are not for posts ignore the `random` query variable, they are neither
+	 * random content requests nor redirected. These are requests for robots.txt, the
+	 * favicon, sitemaps, feeds and trackbacks.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see wp_is_random_content_query()
+	 * @global WP_Query $wp_the_query WordPress Query object.
+	 *
+	 * @return bool Whether the main query was run for a random content request.
+	 */
+	public function handle_random(): bool {
+		global $wp_the_query;
+
+		if ( ! isset( $this->query_vars['random'] ) || ! wp_is_random_content_redirect_enabled() ) {
+			return false;
+		}
+
+		/*
+		 * Random content can only be requested from posts. Requests for robots.txt, the
+		 * favicon, sitemaps, feeds and trackbacks ignore the `random` query variable.
+		 *
+		 * Embeds are not included as only singular requests are embeds, which are never
+		 * random content requests.
+		 */
+		foreach ( array( 'robots', 'favicon', 'sitemap', 'feed', 'tb' ) as $query_var ) {
+			if ( ! empty( $this->query_vars[ $query_var ] ) ) {
+				return false;
+			}
+		}
+
+		if ( isset( $this->query_vars['s'] ) ) {
+			$this->redirect_random_search();
+
+			// The request was not redirected, run the search as if `random` was not requested.
+			return false;
+		}
+
+		add_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', 20 );
+		add_filter( 'posts_where', 'wp_random_content_posts_where', 20, 2 );
+		add_filter( 'posts_orderby', 'wp_random_content_posts_orderby', 20, 2 );
+		add_filter( 'post_limits', 'wp_random_content_post_limits', 20, 2 );
+		add_filter( 'posts_fields', 'wp_random_content_posts_fields', 20, 2 );
+		add_filter( 'posts_pre_query', 'wp_random_content_posts_pre_query', 20, 2 );
+
+		$this->query_posts();
+
+		remove_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', 20 );
+		remove_filter( 'posts_where', 'wp_random_content_posts_where', 20 );
+		remove_filter( 'posts_orderby', 'wp_random_content_posts_orderby', 20 );
+		remove_filter( 'post_limits', 'wp_random_content_post_limits', 20 );
+		remove_filter( 'posts_fields', 'wp_random_content_posts_fields', 20 );
+		remove_filter( 'posts_pre_query', 'wp_random_content_posts_pre_query', 20 );
+
+		if ( ! wp_is_random_content_query( $wp_the_query ) ) {
+			return true;
+		}
+
+		if ( $wp_the_query->post instanceof WP_Post ) {
+			add_action( 'template_redirect', 'wp_random_content_redirect', 100 );
+		} else {
+			$wp_the_query->set_404();
+			status_header( 404 );
+			nocache_headers();
+		}
+
+		return true;
+	}
+
+	/**
+	 * Redirects search requests for random content to the search results.
+	 *
+	 * Random content can not be requested from search results. Instead, a search
+	 * request that includes the `random` query variable is redirected to
+	 * the same request without it.
+	 *
+	 * The location depends on how random content was requested:
+	 *
+	 * - By the `random` query string parameter: the requested path is retained and the
+	 *   parameter is removed. For example, `example.com/search/foo/?random` redirects to
+	 *   `example.com/search/foo/` and `example.com/?s=foo&random` to `example.com/?s=foo`.
+	 * - By a rewrite rule, such as those using the random base: the path is replaced by the
+	 *   query variables of the request, so the location never includes the random base.
+	 *   For example, `example.com/random/category/news/?s=foo` redirects to
+	 *   `example.com/?s=foo&category_name=news`.
+	 *
+	 * Other query string parameters, including those that are not query variables, are
+	 * retained. The redirect happens before the main query is run, so no search is
+	 * performed for the redirected request.
+	 *
+	 * As with random content requests, only front end GET and HEAD requests are redirected.
+	 * The request is not redirected when the location would be the requested URL. This is
+	 * the case when random content is not requested by the URL, for example by a filter,
+	 * or is requested by a rewrite rule for the home page.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 */
+	protected function redirect_random_search(): void {
+		global $wp_rewrite;
+
+		if ( is_admin() ) {
+			return;
+		}
+
+		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) && is_string( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( $_SERVER['REQUEST_METHOD'] ) : '';
+		if ( 'GET' !== $request_method && 'HEAD' !== $request_method ) {
+			return;
+		}
+
+		$requested_path = '';
+
+		if ( is_string( $this->request ) && '' !== $this->request ) {
+			/*
+			 * The requested path is URL-encoded unless it is from PATH_INFO. Encode any
+			 * characters that are not safe in a redirect without decoding the path, as
+			 * doing so would change its meaning. For example, a plus is a space in the
+			 * path of a search.
+			 *
+			 * The path is from $_SERVER, so is unslashed first. The slashes are not part
+			 * of the request.
+			 */
+			$requested_path = (string) preg_replace_callback(
+				'|[^a-z0-9\-._~+%/]|i',
+				static fn ( array $matches ): string => rawurlencode( $matches[0] ),
+				wp_unslash( $this->request )
+			);
+			$requested_path = user_trailingslashit( $requested_path );
+
+			// PATHINFO permalinks are prefixed by the index file, which PATH_INFO does not include.
+			if ( '' !== $wp_rewrite->root && ! str_starts_with( $requested_path, $wp_rewrite->root ) ) {
+				$requested_path = $wp_rewrite->root . $requested_path;
+			}
+		}
+
+		$path       = $requested_path;
+		$query_args = $_GET;
+
+		wp_parse_str( $this->matched_query, $matched_query_vars );
+
+		if ( isset( $matched_query_vars['random'] ) ) {
+			/*
+			 * The path requests random content, so can not be retained. Replace it with
+			 * the query variables it was rewritten to.
+			 */
+			$path       = '';
+			$query_args = array_merge( $query_args, $this->query_vars );
+		}
+
+		unset( $query_args['random'] );
+
+		$location = add_query_arg( $this->urlencode_query_args( $query_args ), home_url( '/' . $path ) );
+
+		/*
+		 * The redirect removes the random request from the URL. If there is nothing to
+		 * remove the location is the requested URL, which would redirect repeatedly. This
+		 * is the case when random content is not requested by the URL, for example by a
+		 * filter, or is requested by a rewrite rule for the home page.
+		 */
+		if ( add_query_arg( $this->urlencode_query_args( $_GET ), home_url( '/' . $requested_path ) ) === $location ) {
+			return;
+		}
+
+		// Only consider redirecting permitted locations so wp_safe_redirect doesn't redirect to the fallback.
+		if ( ! wp_validate_redirect( $location, '' ) ) {
+			return;
+		}
+
+		if ( wp_safe_redirect( $location, 301 ) ) {
+			exit;
+		}
+	}
+
+	/**
+	 * URL-encodes the names and values of query string parameters.
+	 *
+	 * Unlike urlencode_deep(), the parameter names are encoded as well as the values. A
+	 * name is from the request, so may include characters that separate parameters.
+	 *
+	 * The values are unslashed before they are encoded. The names are not, as slashes
+	 * are only added to the values of the superglobals.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<mixed> $query_args Query string parameters. The values are expected to
+	 *                                 be slashed, the names are not.
+	 * @return array<string, mixed> URL-encoded query string parameters. Values that are
+	 *                              neither scalar nor an array are removed.
+	 */
+	private function urlencode_query_args( array $query_args ): array {
+		$encoded = array();
+
+		foreach ( $query_args as $name => $value ) {
+			$name = urlencode( (string) $name );
+
+			if ( is_array( $value ) ) {
+				$encoded[ $name ] = $this->urlencode_query_args( $value );
+			} elseif ( is_scalar( $value ) ) {
+				$encoded[ $name ] = urlencode( wp_unslash( (string) $value ) );
+			}
+		}
+
+		return $encoded;
+	}
+
+	/**
 	 * Set the Headers for 404, if nothing is found for requested URL.
 	 *
 	 * Issue a 404 if a request doesn't match any posts and doesn't match any object
@@ -748,7 +987,7 @@ class WP {
 
 		// Never 404 here for the admin, robots, favicon, or sitemaps.
 		// Sitemap routes send their own status in WP_Sitemaps::render_sitemaps().
-		if ( is_admin() || is_robots() || is_favicon() || is_sitemap() || get_query_var( 'sitemap-stylesheet' ) ) {
+		if ( is_admin() || is_robots() || is_favicon() || is_sitemap() ) {
 			$set_404 = false;
 
 			// If posts were found, check for paged content.
@@ -822,7 +1061,9 @@ class WP {
 		$parsed = $this->parse_request( $query_args );
 
 		if ( $parsed ) {
-			$this->query_posts();
+			if ( ! $this->handle_random() ) {
+				$this->query_posts();
+			}
 			$this->handle_404();
 			$this->register_globals();
 		}

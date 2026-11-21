@@ -28,7 +28,7 @@ class Tests_Formatting_wpParseStr extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_parse_str() {
+	public static function data_wp_parse_str() {
 		return array(
 			'null'              => array(
 				'input'    => null,
@@ -103,7 +103,7 @@ class Tests_Formatting_wpParseStr extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_parse_str_result_array_is_always_overwritten() {
+	public static function data_wp_parse_str_result_array_is_always_overwritten() {
 		// Standard value for expected output.
 		$expected = array(
 			'key'   => '25',
