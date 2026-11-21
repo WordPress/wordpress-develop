@@ -164,4 +164,148 @@ class Tests_Ajax_wpAjaxHeartbeat extends WP_Ajax_UnitTestCase {
 		$this->assertNotEmpty( $response['wp_autosave'] );
 		$this->assertFalse( $response['wp_autosave']['success'] );
 	}
+
+	public function tear_down() {
+		unset( $_COOKIE[ LOGGED_IN_COOKIE ] );
+		parent::tear_down();
+	}
+
+	/**
+	 * Tests that an expired Heartbeat nonce without a refresh nonce does not return fresh nonces.
+	 */
+	public function test_expired_nonce_without_refresh_nonce_returns_nonces_expired_only() {
+		wp_set_current_user( self::$admin_id );
+
+		$_POST = array(
+			'action' => 'heartbeat',
+			'_nonce' => 'expired123',
+		);
+
+		$response = $this->make_heartbeat_request();
+
+		$this->assertSame( array( 'nonces_expired' => true ), $response );
+	}
+
+	/**
+	 * Tests that an expired Heartbeat nonce with an invalid refresh nonce does not return fresh nonces.
+	 */
+	public function test_expired_nonce_with_invalid_refresh_nonce_returns_nonces_expired_only() {
+		wp_set_current_user( self::$admin_id );
+
+		$_POST = array(
+			'action'        => 'heartbeat',
+			'_nonce'        => 'expired123',
+			'refresh_nonce' => 'invalid123',
+		);
+
+		$response = $this->make_heartbeat_request();
+
+		$this->assertSame( array( 'nonces_expired' => true ), $response );
+	}
+
+	/**
+	 * Tests that an expired Heartbeat nonce with a valid refresh nonce returns fresh nonces.
+	 */
+	public function test_expired_nonce_with_valid_refresh_nonce_returns_fresh_nonces() {
+		wp_set_current_user( self::$admin_id );
+
+		$_POST = array(
+			'action'        => 'heartbeat',
+			'_nonce'        => 'expired123',
+			'refresh_nonce' => wp_create_nonce( 'heartbeat-refresh-nonce' ),
+		);
+
+		$response = $this->make_heartbeat_request();
+
+		$this->assertArrayNotHasKey( 'nonces_expired', $response, 'Nonces should have been refreshed.' );
+		$this->assertSame( 1, wp_verify_nonce( $response['rest_nonce'], 'wp_rest' ), 'The REST API nonce should be fresh.' );
+		$this->assertSame( 1, wp_verify_nonce( $response['heartbeat_nonce'], 'heartbeat-nonce' ), 'The Heartbeat nonce should be fresh.' );
+		$this->assertSame( 1, wp_verify_nonce( $response['heartbeat_refresh_nonce'], 'heartbeat-refresh-nonce' ), 'The refresh nonce should be rotated.' );
+	}
+
+	/**
+	 * Tests that a refresh nonce belonging to another user does not return fresh nonces.
+	 */
+	public function test_expired_nonce_with_other_users_refresh_nonce_returns_nonces_expired_only() {
+		wp_set_current_user( self::$editor_id );
+		$refresh_nonce = wp_create_nonce( 'heartbeat-refresh-nonce' );
+
+		wp_set_current_user( self::$admin_id );
+
+		$_POST = array(
+			'action'        => 'heartbeat',
+			'_nonce'        => 'expired123',
+			'refresh_nonce' => $refresh_nonce,
+		);
+
+		$response = $this->make_heartbeat_request();
+
+		$this->assertSame( array( 'nonces_expired' => true ), $response );
+	}
+
+	/**
+	 * Tests that nonces from before an interim login need the refresh nonce of the new session.
+	 *
+	 * Logging in again through the interim login dialog starts a new session.
+	 * The page behind the dialog keeps the nonces of the old one, so its own
+	 * refresh nonce can no longer renew them; the login success page hands it a
+	 * refresh nonce for the new session instead.
+	 */
+	public function test_expired_session_nonces_renew_with_refresh_nonce_of_new_session() {
+		wp_set_current_user( self::$admin_id );
+
+		$this->use_session( self::$admin_id );
+		$stale_heartbeat_nonce = wp_create_nonce( 'heartbeat-nonce' );
+		$stale_refresh_nonce   = wp_create_nonce( 'heartbeat-refresh-nonce' );
+
+		// The interim login starts a new session.
+		$this->use_session( self::$admin_id );
+
+		$_POST = array(
+			'action'        => 'heartbeat',
+			'_nonce'        => $stale_heartbeat_nonce,
+			'refresh_nonce' => $stale_refresh_nonce,
+		);
+
+		$this->assertSame(
+			array( 'nonces_expired' => true ),
+			$this->make_heartbeat_request(),
+			'A refresh nonce from the previous session should not renew nonces.'
+		);
+
+		$_POST['refresh_nonce'] = wp_create_nonce( 'heartbeat-refresh-nonce' );
+		$this->_last_response   = '';
+
+		$response = $this->make_heartbeat_request();
+
+		$this->assertArrayNotHasKey( 'nonces_expired', $response, 'Nonces should have been refreshed.' );
+		$this->assertSame( 1, wp_verify_nonce( $response['heartbeat_nonce'], 'heartbeat-nonce' ), 'The Heartbeat nonce should belong to the new session.' );
+		$this->assertSame( 1, wp_verify_nonce( $response['rest_nonce'], 'wp_rest' ), 'The REST API nonce should belong to the new session.' );
+	}
+
+	/**
+	 * Points the logged-in cookie at a new session for a user.
+	 *
+	 * @param int $user_id User ID.
+	 */
+	private function use_session( $user_id ) {
+		$expiration                  = time() + DAY_IN_SECONDS;
+		$token                       = WP_Session_Tokens::get_instance( $user_id )->create( $expiration );
+		$_COOKIE[ LOGGED_IN_COOKIE ] = wp_generate_auth_cookie( $user_id, $expiration, 'logged_in', $token );
+	}
+
+	/**
+	 * Makes a Heartbeat request and returns the decoded response.
+	 *
+	 * @return array The decoded Heartbeat response.
+	 */
+	private function make_heartbeat_request() {
+		try {
+			$this->_handleAjax( 'heartbeat' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		return json_decode( $this->_last_response, true );
+	}
 }

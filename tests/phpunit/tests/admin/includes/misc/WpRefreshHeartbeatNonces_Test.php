@@ -23,6 +23,7 @@ class Tests_Admin_Includes_Misc_WpRefreshHeartbeatNonces_Test extends WP_UnitTes
 
 		$this->assertNotFalse( wp_verify_nonce( $result['rest_nonce'], 'wp_rest' ), 'The rest_nonce should be valid for "wp_rest".' );
 		$this->assertNotFalse( wp_verify_nonce( $result['heartbeat_nonce'], 'heartbeat-nonce' ), 'The heartbeat_nonce should be valid for "heartbeat-nonce".' );
+		$this->assertNotFalse( wp_verify_nonce( $result['heartbeat_refresh_nonce'], 'heartbeat-refresh-nonce' ), 'The heartbeat_refresh_nonce should be valid for "heartbeat-refresh-nonce".' );
 	}
 
 	/**
