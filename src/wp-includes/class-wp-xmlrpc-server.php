@@ -51,6 +51,17 @@ class wp_xmlrpc_server extends IXR_Server {
 	protected $auth_failed = false;
 
 	/**
+	 * Flags that a pingback has already been processed in this instance of wp_xmlrpc_server.
+	 *
+	 * Prevents a single `system.multicall` request from processing an unbounded number of pingbacks.
+	 *
+	 * @since 7.1.5
+	 *
+	 * @var bool
+	 */
+	protected $pingback_processed = false;
+
+	/**
 	 * Flags that XML-RPC is enabled
 	 *
 	 * @var bool
@@ -289,9 +300,12 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @since 2.8.0
 	 * @since 7.2.0 Returns an error if the `$username` or `$password` argument is not a scalar.
 	 *
-	 * @param string $username User's username.
-	 * @param string $password User's password.
+	 * @param mixed $username User's username.
+	 * @param mixed $password User's password.
 	 * @return WP_User|false WP_User object if authentication passed, false otherwise.
+	 *
+	 * @phpstan-assert-if-true =scalar $username
+	 * @phpstan-assert-if-true =scalar $password
 	 */
 	public function login(
 		$username,
@@ -305,8 +319,8 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		/*
 		 * Arrays and objects sent by the client would cause a fatal error in
-		 * wp_authenticate(). Other scalar types are tolerated because PHP
-		 * coerces them to strings, which preserves backward compatibility.
+		 * wp_authenticate(). Other scalar types are tolerated and cast to
+		 * strings, which preserves backward compatibility.
 		 */
 		if ( ! is_scalar( $username ) || ! is_scalar( $password ) ) {
 			$this->error = new IXR_Error( 400, __( 'The username and password arguments should be strings.' ) );
@@ -316,7 +330,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		if ( $this->auth_failed ) {
 			$user = new WP_Error( 'login_prevented' );
 		} else {
-			$user = wp_authenticate( $username, $password );
+			$user = wp_authenticate( (string) $username, (string) $password );
 		}
 
 		if ( is_wp_error( $user ) ) {
@@ -348,9 +362,12 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @deprecated 2.8.0 Use wp_xmlrpc_server::login()
 	 * @see wp_xmlrpc_server::login()
 	 *
-	 * @param string $username User's username.
-	 * @param string $password User's password.
+	 * @param mixed $username User's username.
+	 * @param mixed $password User's password.
 	 * @return bool Whether authentication passed.
+	 *
+	 * @phpstan-assert-if-true =scalar $username
+	 * @phpstan-assert-if-true =scalar $password
 	 */
 	public function login_pass_ok(
 		$username,
@@ -1237,6 +1254,9 @@ class wp_xmlrpc_server extends IXR_Server {
 		} else {
 			$comment_status = $comment->comment_approved;
 		}
+
+		$can_moderate_or_edit = current_user_can( 'moderate_comments' ) || current_user_can( 'edit_comment', $comment->comment_ID );
+
 		$_comment = array(
 			'date_created_gmt' => $comment_date_gmt,
 			'user_id'          => $comment->user_id,
@@ -1249,8 +1269,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			'post_title'       => get_the_title( $comment->comment_post_ID ),
 			'author'           => $comment->comment_author,
 			'author_url'       => $comment->comment_author_url,
-			'author_email'     => $comment->comment_author_email,
-			'author_ip'        => $comment->comment_author_IP,
+			'author_email'     => $can_moderate_or_edit ? $comment->comment_author_email : '',
+			'author_ip'        => $can_moderate_or_edit ? $comment->comment_author_IP : '',
 			'type'             => $comment->comment_type,
 		);
 
@@ -3778,13 +3798,26 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		$status = $struct['status'] ?? '';
 
-		if ( ! current_user_can( 'moderate_comments' ) && 'approve' !== $status ) {
+		$can_moderate = current_user_can( 'moderate_comments' );
+
+		if ( ! $can_moderate && 'approve' !== $status ) {
 			return new IXR_Error( 401, __( 'Invalid comment status.' ) );
 		}
 
 		$post_id = '';
 		if ( isset( $struct['post_id'] ) ) {
 			$post_id = absint( $struct['post_id'] );
+		}
+
+		$has_public_status = static function ( $post ) {
+			$status        = get_post_status( $post );
+			$status_object = $status ? get_post_status_object( $status ) : null;
+
+			return $status_object && $status_object->public;
+		};
+
+		if ( $post_id && ! $can_moderate && ! $has_public_status( $post_id ) && ! current_user_can( 'read_post', $post_id ) ) {
+			return new IXR_Error( 401, __( 'Invalid post ID.' ) );
 		}
 
 		$post_type = '';
@@ -3808,17 +3841,31 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		$comments = get_comments(
 			array(
-				'status'    => $status,
-				'post_id'   => $post_id,
-				'offset'    => $offset,
-				'number'    => $number,
-				'post_type' => $post_type,
+				'status'                    => $status,
+				'post_id'                   => $post_id,
+				'offset'                    => $offset,
+				'number'                    => $number,
+				'post_type'                 => $post_type,
+				'update_comment_post_cache' => true,
 			)
 		);
 
 		$comments_struct = array();
 		if ( is_array( $comments ) ) {
 			foreach ( $comments as $comment ) {
+				if ( ! $can_moderate && ! current_user_can( 'edit_comment', $comment->comment_ID ) ) {
+					$post = get_post( $comment->comment_post_ID );
+
+					if (
+						! $post
+						|| ! is_post_type_viewable( $post->post_type )
+						|| post_password_required( $post )
+						|| ( ! $has_public_status( $post ) && ! current_user_can( 'read_post', $post->ID ) )
+					) {
+						continue;
+					}
+				}
+
 				$comments_struct[] = $this->_prepare_comment( $comment );
 			}
 		}
@@ -7060,6 +7107,16 @@ class wp_xmlrpc_server extends IXR_Server {
 	 */
 	public function pingback_ping( $args ) {
 		global $wpdb;
+
+		/*
+		 * Checked before the `xmlrpc_call` action and any database or network work, so repeated
+		 * calls in a multicall cost nothing, including in plugins that check each pingback.
+		 */
+		if ( $this->pingback_processed ) {
+			return $this->pingback_error( 49, __( 'Only one pingback can be processed per request.' ) );
+		}
+
+		$this->pingback_processed = true;
 
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
 		do_action( 'xmlrpc_call', 'pingback.ping', $args, $this );

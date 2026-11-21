@@ -28,11 +28,12 @@
  *
  * @since 2.3.0
  *
- * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+ * @global WP_Rewrite $wp_rewrite   WordPress rewrite component.
  * @global bool       $is_IIS
- * @global WP_Query   $wp_query   WordPress Query object.
- * @global wpdb       $wpdb       WordPress database abstraction object.
- * @global WP         $wp         Current WordPress environment instance.
+ * @global WP_Query   $wp_query     WordPress Query object.
+ * @global WP_Query   $wp_the_query WordPress main Query object.
+ * @global wpdb       $wpdb         WordPress database abstraction object.
+ * @global WP         $wp           Current WordPress environment instance.
  *
  * @param string $requested_url Optional. The URL that was requested, used to
  *                              figure if redirect is needed.
@@ -41,9 +42,21 @@
  * @phpstan-return ( $do_redirect is true ? null : string|null )
  */
 function redirect_canonical( $requested_url = null, $do_redirect = true ) {
-	global $wp_rewrite, $is_IIS, $wp_query, $wpdb, $wp;
+	global $wp_rewrite, $is_IIS, $wp_query, $wp_the_query, $wpdb, $wp;
 
 	if ( isset( $_SERVER['REQUEST_METHOD'] ) && ! in_array( strtoupper( $_SERVER['REQUEST_METHOD'] ), array( 'GET', 'HEAD' ), true ) ) {
+		return null;
+	}
+
+	/*
+	 * Random content requests with a selected post are redirected to that post by
+	 * wp_random_content_redirect() later on the `template_redirect` action. A canonical
+	 * redirect would redirect the request twice and may drop the `random` query variable.
+	 */
+	if ( $wp_the_query instanceof WP_Query
+		&& wp_is_random_content_query( $wp_the_query )
+		&& $wp_the_query->post instanceof WP_Post
+	) {
 		return null;
 	}
 
@@ -1076,6 +1089,39 @@ function wp_redirect_admin_locations() {
 
 	if ( in_array( untrailingslashit( $_SERVER['REQUEST_URI'] ), $logins, true ) ) {
 		wp_redirect( wp_login_url() );
+		exit;
+	}
+
+	/**
+	 * Filters the well-known change password URL (/.well-known/change-password).
+	 *
+	 * By default visiting the well-known change password URL will redirect to
+	 * the user's profile page when requested by a browser or password manager.
+	 *
+	 * Sites with a custom URL structure for modifying the passwords can modify
+	 * the destination with this filter.
+	 *
+	 * The resulting URL is redirected using {@see wp_safe_redirect}, if the
+	 * filtered URL is on an external host, that host will need to be included
+	 * as an allowed host via the {@see 'allowed_redirect_hosts'} filter.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $change_password_url The URL to redirect to. Default is the user profile page.
+	 */
+	$change_password_url = apply_filters( 'wp_change_password_url', admin_url( 'profile.php' ) );
+
+	/*
+	 * The well-known change-password URL is always at the root of the origin
+	 * per the spec (https://w3c.github.io/webappsec-change-password-url/), so
+	 * only the root-relative path is matched here, regardless of whether
+	 * WordPress is installed in a subdirectory.
+	 */
+	if (
+		'/.well-known/change-password' === untrailingslashit( $_SERVER['REQUEST_URI'] )
+		&& $change_password_url
+		&& wp_safe_redirect( $change_password_url )
+	) {
 		exit;
 	}
 }

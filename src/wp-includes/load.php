@@ -1474,7 +1474,10 @@ function is_multisite() {
  *
  * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
  * @return int A non-negative integer.
- * @phpstan-return non-negative-int
+ *
+ * @phpstan-template T
+ * @phpstan-param T $maybeint
+ * @phpstan-return (T is non-negative-int ? T : non-negative-int)
  */
 function absint( $maybeint ): int {
 	if ( is_float( $maybeint ) ) {
@@ -2004,7 +2007,7 @@ function wp_is_json_media_type( $media_type ) {
 	static $cache = array();
 
 	if ( ! isset( $cache[ $media_type ] ) ) {
-		$cache[ $media_type ] = (bool) preg_match( '/(^|\s|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $media_type );
+		$cache[ $media_type ] = (bool) preg_match( '/(^|\s|,)application\/([\w!#\$&\-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $media_type );
 	}
 
 	return $cache[ $media_type ];

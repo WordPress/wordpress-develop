@@ -141,7 +141,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$this->assertSame( $expected, $results );
 	}
 
-	public function data_populate_options() {
+	public static function data_populate_options() {
 		return array(
 			array(
 				array(),
@@ -275,7 +275,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$this->assertSame( $expected, $results );
 	}
 
-	public function data_populate_site_meta() {
+	public static function data_populate_site_meta() {
 		return array(
 			array(
 				array(),
@@ -323,7 +323,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$this->assertSame( $expected, $results );
 	}
 
-	public function data_populate_network_meta() {
+	public static function data_populate_network_meta() {
 		return array(
 			array(
 				array(),

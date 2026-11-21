@@ -85,6 +85,24 @@ trait WP_AI_Client_Test_Abilities_Trait {
 		);
 
 		wp_register_ability(
+			'wpaiclienttests/empty-object',
+			array(
+				'label'               => 'Empty Object Test Ability',
+				'description'         => 'An ability that returns an empty object.',
+				'category'            => 'wpaiclienttests',
+				'output_schema'       => array(
+					'type' => 'object',
+				),
+				'execute_callback'    => static function () {
+					return array();
+				},
+				'permission_callback' => static function () {
+					return true;
+				},
+			)
+		);
+
+		wp_register_ability(
 			'wpaiclienttests/returns-error',
 			array(
 				'label'               => 'Test Ability That Returns Error',
@@ -127,6 +145,7 @@ trait WP_AI_Client_Test_Abilities_Trait {
 		// Unregister test abilities.
 		wp_unregister_ability( 'wpaiclienttests/simple' );
 		wp_unregister_ability( 'wpaiclienttests/with-params' );
+		wp_unregister_ability( 'wpaiclienttests/empty-object' );
 		wp_unregister_ability( 'wpaiclienttests/returns-error' );
 		wp_unregister_ability( 'wpaiclienttests/hyphen-test' );
 

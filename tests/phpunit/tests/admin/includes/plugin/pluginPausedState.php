@@ -40,7 +40,7 @@ class Tests_Admin_Includes_Plugin_PluginPausedState extends WP_UnitTestCase {
 
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
-		$this->orig_paused_plugins = isset( $GLOBALS['_paused_plugins'] ) ? $GLOBALS['_paused_plugins'] : null;
+		$this->orig_paused_plugins = $GLOBALS['_paused_plugins'] ?? null;
 
 		$GLOBALS['_paused_plugins'] = array();
 

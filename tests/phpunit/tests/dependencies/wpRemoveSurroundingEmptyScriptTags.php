@@ -15,7 +15,7 @@ class Tests_Dependencies_wpRemoveSurroundingEmptyScriptTags extends WP_UnitTestC
 	 *
 	 * @return array
 	 */
-	public function get_data_to_test_wp_remove_surrounding_empty_script_tags() {
+	public static function get_data_to_test_wp_remove_surrounding_empty_script_tags() {
 		$error_js = 'console.error("Function wp_remove_surrounding_empty_script_tags() used incorrectly in PHP. Expected string to start with script tag (without attributes) and end with script tag, with optional whitespace.")';
 		return array(
 			'basic_case'            => array(

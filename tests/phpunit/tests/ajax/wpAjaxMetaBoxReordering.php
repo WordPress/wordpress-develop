@@ -43,7 +43,7 @@ class Tests_Ajax_wpAjaxMetaBoxReordering extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_meta_box_reordering_states() {
+	public static function data_meta_box_reordering_states() {
 		return array(
 			'enabled'             => array( 1, 'enabled' ),
 			'enabled as string'   => array( '1', 'enabled' ),

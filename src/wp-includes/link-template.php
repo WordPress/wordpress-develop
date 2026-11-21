@@ -2209,9 +2209,13 @@ function prev_post_rel_link( $title = '%title', $in_same_term = false, $excluded
  * @return array|null Array containing the boundary post object if successful, null otherwise.
  */
 function get_boundary_post( $in_same_term = false, $excluded_terms = '', $start = true, $taxonomy = 'category' ) {
+	if ( ! taxonomy_exists( $taxonomy ) ) {
+		return null;
+	}
+
 	$post = get_post();
 
-	if ( ! $post || ! is_single() || is_attachment() || ! taxonomy_exists( $taxonomy ) ) {
+	if ( $in_same_term && ! $post ) {
 		return null;
 	}
 
@@ -4378,10 +4382,12 @@ function is_avatar_comment_type( $comment_type ) {
 	 * @since 3.0.0
 	 *
 	 * @since 6.9.0 The 'note' comment type was added.
+	 * @since 7.2.0 The 'reaction' comment type was added.
 	 *
-	 * @param array $types An array of content types. Default contains 'comment' and 'note'.
+	 * @param array $types An array of content types. Default contains 'comment', 'note',
+	 *                     and 'reaction'.
 	 */
-	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment', 'note' ) );
+	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment', 'note', 'reaction' ) );
 
 	return in_array( $comment_type, (array) $allowed_comment_types, true );
 }

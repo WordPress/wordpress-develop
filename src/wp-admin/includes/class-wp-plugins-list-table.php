@@ -25,6 +25,17 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	protected $show_autoupdates = true;
 
 	/**
+	 * The auto-update message shown for plugins with an update available.
+	 *
+	 * Determined once per list table, as it is the same for every plugin.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @var string|null Null until first needed.
+	 */
+	private $auto_update_message = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 3.2.0
@@ -1434,10 +1445,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					}
 
 					if ( ! empty( $plugin_data['update'] ) ) {
+						if ( null === $this->auto_update_message ) {
+							$this->auto_update_message = wp_get_auto_update_message( 'plugin' );
+						}
+
 						$html[] = sprintf(
 							'<div class="auto-update-time%s">%s</div>',
 							$time_class,
-							wp_get_auto_update_message()
+							$this->auto_update_message
 						);
 					}
 
@@ -1621,7 +1636,36 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$dependency_note = __( 'Note: This plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.' );
+		$dependency_note = '';
+
+		if ( $this->screen->in_admin( 'network' ) ) {
+			$is_network_active = is_plugin_active_for_network( $dependency );
+
+			if ( $is_network_active && current_user_can( 'manage_network_plugins' ) && WP_Plugin_Dependencies::has_active_dependents( $dependency ) ) {
+				$dependency_note = __( 'Note: This plugin cannot be deactivated until the plugins that require it are deactivated.' );
+			} elseif ( ! $is_network_active && ! is_plugin_active( $dependency ) && current_user_can( 'delete_plugins' ) && ! WP_Plugin_Dependencies::has_circular_dependency( $dependency ) ) {
+				$dependency_note = __( 'Note: This plugin cannot be deleted until the plugins that require it are deleted.' );
+			}
+		} else {
+			$is_active = is_plugin_active( $dependency );
+
+			if ( $is_active && ! is_plugin_active_for_network( $dependency ) && current_user_can( 'deactivate_plugin', $dependency ) && WP_Plugin_Dependencies::has_active_dependents( $dependency ) ) {
+				$dependency_note = __( 'Note: This plugin cannot be deactivated until the plugins that require it are deactivated.' );
+			} elseif ( ! $is_active && ! is_multisite() && current_user_can( 'delete_plugins' ) && ! WP_Plugin_Dependencies::has_circular_dependency( $dependency ) ) {
+				$dependency_note = __( 'Note: This plugin cannot be deleted until the plugins that require it are deleted.' );
+			}
+		}
+
+		$dependency_notice = '';
+		if ( '' !== $dependency_note ) {
+			$dependency_notice = wp_get_admin_notice(
+				$dependency_note,
+				array(
+					'type'               => 'warning',
+					'additional_classes' => array( 'inline' ),
+				)
+			);
+		}
 
 		$comma       = wp_get_list_item_separator();
 		$required_by = sprintf(
@@ -1631,9 +1675,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		);
 
 		printf(
-			'<div class="required-by"><p>%1$s</p><p>%2$s</p></div>',
+			'<div class="required-by"><p>%1$s</p>%2$s</div>',
 			$required_by,
-			$dependency_note
+			$dependency_notice
 		);
 	}
 
