@@ -3,9 +3,10 @@
  * Title: Overlay Contents
  * Slug: ipsum/overlay-contents
  * Categories: navigation
+ * Keywords: menu, submenu, contents, sitemap, search
  * Block Types: core/template-part/navigation-overlay
  * Viewport width: 1280
- * Description: A navigation overlay working as the site’s table of contents — a large menu list with submenus in view and a search field underneath.
+ * Description: A navigation overlay that works as the site’s table of contents. It has a large menu with its submenus in view and a search field underneath.
  *
  * @package Ipsum
  * @since Ipsum 1.0
@@ -22,8 +23,8 @@
 <h2 class="wp-block-heading has-contrast-color has-text-color has-link-color has-manrope-font-family has-small-font-size" style="font-style:normal;font-weight:600"><?php esc_html_e( 'Menu', 'ipsum' ); ?></h2>
 <!-- /wp:heading -->
 
-<!-- wp:navigation {"textColor":"contrast","showSubmenuIcon":false,"submenuVisibility":"always","overlayMenu":"never","style":{"typography":{"letterSpacing":"-0.02rem"}},"fontSize":"2-x-large","layout":{"type":"flex","orientation":"vertical"},"ariaLabel":"<?php echo esc_attr_x( 'Expanded', 'Accessible name of the navigation in the overlay', 'ipsum' ); ?>"} /--></div>
+<!-- wp:navigation {"textColor":"contrast","showSubmenuIcon":false,"submenuVisibility":"always","overlayMenu":"never","style":{"typography":{"letterSpacing":"-0.02rem"}},"fontSize":"2-x-large","layout":{"type":"flex","orientation":"vertical"},"ariaLabel":"<?php echo esc_attr_x( 'Primary', 'Accessible name of the main site navigation', 'ipsum' ); ?>"} /--></div>
 <!-- /wp:group -->
 
-<!-- wp:search {"label":"<?php esc_attr_e( 'Search', 'ipsum' ); ?>","buttonText":"<?php esc_attr_e( 'Search', 'ipsum' ); ?>","buttonPosition":"button-inside","buttonUseIcon":true,"style":{"spacing":{"margin":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"ariaLabel":"<?php echo esc_attr_x( 'Menu', 'Accessible name of the search form in the navigation overlay', 'ipsum' ); ?>"} /--></div>
+<!-- wp:search {"label":"<?php esc_attr_e( 'Search', 'ipsum' ); ?>","buttonText":"<?php esc_attr_e( 'Search', 'ipsum' ); ?>","buttonPosition":"button-inside","buttonUseIcon":true,"style":{"spacing":{"margin":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"ariaLabel":"<?php echo esc_attr_x( 'Site', 'Accessible name of the search form', 'ipsum' ); ?>"} /--></div>
 <!-- /wp:group -->

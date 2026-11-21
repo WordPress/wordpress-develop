@@ -62,6 +62,7 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 		}
 
 		$meta = get_user_meta( $user_id, $option, true );
+		// Keep assertEquals() because expected fixtures use integers while filter-passthrough options may store POST values as strings.
 		$this->assertEquals( $expected, $meta );
 	}
 
@@ -149,6 +150,7 @@ class Tests_set_screen_options extends WP_UnitTestCase {
 			}
 		}
 
+		// Keep assertEquals() because the filter returns the raw POST string while the assertion uses an integer.
 		$this->assertEquals( 25, get_user_meta( $user_id, 'custom_per_page', true ) );
 	}
 

@@ -43,6 +43,68 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that a document that is not a string returns an empty array and triggers a notice.
+	 *
+	 * @ticket 66138
+	 *
+	 * @covers ::parse
+	 *
+	 * @dataProvider data_non_string_documents
+	 *
+	 * @expectedIncorrectUsage WP_Block_Parser::parse
+	 *
+	 * @param mixed $document Document that is not a string.
+	 */
+	public function test_returns_empty_array_for_non_string_document( $document ) {
+		$processor = new WP_Block_Parser();
+
+		$this->assertSame( array(), $processor->parse( $document ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_string_documents() {
+		return array(
+			'null'    => array( null ),
+			'false'   => array( false ),
+			'integer' => array( 123 ),
+			'array'   => array( array( 'content' ) ),
+			'object'  => array( new stdClass() ),
+		);
+	}
+
+	/**
+	 * Ensures that a stringable object is parsed as a string and triggers a notice.
+	 *
+	 * @ticket 66138
+	 *
+	 * @covers ::parse
+	 *
+	 * @expectedIncorrectUsage WP_Block_Parser::parse
+	 */
+	public function test_parses_stringable_document_as_string() {
+		$markup   = '<!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->';
+		$document = new class( $markup ) {
+			private $markup;
+
+			public function __construct( $markup ) {
+				$this->markup = $markup;
+			}
+
+			public function __toString() {
+				return $this->markup;
+			}
+		};
+
+		$processor = new WP_Block_Parser();
+
+		$this->assertSame( $processor->parse( $markup ), $processor->parse( $document ) );
+	}
+
+	/**
 	 * Ensures that implicitly closing a final open block does not repeat content parsed before it.
 	 *
 	 * @ticket 66138
