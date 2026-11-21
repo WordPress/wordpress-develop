@@ -52,6 +52,7 @@ class WP_REST_Server {
 	 * Alias for GET transport method.
 	 *
 	 * @since 4.4.0
+	 * @deprecated 7.3.0 Use WP_REST_Server::get_readable_methods() instead.
 	 * @var string
 	 */
 	const READABLE = 'GET';
@@ -60,6 +61,7 @@ class WP_REST_Server {
 	 * Alias for POST transport method.
 	 *
 	 * @since 4.4.0
+	 * @deprecated 7.3.0 Use WP_REST_Server::get_creatable_methods() instead.
 	 * @var string
 	 */
 	const CREATABLE = 'POST';
@@ -68,6 +70,7 @@ class WP_REST_Server {
 	 * Alias for POST, PUT, PATCH transport methods together.
 	 *
 	 * @since 4.4.0
+	 * @deprecated 7.3.0 Use WP_REST_Server::get_editable_methods() instead.
 	 * @var string
 	 */
 	const EDITABLE = 'POST, PUT, PATCH';
@@ -76,6 +79,7 @@ class WP_REST_Server {
 	 * Alias for DELETE transport method.
 	 *
 	 * @since 4.4.0
+	 * @deprecated 7.3.0 Use WP_REST_Server::get_deletable_methods() instead.
 	 * @var string
 	 */
 	const DELETABLE = 'DELETE';
@@ -84,9 +88,70 @@ class WP_REST_Server {
 	 * Alias for GET, POST, PUT, PATCH & DELETE transport methods together.
 	 *
 	 * @since 4.4.0
+	 * @deprecated 7.3.0 Register individual handlers per operation instead.
 	 * @var string
 	 */
 	const ALLMETHODS = 'GET, POST, PUT, PATCH, DELETE';
+
+	/**
+	 * Retrieves the HTTP methods considered readable.
+	 *
+	 * Note: This set of methods may be expanded in future versions of WordPress.
+	 * Routes registering callbacks for readable methods should accept any method
+	 * returned by this function.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return string[] Array of readable HTTP method names.
+	 */
+	public static function get_readable_methods() {
+		return array( 'GET' );
+	}
+
+	/**
+	 * Retrieves the HTTP methods considered creatable.
+	 *
+	 * Note: This set of methods may be expanded in future versions of WordPress.
+	 * Routes registering callbacks for creatable methods should accept any method
+	 * returned by this function.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return string[] Array of creatable HTTP method names.
+	 */
+	public static function get_creatable_methods() {
+		return array( 'POST' );
+	}
+
+	/**
+	 * Retrieves the HTTP methods considered editable.
+	 *
+	 * Note: This set of methods may be expanded in future versions of WordPress.
+	 * Routes registering callbacks for editable methods should accept any method
+	 * returned by this function.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return string[] Array of editable HTTP method names.
+	 */
+	public static function get_editable_methods() {
+		return array( 'POST', 'PUT', 'PATCH' );
+	}
+
+	/**
+	 * Retrieves the HTTP methods considered deletable.
+	 *
+	 * Note: This set of methods may be expanded in future versions of WordPress.
+	 * Routes registering callbacks for deletable methods should accept any method
+	 * returned by this function.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return string[] Array of deletable HTTP method names.
+	 */
+	public static function get_deletable_methods() {
+		return array( 'DELETE' );
+	}
 
 	/**
 	 * Namespaces registered to the server.
