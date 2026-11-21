@@ -195,15 +195,15 @@ function get_default_block_editor_settings() {
 	}
 
 	/*
-	 * These styles are used if the "no theme styles" option is triggered or on
-	 * themes without their own editor styles.
+	 * These styles are used when the "Use theme styles" preference is turned off
+	 * and in the Customizer widgets editor.
 	 *
 	 * They were previously read from `css/dist/block-editor/default-editor-styles.css`,
 	 * which the block editor package no longer ships.
 	 */
 	$default_editor_styles = array(
 		array(
-			'css' => 'body{font-family:-apple-system,system-ui,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;font-size:18px;line-height:1.5;--wp--style--block-gap:2em}p{line-height:1.8}.editor-post-title__block{margin-top:2em;margin-bottom:1em;font-size:2.5em;font-weight:800}',
+			'css' => 'body{font-family:-apple-system,system-ui,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;font-size:18px;line-height:1.5;--wp--style--block-gap:2em}p{line-height:1.8}',
 		),
 	);
 
