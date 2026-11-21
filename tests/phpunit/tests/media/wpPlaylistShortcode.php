@@ -4,6 +4,10 @@
  * @covers ::wp_playlist_shortcode
  */
 class Tests_Media_Wp_Playlist_Shortcode extends WP_UnitTestCase {
+	public function tear_down() {
+		$this->remove_added_uploads();
+		parent::tear_down();
+	}
 
 	/**
 	 * @ticket 63583

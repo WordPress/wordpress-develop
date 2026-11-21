@@ -433,6 +433,8 @@ class WP_Plugin_Dependencies {
 	 * Checks plugin dependencies after a plugin is installed via AJAX.
 	 *
 	 * @since 6.5.0
+	 *
+	 * @return never
 	 */
 	public static function check_plugin_dependencies_during_ajax() {
 		check_ajax_referer( 'updates' );
@@ -643,13 +645,13 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @global string $pagenow The filename of the current screen.
 	 *
-	 * @return array|void An array of dependency API data, or void on early exit.
+	 * @return array|null An array of dependency API data, or null on early exit.
 	 */
 	protected static function get_dependency_api_data() {
 		global $pagenow;
 
 		if ( ! is_admin() || ( 'plugins.php' !== $pagenow && 'plugin-install.php' !== $pagenow ) ) {
-			return;
+			return null;
 		}
 
 		if ( is_array( self::$dependency_api_data ) ) {

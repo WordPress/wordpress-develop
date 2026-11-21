@@ -8,7 +8,7 @@
  * @since 6.6.0
  *
  * @group blocks
- * @covers resolve_pattern_blocks
+ * @covers ::resolve_pattern_blocks
  */
 class Tests_Blocks_ResolvePatternBlocks extends WP_UnitTestCase {
 	public function set_up() {
@@ -119,7 +119,7 @@ class Tests_Blocks_ResolvePatternBlocks extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_resolve_pattern_blocks_as_expected() {
+	public static function data_should_resolve_pattern_blocks_as_expected() {
 		return array(
 			// Works without attributes, leaves the block as is.
 			'pattern with no slug attribute' => array(

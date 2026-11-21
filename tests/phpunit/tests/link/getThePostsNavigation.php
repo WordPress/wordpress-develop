@@ -1,13 +1,14 @@
 <?php
 
 /**
- * Tests the `get_the_posts_navigation()` function.
+ * Tests for get_the_posts_navigation() and the_posts_navigation().
  *
  * @since 6.2.0
  *
  * @group link
  *
  * @covers ::get_the_posts_navigation
+ * @covers ::the_posts_navigation
  */
 class Tests_Link_GetThePostsNavigation extends WP_UnitTestCase {
 
@@ -76,7 +77,7 @@ class Tests_Link_GetThePostsNavigation extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_the_posts_navigation() {
+	public static function data_get_the_posts_navigation() {
 		return array(
 			'older posts'                 => array(
 				'post_per_page' => 1,
@@ -102,6 +103,45 @@ class Tests_Link_GetThePostsNavigation extends WP_UnitTestCase {
 				'older'         => false,
 				'newer'         => false,
 			),
+		);
+	}
+
+	/**
+	 * Tests that the_posts_navigation() echoes the navigation markup.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_the_posts_navigation_echoes() {
+		$this->set_permalink_structure( '' );
+		$this->go_to( home_url( '/' ) );
+
+		global $wp_query, $paged;
+
+		$paged    = 2;
+		$wp_query = new WP_Query(
+			array(
+				'post_type'      => 'post',
+				'posts_per_page' => 1,
+				'paged'          => $paged,
+			)
+		);
+
+		add_filter(
+			'navigation_markup_template',
+			static function () {
+				return '<nav class="%1$s" aria-label="%4$s"><h2>%2$s</h2>%3$s</nav>';
+			}
+		);
+
+		$expected = '<nav class="echo-navigation" aria-label="Echo ARIA"><h2>Echo Reader</h2><div class="nav-previous"><a href="' . esc_url( home_url( '/?paged=3' ) ) . '" >Older posts</a></div><div class="nav-next"><a href="' . esc_url( home_url( '/' ) ) . '" >Newer posts</a></div></nav>';
+
+		$this->expectOutputString( $expected );
+		the_posts_navigation(
+			array(
+				'class'              => 'echo-navigation',
+				'screen_reader_text' => 'Echo Reader',
+				'aria_label'         => 'Echo ARIA',
+			)
 		);
 	}
 }

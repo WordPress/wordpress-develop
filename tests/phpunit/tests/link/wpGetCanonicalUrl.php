@@ -75,6 +75,8 @@ class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
 	 * Tests non-permalink structure page usage.
 	 */
 	public function test_paged_with_plain_permalink_structure() {
+		$this->set_permalink_structure( '' );
+
 		$link = add_query_arg(
 			array(
 				'page' => 2,
@@ -99,7 +101,6 @@ class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
 	 * Tests permalink structure page usage.
 	 */
 	public function test_paged_with_custom_permalink_structure() {
-		$this->set_permalink_structure( '/%postname%/' );
 		$page = 2;
 
 		$link = add_query_arg(
@@ -121,6 +122,8 @@ class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
 	 * Tests non-permalink structure comment page usage.
 	 */
 	public function test_comments_paged_with_plain_permalink_structure() {
+		$this->set_permalink_structure( '' );
+
 		$cpage = 2;
 
 		$link = add_query_arg(
@@ -149,7 +152,6 @@ class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
 	public function test_comments_paged_with_pretty_permalink_structure() {
 		global $wp_rewrite;
 
-		$this->set_permalink_structure( '/%postname%/' );
 		$cpage = 2;
 
 		$link = add_query_arg(
