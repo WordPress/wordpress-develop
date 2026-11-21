@@ -138,7 +138,6 @@
  *     posts_per_archive_page?: scalar,
  *     withcomments?: scalar,
  *     withoutcomments?: scalar,
- *     comments_per_page?: scalar,
  *     ...<array-key, mixed>
  * }
  *
