@@ -2561,6 +2561,285 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * `wp_insert_post()` already encodes emoji as HTML entities before saving to a
+	 * utf8/utf8mb3 column (see #31242). This forces the same code path for comments
+	 * via the `pre_get_col_charset` filter, so it runs deterministically regardless
+	 * of the test database's actual charset.
+	 *
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_insert_comment
+	 * @covers ::_wp_encode_field_values_for_database
+	 */
+	public function test_wp_insert_comment_encodes_emoji_for_utf8mb3_columns(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$comment_id = wp_insert_comment(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_author'  => "foo\xf0\x9f\x98\x88bar",
+				'comment_content' => "foo\xf0\x9f\x98\x8ebaz",
+			)
+		);
+
+		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10 );
+
+		$this->assertIsInt( $comment_id, 'Expected wp_insert_comment() to return the new comment ID.' );
+
+		$comment = get_comment( $comment_id );
+
+		$this->assertSame( 'foo&#x1F608;bar', $comment->comment_author );
+		$this->assertSame( 'foo&#x1F60E;baz', $comment->comment_content );
+	}
+
+	/**
+	 * @ticket 65700
+	 * @covers ::wp_handle_comment_submission
+	 * @covers ::wp_check_comment_data_max_lengths
+	 *
+	 * @dataProvider data_comment_encoded_length
+	 * @param string $input         Submission field name.
+	 * @param string $column        Comment table column name.
+	 * @param string $prefix        ASCII prefix before the four-byte characters.
+	 * @param int    $count         Number of four-byte characters.
+	 * @param bool   $should_insert Whether the encoded value fits the comment field limit.
+	 */
+	public function test_wp_handle_comment_submission_checks_encoded_length( $input, $column, $prefix, $count, $should_insert ): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$submission = array(
+			'comment_post_ID' => self::$post_id,
+			'author'          => 'Comment author',
+			'email'           => 'author@example.org',
+			'comment'         => 'Comment content.',
+		);
+
+		$submission[ $input ] = $prefix . str_repeat( '😀', $count );
+		$before               = get_comments( array( 'count' => true ) );
+		$result               = wp_handle_comment_submission( $submission );
+
+		if ( $should_insert ) {
+			$this->assertInstanceOf( WP_Comment::class, $result );
+			$this->assertSame( $prefix . str_repeat( '&#x1F600;', $count ), $result->$column );
+		} else {
+			$this->assertSame( $before, get_comments( array( 'count' => true ) ), 'The overlong comment should not be inserted.' );
+			$this->assertWPError( $result );
+			$this->assertSame( $column . '_column_length', $result->get_error_code() );
+		}
+	}
+
+	public function data_comment_encoded_length() {
+		return array(
+			'245-byte author'     => array( 'author', 'comment_author', 'ab', 27, true ),
+			'246-byte author'     => array( 'author', 'comment_author', 'abc', 27, false ),
+			'65,525-byte content' => array( 'comment', 'comment_content', 'abcde', 7280, true ),
+			'65,526-byte content' => array( 'comment', 'comment_content', 'abcdef', 7280, false ),
+		);
+	}
+
+	/**
+	 * @ticket 65700
+	 * @covers ::wp_new_comment
+	 */
+	public function test_wp_new_comment_rejects_overlong_encoded_author_on_retry(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+		add_filter(
+			'pre_comment_author_name',
+			static function ( $author ) {
+				return 'Comment author ' . $author;
+			}
+		);
+
+		$before = get_comments( array( 'count' => true ) );
+		$result = wp_handle_comment_submission(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'author'          => 'ab' . str_repeat( '😀', 27 ),
+				'email'           => 'author@example.org',
+				'comment'         => 'Comment with an overlong filtered author name.',
+			)
+		);
+
+		$this->assertSame( $before, get_comments( array( 'count' => true ) ), 'The overlong comment should not be inserted.' );
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_author_column_length', $result->get_error_code() );
+	}
+
+	/**
+	 * Verifies that four-byte characters round-trip on utf8mb4 columns.
+	 *
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_insert_comment
+	 */
+	public function test_wp_insert_comment_does_not_encode_emoji_for_utf8mb4_columns(): void {
+		global $wpdb;
+
+		if ( 'utf8mb4' !== $wpdb->get_col_charset( $wpdb->comments, 'comment_author' )
+			|| 'utf8mb4' !== $wpdb->get_col_charset( $wpdb->comments, 'comment_content' )
+		) {
+			$this->markTestSkipped( 'This test requires utf8mb4 comment author and content columns.' );
+		}
+
+		$comment_id = wp_insert_comment(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_author'  => "foo\xf0\x9f\x98\x88bar",
+				'comment_content' => "foo\xf0\x9f\x98\x8ebaz",
+			)
+		);
+
+		$this->assertIsInt( $comment_id, 'Expected wp_insert_comment() to return the new comment ID.' );
+
+		$comment = get_comment( $comment_id );
+
+		$this->assertSame( "foo\xf0\x9f\x98\x88bar", $comment->comment_author );
+		$this->assertSame( "foo\xf0\x9f\x98\x8ebaz", $comment->comment_content );
+	}
+
+	/**
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_update_comment
+	 * @covers ::_wp_encode_field_values_for_database
+	 */
+	public function test_wp_update_comment_encodes_emoji_for_utf8mb3_columns(): void {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$result = wp_update_comment(
+			array(
+				'comment_ID'      => $comment_id,
+				'comment_author'  => "foo\xf0\x9f\x98\x88bar",
+				'comment_content' => "foo\xf0\x9f\x98\x8ebaz",
+			)
+		);
+
+		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10 );
+
+		$this->assertSame( 1, $result );
+
+		$comment = get_comment( $comment_id );
+
+		$this->assertSame( 'foo&#x1F608;bar', $comment->comment_author );
+		$this->assertSame( 'foo&#x1F60E;baz', $comment->comment_content );
+	}
+
+	/**
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_allow_comment
+	 */
+	public function test_duplicate_comment_with_emoji_is_rejected_on_utf8mb3(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$submission = array(
+			'comment_post_ID' => self::$post_id,
+			'author'          => 'Bob 😀',
+			'email'           => 'bob@example.org',
+			'comment'         => 'Hello 😀',
+		);
+		$this->assertInstanceOf( WP_Comment::class, wp_handle_comment_submission( $submission ) );
+
+		$result = wp_handle_comment_submission( $submission );
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_duplicate', $result->get_error_code() );
+	}
+
+	/**
+	 * @ticket 65700
+	 *
+	 * @covers ::check_comment
+	 */
+	public function test_previously_approved_author_with_emoji_is_recognized_on_utf8mb3(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+		update_option( 'comment_previously_approved', '1' );
+
+		$author = 'Bob 😀';
+		$email  = 'bob@example.org';
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => $author,
+				'comment_author_email' => $email,
+				'comment_approved'     => 1,
+			)
+		);
+
+		$this->assertTrue( check_comment( $author, $email, '', 'Another comment.', '', '', 'comment' ) );
+	}
+
+	/**
+	 * @ticket 65700
+	 *
+	 * @covers ::comment_exists
+	 */
+	public function test_comment_exists_finds_author_with_emoji_on_utf8mb3(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$author = "O'Brien 😀";
+		$date   = '2014-05-06 12:00:00';
+		wp_insert_comment(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_author'  => wp_slash( $author ),
+				'comment_date'    => $date,
+			)
+		);
+
+		$this->assertSame( (string) self::$post_id, comment_exists( wp_slash( $author ), $date ) );
+	}
+
+	/**
+	 * @ticket 65700
+	 *
+	 * @covers ::wp_new_comment
+	 */
+	public function test_wp_new_comment_preserves_emoji_when_another_field_needs_cleanup(): void {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset_utf8mb3_for_comment_fields' ), 10, 3 );
+
+		$commentdata = array(
+			'comment_post_ID'      => self::$post_id,
+			'comment_author'       => 'Ann 😀',
+			'comment_author_email' => 'ann@example.org',
+			'comment_author_url'   => 'https://example.org/' . str_repeat( 'a', 181 ),
+			'comment_content'      => 'Hello 😎',
+		);
+
+		$approved_data = null;
+		add_filter(
+			'pre_comment_approved',
+			static function ( $approved, $data ) use ( &$approved_data ) {
+				$approved_data = $data;
+				return $approved;
+			},
+			10,
+			2
+		);
+
+		$comment_id = wp_new_comment( $commentdata, true );
+		$this->assertIsInt( $comment_id );
+		$comment = get_comment( $comment_id );
+
+		$this->assertSame( substr( $commentdata['comment_author_url'], 0, 200 ), $comment->comment_author_url );
+		$this->assertSame( 'Ann &#x1F600;', $comment->comment_author );
+		$this->assertSame( 'Hello &#x1F60E;', $comment->comment_content );
+		$this->assertSame( $commentdata['comment_author'], $approved_data['comment_author'] );
+		$this->assertSame( $commentdata['comment_content'], $approved_data['comment_content'] );
+	}
+
+	public function filter_pre_get_col_charset_utf8mb3_for_comment_fields( $charset, $table, $column ) {
+		global $wpdb;
+
+		if ( $wpdb->comments === $table && in_array( $column, array( 'comment_author', 'comment_content' ), true ) ) {
+			return 'utf8mb3';
+		}
+
+		return $charset;
+	}
+
+	/**
 	 * Queries made by metadata observers must see the newly added metadata.
 	 *
 	 * @ticket 65485

@@ -286,6 +286,11 @@
 		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
 	</rule>
 
+	<rule ref="Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound">
+		<!-- Compatibility polyfills should retain the names of the functions they polyfill. -->
+		<exclude-pattern>/src/wp-includes/compat.php</exclude-pattern>
+	</rule>
+
 	<rule ref="PEAR.NamingConventions.ValidClassName.Invalid">
 		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
 		<!-- Exclude some old classes that cannot be renamed, as it would break back compat. -->

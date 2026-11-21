@@ -378,6 +378,97 @@ function _mb_strlen( $str, $encoding = null ) {
 		: strlen( $str );
 }
 
+if ( ! function_exists( 'mb_encode_numericentity' ) ) :
+	/**
+	 * Internal compat function to mimic mb_encode_numericentity().
+	 *
+	 * Only supports UTF-8 inputs. All other input encodings will be treated as UTF-8.
+	 *
+	 * @since 7.2.0
+	 * @ignore
+	 *
+	 * @param string      $string   The string to be encoded.
+	 * @param int[]       $map      map is array specifies code area to convert.
+	 * @param string|null $encoding Optional. The encoding parameter is the character encoding. If it is
+	 *                              omitted or null, the internal character encoding value will be used.
+	 * @param bool|null   $hex      Optional. Whether the returned entity reference should be in
+	 *                              hexadecimal notation (otherwise it is in decimal notation).
+	 * @return string The converted string.
+	 */
+	function mb_encode_numericentity( $string, $map, $encoding = null, $hex = false ) {
+		if ( isset( $encoding ) && 'UTF-8' !== $encoding ) {
+			wp_trigger_error(
+				__FUNCTION__,
+				'Only UTF-8 is supported in the wp_encode_numericentity() polyfill; treating as UTF-8.',
+				E_USER_WARNING
+			);
+		}
+
+		if ( array( 0x10000, 0x10FFFF, 0, 0x1FFFFF ) === $map ) {
+			return _wp_encode_utf8_numericentity_bytelength( 4, $string, $hex );
+		}
+
+		if ( array( 0x80, 0x10FFFF, 0, 0x1FFFFF ) === $map ) {
+			return _wp_encode_utf8_numericentity_bytelength( 2, $string, $hex );
+		}
+
+		return _wp_encode_utf8_numericentity( $string, $map, $hex );
+	}
+endif;
+
+if ( ! function_exists( 'mb_substitute_character' ) ) :
+	/**
+	 * Internal compat function to mimic mb_substitute_character().
+	 *
+	 * Effectively does nothing, because while this function stores the
+	 * substitute character, it affects no other functions.
+	 *
+	 * @since 7.2.0
+	 * @ignore
+	 *
+	 * @param string|int|null $substitute_character Specify the Unicode value as an int, or as one of the
+	 *                                              following strings: none, long, entity.
+	 * @return int|string|true If substitute_character is set, it returns true for success,
+	 *                         otherwise returns false. If substitute_character is not set,
+	 *                         it returns the current setting.
+	 */
+	function mb_substitute_character( $substitute_character = null ) {
+		static $character = 0x3F;
+
+		if ( ! isset( $substitute_character ) ) {
+			return $character;
+		}
+
+		if (
+			is_string( $substitute_character ) &&
+			in_array( strtolower( $substitute_character ), array( 'none', 'long', 'entity' ), true )
+		) {
+			$character = strtolower( $substitute_character );
+			return true;
+		}
+
+		if ( ( is_float( $substitute_character ) && ! is_nan( $substitute_character ) ) || is_bool( $substitute_character ) ) {
+			$substitute_character = (int) $substitute_character;
+		}
+
+		if (
+			is_int( $substitute_character ) &&
+			0 <= $substitute_character &&
+			( $substitute_character < 0xD800 || $substitute_character > 0xDFFF ) &&
+			$substitute_character <= 0x10FFFF
+		) {
+			$character = $substitute_character;
+			return true;
+		}
+
+		if ( class_exists( 'ValueError' ) ) {
+			throw new ValueError( 'Argument #1 ($substitute_character) is not a valid codepoint' );
+		} else {
+			throw new Error( 'Argument #1 ($substitute_character) is not a valid codepoint' );
+		}
+	}
+endif;
+
 if ( ! function_exists( 'utf8_encode' ) ) :
 	if ( extension_loaded( 'mbstring' ) ) :
 		/**
