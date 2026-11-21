@@ -382,6 +382,28 @@ class WP_Scripts extends WP_Dependencies {
 			$attr['data-wp-strategy'] = $intended_strategy;
 		}
 
+		// Add custom attributes passed at registration.
+		$allowed_attributes = array( 'async', 'crossorigin', 'defer', 'integrity', 'nonce', 'referrerpolicy', 'type' );
+		$custom_attributes  = is_array( $obj->attr ) ? $obj->attr : array();
+		foreach ( $custom_attributes as $key => $value ) {
+			if ( ! in_array( $key, $allowed_attributes, true ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: Attribute name. */
+						__( 'The %s attribute is not supported on script tags.' ),
+						'<code>' . esc_html( $key ) . '</code>'
+					),
+					'7.1.0'
+				);
+				continue;
+			}
+			if ( isset( $attr[ $key ] ) ) {
+				continue;
+			}
+			$attr[ $key ] = is_bool( $value ) ? $value : (string) $value;
+		}
+
 		// Determine fetchpriority.
 		$original_fetchpriority = $obj->extra['fetchpriority'] ?? null;
 		if ( null === $original_fetchpriority || ! $this->is_valid_fetchpriority( $original_fetchpriority ) ) {

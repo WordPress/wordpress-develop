@@ -63,6 +63,14 @@ class _WP_Dependency {
 	public $args = null;  // Custom property, such as $in_footer or $media.
 
 	/**
+	 * Custom attributes for the script tag.
+	 *
+	 * @since 7.1.0
+	 * @var array
+	 */
+	public $attr = array();
+
+	/**
 	 * Extra data to supply to the handle.
 	 *
 	 * @since 2.6.0
@@ -97,6 +105,7 @@ class _WP_Dependency {
 	 */
 	public function __construct( ...$args ) {
 		list( $this->handle, $this->src, $this->deps, $this->ver, $this->args ) = $args;
+		$this->attr = isset( $args[5] ) && is_array( $args[5] ) ? $args[5] : array();
 		if ( ! is_array( $this->deps ) ) {
 			$this->deps = array();
 		}
