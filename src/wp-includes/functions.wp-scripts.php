@@ -262,6 +262,9 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *                                                                    `in_footer` set to true) or use a deferred loading `strategy` (`defer`),
  *                                                                    so that the script modules import map is printed before the script
  *                                                                    is evaluated. Otherwise dynamic imports may fail to resolve.
+ *                                                                    The translations of these script modules are printed after the scripts
+ *                                                                    in the footer. A script that is not deferred should import them once
+ *                                                                    the document has been parsed, so that their translations are available.
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
  *
@@ -445,7 +448,7 @@ function wp_deregister_script( $handle ) {
  *                                 as a query string for cache busting purposes. If version is set to false, a version
  *                                 number is automatically added equal to current installed WordPress version.
  *                                 If set to null, no version is added.
- * @param array|bool $args {
+ * @param array|bool       $args {
  *     Optional. An array of extra args for the script. Default empty array.
  *     Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
  *
@@ -458,6 +461,9 @@ function wp_deregister_script( $handle ) {
  *                                       `in_footer` set to true) or use a deferred loading `strategy` (`defer`),
  *                                       so that the script modules import map is printed before the script
  *                                       is evaluated. Otherwise dynamic imports may fail to resolve.
+ *                                       The translations of these script modules are printed after the scripts
+ *                                       in the footer. A script that is not deferred should import them once
+ *                                       the document has been parsed, so that their translations are available.
  * }
  *
  * @phpstan-param non-empty-string $handle

@@ -397,9 +397,10 @@ function wp_edit_theme_plugin_file( $args ) {
 	$file    = $args['file'];
 	$content = $args['newcontent'];
 
-	$plugin    = null;
-	$theme     = null;
-	$real_file = null;
+	$plugin     = null;
+	$stylesheet = null;
+	$theme      = null;
+	$real_file  = null;
 
 	if ( ! empty( $args['plugin'] ) ) {
 		$plugin = $args['plugin'];
@@ -424,11 +425,7 @@ function wp_edit_theme_plugin_file( $args ) {
 
 		$real_file = WP_PLUGIN_DIR . '/' . $file;
 
-		$is_active = in_array(
-			$plugin,
-			(array) get_option( 'active_plugins', array() ),
-			true
-		);
+		$is_active = is_plugin_active( $plugin );
 
 	} elseif ( ! empty( $args['theme'] ) ) {
 		$stylesheet = $args['theme'];
@@ -560,7 +557,7 @@ function wp_edit_theme_plugin_file( $args ) {
 		// Attempt loopback request to editor to see if user just whitescreened themselves.
 		if ( $plugin ) {
 			$url = add_query_arg( compact( 'plugin', 'file' ), admin_url( 'plugin-editor.php' ) );
-		} elseif ( isset( $stylesheet ) ) {
+		} elseif ( $stylesheet ) {
 			$url = add_query_arg(
 				array(
 					'theme' => $stylesheet,
@@ -1311,7 +1308,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 			 * @since 5.2.0
 			 *
 			 * @param false|string $signature_url The URL where signatures can be found for a file, or false if none are known.
-			 * @param string $url                 The URL being verified.
+			 * @param string       $url           The URL being verified.
 			 */
 			$signature_url = apply_filters( 'wp_signature_url', $signature_url, $url );
 

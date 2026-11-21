@@ -241,8 +241,8 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 		$this->assertSame(
 			$result,
 			array(
-				'caption' => '"&gt;<i />',
-			)
+				'caption' => '"&gt;<i>',
+			),
 		);
 
 		// Should return valid alt text.

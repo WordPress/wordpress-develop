@@ -5,7 +5,6 @@
  * @ticket 5305
  */
 class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
-	private $old_current_user;
 	private $author_id;
 
 	public function set_up() {
