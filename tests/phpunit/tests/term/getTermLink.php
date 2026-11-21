@@ -194,8 +194,6 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 			)
 		);
 
-		flush_rewrite_rules();
-
 		$t1 = self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax2',
@@ -228,8 +226,6 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 				),
 			)
 		);
-
-		flush_rewrite_rules();
 
 		$t1 = self::factory()->term->create(
 			array(
