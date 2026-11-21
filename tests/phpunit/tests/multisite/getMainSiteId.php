@@ -187,4 +187,26 @@ class Tests_Multisite_GetMainSiteId extends WP_UnitTestCase {
 
 		$this->assertSame( 333, $result );
 	}
+
+	/**
+	 * Tests that WP_Network::get_main_site_id() does not emit a warning when get_site() returns null.
+	 *
+	 * @ticket 66760
+	 *
+	 * @covers WP_Network::get_main_site_id
+	 */
+	public function test_get_main_site_id_when_current_site_is_null() {
+		$network          = clone get_network( self::$network_ids['wordpress.org/'] );
+		$network->blog_id = '0';
+		$original_blog_id = $GLOBALS['blog_id'];
+
+		try {
+			$GLOBALS['blog_id'] = 0;
+			$result             = $network->site_id;
+		} finally {
+			$GLOBALS['blog_id'] = $original_blog_id;
+		}
+
+		$this->assertSame( self::$site_ids['wordpress.org/'], $result );
+	}
 }

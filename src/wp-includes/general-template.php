@@ -910,11 +910,13 @@ function wp_lostpassword_url( $redirect = '' ) {
 		$args['redirect_to'] = urlencode( $redirect );
 	}
 
+	$wp_login_path = 'wp-login.php';
+
 	if ( is_multisite() ) {
-		$blog_details  = get_site();
-		$wp_login_path = $blog_details->path . 'wp-login.php';
-	} else {
-		$wp_login_path = 'wp-login.php';
+		$blog_details = get_site();
+		if ( $blog_details ) {
+			$wp_login_path = $blog_details->path . $wp_login_path;
+		}
 	}
 
 	$lostpassword_url = add_query_arg( $args, network_site_url( $wp_login_path, 'login' ) );
