@@ -23,8 +23,10 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 
 	public function __destruct() {
 		if ( $this->image ) {
-			// We don't need the original in memory anymore.
-			imagedestroy( $this->image );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				// We don't need the original in memory anymore.
+				imagedestroy( $this->image );
+			}
 		}
 	}
 
@@ -154,11 +156,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int $width
-	 * @param int $height
+	 * @param int|null $width  Image width.
+	 * @param int|null $height Image height.
 	 * @return true
 	 */
-	protected function update_size( $width = false, $height = false ) {
+	protected function update_size( $width = null, $height = null ) {
 		if ( ! $width ) {
 			$width = imagesx( $this->image );
 		}
@@ -200,8 +202,12 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		$resized = $this->_resize( $max_w, $max_h, $crop );
 
 		if ( is_gd_image( $resized ) ) {
-			imagedestroy( $this->image );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $this->image );
+			}
+
 			$this->image = $resized;
+
 			return true;
 
 		} elseif ( is_wp_error( $resized ) ) {
@@ -318,17 +324,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 
 		$orig_size = $this->size;
 
-		if ( ! isset( $size_data['width'] ) ) {
-			$size_data['width'] = null;
-		}
-
-		if ( ! isset( $size_data['height'] ) ) {
-			$size_data['height'] = null;
-		}
-
-		if ( ! isset( $size_data['crop'] ) ) {
-			$size_data['crop'] = false;
-		}
+		$size_data['width']  ??= null;
+		$size_data['height'] ??= null;
+		$size_data['crop']   ??= false;
 
 		$resized = $this->_resize( $size_data['width'], $size_data['height'], $size_data['crop'] );
 
@@ -336,7 +334,10 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$saved = $resized;
 		} else {
 			$saved = $this->_save( $resized );
-			imagedestroy( $resized );
+
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $resized );
+			}
 		}
 
 		$this->size = $orig_size;
@@ -394,9 +395,13 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		imagecopyresampled( $dst, $this->image, 0, 0, (int) $src_x, (int) $src_y, (int) $dst_w, (int) $dst_h, (int) $src_w, (int) $src_h );
 
 		if ( is_gd_image( $dst ) ) {
-			imagedestroy( $this->image );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $this->image );
+			}
+
 			$this->image = $dst;
 			$this->update_size();
+
 			return true;
 		}
 
@@ -420,9 +425,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			if ( is_gd_image( $rotated ) ) {
 				imagealphablending( $rotated, true );
 				imagesavealpha( $rotated, true );
-				imagedestroy( $this->image );
+
+				if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+					imagedestroy( $this->image );
+				}
+
 				$this->image = $rotated;
 				$this->update_size();
+
 				return true;
 			}
 		}
@@ -434,27 +444,59 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * Flips current image.
 	 *
 	 * @since 3.5.0
+	 * @since 7.2.0 Switched to using imageflip() instead of imagecopyresampled() with negative dimensions.
 	 *
 	 * @param bool $horz Flip along Horizontal Axis.
 	 * @param bool $vert Flip along Vertical Axis.
 	 * @return true|WP_Error
 	 */
 	public function flip( $horz, $vert ) {
-		$w   = $this->size['width'];
-		$h   = $this->size['height'];
-		$dst = wp_imagecreatetruecolor( $w, $h );
+		if ( ! is_gd_image( $this->image ) ) {
+			return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
+		}
 
-		if ( is_gd_image( $dst ) ) {
-			$sx = $vert ? ( $w - 1 ) : 0;
-			$sy = $horz ? ( $h - 1 ) : 0;
-			$sw = $vert ? -$w : $w;
-			$sh = $horz ? -$h : $h;
+		/*
+		 * imageflip() works in place and keeps palette images as palette images.
+		 * The previous implementation always copied into a new truecolor image,
+		 * and saving or streaming as WebP relies on that, since imagewebp()
+		 * rejects palette images. Convert first to keep that behavior.
+		 */
+		if ( ! imageistruecolor( $this->image ) && ! imagepalettetotruecolor( $this->image ) ) {
+			return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
+		}
 
-			if ( imagecopyresampled( $dst, $this->image, 0, 0, $sx, $sy, $w, $h, $sw, $sh ) ) {
-				imagedestroy( $this->image );
-				$this->image = $dst;
-				return true;
-			}
+		/*
+		 * imageflip() also keeps the current alpha settings, which rotate() leaves
+		 * with blending enabled. Reset them to what the previous implementation
+		 * always produced, including when no axis is flipped.
+		 */
+		imagealphablending( $this->image, false );
+		imagesavealpha( $this->image, true );
+
+		/*
+		 * imageflip() changes the image in place, so the image keeps its current resolution and interlace setting.
+		 * rotate(), crop() and resize() copy into a new image, which resets them to GD's defaults: 96 DPI and no
+		 * interlacing. Reset them here too, so a flip gives the same result as the other edits.
+		 *
+		 * @link https://core.trac.wordpress.org/ticket/66113
+		 */
+		imageresolution( $this->image, 96, 96 );
+		imageinterlace( $this->image, 0 );
+
+		if ( ! $horz && ! $vert ) {
+			return true;
+		}
+
+		if ( $horz && $vert ) {
+			$mode = IMG_FLIP_BOTH;
+		} elseif ( $horz ) {
+			$mode = IMG_FLIP_VERTICAL;
+		} else {
+			$mode = IMG_FLIP_HORIZONTAL;
+		}
+
+		if ( imageflip( $this->image, $mode ) ) {
+			return true;
 		}
 
 		return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );

@@ -5,10 +5,11 @@
  * @group media
  * @group upload
  * @group resize
+ * @group wp-image-editor-imagick
  */
 require_once __DIR__ . '/resize.php';
 
-class Test_Image_Resize_Imagick extends WP_Tests_Image_Resize_UnitTestCase {
+class Tests_Image_Resize_Imagick extends WP_Tests_Image_Resize_UnitTestCase {
 
 	/**
 	 * Use the Imagick image editor engine

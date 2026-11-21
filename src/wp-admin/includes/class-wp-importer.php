@@ -1,13 +1,14 @@
 <?php
 /**
  * WP_Importer base class
+ *
+ * @package WordPress
+ * @subpackage Importer
+ * @since 3.0.0
  */
+
 #[AllowDynamicProperties]
 class WP_Importer {
-	/**
-	 * Class Constructor
-	 */
-	public function __construct() {}
 
 	/**
 	 * Returns array with imported permalinks from WordPress database.
@@ -29,8 +30,14 @@ class WP_Importer {
 		// Grab all posts in chunks.
 		do {
 			$meta_key = $importer_name . '_' . $blog_id . '_permalink';
-			$sql      = $wpdb->prepare( "SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = %s LIMIT %d,%d", $meta_key, $offset, $limit );
-			$results  = $wpdb->get_results( $sql );
+			$results  = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = %s LIMIT %d,%d",
+					$meta_key,
+					$offset,
+					$limit
+				)
+			);
 
 			// Increment offset.
 			$offset = ( $limit + $offset );
@@ -62,9 +69,12 @@ class WP_Importer {
 
 		// Get count of permalinks.
 		$meta_key = $importer_name . '_' . $blog_id . '_permalink';
-		$sql      = $wpdb->prepare( "SELECT COUNT( post_id ) AS cnt FROM $wpdb->postmeta WHERE meta_key = %s", $meta_key );
-
-		$result = $wpdb->get_results( $sql );
+		$result   = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT COUNT( post_id ) AS cnt FROM $wpdb->postmeta WHERE meta_key = %s",
+				$meta_key
+			)
+		);
 
 		if ( ! empty( $result ) ) {
 			$count = (int) $result[0]->cnt;
@@ -91,8 +101,13 @@ class WP_Importer {
 
 		// Grab all comments in chunks.
 		do {
-			$sql     = $wpdb->prepare( "SELECT comment_ID, comment_agent FROM $wpdb->comments LIMIT %d,%d", $offset, $limit );
-			$results = $wpdb->get_results( $sql );
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT comment_ID, comment_agent FROM $wpdb->comments LIMIT %d,%d",
+					$offset,
+					$limit
+				)
+			);
 
 			// Increment offset.
 			$offset = ( $limit + $offset );
@@ -116,8 +131,14 @@ class WP_Importer {
 	}
 
 	/**
-	 * @param int $blog_id
-	 * @return int|void
+	 * Sets the blog to import to.
+	 *
+	 * Accepts a numeric blog ID or a URL string. When given a URL,
+	 * the blog is looked up by domain and path. On multisite, switches
+	 * to the resolved blog. Exits with an error if the blog cannot be found.
+	 *
+	 * @param int|string $blog_id Blog ID or URL.
+	 * @return int Blog ID on success. Exits on failure.
 	 */
 	public function set_blog( $blog_id ) {
 		if ( is_numeric( $blog_id ) ) {
@@ -158,7 +179,7 @@ class WP_Importer {
 
 	/**
 	 * @param int $user_id
-	 * @return int|void
+	 * @return int
 	 */
 	public function set_user( $user_id ) {
 		if ( is_numeric( $user_id ) ) {
@@ -195,7 +216,13 @@ class WP_Importer {
 	 * @param bool   $head
 	 * @return array
 	 */
-	public function get_page( $url, $username = '', $password = '', $head = false ) {
+	public function get_page(
+		$url,
+		$username = '',
+		#[\SensitiveParameter]
+		$password = '',
+		$head = false
+	) {
 		// Increase the timeout.
 		add_filter( 'http_request_timeout', array( $this, 'bump_request_timeout' ) );
 
@@ -254,7 +281,7 @@ class WP_Importer {
 	 * @since 3.0.0
 	 *
 	 * @global wpdb  $wpdb       WordPress database abstraction object.
-	 * @global int[] $wp_actions
+	 * @global int[] $wp_actions Stores the number of times each action was triggered.
 	 */
 	public function stop_the_insanity() {
 		global $wpdb, $wp_actions;
@@ -269,9 +296,13 @@ class WP_Importer {
  * Returns value of command line params.
  * Exits when a required param is not set.
  *
- * @param string $param
- * @param bool   $required
- * @return mixed
+ * @param string $param    The parameter name to retrieve.
+ * @param bool   $required Optional. Whether the parameter is required. Default false.
+ * @return string|true|null The parameter value, or true if the parameter was supplied
+ *                          without a value, or null if it was not supplied at all.
+ *                          Never returns when `$required` is true and the parameter
+ *                          is missing, as the function exits instead.
+ * @phpstan-return ( $required is true ? string|true : string|true|null )
  */
 function get_cli_args( $param, $required = false ) {
 	$args = $_SERVER['argv'];
@@ -291,11 +322,7 @@ function get_cli_args( $param, $required = false ) {
 			$parts = explode( '=', $match[1] );
 			$key   = preg_replace( '/[^a-z0-9]+/', '', $parts[0] );
 
-			if ( isset( $parts[1] ) ) {
-				$out[ $key ] = $parts[1];
-			} else {
-				$out[ $key ] = true;
-			}
+			$out[ $key ] = $parts[1] ?? true;
 
 			$last_arg = $key;
 		} elseif ( (bool) preg_match( '/^-([a-zA-Z0-9]+)/', $args[ $i ], $match ) ) {

@@ -45,6 +45,6 @@ class Tests_User_wpAuthenticateSpamCheck extends WP_UnitTestCase {
 		$actual_user = wp_authenticate_spam_check( $user );
 		wpmu_delete_user( $user_id );
 
-		$this->assertInstanceOf( 'WP_Error', $actual_user );
+		$this->assertWPError( $actual_user );
 	}
 }

@@ -130,6 +130,58 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66462
+	 */
+	public function test_exif_usercomment_bare_code() {
+		// A UserComment holding only a character code is not a comment.
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/bare-usercomment.jpg' );
+
+		$this->assertSame( '', $out['title'], 'Title value not the same' );
+		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
+	}
+
+	/**
+	 * @ticket 66462
+	 */
+	public function test_exif_usercomment_bare_code_with_short_description() {
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/bare-usercomment-short-description.jpg' );
+
+		$this->assertSame( 'My description', $out['title'], 'Title value not the same' );
+		$this->assertSame( 'My description', $out['caption'], 'Caption value not the same' );
+	}
+
+	/**
+	 * @ticket 66462
+	 */
+	public function test_exif_usercomment_bare_code_with_long_description() {
+		$description = 'This description is deliberately longer than eighty characters so that it cannot be used as the image title by wp_read_image_metadata().';
+		$out         = wp_read_image_metadata( DIR_TESTDATA . '/images/bare-usercomment-long-description.jpg' );
+
+		$this->assertSame( '', $out['title'], 'Title value not the same' );
+		$this->assertSame( $description, $out['caption'], 'Caption value not the same' );
+	}
+
+	/**
+	 * @ticket 66462
+	 */
+	public function test_exif_usercomment_valid() {
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/valid-usercomment.jpg' );
+
+		$this->assertSame( 'My comment', $out['title'], 'Title value not the same' );
+		$this->assertSame( 'My comment', $out['caption'], 'Caption value not the same' );
+	}
+
+	/**
+	 * @ticket 63895
+	 */
+	public function test_iptc_alt() {
+		// Image tests alt text from the IPTC photo metadata standard 2025.1.
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/IPTC-PhotometadataRef-Std2025.1.jpg' );
+
+		$this->assertSame( 'This is the Alt Text description to support accessibility in 2025.1', $out['alt'], 'Alt text does not match source.' );
+	}
+
+	/**
 	 * @ticket 9417
 	 */
 	public function test_utf8_iptc_tags() {
@@ -174,8 +226,8 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	 * @ticket 52826
 	 * @ticket 52922
 	 *
-	 * @param string Stream's URI.
-	 * @param array  Expected metadata.
+	 * @param string $file     Stream's URI.
+	 * @param array  $expected Expected metadata.
 	 */
 	public function test_stream( $file, $expected ) {
 		$actual = wp_read_image_metadata( $file );
@@ -183,7 +235,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_stream() {
+	public static function data_stream() {
 		return array(
 			'Orientation only metadata'                => array(
 				'file'     => 'testimagemeta://wp_read_image_metadata/image1.jpg',
@@ -200,6 +252,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => '',
 					'orientation'       => '3',
 					'keywords'          => array(),
+					'alt'               => '',
 				),
 			),
 			'Exif from a Nikon D70 with IPTC data added later' => array(
@@ -217,6 +270,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => 'IPTC Headline',
 					'orientation'       => '0',
 					'keywords'          => array(),
+					'alt'               => '',
 				),
 			),
 			'Exif from a DMC-LX2 camera with keywords' => array(
@@ -234,6 +288,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => 'Photoshop Document Ttitle',
 					'orientation'       => '1',
 					'keywords'          => array( 'beach', 'baywatch', 'LA', 'sunset' ),
+					'alt'               => '',
 				),
 			),
 		);

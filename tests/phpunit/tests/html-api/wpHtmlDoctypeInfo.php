@@ -34,8 +34,8 @@ class Tests_HtmlApi_WpHtmlDoctypeInfo extends WP_UnitTestCase {
 
 		$this->assertSame(
 			$expected_compat_mode,
-			$doctype->indicated_compatability_mode,
-			'Failed to infer the expected document compatability mode.'
+			$doctype->indicated_compatibility_mode,
+			'Failed to infer the expected document compatibility mode.'
 		);
 
 		$this->assertSame(
@@ -87,7 +87,8 @@ class Tests_HtmlApi_WpHtmlDoctypeInfo extends WP_UnitTestCase {
 			'Emoji'                                     => array( '<!DOCTYPE 🏴󠁧󠁢󠁥󠁮󠁧󠁿 PUBLIC "🔥" "😈">', 'quirks', "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}", '🔥', '😈' ),
 			'Bogus characters instead of SYSTEM quote after public' => array( "<!DOCTYPE html PUBLIC ''x''>", 'quirks', 'html', '' ),
 			'Special quirks mode if system unset'       => array( '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//">', 'quirks', 'html', '-//W3C//DTD HTML 4.01 Frameset//' ),
-			'Special limited-quirks mode if system set' => array( '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//" "">', 'limited-quirks', 'html', '-//W3C//DTD HTML 4.01 Frameset//', '' ),
+			'Special quirks mode if system empty'       => array( '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//" "">', 'quirks', 'html', '-//W3C//DTD HTML 4.01 Frameset//', '' ),
+			'Special limited-quirks mode if system is non-empty' => array( '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//" "non-empty">', 'limited-quirks', 'html', '-//W3C//DTD HTML 4.01 Frameset//', 'non-empty' ),
 		);
 	}
 
