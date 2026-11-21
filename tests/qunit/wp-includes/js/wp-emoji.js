@@ -287,8 +287,8 @@ QUnit.module( 'wp-emoji mutation observer', {
  * Waits for pending mutation records to be delivered to the observer.
  *
  * Records reach an observer in a microtask, so settling on one puts this behind the observer's own
- * callback. A timer cannot be used to wait: every test here is wrapped by sinon-test, which swaps
- * the timers for a fake clock that nothing in this file advances.
+ * callback. A timer cannot be used to wait: every test runs with sinon's fake timers (see
+ * tests/qunit/index.html), and nothing in this file advances the clock.
  *
  * @return {Promise} A promise which settles once the observer has run.
  */
