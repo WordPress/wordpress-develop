@@ -81,13 +81,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		update_option( 'medium_size_w', 0 );
 		update_option( 'medium_size_h', 0 );
 
-		$filename = ( DIR_TESTDATA . '/images/a2-small.jpg' );
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'] );
-
-		$id = $this->_make_attachment( $upload );
+		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/a2-small.jpg' );
 
 		// Intermediate copies should exist: thumbnail only.
 		$thumb = image_get_intermediate_size( $id, 'thumbnail' );
@@ -254,13 +248,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 * @ticket 21963
 	 */
 	public function test_update_attachment_fields() {
-		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'] );
-
-		$id = $this->_make_attachment( $upload );
+		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		$attached_file = get_post_meta( $id, '_wp_attached_file', true );
 
@@ -280,13 +268,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 * @ticket 29646
 	 */
 	public function test_update_orphan_attachment_parent() {
-		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'] );
-
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		// Assert that the attachment is an orphan.
 		$attachment = get_post( $attachment_id );
@@ -312,14 +294,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$siteurl = get_option( 'siteurl' );
 		update_option( 'siteurl', set_url_scheme( $siteurl, 'http' ) );
 
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'] );
-
 		// Set attachment ID.
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		$_SERVER['HTTPS'] = 'off';
 
@@ -337,14 +313,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$siteurl = get_option( 'siteurl' );
 		update_option( 'siteurl', set_url_scheme( $siteurl, 'https' ) );
 
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'] );
-
 		// Set attachment ID.
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		$_SERVER['HTTPS'] = 'off';
 
@@ -362,14 +332,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$siteurl = get_option( 'siteurl' );
 		update_option( 'siteurl', set_url_scheme( $siteurl, 'http' ) );
 
-		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'] );
-
 		// Set attachment ID.
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		$_SERVER['HTTPS'] = 'on';
 
@@ -390,14 +354,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$siteurl = get_option( 'siteurl' );
 		update_option( 'siteurl', set_url_scheme( $siteurl, 'https' ) );
 
-		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'] );
-
 		// Set attachment ID.
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		$_SERVER['HTTPS'] = 'on';
 
@@ -418,14 +376,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$siteurl = get_option( 'siteurl' );
 		update_option( 'siteurl', set_url_scheme( $siteurl, 'http' ) );
 
-		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'] );
-
 		// Set attachment ID.
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		$_SERVER['HTTPS'] = 'on';
 		set_current_screen( 'dashboard' );
@@ -442,14 +394,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		// Set https upload URL.
 		add_filter( 'upload_dir', '_upload_dir_https' );
 
-		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
-		$contents = file_get_contents( $filename );
-
-		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'] );
-
 		// Set attachment ID.
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		$_SERVER['HTTPS'] = 'on';
 		set_current_screen( 'dashboard' );
@@ -463,11 +409,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	}
 
 	public function test_wp_attachment_is() {
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
-
-		$upload        = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
 		$this->assertTrue( wp_attachment_is_image( $attachment_id ) );
 		$this->assertTrue( wp_attachment_is( 'image', $attachment_id ) );
@@ -481,11 +423,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 			add_filter( 'upload_mimes', array( $this, 'allow_psd_mime_type' ), 10, 2 );
 		}
 
-		$filename = DIR_TESTDATA . '/images/test-image.psd';
-		$contents = file_get_contents( $filename );
-
-		$upload        = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$attachment_id = $this->_make_attachment( $upload );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.psd' );
 
 		$this->assertFalse( wp_attachment_is_image( $attachment_id ) );
 		$this->assertTrue( wp_attachment_is( 'psd', $attachment_id ) );
@@ -551,5 +489,74 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'images/media/video.png', $icon1, 'Mime type icon should be correctly returned with ".png" argument.' );
 		$this->assertStringContainsString( 'images/media/video.png', $icon2, 'Mime type icon should be correctly returned with "png" argument.' );
+	}
+
+	/**
+	 * Tests that false is passed to the filter and returned when no icon matches.
+	 *
+	 * @ticket 65817
+	 *
+	 * @dataProvider data_wp_mime_type_icon_without_matching_icon
+	 *
+	 * @param int|string $mime MIME type or attachment ID.
+	 */
+	public function test_wp_mime_type_icon_without_matching_icon( $mime ) {
+		// With no icon files available, not even the default icon can match.
+		wp_cache_set( 'icon_files', array() );
+
+		$filtered_icons = array();
+		add_filter(
+			'wp_mime_type_icon',
+			static function ( $icon ) use ( &$filtered_icons ) {
+				$filtered_icons[] = $icon;
+				return $icon;
+			}
+		);
+
+		$this->assertFalse( wp_mime_type_icon( $mime ), 'Expected false to be returned.' );
+		$this->assertSame( array( false ), $filtered_icons, 'Expected false to be passed to the filter.' );
+	}
+
+	/**
+	 * Data provider for test_wp_mime_type_icon_without_matching_icon().
+	 *
+	 * @return array<non-falsy-string, array{ 0: int|string }>
+	 */
+	public static function data_wp_mime_type_icon_without_matching_icon(): array {
+		return array(
+			'nonexistent attachment ID' => array( PHP_INT_MAX ),
+			'unknown MIME type'         => array( 'foo/bar' ),
+		);
+	}
+
+	/**
+	 * Tests that a cached icon that is not a string is ignored and the icon is looked up again.
+	 *
+	 * @ticket 65817
+	 *
+	 * @dataProvider data_wp_mime_type_icon_ignores_non_string_cached_icon
+	 *
+	 * @param mixed $cached_icon Value stored in the icon cache for the MIME type.
+	 */
+	public function test_wp_mime_type_icon_ignores_non_string_cached_icon( $cached_icon ) {
+		wp_cache_set( 'mime_type_icon_video/mp4', $cached_icon );
+
+		$icon = wp_mime_type_icon( 'video/mp4' );
+
+		$this->assertIsString( $icon, 'Expected the icon to be looked up again rather than taken from the cache.' );
+		$this->assertStringContainsString( 'images/media/video.png', $icon );
+	}
+
+	/**
+	 * Data provider for test_wp_mime_type_icon_ignores_non_string_cached_icon().
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed }>
+	 */
+	public static function data_wp_mime_type_icon_ignores_non_string_cached_icon(): array {
+		return array(
+			'true'  => array( true ),
+			'array' => array( array( 'http://example.com/icon.png' ) ),
+			'int'   => array( 1 ),
+		);
 	}
 }
