@@ -2874,6 +2874,7 @@ function gallery_shortcode( $attr ) {
 			'include'    => '',
 			'exclude'    => '',
 			'link'       => '',
+			'limit'      => -1,
 		),
 		$attr,
 		'gallery'
@@ -2938,7 +2939,9 @@ function gallery_shortcode( $attr ) {
 	if ( empty( $attachments ) ) {
 		return '';
 	}
-
+	if ( -1 !== (int) $atts['limit'] ) {
+		$attachments = array_slice( $attachments, 0, max( 0, (int) $atts['limit'] ) );
+	}
 	if ( is_feed() ) {
 		$output = "\n";
 		foreach ( $attachments as $att_id => $attachment ) {
