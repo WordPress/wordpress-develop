@@ -131,6 +131,14 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( $expected_content, $comment->comment_content );
 	}
 
+	/**
+	 * A privileged user editing an unprivileged user's comment may save HTML
+	 * beyond the comment author's allowed markup, consistent with the post
+	 * editor. On multisite, where no user has the unfiltered_html capability,
+	 * the content is still filtered.
+	 *
+	 * @ticket 57343
+	 */
 	public function test_update_comment_from_unprivileged_user_by_privileged_user() {
 		wp_set_current_user( self::$user_id );
 
@@ -168,12 +176,22 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 
 		$comment = get_comment( $comment_id );
-		$this->assertEqualHTML(
-			'<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>',
-			$comment->comment_content,
-			'<body>',
-			'Comment: ' . $comment->comment_content
-		);
+
+		if ( is_multisite() ) {
+			$this->assertEqualHTML(
+				'<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>',
+				$comment->comment_content,
+				'<body>',
+				'Comment: ' . $comment->comment_content
+			);
+		} else {
+			$this->assertEqualHTML(
+				'<a href="http://example.localhost/something.html" disallowed=attribute rel="nofollow ugc">click</a>',
+				$comment->comment_content,
+				'<body>',
+				'Comment: ' . $comment->comment_content
+			);
+		}
 	}
 
 	/**
