@@ -1184,6 +1184,62 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		}
 
 		/**
+		 * Preserves character references for shortcode brackets in serialized text.
+		 *
+		 * Shortcodes are processed before HTML character references are decoded by a
+		 * browser. Decoding an escaped bracket can therefore activate a shortcode.
+		 * Text normalization preserves bracket order, so the raw token identifies
+		 * which brackets must remain escaped without changing literal shortcodes.
+		 *
+		 * @since 7.2.0
+		 * @access private
+		 *
+		 * @param string $text     Serialized text with HTML-sensitive characters escaped.
+		 * @param string $raw_text Original text token before decoding.
+		 * @return string Serialized text retaining escaped shortcode brackets.
+		 */
+		private function preserve_escaped_shortcode_brackets( string $text, string $raw_text ): string {
+			if ( ! str_contains( $raw_text, '&' ) ) {
+				return $text;
+			}
+
+			$escaped_brackets = '';
+			$length           = strlen( $raw_text );
+			for ( $at = 0; $at < $length; ++$at ) {
+				$at += strcspn( $raw_text, '&[]', $at );
+				if ( $at >= $length ) {
+					break;
+				}
+
+				if ( '&' === $raw_text[ $at ] ) {
+					$reference = WP_HTML_Decoder::read_character_reference( 'data', $raw_text, $at, $reference_length );
+					if ( null !== $reference ) {
+						if ( '[' === $reference || ']' === $reference ) {
+							$escaped_brackets .= '1';
+						}
+						$at += $reference_length - 1;
+					}
+				} else {
+					$escaped_brackets .= '0';
+				}
+			}
+			if ( ! str_contains( $escaped_brackets, '1' ) ) {
+				return $text;
+			}
+
+			$bracket_index = 0;
+			return preg_replace_callback(
+				'/[\[\]]/',
+				static function ( $matches ) use ( $escaped_brackets, &$bracket_index ) {
+					return '1' === $escaped_brackets[ $bracket_index++ ]
+						? ( '[' === $matches[0] ? '&#91;' : '&#93;' )
+						: $matches[0];
+				},
+				$text
+			);
+		}
+
+		/**
 		 * Sets the value of a given HTML attribute, adjusting URL attributes
 		 * to ensure compatibility with legacy {@see wp_kses()} behavior.
 		 *
@@ -1590,6 +1646,12 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 								'>'  => '&gt;',
 							)
 						);
+						if ( strcspn( $text, '[]' ) !== strlen( $text ) ) {
+							$text = $this->preserve_escaped_shortcode_brackets(
+								$text,
+								substr( $this->html, $here->start, $here->length )
+							);
+						}
 
 						if ( $needs_special_newline ) {
 							$output .= "\n{$text}";
