@@ -19,7 +19,7 @@
 	 * Trigger an event.
 	 *
 	 * @param {Element} target HTML element to dispatch the event on.
-	 * @param {string} name Event name.
+	 * @param {string}  name   Event name.
 	 */
 	function trigger( target, name ) {
 		var evt;
@@ -244,6 +244,11 @@
 	BaseHandler.extend = function( protoProps ) {
 		var prop;
 
+		/**
+		 * Creates a custom handler instance.
+		 *
+		 * @return {CustomHandler} A custom handler instance, when called with new.
+		 */
 		function CustomHandler() {
 			var result = BaseHandler.apply( this, arguments );
 			return result;

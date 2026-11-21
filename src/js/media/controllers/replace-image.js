@@ -48,6 +48,8 @@ ReplaceImage = Library.extend(/** @lends wp.media.controller.ReplaceImage.protot
 	}, Library.prototype.defaults ),
 
 	/**
+	 * Initializes the ReplaceImage controller.
+	 *
 	 * @since 3.9.0
 	 *
 	 * @param {Object} options Attributes.
@@ -87,6 +89,8 @@ ReplaceImage = Library.extend(/** @lends wp.media.controller.ReplaceImage.protot
 	},
 
 	/**
+	 * Activates the ReplaceImage controller.
+	 *
 	 * @since 3.9.0
 	 */
 	activate: function() {
@@ -96,6 +100,8 @@ ReplaceImage = Library.extend(/** @lends wp.media.controller.ReplaceImage.protot
 	},
 
 	/**
+	 * Deactivates the ReplaceImage controller.
+	 *
 	 * @since 5.9.0
 	 */
 	deactivate: function() {
@@ -105,6 +111,8 @@ ReplaceImage = Library.extend(/** @lends wp.media.controller.ReplaceImage.protot
 	},
 
 	/**
+	 * Updates the selection to match the current image.
+	 *
 	 * @since 3.9.0
 	 */
 	updateSelection: function() {

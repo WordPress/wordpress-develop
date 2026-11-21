@@ -26,7 +26,7 @@
 			0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color),
 			inset 0 0 0 1px tokens.$white;
 		/* Visible in Windows High Contrast mode */
-		outline: 1px solid transparent;
+		outline: 2px solid transparent;
 	}
 
 	&:active {
@@ -36,11 +36,11 @@
 	}
 
 	&:disabled,
+	&[aria-disabled="true"],
 	&.disabled {
 		background: tokens.$gray-100;
 		border-color: transparent;
 		color: tokens.$gray-600;
-		cursor: not-allowed;
 	}
 
 	&.active,
@@ -74,7 +74,8 @@
 		border-color: var(--wp-admin-theme-color);
 		color: var(--wp-admin-theme-color);
 		box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
-		outline: 1px solid transparent;
+		/* Visible in Windows High Contrast mode */
+		outline: 2px solid transparent;
 	}
 
 	&:active {
@@ -85,11 +86,11 @@
 	}
 
 	&:disabled,
+	&[aria-disabled="true"],
 	&.disabled {
 		background: transparent;
 		border-color: tokens.$gray-300;
 		color: tokens.$gray-600;
-		cursor: not-allowed;
 	}
 }
 
@@ -113,7 +114,8 @@
 		border-color: var(--wp-admin-theme-color);
 		color: tokens.$gray-900;
 		box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
-		outline: 1px solid transparent;
+		/* Visible in Windows High Contrast mode */
+		outline: 2px solid transparent;
 	}
 
 	&:active {
@@ -123,10 +125,10 @@
 	}
 
 	&:disabled,
+	&[aria-disabled="true"],
 	&.disabled {
 		background: transparent;
 		border-color: tokens.$gray-400;
 		color: tokens.$gray-600;
-		cursor: not-allowed;
 	}
 }
