@@ -3628,19 +3628,50 @@ class WP_Query {
 
 			// Fetch sticky posts that weren't in the query results.
 			if ( ! empty( $sticky_posts ) ) {
-				$stickies = get_posts(
-					array(
-						'post__in'               => $sticky_posts,
-						'post_type'              => $post_type,
-						'post_status'            => 'publish',
-						'posts_per_page'         => count( $sticky_posts ),
-						'suppress_filters'       => $query_vars['suppress_filters'],
-						'cache_results'          => $query_vars['cache_results'],
-						'update_post_meta_cache' => $query_vars['update_post_meta_cache'],
-						'update_post_term_cache' => $query_vars['update_post_term_cache'],
-						'lazy_load_term_meta'    => $query_vars['lazy_load_term_meta'],
-					)
+				$sticky_query_args = array(
+					'post__in'               => $sticky_posts,
+					'post_type'              => $post_type,
+					'post_status'            => 'publish',
+					'posts_per_page'         => count( $sticky_posts ),
+					'suppress_filters'       => $query_vars['suppress_filters'],
+					'cache_results'          => $query_vars['cache_results'],
+					'update_post_meta_cache' => $query_vars['update_post_meta_cache'],
+					'update_post_term_cache' => $query_vars['update_post_term_cache'],
+					'lazy_load_term_meta'    => $query_vars['lazy_load_term_meta'],
 				);
+
+				/*
+				 * Honor constraining query vars from the current query when fetching
+				 * sticky posts, so that stickies unrelated to the requested author,
+				 * slug, term, or other explicit filters are not prepended to the
+				 * results.
+				 */
+				$constraining_query_vars = array(
+					'author__in',
+					'author__not_in',
+					'post_name__in',
+					'category__in',
+					'category__not_in',
+					'category__and',
+					'tag__in',
+					'tag__not_in',
+					'tag__and',
+					'tag_slug__in',
+					'tag_slug__and',
+					'post_parent',
+					'post_parent__in',
+					'post_parent__not_in',
+					'tax_query',
+					'meta_query',
+				);
+
+				foreach ( $constraining_query_vars as $constraining_query_var ) {
+					if ( ! empty( $query_vars[ $constraining_query_var ] ) ) {
+						$sticky_query_args[ $constraining_query_var ] = $query_vars[ $constraining_query_var ];
+					}
+				}
+
+				$stickies = get_posts( $sticky_query_args );
 
 				foreach ( $stickies as $sticky_post ) {
 					array_splice( $this->posts, $sticky_offset, 0, array( $sticky_post ) );
