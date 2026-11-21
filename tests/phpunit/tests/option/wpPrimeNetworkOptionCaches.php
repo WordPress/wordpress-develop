@@ -24,6 +24,15 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		}
 	}
 
+	public static function wpTearDownAfterClass() {
+		global $wpdb;
+
+		if ( is_multisite() ) {
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->sitemeta} WHERE site_id = %d", self::$different_network_id ) );
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->site} WHERE id = %d", self::$different_network_id ) );
+		}
+	}
+
 	/**
 	 * Tests that wp_prime_network_option_caches() primes multiple options.
 	 *
