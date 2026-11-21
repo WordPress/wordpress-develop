@@ -64,20 +64,23 @@ class Tests_Actions extends WP_UnitTestCase {
 		$hook_name = __FUNCTION__;
 
 		add_action( $hook_name, array( &$a, 'action' ) );
+		add_action( $hook_name, array( &$a, 'action' ), 100 );
 		do_action( $hook_name );
 
 		// Make sure our hook was called correctly.
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
+		$this->assertSame( 2, $a->get_call_count() );
+		$this->assertSame( array( $hook_name, $hook_name ), $a->get_hook_names() );
 
 		// Now remove the action, do it again, and make sure it's not called this time.
 		remove_action( $hook_name, array( &$a, 'action' ) );
+		remove_action( $hook_name, array( &$a, 'action' ), 100 );
 		do_action( $hook_name );
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
+		$this->assertSame( 2, $a->get_call_count() );
+		$this->assertSame( array( $hook_name, $hook_name ), $a->get_hook_names() );
 	}
 
 	/**
+	 * @ticket 64186
 	 * @covers ::has_action
 	 */
 	public function test_has_action() {
@@ -89,7 +92,20 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		add_action( $hook_name, $callback );
 		$this->assertSame( 10, has_action( $hook_name, $callback ) );
+		$this->assertFalse( has_action( $hook_name, $callback, 9 ) );
 		$this->assertTrue( has_action( $hook_name ) );
+
+		add_action( $hook_name, $callback, 9 );
+		add_action( $hook_name, $callback, 11 );
+		$this->assertSame( 9, has_action( $hook_name, $callback ) );
+		$this->assertTrue( has_action( $hook_name, $callback, 9 ) );
+		$this->assertTrue( has_action( $hook_name, $callback, 10 ) );
+		$this->assertTrue( has_action( $hook_name, $callback, 11 ) );
+		$this->assertTrue( has_action( $hook_name ) );
+
+		remove_action( $hook_name, $callback, 9 );
+		remove_action( $hook_name, $callback, 11 );
+		$this->assertSame( 10, has_action( $hook_name, $callback ) );
 
 		remove_action( $hook_name, $callback );
 		$this->assertFalse( has_action( $hook_name, $callback ) );
@@ -171,7 +187,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 * Test that multiple callbacks receive the correct number of args even when the number
 	 * is less than, or greater than previous hooks.
 	 *
-	 * @see https://core.trac.wordpress.org/ticket/17817#comment:72
+	 * @link https://core.trac.wordpress.org/ticket/17817#comment:72
 	 * @ticket 17817
 	 *
 	 * @covers ::do_action
@@ -270,7 +286,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_priority_callback_order_with_integers() {
+	public static function data_priority_callback_order_with_integers() {
 		return array(
 			'int DESC' => array(
 				'priorities'          => array( 10, 9 ),
@@ -288,7 +304,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_priority_callback_order_with_unhappy_path_nonintegers() {
+	public static function data_priority_callback_order_with_unhappy_path_nonintegers() {
 		return array(
 			// Numbers as strings and floats.
 			'int as string DESC'               => array(
@@ -604,7 +620,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	}
 
 	public function action_that_manipulates_a_running_hook( $hook_name, $mocks ) {
-		remove_action( $hook_name, array( $mocks[1], 'action' ), 12, 2 );
+		remove_action( $hook_name, array( $mocks[1], 'action' ), 12 );
 		add_action( $hook_name, array( $mocks[2], 'action' ), 12, 2 );
 		add_action( $hook_name, array( $mocks[3], 'action' ), 13, 2 );
 		add_action( $hook_name, array( $mocks[4], 'action' ), 10, 2 );
@@ -820,7 +836,7 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		add_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback_multiple_params' ), 10, 2 );
 		do_action_deprecated( 'tests_do_action_deprecated', array( $p1, $p2 ), '4.6.0' );
-		remove_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback_multiple_params' ), 10, 2 );
+		remove_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback_multiple_params' ) );
 
 		$this->assertSame( 'Bar1', $p1->post_title );
 		$this->assertSame( 'Bar2', $p2->post_title );

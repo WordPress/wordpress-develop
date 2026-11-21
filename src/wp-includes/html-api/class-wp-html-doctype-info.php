@@ -27,28 +27,30 @@
  * they match only when byte-for-byte identical (no-quirks mode).
  *
  * All HTML documents should start with the standard HTML5 DOCTYPE: `<!DOCTYPE html>`.
+ * The {@link https://html.spec.whatwg.org/#the-doctype HTML Standard} explains why:
  *
  * > DOCTYPEs are required for legacy reasons. When omitted, browsers tend to use a different
  * > rendering mode that is incompatible with some specifications. Including the DOCTYPE in a
  * > document ensures that the browser makes a best-effort attempt at following the
  * > relevant specifications.
  *
- * @see https://html.spec.whatwg.org/#the-doctype
- *
  * DOCTYPE declarations comprise four properties: a name, public identifier, system identifier,
- * and an indication of which document compatability mode they would imply if an HTML parser
- * hadn't already determined it from other information.
+ * and an indication of which document compatibility mode they would imply if an HTML parser
+ * hadn't already determined it from other information. The HTML parser's
+ * {@link https://html.spec.whatwg.org/#the-initial-insertion-mode initial insertion mode}
+ * defines which compatibility mode a DOCTYPE declaration implies.
  *
- * @see https://html.spec.whatwg.org/#the-initial-insertion-mode
- *
- * Historically, the DOCTYPE declaration was used in SGML documents to instruct a parser how
+ * Historically, the DOCTYPE declaration was used in
+ * {@link https://www.iso.org/standard/16387.html SGML documents} to instruct a parser how
  * to interpret the various tags and entities within a document. Its role in HTML diverged
  * from how it was used in SGML and no meaning should be back-read into HTML based on how it
  * is used in SGML, XML, or XHTML documents.
  *
- * @see https://www.iso.org/standard/16387.html
- *
  * @since 6.7.0
+ * @since 7.1.0 Spec update: missing and empty SYSTEM identifiers are handled
+ *              the same for determining the document mode.
+ *
+ * @access private
  *
  * @see WP_HTML_Processor
  */
@@ -63,7 +65,7 @@ class WP_HTML_Doctype_Info {
 	 *     <!DOCTYPE html>
 	 *               ╰──┴── name is "html".
 	 *
-	 * @see https://html.spec.whatwg.org/#tokenization
+	 * @link https://html.spec.whatwg.org/#tokenization
 	 *
 	 * @since 6.7.0
 	 *
@@ -87,7 +89,7 @@ class WP_HTML_Doctype_Info {
 	 *               │  │         ╰─── public identifier ─────╯
 	 *               ╰──┴── name is "html".
 	 *
-	 * @see https://html.spec.whatwg.org/#tokenization
+	 * @link https://html.spec.whatwg.org/#tokenization
 	 *
 	 * @since 6.7.0
 	 *
@@ -117,7 +119,7 @@ class WP_HTML_Doctype_Info {
 	 *               │  │         ╰─── public identifier ─────╯   ╰──── system identifier ────╯
 	 *               ╰──┴── name is "html".
 	 *
-	 * @see https://html.spec.whatwg.org/#tokenization
+	 * @link https://html.spec.whatwg.org/#tokenization
 	 *
 	 * @since 6.7.0
 	 *
@@ -126,29 +128,32 @@ class WP_HTML_Doctype_Info {
 	public $system_identifier = null;
 
 	/**
-	 * Which document compatability mode this DOCTYPE declaration indicates.
+	 * Which document compatibility mode this DOCTYPE declaration indicates.
 	 *
 	 * This value should be considered "read only" and not modified.
 	 *
-	 * When an HTML parser has not already set the document compatability mode,
-	 * (e.g. "quirks" or "no-quirks" mode), it will infer if from the properties
+	 * When an HTML parser has not already set the document compatibility mode,
+	 * (e.g. "quirks" or "no-quirks" mode), it will be inferred from the properties
 	 * of the appropriate DOCTYPE declaration, if one exists. The DOCTYPE can
-	 * indicate one of three possible document compatability modes:
+	 * indicate one of three possible document compatibility modes:
+	 * "no-quirks", "limited-quirks", or "quirks".
 	 *
-	 *  - "no-quirks" and "limited-quirks" modes (also called "standards" mode).
-	 *  - "quirks" mode (also called `CSS1Compat` mode).
+	 * Browsers expose the resulting document mode via `document.compatMode`:
+	 * - "BackCompat" indicates "quirks" mode.
+	 * - "CSS1Compat" indicates "no-quirks" or "limited-quirks" (these modes are not
+	 *   distinguished by `document.compatMode`).
 	 *
 	 * An appropriate DOCTYPE is one encountered in the "initial" insertion mode,
 	 * before the HTML element has been opened and before finding any other
 	 * DOCTYPE declaration tokens.
 	 *
-	 * @see https://html.spec.whatwg.org/#the-initial-insertion-mode
+	 * @link https://html.spec.whatwg.org/#the-initial-insertion-mode
 	 *
 	 * @since 6.7.0
 	 *
 	 * @var string One of "no-quirks", "limited-quirks", or "quirks".
 	 */
-	public $indicated_compatability_mode;
+	public $indicated_compatibility_mode;
 
 	/**
 	 * Constructor.
@@ -164,7 +169,7 @@ class WP_HTML_Doctype_Info {
 	 * > and system identifier must be marked as missing (which is a distinct state from the
 	 * > empty string), and the force-quirks flag must be set to off (its other state is on).
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#tokenization
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#tokenization
 	 *
 	 * @since 6.7.0
 	 *
@@ -192,7 +197,7 @@ class WP_HTML_Doctype_Info {
 		 * > The force-quirks flag is set to on.
 		 */
 		if ( $force_quirks_flag ) {
-			$this->indicated_compatability_mode = 'quirks';
+			$this->indicated_compatibility_mode = 'quirks';
 			return;
 		}
 
@@ -201,7 +206,7 @@ class WP_HTML_Doctype_Info {
 		 * public or system identifiers; short-circuit to avoid extra parsing.
 		 */
 		if ( 'html' === $name && null === $public_identifier && null === $system_identifier ) {
-			$this->indicated_compatability_mode = 'no-quirks';
+			$this->indicated_compatibility_mode = 'no-quirks';
 			return;
 		}
 
@@ -212,7 +217,7 @@ class WP_HTML_Doctype_Info {
 		 * the document in upper case; thus no conversion is required here.
 		 */
 		if ( 'html' !== $name ) {
-			$this->indicated_compatability_mode = 'quirks';
+			$this->indicated_compatibility_mode = 'quirks';
 			return;
 		}
 
@@ -224,13 +229,9 @@ class WP_HTML_Doctype_Info {
 		 * >
 		 * > The system identifier and public identifier strings must be compared...
 		 * > in an ASCII case-insensitive manner.
-		 * >
-		 * > A system identifier whose value is the empty string is not considered missing
-		 * > for the purposes of the conditions above.
 		 */
-		$system_identifier_is_missing = null === $system_identifier;
-		$public_identifier            = null === $public_identifier ? '' : strtolower( $public_identifier );
-		$system_identifier            = null === $system_identifier ? '' : strtolower( $system_identifier );
+		$public_identifier = null === $public_identifier ? '' : strtolower( $public_identifier );
+		$system_identifier = null === $system_identifier ? '' : strtolower( $system_identifier );
 
 		/*
 		 * > The public identifier is set to…
@@ -240,7 +241,7 @@ class WP_HTML_Doctype_Info {
 			'-/w3c/dtd html 4.0 transitional/en' === $public_identifier ||
 			'html' === $public_identifier
 		) {
-			$this->indicated_compatability_mode = 'quirks';
+			$this->indicated_compatibility_mode = 'quirks';
 			return;
 		}
 
@@ -248,7 +249,7 @@ class WP_HTML_Doctype_Info {
 		 * > The system identifier is set to…
 		 */
 		if ( 'http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd' === $system_identifier ) {
-			$this->indicated_compatability_mode = 'quirks';
+			$this->indicated_compatibility_mode = 'quirks';
 			return;
 		}
 
@@ -257,7 +258,7 @@ class WP_HTML_Doctype_Info {
 		 * If the public identifier is empty, none of the following conditions will match.
 		 */
 		if ( '' === $public_identifier ) {
-			$this->indicated_compatability_mode = 'no-quirks';
+			$this->indicated_compatibility_mode = 'no-quirks';
 			return;
 		}
 
@@ -325,20 +326,21 @@ class WP_HTML_Doctype_Info {
 			str_starts_with( $public_identifier, '-//webtechs//dtd mozilla html 2.0//' ) ||
 			str_starts_with( $public_identifier, '-//webtechs//dtd mozilla html//' )
 		) {
-			$this->indicated_compatability_mode = 'quirks';
+			$this->indicated_compatibility_mode = 'quirks';
 			return;
 		}
 
 		/*
-		 * > The system identifier is missing and the public identifier starts with…
+		 * > The system identifier is missing or the empty string, and the
+		 * > public identifier starts with…
 		 */
 		if (
-			$system_identifier_is_missing && (
+			'' === $system_identifier && (
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 frameset//' ) ||
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 transitional//' )
 			)
 		) {
-			$this->indicated_compatability_mode = 'quirks';
+			$this->indicated_compatibility_mode = 'quirks';
 			return;
 		}
 
@@ -354,24 +356,25 @@ class WP_HTML_Doctype_Info {
 			str_starts_with( $public_identifier, '-//w3c//dtd xhtml 1.0 frameset//' ) ||
 			str_starts_with( $public_identifier, '-//w3c//dtd xhtml 1.0 transitional//' )
 		) {
-			$this->indicated_compatability_mode = 'limited-quirks';
+			$this->indicated_compatibility_mode = 'limited-quirks';
 			return;
 		}
 
 		/*
-		 * > The system identifier is not missing and the public identifier starts with…
+		 * > The system identifier is neither missing nor the empty string, and the
+		 * > public identifier starts with…
 		 */
 		if (
-			! $system_identifier_is_missing && (
+			'' !== $system_identifier && (
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 frameset//' ) ||
 				str_starts_with( $public_identifier, '-//w3c//dtd html 4.01 transitional//' )
 			)
 		) {
-			$this->indicated_compatability_mode = 'limited-quirks';
+			$this->indicated_compatibility_mode = 'limited-quirks';
 			return;
 		}
 
-		$this->indicated_compatability_mode = 'no-quirks';
+		$this->indicated_compatibility_mode = 'no-quirks';
 	}
 
 	/**
@@ -385,15 +388,15 @@ class WP_HTML_Doctype_Info {
 	 *
 	 *     // Normative HTML DOCTYPE declaration.
 	 *     $doctype = WP_HTML_Doctype_Info::from_doctype_token( '<!DOCTYPE html>' );
-	 *     'no-quirks' === $doctype->indicated_compatability_mode;
+	 *     'no-quirks' === $doctype->indicated_compatibility_mode;
 	 *
 	 *     // A nonsensical DOCTYPE is still valid, and will indicate "quirks" mode.
 	 *     $doctype = WP_HTML_Doctype_Info::from_doctype_token( '<!doctypeJSON SILLY "nonsense\'>' );
-	 *     'quirks' === $doctype->indicated_compatability_mode;
+	 *     'quirks' === $doctype->indicated_compatibility_mode;
 	 *
 	 *     // Textual quirks present in raw HTML are handled appropriately.
 	 *     $doctype = WP_HTML_Doctype_Info::from_doctype_token( "<!DOCTYPE\nhtml\n>" );
-	 *     'no-quirks' === $doctype->indicated_compatability_mode;
+	 *     'no-quirks' === $doctype->indicated_compatibility_mode;
 	 *
 	 *     // Anything other than a proper DOCTYPE declaration token fails to parse.
 	 *     null === WP_HTML_Doctype_Info::from_doctype_token( ' <!DOCTYPE>' );
@@ -405,7 +408,6 @@ class WP_HTML_Doctype_Info {
 	 * @since 6.7.0
 	 *
 	 * @param string $doctype_html The complete raw DOCTYPE HTML string, e.g. `<!DOCTYPE html>`.
-	 *
 	 * @return WP_HTML_Doctype_Info|null A WP_HTML_Doctype_Info instance will be returned if the
 	 *                                   provided DOCTYPE HTML is a valid DOCTYPE. Otherwise, null.
 	 */
@@ -420,7 +422,7 @@ class WP_HTML_Doctype_Info {
 		 * This parser combines the rules for parsing DOCTYPE tokens found in the HTML
 		 * specification for the DOCTYPE related tokenizer states.
 		 *
-		 * @see https://html.spec.whatwg.org/#doctype-state
+		 * @link https://html.spec.whatwg.org/#doctype-state
 		 */
 
 		/*
@@ -445,8 +447,8 @@ class WP_HTML_Doctype_Info {
 		/*
 		 * Perform newline normalization and ensure the $end value is correct after normalization.
 		 *
-		 * @see https://html.spec.whatwg.org/#preprocessing-the-input-stream
-		 * @see https://infra.spec.whatwg.org/#normalize-newlines
+		 * @link https://html.spec.whatwg.org/#preprocessing-the-input-stream
+		 * @link https://infra.spec.whatwg.org/#normalize-newlines
 		 */
 		$doctype_html = str_replace( "\r\n", "\n", $doctype_html );
 		$doctype_html = str_replace( "\r", "\n", $doctype_html );
@@ -475,7 +477,7 @@ class WP_HTML_Doctype_Info {
 		 * Parsing effectively begins in "Before DOCTYPE name state". Ignore whitespace and
 		 * proceed to the next state.
 		 *
-		 * @see https://html.spec.whatwg.org/#before-doctype-name-state
+		 * @link https://html.spec.whatwg.org/#before-doctype-name-state
 		 */
 		$at += strspn( $doctype_html, " \t\n\f\r", $at );
 
@@ -498,7 +500,7 @@ class WP_HTML_Doctype_Info {
 		 * Find a case-insensitive match for "PUBLIC" or "SYSTEM" at this point.
 		 * Otherwise, set force-quirks and enter bogus DOCTYPE state (skip the rest of the doctype).
 		 *
-		 * @see https://html.spec.whatwg.org/#after-doctype-name-state
+		 * @link https://html.spec.whatwg.org/#after-doctype-name-state
 		 */
 		if ( $at + 6 >= $end ) {
 			return new self( $doctype_name, $doctype_public_id, $doctype_system_id, true );
@@ -545,8 +547,8 @@ class WP_HTML_Doctype_Info {
 		 * "DOCTYPE public identifier (single-quoted) state" by finding one of the valid quotes.
 		 * Anything else forces quirks mode and ignores the rest of the contents.
 		 *
-		 * @see https://html.spec.whatwg.org/#doctype-public-identifier-(double-quoted)-state
-		 * @see https://html.spec.whatwg.org/#doctype-public-identifier-(single-quoted)-state
+		 * @link https://html.spec.whatwg.org/#doctype-public-identifier-(double-quoted)-state
+		 * @link https://html.spec.whatwg.org/#doctype-public-identifier-(single-quoted)-state
 		 */
 		$closer_quote = $doctype_html[ $at ];
 
@@ -575,7 +577,7 @@ class WP_HTML_Doctype_Info {
 		 *
 		 * Advance through whitespace between public and system identifiers.
 		 *
-		 * @see https://html.spec.whatwg.org/#between-doctype-public-and-system-identifiers-state
+		 * @link https://html.spec.whatwg.org/#between-doctype-public-and-system-identifiers-state
 		 */
 		$at += strspn( $doctype_html, " \t\n\f\r", $at, $end - $at );
 		if ( $at >= $end ) {
@@ -588,8 +590,8 @@ class WP_HTML_Doctype_Info {
 		 * "DOCTYPE system identifier (single-quoted) state" by finding one of the valid quotes.
 		 * Anything else forces quirks mode and ignores the rest of the contents.
 		 *
-		 * @see https://html.spec.whatwg.org/#doctype-system-identifier-(double-quoted)-state
-		 * @see https://html.spec.whatwg.org/#doctype-system-identifier-(single-quoted)-state
+		 * @link https://html.spec.whatwg.org/#doctype-system-identifier-(double-quoted)-state
+		 * @link https://html.spec.whatwg.org/#doctype-system-identifier-(single-quoted)-state
 		 */
 		$closer_quote = $doctype_html[ $at ];
 

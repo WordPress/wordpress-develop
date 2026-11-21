@@ -30,7 +30,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return WP_Taxonomy[] Array of registered taxonomy objects keyed by their name.
+	 * @return array<string, WP_Taxonomy> Array of registered taxonomy objects keyed by their name.
 	 */
 	public function get_object_subtypes() {
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'objects' );
@@ -42,7 +42,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param WP_Taxonomy[] $taxonomies Array of registered taxonomy objects keyed by their name.
+		 * @param array<string, WP_Taxonomy> $taxonomies Array of registered taxonomy objects keyed by their name.
 		 */
 		return apply_filters( 'wp_sitemaps_taxonomies', $taxonomies );
 	}
@@ -171,7 +171,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 
 		$term_count = wp_count_terms( $this->get_taxonomies_query_args( $taxonomy ) );
 
-		return (int) ceil( $term_count / wp_sitemaps_get_max_urls( $this->object_type ) );
+		return (int) ceil( (int) $term_count / wp_sitemaps_get_max_urls( $this->object_type ) );
 	}
 
 	/**

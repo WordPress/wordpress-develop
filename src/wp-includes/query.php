@@ -681,6 +681,51 @@ function is_favicon() {
 }
 
 /**
+ * Is the query for a sitemap?
+ *
+ * @since 7.1.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @return bool Whether the query is for a sitemap.
+ */
+function is_sitemap(): bool {
+	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '7.1.0' );
+		return false;
+	}
+
+	return $wp_query->is_sitemap();
+}
+
+/**
+ * Determines whether the query is for random content.
+ *
+ * True for a blog home or archive request that includes the `random` query variable,
+ * for example `example.com/random/` or `example.com/random/category/news/`. Search,
+ * feed, trackback, robots.txt, favicon and sitemap requests are never for random content.
+ *
+ * @since 7.2.0
+ *
+ * @see wp_is_random_content_query()
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @return bool Whether the query is for random content.
+ */
+function is_random(): bool {
+	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '7.2.0' );
+		return false;
+	}
+
+	return $wp_query->is_random();
+}
+
+/**
  * Determines whether the query is for a search.
  *
  * For more information on this and similar theme functions, check out
@@ -936,6 +981,8 @@ function is_main_query() {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
+ * @phpstan-impure
+ *
  * @return bool True if posts are available, false if end of the loop.
  */
 function have_posts() {
@@ -1015,6 +1062,8 @@ function the_post() {
  * @since 2.2.0
  *
  * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @phpstan-impure
  *
  * @return bool True if comments are available, false if no more comments.
  */
@@ -1155,13 +1204,13 @@ function _find_post_by_old_slug( $post_type ) {
 
 	$key          = md5( $query );
 	$last_changed = wp_cache_get_last_changed( 'posts' );
-	$cache_key    = "find_post_by_old_slug:$key:$last_changed";
-	$cache        = wp_cache_get( $cache_key, 'post-queries' );
+	$cache_key    = "find_post_by_old_slug:$key";
+	$cache        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false !== $cache ) {
 		$id = $cache;
 	} else {
 		$id = (int) $wpdb->get_var( $query );
-		wp_cache_set( $cache_key, $id, 'post-queries' );
+		wp_cache_set_salted( $cache_key, $id, 'post-queries', $last_changed );
 	}
 
 	return $id;
@@ -1198,8 +1247,8 @@ function _find_post_by_old_date( $post_type ) {
 		$query        = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta AS pm_date, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_date' AND post_name = %s" . $date_query, $post_type, get_query_var( 'name' ) );
 		$key          = md5( $query );
 		$last_changed = wp_cache_get_last_changed( 'posts' );
-		$cache_key    = "find_post_by_old_date:$key:$last_changed";
-		$cache        = wp_cache_get( $cache_key, 'post-queries' );
+		$cache_key    = "find_post_by_old_date:$key";
+		$cache        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 		if ( false !== $cache ) {
 			$id = $cache;
 		} else {
@@ -1208,11 +1257,678 @@ function _find_post_by_old_date( $post_type ) {
 				// Check to see if an old slug matches the old date.
 				$id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts, $wpdb->postmeta AS pm_slug, $wpdb->postmeta AS pm_date WHERE ID = pm_slug.post_id AND ID = pm_date.post_id AND post_type = %s AND pm_slug.meta_key = '_wp_old_slug' AND pm_slug.meta_value = %s AND pm_date.meta_key = '_wp_old_date'" . $date_query, $post_type, get_query_var( 'name' ) ) );
 			}
-			wp_cache_set( $cache_key, $id, 'post-queries' );
+			wp_cache_set_salted( $cache_key, $id, 'post-queries', $last_changed );
 		}
 	}
 
 	return $id;
+}
+
+/**
+ * Determines whether random content redirects are enabled.
+ *
+ * @since 7.2.0
+ *
+ * @return bool True if random content redirects are enabled, false otherwise.
+ */
+function wp_is_random_content_redirect_enabled(): bool {
+	/**
+	 * Filters whether random content redirects are enabled.
+	 *
+	 * Random content redirects add rewrite rules for URLs such as `/random/`, so the
+	 * rewrite rules need to be flushed after changing the value returned by this filter.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $enabled Whether random content redirects are enabled. Default true.
+	 */
+	return (bool) apply_filters( 'wp_enable_random_content_redirect', true );
+}
+
+/**
+ * Determines whether a query is a request for random content.
+ *
+ * A random content request is a front end, main query for the blog home or an archive
+ * that includes the `random` query variable and at least one `randomable` post type.
+ * For example `example.com/random/` or `example.com/random/category/news/`.
+ *
+ * Singular (including embeds), search, feed, trackback, robots.txt, favicon and sitemap
+ * requests are never random content requests, nor are requests using an HTTP method
+ * other than GET or HEAD. Search
+ * requests are excluded as selecting a random post from search results would run an
+ * uncacheable search query that orders every matching post randomly. Search requests
+ * that include the `random` query variable are redirected to the search results
+ * by {@see WP::handle_random()}.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_Query $query The query to check.
+ * @return bool True if the query is a request for random content, false otherwise.
+ */
+function wp_is_random_content_query( WP_Query $query ): bool {
+	if (
+		! $query->is_random()
+		|| ! $query->is_main_query()
+		|| is_admin()
+		|| ! wp_is_random_content_redirect_enabled()
+	) {
+		return false;
+	}
+
+	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) && is_string( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( $_SERVER['REQUEST_METHOD'] ) : '';
+	if ( 'GET' !== $request_method && 'HEAD' !== $request_method ) {
+		return false;
+	}
+
+	return array() !== wp_get_random_content_post_types( $query );
+}
+
+/**
+ * Retrieves the post types eligible for selection by a random content request.
+ *
+ * These are the post types the query would otherwise return, limited to those
+ * registered as `randomable`.
+ *
+ * @since 7.2.0
+ *
+ * @see register_post_type()
+ *
+ * @param WP_Query $query The query to retrieve the post types for.
+ * @return string[] Post type names eligible for random selection.
+ *
+ * @phpstan-return list<string>
+ */
+function wp_get_random_content_post_types( WP_Query $query ): array {
+	$post_types = $query->get( 'post_type' );
+
+	if ( empty( $post_types ) && $query->is_tax() && $query->tax_query instanceof WP_Tax_Query ) {
+		// Match WP_Query::get_posts(): searchable post types using any of the queried taxonomies.
+		$taxonomies = array_keys( $query->tax_query->queried_terms );
+		$post_types = array();
+
+		foreach ( get_post_types( array( 'exclude_from_search' => false ) ) as $post_type ) {
+			$object_taxonomies = 'attachment' === $post_type ? get_taxonomies_for_attachments() : get_object_taxonomies( $post_type );
+			if ( array_intersect( $taxonomies, $object_taxonomies ) ) {
+				$post_types[] = $post_type;
+			}
+		}
+	} elseif ( empty( $post_types ) && ! $query->is_search() ) {
+		$post_types = array( 'post' );
+	}
+
+	if ( empty( $post_types ) || 'any' === $post_types ) {
+		$post_types = get_post_types( array( 'exclude_from_search' => false ) );
+	}
+
+	$random_post_types = array();
+
+	foreach ( (array) $post_types as $post_type ) {
+		// Plugins may set invalid values on the `post_type` query variable.
+		if ( ! is_string( $post_type ) ) {
+			continue;
+		}
+
+		$post_type_object = get_post_type_object( $post_type );
+
+		if ( $post_type_object && $post_type_object->randomable ) {
+			$random_post_types[] = $post_type_object->name;
+		}
+	}
+
+	return $random_post_types;
+}
+
+/**
+ * Limits the main query to posts eligible for random content requests.
+ *
+ * The main query is used to select the random post so the request runs the same
+ * query, and the same filters, as the archive it is randomizing. As such, callbacks
+ * on the {@see 'pre_get_posts'} action may modify the posts eligible for selection,
+ * for example to limit the post types or exclude a category:
+ *
+ *     add_action(
+ *         'pre_get_posts',
+ *         static function ( WP_Query $query ) {
+ *             if ( wp_is_random_content_query( $query ) ) {
+ *                 $query->set( 'category__not_in', array( 1 ) );
+ *             }
+ *         }
+ *     );
+ *
+ * Only randomable post types and published posts without a password are eligible.
+ * The number and order of posts are enforced by {@see wp_random_content_post_limits()} and
+ * {@see wp_random_content_posts_orderby()}, so callbacks modifying them on archives do not
+ * affect the selection.
+ *
+ * The random post IDs the post is selected from are stored in the `random_sample_ids`
+ * query variable, see {@see wp_get_random_content_sample_ids()}.
+ *
+ * Added to the {@see 'pre_get_posts'} action by {@see WP::handle_random()} while the
+ * random content query runs, so it runs after other callbacks.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_Query $query The WP_Query instance (passed by reference).
+ */
+function wp_random_content_pre_get_posts( $query ): void {
+	if ( ! wp_is_random_content_query( $query ) ) {
+		return;
+	}
+
+	$query->set( 'post_type', wp_get_random_content_post_types( $query ) );
+	$query->set( 'post_status', 'publish' );
+	$query->set( 'has_password', false );
+	$query->set( 'random_sample_ids', wp_get_random_content_sample_ids() );
+	$query->set( 'ignore_sticky_posts', true );
+	$query->set( 'no_found_rows', true );
+	$query->set( 'update_post_meta_cache', false );
+	$query->set( 'update_post_term_cache', false );
+	// The order and number of posts are enforced by filters, which a suppressed query skips.
+	$query->set( 'suppress_filters', false );
+}
+
+/**
+ * Retrieves random post IDs for the random content query to select a post from.
+ *
+ * Sorting posts randomly requires the database to read every eligible post. Instead,
+ * the random content query looks up 50 random post IDs, each by the primary key, and
+ * selects one of those that is an eligible post. The cost of the lookup does not
+ * depend on the number of posts, and as every post ID is equally likely to be looked
+ * up, every eligible post is equally likely to be selected. This is the case whether
+ * or not there are gaps between the IDs of posts.
+ *
+ * The IDs are between 1 and the highest post ID, which is stored in the object cache
+ * for 10 minutes. If there are no more than 50 post IDs, all of them are returned.
+ *
+ * @since 7.2.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @return int[] Up to 50 distinct post IDs. Posts with the IDs may not exist.
+ *
+ * @phpstan-return non-empty-list<int>
+ */
+function wp_get_random_content_sample_ids(): array {
+	global $wpdb;
+
+	$max_id = wp_cache_get( 'max_post_id', 'random-content' );
+
+	if ( ! is_int( $max_id ) ) {
+		$max_id = (int) $wpdb->get_var( "SELECT MAX(ID) FROM {$wpdb->posts}" );
+		wp_cache_set( 'max_post_id', $max_id, 'random-content', 10 * MINUTE_IN_SECONDS );
+	}
+
+	if ( $max_id <= 50 ) {
+		return range( 1, max( 1, $max_id ) );
+	}
+
+	$post_ids = array();
+
+	while ( count( $post_ids ) < 50 ) {
+		$post_ids[ wp_rand( 1, $max_id ) ] = true;
+	}
+
+	return array_keys( $post_ids );
+}
+
+/**
+ * Retrieves the SQL clause limiting the random content query to random post IDs.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int[] $post_ids Post IDs.
+ * @return string SQL clause.
+ */
+function _wp_random_content_sample_clause( array $post_ids ): string {
+	global $wpdb;
+
+	return "{$wpdb->posts}.ID IN (" . implode( ',', array_map( 'intval', $post_ids ) ) . ')';
+}
+
+/**
+ * Limits the random content query to the random post IDs.
+ *
+ * Added to the {@see 'posts_where'} filter by {@see WP::handle_random()} while the random
+ * content query runs.
+ *
+ * @since 7.2.0
+ *
+ * @see wp_get_random_content_sample_ids()
+ *
+ * @param string   $where The WHERE clause of the query.
+ * @param WP_Query $query The WP_Query instance.
+ * @return string The WHERE clause of the query.
+ */
+function wp_random_content_posts_where( $where, WP_Query $query ): string {
+	$sample_ids = $query->get( 'random_sample_ids' );
+
+	if ( wp_is_random_content_query( $query ) && is_array( $sample_ids ) && $sample_ids ) {
+		$where .= ' AND ' . _wp_random_content_sample_clause( $sample_ids );
+	}
+
+	return (string) $where;
+}
+
+/**
+ * Removes the order of the random content query.
+ *
+ * The random content query is limited to random post IDs, one of which is selected
+ * once the query has run, see {@see wp_random_content_posts_pre_query()}. Ordering the
+ * posts would require the database to sort them.
+ *
+ * Added to the {@see 'posts_orderby'} filter by {@see WP::handle_random()} while the random
+ * content query runs. Enforcing the order in SQL prevents {@see 'pre_get_posts'}
+ * callbacks setting the order of posts on archives from affecting the selection.
+ *
+ * @since 7.2.0
+ *
+ * @param string   $orderby The ORDER BY clause of the query.
+ * @param WP_Query $query   The WP_Query instance.
+ * @return string The ORDER BY clause of the query.
+ */
+function wp_random_content_posts_orderby( $orderby, WP_Query $query ): string {
+	if ( wp_is_random_content_query( $query ) ) {
+		return '';
+	}
+
+	return (string) $orderby;
+}
+
+/**
+ * Removes the limit of the random content query.
+ *
+ * The random content query is limited to random post IDs, one of which is selected
+ * once the query has run, see {@see wp_random_content_posts_pre_query()}.
+ *
+ * Added to the {@see 'post_limits'} filter by {@see WP::handle_random()} while the random
+ * content query runs. Enforcing the limit in SQL prevents {@see 'pre_get_posts'}
+ * callbacks setting the number of posts, offset or page on archives from affecting
+ * the selection.
+ *
+ * @since 7.2.0
+ *
+ * @param string   $limits The LIMIT clause of the query.
+ * @param WP_Query $query  The WP_Query instance.
+ * @return string The LIMIT clause of the query.
+ */
+function wp_random_content_post_limits( $limits, WP_Query $query ): string {
+	if ( wp_is_random_content_query( $query ) ) {
+		return '';
+	}
+
+	return (string) $limits;
+}
+
+/**
+ * Limits the random content query to selecting post IDs.
+ *
+ * Added to the {@see 'posts_fields'} filter by {@see WP::handle_random()} while the random
+ * content query runs.
+ *
+ * @since 7.2.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string   $fields The SELECT clause of the query.
+ * @param WP_Query $query  The WP_Query instance.
+ * @return string The SELECT clause of the query.
+ */
+function wp_random_content_posts_fields( $fields, WP_Query $query ): string {
+	global $wpdb;
+
+	if ( wp_is_random_content_query( $query ) ) {
+		return "{$wpdb->posts}.ID";
+	}
+
+	return (string) $fields;
+}
+
+/**
+ * Selects the random post from the eligible posts among random post IDs.
+ *
+ * The random content query is limited to 50 random post IDs, see
+ * {@see wp_get_random_content_sample_ids()}, and one of the posts it selects is chosen
+ * at random. If none of the IDs are eligible posts, the query is run again with other
+ * random post IDs, up to three times in total. On sites where most post IDs are
+ * eligible posts, a post is nearly always selected by the first query.
+ *
+ * If no post is selected, eligible posts are too sparse among the post IDs to be found
+ * this way, for example a small category on a site with many posts. A pool of up to
+ * 1,000 randomly ordered eligible posts is then selected, which is the whole archive
+ * if it has no more posts than that, and their IDs are stored in the object cache for
+ * 10 minutes. While the pool is cached, the post is selected from it without querying
+ * the database for the eligible posts. Selecting the pool requires the database to
+ * read every eligible post, so sites with a persistent object cache do so at most once
+ * every 10 minutes for each such archive.
+ *
+ * The pool is selected without excluding password protected posts, which are skipped
+ * when the post is selected from it, so the database can read the eligible posts from
+ * an index rather than reading each post in full.
+ *
+ * Only one request selects the pool at a time. Once the pool is 10 minutes old, the
+ * first request to need it selects the next pool and, until it has, other requests
+ * select from the previous pool, which is kept for an hour. If there is no previous
+ * pool, as the archive has not been requested recently, concurrent requests each
+ * select a pool.
+ *
+ * The pool is keyed by the SQL of the random content query, excluding the random post
+ * IDs, so each archive, and each variation of an archive produced by
+ * {@see 'pre_get_posts'} callbacks or query filters, has its own pool.
+ *
+ * As the pool may be up to 10 minutes old, posts that have since been unpublished,
+ * deleted, password protected or changed to another post type are skipped. If none of
+ * its posts are eligible, a post is selected as if there was no pool. Other changes,
+ * such as a post being published or removed from a term, are reflected once the pool
+ * expires. This includes the empty pool of an archive without eligible posts, which
+ * is cached so the archive is not queried for every request.
+ *
+ * Added to the {@see 'posts_pre_query'} filter by {@see WP::handle_random()} while the
+ * random content query runs. The database is only read from, never written to.
+ *
+ * @since 7.2.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param WP_Post[]|int[]|null $posts Posts short-circuiting the query, or null to run the query.
+ * @param WP_Query             $query The WP_Query instance.
+ * @return WP_Post[]|int[]|null The selected post, an empty array if no post is eligible,
+ *                              or the unmodified value if the query is not for random content.
+ */
+function wp_random_content_posts_pre_query( $posts, WP_Query $query ) {
+	global $wpdb;
+
+	if ( null !== $posts || ! wp_is_random_content_query( $query ) || ! is_string( $query->request ) ) {
+		return $posts;
+	}
+
+	// The placeholder escape string is unique to each request, see wpdb::placeholder_escape().
+	$request       = $wpdb->remove_placeholder_escape( $query->request );
+	$sample_ids    = $query->get( 'random_sample_ids' );
+	$sample_clause = is_array( $sample_ids ) && $sample_ids ? _wp_random_content_sample_clause( $sample_ids ) : '';
+
+	/*
+	 * The random post IDs can only be replaced, to look up other IDs or to select the
+	 * pool, if another callback has not modified their clause.
+	 */
+	$can_resample = '' !== $sample_clause && 1 === substr_count( $request, $sample_clause );
+	$cache_key    = $can_resample ? 'pool:' . md5( str_replace( $sample_clause, '', $request ) ) : '';
+	$post_types   = (array) $query->get( 'post_type' );
+
+	/**
+	 * Selects a random eligible post from post IDs.
+	 *
+	 * @param array<int|string> $post_ids Post IDs.
+	 * @return WP_Post|null The selected post, or null if none of the posts are eligible.
+	 */
+	$select_post = static function ( array $post_ids ) use ( $post_types ): ?WP_Post {
+		shuffle( $post_ids );
+
+		foreach ( $post_ids as $post_id ) {
+			$post = get_post( (int) $post_id );
+
+			if (
+				$post instanceof WP_Post
+				&& 'publish' === $post->post_status
+				&& '' === $post->post_password
+				&& in_array( $post->post_type, $post_types, true )
+			) {
+				return $post;
+			}
+		}
+
+		return null;
+	};
+
+	// The pool selected by an earlier request, once it is more than 10 minutes old.
+	$stale_pool = null;
+
+	if ( $can_resample ) {
+		$cached = wp_cache_get( $cache_key, 'random-content' );
+
+		if ( is_array( $cached ) && isset( $cached['post_ids'], $cached['expires'] ) && is_array( $cached['post_ids'] ) ) {
+			if ( $cached['expires'] > time() ) {
+				// The archive had no eligible posts when the pool was selected.
+				if ( array() === $cached['post_ids'] ) {
+					return array();
+				}
+
+				$post = $select_post( $cached['post_ids'] );
+
+				if ( null !== $post ) {
+					return array( $post );
+				}
+			} else {
+				$stale_pool = $cached['post_ids'];
+			}
+		}
+	}
+
+	// Look up random post IDs until one of them is an eligible post.
+	for ( $attempt = 1; $attempt <= 3; $attempt++ ) {
+		if ( $attempt > 1 ) {
+			$request = str_replace(
+				$sample_clause,
+				_wp_random_content_sample_clause( wp_get_random_content_sample_ids() ),
+				$wpdb->remove_placeholder_escape( $query->request )
+			);
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The request is prepared by WP_Query::get_posts().
+		$post = $select_post( $wpdb->get_col( $request ) );
+
+		if ( null !== $post ) {
+			return array( $post );
+		}
+
+		if ( ! $can_resample ) {
+			return array();
+		}
+	}
+
+	/*
+	 * Eligible posts are sparse among the post IDs, so select a pool of them.
+	 *
+	 * Only one request selects the pool at a time. While it does, other requests select
+	 * from the previous pool, if there is one, rather than each reading every eligible
+	 * post. wp_cache_add() only stores the lock if another request does not hold it.
+	 */
+	$lock_key = $cache_key . ':lock';
+	$has_lock = wp_cache_add( $lock_key, 1, 'random-content', MINUTE_IN_SECONDS );
+
+	if ( ! $has_lock && null !== $stale_pool ) {
+		$post = $select_post( $stale_pool );
+
+		if ( null !== $post ) {
+			return array( $post );
+		}
+
+		if ( array() === $stale_pool ) {
+			return array();
+		}
+	}
+
+	$request = str_replace( $sample_clause, '1=1', $wpdb->remove_placeholder_escape( $query->request ) );
+
+	/*
+	 * The post password is not indexed, so excluding password protected posts in SQL
+	 * requires the database to read the full row of every eligible post. They are
+	 * excluded when the post is selected from the pool instead, which allows the pool
+	 * to be selected from an index.
+	 */
+	$password_clause = " AND {$wpdb->posts}.post_password = ''";
+
+	if ( 1 === substr_count( $request, $password_clause ) ) {
+		$request = str_replace( $password_clause, '', $request );
+	}
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The request is prepared by WP_Query::get_posts().
+	$pool = array_map( 'intval', $wpdb->get_col( $request . ' ORDER BY RAND() LIMIT 1000' ) );
+	$post = $select_post( $pool );
+
+	/*
+	 * A pool of fewer than 1,000 posts is the whole archive. If none of its posts are
+	 * eligible, as they are all password protected, the archive has no eligible posts.
+	 */
+	if ( null === $post && count( $pool ) < 1000 ) {
+		$pool = array();
+	}
+
+	/*
+	 * The pool is used for 10 minutes. It is stored for an hour, so that requests can
+	 * select from it while the next pool is being selected.
+	 */
+	wp_cache_set(
+		$cache_key,
+		array(
+			'post_ids' => $pool,
+			'expires'  => time() + 10 * MINUTE_IN_SECONDS,
+		),
+		'random-content',
+		HOUR_IN_SECONDS
+	);
+
+	if ( $has_lock ) {
+		wp_cache_delete( $lock_key, 'random-content' );
+	}
+
+	return null === $post ? array() : array( $post );
+}
+
+/**
+ * Redirects random content requests to the randomly selected post.
+ *
+ * Added to the {@see 'template_redirect'} action at priority 100 by
+ * {@see WP::handle_random()} once the main query has selected the random post, so the
+ * redirect is sent after the request is set up and the {@see 'wp'} action has fired.
+ * The headers preventing the redirect being cached or indexed are sent with it.
+ *
+ * The post is read from the main query rather than the current query, so the redirect
+ * is still sent when an earlier callback replaces the current query, for example by
+ * calling {@see query_posts()}.
+ *
+ * The request ends once a post is selected. The redirect is to the post's permalink
+ * as returned by {@see get_permalink()}, including a permalink filtered to be on
+ * another site.
+ *
+ * If no post is selected, for example on an empty archive, {@see WP::handle_random()}
+ * handles the request as a 404.
+ *
+ * @since 7.2.0
+ *
+ * @global WP_Query $wp_the_query WordPress main Query object.
+ */
+function wp_random_content_redirect(): void {
+	global $wp_the_query;
+
+	if (
+		! $wp_the_query instanceof WP_Query
+		|| ! wp_is_random_content_query( $wp_the_query )
+		|| ! $wp_the_query->post instanceof WP_Post
+	) {
+		return;
+	}
+
+	nocache_headers();
+
+	if ( ! headers_sent() ) {
+		header( 'X-Robots-Tag: noindex, follow' );
+	}
+
+	$location = get_permalink( $wp_the_query->post );
+
+	wp_redirect( $location, 302 );
+	exit;
+}
+
+/**
+ * Flushes the rewrite rules when a page or post at the random content base changes.
+ *
+ * A published page at the random base, for example `example.com/random/`, takes
+ * precedence over random content redirects. So does a published post when the
+ * permalink structure places posts at the same URL, for example `/%postname%/`,
+ * see {@see WP_Rewrite::post_permalinks_share_random_base()}. As the rewrite rules account
+ * for the page or post, they need to be regenerated when it is published,
+ * unpublished, renamed, moved or deleted.
+ *
+ * Runs on the {@see 'wp_after_insert_post'} and {@see 'after_delete_post'} actions.
+ * Third-party code may fire these actions with unexpected values, so the parameters are
+ * not type declared. When `$post` is omitted it is looked up from `$post_id`. Passing
+ * anything other than a `WP_Post` as `$post`, or a post that cannot be looked up, is
+ * incorrect usage and nothing is flushed. `$post_before` is only considered on
+ * `wp_after_insert_post`, where passing anything other than a `WP_Post` or null is
+ * incorrect usage and the value is ignored.
+ *
+ * @since 7.2.0
+ *
+ * @see WP_Rewrite::random_rewrite_rules()
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+ *
+ * @param int          $post_id     Post ID.
+ * @param WP_Post|null $post        Optional. Post object. Looked up from `$post_id` when null. Default null.
+ * @param bool         $update      Optional. Whether this is an existing post being updated. Default false.
+ * @param WP_Post|null $post_before Optional. Post object before the update, null for new posts. Default null.
+ */
+function wp_random_content_flush_rewrite_rules_for_post( $post_id, $post = null, $update = false, $post_before = null ): void {
+	global $wp_rewrite;
+
+	// Only look up a real ID: get_post() falls back to the global post for an empty value.
+	if ( null === $post && (int) $post_id > 0 ) {
+		$post = get_post( (int) $post_id );
+	}
+
+	if ( ! $post instanceof WP_Post ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: $post, 2: WP_Post */
+				__( 'The %1$s argument must be a %2$s object.' ),
+				'<code>$post</code>',
+				'<code>WP_Post</code>'
+			),
+			'7.2.0'
+		);
+		return;
+	}
+
+	$posts = array( $post );
+
+	// Only wp_after_insert_post passes the previous post object, which matters when it was renamed or moved.
+	if ( 'wp_after_insert_post' === current_action() ) {
+		if ( $post_before instanceof WP_Post ) {
+			$posts[] = $post_before;
+		} elseif ( null !== $post_before ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: 1: $post_before, 2: WP_Post */
+					__( 'The %1$s argument must be a %2$s object or null.' ),
+					'<code>$post_before</code>',
+					'<code>WP_Post</code>'
+				),
+				'7.2.0'
+			);
+		}
+	}
+
+	if ( ! $wp_rewrite->using_permalinks() || ! wp_is_random_content_redirect_enabled() ) {
+		return;
+	}
+
+	foreach ( $posts as $page ) {
+		if (
+			$wp_rewrite->get_random_base() === $page->post_name
+			&& (
+				( 'page' === $page->post_type && 0 === (int) $page->post_parent )
+				|| ( 'post' === $page->post_type && $wp_rewrite->post_permalinks_share_random_base() )
+			)
+		) {
+			flush_rewrite_rules( false );
+			return;
+		}
+	}
 }
 
 /**

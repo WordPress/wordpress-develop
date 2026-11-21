@@ -26,7 +26,7 @@ class Tests_Functions_WpCheckAlternateFileNames extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_check_alternate_file_names() {
+	public static function data_wp_check_alternate_file_names() {
 		return array(
 			'an existing file'                         => array(
 				'filenames' => array( 'canola.jpg' ),

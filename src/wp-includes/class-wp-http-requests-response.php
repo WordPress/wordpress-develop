@@ -155,7 +155,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @return WP_HTTP_Cookie[] List of cookie objects.
+	 * @return WP_Http_Cookie[] List of cookie objects.
 	 */
 	public function get_cookies() {
 		$cookies = array();
@@ -164,10 +164,10 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 				array(
 					'name'      => $cookie->name,
 					'value'     => urldecode( $cookie->value ),
-					'expires'   => isset( $cookie->attributes['expires'] ) ? $cookie->attributes['expires'] : null,
-					'path'      => isset( $cookie->attributes['path'] ) ? $cookie->attributes['path'] : null,
-					'domain'    => isset( $cookie->attributes['domain'] ) ? $cookie->attributes['domain'] : null,
-					'host_only' => isset( $cookie->flags['host-only'] ) ? $cookie->flags['host-only'] : null,
+					'expires'   => $cookie->attributes['expires'] ?? null,
+					'path'      => $cookie->attributes['path'] ?? null,
+					'domain'    => $cookie->attributes['domain'] ?? null,
+					'host_only' => $cookie->flags['host-only'] ?? null,
 				)
 			);
 		}

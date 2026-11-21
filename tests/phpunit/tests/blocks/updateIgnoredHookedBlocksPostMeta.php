@@ -193,4 +193,31 @@ class Tests_Blocks_UpdateIgnoredHookedBlocksPostMeta extends WP_UnitTestCase {
 			'Post content did not match the original markup.'
 		);
 	}
+
+	/**
+	 * @ticket 62639
+	 */
+	public function test_update_ignored_hooked_blocks_postmeta_sets_correct_context_type() {
+		$action = new MockAction();
+		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
+
+		$original_markup    = '<!-- wp:navigation-link {"label":"News","type":"page","id":2,"url":"http://localhost:8888/?page_id=2","kind":"post-type"} /-->';
+		$post               = new stdClass();
+		$post->ID           = self::$navigation_post->ID;
+		$post->post_content = $original_markup;
+		$post->post_type    = 'wp_navigation';
+
+		$post = update_ignored_hooked_blocks_postmeta( $post );
+
+		$args     = $action->get_args();
+		$contexts = array_column( $args, 3 );
+
+		foreach ( $contexts as $context ) {
+			$this->assertInstanceOf(
+				WP_Post::class,
+				$context,
+				'The context passed to the hooked_block_types filter is not a WP_Post instance.'
+			);
+		}
+	}
 }

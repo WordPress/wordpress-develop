@@ -74,11 +74,10 @@ class MagpieRSS {
 		# pass in parser, and a reference to this object
 		# set up handlers
 		#
-		xml_set_object( $this->parser, $this );
 		xml_set_element_handler($this->parser,
-				'feed_start_element', 'feed_end_element' );
+				array( $this, 'feed_start_element' ), array( $this, 'feed_end_element' ) );
 
-		xml_set_character_data_handler( $this->parser, 'feed_cdata' );
+		xml_set_character_data_handler( $this->parser, array( $this, 'feed_cdata' ) );
 
 		$status = xml_parse( $this->parser, $source );
 
@@ -94,7 +93,10 @@ class MagpieRSS {
 			}
 		}
 
-		xml_parser_free( $this->parser );
+		if ( PHP_VERSION_ID < 80000 ) { // xml_parser_free() has no effect as of PHP 8.0.
+			xml_parser_free( $this->parser );
+		}
+
 		unset( $this->parser );
 
 		$this->normalize();
