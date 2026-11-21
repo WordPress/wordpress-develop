@@ -62,7 +62,14 @@ class Tests_Comment_wpUpdateComment extends WP_UnitTestCase {
 			)
 		);
 
+		if ( is_multisite() ) {
+			// In multisite, only Super Admins have the unfiltered_html capability.
+			grant_super_admin( self::$admin_id );
+		}
+
 		wp_set_current_user( self::$admin_id );
+
+		$this->assertTrue( current_user_can( 'unfiltered_html' ) );
 
 		wp_update_comment(
 			array(
