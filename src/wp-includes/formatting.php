@@ -4013,6 +4013,7 @@ function human_time_diff( $from, $to = 0 ) {
 		/* translators: Time difference between two dates, in seconds. %s: Number of seconds. */
 		$since = sprintf( _n( '%s second', '%s seconds', $secs ), $secs );
 	} elseif ( $diff < HOUR_IN_SECONDS ) {
+<<<<<<< HEAD
 		$mins = round( $diff / MINUTE_IN_SECONDS );
 		if ( $mins <= 1 ) {
 			$mins = 1;
@@ -4052,6 +4053,29 @@ function human_time_diff( $from, $to = 0 ) {
 		if ( $years <= 1 ) {
 			$years = 1;
 		}
+=======
+		$mins = (int) round( $diff / MINUTE_IN_SECONDS );
+		/* translators: Time difference between two dates, in minutes. %s: Number of minutes. */
+		$since = sprintf( _n( '%s minute', '%s minutes', $mins ), $mins );
+	} elseif ( $diff < DAY_IN_SECONDS ) {
+		$hours = (int) round( $diff / HOUR_IN_SECONDS );
+		/* translators: Time difference between two dates, in hours. %s: Number of hours. */
+		$since = sprintf( _n( '%s hour', '%s hours', $hours ), $hours );
+	} elseif ( $diff < WEEK_IN_SECONDS ) {
+		$days = (int) round( $diff / DAY_IN_SECONDS );
+		/* translators: Time difference between two dates, in days. %s: Number of days. */
+		$since = sprintf( _n( '%s day', '%s days', $days ), $days );
+	} elseif ( $diff < MONTH_IN_SECONDS ) {
+		$weeks = (int) round( $diff / WEEK_IN_SECONDS );
+		/* translators: Time difference between two dates, in weeks. %s: Number of weeks. */
+		$since = sprintf( _n( '%s week', '%s weeks', $weeks ), $weeks );
+	} elseif ( $diff < YEAR_IN_SECONDS ) {
+		$months = (int) round( $diff / MONTH_IN_SECONDS );
+		/* translators: Time difference between two dates, in months. %s: Number of months. */
+		$since = sprintf( _n( '%s month', '%s months', $months ), $months );
+	} else {
+		$years = (int) round( $diff / YEAR_IN_SECONDS );
+>>>>>>> 34578fa07e (Code Quality: Remove redundant checks in `human_time_diff()`.)
 		/* translators: Time difference between two dates, in years. %s: Number of years. */
 		$since = sprintf( _n( '%s year', '%s years', $years ), $years );
 	}
