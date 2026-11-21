@@ -568,10 +568,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 		list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
 
-		if ( $crop ) {
-			return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
-		}
-
 		$this->set_quality(
 			null,
 			array(
@@ -579,6 +575,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				'height' => $dst_h,
 			)
 		);
+
+		if ( $crop ) {
+			return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
+		}
 
 		// Execute the resize.
 		$thumb_result = $this->thumbnail_image( $dst_w, $dst_h );
