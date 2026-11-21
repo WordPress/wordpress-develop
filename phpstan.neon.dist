@@ -42,6 +42,12 @@ includes:
 	- tests/phpstan/baselines/function.alreadyNarrowedType.neon
 	- tests/phpstan/baselines/function.impossibleType.neon
 	- tests/phpstan/baselines/function.resultUnused.neon
+<<<<<<< HEAD
+=======
+	- tests/phpstan/baselines/greater.alwaysTrue.neon
+	- tests/phpstan/baselines/greaterOrEqual.alwaysFalse.neon
+	- tests/phpstan/baselines/greaterOrEqual.alwaysTrue.neon
+>>>>>>> ec8bf8858c (Build/Test Tools: Update PHPStan to 2.3.0.)
 	- tests/phpstan/baselines/identical.alwaysFalse.neon
 	- tests/phpstan/baselines/identical.alwaysTrue.neon
 	- tests/phpstan/baselines/if.alwaysFalse.neon
