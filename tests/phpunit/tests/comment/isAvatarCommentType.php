@@ -5,15 +5,10 @@
  * @package WordPress\UnitTests
  *
  * @since 5.1.0
- */
-
-/**
- * Tests_Comment_IsAvatarCommentType class.
  *
  * @group comment
- * @covers ::is_avatar_comment_type
  *
- * @since 5.1.0
+ * @covers ::is_avatar_comment_type
  */
 class Tests_Comment_IsAvatarCommentType extends WP_UnitTestCase {
 	/**
@@ -39,12 +34,15 @@ class Tests_Comment_IsAvatarCommentType extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_is_avatar_comment_type() {
+	public static function data_is_avatar_comment_type() {
 		return array(
 			array( null, false ),
 			array( '', false ),
 			array( 'non-existing-comment-type', false ),
 			array( 'comment', true ),
+			// Internal comment types are authored by a user, so they get an avatar.
+			array( 'note', true ),
+			array( 'reaction', true ),
 		);
 	}
 
@@ -77,5 +75,4 @@ class Tests_Comment_IsAvatarCommentType extends WP_UnitTestCase {
 		$types[] = 'review';
 		return $types;
 	}
-
 }

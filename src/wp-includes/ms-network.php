@@ -57,8 +57,14 @@ function get_network( $network = null ) {
  *
  * @param string|array $args Optional. Array or string of arguments. See WP_Network_Query::parse_query()
  *                           for information on accepted arguments. Default empty array.
- * @return array|int List of WP_Network objects, a list of network IDs when 'fields' is set to 'ids',
- *                   or the number of networks when 'count' is passed as a query var.
+ * @return WP_Network[]|int[]|int List of WP_Network objects, a list of network IDs when 'fields' is set
+ *                                to 'ids', or the number of networks when 'count' is passed as a query var.
+ *
+ * @phpstan-return (
+ *     $args is array{ count: true, ... } ? int : (
+ *         $args is array{ fields: 'ids', ... } ? int[] : array<int, WP_Network>
+ *     )
+ * )
  */
 function get_networks( $args = array() ) {
 	$query = new WP_Network_Query();
@@ -82,9 +88,10 @@ function clean_network_cache( $ids ) {
 		return;
 	}
 
-	foreach ( (array) $ids as $id ) {
-		wp_cache_delete( $id, 'networks' );
+	$network_ids = (array) $ids;
+	wp_cache_delete_multiple( $network_ids, 'networks' );
 
+	foreach ( $network_ids as $id ) {
 		/**
 		 * Fires immediately after a network has been removed from the object cache.
 		 *
@@ -95,7 +102,7 @@ function clean_network_cache( $ids ) {
 		do_action( 'clean_network_cache', $id );
 	}
 
-	wp_cache_set( 'last_changed', microtime(), 'networks' );
+	wp_cache_set_last_changed( 'networks' );
 }
 
 /**
@@ -110,16 +117,18 @@ function clean_network_cache( $ids ) {
  * @param array $networks Array of network row objects.
  */
 function update_network_cache( $networks ) {
+	$data = array();
 	foreach ( (array) $networks as $network ) {
-		wp_cache_add( $network->id, $network, 'networks' );
+		$data[ $network->id ] = $network;
 	}
+	wp_cache_add_multiple( $data, 'networks' );
 }
 
 /**
  * Adds any networks from the given IDs to the cache that do not already exist in cache.
  *
  * @since 4.6.0
- * @access private
+ * @since 6.1.0 This function is no longer marked as "private".
  *
  * @see update_network_cache()
  * @global wpdb $wpdb WordPress database abstraction object.

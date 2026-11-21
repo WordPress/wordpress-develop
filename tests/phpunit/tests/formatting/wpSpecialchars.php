@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::_wp_specialchars
  */
 class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 	public function test_wp_specialchars_basics() {
@@ -14,6 +16,8 @@ class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 
 	public function test_allowed_entity_names() {
 		global $allowedentitynames;
+
+		$this->assertNotEmpty( $allowedentitynames );
 
 		// Allowed entities should be unchanged.
 		foreach ( $allowedentitynames as $ent ) {
@@ -54,7 +58,7 @@ class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 		return $this->assertSame( $output, _wp_specialchars( $input, ENT_NOQUOTES, false, true ) );
 	}
 
-	public function data_double_encoding() {
+	public static function data_double_encoding() {
 		return array(
 			array(
 				'This & that, this &amp; that, &#8212; &quot; &QUOT; &Uacute; &nbsp; &#34; &#034; &#0034; &#x00022; &#x22; &dollar; &times;',
@@ -81,7 +85,7 @@ class Tests_Formatting_wpSpecialchars extends WP_UnitTestCase {
 		return $this->assertSame( $output, _wp_specialchars( $input, ENT_NOQUOTES, false, false ) );
 	}
 
-	public function data_no_double_encoding() {
+	public static function data_no_double_encoding() {
 		return array(
 			array(
 				'This & that, this &amp; that, &#8212; &quot; &QUOT; &Uacute; &nbsp; &#34; &#034; &#0034; &#x00022; &#x22; &dollar; &times;',

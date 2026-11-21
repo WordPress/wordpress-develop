@@ -3,6 +3,8 @@
 /**
  * @group formatting
  * @ticket 22300
+ *
+ * @covers ::map_deep
  */
 class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 
@@ -47,7 +49,7 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 	}
 
 	public function test_map_deep_should_map_each_object_element_of_an_array() {
-		$this->assertEquals(
+		$this->assertEqualSets(
 			array(
 				'var0' => 'ababa',
 				'var1' => (object) array(
@@ -75,6 +77,7 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 	}
 
 	public function test_map_deep_should_map_each_property_of_an_object() {
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			(object) array(
 				'var0' => 'ababa',
@@ -91,6 +94,7 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 	}
 
 	public function test_map_deep_should_map_each_array_property_of_an_object() {
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			(object) array(
 				'var0' => 'ababa',
@@ -111,6 +115,7 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 	}
 
 	public function test_map_deep_should_map_each_object_property_of_an_object() {
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			(object) array(
 				'var0' => 'ababa',
@@ -139,6 +144,7 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 			'var0' => &$object_a->var0,
 			'var1' => 'x',
 		);
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			(object) array(
 				'var0' => 'ababa',
@@ -169,5 +175,4 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 	public function append_baba( $value ) {
 		return $value . 'baba';
 	}
-
 }

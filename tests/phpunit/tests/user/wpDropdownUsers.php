@@ -5,7 +5,7 @@
  *
  * @group user
  */
-class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
+class Tests_User_wpDropdownUsers extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31251
@@ -13,7 +13,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	public function test_default_value_of_show_should_be_display_name() {
 
 		// Create a user with a different display_name.
-		$u = $this->factory->user->create(
+		$u = self::factory()->user->create(
 			array(
 				'user_login'   => 'foo',
 				'display_name' => 'Foo Person',
@@ -37,7 +37,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	public function test_show_should_display_display_name_show_is_specified_as_empty() {
 
 		// Create a user with a different display_name.
-		$u = $this->factory->user->create(
+		$u = self::factory()->user->create(
 			array(
 				'user_login'   => 'foo',
 				'display_name' => 'Foo Person',
@@ -63,7 +63,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	public function test_show_should_display_user_property_when_the_value_of_show_is_a_valid_user_property() {
 
 		// Create a user with a different display_name.
-		$u = $this->factory->user->create(
+		$u = self::factory()->user->create(
 			array(
 				'user_login'   => 'foo',
 				'display_name' => 'Foo Person',
@@ -89,7 +89,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	public function test_show_display_name_with_login() {
 
 		// Create a user with a different display_name.
-		$u = $this->factory->user->create(
+		$u = self::factory()->user->create(
 			array(
 				'user_login'   => 'foo',
 				'display_name' => 'Foo Person',
@@ -200,5 +200,44 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 
 		$this->assertStringNotContainsString( $u1->user_login, $found );
 		$this->assertStringContainsString( $u2->user_login, $found );
+	}
+
+	/**
+	 * @ticket 66012
+	 * @group ms-required
+	 */
+	public function test_multisite_users_in_blog_id() {
+		$blog_id = self::factory()->blog->create();
+		$users   = self::factory()->user->create_many( 2 );
+
+		add_user_to_blog( $blog_id, $users[0], 'author' );
+		add_user_to_blog( $blog_id, $users[1], 'author' );
+
+		// The main site has no authors, so the dropdown should be empty.
+		$found_main_site = wp_dropdown_users(
+			array(
+				'echo'    => false,
+				'role'    => 'author',
+				'show'    => 'user_login',
+				'blog_id' => get_current_blog_id(),
+			)
+		);
+
+		$this->assertSame( '', $found_main_site );
+
+		$found_sub_site = wp_dropdown_users(
+			array(
+				'echo'    => false,
+				'role'    => 'author',
+				'show'    => 'user_login',
+				'blog_id' => $blog_id,
+			)
+		);
+
+		$user1 = get_userdata( $users[0] );
+		$user2 = get_userdata( $users[1] );
+
+		$this->assertStringContainsString( $user1->user_login, $found_sub_site );
+		$this->assertStringContainsString( $user2->user_login, $found_sub_site );
 	}
 }

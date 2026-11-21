@@ -211,6 +211,19 @@ define('EBML_ID_CLUSTERREFERENCEVIRTUAL',         0x7D); //             [FD] -- 
 
 
 /**
+ * Matroska constants
+ */
+define('MATROSKA_DEFAULT_TIMECODESCALE', 1000000);
+
+/**
+ * Matroska scan modes are internal state flags for how much of the file we are scanning
+ */
+define('MATROSKA_SCAN_HEADER', 0);
+define('MATROSKA_SCAN_WHOLE_FILE', 1);
+define('MATROSKA_SCAN_FIRST_CLUSTER', 2);
+define('MATROSKA_SCAN_LAST_CLUSTER', 3);
+
+/**
 * @tutorial http://www.matroska.org/technical/specs/index.html
 *
 * @todo Rewrite EBML parser to reduce it's size and honor default element values
@@ -224,14 +237,14 @@ class getid3_matroska extends getid3_handler
 	 *
 	 * @var bool
 	 */
-	public static $hide_clusters    = true;
+	public $hide_clusters    = true;
 
 	/**
 	 * True to parse the whole file, not only header [default: FALSE].
 	 *
 	 * @var bool
 	 */
-	public static $parse_whole_file = false;
+	public $parse_whole_file = false;
 
 	/*
 	 * Private parser settings/placeholders.
@@ -241,6 +254,7 @@ class getid3_matroska extends getid3_handler
 	private $EBMLbuffer_length = 0;
 	private $current_offset    = 0;
 	private $unuseful_elements = array(EBML_ID_CRC32, EBML_ID_VOID);
+	private $scan_mode = MATROSKA_SCAN_HEADER;
 
 	/**
 	 * @return bool
@@ -248,6 +262,7 @@ class getid3_matroska extends getid3_handler
 	public function Analyze()
 	{
 		$info = &$this->getid3->info;
+		$this->scan_mode = $this->parse_whole_file ? MATROSKA_SCAN_WHOLE_FILE : MATROSKA_SCAN_HEADER;
 
 		// parse container
 		try {
@@ -256,14 +271,25 @@ class getid3_matroska extends getid3_handler
 			$this->error('EBML parser: '.$e->getMessage());
 		}
 
-		// calculate playtime
-		if (isset($info['matroska']['info']) && is_array($info['matroska']['info'])) {
-			foreach ($info['matroska']['info'] as $key => $infoarray) {
-				if (isset($infoarray['Duration'])) {
-					// TimecodeScale is how many nanoseconds each Duration unit is
-					$info['playtime_seconds'] = $infoarray['Duration'] * ((isset($infoarray['TimecodeScale']) ? $infoarray['TimecodeScale'] : 1000000) / 1000000000);
-					break;
-				}
+		$this->playtimeFromMetadata($info);
+
+		// If there was no duration metadata, this might be an incomplete file or a streaming file
+		// We need Cluster information so we can use their timecodes to estimate playtime.
+		if (!isset($info['playtime_seconds']) && !$this->parse_whole_file) {
+			// Scan the start and end of file for Clusters to estimate duration
+			$this->scanStartEndForClusters($info);
+		}
+
+		if (isset($info['matroska']['cluster']) && is_array($info['matroska']['cluster'])) {
+			if (!isset($info['playtime_seconds']) && !empty($info['matroska']['cluster'])) {
+				// estimate playtime using clusters if not yet known
+				$this->calculatePlaytimeFromClusters($info);
+			}
+
+			// Remove cluster information from output if hide_clusters is true
+			// These could have been set during scanStartEndForClusters()
+			if ($this->hide_clusters) {
+				unset($info['matroska']['cluster']);
 			}
 		}
 
@@ -292,12 +318,12 @@ class getid3_matroska extends getid3_handler
 						$track_info['display_x']    = (isset($trackarray['DisplayWidth']) ? $trackarray['DisplayWidth'] : $trackarray['PixelWidth']);
 						$track_info['display_y']    = (isset($trackarray['DisplayHeight']) ? $trackarray['DisplayHeight'] : $trackarray['PixelHeight']);
 
-						if (isset($trackarray['PixelCropBottom'])) { $track_info['crop_bottom'] = $trackarray['PixelCropBottom']; }
-						if (isset($trackarray['PixelCropTop']))    { $track_info['crop_top']    = $trackarray['PixelCropTop']; }
-						if (isset($trackarray['PixelCropLeft']))   { $track_info['crop_left']   = $trackarray['PixelCropLeft']; }
-						if (isset($trackarray['PixelCropRight']))  { $track_info['crop_right']  = $trackarray['PixelCropRight']; }
-						if (isset($trackarray['DefaultDuration'])) { $track_info['frame_rate']  = round(1000000000 / $trackarray['DefaultDuration'], 3); }
-						if (isset($trackarray['CodecName']))       { $track_info['codec']       = $trackarray['CodecName']; }
+						if (isset($trackarray['PixelCropBottom']))  { $track_info['crop_bottom'] = $trackarray['PixelCropBottom']; }
+						if (isset($trackarray['PixelCropTop']))     { $track_info['crop_top']    = $trackarray['PixelCropTop']; }
+						if (isset($trackarray['PixelCropLeft']))    { $track_info['crop_left']   = $trackarray['PixelCropLeft']; }
+						if (isset($trackarray['PixelCropRight']))   { $track_info['crop_right']  = $trackarray['PixelCropRight']; }
+						if (!empty($trackarray['DefaultDuration'])) { $track_info['frame_rate']  = round(1000000000 / $trackarray['DefaultDuration'], 3); }
+						if (isset($trackarray['CodecName']))        { $track_info['codec']       = $trackarray['CodecName']; }
 
 						switch ($trackarray['CodecID']) {
 							case 'V_MS/VFW/FOURCC':
@@ -332,7 +358,11 @@ class getid3_matroska extends getid3_handler
 								break;*/
 						}
 
-						$info['video']['streams'][$trackarray['TrackUID']] = $track_info;
+						if (isset($trackarray['TrackUID'])) {
+							$info['video']['streams'][$trackarray['TrackUID']] = $track_info;
+						} else {
+							$this->warning('Missing mandatory TrackUID for video track');
+						}
 						break;
 
 					case 2: // Audio
@@ -480,8 +510,11 @@ class getid3_matroska extends getid3_handler
 								$this->warning('Unhandled audio type "'.(isset($trackarray['CodecID']) ? $trackarray['CodecID'] : '').'"');
 								break;
 						}
-
-						$info['audio']['streams'][$trackarray['TrackUID']] = $track_info;
+						if (isset($trackarray['TrackUID'])) {
+							$info['audio']['streams'][$trackarray['TrackUID']] = $track_info;
+						} else {
+							$this->warning('Missing mandatory TrackUID for audio track');
+						}
 						break;
 				}
 			}
@@ -586,7 +619,7 @@ class getid3_matroska extends getid3_handler
 					$info['matroska']['segment'][0]['length'] = $top_element['length'];
 
 					while ($this->getEBMLelement($element_data, $top_element['end'])) {
-						if ($element_data['id'] != EBML_ID_CLUSTER || !self::$hide_clusters) { // collect clusters only if required
+						if ($element_data['id'] != EBML_ID_CLUSTER || !$this->hide_clusters) { // collect clusters only if required
 							$info['matroska']['segments'][] = $element_data;
 						}
 						switch ($element_data['id']) {
@@ -618,7 +651,7 @@ class getid3_matroska extends getid3_handler
 												$this->warning('seek_entry[target_id] unexpectedly not set at '.$seek_entry['offset']);
 												break;
 											}
-											if (($seek_entry['target_id'] != EBML_ID_CLUSTER) || !self::$hide_clusters) { // collect clusters only if required
+											if (($seek_entry['target_id'] != EBML_ID_CLUSTER) || !$this->hide_clusters) { // collect clusters only if required
 												$info['matroska']['seek'][] = $seek_entry;
 											}
 											break;
@@ -905,7 +938,7 @@ class getid3_matroska extends getid3_handler
 								break;
 
 							case EBML_ID_CUES: // A top-level element to speed seeking access. All entries are local to the segment. Should be mandatory for non "live" streams.
-								if (self::$hide_clusters) { // do not parse cues if hide clusters is "ON" till they point to clusters anyway
+								if ($this->hide_clusters) { // do not parse cues if hide clusters is "ON" till they point to clusters anyway
 									$this->current_offset = $element_data['end'];
 									break;
 								}
@@ -1246,12 +1279,17 @@ class getid3_matroska extends getid3_handler
 									}
 									$this->current_offset = $subelement['end'];
 								}
-								if (!self::$hide_clusters) {
+
+								if (!$this->hide_clusters || $this->playtimeFromMetadata($info) === false) {
 									$info['matroska']['cluster'][] = $cluster_entry;
+								}
+								if ($this->scan_mode === MATROSKA_SCAN_FIRST_CLUSTER) {
+									// Stop parsing after finding first cluster
+									return;
 								}
 
 								// check to see if all the data we need exists already, if so, break out of the loop
-								if (!self::$parse_whole_file) {
+								if ($this->scan_mode === MATROSKA_SCAN_HEADER) {
 									if (isset($info['matroska']['info']) && is_array($info['matroska']['info'])) {
 										if (isset($info['matroska']['tracks']['tracks']) && is_array($info['matroska']['tracks']['tracks'])) {
 											if (count($info['matroska']['track_data_offsets']) == count($info['matroska']['tracks']['tracks'])) {
@@ -1919,4 +1957,116 @@ class getid3_matroska extends getid3_handler
 		return $info;
 	}
 
+	/**
+	 * @param array $info
+	 *
+	 * @return float|bool Duration when present in metadata or false
+	 */
+	private function playtimeFromMetadata(&$info) {
+		if (isset($info['matroska']['info']) && is_array($info['matroska']['info'])) {
+			foreach ($info['matroska']['info'] as $infoarray) {
+				if (isset($infoarray['Duration'])) {
+					// TimecodeScale is how many nanoseconds each Duration unit is
+					$info['playtime_seconds'] = $infoarray['Duration'] * ((isset($infoarray['TimecodeScale']) ? $infoarray['TimecodeScale'] : MATROSKA_DEFAULT_TIMECODESCALE) / 1000000000);
+					return $info['playtime_seconds'];
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * @param int $offset New starting offset for the buffer
+	 *
+	 * @return void
+	 */
+	private function resetParserBuffer($offset) {
+		$this->current_offset = $offset;
+		$this->EBMLbuffer = '';
+		$this->EBMLbuffer_offset = 0;
+		$this->EBMLbuffer_length = 0;
+	}
+
+	/**
+	 * Scan start and end of file for cluster information when Duration is missing
+	 * Only use this if no Duration was found in the Info element and we are not in parse_whole_file mode
+	 *
+	 * @param array $info
+	 *
+	 * @return void
+	 */
+	private function scanStartEndForClusters(&$info) {
+		// Scan beginning of file for first cluster
+		$this->resetParserBuffer($info['avdataoffset']);
+		$this->scan_mode = MATROSKA_SCAN_FIRST_CLUSTER;
+
+		try {
+			$this->parseEBML($info);
+		} catch (Exception $e) {
+			$this->error('EBML parser (start of file): '.$e->getMessage());
+		}
+
+		// Scan end of file for last cluster
+		if (is_array($info['matroska']['cluster']) && !empty($info['matroska']['cluster'])) {
+			// Scan maximum 1MB window before EOF
+			$this->resetParserBuffer(max(0, $info['avdataend'] - (1024 * 1024)));
+			$this->scan_mode = MATROSKA_SCAN_LAST_CLUSTER;
+
+			try {
+				$this->parseEBML($info);
+			} catch (Exception $e) {
+				$this->error('EBML parser (end of file): '.$e->getMessage());
+			}
+		}
+
+		// Reset to header parsing mode (this method is only called during header-only parsing)
+		$this->scan_mode = MATROSKA_SCAN_HEADER;
+	}
+
+	/**
+	 * Fetch TimecodeScale from Info element
+	 *
+	 * @param array $info
+	 *
+	 * @return int TimecodeScale value
+	 */
+	private function getTimecodeScale(&$info) {
+		$timecodeScale = MATROSKA_DEFAULT_TIMECODESCALE;
+		if (isset($info['matroska']['info']) && is_array($info['matroska']['info'])) {
+			foreach ($info['matroska']['info'] as $infoarray) {
+				if (isset($infoarray['TimecodeScale'])) {
+					$timecodeScale = $infoarray['TimecodeScale'];
+					break;
+				}
+			}
+		}
+		return $timecodeScale;
+	}
+
+	/**
+	 * Calculate duration from scanned cluster timecodes
+	 *
+	 * @param array $info
+	 *
+	 * @return void
+	 */
+	private function calculatePlaytimeFromClusters(&$info) {
+		$minTimecode = null;
+		$maxTimecode = null;
+		if (isset($info['matroska']['cluster']) && is_array($info['matroska']['cluster'])) {
+			foreach ($info['matroska']['cluster'] as $cluster) {
+				if (isset($cluster['ClusterTimecode'])) {
+					if ($minTimecode === null || $cluster['ClusterTimecode'] < $minTimecode) {
+						$minTimecode = $cluster['ClusterTimecode'];
+					}
+					if ($maxTimecode === null || $cluster['ClusterTimecode'] > $maxTimecode) {
+						$maxTimecode = $cluster['ClusterTimecode'];
+					}
+				}
+			}
+		}
+		if ($maxTimecode !== null && $minTimecode !== null && $maxTimecode > $minTimecode) {
+			$info['playtime_seconds'] = ($maxTimecode - $minTimecode) * ($this->getTimecodeScale($info) / 1000000000);
+		}
+	}
 }

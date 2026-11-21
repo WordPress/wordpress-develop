@@ -9,36 +9,100 @@
 
 if ( ! class_exists( 'Translation_Entry', false ) ) :
 	/**
-	 * Translation_Entry class encapsulates a translatable string
+	 * Translation_Entry class encapsulates a translatable string.
+	 *
+	 * @since 2.8.0
 	 */
+	#[AllowDynamicProperties]
 	class Translation_Entry {
 
 		/**
-		 * Whether the entry contains a string and its plural form, default is false
+		 * Whether the entry contains a string and its plural form, default is false.
 		 *
-		 * @var boolean
+		 * @var bool
 		 */
 		public $is_plural = false;
 
-		public $context             = null;
-		public $singular            = null;
-		public $plural              = null;
-		public $translations        = array();
-		public $translator_comments = '';
-		public $extracted_comments  = '';
-		public $references          = array();
-		public $flags               = array();
+		/**
+		 * The string to translate.
+		 *
+		 * @var string|null
+		 */
+		public $singular = null;
 
 		/**
-		 * @param array $args associative array, support following keys:
-		 *  - singular (string) -- the string to translate, if omitted and empty entry will be created
-		 *  - plural (string) -- the plural form of the string, setting this will set {@link $is_plural} to true
-		 *  - translations (array) -- translations of the string and possibly -- its plural forms
-		 *  - context (string) -- a string differentiating two equal strings used in different contexts
-		 *  - translator_comments (string) -- comments left by translators
-		 *  - extracted_comments (string) -- comments left by developers
-		 *  - references (array) -- places in the code this strings is used, in relative_to_root_path/file.php:linenum form
-		 *  - flags (array) -- flags like php-format
+		 * The plural form of the string.
+		 *
+		 * @var string|null
+		 */
+		public $plural = null;
+
+		/**
+		 * Translations of the string and possibly its plural forms.
+		 *
+		 * Plural forms which have not been filled in are null.
+		 *
+		 * @var (string|null)[]
+		 */
+		public $translations = array();
+
+		/**
+		 * Context of the string, used to differentiate two equal strings used in different contexts.
+		 *
+		 * @var string|null
+		 */
+		public $context = null;
+
+		/**
+		 * Comments left by translators.
+		 *
+		 * @var string
+		 */
+		public $translator_comments = '';
+
+		/**
+		 * Comments left by developers.
+		 *
+		 * @var string
+		 */
+		public $extracted_comments = '';
+
+		/**
+		 * Places in the code this string is used, in relative_to_root_path/file.php:linenum form.
+		 *
+		 * @var string[]
+		 */
+		public $references = array();
+
+		/**
+		 * Flags like php-format.
+		 *
+		 * @var string[]
+		 */
+		public $flags = array();
+
+		/**
+		 * Constructor.
+		 *
+		 * @since 2.8.0
+		 *
+		 * @param array $args {
+		 *     Optional. Array of arguments. Default empty array.
+		 *
+		 *     @type string          $singular            The string to translate, if omitted an
+		 *                                                empty entry will be created.
+		 *     @type string          $plural              The plural form of the string, setting
+		 *                                                this will set `$is_plural` to true.
+		 *     @type (string|null)[] $translations        Translations of the string and possibly
+		 *                                                its plural forms.
+		 *     @type string          $context             A string differentiating two equal strings
+		 *                                                used in different contexts.
+		 *     @type string          $translator_comments Comments left by translators.
+		 *     @type string          $extracted_comments  Comments left by developers.
+		 *     @type string[]        $references          Places in the code this string is used, in
+		 *                                                relative_to_root_path/file.php:linenum form.
+		 *     @type string[]        $flags               Flags like php-format.
+		 * }
 		 */
 		public function __construct( $args = array() ) {
 			// If no singular -- empty object.
@@ -66,9 +130,12 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		/**
 		 * PHP4 constructor.
 		 *
+		 * @since 2.8.0
 		 * @deprecated 5.4.0 Use __construct() instead.
 		 *
 		 * @see Translation_Entry::__construct()
+		 *
+		 * @param array $args Optional. Array of arguments. Default empty array.
 		 */
 		public function Translation_Entry( $args = array() ) {
 			_deprecated_constructor( self::class, '5.4.0', static::class );
@@ -76,12 +143,14 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		}
 
 		/**
-		 * Generates a unique key for this entry
+		 * Generates a unique key for this entry.
 		 *
-		 * @return string|bool the key or false if the entry is empty
+		 * @since 2.8.0
+		 *
+		 * @return string|false The key or false if the entry is null.
 		 */
 		public function key() {
-			if ( null === $this->singular || '' === $this->singular ) {
+			if ( null === $this->singular ) {
 				return false;
 			}
 
@@ -94,15 +163,18 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		}
 
 		/**
-		 * @param object $other
+		 * Merges another translation entry with the current one.
+		 *
+		 * @since 2.8.0
+		 *
+		 * @param Translation_Entry $other Other translation entry.
 		 */
 		public function merge_with( &$other ) {
 			$this->flags      = array_unique( array_merge( $this->flags, $other->flags ) );
 			$this->references = array_unique( array_merge( $this->references, $other->references ) );
-			if ( $this->extracted_comments != $other->extracted_comments ) {
+			if ( $this->extracted_comments !== $other->extracted_comments ) {
 				$this->extracted_comments .= $other->extracted_comments;
 			}
-
 		}
 	}
 endif;

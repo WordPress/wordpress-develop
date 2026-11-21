@@ -9,10 +9,11 @@
 /**
  * List utility.
  *
- * Utility class to handle operations on an array of objects.
+ * Utility class to handle operations on an array of objects or arrays.
  *
  * @since 4.7.0
  */
+#[AllowDynamicProperties]
 class WP_List_Util {
 	/**
 	 * The input array.
@@ -34,7 +35,7 @@ class WP_List_Util {
 	 * Temporary arguments for sorting.
 	 *
 	 * @since 4.7.0
-	 * @var array
+	 * @var string[]
 	 */
 	private $orderby = array();
 
@@ -81,20 +82,22 @@ class WP_List_Util {
 	 * Key represents property name, and value represents property value.
 	 *
 	 * If an object has more properties than those specified in arguments,
-	 * that will not disqualify it. When using the 'AND' operator,
+	 * that will not disqualify it. When using the 'and' operator,
 	 * any missing properties will disqualify it.
 	 *
 	 * @since 4.7.0
 	 *
 	 * @param array  $args     Optional. An array of key => value arguments to match
 	 *                         against each object. Default empty array.
-	 * @param string $operator Optional. The logical operation to perform. 'AND' means
-	 *                         all elements from the array must match. 'OR' means only
-	 *                         one element needs to match. 'NOT' means no elements may
-	 *                         match. Default 'AND'.
+	 * @param string $operator Optional. The logical operation to perform. 'and' means
+	 *                         all elements from the array must match. 'or' means only
+	 *                         one element needs to match. 'not' means no elements may
+	 *                         match. The value is case-insensitive. Default 'and'.
 	 * @return array Array of found values.
+	 *
+	 * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
 	 */
-	public function filter( $args = array(), $operator = 'AND' ) {
+	public function filter( $args = array(), $operator = 'and' ) {
 		if ( empty( $args ) ) {
 			return $this->output;
 		}
@@ -116,12 +119,12 @@ class WP_List_Util {
 				if ( is_array( $obj ) ) {
 					// Treat object as an array.
 					if ( array_key_exists( $m_key, $obj ) && ( $m_value == $obj[ $m_key ] ) ) {
-						$matched++;
+						++$matched;
 					}
 				} elseif ( is_object( $obj ) ) {
 					// Treat object as an object.
 					if ( isset( $obj->{$m_key} ) && ( $m_value == $obj->{$m_key} ) ) {
-						$matched++;
+						++$matched;
 					}
 				}
 			}
@@ -140,15 +143,15 @@ class WP_List_Util {
 	}
 
 	/**
-	 * Plucks a certain field out of each object in the list.
+	 * Plucks a certain field out of each element in the input array.
 	 *
 	 * This has the same functionality and prototype of
 	 * array_column() (PHP 5.5) but also supports objects.
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param int|string $field     Field from the object to place instead of the entire object
-	 * @param int|string $index_key Optional. Field from the object to use as keys for the new array.
+	 * @param int|string $field     Field to fetch from the object or array.
+	 * @param int|string $index_key Optional. Field from the element to use as keys for the new array.
 	 *                              Default null.
 	 * @return array Array of found values. If `$index_key` is set, an array of found values with keys
 	 *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
@@ -165,8 +168,14 @@ class WP_List_Util {
 			foreach ( $this->output as $key => $value ) {
 				if ( is_object( $value ) ) {
 					$newlist[ $key ] = $value->$field;
-				} else {
+				} elseif ( is_array( $value ) ) {
 					$newlist[ $key ] = $value[ $field ];
+				} else {
+					_doing_it_wrong(
+						__METHOD__,
+						__( 'Values for the input array must be either objects or arrays.' ),
+						'6.2.0'
+					);
 				}
 			}
 
@@ -186,12 +195,18 @@ class WP_List_Util {
 				} else {
 					$newlist[] = $value->$field;
 				}
-			} else {
+			} elseif ( is_array( $value ) ) {
 				if ( isset( $value[ $index_key ] ) ) {
 					$newlist[ $value[ $index_key ] ] = $value[ $field ];
 				} else {
 					$newlist[] = $value[ $field ];
 				}
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Values for the input array must be either objects or arrays.' ),
+					'6.2.0'
+				);
 			}
 		}
 
@@ -201,14 +216,15 @@ class WP_List_Util {
 	}
 
 	/**
-	 * Sorts the list, based on one or more orderby arguments.
+	 * Sorts the input array based on one or more orderby arguments.
 	 *
 	 * @since 4.7.0
 	 *
 	 * @param string|array $orderby       Optional. Either the field name to order by or an array
-	 *                                    of multiple orderby fields as $orderby => $order.
-	 * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if $orderby
-	 *                                    is a string.
+	 *                                    of multiple orderby fields as `$orderby => $order`.
+	 *                                    Default empty array.
+	 * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if `$orderby`
+	 *                                    is a string. Default 'ASC'.
 	 * @param bool         $preserve_keys Optional. Whether to preserve keys. Default false.
 	 * @return array The sorted array.
 	 */
@@ -239,7 +255,7 @@ class WP_List_Util {
 	}
 
 	/**
-	 * Callback to sort the list by specific fields.
+	 * Callback to sort an array by specific fields.
 	 *
 	 * @since 4.7.0
 	 *

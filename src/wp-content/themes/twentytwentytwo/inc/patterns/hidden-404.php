@@ -1,7 +1,12 @@
 <?php
 /**
  * 404 content.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Two
+ * @since Twenty Twenty-Two 1.0
  */
+
 return array(
 	'title'    => __( '404 content', 'twentytwentytwo' ),
 	'inserter' => false,
@@ -11,8 +16,5 @@ return array(
 					<!-- wp:paragraph {"align":"center"} -->
 					<p class="has-text-align-center">' . esc_html__( 'This page could not be found. Maybe try a search?', 'twentytwentytwo' ) . '</p>
 					<!-- /wp:paragraph -->
-					<!-- wp:search {"label":"Search","showLabel":false,"width":50,"widthUnit":"%","buttonText":"Search","buttonUseIcon":true,"align":"center"} /-->
-					<!-- wp:spacer {"height":128} -->
-					<div style="height:128px" aria-hidden="true" class="wp-block-spacer"></div>
-					<!-- /wp:spacer -->',
+					<!-- wp:search {"label":"' . esc_html_x( 'Search', 'label', 'twentytwentytwo' ) . '","showLabel":false,"width":50,"widthUnit":"%","buttonText":"' . esc_html__( 'Search', 'twentytwentytwo' ) . '","buttonUseIcon":true,"align":"center"} /-->',
 );

@@ -19,7 +19,7 @@ class Tests_Query_GeneratePostdata extends WP_UnitTestCase {
 	 * @ticket 42814
 	 */
 	public function test_setup_by_fake_post() {
-		$fake     = new stdClass;
+		$fake     = new stdClass();
 		$fake->ID = 98765;
 		$data     = generate_postdata( $fake->ID );
 
@@ -53,6 +53,7 @@ class Tests_Query_GeneratePostdata extends WP_UnitTestCase {
 		$data = generate_postdata( $p );
 
 		$this->assertNotEmpty( $data['authordata'] );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $u, $data['authordata'] );
 	}
 

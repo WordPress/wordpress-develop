@@ -59,7 +59,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 			'operator'         => 'IN',
 		);
 
-		$this->assertEquals( $expected, $tq->queries[0] );
+		$this->assertSameSetsWithIndex( $expected, $tq->queries[0] );
 	}
 
 	public function test_construct_fill_missing_query_params_merge_with_passed_values() {
@@ -82,7 +82,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 			'foo'              => 'bar',
 		);
 
-		$this->assertEquals( $expected, $tq->queries[0] );
+		$this->assertSameSetsWithIndex( $expected, $tq->queries[0] );
 	}
 
 	public function test_construct_cast_terms_to_array() {
@@ -262,7 +262,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		);
 		$tq->transform_query( $tq->queries[0], 'term_taxonomy_id' );
 
-		$this->assertEquals( $tt_ids, $tq->queries[0]['terms'] );
+		$this->assertEqualSets( $tt_ids, $tq->queries[0]['terms'] );
 		$this->assertSame( 'term_taxonomy_id', $tq->queries[0]['field'] );
 	}
 
@@ -335,6 +335,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 18105
+	 * @covers WP_Tax_Query::get_sql
 	 */
 	public function test_get_sql_relation_and_operator_in() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -381,11 +382,17 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 
 		$this->assertSame( 3, substr_count( $sql['join'], 'JOIN' ) );
 
+		// Checking number of occurrences of AND while skipping the one at the beginning.
+		$this->assertSame( 2, substr_count( substr( $sql['where'], 5 ), 'AND' ), 'SQL query does not contain expected number conditions joined by operator AND.' );
+
+		$this->assertStringNotContainsString( 'OR', $sql['where'], 'SQL query contains conditions joined by operator OR.' );
+
 		_unregister_taxonomy( 'wptests_tax' );
 	}
 
 	/**
 	 * @ticket 18105
+	 * @covers WP_Tax_Query::get_sql
 	 */
 	public function test_get_sql_nested_relation_or_operator_in() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -434,6 +441,8 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
 
 		$this->assertSame( 2, substr_count( $sql['join'], 'JOIN' ) );
+		$this->assertSame( 2, substr_count( $sql['where'], 'OR' ), 'SQL query does not contain expected number conditions joined by operator OR.' );
+		$this->assertStringNotContainsString( 'AND', substr( $sql['where'], 5 ), 'SQL query contains conditions joined by operator AND.' );
 
 		_unregister_taxonomy( 'wptests_tax' );
 	}
@@ -492,6 +501,62 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $tq->get_sql( $wpdb->posts, 'ID' ) );
+
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
+	 * @ticket 18105
+	 * @covers WP_Tax_Query::get_sql
+	 */
+	public function test_get_sql_relation_unsupported() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$t3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$tq = new WP_Tax_Query(
+			array(
+				'relation' => 'UNSUPPORTED',
+				array(
+					'taxonomy' => 'wptests_tax',
+					'field'    => 'term_id',
+					'terms'    => $t1,
+				),
+				array(
+					'taxonomy' => 'wptests_tax',
+					'field'    => 'term_id',
+					'terms'    => $t2,
+				),
+				array(
+					'taxonomy' => 'wptests_tax',
+					'field'    => 'term_id',
+					'terms'    => $t3,
+				),
+			)
+		);
+
+		global $wpdb;
+		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
+
+		// Checking number of occurrences of AND while skipping the one at the beginning.
+		$this->assertSame( 2, substr_count( substr( $sql['where'], 5 ), 'AND' ), 'SQL query does not contain expected number conditions joined by operator AND.' );
+
+		$this->assertStringNotContainsString( 'UNSUPPORTED', $sql['where'], 'SQL query contains unsupported relation operator.' );
+		$this->assertStringNotContainsString( 'OR', $sql['where'], 'SQL query contains conditions joined by operator OR.' );
 
 		_unregister_taxonomy( 'wptests_tax' );
 	}

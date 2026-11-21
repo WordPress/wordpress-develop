@@ -5,8 +5,8 @@
  		font-size: $font__size-lg;
  	}
 
-	/* Make sure select elements fit in widgets. */
 	select {
+		/* Make sure select elements fit in widgets. */
 		max-width: 100%;
 	}
 
@@ -81,6 +81,7 @@
 
 	a {
 		text-decoration: underline;
+		text-decoration-thickness: 2px;
 	}
 
 	.wp-calendar-table {

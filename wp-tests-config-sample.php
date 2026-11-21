@@ -26,7 +26,7 @@ define( 'WP_DEFAULT_THEME', 'default' );
 // Test with WordPress debug mode (default).
 define( 'WP_DEBUG', true );
 
-// ** MySQL settings ** //
+// ** Database settings ** //
 
 /*
  * This configuration file will be used by the copy of WordPress being tested.
@@ -41,7 +41,7 @@ define( 'DB_NAME', 'youremptytestdbnamehere' );
 define( 'DB_USER', 'yourusernamehere' );
 define( 'DB_PASSWORD', 'yourpasswordhere' );
 define( 'DB_HOST', 'localhost' );
-define( 'DB_CHARSET', 'utf8' );
+define( 'DB_CHARSET', 'utf8mb4' );
 define( 'DB_COLLATE', '' );
 
 /**#@+

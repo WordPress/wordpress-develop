@@ -8,6 +8,9 @@
  * @version 1.0
  */
 
+/**
+ * @global int|string $twentyseventeencounter Front page section counter.
+ */
 global $twentyseventeencounter;
 
 ?>
@@ -41,7 +44,7 @@ global $twentyseventeencounter;
 				<?php
 					the_content(
 						sprintf(
-							/* translators: %s: Post title. */
+							/* translators: %s: Post title. Only visible to screen readers. */
 							__( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ),
 							get_the_title()
 						)

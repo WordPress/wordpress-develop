@@ -1,6 +1,6 @@
 <?php
 /**
- * Implement a custom header for Twenty Thirteen
+ * Implements a custom header for Twenty Thirteen
  *
  * @link https://codex.wordpress.org/Custom_Headers
  *
@@ -10,7 +10,7 @@
  */
 
 /**
- * Set up the WordPress core custom header arguments and settings.
+ * Sets up the WordPress core custom header arguments and settings.
  *
  * @uses add_theme_support() to register support for 3.4 and up.
  * @uses twentythirteen_header_style() to style front end.
@@ -65,7 +65,7 @@ function twentythirteen_custom_header_setup() {
 add_action( 'after_setup_theme', 'twentythirteen_custom_header_setup', 11 );
 
 /**
- * Load our special font CSS files.
+ * Loads our special font CSS files.
  *
  * @since Twenty Thirteen 1.0
  */
@@ -74,12 +74,12 @@ function twentythirteen_custom_header_fonts() {
 	wp_enqueue_style( 'twentythirteen-fonts', twentythirteen_fonts_url(), array(), null );
 
 	// Add Genericons font.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251101' );
 }
 add_action( 'admin_print_styles-appearance_page_custom-header', 'twentythirteen_custom_header_fonts' );
 
 /**
- * Style the header text displayed on the blog.
+ * Styles the header text displayed on the blog.
  *
  * get_header_textcolor() options: Hide text (returns 'blank'), or any hex value.
  *
@@ -90,13 +90,13 @@ function twentythirteen_header_style() {
 	$text_color   = get_header_textcolor();
 
 	// If no custom options for text are set, let's bail.
-	if ( empty( $header_image ) && get_theme_support( 'custom-header', 'default-text-color' ) == $text_color ) {
+	if ( empty( $header_image ) && get_theme_support( 'custom-header', 'default-text-color' ) === $text_color ) {
 		return;
 	}
 
 	// If we get this far, we have custom styles.
 	?>
-	<style type="text/css" id="twentythirteen-header-css">
+	<style id="twentythirteen-header-css">
 	<?php
 	if ( ! empty( $header_image ) ) :
 		?>
@@ -123,8 +123,7 @@ function twentythirteen_header_style() {
 	.site-title,
 	.site-description {
 		position: absolute;
-		clip: rect(1px 1px 1px 1px); /* IE7 */
-		clip: rect(1px, 1px, 1px, 1px);
+		clip-path: inset(50%);
 	}
 		<?php
 		if ( empty( $header_image ) ) :
@@ -136,7 +135,7 @@ function twentythirteen_header_style() {
 		endif;
 
 		// If the user has set a custom color for the text, use that.
-		elseif ( get_theme_support( 'custom-header', 'default-text-color' ) != $text_color ) :
+		elseif ( get_theme_support( 'custom-header', 'default-text-color' ) !== $text_color ) :
 			?>
 		.site-title,
 		.site-description {
@@ -148,14 +147,14 @@ function twentythirteen_header_style() {
 }
 
 /**
- * Style the header image displayed on the Appearance > Header admin panel.
+ * Styles the header image displayed on the Appearance > Header admin panel.
  *
  * @since Twenty Thirteen 1.0
  */
 function twentythirteen_admin_header_style() {
 	$header_image = get_header_image();
 	?>
-	<style type="text/css" id="twentythirteen-admin-header-css">
+	<style id="twentythirteen-admin-header-css">
 	.appearance_page_custom-header #headimg {
 		border: none;
 		-webkit-box-sizing: border-box;
@@ -185,8 +184,7 @@ function twentythirteen_admin_header_style() {
 	#headimg h1,
 	#headimg h2 {
 		position: absolute !important;
-		clip: rect(1px 1px 1px 1px); /* IE7 */
-		clip: rect(1px, 1px, 1px, 1px);
+		clip-path: inset(50%);
 	}
 	<?php endif; ?>
 	#headimg h1 {
@@ -214,7 +212,7 @@ function twentythirteen_admin_header_style() {
 }
 
 /**
- * Output markup to be displayed on the Appearance > Header admin panel.
+ * Outputs markup to be displayed on the Appearance > Header admin panel.
  *
  * This callback overrides the default markup displayed there.
  *

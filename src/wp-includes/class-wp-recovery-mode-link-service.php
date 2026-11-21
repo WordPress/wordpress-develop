@@ -11,6 +11,7 @@
  *
  * @since 5.2.0
  */
+#[AllowDynamicProperties]
 class WP_Recovery_Mode_Link_Service {
 	const LOGIN_ACTION_ENTER   = 'enter_recovery_mode';
 	const LOGIN_ACTION_ENTERED = 'entered_recovery_mode';
@@ -65,7 +66,7 @@ class WP_Recovery_Mode_Link_Service {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @global string $pagenow
+	 * @global string $pagenow The filename of the current screen.
 	 *
 	 * @param int $ttl Number of seconds the link should be valid for.
 	 */
@@ -100,8 +101,8 @@ class WP_Recovery_Mode_Link_Service {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param string $token Recovery Mode token created by {@see generate_recovery_mode_token()}.
-	 * @param string $key   Recovery Mode key created by {@see generate_and_store_recovery_mode_key()}.
+	 * @param string $token Recovery Mode token created by {@see WP_Recovery_Mode_Key_Service::generate_recovery_mode_token()}.
+	 * @param string $key   Recovery Mode key created by {@see WP_Recovery_Mode_Key_Service::generate_and_store_recovery_mode_key()}.
 	 * @return string Recovery mode begin URL.
 	 */
 	private function get_recovery_mode_begin_url( $token, $key ) {

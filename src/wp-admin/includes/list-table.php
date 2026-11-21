@@ -10,16 +10,35 @@
 /**
  * Fetches an instance of a WP_List_Table class.
  *
- * @access private
  * @since 3.1.0
  *
  * @global string $hook_suffix
  *
- * @param string $class The type of the list table, which is the class name.
- * @param array  $args  Optional. Arguments to pass to the class. Accepts 'screen'.
- * @return WP_List_Table|false List table object on success, false if the class does not exist.
+ * @param string $class_name The type of the list table, which is the class name.
+ * @param array  $args       {
+ *     Optional. Arguments to pass to the class.
+ *
+ *     @type string                $plural   Plural value used for labels and the objects being listed.
+ *                                           This affects things such as CSS class-names and nonces used
+ *                                           in the list table, e.g. 'posts'. Default empty.
+ *     @type string                $singular Singular label for an object being listed, e.g. 'post'.
+ *                                           Default empty.
+ *     @type bool                  $ajax     Whether the list table supports Ajax. This includes loading
+ *                                           and sorting data, for example. If true, the class will call
+ *                                           the _js_vars() method in the footer to provide variables
+ *                                           to any scripts handling Ajax events. Default false.
+ *     @type string|WP_Screen|null $screen   String containing the hook name used to determine the current
+ *                                           screen, or a `WP_Screen` instance. If left null, the current
+ *                                           screen will be automatically set. Default null.
+ * }
+ * @return WP_List_Table|false List table object of the type given in `$class_name`
+ *                             on success, false if the class does not exist.
+ *
+ * @phpstan-template T of WP_List_Table
+ * @phpstan-param class-string<T> $class_name
+ * @phpstan-return T|false
  */
-function _get_list_table( $class, $args = array() ) {
+function _get_list_table( $class_name, $args = array() ) {
 	$core_classes = array(
 		// Site Admin.
 		'WP_Posts_List_Table'                         => 'posts',
@@ -45,8 +64,8 @@ function _get_list_table( $class, $args = array() ) {
 		'WP_Privacy_Data_Removal_Requests_List_Table' => 'privacy-data-removal-requests',
 	);
 
-	if ( isset( $core_classes[ $class ] ) ) {
-		foreach ( (array) $core_classes[ $class ] as $required ) {
+	if ( isset( $core_classes[ $class_name ] ) ) {
+		foreach ( (array) $core_classes[ $class_name ] as $required ) {
 			require_once ABSPATH . 'wp-admin/includes/class-wp-' . $required . '-list-table.php';
 		}
 
@@ -58,7 +77,24 @@ function _get_list_table( $class, $args = array() ) {
 			$args['screen'] = null;
 		}
 
-		return new $class( $args );
+		/**
+		 * Filters the list table class to instantiate.
+		 *
+		 * @since 6.1.0
+		 *
+		 * @param string $class_name The list table class to use.
+		 * @param array  $args       An array containing _get_list_table() arguments.
+		 *
+		 * @phpstan-template T of WP_List_Table
+		 * @phpstan-param class-string<T> $class_name
+		 */
+		$custom_class_name = apply_filters( 'wp_list_table_class_name', $class_name, $args );
+
+		if ( is_string( $custom_class_name ) && class_exists( $custom_class_name ) ) {
+			$class_name = $custom_class_name;
+		}
+
+		return new $class_name( $args );
 	}
 
 	return false;
@@ -71,7 +107,7 @@ function _get_list_table( $class, $args = array() ) {
  *
  * @since 2.7.0
  *
- * @param string    $screen The handle for the screen to register column headers for. This is
+ * @param string   $screen  The handle for the screen to register column headers for. This is
  *                          usually the hook name returned by the `add_*_page()` functions.
  * @param string[] $columns An array of columns with column IDs as the keys and translated
  *                          column names as the values.

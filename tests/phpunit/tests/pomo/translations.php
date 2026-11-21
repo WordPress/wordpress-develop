@@ -121,10 +121,37 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$domain        = new Translations();
 		$domain->add_entry( $entry_digit_1 );
 		$domain->add_entry( $entry_digit_2 );
-		$dummy_translation = new Translations;
+		$dummy_translation = new Translations();
 		$this->assertSame( '1', $domain->translate( '1' ) );
 		$domain->merge_with( $dummy_translation );
 		$this->assertSame( '1', $domain->translate( '1' ) );
 	}
 
+	/**
+	 * @ticket 55941
+	 */
+	public function test_translate_falsy_key() {
+		$entry_empty = new Translation_Entry(
+			array(
+				'singular'     => '',
+				'translations' => array(
+					'',
+				),
+			)
+		);
+		$entry_zero  = new Translation_Entry(
+			array(
+				'singular'     => '0',
+				'translations' => array(
+					'0',
+				),
+			)
+		);
+		$po          = new Translations();
+		$po->add_entry( $entry_empty );
+		$po->add_entry( $entry_zero );
+
+		$this->assertSame( '', $po->translate( '' ) );
+		$this->assertSame( '0', $po->translate( '0' ) );
+	}
 }

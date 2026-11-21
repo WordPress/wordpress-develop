@@ -5,7 +5,7 @@
  * @package WordPress
  */
 
-/**
+/*
  * Get the template HTML.
  * This needs to run before <head> so that blocks can add scripts and styles in wp_head().
  */
@@ -20,7 +20,7 @@ $template_html = get_the_block_template_html();
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<?php echo $template_html; // phpcs:ignore WordPress.Security.EscapeOutput ?>
+<?php echo $template_html; ?>
 
 <?php wp_footer(); ?>
 </body>

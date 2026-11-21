@@ -1,10 +1,15 @@
 <?php
 /**
  * Footer with navigation and citation
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Two
+ * @since Twenty Twenty-Two 1.0
  */
+
 return array(
 	'title'      => __( 'Footer with navigation and citation', 'twentytwentytwo' ),
-	'categories' => array( 'twentytwentytwo-footers' ),
+	'categories' => array( 'footer' ),
 	'blockTypes' => array( 'core/template-part/footer' ),
 	'content'    => '<!-- wp:group {"align":"full","layout":{"inherit":true}} -->
 					<div class="wp-block-group alignfull"><!-- wp:group {"align":"wide","style":{"spacing":{"padding":{"top":"4rem","bottom":"4rem"}}},"layout":{"type":"flex","justifyContent":"space-between"}} -->

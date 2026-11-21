@@ -54,6 +54,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( '%d' ),
 			array( '%d' )
 		);
+		clean_term_cache( $t1['term_id'], 'category' );
 
 		$t2_child = wp_insert_term(
 			'Foo Child',
@@ -83,9 +84,9 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 		$t2_term = get_term_by( 'term_taxonomy_id', $this->terms['t2']['term_taxonomy_id'], 'wptests_tax_2' );
 		$t3_term = get_term_by( 'term_taxonomy_id', $this->terms['t3']['term_taxonomy_id'], 'wptests_tax_3' );
 
-		$this->assertNotEquals( $t1_term->term_id, $t2_term->term_id );
-		$this->assertNotEquals( $t1_term->term_id, $t3_term->term_id );
-		$this->assertNotEquals( $t2_term->term_id, $t3_term->term_id );
+		$this->assertNotSame( $t1_term->term_id, $t2_term->term_id );
+		$this->assertNotSame( $t1_term->term_id, $t3_term->term_id );
+		$this->assertNotSame( $t2_term->term_id, $t3_term->term_id );
 	}
 
 	/**
@@ -151,6 +152,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( '%d' ),
 			array( '%d' )
 		);
+		clean_term_cache( $t1['term_id'], 'category' );
 		$th = _get_term_hierarchy( 'wptests_tax_4' );
 
 		$new_term_id = _split_shared_term( $t1['term_id'], $t3['term_taxonomy_id'] );
@@ -179,12 +181,13 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( '%d' ),
 			array( '%d' )
 		);
+		clean_term_cache( $t1['term_id'], 'category' );
 
 		$this->assertSame( $t1['term_id'], get_option( 'default_category', -1 ) );
 
 		$new_term_id = _split_shared_term( $t1['term_id'], $t1['term_taxonomy_id'] );
 
-		$this->assertNotEquals( $new_term_id, $t1['term_id'] );
+		$this->assertNotSame( $new_term_id, $t1['term_id'] );
 		$this->assertSame( $new_term_id, get_option( 'default_category', -1 ) );
 	}
 
@@ -207,8 +210,9 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( '%d' ),
 			array( '%d' )
 		);
+		clean_term_cache( $t1['term_id'], 'category' );
 
-		$menu_id       = wp_create_nav_menu( rand_str() );
+		$menu_id       = wp_create_nav_menu( 'Nav Menu Bar' );
 		$cat_menu_item = wp_update_nav_menu_item(
 			$menu_id,
 			0,
@@ -219,11 +223,11 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 				'menu-item-status'    => 'publish',
 			)
 		);
-		$this->assertEquals( $t1['term_id'], get_post_meta( $cat_menu_item, '_menu_item_object_id', true ) );
+		$this->assertSame( (string) $t1['term_id'], get_post_meta( $cat_menu_item, '_menu_item_object_id', true ) );
 
 		$new_term_id = _split_shared_term( $t1['term_id'], $t1['term_taxonomy_id'] );
-		$this->assertNotEquals( $new_term_id, $t1['term_id'] );
-		$this->assertEquals( $new_term_id, get_post_meta( $cat_menu_item, '_menu_item_object_id', true ) );
+		$this->assertNotSame( $new_term_id, $t1['term_id'] );
+		$this->assertSame( (string) $new_term_id, get_post_meta( $cat_menu_item, '_menu_item_object_id', true ) );
 	}
 
 	/**
@@ -245,6 +249,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( 'term_id' => $shared_term_id ),
 			array( 'term_taxonomy_id' => $nav_term->term_taxonomy_id )
 		);
+		clean_term_cache( $shared_term_id, 'category' );
 
 		set_theme_mod( 'nav_menu_locations', array( 'foo' => $shared_term_id ) );
 
@@ -274,6 +279,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			array( 'term_id' => $shared_term_id ),
 			array( 'term_taxonomy_id' => $nav_term->term_taxonomy_id )
 		);
+		clean_term_cache( $shared_term_id, 'category' );
 
 		$t1            = wp_insert_term( 'Random term', 'category' );
 		$cat_menu_item = wp_update_nav_menu_item(

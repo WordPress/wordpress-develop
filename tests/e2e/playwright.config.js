@@ -1,0 +1,61 @@
+/**
+ * External dependencies
+ */
+import path from 'node:path';
+import { defineConfig, devices } from '@playwright/test';
+
+/**
+ * WordPress dependencies
+ */
+const baseConfig = require( '@wordpress/scripts/config/playwright.config' );
+
+process.env.WP_ARTIFACTS_PATH ??= path.join( process.cwd(), 'artifacts' );
+process.env.STORAGE_STATE_PATH ??= path.join(
+	process.env.WP_ARTIFACTS_PATH,
+	'storage-states/admin.json'
+);
+
+const SERIAL_SPECS = [
+	'install.test.js',
+	'maintenance-mode.test.js',
+	'gutenberg-plugin.test.js',
+	'themes.test.js',
+	// This deletes all posts, including other workers' content.
+	'empty-trash.test.js',
+];
+
+const config = defineConfig( {
+	...baseConfig,
+	globalSetup: require.resolve( './config/global-setup.js' ),
+	workers: '50%',
+	retries: process.env.CI ? 1 : 0,
+	webServer: {
+		...baseConfig.webServer,
+		command: 'npm run env:start',
+	},
+	projects: [
+		{
+			name: 'all',
+			fullyParallel: false,
+			workers: 1,
+			use: { ...devices[ 'Desktop Chrome' ] },
+		},
+		{
+			name: 'parallel',
+			default: false,
+			testIgnore: SERIAL_SPECS,
+			fullyParallel: true,
+			use: { ...devices[ 'Desktop Chrome' ] },
+		},
+		{
+			name: 'serial',
+			default: false,
+			testMatch: SERIAL_SPECS,
+			fullyParallel: false,
+			workers: 1,
+			use: { ...devices[ 'Desktop Chrome' ] },
+		},
+	],
+} );
+
+export default config;

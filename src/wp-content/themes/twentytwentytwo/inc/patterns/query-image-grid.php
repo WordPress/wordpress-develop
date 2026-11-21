@@ -1,10 +1,15 @@
 <?php
 /**
  * Grid of image posts block pattern
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Two
+ * @since Twenty Twenty-Two 1.0
  */
+
 return array(
 	'title'      => __( 'Grid of image posts', 'twentytwentytwo' ),
-	'categories' => array( 'twentytwentytwo-query' ),
+	'categories' => array( 'query' ),
 	'blockTypes' => array( 'core/query' ),
 	'content'    => '<!-- wp:query {"query":{"offset":0,"postType":"post","categoryIds":[],"tagIds":[],"order":"desc","orderBy":"date","author":"","search":"","sticky":"","inherit":false,"perPage":12},"displayLayout":{"type":"flex","columns":3},"layout":{"inherit":true}} -->
 					<div class="wp-block-query"><!-- wp:post-template -->

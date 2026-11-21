@@ -31,7 +31,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return WP_Post_Type[] Array of registered post type objects keyed by their name.
+	 * @return array<string, WP_Post_Type> Array of registered post type objects keyed by their name.
 	 */
 	public function get_object_subtypes() {
 		$post_types = get_post_types( array( 'public' => true ), 'objects' );
@@ -44,7 +44,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param WP_Post_Type[] $post_types Array of registered post type objects keyed by their name.
+		 * @param array<string, WP_Post_Type> $post_types Array of registered post type objects keyed by their name.
 		 */
 		return apply_filters( 'wp_sitemaps_post_types', $post_types );
 	}
@@ -58,8 +58,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 	 *
 	 * @param int    $page_num       Page of results.
 	 * @param string $object_subtype Optional. Post type name. Default empty.
-	 *
-	 * @return array Array of URLs for a sitemap.
+	 * @return array[] Array of URL information for a sitemap.
 	 */
 	public function get_url_list( $page_num, $object_subtype = '' ) {
 		// Restores the more descriptive, specific name for use within this method.
@@ -75,14 +74,14 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		/**
 		 * Filters the posts URL list before it is generated.
 		 *
-		 * Passing a non-null value will effectively short-circuit the generation,
+		 * Returning a non-null value will effectively short-circuit the generation,
 		 * returning that value instead.
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param array  $url_list  The URL list. Default null.
-		 * @param string $post_type Post type name.
-		 * @param int    $page_num  Page of results.
+		 * @param array[]|null $url_list  The URL list. Default null.
+		 * @param string       $post_type Post type name.
+		 * @param int          $page_num  Page of results.
 		 */
 		$url_list = apply_filters(
 			'wp_sitemaps_posts_pre_url_list',
@@ -112,6 +111,29 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 				'loc' => home_url( '/' ),
 			);
 
+			/*
+			 * Get the most recent posts displayed on the homepage,
+			 * and then sort them by their modified date to find
+			 * the date the homepage was approximately last updated.
+			 */
+			$latest_posts = new WP_Query(
+				array(
+					'post_type'              => 'post',
+					'post_status'            => 'publish',
+					'orderby'                => 'date',
+					'order'                  => 'DESC',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+				)
+			);
+
+			if ( ! empty( $latest_posts->posts ) ) {
+				$posts = wp_list_sort( $latest_posts->posts, 'post_modified_gmt', 'DESC' );
+
+				$sitemap_entry['lastmod'] = wp_date( DATE_W3C, strtotime( $posts[0]->post_modified_gmt ) );
+			}
+
 			/**
 			 * Filters the sitemap entry for the home page when the 'show_on_front' option equals 'posts'.
 			 *
@@ -125,7 +147,8 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 
 		foreach ( $query->posts as $post ) {
 			$sitemap_entry = array(
-				'loc' => get_permalink( $post ),
+				'loc'     => get_permalink( $post ),
+				'lastmod' => wp_date( DATE_W3C, strtotime( $post->post_modified_gmt ) ),
 			);
 
 			/**
@@ -186,13 +209,14 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		$query = new WP_Query( $args );
 
 		$min_num_pages = ( 'page' === $post_type && 'posts' === get_option( 'show_on_front' ) ) ? 1 : 0;
-		return isset( $query->max_num_pages ) ? max( $min_num_pages, $query->max_num_pages ) : 1;
+		return max( $min_num_pages, $query->max_num_pages );
 	}
 
 	/**
 	 * Returns the query args for retrieving posts to list in the sitemap.
 	 *
 	 * @since 5.5.0
+	 * @since 6.1.0 Added `ignore_sticky_posts` default parameter.
 	 *
 	 * @param string $post_type Post type name.
 	 * @return array Array of WP_Query arguments.
@@ -204,6 +228,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		 * @see WP_Query for a full list of arguments.
 		 *
 		 * @since 5.5.0
+		 * @since 6.1.0 Added `ignore_sticky_posts` default parameter.
 		 *
 		 * @param array  $args      Array of WP_Query arguments.
 		 * @param string $post_type Post type name.
@@ -219,6 +244,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 				'no_found_rows'          => true,
 				'update_post_term_cache' => false,
 				'update_post_meta_cache' => false,
+				'ignore_sticky_posts'    => true, // Sticky posts will still appear, but they won't be moved to the front.
 			),
 			$post_type
 		);

@@ -27,7 +27,7 @@ if ( ! function_exists( 'twenty_twenty_one_posted_on' ) ) {
 		printf(
 			/* translators: %s: Publish date. */
 			esc_html__( 'Published %s', 'twentytwentyone' ),
-			$time_string // phpcs:ignore WordPress.Security.EscapeOutput
+			$time_string
 		);
 		echo '</span>';
 	}
@@ -79,7 +79,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 
 			$post_format = get_post_format();
 			if ( 'aside' === $post_format || 'status' === $post_format ) {
-				echo '<p><a href="' . esc_url( get_permalink() ) . '">' . twenty_twenty_one_continue_reading_text() . '</a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput
+				echo '<p><a href="' . esc_url( get_permalink() ) . '">' . twenty_twenty_one_continue_reading_text() . '</a></p>';
 			}
 
 			// Posted on.
@@ -88,7 +88,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 			// Edit post link.
 			edit_post_link(
 				sprintf(
-					/* translators: %s: Name of current post. Only visible to screen readers. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					esc_html__( 'Edit %s', 'twentytwentyone' ),
 					'<span class="screen-reader-text">' . get_the_title() . '</span>'
 				),
@@ -100,23 +100,21 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 
 				echo '<div class="post-taxonomies">';
 
-				/* translators: Used between list items, there is a space after the comma. */
-				$categories_list = get_the_category_list( __( ', ', 'twentytwentyone' ) );
+				$categories_list = get_the_category_list( wp_get_list_item_separator() );
 				if ( $categories_list ) {
 					printf(
 						/* translators: %s: List of categories. */
 						'<span class="cat-links">' . esc_html__( 'Categorized as %s', 'twentytwentyone' ) . ' </span>',
-						$categories_list // phpcs:ignore WordPress.Security.EscapeOutput
+						$categories_list
 					);
 				}
 
-				/* translators: Used between list items, there is a space after the comma. */
-				$tags_list = get_the_tag_list( '', __( ', ', 'twentytwentyone' ) );
-				if ( $tags_list ) {
+				$tags_list = get_the_tag_list( '', wp_get_list_item_separator() );
+				if ( $tags_list && ! is_wp_error( $tags_list ) ) {
 					printf(
 						/* translators: %s: List of tags. */
 						'<span class="tags-links">' . esc_html__( 'Tagged %s', 'twentytwentyone' ) . '</span>',
-						$tags_list // phpcs:ignore WordPress.Security.EscapeOutput
+						$tags_list
 					);
 				}
 				echo '</div>';
@@ -131,7 +129,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 			// Edit post link.
 			edit_post_link(
 				sprintf(
-					/* translators: %s: Name of current post. Only visible to screen readers. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					esc_html__( 'Edit %s', 'twentytwentyone' ),
 					'<span class="screen-reader-text">' . get_the_title() . '</span>'
 				),
@@ -144,23 +142,21 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 
 				echo '<div class="post-taxonomies">';
 
-				/* translators: Used between list items, there is a space after the comma. */
-				$categories_list = get_the_category_list( __( ', ', 'twentytwentyone' ) );
+				$categories_list = get_the_category_list( wp_get_list_item_separator() );
 				if ( $categories_list ) {
 					printf(
 						/* translators: %s: List of categories. */
 						'<span class="cat-links">' . esc_html__( 'Categorized as %s', 'twentytwentyone' ) . ' </span>',
-						$categories_list // phpcs:ignore WordPress.Security.EscapeOutput
+						$categories_list
 					);
 				}
 
-				/* translators: Used between list items, there is a space after the comma. */
-				$tags_list = get_the_tag_list( '', __( ', ', 'twentytwentyone' ) );
-				if ( $tags_list ) {
+				$tags_list = get_the_tag_list( '', wp_get_list_item_separator() );
+				if ( $tags_list && ! is_wp_error( $tags_list ) ) {
 					printf(
 						/* translators: %s: List of tags. */
 						'<span class="tags-links">' . esc_html__( 'Tagged %s', 'twentytwentyone' ) . '</span>',
-						$tags_list // phpcs:ignore WordPress.Security.EscapeOutput
+						$tags_list
 					);
 				}
 				echo '</div>';
@@ -207,7 +203,7 @@ if ( ! function_exists( 'twenty_twenty_one_post_thumbnail' ) ) {
 				<?php if ( wp_get_attachment_caption( get_post_thumbnail_id() ) ) : ?>
 					<figcaption class="wp-caption-text"><?php echo wp_kses_post( wp_get_attachment_caption( get_post_thumbnail_id() ) ); ?></figcaption>
 				<?php endif; ?>
-			</figure>
+			</figure><!-- .post-thumbnail -->
 
 		<?php endif; ?>
 		<?php
@@ -216,13 +212,17 @@ if ( ! function_exists( 'twenty_twenty_one_post_thumbnail' ) ) {
 
 if ( ! function_exists( 'twenty_twenty_one_the_posts_navigation' ) ) {
 	/**
-	 * Print the next and previous posts navigation.
+	 * Prints the next and previous posts navigation.
 	 *
 	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
 	function twenty_twenty_one_the_posts_navigation() {
+		$order          = get_query_var( 'order', 'DESC' );
+		$new_posts_text = __( 'Newer <span class="nav-short">posts</span>', 'twentytwentyone' );
+		$old_posts_text = __( 'Older <span class="nav-short">posts</span>', 'twentytwentyone' );
+
 		the_posts_pagination(
 			array(
 				'before_page_number' => esc_html__( 'Page', 'twentytwentyone' ) . ' ',
@@ -231,7 +231,7 @@ if ( ! function_exists( 'twenty_twenty_one_the_posts_navigation' ) ) {
 					'%s <span class="nav-prev-text">%s</span>',
 					is_rtl() ? twenty_twenty_one_get_icon_svg( 'ui', 'arrow_right' ) : twenty_twenty_one_get_icon_svg( 'ui', 'arrow_left' ),
 					wp_kses(
-						__( 'Newer <span class="nav-short">posts</span>', 'twentytwentyone' ),
+						( 'DESC' === $order ) ? $new_posts_text : $old_posts_text,
 						array(
 							'span' => array(
 								'class' => array(),
@@ -242,7 +242,7 @@ if ( ! function_exists( 'twenty_twenty_one_the_posts_navigation' ) ) {
 				'next_text'          => sprintf(
 					'<span class="nav-next-text">%s</span> %s',
 					wp_kses(
-						__( 'Older <span class="nav-short">posts</span>', 'twentytwentyone' ),
+						( 'DESC' === $order ) ? $old_posts_text : $new_posts_text,
 						array(
 							'span' => array(
 								'class' => array(),
