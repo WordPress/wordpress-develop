@@ -94,7 +94,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 *     @type string $expected The expected get_post_status() return value.
 	 * }
 	 */
-	public function data_get_post_status_resolves() {
+	public static function data_get_post_status_resolves() {
 		return array(
 			array( 'publish', 'publish' ),
 			array( 'future', 'future' ),
@@ -154,7 +154,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 *     @type string $expected      The expected result after trashing the post.
 	 * }
 	 */
-	public function data_get_post_status_after_trashing() {
+	public static function data_get_post_status_after_trashing() {
 		return array(
 			array( 'publish-attachment', 'publish', 'publish' ),
 			array( 'future-attachment', 'future', 'future' ),

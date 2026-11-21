@@ -31,7 +31,7 @@ class Tests_General_WpTitle extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_title_archive() {
+	public static function data_wp_title_archive() {
 		return array(
 			'year with posts'                => array(
 				'query'    => '2021',

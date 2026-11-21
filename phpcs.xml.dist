@@ -112,8 +112,8 @@
 	<!-- Plugins. -->
 	<exclude-pattern>/src/wp-content/plugins/*</exclude-pattern>
 
-	<!-- Themes except the twenty* themes. -->
-	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
+	<!-- Themes except the twenty* themes and Ipsum. -->
+	<exclude-pattern>/src/wp-content/themes/(?!twenty|ipsum)*</exclude-pattern>
 
 	<!-- Translation files. -->
 	<exclude-pattern>/src/wp-content/languages/*</exclude-pattern>

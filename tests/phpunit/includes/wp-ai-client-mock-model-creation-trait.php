@@ -171,7 +171,7 @@ trait WP_AI_Client_Mock_Model_Creation_Trait {
 		GenerativeAiResult $result,
 		?ModelMetadata $metadata = null
 	): ModelInterface {
-		$metadata = $metadata ?? $this->create_test_text_model_metadata();
+		$metadata ??= $this->create_test_text_model_metadata();
 
 		$provider_metadata = new ProviderMetadata(
 			'mock',
@@ -234,7 +234,7 @@ trait WP_AI_Client_Mock_Model_Creation_Trait {
 		GenerativeAiResult $result,
 		?ModelMetadata $metadata = null
 	): ModelInterface {
-		$metadata = $metadata ?? $this->create_test_image_model_metadata();
+		$metadata ??= $this->create_test_image_model_metadata();
 
 		$provider_metadata = new ProviderMetadata(
 			'mock',
@@ -293,7 +293,7 @@ trait WP_AI_Client_Mock_Model_Creation_Trait {
 		GenerativeAiResult $result,
 		?ModelMetadata $metadata = null
 	): ModelInterface {
-		$metadata = $metadata ?? $this->create_test_speech_model_metadata();
+		$metadata ??= $this->create_test_speech_model_metadata();
 
 		$provider_metadata = new ProviderMetadata(
 			'mock-provider',
@@ -352,7 +352,7 @@ trait WP_AI_Client_Mock_Model_Creation_Trait {
 		GenerativeAiResult $result,
 		?ModelMetadata $metadata = null
 	): ModelInterface {
-		$metadata = $metadata ?? $this->create_test_text_to_speech_model_metadata();
+		$metadata ??= $this->create_test_text_to_speech_model_metadata();
 
 		$provider_metadata = new ProviderMetadata(
 			'mock-provider',
@@ -411,7 +411,7 @@ trait WP_AI_Client_Mock_Model_Creation_Trait {
 		GenerativeAiResult $result,
 		?ModelMetadata $metadata = null
 	): ModelInterface {
-		$metadata = $metadata ?? $this->create_test_video_model_metadata();
+		$metadata ??= $this->create_test_video_model_metadata();
 
 		$provider_metadata = new ProviderMetadata(
 			'mock-provider',
@@ -470,7 +470,7 @@ trait WP_AI_Client_Mock_Model_Creation_Trait {
 		Exception $exception,
 		?ModelMetadata $metadata = null
 	): ModelInterface {
-		$metadata = $metadata ?? $this->create_test_text_model_metadata();
+		$metadata ??= $this->create_test_text_model_metadata();
 
 		$provider_metadata = new ProviderMetadata(
 			'mock',

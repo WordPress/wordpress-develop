@@ -444,7 +444,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_block_version() {
+	public static function data_block_version() {
 		return array(
 			// Null.
 			array( null, 0 ),
@@ -588,7 +588,6 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	 *
 	 * @param array $variations Block variations before filter.
 	 * @param WP_Block_Type $block_type Block type.
-	 *
 	 * @return array Block variations after filter.
 	 */
 	public function filter_test_variations( $variations, $block_type ) {

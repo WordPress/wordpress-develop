@@ -20,7 +20,7 @@
  *
  * @phpstan-type Data_Array array{
  *     ID: non-negative-int,
- *     post_author: numeric-string|'',
+ *     post_author: decimal-int-string|'',
  *     post_date: string,
  *     post_date_gmt: string,
  *     post_content: string,
@@ -41,7 +41,7 @@
  *     menu_order: int,
  *     post_type: non-empty-string,
  *     post_mime_type: string,
- *     comment_count: numeric-string,
+ *     comment_count: decimal-int-string,
  *     filter: 'raw'|'edit'|'db'|'display'|'attribute'|'js'|'sample'|null,
  *     ancestors: list<non-negative-int>,
  *     page_template: string,
@@ -70,7 +70,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
-	 * @phpstan-var numeric-string|''
+	 * @phpstan-var decimal-int-string|''
 	 */
 	public $post_author = '0';
 
@@ -246,7 +246,7 @@ final class WP_Post {
 	 *
 	 * @since 3.5.0
 	 * @var string
-	 * @phpstan-var numeric-string
+	 * @phpstan-var decimal-int-string
 	 */
 	public $comment_count = '0';
 
@@ -267,13 +267,14 @@ final class WP_Post {
 	 * Retrieve WP_Post instance.
 	 *
 	 * @since 3.5.0
+	 * @since 7.2.0 Cache values that are not usable as a post object are now treated as a cache miss and replaced.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int $post_id Post ID.
 	 * @return WP_Post|false Post object, false otherwise.
 	 *
-	 * @phpstan-param int|numeric-string $post_id
+	 * @phpstan-param int|decimal-int-string $post_id
 	 */
 	public static function get_instance( $post_id ) {
 		global $wpdb;
@@ -285,7 +286,8 @@ final class WP_Post {
 
 		$_post = wp_cache_get( $post_id, 'posts' );
 
-		if ( ! ( $_post instanceof stdClass ) && ! ( $_post instanceof WP_Post ) ) {
+		// A cached value that is not usable as a post is treated as a cache miss.
+		if ( ! ( $_post instanceof stdClass || $_post instanceof WP_Post ) || ! isset( $_post->ID ) ) {
 			$_post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d LIMIT 1", $post_id ) );
 
 			if ( ! $_post ) {
@@ -293,7 +295,9 @@ final class WP_Post {
 			}
 
 			$_post = sanitize_post( $_post, 'raw' );
-			wp_cache_add( (int) $_post->ID, $_post, 'posts' );
+
+			// Not wp_cache_add(), since an unusable cached value may still be present and must be replaced.
+			wp_cache_set( (int) $_post->ID, $_post, 'posts' );
 		} elseif ( empty( $_post->filter ) || 'raw' !== $_post->filter ) {
 			$_post = sanitize_post( $_post, 'raw' );
 		}
