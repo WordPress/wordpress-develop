@@ -1,0 +1,101 @@
+##
+# A reusable workflow that downloads a WordPress release zip once and shares it as an artifact.
+#
+# For a while after a release is uploaded, some WordPress.org download servers do not have the new zip yet.
+# This workflow waits until the zip downloads and passes its md5 check, so the jobs that use it do not each fail.
+##
+name: Download a WordPress release
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'The WordPress version to download. "latest", "nightly", "trunk" and "develop" are not downloaded.'
+        type: string
+        required: true
+    outputs:
+      artifact:
+        description: 'The name of the artifact that holds wordpress.zip, or an empty string when nothing was downloaded.'
+        value: ${{ jobs.download.outputs.artifact }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Downloads the release zip and uploads it as an artifact.
+  #
+  # Performs the following steps:
+  # - Sets up PHP and WP-CLI.
+  # - Downloads the release zip, retrying until it is available.
+  # - Uploads the zip as an artifact.
+  download:
+    name: Download WordPress ${{ inputs.version }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-26.04
+    timeout-minutes: 50
+    outputs:
+      artifact: ${{ steps.upload.outcome == 'success' && 'wordpress-release' || '' }}
+
+    steps:
+      - name: Check whether the version is a release
+        id: check
+        run: |
+          case "${WP_VERSION}" in
+            latest|nightly|trunk|develop) echo "release=false" >> "$GITHUB_OUTPUT" ;;
+            *) echo "release=true" >> "$GITHUB_OUTPUT" ;;
+          esac
+        env:
+          WP_VERSION: ${{ inputs.version }}
+
+      - name: Set up PHP
+        if: ${{ steps.check.outputs.release == 'true' }}
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      # This job does not check out the repository: `$/` fetches the action from this workflow's commit.
+      - name: Set up WP-CLI
+        if: ${{ steps.check.outputs.release == 'true' }}
+        uses: $/.github/actions/setup-wp-cli
+
+      # A missing md5 checksum is only a warning in WP-CLI, so a try passes only when the hash was verified.
+      # The URL form always saves a zip; `--version` can save a tar.gz.
+      - name: Download WordPress ${{ inputs.version }}
+        if: ${{ steps.check.outputs.release == 'true' }}
+        run: |
+          until output=$(wp core download "https://wordpress.org/wordpress-${WP_VERSION}.zip" --no-extract --path="$DOWNLOAD_DIR" 2>&1) \
+            && grep -q 'md5 hash verified' <<< "$output"; do
+            echo "$output"
+
+            if (( SECONDS + RETRY_DELAY_SECONDS > MAX_WAIT_SECONDS )); then
+              echo "::error::WordPress ${WP_VERSION} could not be downloaded after ${SECONDS} seconds."
+              exit 1
+            fi
+
+            echo "Trying again in ${RETRY_DELAY_SECONDS} seconds."
+            sleep "$RETRY_DELAY_SECONDS"
+            rm -rf "$DOWNLOAD_DIR"
+          done
+
+          echo "$output"
+          echo "Downloaded WordPress ${WP_VERSION} after waiting ${SECONDS} seconds."
+          mv "$DOWNLOAD_DIR"/wp_*.zip "$DOWNLOAD_DIR/wordpress.zip"
+        env:
+          WP_VERSION: ${{ inputs.version }}
+          DOWNLOAD_DIR: ${{ runner.temp }}/wordpress-release
+          MAX_WAIT_SECONDS: 2700 # 45 minutes.
+          RETRY_DELAY_SECONDS: 60
+
+      - name: Upload the release zip
+        id: upload
+        if: ${{ steps.check.outputs.release == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: wordpress-release
+          path: ${{ runner.temp }}/wordpress-release/wordpress.zip
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 30

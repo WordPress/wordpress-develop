@@ -34,8 +34,6 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 
 		add_filter( 'old_slug_redirect_url', array( $this, 'filter_old_date_redirect_url' ), 10, 1 );
 
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		add_rewrite_endpoint( 'custom-endpoint', EP_PERMALINK );
 		add_rewrite_endpoint( 'second-endpoint', EP_PERMALINK, 'custom' );
 
