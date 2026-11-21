@@ -153,6 +153,9 @@ add_action( 'updated_comment_meta', 'wp_cache_set_comments_last_changed' );
 add_action( 'deleted_comment_meta', 'wp_cache_set_comments_last_changed' );
 add_action( 'init', 'wp_create_initial_comment_meta' );
 
+// Note lock meta, registered late so that post types added on `init` are in place.
+add_action( 'init', 'wp_register_note_lock_meta', 20 );
+
 // Places to balance tags on input.
 foreach ( array( 'content_save_pre', 'excerpt_save_pre', 'comment_save_pre', 'pre_comment_content' ) as $filter ) {
 	add_filter( $filter, 'convert_invalid_entities' );
