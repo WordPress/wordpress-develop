@@ -50,7 +50,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			);
 
 			// Add fake attachment to the post (file upload not needed).
-			self::$posts[ "$post_status-attachment" ] = $factory->post->create_and_get(
+			$att = $factory->post->create_and_get(
 				array(
 					'post_type'    => 'attachment',
 					'post_title'   => "$post_status inherited attachment",
@@ -62,6 +62,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					'post_date'    => $post_date,
 				)
 			);
+
+			self::$posts[ "$post_status-attachment" ] = self::use_plain_attachment_guid( $att );
 
 			// Set up a page with same.
 			self::$posts[ "$post_status-page" ] = $factory->post->create_and_get(
@@ -90,7 +92,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		);
 
 		// Add fake attachment to the public cpt (file upload not needed).
-		self::$posts['a-public-cpt-attachment'] = $factory->post->create_and_get(
+		$att = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'attachment',
 				'post_title'   => 'a-public-cpt post inherited attachment',
@@ -101,6 +103,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				'post_parent'  => self::$posts['a-public-cpt']->ID,
 			)
 		);
+
+		self::$posts['a-public-cpt-attachment'] = self::use_plain_attachment_guid( $att );
 
 		// Create a private CPT with a public status.
 		self::$posts['a-private-cpt'] = $factory->post->create_and_get(
@@ -115,7 +119,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		);
 
 		// Add fake attachment to the private cpt (file upload not needed).
-		self::$posts['a-private-cpt-attachment'] = $factory->post->create_and_get(
+		$att = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'attachment',
 				'post_title'   => 'a-private-cpt post inherited attachment',
@@ -126,6 +130,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				'post_parent'  => self::$posts['a-private-cpt']->ID,
 			)
 		);
+
+		self::$posts['a-private-cpt-attachment'] = self::use_plain_attachment_guid( $att );
 
 		// Post for trashing.
 		self::$posts['trash'] = $factory->post->create_and_get(
@@ -139,7 +145,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		self::$posts['trash-attachment'] = $factory->post->create_and_get(
+		$att = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'attachment',
 				'post_title'   => 'trash post inherited attachment',
@@ -150,6 +156,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				'post_parent'  => self::$posts['trash']->ID,
 			)
 		);
+
+		self::$posts['trash-attachment'] = self::use_plain_attachment_guid( $att );
 
 		// Page for trashing.
 		self::$posts['trash-page'] = $factory->post->create_and_get(
@@ -166,11 +174,39 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		wp_trash_post( self::$posts['trash-page']->ID );
 	}
 
+	public static function wpTearDownAfterClass() {
+		unregister_post_type( 'a-public-cpt' );
+		unregister_post_type( 'a-private-cpt' );
+		_unregister_post_status( 'a-private-status' );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		self::setup_custom_types();
+	}
 
-		add_filter( 'pre_option_wp_attachment_pages_enabled', '__return_true' );
+	/**
+	 * Gives a fake attachment the GUID it would get on a site with plain permalinks.
+	 *
+	 * The attachments created in the class setup have no attached file, so
+	 * wp_get_attachment_url() falls back to the GUID. The expected redirects
+	 * use the plain `?attachment_id=` form, which pretty permalinks would
+	 * otherwise replace.
+	 *
+	 * @param WP_Post $attachment Attachment object.
+	 * @return WP_Post Attachment object with the updated GUID.
+	 */
+	private static function use_plain_attachment_guid( $attachment ) {
+		global $wpdb;
+
+		$wpdb->update(
+			$wpdb->posts,
+			array( 'guid' => home_url( "/?attachment_id={$attachment->ID}" ) ),
+			array( 'ID' => $attachment->ID )
+		);
+		clean_post_cache( $attachment->ID );
+
+		return get_post( $attachment->ID );
 	}
 
 	/**
@@ -216,41 +252,58 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	/**
 	 * Test canonical redirect does not reveal private posts presence.
 	 *
-	 * @ticket 5272
-	 * @dataProvider data_canonical_redirects_to_plain_permalinks
+	 * Asserts every plain-permalink case inside one test to avoid repeated
+	 * PHPUnit setup/teardown while preserving each case's mutable state reset
+	 * (attachment pages option, current user) and all expected URLs.
 	 *
-	 * @param string $post_key  Post key used for creating fixtures.
-	 * @param string $user_role User role.
-	 * @param string $requested Requested URL.
-	 * @param string $expected  Expected URL.
+	 * @ticket 5272
+	 * @ticket 66074
 	 */
-	public function test_canonical_redirects_to_plain_permalinks( $post_key, $user_role, $requested, $expected ) {
-		wp_set_current_user( self::$users[ $user_role ] );
+	public function test_canonical_redirects_to_plain_permalinks() {
+		// Identical for every case in this method; set once to avoid rewrite churn.
 		$this->set_permalink_structure( '' );
-		$post = self::$posts[ $post_key ];
-		clean_post_cache( $post->ID );
 
-		/*
-		 * The dataProvider runs before the fixures are set up, therefore the
-		 * post object IDs are placeholders that needs to be replaced.
-		 */
-		$requested = str_replace( '%ID%', $post->ID, $requested );
-		$expected  = str_replace( '%ID%', $post->ID, $expected );
+		foreach ( $this->get_canonical_redirects_to_plain_permalinks_cases() as $case ) {
+			$post_key                = $case[0];
+			$user_role               = $case[1];
+			$requested               = $case[2];
+			$expected                = $case[3];
+			$enable_attachment_pages = array_key_exists( 4, $case ) ? $case[4] : true;
 
-		$this->assertCanonical( $requested, $expected );
+			update_option( 'wp_attachment_pages_enabled', $enable_attachment_pages ? 1 : 0 );
+			wp_set_current_user( self::$users[ $user_role ] );
+
+			$post = self::$posts[ $post_key ];
+			clean_post_cache( $post->ID );
+
+			$requested = str_replace( '%ID%', (string) $post->ID, $requested );
+			$expected  = str_replace( '%ID%', (string) $post->ID, $expected );
+
+			try {
+				$this->assertCanonical( $requested, $expected );
+			} catch ( \PHPUnit\Framework\ExpectationFailedException $e ) {
+				throw new \PHPUnit\Framework\ExpectationFailedException(
+					sprintf(
+						'Canonical mismatch for post_key=%s user_role=%s attachment_pages=%s requested=%s expected=%s. %s',
+						$post_key,
+						$user_role,
+						$enable_attachment_pages ? '1' : '0',
+						$requested,
+						$expected,
+						$e->getMessage()
+					),
+					$e->getComparisonFailure()
+				);
+			}
+		}
 	}
 
 	/**
-	 * Data provider for test_canonical_redirects_to_plain_permalinks.
+	 * Cases for test_canonical_redirects_to_plain_permalinks.
 	 *
-	 * @return array[] Array of arguments for tests {
-	 *     @type string $post_key  Post key used for creating fixtures.
-	 *     @type string $user_role User role.
-	 *     @type string $requested Requested URL.
-	 *     @type string $expected  Expected URL.
-	 * }
+	 * @return array[]
 	 */
-	public function data_canonical_redirects_to_plain_permalinks() {
+	private function get_canonical_redirects_to_plain_permalinks_cases() {
 		$data              = array();
 		$all_user_list     = array( 'anon', 'subscriber', 'content_author', 'editor' );
 		$select_allow_list = array( 'content_author', 'editor' );
@@ -273,6 +326,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -280,6 +342,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key-post",
 					"/?name=$post_key-post",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+					false,
 				);
 
 				// Ensure rss redirects to rss2.
@@ -288,6 +359,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss2&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss2&p=%ID%',
+					false,
 				);
 
 				// Ensure rss redirects to rss2.
@@ -296,6 +376,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss2&page_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss2&page_id=%ID%',
+					false,
 				);
 			}
 		}
@@ -311,6 +400,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -318,6 +416,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key-post",
 					"/?name=$post_key-post",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+					false,
 				);
 
 				// Ensure rss redirects to rss2.
@@ -326,6 +433,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss2&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss2&p=%ID%',
+					false,
 				);
 
 				// Ensure rss redirects to rss2.
@@ -334,6 +450,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss2&page_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss2&page_id=%ID%',
+					false,
 				);
 			}
 
@@ -347,6 +472,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -354,6 +488,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key-post",
 					"/?name=$post_key-post",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+					false,
 				);
 
 				// Ensure post's existence is not demonstrated by changing rss to rss2.
@@ -362,6 +505,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+					false,
 				);
 
 				// Ensure post's existence is not demonstrated by changing rss to rss2.
@@ -370,6 +522,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss&page_id=%ID%',
+					false,
 				);
 			}
 		}
@@ -385,6 +546,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -392,6 +562,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key-post",
 					"/?name=$post_key-post",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+					false,
 				);
 
 				// Ensure post's existence is not demonstrated by changing rss to rss2.
@@ -400,6 +579,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+					false,
 				);
 
 				// Ensure post's existence is not demonstrated by changing rss to rss2.
@@ -408,6 +596,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss&page_id=%ID%',
+					false,
 				);
 			}
 		}
@@ -423,6 +620,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -430,6 +636,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key-post",
 					"/?name=$post_key-post",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+					false,
 				);
 
 				// Ensure post's existence is not demonstrated by changing rss to rss2.
@@ -438,6 +653,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+					false,
 				);
 
 				// Ensure post's existence is not demonstrated by changing rss to rss2.
@@ -446,6 +670,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss&page_id=%ID%',
+					false,
 				);
 			}
 		}
@@ -457,6 +690,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?p=%ID%',
 					'/?a-public-cpt=a-public-cpt',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?a-public-cpt=a-public-cpt',
+					false,
 				);
 
 				$data[] = array(
@@ -464,6 +706,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID%',
 					'/?attachment_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -471,6 +722,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key&post_type=$post_key",
 					"/?name=$post_key&post_type=$post_key",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/?name=$post_key&post_type=$post_key",
+					false,
 				);
 
 				// Ensure rss is replaced by rss2.
@@ -479,6 +739,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?a-public-cpt=a-public-cpt&feed=rss2',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?a-public-cpt=a-public-cpt&feed=rss2',
+					false,
 				);
 			}
 
@@ -488,6 +757,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?p=%ID%',
 					'/?p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -495,6 +773,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID%',
 					'/?attachment_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -502,6 +789,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key&post_type=$post_key",
 					"/?name=$post_key&post_type=$post_key",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/?name=$post_key&post_type=$post_key",
+					false,
 				);
 
 				// Ensure rss is not replaced with rss2.
@@ -510,6 +806,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+					false,
 				);
 			}
 		}
@@ -521,6 +826,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?p=%ID%',
 					'/?p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -528,6 +842,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID%',
 					'/?attachment_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -535,6 +858,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key&post_type=$post_key",
 					"/?name=$post_key&post_type=$post_key",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/?name=$post_key&post_type=$post_key",
+					false,
 				);
 
 				$data[] = array(
@@ -542,6 +874,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+					false,
 				);
 			}
 		}
@@ -552,32 +893,54 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	/**
 	 * Test canonical redirect does not reveal private slugs.
 	 *
-	 * @ticket 5272
-	 * @dataProvider data_canonical_redirects_to_pretty_permalinks
+	 * Asserts every pretty-permalink case inside one test to avoid repeated
+	 * PHPUnit setup/teardown while preserving each case's mutable state reset
+	 * (attachment pages option, current user) and all expected URLs.
 	 *
-	 * @param string $post_key  Post key used for creating fixtures.
-	 * @param string $user_role User role.
-	 * @param string $requested Requested URL.
-	 * @param string $expected  Expected URL.
+	 * @ticket 5272
+	 * @ticket 66074
 	 */
-	public function test_canonical_redirects_to_pretty_permalinks( $post_key, $user_role, $requested, $expected ) {
-		wp_set_current_user( self::$users[ $user_role ] );
+	public function test_canonical_redirects_to_pretty_permalinks() {
+		// Identical for every case in this method; set once to avoid rewrite churn.
 		$this->set_permalink_structure( '/%postname%/' );
-		$post = self::$posts[ $post_key ];
-		clean_post_cache( $post->ID );
 
-		/*
-		 * The dataProvider runs before the fixures are set up, therefore the
-		 * post object IDs are placeholders that needs to be replaced.
-		 */
-		$requested = str_replace( '%ID%', $post->ID, $requested );
-		$expected  = str_replace( '%ID%', $post->ID, $expected );
+		foreach ( $this->get_canonical_redirects_to_pretty_permalinks_cases() as $case ) {
+			$post_key                = $case[0];
+			$user_role               = $case[1];
+			$requested               = $case[2];
+			$expected                = $case[3];
+			$enable_attachment_pages = array_key_exists( 4, $case ) ? $case[4] : true;
 
-		$this->assertCanonical( $requested, $expected );
+			update_option( 'wp_attachment_pages_enabled', $enable_attachment_pages ? 1 : 0 );
+			wp_set_current_user( self::$users[ $user_role ] );
+
+			$post = self::$posts[ $post_key ];
+			clean_post_cache( $post->ID );
+
+			$requested = str_replace( '%ID%', (string) $post->ID, $requested );
+			$expected  = str_replace( '%ID%', (string) $post->ID, $expected );
+
+			try {
+				$this->assertCanonical( $requested, $expected );
+			} catch ( \PHPUnit\Framework\ExpectationFailedException $e ) {
+				throw new \PHPUnit\Framework\ExpectationFailedException(
+					sprintf(
+						'Canonical mismatch for post_key=%s user_role=%s attachment_pages=%s requested=%s expected=%s. %s',
+						$post_key,
+						$user_role,
+						$enable_attachment_pages ? '1' : '0',
+						$requested,
+						$expected,
+						$e->getMessage()
+					),
+					$e->getComparisonFailure()
+				);
+			}
+		}
 	}
 
 	/**
-	 * Data provider for test_canonical_redirects_to_pretty_permalinks.
+	 * Cases for test_canonical_redirects_to_pretty_permalinks.
 	 *
 	 * @return array[] Array of arguments for tests {
 	 *     @type string $post_key  Post key used for creating fixtures.
@@ -586,7 +949,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 *     @type string $expected  Expected URL.
 	 * }
 	 */
-	public function data_canonical_redirects_to_pretty_permalinks() {
+	private function get_canonical_redirects_to_pretty_permalinks_cases() {
 		$data              = array();
 		$all_user_list     = array( 'anon', 'subscriber', 'content_author', 'editor' );
 		$select_allow_list = array( 'content_author', 'editor' );
@@ -605,6 +968,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?p=%ID%',
 					"/$post_key-post/",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					"/$post_key-post/",
+					false,
 				);
 
 				$data[] = array(
@@ -612,6 +984,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID%',
 					"/$post_key-post/$post_key-inherited-attachment/",
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -619,6 +1000,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?post_type=page&p=%ID%',
 					"/$post_key-page/",
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?post_type=page&p=%ID%',
+					"/$post_key-page/",
+					false,
 				);
 
 				$data[] = array(
@@ -626,6 +1016,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?page_id=%ID%',
 					"/$post_key-page/",
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?page_id=%ID%',
+					"/$post_key-page/",
+					false,
 				);
 
 				$data[] = array(
@@ -633,6 +1032,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key-post",
 					"/$post_key-post/",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/$post_key-post/",
+					false,
 				);
 
 				$data[] = array(
@@ -640,6 +1048,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					"/$post_key-post/feed/",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					"/$post_key-post/feed/",
+					false,
 				);
 
 				$data[] = array(
@@ -647,6 +1064,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					"/$post_key-page/feed/",
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					"/$post_key-page/feed/",
+					false,
 				);
 			}
 		}
@@ -658,6 +1084,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?p=%ID%',
 					"/$post_key-post/",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					"/$post_key-post/",
+					false,
 				);
 
 				$data[] = array(
@@ -665,6 +1100,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID%',
 					"/$post_key-post/$post_key-inherited-attachment/",
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -672,6 +1116,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?post_type=page&p=%ID%',
 					"/$post_key-page/",
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?post_type=page&p=%ID%',
+					"/$post_key-page/",
+					false,
 				);
 
 				$data[] = array(
@@ -679,6 +1132,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?page_id=%ID%',
 					"/$post_key-page/",
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?page_id=%ID%',
+					"/$post_key-page/",
+					false,
 				);
 
 				$data[] = array(
@@ -686,6 +1148,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key-post",
 					"/$post_key-post/",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/$post_key-post/",
+					false,
 				);
 
 				$data[] = array(
@@ -693,6 +1164,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					"/$post_key-post/feed/",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					"/$post_key-post/feed/",
+					false,
 				);
 
 				$data[] = array(
@@ -700,6 +1180,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					"/$post_key-page/feed/",
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					"/$post_key-page/feed/",
+					false,
 				);
 			}
 
@@ -709,6 +1198,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?p=%ID%',
 					'/?p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -716,6 +1214,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID%',
 					'/?attachment_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -723,6 +1230,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -730,6 +1246,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?page_id=%ID%',
 					'/?page_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?page_id=%ID%',
+					'/?page_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -737,6 +1262,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key-post",
 					"/?name=$post_key-post",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+					false,
 				);
 
 				$data[] = array(
@@ -744,6 +1278,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -751,6 +1294,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss&page_id=%ID%',
+					false,
 				);
 			}
 		}
@@ -762,6 +1314,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?p=%ID%',
 					"/$post_key/$post_key/",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					"/$post_key/$post_key/",
+					false,
 				);
 
 				$data[] = array(
@@ -769,6 +1330,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID%',
 					"/$post_key/$post_key/$post_key-inherited-attachment/",
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -776,6 +1346,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key&post_type=$post_key",
 					"/$post_key/$post_key/?post_type=$post_key",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/$post_key/$post_key/?post_type=$post_key",
+					false,
 				);
 
 				$data[] = array(
@@ -783,6 +1362,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					"/$post_key/$post_key/feed/",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					"/$post_key/$post_key/feed/",
+					false,
 				);
 			}
 
@@ -792,6 +1380,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?p=%ID%',
 					'/?p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -799,6 +1396,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID%',
 					'/?attachment_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -806,6 +1412,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key&post_type=$post_key",
 					"/?name=$post_key&post_type=$post_key",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/?name=$post_key&post_type=$post_key",
+					false,
 				);
 
 				$data[] = array(
@@ -813,6 +1428,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+					false,
 				);
 			}
 		}
@@ -824,6 +1448,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?p=%ID%',
 					'/?p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -831,7 +1464,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID%',
 					'/?attachment_id=%ID%',
-					// "/$post_key-inherited-attachment/",
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -839,6 +1480,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key&post_type=$post_key",
 					"/?name=$post_key&post_type=$post_key",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/?name=$post_key&post_type=$post_key",
+					false,
 				);
 
 				$data[] = array(
@@ -846,6 +1496,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+					false,
 				);
 			}
 		}
@@ -857,6 +1516,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?p=%ID%',
 					'/?p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -864,6 +1532,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID%',
 					'/?attachment_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -871,6 +1548,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -878,6 +1564,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?page_id=%ID%',
 					'/?page_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?page_id=%ID%',
+					'/?page_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -885,6 +1580,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key-post",
 					"/?name=$post_key-post",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+					false,
 				);
 
 				$data[] = array(
@@ -892,6 +1596,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -899,6 +1612,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss&page_id=%ID%',
+					false,
 				);
 			}
 		}
@@ -910,6 +1632,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?p=%ID%',
 					'/?p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -917,6 +1648,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID%',
 					'/?attachment_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -924,6 +1664,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/trash-post/trash-post-inherited-attachment/',
 					'/?attachment_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/trash-post/trash-post-inherited-attachment/',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -931,6 +1680,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/trash-post__trashed/trash-post-inherited-attachment/',
 					'/?attachment_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/trash-post__trashed/trash-post-inherited-attachment/',
+					'/?attachment_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -938,6 +1696,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -945,6 +1712,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?page_id=%ID%',
 					'/?page_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?page_id=%ID%',
+					'/?page_id=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -952,6 +1728,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					"/?name=$post_key-post",
 					"/?name=$post_key-post",
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+					false,
 				);
 
 				$data[] = array(
@@ -959,6 +1744,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&p=%ID%',
 					'/?feed=rss&p=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+					false,
 				);
 
 				$data[] = array(
@@ -966,6 +1760,15 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
+					true,
+				);
+
+				$data[] = array(
+					"$post_key-page",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss&page_id=%ID%',
+					false,
 				);
 			}
 		}

@@ -31,6 +31,112 @@ class Tests_Cron extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the scheduled publication hook publishes a post whose date is due.
+	 *
+	 * @ticket 65772
+	 * @group post
+	 * @covers ::check_and_publish_future_post
+	 */
+	public function test_scheduled_post_should_publish_when_due() {
+		global $wpdb;
+
+		$future_date = gmdate( 'Y-m-d H:i:s', $this->plus_thirty_minutes );
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_status'   => 'future',
+				'post_date'     => get_date_from_gmt( $future_date ),
+				'post_date_gmt' => $future_date,
+			)
+		);
+		$event       = wp_get_scheduled_event( 'publish_future_post', array( $post_id ) );
+
+		$this->assertNotFalse( $event, 'Creating a future post should schedule publication.' );
+
+		// Make the post due without letting wp_update_post() publish it during setup.
+		$past_date = gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS );
+		$this->assertSame(
+			1,
+			$wpdb->update(
+				$wpdb->posts,
+				array(
+					'post_date'     => get_date_from_gmt( $past_date ),
+					'post_date_gmt' => $past_date,
+				),
+				array( 'ID' => $post_id )
+			)
+		);
+		clean_post_cache( $post_id );
+		$this->assertSame( 'future', get_post_status( $post_id ), 'Setup must not publish the post.' );
+
+		// Cron removes a single event before calling its hook.
+		$this->assertTrue( wp_unschedule_event( $event->timestamp, $event->hook, $event->args ) );
+
+		// Exercise the registered callback with the scheduled event's real arguments.
+		do_action_ref_array( $event->hook, $event->args );
+
+		clean_post_cache( $post_id );
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
+		$this->assertFalse( wp_next_scheduled( 'publish_future_post', array( $post_id ) ) );
+	}
+
+	/**
+	 * Tests that an early publication hook leaves the post scheduled for its date.
+	 *
+	 * @ticket 65772
+	 * @group post
+	 * @covers ::check_and_publish_future_post
+	 */
+	public function test_scheduled_post_should_not_publish_before_due() {
+		$future_date = gmdate( 'Y-m-d H:i:s', $this->plus_thirty_minutes );
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_status'   => 'future',
+				'post_date'     => get_date_from_gmt( $future_date ),
+				'post_date_gmt' => $future_date,
+			)
+		);
+		$event       = wp_get_scheduled_event( 'publish_future_post', array( $post_id ) );
+
+		$this->assertNotFalse( $event );
+		$this->assertSame( 'future', get_post_status( $post_id ) );
+
+		// Cron removes a single event before calling its hook. An early call must reschedule it.
+		$this->assertTrue( wp_unschedule_event( $event->timestamp, $event->hook, $event->args ) );
+		$this->assertFalse( wp_next_scheduled( 'publish_future_post', array( $post_id ) ) );
+
+		do_action_ref_array( $event->hook, $event->args );
+
+		clean_post_cache( $post_id );
+		$this->assertSame( 'future', get_post_status( $post_id ) );
+		$this->assertSame( $this->plus_thirty_minutes, wp_next_scheduled( 'publish_future_post', array( $post_id ) ) );
+	}
+
+	/**
+	 * @ticket 65772
+	 * @group post
+	 * @covers ::check_and_publish_future_post
+	 */
+	public function test_draft_post_should_not_publish_when_scheduled_hook_fires() {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+
+		do_action_ref_array( 'publish_future_post', array( $post_id ) );
+
+		clean_post_cache( $post_id );
+		$this->assertSame( 'draft', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * @ticket 65772
+	 * @group post
+	 * @covers ::check_and_publish_future_post
+	 */
+	public function test_missing_post_should_be_ignored_when_scheduled_hook_fires() {
+		do_action_ref_array( 'publish_future_post', array( PHP_INT_MAX ) );
+
+		$this->assertFalse( wp_next_scheduled( 'publish_future_post', array( PHP_INT_MAX ) ) );
+	}
+
+	/**
 	 * @covers ::wp_get_schedule
 	 */
 	public function test_wp_get_schedule_empty() {
@@ -460,7 +566,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		$this->preflight_cron_array[ $event->timestamp ][ $event->hook ][ $key ] = array(
 			'schedule' => $event->schedule,
-			'interval' => isset( $event->interval ) ? $event->interval : 0,
+			'interval' => $event->interval ?? 0,
 			'args'     => $event->args,
 		);
 		uksort( $this->preflight_cron_array, 'strnatcasecmp' );
@@ -488,7 +594,10 @@ class Tests_Cron extends WP_UnitTestCase {
 		add_filter( 'pre_reschedule_event', '__return_true' );
 
 		// Reschedule event with preflight filter in place.
-		wp_reschedule_event( $ts1, 'daily', $hook );
+		$rescheduled = wp_reschedule_event( $ts1, 'daily', $hook );
+
+		// Check return value.
+		$this->assertTrue( $rescheduled );
 
 		// Check cron option is unchanged.
 		$this->assertSame( $expected, _get_cron_array() );
@@ -576,6 +685,7 @@ class Tests_Cron extends WP_UnitTestCase {
 			'args'      => array(),
 		);
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $actual );
 		$this->assertSame( $expected->timestamp, $actual2 );
 	}
@@ -595,7 +705,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * When no timestamp is specified, the next event should be returned.
 	 * When a timestamp is specified, a particular event should be returned.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
@@ -625,12 +735,15 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_single_event( $ts_next, $hook, $args );
 
 		// Late running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected1, wp_get_scheduled_event( $hook, $args, $ts_late ) );
 
 		// Next running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args, $ts_next ) );
 
 		// Next running, no timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args ) );
 	}
 
@@ -640,7 +753,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * When no timestamp is specified, the next event should be returned.
 	 * When a timestamp is specified, a particular event should be returned.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
@@ -674,19 +787,22 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_event( $ts_next, $schedule, $hook, $args );
 
 		// Late running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected1, wp_get_scheduled_event( $hook, $args, $ts_late ) );
 
 		// Next running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args, $ts_next ) );
 
 		// Next running, no timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args ) );
 	}
 
 	/**
 	 * Ensure wp_get_scheduled_event() returns false when expected.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
@@ -915,7 +1031,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
@@ -947,7 +1063,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
@@ -1020,6 +1136,53 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		$this->assertWPError( $rescheduled_event );
 		$this->assertSame( 'pre_reschedule_event_false', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 57271
+	 *
+	 * @dataProvider data_wp_reschedule_event_works_with_args
+	 *
+	 * @covers ::wp_reschedule_event
+	 */
+	public function test_wp_reschedule_event_works_with_args( array $args ) {
+		$time = time();
+
+		// Schedule events with the `$wp_error` parameter:
+		$event             = wp_schedule_event( $time, 'daily', 'hook', $args, true );
+		$rescheduled_event = wp_reschedule_event( $time, 'daily', 'hook', $args, true );
+		$unscheduled_event = wp_unschedule_event( $time, 'hook', $args, true );
+		$next_timestamp    = wp_next_scheduled( 'hook', $args );
+
+		// Ensure the events were added and updated correctly:
+		$this->assertNotWPError( $event );
+		$this->assertNotWPError( $rescheduled_event );
+		$this->assertNotWPError( $unscheduled_event );
+		$this->assertSame( $time + DAY_IN_SECONDS, $next_timestamp );
+	}
+
+	/**
+	 * Data provider for test_wp_reschedule_event_works_with_args().
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_reschedule_event_works_with_args() {
+		return array(
+			'indexed'     => array(
+				array(
+					1,
+					2,
+					3,
+				),
+			),
+			'associative' => array(
+				array(
+					'one'   => 1,
+					'two'   => 2,
+					'three' => 3,
+				),
+			),
+		);
 	}
 
 	/**
@@ -1112,7 +1275,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
@@ -1137,7 +1300,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
@@ -1279,5 +1442,28 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertTrue( $event );
 		$this->assertWPError( $unscheduled );
 		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
+	}
+
+	/**
+	 * @ticket 63858
+	 *
+	 * @covers ::wp_cron
+	 */
+	public function test_wp_cron_before_shutdown() {
+		remove_all_actions( 'shutdown' );
+		wp_cron();
+		$this->assertSame( 10, has_action( 'shutdown', '_wp_cron' ), 'Expected _wp_cron() to be scheduled for shutdown.' );
+	}
+
+	/**
+	 * @ticket 63858
+	 *
+	 * @covers ::wp_cron
+	 */
+	public function test_wp_cron_already_at_shutdown() {
+		remove_all_actions( 'shutdown' );
+		add_action( 'shutdown', 'wp_cron' );
+		do_action( 'shutdown' );
+		$this->assertFalse( has_action( 'shutdown', '_wp_cron' ), 'Expected wp_cron() to not add _wp_cron() to run at shutdown.' );
 	}
 }

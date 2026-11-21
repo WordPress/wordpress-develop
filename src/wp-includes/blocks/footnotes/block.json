@@ -4,11 +4,21 @@
 	"name": "core/footnotes",
 	"title": "Footnotes",
 	"category": "text",
-	"description": "",
+	"description": "Display footnotes added to the page.",
 	"keywords": [ "references" ],
 	"textdomain": "default",
 	"usesContext": [ "postId", "postType" ],
 	"supports": {
+		"anchor": true,
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"gradient": true,
+			"__experimentalDefaultControls": {
+				"backgroundImage": true,
+				"gradient": true
+			}
+		},
 		"__experimentalBorder": {
 			"radius": true,
 			"color": true,
@@ -33,6 +43,8 @@
 		"html": false,
 		"multiple": false,
 		"reusable": false,
+		"inserter": false,
+		"shadow": true,
 		"spacing": {
 			"margin": true,
 			"padding": true,
@@ -40,6 +52,10 @@
 				"margin": false,
 				"padding": false
 			}
+		},
+		"dimensions": {
+			"minHeight": true,
+			"minWidth": true
 		},
 		"typography": {
 			"fontSize": true,
@@ -54,6 +70,9 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"interactivity": {
+			"clientNavigation": true
 		}
 	},
 	"style": "wp-block-footnotes"

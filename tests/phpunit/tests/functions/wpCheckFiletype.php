@@ -28,9 +28,9 @@ class Tests_Functions_WpCheckFiletype extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return[]
+	 * @return array[]
 	 */
-	public function data_wp_check_filetype() {
+	public static function data_wp_check_filetype() {
 		return array(
 			'.jpg filename and default allowed'       => array(
 				'filename' => 'canola.jpg',
@@ -105,7 +105,6 @@ class Tests_Functions_WpCheckFiletype extends WP_UnitTestCase {
 					'type' => false,
 				),
 			),
-
 		);
 	}
 }

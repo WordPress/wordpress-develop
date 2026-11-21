@@ -6,6 +6,11 @@
  * @subpackage Administration
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * The current page.
  *
@@ -98,7 +103,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		} else {
 			$class[] = 'wp-not-current-submenu';
 			if ( ! empty( $submenu_items ) ) {
-				$aria_attributes .= 'aria-haspopup="true"';
+				$aria_attributes .= 'data-ariahaspopup';
 			}
 		}
 
@@ -106,7 +111,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 			$class[] = esc_attr( $item[4] );
 		}
 
-		$class     = $class ? ' class="' . implode( ' ', $class ) . '"' : '';
+		$class     = ' class="' . implode( ' ', $class ) . '"';
 		$id        = ! empty( $item[5] ) ? ' id="' . preg_replace( '|[^a-zA-Z0-9_:.]|', '-', $item[5] ) . '"' : '';
 		$img       = '';
 		$img_style = '';
@@ -120,10 +125,17 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		 * If the string 'none' (previously 'div') is passed instead of a URL, don't output
 		 * the default menu image so an icon can be added to div.wp-menu-image as background
 		 * with CSS. Dashicons and base64-encoded data:image/svg_xml URIs are also handled
-		 * as special cases.
+		 * as special cases. Namespaced icon names are rendered as inline SVG, or leave the
+		 * menu image empty if the icon is not found. Any other value is treated as an image URL.
+		 *
+		 * Dashicons back-compat: the `$menu` global keeps the Dashicons of the menu items,
+		 * including the core ones. Dashicons with a registered replacement icon are only
+		 * mapped to it here, when the menu is rendered, and other Dashicons are rendered
+		 * with the Dashicons font.
 		 */
 		if ( ! empty( $item[6] ) ) {
-			$img = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
+			$img       = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
+			$icon_name = WP_Icons_Registry::get_instance()->get_admin_icon_name_for_dashicon( $item[6] ) ?? $item[6];
 
 			if ( 'none' === $item[6] || 'div' === $item[6] ) {
 				$img = '<br />';
@@ -132,12 +144,29 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				// The value is base64-encoded data, so esc_attr() is used here instead of esc_url().
 				$img_style = ' style="background-image:url(\'' . esc_attr( $item[6] ) . '\')"';
 				$img_class = ' svg';
+			} elseif ( wp_is_valid_icon_name( $icon_name ) ) {
+				$img  = '<br />';
+				$icon = wp_get_icon( $icon_name );
+				if ( '' !== $icon ) {
+					$img       = $icon;
+					$img_class = ' dashicons-before svg-icon';
+				} elseif ( ! WP_Icons_Registry::get_instance()->is_registered( $icon_name ) ) {
+					_doing_it_wrong(
+						__FUNCTION__,
+						sprintf(
+							/* translators: 1: Icon name, 2: Admin menu item slug. */
+							__( 'The icon "%1$s" of the admin menu item "%2$s" is not registered.' ),
+							$icon_name,
+							$item[2]
+						),
+						'7.2.0'
+					);
+				}
 			} elseif ( str_starts_with( $item[6], 'dashicons-' ) ) {
 				$img       = '<br />';
 				$img_class = ' dashicons-before ' . sanitize_html_class( $item[6] );
 			}
 		}
-		$arrow = '<div class="wp-menu-arrow"><div></div></div>';
 
 		$title = wptexturize( $item[0] );
 
@@ -166,9 +195,9 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 					&& ! file_exists( ABSPATH . "/wp-admin/$menu_file" ) )
 			) {
 				$admin_is_parent = true;
-				echo "<a href='admin.php?page={$submenu_items[0][2]}'$class $aria_attributes>$arrow<div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>$title</div></a>";
+				echo "<a href='admin.php?page={$submenu_items[0][2]}'$class $aria_attributes><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>$title</div></a>";
 			} else {
-				echo "\n\t<a href='{$submenu_items[0][2]}'$class $aria_attributes>$arrow<div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>$title</div></a>";
+				echo "\n\t<a href='{$submenu_items[0][2]}'$class $aria_attributes><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>$title</div></a>";
 			}
 		} elseif ( ! empty( $item[2] ) && current_user_can( $item[1] ) ) {
 			$menu_hook = get_plugin_page_hook( $item[2], 'admin.php' );
@@ -185,9 +214,9 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 					&& ! file_exists( ABSPATH . "/wp-admin/$menu_file" ) )
 			) {
 				$admin_is_parent = true;
-				echo "\n\t<a href='admin.php?page={$item[2]}'$class $aria_attributes>$arrow<div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>{$item[0]}</div></a>";
+				echo "\n\t<a href='admin.php?page={$item[2]}'$class $aria_attributes><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>{$item[0]}</div></a>";
 			} else {
-				echo "\n\t<a href='{$item[2]}'$class $aria_attributes>$arrow<div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>{$item[0]}</div></a>";
+				echo "\n\t<a href='{$item[2]}'$class $aria_attributes><div class='wp-menu-image$img_class'$img_style aria-hidden='true'>$img</div><div class='wp-menu-name'>{$item[0]}</div></a>";
 			}
 		}
 
@@ -278,9 +307,9 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 	}
 
 	echo '<li id="collapse-menu" class="hide-if-no-js">' .
-		'<button type="button" id="collapse-button" aria-label="' . esc_attr__( 'Collapse Main menu' ) . '" aria-expanded="true">' .
-		'<span class="collapse-button-icon" aria-hidden="true"></span>' .
-		'<span class="collapse-button-label">' . __( 'Collapse menu' ) . '</span>' .
+		'<button type="button" id="collapse-button" aria-label="' . esc_attr__( 'Collapse Main Menu' ) . '" aria-expanded="true">' .
+		'<span class="collapse-button-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/chevron-left' ) . '</span>' .
+		'<span class="collapse-button-label">' . __( 'Collapse Menu' ) . '</span>' .
 		'</button></li>';
 }
 

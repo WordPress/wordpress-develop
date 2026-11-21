@@ -16,6 +16,7 @@ use WpOrg\Requests\Ssl;
 use WpOrg\Requests\Transport;
 use WpOrg\Requests\Utility\CaseInsensitiveDictionary;
 use WpOrg\Requests\Utility\InputValidator;
+use WpOrg\Requests\Utility\Trim;
 
 /**
  * fsockopen HTTP transport
@@ -144,7 +145,17 @@ final class Fsockopen implements Transport {
 				$verifyname                          = false;
 			}
 
-			stream_context_set_option($context, ['ssl' => $context_options]);
+			// Handle the PHP 8.4 deprecation (PHP 9.0 removal) of the function signature we use for stream_context_set_option().
+			// Ref: https://wiki.php.net/rfc/deprecate_functions_with_overloaded_signatures#stream_context_set_option
+			if (function_exists('stream_context_set_options')) {
+				// PHP 8.3+.
+				// phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.stream_context_set_optionsFound
+				stream_context_set_options($context, ['ssl' => $context_options]);
+			} else {
+				// PHP < 8.3.
+				// phpcs:ignore PHPCompatibility.FunctionUse.OptionalToRequiredFunctionParameters
+				stream_context_set_option($context, ['ssl' => $context_options]);
+			}
 		} else {
 			$remote_socket = 'tcp://' . $host;
 		}
@@ -173,7 +184,7 @@ final class Fsockopen implements Transport {
 		if (!$socket) {
 			if ($errno === 0) {
 				// Connection issue
-				throw new Exception(rtrim($this->connect_error), 'fsockopen.connect_error');
+				throw new Exception(rtrim($this->connect_error, Trim::WHITESPACE_CHARS), 'fsockopen.connect_error');
 			}
 
 			throw new Exception($errstr, 'fsockopenerror', null, $errno);
@@ -476,7 +487,7 @@ final class Fsockopen implements Transport {
 		// If we don't have SSL options, then we couldn't make the connection at
 		// all
 		if (empty($meta) || empty($meta['ssl']) || empty($meta['ssl']['peer_certificate'])) {
-			throw new Exception(rtrim($this->connect_error), 'ssl.connect_error');
+			throw new Exception(rtrim($this->connect_error, Trim::WHITESPACE_CHARS), 'ssl.connect_error');
 		}
 
 		$cert = openssl_x509_parse($meta['ssl']['peer_certificate']);

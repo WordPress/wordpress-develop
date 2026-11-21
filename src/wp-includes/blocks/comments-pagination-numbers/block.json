@@ -9,8 +9,12 @@
 	"textdomain": "default",
 	"usesContext": [ "postId" ],
 	"supports": {
+		"anchor": true,
 		"reusable": false,
 		"html": false,
+		"background": {
+			"gradient": true
+		},
 		"color": {
 			"gradients": true,
 			"text": false,
@@ -29,6 +33,16 @@
 			"__experimentalLetterSpacing": true,
 			"__experimentalDefaultControls": {
 				"fontSize": true
+			}
+		},
+		"interactivity": {
+			"clientNavigation": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"__experimentalDefaultControls": {
+				"padding": true
 			}
 		}
 	}

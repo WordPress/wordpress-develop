@@ -20,7 +20,15 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		unset( $_SERVER['CONTENT_TYPE'], $_GET['_locale'], $_COOKIE['wp_lang'], $GLOBALS['pagenow'] );
+		unset(
+			$_SERVER['CONTENT_TYPE'],
+			$_GET['_locale'],
+			$_COOKIE['wp_lang'],
+			$GLOBALS['pagenow'],
+			$GLOBALS['wp_local_package'],
+			$_REQUEST['language']
+		);
+		wp_installing( false );
 
 		parent::tear_down();
 	}
@@ -272,5 +280,65 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 		$_COOKIE['wp_lang'] = '';
 
 		$this->assertSame( 'siteLocale', determine_locale() );
+	}
+
+	public function test_language_param_not_installing() {
+		$_REQUEST['language'] = 'de_DE';
+		$this->assertSame( 'en_US', determine_locale() );
+	}
+
+	public function test_language_param_installing() {
+		$_REQUEST['language'] = 'de_DE';
+		wp_installing( true );
+		$this->assertSame( 'de_DE', determine_locale() );
+	}
+
+	public function test_language_param_installing_incorrect_string() {
+		$_REQUEST['language'] = '####';  // Something sanitize_locale_name() strips away.
+		wp_installing( true );
+		$this->assertSame( 'en_US', determine_locale() );
+	}
+
+	public function test_wp_local_package_global_not_installing() {
+		$GLOBALS['wp_local_package'] = 'de_DE';
+		$this->assertSame( 'en_US', determine_locale() );
+	}
+	public function test_wp_local_package_global_installing() {
+		$GLOBALS['wp_local_package'] = 'de_DE';
+		wp_installing( true );
+		$this->assertSame( 'de_DE', determine_locale() );
+	}
+
+	/**
+	 * @ticket 66106
+	 */
+	public function test_wp_login_get_param_on_login_page_array(): void {
+		$GLOBALS['pagenow'] = 'wp-login.php';
+		$_GET['wp_lang']    = array( 'de_DE' );
+
+		$this->assertSame( 'en_US', determine_locale() );
+	}
+
+	/**
+	 * An array locale reaches WP_Textdomain_Registry::get(), which uses it as
+	 * an array key and throws a TypeError, so translating any string for an
+	 * unloaded text domain ends the request.
+	 *
+	 * @ticket 66106
+	 */
+	public function test_array_wp_lang_param_does_not_fatal_in_the_textdomain_registry(): void {
+		$GLOBALS['pagenow'] = 'wp-login.php';
+		$_GET['wp_lang']    = array( 'de_DE' );
+
+		$this->assertSame( 'Some text', __( 'Some text', 'my-login-plugin' ) );
+	}
+
+	/**
+	 * @ticket 66106
+	 */
+	public function test_ignores_a_non_string_determine_locale_filter(): void {
+		add_filter( 'determine_locale', '__return_empty_array' );
+
+		$this->assertSame( 'en_US', determine_locale() );
 	}
 }

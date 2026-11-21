@@ -15,13 +15,6 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	public function _make_attachment( $file, $parent_post_id = 0 ) {
-		$contents = file_get_contents( $file );
-		$upload   = wp_upload_bits( wp_basename( $file ), null, $contents );
-
-		return parent::_make_attachment( $upload, $parent_post_id );
-	}
-
 	public function test_make_intermediate_size_no_size() {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 0, 0, false );
 
@@ -35,6 +28,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 0, false );
 
 		$this->assertIsArray( $image );
+
+		unlink( DIR_TESTDATA . '/images/' . $image['file'] );
 	}
 
 	/**
@@ -44,6 +39,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 0, 75, false );
 
 		$this->assertIsArray( $image );
+
+		unlink( DIR_TESTDATA . '/images/' . $image['file'] );
 	}
 
 	/**
@@ -96,7 +93,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'test-size', 330, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = self::factory()->attachment->create_upload_object( $file );
 
 		// Look for a size by name.
 		$image = image_get_intermediate_size( $id, 'test-size' );
@@ -114,13 +111,13 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 * @requires function imagejpeg
 	 */
 	public function test_get_intermediate_sizes_by_array_exact() {
-		// Only one dimention match shouldn't return false positive (see: #17626).
+		// Only one dimension match shouldn't return false positive (see: #17626).
 		add_image_size( 'test-size', 330, 220, true );
 		add_image_size( 'false-height', 330, 400, true );
 		add_image_size( 'false-width', 600, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = self::factory()->attachment->create_upload_object( $file );
 
 		// Look for a size by array that exists.
 		// Note: Staying larger than 300px to miss default medium crop.
@@ -143,7 +140,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-width', 150, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = self::factory()->attachment->create_upload_object( $file );
 
 		// Look for a size by array that doesn't exist.
 		// Note: Staying larger than 300px to miss default medium crop.
@@ -165,7 +162,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-width', 150, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = self::factory()->attachment->create_upload_object( $file );
 
 		// Look for a size by array that doesn't exist.
 		// Note: Staying larger than 300px to miss default medium crop.
@@ -184,12 +181,12 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		// Use this width.
 		$width = 300;
 
-		// Only one dimention match shouldn't return false positive (see: #17626).
+		// Only one dimension match shouldn't return false positive (see: #17626).
 		add_image_size( 'test-size', $width, 0, false );
 		add_image_size( 'false-height', $width, 100, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = self::factory()->attachment->create_upload_object( $file );
 
 		$original = wp_get_attachment_metadata( $id );
 		$image_w  = $width;
@@ -213,12 +210,12 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		// 202 is the smallest height that will trigger a miss for 'false-height'.
 		$height = 202;
 
-		// Only one dimention match shouldn't return false positive (see: #17626).
+		// Only one dimension match shouldn't return false positive (see: #17626).
 		add_image_size( 'test-size', 0, $height, false );
 		add_image_size( 'false-height', 300, $height, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = self::factory()->attachment->create_upload_object( $file );
 
 		$original = wp_get_attachment_metadata( $id );
 		$image_h  = $height;
@@ -245,7 +242,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'off-by-one', $width, $height, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = self::factory()->attachment->create_upload_object( $file );
 
 		$original = wp_get_attachment_metadata( $id );
 		$image_h  = $height;
@@ -267,7 +264,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'test-size', 200, 100, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = self::factory()->attachment->create_upload_object( $file );
 
 		// Request a size by array that doesn't exist and is smaller than the 'thumbnail'.
 		$image = image_get_intermediate_size( $id, array( 50, 25 ) );
@@ -282,7 +279,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 */
 	public function test_get_intermediate_size_with_small_size_array_fallback() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id   = $this->_make_attachment( $file, 0 );
+		$id   = self::factory()->attachment->create_upload_object( $file );
 
 		$original       = wp_get_attachment_metadata( $id );
 		$thumbnail_file = $original['sizes']['thumbnail']['file'];

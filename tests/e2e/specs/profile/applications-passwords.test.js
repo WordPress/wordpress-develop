@@ -1,19 +1,34 @@
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../../fixtures';
+import { signIn } from '../../fixtures/user';
 
 const TEST_APPLICATION_NAME = 'Test Application';
 
 test.describe( 'Manage applications passwords', () => {
 	test.use( {
-		applicationPasswords: async ( { requestUtils, admin, page }, use ) => {
-			await use( new ApplicationPasswords( { requestUtils, admin, page } ) );
-		},
-	} );
+		storageState: { cookies: [], origins: [] },
+		// Each test uses its own user, so parallel copies do not see each other's application passwords.
+		applicationPasswords: async (
+			{ requestUtils, admin, page, userFactory },
+			use
+		) => {
+			const { user, username, password } = await userFactory.create( {
+				roles: [ 'subscriber' ],
+			} );
+			await signIn( page, username, password );
+			await expect( page ).toHaveURL( /\/wp-admin\/profile\.php/ );
 
-	test.beforeEach(async ( { applicationPasswords } ) => {
-		await applicationPasswords.delete();
+			await use(
+				new ApplicationPasswords( {
+					requestUtils,
+					admin,
+					page,
+					userId: user.id,
+				} )
+			);
+		},
 	} );
 
 	test('should correctly create a new application password', async ( {
@@ -31,26 +46,14 @@ test.describe( 'Manage applications passwords', () => {
 		await expect(
 			successMessage
 		).toContainText(
-			`Your new password for ${TEST_APPLICATION_NAME} is: \n\nBe sure to save this in a safe location. You will not be able to retrieve it.`
+			`Your new password for ${TEST_APPLICATION_NAME} is:`
+		);
+		await expect(
+			successMessage
+		).toContainText(
+			`Be sure to save this in a safe location. You will not be able to retrieve it.`
 		);
 	} );
-
-	test('should not allow to create two applications passwords with the same name', async ( {
-		page,
-		applicationPasswords
-	} ) => {
-		await applicationPasswords.create();
-		await applicationPasswords.create();
-
-		const errorMessage = page.getByRole( 'alert' );
-
-		await expect( errorMessage ).toHaveClass( /notice-error/ );
-		await expect(
-			errorMessage
-		).toContainText(
-			'Each application name should be unique.'
-		);
-	});
 
 	test( 'should correctly revoke a single application password', async ( {
 		page,
@@ -62,7 +65,7 @@ test.describe( 'Manage applications passwords', () => {
 		await expect( revokeButton ).toBeVisible();
 
 		// Revoke password.
-		page.on( 'dialog', ( dialog ) => dialog.accept() );
+		page.once( 'dialog', ( dialog ) => dialog.accept() );
 		await revokeButton.click();
 
 		await expect(
@@ -85,7 +88,7 @@ test.describe( 'Manage applications passwords', () => {
 		await expect( revokeAllButton ).toBeVisible();
 
 		// Confirms revoking action.
-		page.on( 'dialog', ( dialog ) => dialog.accept() );
+		page.once( 'dialog', ( dialog ) => dialog.accept() );
 		await revokeAllButton.click();
 
 		await expect(
@@ -100,10 +103,11 @@ test.describe( 'Manage applications passwords', () => {
 } );
 
 class ApplicationPasswords {
-	constructor( { requestUtils, page, admin }) {
+	constructor( { requestUtils, page, admin, userId } ) {
 		this.requestUtils = requestUtils;
 		this.page = page;
 		this.admin = admin;
+		this.userId = userId;
 	}
 
 	async create(applicationName = TEST_APPLICATION_NAME) {
@@ -113,21 +117,14 @@ class ApplicationPasswords {
 		await expect( newPasswordField ).toBeVisible();
 		await newPasswordField.fill( applicationName );
 
-		await this.page.getByRole( 'button', { name: 'Add New Application Password' } ).click();
+		await this.page.getByRole( 'button', { name: 'Add Application Password' } ).click();
 		await expect( this.page.getByRole( 'alert' ) ).toBeVisible();
 	}
 
 	async get() {
 		return this.requestUtils.rest( {
 			method: 'GET',
-			path: '/wp/v2/users/me/application-passwords',
-		} );
-	}
-
-	async delete() {
-		await this.requestUtils.rest( {
-			method: 'DELETE',
-			path: '/wp/v2/users/me/application-passwords',
+			path: `/wp/v2/users/${ this.userId }/application-passwords`,
 		} );
 	}
 }

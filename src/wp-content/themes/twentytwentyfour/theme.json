@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.5/theme.json",
 	"version": 2,
 	"patterns": [
 		"three-columns-of-services",
@@ -153,6 +153,9 @@
 				}
 			]
 		},
+		"custom": {
+			"inputBorderColor": "#757575"
+		},
 		"layout": {
 			"contentSize": "620px",
 			"wideSize": "1280px"
@@ -247,7 +250,7 @@
 				{
 					"fontFamily": "Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol",
 					"name": "System Serif",
-					"slug": "system-Serif"
+					"slug": "system-serif"
 				}
 			],
 			"fontSizes": [
@@ -520,7 +523,7 @@
 				}
 			},
 			"core/loginout": {
-				"css": "& input{border-radius:.33rem;padding:calc(0.667em + 2px);border:1px solid #949494;}"
+				"css": "& input{border-radius:.33rem;padding:calc(0.667em + 2px);border:1px solid var(--wp--custom--input-border-color);}"
 			},
 			"core/navigation": {
 				"elements": {
@@ -724,7 +727,7 @@
 				}
 			},
 			"core/search": {
-				"css": "& .wp-block-search__input{border-radius:.33rem}",
+				"css": "& .wp-block-search__input{border-radius:.33rem}&.wp-block-search__button-inside .wp-block-search__inside-wrapper{border-color:var(--wp--custom--input-border-color)}",
 				"typography": {
 					"fontSize": "var(--wp--preset--font-size--small)"
 				},
@@ -795,9 +798,7 @@
 					},
 					"outline": {
 						"color": "var(--wp--preset--color--contrast)",
-						"offset": "2px",
-						"style": "dotted",
-						"width": "1px"
+						"offset": "2px"
 					},
 					"border": {
 						"color": "var(--wp--preset--color--contrast-2)"
@@ -893,6 +894,11 @@
 				"color": {
 					"text": "var(--wp--preset--color--contrast)"
 				}
+			},
+			"textInput": {
+				"border": {
+					"color": "var(--wp--custom--input-border-color)"
+				}
 			}
 		},
 		"spacing": {
@@ -908,7 +914,8 @@
 			"fontStyle": "normal",
 			"fontWeight": "400",
 			"lineHeight": "1.55"
-		}
+		},
+		"css": ":where(.wp-site-blocks *:focus){outline-width:2px;outline-style:solid}"
 	},
 	"templateParts": [
 		{
@@ -941,12 +948,12 @@
 		{
 			"name": "page-with-sidebar",
 			"postTypes": ["page"],
-			"title": "Page With Sidebar"
+			"title": "Page with Sidebar"
 		},
 		{
 			"name": "page-wide",
 			"postTypes": ["page"],
-			"title": "Page with wide Image"
+			"title": "Page with Wide Image"
 		},
 		{
 			"name": "single-with-sidebar",

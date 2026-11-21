@@ -177,6 +177,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme',
 			'Block Theme Child Theme',
 			'Block Theme Child Deprecated Path',
+			'Block Theme Child With Block Style Variations Theme',
 			'Block Theme Child with no theme.json',
 			'Block Theme Child Theme With Fluid Layout',
 			'Block Theme Child Theme With Fluid Typography',
@@ -189,6 +190,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme Post Content Default',
 			'Block Theme with defined Typography Fonts',
 			'Block Theme with Hooked Blocks',
+			'Block Theme with Hooked Blocks Child Theme',
 			'Empty `fontFace` in theme.json - no webfonts defined',
 			'A theme with the Update URI header',
 		);
@@ -312,7 +314,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$this->assertCount( $size + 1, $GLOBALS['wp_theme_directories'] );
 
 		foreach ( $GLOBALS['wp_theme_directories'] as $dir ) {
-			$this->assertNotEquals( '/', substr( $dir, -1 ) );
+			$this->assertNotSame( '/', substr( $dir, -1 ) );
 		}
 
 		rmdir( WP_CONTENT_DIR . '/themes/foo' );

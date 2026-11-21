@@ -81,9 +81,34 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		wp_delete_post( self::$template_post->ID );
 	}
 
+	/**
+	 * Original stylesheet before the test switches themes.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( self::TEST_THEME );
+	}
+
+	/**
+	 * Tear down after each test.
+	 *
+	 * @since 6.5.0
+	 */
+	public function tear_down() {
+		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/hooked-block' ) ) {
+			unregister_block_type( 'tests/hooked-block' );
+		}
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	/**
@@ -261,7 +286,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		);
 	}
 
-	public function data_remove_theme_attribute_in_block_template_content() {
+	public static function data_remove_theme_attribute_in_block_template_content() {
 		return array(
 			array(
 				'<!-- wp:template-part {"slug":"header","theme":"tt1-blocks","align":"full","tagName":"header","className":"site-header"} /-->',
@@ -282,6 +307,83 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'<!-- wp:post-content /-->',
 			),
 		);
+	}
+
+	/**
+	 * Tests that a skip link is added and a MAIN element without an ID receives the default ID.
+	 *
+	 * @ticket 64361
+	 *
+	 * @covers ::_block_template_add_skip_link
+	 */
+	public function test_block_template_add_skip_link_inserts_link_and_adds_main_id_when_missing() {
+		$template_html = '<div class="wp-site-blocks"><main>Content</main></div>';
+		$expected      =
+			'<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>' .
+			'<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>';
+
+		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
+	}
+
+	/**
+	 * Tests that an existing MAIN ID is reused for the skip link.
+	 *
+	 * @ticket 64361
+	 *
+	 * @covers ::_block_template_add_skip_link
+	 */
+	public function test_block_template_add_skip_link_uses_existing_main_id() {
+		$template_html = '<div class="wp-site-blocks"><main id="custom-id">Content</main></div>';
+		$expected      =
+			'<a class="skip-link screen-reader-text" id="wp-skip-link" href="#custom-id">Skip to content</a>' .
+			'<div class="wp-site-blocks"><main id="custom-id">Content</main></div>';
+
+		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
+	}
+
+	/**
+	 * Tests that a boolean MAIN ID is treated as missing and replaced with the default.
+	 *
+	 * @ticket 64361
+	 *
+	 * @covers ::_block_template_add_skip_link
+	 */
+	public function test_block_template_add_skip_link_handles_boolean_main_id() {
+		$template_html = '<div class="wp-site-blocks"><main id>Content</main></div>';
+		$expected      =
+			'<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Skip to content</a>' .
+			'<div class="wp-site-blocks"><main id="wp--skip-link--target">Content</main></div>';
+
+		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
+	}
+
+	/**
+	 * Tests that a MAIN ID containing whitespace is preserved and used for the skip link.
+	 *
+	 * @ticket 64361
+	 *
+	 * @covers ::_block_template_add_skip_link
+	 */
+	public function test_block_template_add_skip_link_preserves_whitespace_main_id() {
+		$template_html = '<div class="wp-site-blocks"><main id=" my-id ">Content</main></div>';
+		$expected      =
+			'<a class="skip-link screen-reader-text" id="wp-skip-link" href="#%20my-id%20">Skip to content</a>' .
+			'<div class="wp-site-blocks"><main id=" my-id ">Content</main></div>';
+
+		$this->assertEqualHTML( $expected, _block_template_add_skip_link( $template_html ) );
+	}
+
+	/**
+	 * Tests that no changes are made when there is no MAIN element.
+	 *
+	 * @ticket 64361
+	 *
+	 * @covers ::_block_template_add_skip_link
+	 */
+	public function test_block_template_add_skip_link_does_not_modify_when_main_missing() {
+		$template_html = '<div class="wp-site-blocks"><div>Content</div></div>';
+
+		$this->assertSame( $template_html, _block_template_add_skip_link( $template_html ) );
 	}
 
 	/**
@@ -366,7 +468,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	public function test_wp_generate_block_templates_export_file() {
 		$filename = wp_generate_block_templates_export_file();
 		$this->assertFileExists( $filename, 'zip file is created at the specified path' );
-		$this->assertTrue( filesize( $filename ) > 0, 'zip file is larger than 0 bytes' );
+		$this->assertGreaterThan( 0, filesize( $filename ), 'zip file is larger than 0 bytes' );
 
 		// Open ZIP file and make sure the directories exist.
 		$zip = new ZipArchive();
