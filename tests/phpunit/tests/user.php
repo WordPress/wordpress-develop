@@ -2927,4 +2927,175 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( $updated_password, $args[0][0], 'Invalid password in wp_set_password action.' );
 		$this->assertSame( $user_id, $args[0][1], 'Invalid user ID in wp_set_password action.' );
 	}
+
+	/**
+	 * Changing only the case of an email should not trigger the email change notification.
+	 *
+	 * @ticket 52976
+	 * @covers ::wp_update_user
+	 */
+	public function test_case_only_email_change_does_not_trigger_email_change_notification() {
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'testcase@example.com',
+			)
+		);
+
+		$email_change_fired = false;
+		$callback           = static function () use ( &$email_change_fired ) {
+			$email_change_fired = true;
+			return false;
+		};
+
+		add_filter( 'send_email_change_email', $callback );
+
+		wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'user_email' => 'TestCase@Example.COM',
+			)
+		);
+
+		remove_filter( 'send_email_change_email', $callback );
+
+		$this->assertFalse( $email_change_fired, 'Email change notification should not fire for case-only email change.' );
+	}
+
+	/**
+	 * Changing to a genuinely different email should still trigger the notification.
+	 *
+	 * @ticket 52976
+	 * @covers ::wp_update_user
+	 */
+	public function test_real_email_change_triggers_email_change_notification() {
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'original@example.com',
+			)
+		);
+
+		$email_change_fired = false;
+		$callback           = static function () use ( &$email_change_fired ) {
+			$email_change_fired = true;
+			return false;
+		};
+
+		add_filter( 'send_email_change_email', $callback );
+
+		wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'user_email' => 'different@example.com',
+			)
+		);
+
+		remove_filter( 'send_email_change_email', $callback );
+
+		$this->assertTrue( $email_change_fired, 'Email change notification should fire for a genuinely different email.' );
+	}
+
+	/**
+	 * Changing only the case of an email should not clear the user_activation_key.
+	 *
+	 * Complements `test_changing_email_invalidates_password_reset_key()`, which covers the case
+	 * where a genuinely different email clears the key.
+	 *
+	 * @ticket 52976
+	 * @covers ::wp_insert_user
+	 */
+	public function test_case_only_email_change_does_not_clear_user_activation_key() {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => 'keytest@example.com',
+			)
+		);
+
+		$wpdb->update( $wpdb->users, array( 'user_activation_key' => 'key' ), array( 'ID' => $user_id ) );
+		clean_user_cache( $user_id );
+
+		$user = get_userdata( $user_id );
+		$this->assertSame( 'key', $user->user_activation_key, 'Precondition: activation key should be set.' );
+
+		wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'user_email' => 'KeyTest@Example.COM',
+			)
+		);
+
+		$user = get_userdata( $user_id );
+		$this->assertSame( 'key', $user->user_activation_key, 'user_activation_key should not be cleared on case-only email change.' );
+	}
+
+	/**
+	 * Changing only the case of an email on profile should not trigger confirmation email
+	 * and should not revert $_POST['email'].
+	 *
+	 * @ticket 52976
+	 * @covers ::send_confirmation_on_profile_email
+	 */
+	public function test_case_only_email_change_on_profile_does_not_send_confirmation_email() {
+		reset_phpmailer_instance();
+
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'before@example.com',
+			)
+		);
+
+		$_POST['email']   = 'Before@Example.COM';
+		$_POST['user_id'] = $user->ID;
+
+		wp_set_current_user( $user->ID );
+
+		do_action( 'personal_options_update', $user->ID );
+
+		// Confirmation email should NOT be sent.
+		$this->assertEmpty( $GLOBALS['phpmailer']->mock_sent, 'Confirmation email should not be sent for case-only email change.' );
+
+		// _new_email user_meta should NOT be created.
+		$new_email_meta = get_user_meta( $user->ID, '_new_email', true );
+		$this->assertEmpty( $new_email_meta, '_new_email meta should not be set for case-only email change.' );
+
+		// $_POST['email'] should retain the new casing so that edit_user() can save it.
+		$this->assertSame( 'Before@Example.COM', $_POST['email'], '$_POST["email"] should retain the submitted casing.' );
+	}
+
+	/**
+	 * A case-only email change on the profile screen should save the new casing.
+	 *
+	 * @ticket 52976
+	 * @covers ::send_confirmation_on_profile_email
+	 * @covers ::edit_user
+	 */
+	public function test_case_only_email_change_on_profile_saves_new_casing() {
+		require_once ABSPATH . 'wp-admin/includes/user.php';
+
+		reset_phpmailer_instance();
+
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'profilecase@example.com',
+			)
+		);
+
+		$_POST['email']    = 'ProfileCase@Example.COM';
+		$_POST['nickname'] = $user->nickname;
+		$_POST['user_id']  = $user->ID;
+
+		wp_set_current_user( $user->ID );
+
+		// Mimic the profile update flow in wp-admin/user-edit.php.
+		do_action( 'personal_options_update', $user->ID );
+		$errors = edit_user( $user->ID );
+
+		$this->assertNotWPError( $errors, 'Profile update should not return WP_Error for case-only email change.' );
+
+		$updated_user = get_userdata( $user->ID );
+		$this->assertSame( 'ProfileCase@Example.COM', $updated_user->user_email, 'User email should be saved with the new casing.' );
+		$this->assertEmpty( $GLOBALS['phpmailer']->mock_sent, 'No confirmation or change notification emails should be sent.' );
+		$this->assertEmpty( get_user_meta( $user->ID, '_new_email', true ), 'No pending email change meta should remain.' );
+	}
 }
