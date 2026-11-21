@@ -43,6 +43,68 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that a document that is not a string returns an empty array and triggers a notice.
+	 *
+	 * @ticket 66138
+	 *
+	 * @covers ::parse
+	 *
+	 * @dataProvider data_non_string_documents
+	 *
+	 * @expectedIncorrectUsage WP_Block_Parser::parse
+	 *
+	 * @param mixed $document Document that is not a string.
+	 */
+	public function test_returns_empty_array_for_non_string_document( $document ) {
+		$processor = new WP_Block_Parser();
+
+		$this->assertSame( array(), $processor->parse( $document ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_string_documents() {
+		return array(
+			'null'    => array( null ),
+			'false'   => array( false ),
+			'integer' => array( 123 ),
+			'array'   => array( array( 'content' ) ),
+			'object'  => array( new stdClass() ),
+		);
+	}
+
+	/**
+	 * Ensures that a stringable object is parsed as a string and triggers a notice.
+	 *
+	 * @ticket 66138
+	 *
+	 * @covers ::parse
+	 *
+	 * @expectedIncorrectUsage WP_Block_Parser::parse
+	 */
+	public function test_parses_stringable_document_as_string() {
+		$markup   = '<!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->';
+		$document = new class( $markup ) {
+			private $markup;
+
+			public function __construct( $markup ) {
+				$this->markup = $markup;
+			}
+
+			public function __toString() {
+				return $this->markup;
+			}
+		};
+
+		$processor = new WP_Block_Parser();
+
+		$this->assertSame( $processor->parse( $markup ), $processor->parse( $document ) );
+	}
+
+	/**
 	 * Ensures that implicitly closing a final open block does not repeat content parsed before it.
 	 *
 	 * @ticket 66138
@@ -156,7 +218,7 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	/**
 	 * @ticket 45109
 	 */
-	public function data_parsing_test_filenames() {
+	public static function data_parsing_test_filenames() {
 		self::$fixtures_dir = DIR_TESTDATA . '/blocks/fixtures';
 
 		$fixture_filenames = array_merge(
@@ -167,14 +229,14 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 		$fixture_filenames = array_values(
 			array_unique(
 				array_map(
-					array( $this, 'clean_fixture_filename' ),
+					array( __CLASS__, 'clean_fixture_filename' ),
 					$fixture_filenames
 				)
 			)
 		);
 
 		return array_map(
-			array( $this, 'pass_parser_fixture_filenames' ),
+			array( __CLASS__, 'pass_parser_fixture_filenames' ),
 			$fixture_filenames
 		);
 	}
@@ -187,7 +249,7 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	 * @param string $filename The filename to clean.
 	 * @return string The cleaned fixture name.
 	 */
-	protected function clean_fixture_filename( $filename ) {
+	protected static function clean_fixture_filename( $filename ) {
 		$filename = wp_basename( $filename );
 		$filename = preg_replace( '/\..+$/', '', $filename );
 		return $filename;
@@ -201,7 +263,7 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	 * @param string $filename The cleaned fixture name.
 	 * @return array The input and expected output filenames for that fixture.
 	 */
-	protected function pass_parser_fixture_filenames( $filename ) {
+	protected static function pass_parser_fixture_filenames( $filename ) {
 		return array(
 			"$filename.html",
 			"$filename.parsed.json",

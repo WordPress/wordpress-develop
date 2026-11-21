@@ -7,9 +7,6 @@
  * @since 5.2.0
  */
 
-
-require_once __DIR__ . '/secrets-site-health.php';
-
 #[AllowDynamicProperties]
 class WP_Site_Health {
 	private static $instance = null;
@@ -20,7 +17,7 @@ class WP_Site_Health {
 	public $is_mariadb                   = false;
 	private $mysql_server_version        = '';
 	private $mysql_required_version      = '5.5';
-	private $mysql_recommended_version   = '8.0';
+	private $mysql_recommended_version   = '8.4';
 	private $mariadb_recommended_version = '10.11';
 
 	public $php_memory_limit;
@@ -528,7 +525,6 @@ class WP_Site_Health {
 
 		$has_default_theme   = false;
 		$has_unused_themes   = false;
-		$show_unused_themes  = true;
 		$using_default_theme = false;
 
 		// Populate a list of all themes available in the install.
@@ -622,7 +618,7 @@ class WP_Site_Health {
 			}
 		}
 
-		if ( $has_unused_themes && $show_unused_themes && ! is_multisite() ) {
+		if ( $has_unused_themes && ! is_multisite() ) {
 
 			// This is a child theme, so we want to be a bit more explicit in our messages.
 			if ( $active_theme->parent() ) {
@@ -1905,7 +1901,7 @@ class WP_Site_Health {
 		$default_role       = get_option( 'default_role' );
 
 		$result = array(
-			'label'       => __( 'Open Registration with privileged default role' ),
+			'label'       => __( 'New users are not given a privileged role' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Security' ),
@@ -1917,7 +1913,8 @@ class WP_Site_Health {
 		);
 
 		if ( $users_can_register && in_array( $default_role, array( 'editor', 'administrator' ), true ) ) {
-			$result['description'] = __( 'Registration is open to anyone, and the default role is set to a privileged role.' );
+			$result['label']       = __( 'Open registration with a privileged default role' );
+			$result['description'] = '<p>' . __( 'Registration is open to anyone, and the default role is set to a privileged role.' ) . '</p>';
 			$result['status']      = 'critical';
 			$result['actions']     = sprintf(
 				'<p><a href="%s">%s</a></p>',

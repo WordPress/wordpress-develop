@@ -1,53 +1,47 @@
 /**
  * External dependencies
  */
-import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
 
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../fixtures';
 
 test.describe( 'Localize Script on wp-login.php', () => {
-	const muPlugins = join(
-		process.cwd(),
-		process.env.LOCAL_DIR ?? 'src',
-		'wp-content/mu-plugins'
-	);
-	const muPluginFile = join( muPlugins, 'login-test.php' );
+	test( 'should localize script', async ( { page, muPlugin } ) => {
+		const trigger = randomUUID();
+		await muPlugin.write(
+			'login-test.php',
+			`<?php
+			if ( isset( $_GET['${ trigger }'] ) ) {
+				add_action(
+					'login_enqueue_scripts',
+					function() {
+						wp_localize_script(
+							'wp-util',
+							'testData',
+							[
+								'answerToTheUltimateQuestionOfLifeTheUniverseAndEverything' => 42,
+							]
+						);
+					}
+				);
+			}`
+		);
 
-	test.beforeAll( async () => {
-		const muPluginCode = `<?php
-		add_action(
-			'login_enqueue_scripts',
-			function() {
-			  wp_localize_script(
-				'wp-util',
-				'testData',
-				[
-				  'answerToTheUltimateQuestionOfLifeTheUniverseAndEverything' => 42,
-				]
-			  );
-			}
-		  );`;
-
-		if ( ! existsSync( muPlugins ) ) {
-			mkdirSync( muPlugins, { recursive: true } );
-		}
-		writeFileSync( muPluginFile, muPluginCode );
-	} );
-
-	test.afterAll( async () => {
-		unlinkSync( muPluginFile );
-	} );
-
-	test( 'should localize script', async ( { page } ) => {
-		await page.goto( '/wp-login.php' );
-		await page.waitForSelector( '#login' );
-		const testData = await page.evaluate( () => window.testData );
-		expect(
-			testData.answerToTheUltimateQuestionOfLifeTheUniverseAndEverything
-		).toBe( '42' );
+		await page.goto( `/wp-login.php?${ trigger }` );
+		await expect(
+			page.getByRole( 'button', { name: 'Log In', exact: true } )
+		).toBeVisible();
+		await expect
+			.poll( () =>
+				page.evaluate(
+					() =>
+						window.testData
+							?.answerToTheUltimateQuestionOfLifeTheUniverseAndEverything
+				)
+			)
+			.toBe( '42' );
 	} );
 } );

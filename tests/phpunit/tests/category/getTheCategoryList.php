@@ -66,6 +66,12 @@ class Tests_Category_GetTheCategoryList extends WP_UnitTestCase {
 		);
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		$this->set_permalink_structure( '' );
+	}
+
 	/**
 	 * Gets the plain permalink of a category.
 	 *
@@ -189,7 +195,7 @@ class Tests_Category_GetTheCategoryList extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_uses_category_tag_rel_with_pretty_permalinks() {
-		$this->set_permalink_structure( '/%postname%/' );
+		$this->set_permalink_structure( WP_TESTS_DEFAULT_PERMALINK_STRUCTURE );
 		// Registers the category permastruct again for the new permalink structure.
 		create_initial_taxonomies();
 

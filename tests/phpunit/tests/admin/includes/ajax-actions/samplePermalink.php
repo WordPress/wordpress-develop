@@ -34,11 +34,6 @@ class Tests_wp_ajax_sample_permalink extends WP_Ajax_UnitTestCase {
 		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
-	public function set_up() {
-		parent::set_up();
-		$this->set_permalink_structure( '/%postname%/' );
-	}
-
 	/**
 	 * Tests successful retrieval of a sample permalink.
 	 *
