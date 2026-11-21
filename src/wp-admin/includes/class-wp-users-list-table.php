@@ -504,7 +504,12 @@ class WP_Users_List_Table extends WP_List_Table {
 				&& current_user_can( 'edit_user', $user_object->ID )
 				&& true === wp_is_password_reset_allowed_for_user( $user_object )
 			) {
-				$actions['resetpassword'] = "<a class='resetpassword' href='" . wp_nonce_url( "users.php?action=resetpassword&amp;users=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Send password reset' ) . '</a>';
+				$reset_url                = add_query_arg(
+					'wp_http_referer',
+					wp_unslash( $_SERVER['REQUEST_URI'] ),
+					"users.php?action=resetpassword&users=$user_object->ID"
+				);
+				$actions['resetpassword'] = "<a class='resetpassword' href='" . wp_nonce_url( $reset_url, 'bulk-users' ) . "'>" . __( 'Send password reset' ) . '</a>';
 			}
 
 			/**
