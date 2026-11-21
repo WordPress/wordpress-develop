@@ -876,7 +876,7 @@ function get_user( $user_id ) {
  *
  * @phpstan-return (
  *     $args is array{ fields: 'all'|'all_with_meta', ... } ? array<int, WP_User> : (
- *         $args is array{ fields: 'ID'|'id', ... } ? list<numeric-string> : (
+ *         $args is array{ fields: 'ID'|'id', ... } ? list<decimal-int-string> : (
  *             $args is array{ fields: non-empty-string|non-empty-array<array-key, string>, ... } ? array<int, mixed> : array<int, WP_User>
  *         )
  *     )
@@ -5341,8 +5341,9 @@ function wp_is_password_reset_allowed_for_user( $user ) {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param bool $allow   Whether to allow the password to be reset. Default true.
-	 * @param int  $user_id The ID of the user attempting to reset a password.
+	 * @param bool|WP_Error $allow   Whether to allow the password to be reset, or a WP_Error to explain
+	 *                               why it is not allowed. Default true.
+	 * @param int           $user_id The ID of the user attempting to reset a password.
 	 */
 	return apply_filters( 'allow_password_reset', $allow, $user->ID );
 }
