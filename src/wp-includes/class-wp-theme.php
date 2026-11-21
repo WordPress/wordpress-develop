@@ -1571,17 +1571,21 @@ final class WP_Theme implements ArrayAccess {
 			return false;
 		}
 
-		if ( is_textdomain_loaded( $textdomain ) ) {
-			$this->textdomain_loaded = true;
-			return true;
-		}
-
 		$path       = $this->get_stylesheet_directory();
 		$domainpath = $this->get( 'DomainPath' );
 		if ( $domainpath ) {
 			$path .= $domainpath;
 		} else {
 			$path .= '/languages';
+		}
+
+		if ( is_textdomain_loaded( $textdomain ) ) {
+			// Just-in-time loading skips a domain that is already loaded, so add the theme's files to it now, language pack first.
+			$locale = determine_locale();
+			load_textdomain( $textdomain, WP_LANG_DIR . "/themes/{$textdomain}-{$locale}.mo", $locale );
+			load_textdomain( $textdomain, "{$path}/{$locale}.mo", $locale );
+			$this->textdomain_loaded = true;
+			return true;
 		}
 
 		$this->textdomain_loaded = load_theme_textdomain( $textdomain, $path );
