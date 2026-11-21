@@ -1237,6 +1237,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 16, $data['image_max_bit_depth'] );
 		$this->assertArrayHasKey( 'generate_animated_image_subsizes', $data );
 		$this->assertTrue( $data['generate_animated_image_subsizes'] );
+		$this->assertArrayHasKey( 'video_keep_original', $data );
+		$this->assertTrue( $data['video_keep_original'] );
 	}
 
 	/**
@@ -1259,6 +1261,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( 'image_strip_meta', $data );
 		$this->assertArrayNotHasKey( 'image_max_bit_depth', $data );
 		$this->assertArrayNotHasKey( 'generate_animated_image_subsizes', $data );
+		$this->assertArrayNotHasKey( 'video_keep_original', $data );
 	}
 
 	/**
@@ -1277,6 +1280,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			static fn ( int $max_depth ) => min( 8, $max_depth )
 		);
 		add_filter( 'wp_generate_animated_image_subsizes', '__return_false' );
+		add_filter( 'wp_video_transcoding_keep_original', '__return_false' );
 
 		$server  = new WP_REST_Server();
 		$request = new WP_REST_Request( 'GET', '/' );
@@ -1286,6 +1290,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertFalse( $data['image_strip_meta'] );
 		$this->assertSame( 8, $data['image_max_bit_depth'] );
 		$this->assertFalse( $data['generate_animated_image_subsizes'] );
+		$this->assertFalse( $data['video_keep_original'] );
 	}
 
 	/**
