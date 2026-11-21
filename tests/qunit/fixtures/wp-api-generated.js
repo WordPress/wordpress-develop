@@ -13140,11 +13140,13 @@ mockedApiResponse.Schema = {
                         "kind": {
                             "description": "Entity kind.",
                             "type": "string",
+                            "minLength": 1,
                             "required": true
                         },
                         "name": {
                             "description": "Entity name.",
                             "type": "string",
+                            "minLength": 1,
                             "required": true
                         }
                     }

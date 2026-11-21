@@ -1,13 +1,26 @@
 /**
+ * External dependencies
+ */
+import { randomUUID } from 'node:crypto';
+
+/**
  * Internal dependencies
  */
 import { test, expect } from '../fixtures';
 
 test.describe( 'Fatal error handler', () => {
 	test( 'should display fatal error notice', async ( { admin, page, muPlugin } ) => {
-		await muPlugin.write( 'fatal-error.php', `<?php new NonExistentClass();` );
+		// Other workers share the site, so only this test's request fails.
+		const trigger = randomUUID();
+		await muPlugin.write(
+			'fatal-error.php',
+			`<?php
+			if ( isset( $_GET['${ trigger }'] ) ) {
+				new NonExistentClass();
+			}`
+		);
 
-		await admin.visitAdminPage( '/' );
+		await admin.visitAdminPage( '/', trigger );
 
 		await expect(
 			page.getByText( /Fatal error:/ ),
