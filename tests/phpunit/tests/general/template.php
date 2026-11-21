@@ -16,7 +16,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public $site_icon_url;
 
 	public $custom_logo_id;
-	public $custom_logo_url;
 
 	/**
 	 * Blog page used by aria tests.
@@ -377,14 +376,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.3.0
 	 */
 	private function insert_attachment() {
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
+		$this->site_icon_id  = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		$this->site_icon_url = wp_upload_dir()['url'] . '/' . wp_basename( get_attached_file( $this->site_icon_id ) );
 
-		$upload              = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->site_icon_url = $upload['url'];
-
-		// Save the data.
-		$this->site_icon_id = $this->_make_attachment( $upload );
 		return $this->site_icon_id;
 	}
 
@@ -563,13 +557,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.5.0
 	 */
 	private function insert_custom_logo() {
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
+		$this->custom_logo_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 
-		// Save the data.
-		$this->custom_logo_url = $upload['url'];
-		$this->custom_logo_id  = $this->_make_attachment( $upload );
 		return $this->custom_logo_id;
 	}
 

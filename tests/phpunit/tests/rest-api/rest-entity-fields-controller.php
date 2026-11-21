@@ -405,6 +405,12 @@ class WP_REST_Entity_Fields_Controller_Test extends WP_Test_REST_TestCase {
 
 		$missing_kind = $this->dispatch_request( null, 'page' );
 		$this->assertErrorResponse( 'rest_missing_callback_param', $missing_kind, 400 );
+
+		$empty_kind = $this->dispatch_request( '', 'page' );
+		$this->assertErrorResponse( 'rest_invalid_param', $empty_kind, 400 );
+
+		$empty_name = $this->dispatch_request( 'postType', '' );
+		$this->assertErrorResponse( 'rest_invalid_param', $empty_name, 400 );
 	}
 
 	/**
