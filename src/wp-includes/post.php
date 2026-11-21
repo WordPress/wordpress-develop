@@ -2783,6 +2783,11 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
 /**
  * Retrieves a post meta field for the given post ID.
  *
+ * Unlike add_post_meta(), update_post_meta() and delete_post_meta(), which act on
+ * the parent post when given a revision ID, this function reads the meta stored on
+ * the revision itself. Revisions only store meta for keys registered with
+ * `revisions_enabled`, see register_post_meta().
+ *
  * @since 1.5.0
  *
  * @param int    $post_id Post ID.
