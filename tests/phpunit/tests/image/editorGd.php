@@ -1250,7 +1250,6 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$image_editor->resize( 25, 25, array( 'center', 'top' ) );
 		$this->assertSame( '25x25', $image_editor->get_suffix() );
 	}
-
 }
 
 /**
