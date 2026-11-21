@@ -549,6 +549,39 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	}
 
 	/**
+	 * Reading with an entity kind or name that is not a non-empty string
+	 * returns empty lists with a notice rather than a fatal error.
+	 *
+	 * @ticket 66229
+	 *
+	 * @dataProvider data_invalid_entities
+	 *
+	 * @param mixed $kind The entity kind.
+	 * @param mixed $name The entity name.
+	 */
+	public function test_reading_with_an_invalid_entity_returns_empty_lists( $kind, $name ) {
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::get_registered' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::get_registered_field_modules' );
+
+		$this->assertSame( array(), wp_get_registered_entity_fields( $kind, $name ), 'No fields should be returned.' );
+		$this->assertSame( array(), wp_get_registered_entity_field_modules( $kind, $name ), 'No script modules should be returned.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: mixed, 1: mixed}> The entity kind and name.
+	 */
+	public static function data_invalid_entities() {
+		return array(
+			'an array kind'   => array( array(), 'page' ),
+			'an array name'   => array( 'postType', array() ),
+			'an empty kind'   => array( '', 'page' ),
+			'an integer name' => array( 'postType', 1 ),
+		);
+	}
+
+	/**
 	 * An id that is not a non-empty string is reported and skipped: the
 	 * other ids of the call are unregistered.
 	 *
