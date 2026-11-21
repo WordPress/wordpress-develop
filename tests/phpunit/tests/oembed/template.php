@@ -10,8 +10,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '' );
 
-		global $wp_scripts;
+		global $wp_scripts, $wp_styles;
 		$wp_scripts = null;
+		$wp_styles  = null;
 
 		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
@@ -23,8 +24,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	public function tear_down() {
 		parent::tear_down();
 
-		global $wp_scripts;
+		global $wp_scripts, $wp_styles;
 		$wp_scripts = null;
+		$wp_styles  = null;
 	}
 
 	/**
