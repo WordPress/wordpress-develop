@@ -313,6 +313,164 @@ function _wp_scrub_utf8_fallback( string $bytes ): string {
 }
 
 /**
+ * Polyfill for `mb_encode_numericentity()` operating on UTF-8 inputs.
+ *
+ * @since 7.2.0
+ * @access private
+ * @internal
+ *
+ * @param string      $bytes The string to be encoded.
+ * @param int[]       $map   map is array specifies code area to convert.
+ * @param bool|null   $hex   Optional. Whether the returned entity reference should be in
+ *                           hexadecimal notation (otherwise it is in decimal notation).
+ * @return string The converted string.
+ */
+function _wp_encode_utf8_numericentity( $bytes, $map, $hex = false ) {
+	$output  = '';
+	$at      = 0;
+	$was_at  = 0;
+	$end     = strlen( $bytes );
+	$fffd    = $hex ? '&#xFFFD;' : '&#65533;';
+	$map_end = count( $map );
+
+	if ( 0 !== ( $map_end % 4 ) ) {
+		if ( class_exists( 'ValueError' ) ) {
+			throw new ValueError( 'mb_encode_numericentity(): Argument #2 ($map) must have a multiple of 4 elements' );
+		} else {
+			throw new Error( 'mb_encode_numericentity(): Argument #2 ($map) must have a multiple of 4 elements' );
+		}
+	}
+
+	while ( $at < $end ) {
+		$next_at        = $at;
+		$invalid_length = 0;
+		$count          = _wp_scan_utf8( $bytes, $next_at, $invalid_length, null, 1 );
+		$char_length    = $next_at - $at;
+		$next_char      = substr( $bytes, $at, $char_length );
+		$code_point     = 0 < $count ? mb_ord( $next_char, 'UTF-8' ) : null;
+
+		// This is not the most efficient algorithm; install the mbstring extension!
+		$needs_remapping = false;
+		$offset          = 0;
+		$mask            = 0;
+		if ( 0 < $count ) {
+			for ( $i = 0; $i < $map_end; $i += 4 ) {
+				if ( $code_point >= $map[ $i ] && $code_point <= $map[ $i + 1 ] ) {
+					$needs_remapping = true;
+					$offset          = $map[ $i + 2 ];
+					$mask            = $map[ $i + 3 ];
+					break;
+				}
+			}
+		}
+
+		if ( ! $needs_remapping && 0 === $invalid_length ) {
+			$at = $next_at;
+			continue;
+		}
+
+		if ( isset( $code_point ) && $needs_remapping ) {
+			$code_point = ( $code_point + $offset ) & $mask;
+			$digits     = $hex ? strtoupper( dechex( $code_point ) ) : (string) $code_point;
+			$output    .= substr( $bytes, $was_at, $at - $was_at );
+			$output    .= $hex ? "&#x{$digits};" : "&#{$digits};";
+		} else {
+			$output .= substr( $bytes, $was_at, $at + $char_length - $was_at );
+		}
+
+		if ( $invalid_length > 0 ) {
+			$output .= $fffd;
+		}
+
+		$at     = $next_at + $invalid_length;
+		$was_at = $at;
+	}
+
+	if ( $was_at < $end ) {
+		$output .= substr( $bytes, $was_at );
+	}
+
+	return $output;
+}
+
+/**
+ * Polyfill for `mb_encode_numericentity()` operating on UTF-8 inputs when the goal
+ * is to encode based on byte length of code point spans.
+ *
+ * @since 7.2.0
+ * @access private
+ * @internal
+ *
+ * @param int         $byte_length Encode code points taking this many bytes or more to represent.
+ * @param string      $bytes       The string to be encoded.
+ * @param bool|null   $hex         Optional. Whether the returned entity reference should be in
+ *                                 hexadecimal notation (otherwise it is in decimal notation).
+ * @return string The converted string.
+ */
+function _wp_encode_utf8_numericentity_bytelength( $byte_length, $bytes, $hex = false ) {
+	$output = '';
+	$at     = 0;
+	$was_at = 0;
+	$end    = strlen( $bytes );
+	$fffd   = $byte_length > 3 ? "\u{FFFD}" : ( $hex ? '&#xFFFD;' : '&#65533;' );
+
+	while ( $at < $end ) {
+		/*
+		 * Quickly skip past US-ASCII bytes, all of which are valid UTF-8.
+		 *
+		 * This optimization step improves the speed from 10x to 100x
+		 * depending on whether the JIT has optimized the function.
+		 */
+		$ascii_byte_count = strspn(
+			$bytes,
+			"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" .
+			"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f" .
+			" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f",
+			$at,
+		);
+
+		$at += $ascii_byte_count;
+		if ( $at >= $end ) {
+			break;
+		}
+
+		$next_at        = $at;
+		$invalid_length = 0;
+		$count          = _wp_scan_utf8( $bytes, $next_at, $invalid_length, null, 1 );
+		$char_length    = $next_at - $at;
+		$next_char      = 0 < $count ? substr( $bytes, $at, $char_length ) : null;
+
+		// The character is within bounds and is followed by no invalid bytes.
+		if ( $char_length < $byte_length && 0 === $invalid_length ) {
+			$at = $next_at;
+			continue;
+		}
+
+		if ( isset( $next_char ) && $char_length >= $byte_length ) {
+			$code_point = mb_ord( $next_char, 'UTF-8' );
+			$output    .= substr( $bytes, $was_at, $at - $was_at );
+			$digits     = $hex ? strtoupper( dechex( $code_point ) ) : (string) $code_point;
+			$output    .= $hex ? "&#x{$digits};" : "&#{$digits};";
+		} else {
+			$output .= substr( $bytes, $was_at, $at + $char_length - $was_at );
+		}
+
+		if ( $invalid_length > 0 ) {
+			$output .= $fffd;
+		}
+
+		$at     = $next_at + $invalid_length;
+		$was_at = $at;
+	}
+
+	if ( $was_at < $end ) {
+		$output .= substr( $bytes, $was_at );
+	}
+
+	return $output;
+}
+
+/**
  * Returns how many code points are found in the given UTF-8 string.
  *
  * Invalid spans of bytes count as a single code point according
