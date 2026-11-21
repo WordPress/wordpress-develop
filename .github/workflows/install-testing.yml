@@ -18,6 +18,7 @@ on:
       - '.github/workflows/install-testing.yml'
       - '.version-support-*.json'
       - '.github/workflows/reusable-support-json-reader-v1.yml'
+      - '.github/workflows/reusable-download-wordpress-release.yml'
   pull_request:
     # Always test the workflow when changes are suggested.
     paths:
@@ -27,6 +28,7 @@ on:
       - '.version-support-*.json'
       - '.github/workflows/install-testing.yml'
       - '.github/workflows/reusable-support-json-reader-v1.yml'
+      - '.github/workflows/reusable-download-wordpress-release.yml'
 
   schedule:
     - cron: '0 0 * * 1'
@@ -59,6 +61,16 @@ jobs:
     with:
       wp-version: ${{ inputs.wp-version }}
 
+  # Downloads a release zip once for every matrix job, waiting until WordPress.org serves it.
+  download-wordpress:
+    name: Download WordPress
+    uses: $/.github/workflows/reusable-download-wordpress-release.yml
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    with:
+      version: ${{ inputs.wp-version || 'nightly' }}
+
   # Test the WordPress installation process through WP-CLI.
   #
   # Performs the following steps:
@@ -74,7 +86,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     timeout-minutes: 15
-    needs: [ build-test-matrix ]
+    needs: [ build-test-matrix, download-wordpress ]
 
     env:
       WP_ADMIN_USER: admin
@@ -147,9 +159,24 @@ jobs:
         with:
           version: ${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && '2.4.0' || contains( fromJSON('["5.6", "7.0", "7.1"]'), matrix.php ) && '2.12.0' || 'latest' }}
 
+      - name: Download the WordPress release artifact
+        if: ${{ needs.download-wordpress.outputs.artifact != '' }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ needs.download-wordpress.outputs.artifact }}
+          path: ${{ runner.temp }}
+
+      # WP-CLI 2.4.0 cannot install from a local zip, so unzip it.
+      - name: Extract WordPress
+        if: ${{ needs.download-wordpress.outputs.artifact != '' }}
+        run: |
+          unzip -q "${RUNNER_TEMP}/wordpress.zip" -d "${RUNNER_TEMP}"
+          mv "${RUNNER_TEMP}"/wordpress/* .
+
       # WP-CLI 2.x extracts tarballs with PharData, which truncates paths longer than 100 characters.
       # Zip archives are not affected, so download the zip for every version.
       - name: Download WordPress
+        if: ${{ needs.download-wordpress.outputs.artifact == '' }}
         # WP-CLI requests WordPress from WordPress.org once, so a network error fails the job.
         # It extracts only after a complete download, so a retry starts from an empty directory.
         uses: $/.github/actions/run-with-retry
@@ -187,7 +214,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ install-tests-mysql ]
+    needs: [ download-wordpress, install-tests-mysql ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
