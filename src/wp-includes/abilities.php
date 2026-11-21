@@ -10,6 +10,7 @@
 declare( strict_types = 1 );
 
 require_once __DIR__ . '/abilities/class-wp-abilities-content.php';
+require_once __DIR__ . '/abilities/class-wp-abilities-media.php';
 require_once __DIR__ . '/abilities/class-wp-abilities-settings.php';
 require_once __DIR__ . '/abilities/class-wp-abilities-users.php';
 
@@ -379,4 +380,7 @@ function wp_register_core_abilities(): void {
 
 	// Register the content abilities (currently the read-only `core/content-query`).
 	( new WP_Abilities_Content() )->register();
+
+	// Register the media abilities (`core/media-query`, `core/media-upload`, `core/media-update`, `core/media-delete`).
+	( new WP_Abilities_Media() )->register();
 }
