@@ -310,6 +310,7 @@ abstract class WP_Image_Editor {
 	 * Returns the default compression quality setting for the mime type.
 	 *
 	 * @since 5.8.1
+	 * @since 7.3.0 Added a default quality of 74 for AVIF.
 	 *
 	 * @param string $mime_type
 	 * @return int The default quality setting for the mime type.
@@ -318,6 +319,9 @@ abstract class WP_Image_Editor {
 		switch ( $mime_type ) {
 			case 'image/webp':
 				$quality = 86;
+				break;
+			case 'image/avif':
+				$quality = 74;
 				break;
 			case 'image/jpeg':
 			default:
