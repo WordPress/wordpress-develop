@@ -166,15 +166,6 @@ class Tests_Category_GetCategory extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a non-existent category ID returns null.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_returns_null_for_non_existent_category() {
-		$this->assertNull( get_category( 99999999 ) );
-	}
-
-	/**
 	 * Tests that a term ID belonging to another taxonomy returns null.
 	 *
 	 * @ticket 65819

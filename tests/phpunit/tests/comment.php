@@ -426,7 +426,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_cancel_comment_reply_link() {
+	public static function data_get_cancel_comment_reply_link() {
 		return array(
 			'text as empty string, a valid post ID and an approved comment'    => array(
 				'text'       => '',
@@ -538,7 +538,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_allow_reply_to_an_approved_comment() {
+	public static function data_should_allow_reply_to_an_approved_comment() {
 		return array(
 			'a post ID'        => array( 'comment_post' => 'POST_ID' ),
 			'a WP_Post object' => array( 'comment_post' => 'POST' ),
@@ -618,7 +618,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_non_existent_posts() {
+	public static function data_non_existent_posts() {
 		return array(
 			'an unapproved comment and a non-existent post ID' => array(
 				'replytocom'   => false,
@@ -678,7 +678,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_parent_comments() {
+	public static function data_parent_comments() {
 		return array(
 			'an unapproved parent comment (ID)'      => array(
 				'replytocom'   => false,
@@ -772,7 +772,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_comment_reply_id() {
+	public static function data_get_comment_reply_id() {
 		return array(
 			'no comment ID set ($_GET["replytocom"])'     => array(
 				'replytocom' => false,
@@ -1846,7 +1846,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_trash_comment_trashes_child_notes.
 	 */
-	public function data_comment_approved_statuses() {
+	public static function data_comment_approved_statuses() {
 		return array(
 			array( '1' ),
 			array( '0' ),
@@ -2263,7 +2263,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string }>
 	 */
-	public function data_non_note_comment_types() {
+	public static function data_non_note_comment_types() {
 		return array(
 			'comment'   => array( 'comment' ),
 			'pingback'  => array( 'pingback' ),
@@ -2558,5 +2558,100 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$this->assertNull( get_comment( $comment_id . 'abc' ), 'Expected a malformed numeric string not to be cast to a comment ID.' );
 		$this->assertNull( get_comment( true ), 'Expected true not to be cast to comment ID 1.' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
+	}
+
+	/**
+	 * Queries made by metadata observers must see the newly added metadata.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_comment
+	 */
+	public function test_meta_query_is_fresh_inside_added_comment_meta_action() {
+		$result = $this->insert_comment_with_query_observer();
+
+		$this->assertSame( array(), $result['before'] );
+		$this->assertSameSets( array( $result['id'] ), $result['during'] );
+	}
+
+	/**
+	 * A query primed partway through insertion must be fresh after insertion.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_comment
+	 */
+	public function test_meta_query_is_fresh_after_comment_insertion() {
+		$result = $this->insert_comment_with_query_observer();
+
+		$this->assertSame( array(), $result['before'] );
+		$this->assertSameSets( array( $result['id'] ), $result['after'] );
+	}
+
+	/**
+	 * Inserts a comment while observing a query affected by its second meta key.
+	 *
+	 * @return array Recorded query results and the inserted comment ID.
+	 */
+	private function insert_comment_with_query_observer() {
+		$post_id = self::factory()->post->create();
+		$args    = array(
+			'post_id'    => $post_id,
+			'fields'     => 'ids',
+			'meta_key'   => 'target_meta_key',
+			'meta_value' => 'present',
+		);
+		$result  = array();
+
+		// Prime a query before its matching metadata is added, then repeat it afterwards.
+		$observer = static function ( $meta_id, $comment_id, $meta_key ) use ( $args, &$result ) {
+			if ( 'first_meta_key' === $meta_key ) {
+				$result['before'] = get_comments( $args );
+			}
+			if ( 'target_meta_key' === $meta_key ) {
+				$result['during'] = get_comments( $args );
+			}
+		};
+
+		add_action( 'added_comment_meta', $observer, 20, 3 );
+		try {
+			$result['id']    = wp_insert_comment(
+				array(
+					'comment_post_ID' => $post_id,
+					'comment_content' => 'Cache observer fixture',
+					'comment_meta'    => array(
+						'first_meta_key'  => 'present',
+						'target_meta_key' => 'present',
+					),
+				)
+			);
+			$result['after'] = get_comments( $args );
+		} finally {
+			remove_action( 'added_comment_meta', $observer, 20 );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * An intentionally absent invalidation callback must remain absent.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_comment
+	 */
+	public function test_meta_query_invalidation_preserves_absent_callback() {
+		remove_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
+		try {
+			wp_insert_comment(
+				array(
+					'comment_content' => 'Callback preservation fixture',
+					'comment_meta'    => array( 'target_meta_key' => 'present' ),
+				)
+			);
+			$this->assertFalse( has_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' ) );
+		} finally {
+			add_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
+		}
 	}
 }

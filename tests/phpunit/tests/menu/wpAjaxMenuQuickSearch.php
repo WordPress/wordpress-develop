@@ -5,14 +5,18 @@
  */
 class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+
+		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
+	}
+
 	/**
 	 * Test search returns results for pages.
 	 *
 	 * @ticket 27042
 	 */
 	public function test_search_returns_results_for_pages() {
-		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
-
 		self::factory()->post->create_many(
 			3,
 			array(
@@ -48,8 +52,6 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 	 * @ticket 48655
 	 */
 	public function test_search_only_returns_results_for_posts_with_term_in_title() {
-		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
-
 		// This will make sure that WP_Query sets is_admin to true.
 		set_current_screen( 'nav-menu.php' );
 
@@ -87,8 +89,6 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 	 * @ticket 33742
 	 */
 	public function test_search_returns_results_for_published_posts() {
-		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
-
 		// This will make sure that WP_Query sets is_admin to true.
 		set_current_screen( 'nav-menu.php' );
 

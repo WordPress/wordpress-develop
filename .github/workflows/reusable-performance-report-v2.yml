@@ -51,7 +51,7 @@ jobs:
   # - Publish performance results if necessary.
   compare:
     name: ${{ inputs.multisite && 'Multisite' || 'Single Site' }} ${{ inputs.memcached && 'Memcached' || 'Default' }} ${{ inputs.publish && '(Publishes)' || '' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
 

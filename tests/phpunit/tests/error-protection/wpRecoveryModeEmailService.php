@@ -141,6 +141,12 @@ class Tests_Error_Protection_wpRecoveryModeEmailService extends WP_UnitTestCase 
 
 		$updated_last_sent = (int) get_option( WP_Recovery_Mode_Email_Service::RATE_LIMIT_OPTION );
 		$this->assertGreaterThan( $last_sent, $updated_last_sent, 'Rate limit timestamp should be updated.' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertCount( 1, $mailer->mock_sent );
+
+		$sent_email = end( $mailer->mock_sent );
+		$this->assertStringContainsString( 'https://example.com/wp-login.php?action=enter_recovery_mode&rm_token=testtoken&rm_key=testkey', $sent_email['body'] );
 	}
 
 	/**
@@ -227,8 +233,11 @@ class Tests_Error_Protection_wpRecoveryModeEmailService extends WP_UnitTestCase 
 
 		$this->assertTrue( $result );
 
-		$mailer     = tests_retrieve_phpmailer_instance();
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertCount( 1, $mailer->mock_sent );
+
 		$sent_email = end( $mailer->mock_sent );
+		$this->assertStringContainsString( 'https://example.com/wp-login.php?action=enter_recovery_mode&rm_token=testtoken&rm_key=testkey', $sent_email['body'] );
 
 		$this->assertStringNotContainsString( 'error with one of your plugins', $sent_email['body'] );
 		$this->assertStringNotContainsString( 'error with your theme', $sent_email['body'] );

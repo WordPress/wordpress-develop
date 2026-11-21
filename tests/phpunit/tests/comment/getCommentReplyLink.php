@@ -35,6 +35,8 @@ class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 	 * @ticket 47174
 	 */
 	public function test_get_comment_reply_link_should_include_post_permalink() {
+		$this->set_permalink_structure( '' );
+
 		// Create a sample post.
 		$post_id = self::factory()->post->create();
 

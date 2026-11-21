@@ -29,6 +29,15 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Restores the Customizer global after each test.
+	 */
+	public function tear_down() {
+		$GLOBALS['wp_customize'] = null;
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Get instance for mocked media widget class.
 	 *
 	 * @param string $id_base         Base ID for the widget, lowercase and unique.
