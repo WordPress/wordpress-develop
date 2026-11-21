@@ -981,6 +981,12 @@ class WP_Query {
 			$query_vars['s'] = '';
 		}
 
+		/*
+		 * PHPStan cannot prove the types of the optional query vars, such as 'post_type', which are only
+		 * normalized when they are set. Since the query vars may have any other key, PHPStan loses track
+		 * of a key whenever one branch can leave it absent, and falls back to the mixed type of any other key.
+		 */
+		/** @var Query_Vars $query_vars */
 		return $query_vars;
 	}
 
