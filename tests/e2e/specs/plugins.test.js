@@ -3,6 +3,11 @@
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
+/**
+ * Internal dependencies
+ */
+import { PLUGINS } from '../utils/locks';
+
 const plugin = 'e2e-test-plugin/e2e-test-plugin';
 const pluginName = 'E2E Test Plugin';
 
@@ -49,7 +54,7 @@ async function deletePlugin( requestUtils ) {
 	} );
 }
 
-test.describe( 'Plugin management', () => {
+test.describe( 'Plugin management', { lock: PLUGINS }, () => {
 	test.beforeEach( async ( { requestUtils } ) => {
 		// The fixture slug requires an environment not shared with another test run.
 		// An interrupted run can leave the fixture plugin installed.

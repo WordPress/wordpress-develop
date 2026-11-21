@@ -97,7 +97,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04 ]
+        os: [ ubuntu-26.04 ]
         memcached: [ false, true ]
         php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
         db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
@@ -114,8 +114,8 @@ jobs:
           - db-version: '9.5'
           - db-version: '9.6'
           - db-version: '26.7'
-          # No PHP 8.5 + Memcached support yet.
-          - php: '8.5'
+          # No PHP 8.6 + Memcached support yet.
+          - php: '8.6'
             memcached: true
 
     with:
@@ -143,7 +143,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ build-test-matrix, environment-tests-mysql, slack-notifications ]
