@@ -614,10 +614,45 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_prepare_item() {
-		// Controller does not implement prepare_item().
+		wp_set_current_user( self::$editor_id );
+
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'    => 'page',
+				'post_title'   => 'Sample Page',
+				'post_content' => 'Sample content',
+				'post_status'  => 'publish',
+				'post_author'  => self::$editor_id,
+			)
+		);
+
+		$endpoint = new WP_REST_Posts_Controller( 'page' );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/pages/%d', $page_id ) );
+		$request->set_param( 'context', 'edit' );
+		$page     = get_post( $page_id );
+		$response = $endpoint->prepare_item_for_response( $page, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( $page_id, $data['id'] );
+		$this->assertSame( 'page', $data['type'] );
+		$this->assertSame( 'Sample Page', $data['title']['raw'] );
+		$this->assertSame( 'Sample content', $data['content']['raw'] );
+		$this->assertSame( 'publish', $data['status'] );
+		$this->assertSame( self::$editor_id, $data['author'] );
+		$this->assertSame( $page->post_excerpt, $data['excerpt']['raw'] );
+		$this->assertSame( 0, $data['parent'] );
+		$this->assertSame( 0, $data['menu_order'] );
+
+		$links = test_rest_expand_compact_links( $response->get_links() );
+		$this->assertSame( rest_url( sprintf( 'wp/v2/pages/%d', $page_id ) ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/pages' ), $links['collection'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/types/page' ), $links['about'][0]['href'] );
 	}
 
 	public function test_prepare_item_limit_fields() {
@@ -1069,6 +1104,34 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links, 'The action-set-homepage link should not exist.' );
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links, 'The action-set-posts-page link should not exist.' );
+	}
+
+	/**
+	 * The pages of a collection have the links, compacted with the `wp` CURIE
+	 * as the editors read them.
+	 *
+	 * @ticket 66327
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_homepage_action_links_exist_for_pages_in_a_collection() {
+		wp_set_current_user( self::$admin_id );
+
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_query_params(
+			array(
+				'context' => 'edit',
+				'include' => array( $page_id ),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = rest_get_server()->response_to_data( $response, false );
+
+		$this->assertCount( 1, $data, 'The page should be listed.' );
+		$this->assertArrayHasKey( 'wp:action-set-homepage', $data[0]['_links'], 'The link should be compacted as `wp:action-set-homepage`.' );
+		$this->assertArrayHasKey( 'wp:action-set-posts-page', $data[0]['_links'], 'The link should be compacted as `wp:action-set-posts-page`.' );
 	}
 
 	/**

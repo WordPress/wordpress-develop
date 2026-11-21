@@ -191,10 +191,55 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Navigation_Fallback_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Covered by the core test.
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'wp_navigation',
+				'post_title' => 'Test Navigation Menu',
+			)
+		);
+
+		$post       = get_post( $post_id );
+		$controller = new WP_REST_Navigation_Fallback_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp-block-editor/v1/navigation-fallback' );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'id' => $post_id ), $response->get_data() );
+
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertSame( rest_url( rest_get_route_for_post( $post_id ) ), $links['self'][0]['href'] );
+		$this->assertTrue( $links['self'][0]['attributes']['embeddable'] );
+	}
+
+	/**
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Navigation_Fallback_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'wp_navigation',
+				'post_title' => 'Test Navigation Menu',
+			)
+		);
+
+		$post       = get_post( $post_id );
+		$controller = new WP_REST_Navigation_Fallback_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp-block-editor/v1/navigation-fallback' );
+		$request->set_param( '_fields', 'id' );
+
+		$response = $controller->prepare_item_for_response( $post, $request );
+		$this->assertSame( array( 'id' => $post_id ), $response->get_data() );
+		$this->assertEmpty( $response->get_links() );
 	}
 
 	/**

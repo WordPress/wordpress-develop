@@ -70,7 +70,7 @@ class Tests_Block_Supports_Aria_Label extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_aria_label_block_support() {
+	public static function data_aria_label_block_support() {
 		return array(
 			'aria-label attribute is applied' => array(
 				'support'  => true,

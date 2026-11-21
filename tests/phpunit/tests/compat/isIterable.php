@@ -42,7 +42,7 @@ class Tests_Compat_isIterable extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_is_iterable_functionality() {
+	public static function data_is_iterable_functionality() {
 		return array(
 			'empty array'           => array(
 				'variable'    => array(),

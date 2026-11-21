@@ -30,7 +30,7 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_strips_css_from_blocks() {
+	public static function data_strips_css_from_blocks() {
 		return array(
 			'single block' => array(
 				'content' => '<!-- wp:paragraph {"style":{"css":"color: red;"}} --><p>Hello</p><!-- /wp:paragraph -->',

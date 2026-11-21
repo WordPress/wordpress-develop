@@ -300,7 +300,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	 *
 	 * @return array<non-falsy-string, array{ hook_name: non-falsy-string, method: 'get_sitemap_xml'|'get_sitemap_index_xml' }>
 	 */
-	public function data_deprecated_stylesheet_filters(): array {
+	public static function data_deprecated_stylesheet_filters(): array {
 		return array(
 			'stylesheet URL'             => array(
 				'hook_name' => 'wp_sitemaps_stylesheet_url',

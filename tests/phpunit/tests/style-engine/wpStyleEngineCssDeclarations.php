@@ -270,7 +270,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_compile_css_declarations_to_css_declarations_string() {
+	public static function data_should_compile_css_declarations_to_css_declarations_string() {
 		return array(
 			'unprettified, no indent'  => array(
 				'expected' => 'color:red;border-top-left-radius:99px;text-decoration:underline;',

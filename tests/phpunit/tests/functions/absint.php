@@ -26,7 +26,7 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ test_value: mixed, expected_value: non-negative-int }>
 	 */
-	public function data_absint(): array {
+	public static function data_absint(): array {
 		return array(
 			'1 int'                 => array(
 				'test_value'     => 1,
@@ -99,7 +99,7 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ test_value: mixed, expected_value: non-negative-int }>
 	 */
-	public function data_absint_other_types(): array {
+	public static function data_absint_other_types(): array {
 		/*
 		 * The largest power of two which fits in an integer, and which is therefore
 		 * also exactly representable as a float: 2^62 on 64-bit builds, 2^30 on
@@ -184,7 +184,7 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ test_value: mixed, expected_value: non-negative-int }>
 	 */
-	public function data_absint_extreme_values(): array {
+	public static function data_absint_extreme_values(): array {
 		return array(
 			'PHP_INT_MAX'                             => array(
 				'test_value'     => PHP_INT_MAX,
@@ -242,7 +242,7 @@ class Tests_Functions_Absint extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ test_value: float, expected_value: non-negative-int }>
 	 */
-	public function data_absint_unrepresentable_floats(): array {
+	public static function data_absint_unrepresentable_floats(): array {
 		return array(
 			'(float) PHP_INT_MAX (2^63)'  => array(
 				'test_value'     => (float) PHP_INT_MAX,

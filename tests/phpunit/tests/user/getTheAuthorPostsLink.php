@@ -42,6 +42,8 @@ class Tests_User_GetTheAuthorPostsLink extends WP_UnitTestCase {
 	 * @ticket 30355
 	 */
 	public function test_get_the_author_posts_link_no_permalinks() {
+		$this->set_permalink_structure( '' );
+
 		$author = get_userdata( self::$author_id );
 
 		$GLOBALS['authordata'] = $author->data;
@@ -60,8 +62,6 @@ class Tests_User_GetTheAuthorPostsLink extends WP_UnitTestCase {
 	 * @ticket 30355
 	 */
 	public function test_get_the_author_posts_link_with_permalinks() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$author = get_userdata( self::$author_id );
 
 		$GLOBALS['authordata'] = $author;

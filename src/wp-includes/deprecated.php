@@ -6600,3 +6600,112 @@ function _truncate_post_slug( $slug, $length = 200 ) {
 
 	return wp_truncate_slug( $slug, $length );
 }
+
+/**
+ * Determines the concatenation settings for scripts and styles.
+ *
+ * Scripts and styles are no longer concatenated, so this only gives the `$concatenate_scripts`,
+ * `$compress_scripts`, and `$compress_css` globals a value of false when they are not already set,
+ * for code that still reads them.
+ *
+ * @since 2.8.0
+ * @since 7.2.0 The `$compress_scripts` and `$compress_css` globals default to false, as PHP compression
+ *              of scripts and styles was removed in 4.9.9.
+ * @deprecated 7.2.0 Scripts and styles are no longer concatenated.
+ *
+ * @global bool $concatenate_scripts
+ * @global bool $compress_scripts
+ * @global bool $compress_css
+ */
+function script_concat_settings(): void {
+	global $concatenate_scripts, $compress_scripts, $compress_css;
+
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
+	if ( ! isset( $concatenate_scripts ) ) {
+		$concatenate_scripts = false;
+	}
+
+	if ( ! isset( $compress_scripts ) ) {
+		$compress_scripts = false;
+	}
+
+	if ( ! isset( $compress_css ) ) {
+		$compress_css = false;
+	}
+}
+
+/**
+ * Prints scripts (internal use only)
+ *
+ * @since 2.8.0
+ * @deprecated 7.2.0 Scripts are no longer concatenated.
+ *
+ * @ignore
+ *
+ * @global WP_Scripts $wp_scripts
+ */
+function _print_scripts(): void {
+	global $wp_scripts;
+
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
+	if ( ! empty( $wp_scripts->print_html ) ) {
+		echo $wp_scripts->print_html;
+	}
+}
+
+/**
+ * Prints styles (internal use only).
+ *
+ * @ignore
+ * @since 3.3.0
+ * @deprecated 7.2.0 Styles are no longer concatenated.
+ */
+function _print_styles(): void {
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
+	$wp_styles = wp_styles();
+
+	if ( ! empty( $wp_styles->print_html ) ) {
+		echo $wp_styles->print_html;
+	}
+}
+
+/**
+ * Starts an output buffer that sends the Document-Isolation-Policy header
+ * and adds crossorigin="anonymous" to cross-origin resources.
+ *
+ * The attribute injection was dropped because `isolate-and-credentialless`
+ * loads cross-origin resources without it, and forcing CORS mode broke
+ * resources served without `Access-Control-Allow-Origin`. Only the header
+ * is sent now.
+ *
+ * @since 7.1.0
+ * @deprecated 7.2.0 Use wp_send_document_isolation_policy_header() instead.
+ * @see wp_send_document_isolation_policy_header()
+ */
+function wp_start_cross_origin_isolation_output_buffer(): void {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'wp_send_document_isolation_policy_header()' );
+
+	wp_send_document_isolation_policy_header();
+}
+
+/**
+ * Adds crossorigin="anonymous" to relevant tags in the given HTML string.
+ *
+ * No longer modifies the HTML. Under `Document-Isolation-Policy:
+ * isolate-and-credentialless` cross-origin resources load without the
+ * attribute, and adding it broke resources served without CORS headers.
+ *
+ * @since 7.1.0
+ * @deprecated 7.2.0
+ *
+ * @param string $html HTML input.
+ * @return string The unmodified HTML.
+ */
+function wp_add_crossorigin_attributes( string $html ): string {
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
+	return $html;
+}

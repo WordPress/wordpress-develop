@@ -73,7 +73,7 @@ class Tests_Functions_wpFilesize extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: float|int|string }>
 	 */
-	public function data_wp_filesize_pre_wp_filesize_filter_negative(): array {
+	public static function data_wp_filesize_pre_wp_filesize_filter_negative(): array {
 		return array(
 			'negative int'            => array( -1 ),
 			'negative numeric string' => array( '-1' ),
@@ -98,7 +98,7 @@ class Tests_Functions_wpFilesize extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: mixed }>
 	 */
-	public function data_wp_filesize_filter_invalid_value(): array {
+	public static function data_wp_filesize_filter_invalid_value(): array {
 		return array(
 			'negative' => array( -1 ),
 			'null'     => array( null ),

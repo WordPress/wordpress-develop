@@ -134,7 +134,8 @@ function _wp_register_default_icons() {
 	 *     label: string,
 	 *     filePath: non-empty-string,
 	 *     collections: non-empty-list<lowercase-string&non-falsy-string>,
-	 *     keywords?: list<string>
+	 *     keywords?: list<string>,
+	 *     dashicons?: non-empty-list<non-falsy-string>
 	 * }> $collection
 	 */
 	$collection = include $manifest_path;
@@ -182,6 +183,19 @@ function _wp_register_default_icons() {
 			wp_register_icon( $collection_slug . '/' . $icon_name, $icon_args );
 		}
 	}
+}
+
+/**
+ * Checks whether a value has the form of a namespaced icon name, i.e. "collection/icon-name".
+ *
+ * @since 7.2.0
+ *
+ * @param mixed $icon_name The value to check.
+ * @return bool True if the value has the form of a namespaced icon name, else false.
+ */
+function wp_is_valid_icon_name( $icon_name ) {
+	return is_string( $icon_name )
+		&& preg_match( '#^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$#D', $icon_name );
 }
 
 /**

@@ -70,7 +70,7 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 	 *
 	 * @return array
 	 */
-	public function data_adds_class_name() {
+	public static function data_adds_class_name() {
 		return array(
 			'class name is added when custom CSS is present'         => array(
 				'block_name'   => 'test/custom-css-block',
@@ -188,7 +188,7 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 	 *
 	 * @return array
 	 */
-	public function data_does_not_add_class_name() {
+	public static function data_does_not_add_class_name() {
 		return array(
 			'support is disabled'            => array(
 				'block_name'   => 'test/custom-css-disabled',
