@@ -2588,8 +2588,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $comment_id );
 
-		$this->assertSame( 'foo&#x1f608;bar', $comment->comment_author );
-		$this->assertSame( 'foo&#x1f60e;baz', $comment->comment_content );
+		$this->assertSame( 'foo&#x1F608;bar', $comment->comment_author );
+		$this->assertSame( 'foo&#x1F60E;baz', $comment->comment_content );
 	}
 
 	/**
@@ -2620,7 +2620,7 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		if ( $should_insert ) {
 			$this->assertInstanceOf( WP_Comment::class, $result );
-			$this->assertSame( $prefix . str_repeat( '&#x1f600;', $count ), $result->$column );
+			$this->assertSame( $prefix . str_repeat( '&#x1F600;', $count ), $result->$column );
 		} else {
 			$this->assertSame( $before, get_comments( array( 'count' => true ) ), 'The overlong comment should not be inserted.' );
 			$this->assertWPError( $result );
@@ -2722,8 +2722,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $comment_id );
 
-		$this->assertSame( 'foo&#x1f608;bar', $comment->comment_author );
-		$this->assertSame( 'foo&#x1f60e;baz', $comment->comment_content );
+		$this->assertSame( 'foo&#x1F608;bar', $comment->comment_author );
+		$this->assertSame( 'foo&#x1F60E;baz', $comment->comment_content );
 	}
 
 	/**
@@ -2823,8 +2823,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		$comment = get_comment( $comment_id );
 
 		$this->assertSame( substr( $commentdata['comment_author_url'], 0, 200 ), $comment->comment_author_url );
-		$this->assertSame( 'Ann &#x1f600;', $comment->comment_author );
-		$this->assertSame( 'Hello &#x1f60e;', $comment->comment_content );
+		$this->assertSame( 'Ann &#x1F600;', $comment->comment_author );
+		$this->assertSame( 'Hello &#x1F60E;', $comment->comment_content );
 		$this->assertSame( $commentdata['comment_author'], $approved_data['comment_author'] );
 		$this->assertSame( $commentdata['comment_content'], $approved_data['comment_content'] );
 	}
