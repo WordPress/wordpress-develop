@@ -492,4 +492,46 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		}
 		$this->assertTrue( $has_html_files, 'contains at least one html file' );
 	}
+
+	/**
+	 * Tests that template parts strip the "theme" attribute from nested template parts when exported.
+	 *
+	 * @covers ::wp_generate_block_templates_export_file
+	 * @requires extension zip
+	 */
+	public function test_wp_generate_block_templates_export_file_strips_theme_attribute_from_template_parts() {
+		$current_theme = get_stylesheet();
+
+		$template_part_id = wp_insert_post(
+			array(
+				'post_type'    => 'wp_template_part',
+				'post_status'  => 'publish',
+				'post_title'   => 'Test Template Part With Nested Part',
+				'post_name'    => 'test-nested-part',
+				'post_content' => '<!-- wp:template-part {"slug":"inner-part","theme":"old-theme","area":"header"} /-->',
+			),
+			true
+		);
+		$this->assertNotWPError( $template_part_id );
+
+		wp_set_post_terms( $template_part_id, array( $current_theme ), 'wp_theme' );
+		wp_set_post_terms( $template_part_id, array( 'header' ), 'wp_template_part_area' );
+
+		$filename = wp_generate_block_templates_export_file();
+		$this->assertNotWPError( $filename );
+		$this->assertFileExists( $filename );
+
+		$zip = new ZipArchive();
+		$this->assertTrue( $zip->open( $filename ) );
+
+		$part_content = $zip->getFromName( 'parts/test-nested-part.html' );
+		$zip->close();
+
+		unlink( $filename );
+		wp_delete_post( $template_part_id, true );
+
+		$this->assertNotEmpty( $part_content );
+		$this->assertStringNotContainsString( '"theme":', $part_content );
+		$this->assertStringContainsString( '<!-- wp:template-part {"slug":"inner-part","area":"header"} /-->', $part_content );
+	}
 }
