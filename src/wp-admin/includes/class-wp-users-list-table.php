@@ -311,7 +311,18 @@ class WP_Users_List_Table extends WP_List_Table {
 		</label>
 		<select name="<?php echo $id; ?>" id="<?php echo $id; ?>">
 			<option value=""><?php _e( 'Change role to&hellip;' ); ?></option>
-			<?php wp_dropdown_roles(); ?>
+			<?php
+			$switch_site = $this->is_site_users && get_current_blog_id() !== $this->site_id;
+			if ( $switch_site ) {
+				switch_to_blog( $this->site_id );
+			}
+
+			wp_dropdown_roles();
+
+			if ( $switch_site ) {
+				restore_current_blog();
+			}
+			?>
 			<option value="none"><?php _e( '&mdash; No role for this site &mdash;' ); ?></option>
 		</select>
 			<?php
