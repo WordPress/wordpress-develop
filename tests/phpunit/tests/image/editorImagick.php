@@ -411,6 +411,30 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the size-aware quality filter applies when resizing with cropping.
+	 *
+	 * @ticket 66773
+	 */
+	public function test_size_aware_quality_filter_applies_to_cropped_resize() {
+		$quality_by_size = static function ( $quality, $mime_type, $size ) {
+			return isset( $size['width'] ) && 150 === $size['width'] ? 40 : 70;
+		};
+
+		add_filter( 'wp_editor_set_quality', $quality_by_size, 10, 3 );
+
+		$file = DIR_TESTDATA . '/images/canola.jpg';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
+
+		$imagick_image_editor->resize( 150, 150, true );
+
+		remove_filter( 'wp_editor_set_quality', $quality_by_size, 10 );
+
+		$this->assertSame( 40, $imagick_image_editor->get_quality() );
+	}
+
+	/**
 	 * Tests cropping an image.
 	 */
 	public function test_crop() {
