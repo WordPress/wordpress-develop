@@ -8,6 +8,11 @@ import { randomUUID } from 'node:crypto';
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
+/**
+ * Internal dependencies
+ */
+import { bulkActionApply, bulkActionSelect } from '../utils/admin';
+
 for ( const { label, screen, confirmationLabel, usernamePrefix } of [
 	{
 		label: 'Export Personal Data',
@@ -49,10 +54,8 @@ for ( const { label, screen, confirmationLabel, usernamePrefix } of [
 					.filter( { hasText: email } );
 				if ( await row.count() ) {
 					await row.first().getByRole( 'checkbox' ).check();
-					await page
-						.locator( '#bulk-action-selector-top' )
-						.selectOption( 'delete' );
-					await page.locator( '#doaction' ).click();
+					await bulkActionSelect( page ).selectOption( 'delete' );
+					await bulkActionApply( page ).click();
 				}
 			} finally {
 				if ( userId ) {
