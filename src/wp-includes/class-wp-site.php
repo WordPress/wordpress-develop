@@ -188,8 +188,14 @@ final class WP_Site {
 				$_site = -1;
 			}
 
-			// Not wp_cache_add(), since an unusable cached value may still be present and must be replaced.
-			wp_cache_set( $site_id, $_site, 'sites' );
+			/*
+			 * Not wp_cache_add(), since an unusable cached value may still be present and must be
+			 * replaced. add() checks wp_suspend_cache_addition() and set() does not, so the check
+			 * moves to the call site.
+			 */
+			if ( ! wp_suspend_cache_addition() ) {
+				wp_cache_set( $site_id, $_site, 'sites' );
+			}
 		}
 
 		if ( is_numeric( $_site ) ) {
