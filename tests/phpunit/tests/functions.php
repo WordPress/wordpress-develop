@@ -1761,6 +1761,34 @@ class Tests_Functions extends WP_UnitTestCase {
 							'proper_filename' => false,
 						),
 					),
+					/*
+					 * Audio wrapped in an MP4/ISO-BMFF container (e.g. .m4a from a phone
+					 * recorder) is detected by fileinfo as video/mp4, while the extension
+					 * maps to audio/mpeg. The differing major types must not cause a rejection.
+					 */
+					array(
+						DIR_TESTDATA . '/uploads/audio-in-video-container.m4a',
+						'audio-in-video-container.m4a',
+						array(
+							'ext'             => 'm4a',
+							'type'            => 'audio/mpeg',
+							'proper_filename' => false,
+						),
+					),
+					/*
+					 * Audio wrapped in an 3GPP TS 26.244 container (e.g. .m4a from a phone
+					 * recorder) is detected by fileinfo as video/3gpp, while the extension
+					 * maps to audio/mpeg. The differing major types must not cause a rejection.
+					 */
+					array(
+						DIR_TESTDATA . '/uploads/audio-only-3gp4.m4a',
+						'audio-only-3gp4.m4a',
+						array(
+							'ext'             => 'm4a',
+							'type'            => 'audio/mpeg',
+							'proper_filename' => false,
+						),
+					),
 					// Assorted text/* sample files
 					array(
 						DIR_TESTDATA . '/uploads/test.vtt',
@@ -1881,11 +1909,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_check_filetype_and_ext_accepts_either_ttf_mime_type( $mime_type ) {
 		$file     = DIR_TESTDATA . '/fonts/OpenSans-Regular.ttf';
 		$filename = 'OpenSans-Regular.ttf';
-
-		$detected_type = finfo_file( finfo_open( FILEINFO_MIME_TYPE ), $file );
-		if ( ! in_array( $detected_type, array( 'font/ttf', 'font/sfnt' ), true ) ) {
-			$this->markTestSkipped( "This version of libmagic detects TrueType fonts as {$detected_type}." );
-		}
 
 		$filter = static function ( $mimes ) use ( $mime_type ) {
 			$mimes['ttf'] = $mime_type;
