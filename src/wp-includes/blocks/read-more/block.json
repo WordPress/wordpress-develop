@@ -8,7 +8,8 @@
 	"textdomain": "default",
 	"attributes": {
 		"content": {
-			"type": "string"
+			"type": "string",
+			"role": "content"
 		},
 		"linkTarget": {
 			"type": "string",
@@ -17,7 +18,13 @@
 	},
 	"usesContext": [ "postId" ],
 	"supports": {
+		"anchor": true,
 		"html": false,
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"gradient": true
+		},
 		"color": {
 			"gradients": true,
 			"text": true
@@ -36,6 +43,10 @@
 				"textDecoration": true
 			}
 		},
+		"dimensions": {
+			"minHeight": true,
+			"minWidth": true
+		},
 		"spacing": {
 			"margin": [ "top", "bottom" ],
 			"padding": true,
@@ -46,10 +57,15 @@
 		"__experimentalBorder": {
 			"color": true,
 			"radius": true,
+			"style": true,
 			"width": true,
 			"__experimentalDefaultControls": {
 				"width": true
 			}
+		},
+		"shadow": true,
+		"interactivity": {
+			"clientNavigation": true
 		}
 	},
 	"style": "wp-block-read-more"

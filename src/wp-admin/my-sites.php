@@ -17,7 +17,7 @@ if ( ! current_user_can( 'read' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to access this page.' ) );
 }
 
-$action = isset( $_POST['action'] ) ? $_POST['action'] : 'splash';
+$action = $_POST['action'] ?? 'splash';
 
 $blogs = get_blogs_of_user( $current_user->ID );
 
@@ -78,7 +78,7 @@ echo esc_html( $title );
 if ( in_array( get_site_option( 'registration' ), array( 'all', 'blog' ), true ) ) {
 	/** This filter is documented in wp-login.php */
 	$sign_up_url = apply_filters( 'wp_signup_location', network_site_url( 'wp-signup.php' ) );
-	printf( ' <a href="%s" class="page-title-action">%s</a>', esc_url( $sign_up_url ), esc_html_x( 'Add New', 'site' ) );
+	printf( ' <a href="%s" class="page-title-action">%s</a>', esc_url( $sign_up_url ), esc_html__( 'Add New Site' ) );
 }
 
 if ( empty( $blogs ) ) :
@@ -124,7 +124,7 @@ else :
 	$settings_html = apply_filters( 'myblogs_options', '', 'global' );
 
 	if ( $settings_html ) {
-		echo '<h3>' . __( 'Global Settings' ) . '</h3>';
+		echo '<h2>' . __( 'Global Settings' ) . '</h2>';
 		echo $settings_html;
 	}
 
@@ -134,7 +134,7 @@ else :
 		switch_to_blog( $user_blog->userblog_id );
 
 		echo '<li>';
-		echo "<h3>{$user_blog->blogname}</h3>";
+		echo "<h2>{$user_blog->blogname}</h2>";
 
 		$actions = "<a href='" . esc_url( home_url() ) . "'>" . __( 'Visit' ) . '</a>';
 

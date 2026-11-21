@@ -4,6 +4,7 @@
  * @group formatting
  *
  * @covers ::esc_url
+ * @covers ::esc_url_raw
  */
 class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 
@@ -90,16 +91,48 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 23605
+	 * @ticket 52886
+	 *
 	 * @covers ::wp_allowed_protocols
 	 */
 	public function test_protocol() {
 		$this->assertSame( 'http://example.com', esc_url( 'http://example.com' ) );
 		$this->assertSame( '', esc_url( 'nasty://example.com/' ) );
 		$this->assertSame(
-			'',
+			'https://example.com',
 			esc_url(
 				'example.com',
 				array(
+					'https',
+				)
+			)
+		);
+		$this->assertSame(
+			'http://example.com',
+			esc_url(
+				'example.com',
+				array(
+					'http',
+				)
+			)
+		);
+		$this->assertSame(
+			'https://example.com',
+			esc_url(
+				'example.com',
+				array(
+					'https',
+					'http',
+				)
+			)
+		);
+		$this->assertSame(
+			'http://example.com',
+			esc_url(
+				'example.com',
+				array(
+					'http',
 					'https',
 				)
 			)
@@ -124,7 +157,11 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 			)
 		);
 
-		foreach ( wp_allowed_protocols() as $scheme ) {
+		$protocols = wp_allowed_protocols();
+
+		$this->assertNotEmpty( $protocols );
+
+		foreach ( $protocols as $scheme ) {
 			$this->assertSame( "{$scheme}://example.com", esc_url( "{$scheme}://example.com" ), $scheme );
 			$this->assertSame(
 				"{$scheme}://example.com",
@@ -151,7 +188,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 				)
 			)
 		);
-
 	}
 
 	/**
@@ -259,7 +295,7 @@ EOT;
 	 *
 	 * @covers ::sanitize_url
 	 */
-	public function test_invalid_charaters() {
+	public function test_invalid_characters() {
 		$this->assertEmpty( sanitize_url( '"^<>{}`' ) );
 	}
 
@@ -277,4 +313,14 @@ EOT;
 		$this->assertSame( 'http://[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( 'http://[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
 	}
 
+	/**
+	 * Tests that esc_url_raw() preserves raw ampersands and accepts custom protocols.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_esc_url_raw() {
+		$url = 'custom://example.com/?one=1&two=2';
+
+		$this->assertSame( $url, esc_url_raw( $url, array( 'custom' ) ) );
+	}
 }

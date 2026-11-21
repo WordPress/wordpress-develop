@@ -7,6 +7,32 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	protected $queries = 0;
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
+	/**
+	 * Performs setup tasks for every test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+		switch_theme( 'default' );
+	}
+
+	/**
+	 * Cleans up after every test.
+	 */
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 16894
 	 *
 	 * @covers ::update_comment_meta
@@ -187,23 +213,23 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 
 		$this->go_to( get_permalink( $p ) );
 
-		if ( have_posts() ) {
-			while ( have_posts() ) {
-				the_post();
+		$this->assertTrue( have_posts() );
 
-				// Load comments with `comments_template()`.
-				$cform = get_echo( 'comments_template' );
+		while ( have_posts() ) {
+			the_post();
 
-				// First request will hit the database.
-				$num_queries = get_num_queries();
-				get_comment_meta( $comment_ids[0], 'sauce' );
-				$this->assertSame( 1, get_num_queries() - $num_queries );
+			// Load comments with `comments_template()`.
+			$cform = get_echo( 'comments_template' );
 
-				// Second and third requests should be in cache.
-				get_comment_meta( $comment_ids[1], 'sauce' );
-				get_comment_meta( $comment_ids[2], 'sauce' );
-				$this->assertSame( 1, get_num_queries() - $num_queries );
-			}
+			// First request will hit the database.
+			$num_queries = get_num_queries();
+			get_comment_meta( $comment_ids[0], 'sauce' );
+			$this->assertSame( 1, get_num_queries() - $num_queries );
+
+			// Second and third requests should be in cache.
+			get_comment_meta( $comment_ids[1], 'sauce' );
+			get_comment_meta( $comment_ids[2], 'sauce' );
+			$this->assertSame( 1, get_num_queries() - $num_queries );
 		}
 	}
 
@@ -243,7 +269,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		// First comment will cause the cache to be primed.
 		$num_queries = get_num_queries();
 		$this->assertSame( 'bar', get_comment_meta( $comments[0], 'foo', 'bar' ) );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 
 		// Second comment from the results should not cause more queries.
@@ -252,7 +278,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 
 		// A comment from outside the results will not be primed.
 		$this->assertSame( 'bar', get_comment_meta( $comments[4], 'foo', 'bar' ) );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
@@ -293,7 +319,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		// First comment will cause the cache to be primed.
 		$num_queries = get_num_queries();
 		$this->assertSame( 'bar', get_comment_meta( $comments[0], 'foo', 'bar' ) );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 
 		// Second comment from the results should not cause more queries.
@@ -302,7 +328,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 
 		// A comment from outside the results will not be primed.
 		$this->assertSame( 'bar', get_comment_meta( $comments[4], 'foo', 'bar' ) );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
 

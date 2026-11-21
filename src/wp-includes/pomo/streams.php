@@ -299,7 +299,6 @@ if ( ! class_exists( 'POMO_StringReader', false ) ) :
 		public function read_all() {
 			return $this->substr( $this->_str, $this->_pos, $this->strlen( $this->_str ) );
 		}
-
 	}
 endif;
 
@@ -315,7 +314,7 @@ if ( ! class_exists( 'POMO_CachedFileReader', false ) ) :
 			parent::__construct();
 			$this->_str = file_get_contents( $filename );
 			if ( false === $this->_str ) {
-				return false;
+				return;
 			}
 			$this->_pos = 0;
 		}
@@ -359,4 +358,3 @@ if ( ! class_exists( 'POMO_CachedIntFileReader', false ) ) :
 		}
 	}
 endif;
-

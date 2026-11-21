@@ -59,6 +59,8 @@ $shortcode_tags = array();
  *                           including an array of attributes (`$atts`), the shortcode content
  *                           or null if not set (`$content`), and finally the shortcode tag
  *                           itself (`$shortcode_tag`), in that order.
+ *
+ * @phpstan-param non-empty-string $tag
  */
 function add_shortcode( $tag, $callback ) {
 	global $shortcode_tags;
@@ -129,6 +131,8 @@ function remove_all_shortcodes() {
  *
  * @param string $tag Shortcode tag to check.
  * @return bool Whether the given shortcode exists.
+ *
+ * @phpstan-assert-if-true =non-empty-string $tag
  */
 function shortcode_exists( $tag ) {
 	global $shortcode_tags;
@@ -145,6 +149,10 @@ function shortcode_exists( $tag ) {
  * @param string $content Content to search for shortcodes.
  * @param string $tag     Shortcode tag to check.
  * @return bool Whether the passed content contains the given shortcode.
+ *
+ * @phpstan-assert-if-true =non-falsy-string $content
+ * @phpstan-assert-if-true =non-empty-string $tag
+ * @phpstan-return ( $tag is '' ? false : ( $content is empty ? false : bool ) )
  */
 function has_shortcode( $content, $tag ) {
 	if ( ! str_contains( $content, '[' ) ) {
@@ -166,6 +174,44 @@ function has_shortcode( $content, $tag ) {
 		}
 	}
 	return false;
+}
+
+/**
+ * Returns a list of registered shortcode names found in the given content.
+ *
+ * Example usage:
+ *
+ *     get_shortcode_tags_in_content( '[audio src="file.mp3"][/audio] [foo] [gallery ids="1,2,3"]' );
+ *     // array( 'audio', 'gallery' )
+ *
+ * @since 6.3.2
+ *
+ * @param string $content The content to check.
+ * @return string[] An array of registered shortcode names found in the content.
+ */
+function get_shortcode_tags_in_content( $content ) {
+	if ( ! str_contains( $content, '[' ) ) {
+		return array();
+	}
+
+	preg_match_all( '/' . get_shortcode_regex() . '/', $content, $matches, PREG_SET_ORDER );
+	if ( empty( $matches ) ) {
+		return array();
+	}
+
+	$tags = array();
+	foreach ( $matches as $shortcode ) {
+		$tags[] = $shortcode[2];
+
+		if ( ! empty( $shortcode[5] ) ) {
+			$deep_tags = get_shortcode_tags_in_content( $shortcode[5] );
+			if ( ! empty( $deep_tags ) ) {
+				$tags = array_merge( $tags, $deep_tags );
+			}
+		}
+	}
+
+	return $tags;
 }
 
 /**
@@ -281,7 +327,9 @@ function _filter_do_shortcode_context() {
  * @global array $shortcode_tags
  *
  * @param array $tagnames Optional. List of shortcodes to find. Defaults to all registered shortcodes.
- * @return string The shortcode search regular expression
+ * @return string The shortcode search regular expression.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_shortcode_regex( $tagnames = null ) {
 	global $shortcode_tags;
@@ -324,7 +372,7 @@ function get_shortcode_regex( $tagnames = null ) {
 		.         '\\[\\/\\2\\]'             // Closing shortcode tag.
 		.     ')?'
 		. ')'
-		. '(\\]?)';                          // 6: Optional second closing brocket for escaping shortcodes: [[tag]].
+		. '(\\]?)';                          // 6: Optional second closing bracket for escaping shortcodes: [[tag]].
 	// phpcs:enable
 }
 
@@ -347,7 +395,7 @@ function get_shortcode_regex( $tagnames = null ) {
  *     @type string $3 Shortcode arguments list.
  *     @type string $4 Optional self closing slash.
  *     @type string $5 Content of a shortcode when it wraps some content.
- *     @type string $6 Optional second closing brocket for escaping shortcodes.
+ *     @type string $6 Optional second closing bracket for escaping shortcodes.
  * }
  * @return string Shortcode output.
  */
@@ -379,10 +427,11 @@ function do_shortcode_tag( $m ) {
 	 * shortcode generation process, returning that value instead.
 	 *
 	 * @since 4.7.0
+	 * @since 6.5.0 The `$attr` parameter is always an array.
 	 *
 	 * @param false|string $output Short-circuit return value. Either false or the value to replace the shortcode with.
 	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or the original arguments string if it cannot be parsed.
+	 * @param array        $attr   Shortcode attributes array, can be empty if the original arguments string cannot be parsed.
 	 * @param array        $m      Regular expression match array.
 	 */
 	$return = apply_filters( 'pre_do_shortcode_tag', false, $tag, $attr, $m );
@@ -390,7 +439,7 @@ function do_shortcode_tag( $m ) {
 		return $return;
 	}
 
-	$content = isset( $m[5] ) ? $m[5] : null;
+	$content = $m[5] ?? null;
 
 	$output = $m[1] . call_user_func( $shortcode_tags[ $tag ], $attr, $content, $tag ) . $m[6];
 
@@ -398,11 +447,12 @@ function do_shortcode_tag( $m ) {
 	 * Filters the output created by a shortcode callback.
 	 *
 	 * @since 4.7.0
+	 * @since 6.5.0 The `$attr` parameter is always an array.
 	 *
-	 * @param string       $output Shortcode output.
-	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or the original arguments string if it cannot be parsed.
-	 * @param array        $m      Regular expression match array.
+	 * @param string $output Shortcode output.
+	 * @param string $tag    Shortcode name.
+	 * @param array  $attr   Shortcode attributes array, can be empty if the original arguments string cannot be parsed.
+	 * @param array  $m      Regular expression match array.
 	 */
 	return apply_filters( 'do_shortcode_tag', $output, $tag, $attr, $m );
 }
@@ -466,7 +516,7 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 				$element = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $element );
 			}
 
-			// Looks like we found some crazy unfiltered HTML. Skipping it for sanity.
+			// Looks like we found some unexpected unfiltered HTML. Skipping it for confidence.
 			$element = strtr( $element, $trans );
 			continue;
 		}
@@ -549,6 +599,8 @@ function unescape_invalid_shortcodes( $content ) {
  * @since 4.4.0
  *
  * @return string The shortcode attribute regular expression.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_shortcode_atts_regex() {
 	return '/([\w-]+)\s*=\s*"([^"]*)"(?:\s|$)|([\w-]+)\s*=\s*\'([^\']*)\'(?:\s|$)|([\w-]+)\s*=\s*([^\s\'"]+)(?:\s|$)|"([^"]*)"(?:\s|$)|\'([^\']*)\'(?:\s|$)|(\S+)(?:\s|$)/';
@@ -562,30 +614,63 @@ function get_shortcode_atts_regex() {
  * retrieval of the attributes, since all attributes have to be known.
  *
  * @since 2.5.0
+ * @since 6.5.0 The function now always returns an array,
+ *              even if the original arguments string cannot be parsed or is empty.
+ * @since 7.1.5 A hex or octal escape that decodes to <, >, " or ' produces a character reference.
  *
  * @param string $text Shortcode arguments list.
- * @return array|string Array of attribute values keyed by attribute name.
- *                      Returns empty array if there are no attributes.
- *                      Returns the original arguments string if it cannot be parsed.
+ * @return array Array of attribute values keyed by attribute name.
+ *               Returns empty array if there are no attributes
+ *               or if the original arguments string cannot be parsed.
  */
 function shortcode_parse_atts( $text ) {
+	// Decodes like stripcslashes(), except that a hex or octal escape that decodes
+	// to `<`, `>`, `"` or `'` produces `&lt;`, `&gt;`, `&quot;` or `&#039;`.
+	$decode = static function ( $value ) {
+		if ( ! str_contains( $value, '\\' ) ) {
+			return $value;
+		}
+
+		return preg_replace_callback(
+			'/\\\\(?:x[0-9A-Fa-f]{1,2}|[0-7]{1,3}|.)/s',
+			static function ( $matches ) {
+				$decoded = stripcslashes( $matches[0] );
+
+				// A two-byte escape cannot decode to a structural character that the raw value lacks.
+				if ( 2 === strlen( $matches[0] ) ) {
+					return $decoded;
+				}
+
+				$structural = array(
+					'<' => '&lt;',
+					'>' => '&gt;',
+					'"' => '&quot;',
+					"'" => '&#039;',
+				);
+
+				return $structural[ $decoded ] ?? $decoded;
+			},
+			$value
+		);
+	};
+
 	$atts    = array();
 	$pattern = get_shortcode_atts_regex();
 	$text    = preg_replace( "/[\x{00a0}\x{200b}]+/u", ' ', $text );
 	if ( preg_match_all( $pattern, $text, $match, PREG_SET_ORDER ) ) {
 		foreach ( $match as $m ) {
 			if ( ! empty( $m[1] ) ) {
-				$atts[ strtolower( $m[1] ) ] = stripcslashes( $m[2] );
+				$atts[ strtolower( $m[1] ) ] = $decode( $m[2] );
 			} elseif ( ! empty( $m[3] ) ) {
-				$atts[ strtolower( $m[3] ) ] = stripcslashes( $m[4] );
+				$atts[ strtolower( $m[3] ) ] = $decode( $m[4] );
 			} elseif ( ! empty( $m[5] ) ) {
-				$atts[ strtolower( $m[5] ) ] = stripcslashes( $m[6] );
+				$atts[ strtolower( $m[5] ) ] = $decode( $m[6] );
 			} elseif ( isset( $m[7] ) && strlen( $m[7] ) ) {
-				$atts[] = stripcslashes( $m[7] );
+				$atts[] = $decode( $m[7] );
 			} elseif ( isset( $m[8] ) && strlen( $m[8] ) ) {
-				$atts[] = stripcslashes( $m[8] );
+				$atts[] = $decode( $m[8] );
 			} elseif ( isset( $m[9] ) ) {
-				$atts[] = stripcslashes( $m[9] );
+				$atts[] = $decode( $m[9] );
 			}
 		}
 
@@ -597,8 +682,6 @@ function shortcode_parse_atts( $text ) {
 				}
 			}
 		}
-	} else {
-		$atts = ltrim( $text );
 	}
 
 	return $atts;

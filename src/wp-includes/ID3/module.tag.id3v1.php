@@ -29,6 +29,9 @@ class getid3_id3v1 extends getid3_handler
 		if (!getid3_lib::intValueSupported($info['filesize'])) {
 			$this->warning('Unable to check for ID3v1 because file is larger than '.round(PHP_INT_MAX / 1073741824).'GB');
 			return false;
+		} elseif ($info['filesize'] < 128) {
+			$this->warning('Unable to check for ID3v1 because file is too small');
+			return false;
 		}
 
 		if($info['filesize'] < 256) {
@@ -66,7 +69,7 @@ class getid3_id3v1 extends getid3_handler
 			if (!empty($ParsedID3v1['genre'])) {
 				unset($ParsedID3v1['genreid']);
 			}
-			if (isset($ParsedID3v1['genre']) && (empty($ParsedID3v1['genre']) || ($ParsedID3v1['genre'] == 'Unknown'))) {
+			if (empty($ParsedID3v1['genre']) || ($ParsedID3v1['genre'] == 'Unknown')) {
 				unset($ParsedID3v1['genre']);
 			}
 

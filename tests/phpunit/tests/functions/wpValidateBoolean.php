@@ -3,7 +3,8 @@
 /**
  * Tests for the wp_validate_boolean() function.
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_validate_boolean
  */
 class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
@@ -31,7 +32,7 @@ class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
 	 *     @type bool  $expected   Expected return value.
 	 * }
 	 */
-	public function data_wp_validate_boolean() {
+	public static function data_wp_validate_boolean() {
 		$std = new \stdClass();
 
 		return array(

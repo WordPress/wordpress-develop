@@ -360,8 +360,8 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @param array   $states An array of media states.
-	 * @param WP_Post $post   The current attachment object.
+	 * @param array        $states An array of media states.
+	 * @param WP_Post|null $post   The current attachment object.
 	 * @return array
 	 */
 	public function display_media_state( $states, $post = null ) {
@@ -373,7 +373,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 		$use_count = 0;
 		foreach ( $this->get_settings() as $instance ) {
 			if ( isset( $instance['attachment_id'] ) && $instance['attachment_id'] === $post->ID ) {
-				$use_count++;
+				++$use_count;
 			}
 		}
 
