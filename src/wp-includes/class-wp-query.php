@@ -1205,10 +1205,11 @@ class WP_Query {
 			$tax_query = array();
 		}
 
-		if ( ! empty( $query_vars['taxonomy'] ) && ! empty( $query_vars['term'] ) ) {
+		$term = $query_vars['term'] ?? '';
+		if ( ! empty( $query_vars['taxonomy'] ) && ( $term || '0' === $term ) ) {
 			$tax_query[] = array(
 				'taxonomy' => $query_vars['taxonomy'],
-				'terms'    => array( $query_vars['term'] ),
+				'terms'    => array( $term ),
 				'field'    => 'slug',
 			);
 		}
@@ -1218,17 +1219,18 @@ class WP_Query {
 				continue; // Handled further down in the $query_vars['tag'] block.
 			}
 
-			if ( $t->query_var && ! empty( $query_vars[ $t->query_var ] ) ) {
+			$query_var = $t->query_var;
+			$term      = $query_var ? ( $query_vars[ $query_var ] ?? '' ) : '';
+			if ( $term || '0' === $term ) {
 				$tax_query_defaults = array(
 					'taxonomy' => $taxonomy,
 					'field'    => 'slug',
 				);
 
-				if ( is_string( $query_vars[ $t->query_var ] ) && ! empty( $t->rewrite['hierarchical'] ) ) {
-					$query_vars[ $t->query_var ] = wp_basename( $query_vars[ $t->query_var ] );
+				if ( is_string( $term ) && ! empty( $t->rewrite['hierarchical'] ) ) {
+					$term                     = wp_basename( $term );
+					$query_vars[ $query_var ] = $term;
 				}
-
-				$term = $query_vars[ $t->query_var ];
 
 				if ( ! is_array( $term ) ) {
 					$term = explode( ',', $term );
@@ -2359,7 +2361,8 @@ class WP_Query {
 			 */
 			if ( ! isset( $query_vars['taxonomy'] ) ) {
 				foreach ( $this->tax_query->queried_terms as $queried_taxonomy => $queried_items ) {
-					if ( empty( $queried_items['terms'][0] ) ) {
+					$term = $queried_items['terms'][0] ?? '';
+					if ( ! $term && ( '0' !== $term || 'slug' !== ( $queried_items['field'] ?? '' ) ) ) {
 						continue;
 					}
 
@@ -2367,9 +2370,9 @@ class WP_Query {
 						$query_vars['taxonomy'] = $queried_taxonomy;
 
 						if ( 'slug' === $queried_items['field'] ) {
-							$query_vars['term'] = $queried_items['terms'][0];
+							$query_vars['term'] = $term;
 						} else {
-							$query_vars['term_id'] = $queried_items['terms'][0];
+							$query_vars['term_id'] = $term;
 						}
 
 						// Take the first one we find.
@@ -2380,12 +2383,13 @@ class WP_Query {
 
 			// 'cat', 'category_name', 'tag_id'.
 			foreach ( $this->tax_query->queried_terms as $queried_taxonomy => $queried_items ) {
-				if ( empty( $queried_items['terms'][0] ) ) {
+				$term = $queried_items['terms'][0] ?? '';
+				if ( ! $term && ( '0' !== $term || 'slug' !== ( $queried_items['field'] ?? '' ) ) ) {
 					continue;
 				}
 
 				if ( 'category' === $queried_taxonomy ) {
-					$the_cat = get_term_by( $queried_items['field'], $queried_items['terms'][0], 'category' );
+					$the_cat = get_term_by( $queried_items['field'], $term, 'category' );
 					if ( $the_cat ) {
 						$this->set( 'cat', $the_cat->term_id );
 						$this->set( 'category_name', $the_cat->slug );
@@ -2394,7 +2398,7 @@ class WP_Query {
 				}
 
 				if ( 'post_tag' === $queried_taxonomy ) {
-					$the_tag = get_term_by( $queried_items['field'], $queried_items['terms'][0], 'post_tag' );
+					$the_tag = get_term_by( $queried_items['field'], $term, 'post_tag' );
 					if ( $the_tag ) {
 						$this->set( 'tag_id', $the_tag->term_id );
 					}
@@ -4033,7 +4037,7 @@ class WP_Query {
 
 				if ( $cat ) {
 					$term = get_term( $cat, 'category' );
-				} elseif ( $category_name ) {
+				} elseif ( $category_name || '0' === $category_name ) {
 					$term = get_term_by( 'slug', $category_name, 'category' );
 				}
 			} elseif ( $this->is_tag ) {
@@ -4042,7 +4046,7 @@ class WP_Query {
 
 				if ( $tag_id ) {
 					$term = get_term( $tag_id, 'post_tag' );
-				} elseif ( $tag ) {
+				} elseif ( $tag || '0' === $tag ) {
 					$term = get_term_by( 'slug', $tag, 'post_tag' );
 				}
 			} else {

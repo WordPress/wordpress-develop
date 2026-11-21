@@ -175,6 +175,71 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertEquals( get_queried_object(), $this->cat );
 	}
 
+	/**
+	 * @ticket 56518
+	 *
+	 * @dataProvider data_term_archive_with_zero_slug
+	 *
+	 * @param string $taxonomy    Taxonomy whose archive is requested.
+	 * @param string $conditional Query flag for this type of archive.
+	 */
+	public function test_term_archive_with_zero_slug( $taxonomy, $conditional ) {
+		remove_action( 'pre_get_posts', array( $this, 'pre_get_posts_tax_category_tax_query' ) );
+		register_taxonomy( 'testtax-no-query-var', 'post', array( 'query_var' => false ) );
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy,
+				'name'     => '0',
+				'slug'     => '0',
+			)
+		);
+		$post_id = self::factory()->post->create();
+		wp_set_object_terms( $post_id, $term_id, $taxonomy );
+
+		$url = get_term_link( $term_id, $taxonomy );
+		$this->assertStringEndsWith( '/0/', $url, 'The fixture should generate a zero-slug permalink.' );
+
+		$early_term_id = null;
+		add_action(
+			'pre_get_posts',
+			static function ( $query ) use ( &$early_term_id ) {
+				if ( $query->is_main_query() ) {
+					$early_term_id = $query->get_queried_object_id();
+				}
+			}
+		);
+
+		$this->go_to( $url );
+
+		$this->assertQueryTrue( 'is_archive', $conditional );
+		$this->assertSame( $term_id, $early_term_id, 'The term should resolve before the posts query runs.' );
+		$this->assertSame( $term_id, get_queried_object_id(), 'The queried object should be the zero-slug term.' );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ), 'Only the post assigned to the term should match.' );
+
+		if ( 'post_tag' === $taxonomy ) {
+			$this->assertSame( $term_id, get_query_var( 'tag_id' ) );
+		} elseif ( 'category' === $taxonomy ) {
+			$this->assertSame( $term_id, get_query_var( 'cat' ) );
+		} else {
+			$this->assertSame( $taxonomy, get_query_var( 'taxonomy' ) );
+			$this->assertSame( '0', get_query_var( 'term' ) );
+		}
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public static function data_term_archive_with_zero_slug() {
+		return array(
+			'tag'                                 => array( 'post_tag', 'is_tag' ),
+			'category'                            => array( 'category', 'is_category' ),
+			'custom taxonomy with a query var'    => array( 'testtax', 'is_tax' ),
+			'custom taxonomy without a query var' => array( 'testtax-no-query-var', 'is_tax' ),
+		);
+	}
+
 	public function pre_get_posts_tax_category_tax_query( &$query ) {
 		$query->set(
 			'tax_query',

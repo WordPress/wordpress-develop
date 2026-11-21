@@ -282,6 +282,25 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 56518
+	 */
+	public function test_transform_query_keeps_zero_ids_empty() {
+		$tq = new WP_Tax_Query(
+			array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( '0', 0 ),
+					'field'    => 'term_taxonomy_id',
+				),
+			)
+		);
+		$tq->transform_query( $tq->queries[0], 'term_id' );
+
+		$this->assertSame( array(), $tq->queries[0]['terms'] );
+		$this->assertSame( 'term_id', $tq->queries[0]['field'] );
+	}
+
+	/**
 	 * @ticket 18105
 	 */
 	public function test_get_sql_relation_or_operator_in() {
