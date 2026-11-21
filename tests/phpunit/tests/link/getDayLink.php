@@ -65,8 +65,6 @@ class Tests_Link_GetDayLink extends WP_UnitTestCase {
 	 * @param string     $expected_day_padded   Expected two-digit padded day.
 	 */
 	public function test_get_day_link_pretty_permalinks( $year, $month, $day, $expected_month_padded, $expected_day_padded ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected = home_url( '/' . $year . '/' . $expected_month_padded . '/' . $expected_day_padded . '/' );
 		$this->assertSame( $expected, get_day_link( $year, $month, $day ) );
 	}
@@ -83,8 +81,6 @@ class Tests_Link_GetDayLink extends WP_UnitTestCase {
 	 * @param mixed $day   Day input.
 	 */
 	public function test_get_day_link_pretty_permalinks_fallback( $year, $month, $day ) {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$expected_year  = $year ? $year : current_time( 'Y' );
 		$expected_month = $month ? zeroise( (int) $month, 2 ) : current_time( 'm' );
 		$expected_day   = $day ? zeroise( (int) $day, 2 ) : zeroise( current_time( 'j' ), 2 );
@@ -125,8 +121,6 @@ class Tests_Link_GetDayLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_day_link_filter_custom_url() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-
 		$custom_callback = static function ( $daylink, $year, $month, $day ) {
 			return 'https://example.org/daily/' . $year . '/' . $month . '/' . $day;
 		};

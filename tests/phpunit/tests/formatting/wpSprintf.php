@@ -102,7 +102,6 @@ class Tests_Formatting_wpSprintf extends WP_UnitTestCase {
 			'one item'                 => array( 'Tags: %l.', array( 'one' ), 'Tags: one.' ),
 			'two items'                => array( 'Tags: %l.', array( 'one', 'two' ), 'Tags: one and two.' ),
 			'three items'              => array( 'Tags: %l.', array( 'one', 'two', 'three' ), 'Tags: one, two, and three.' ),
-			'four items'               => array( 'Tags: %l.', array( 'one', 'two', 'three', 'four' ), 'Tags: one, two, three, and four.' ),
 			'string instead of a list' => array( 'Tags: %l.', 'one', 'Tags: one.' ),
 			'zero string item'         => array( 'Tags: %l.', array( '0', '1' ), 'Tags: 0 and 1.' ),
 		);

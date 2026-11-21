@@ -964,6 +964,120 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The display name and user login are escaped in the account menu.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_escapes_display_name_and_user_login() {
+		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $user_id );
+
+		$current_user               = wp_get_current_user();
+		$current_user->display_name = '<svg onload=alert(1)>';
+		$current_user->user_login   = '<b>login</b>';
+
+		$wp_admin_bar    = $this->get_standard_admin_bar();
+		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
+
+		$this->assertStringNotContainsString( '<svg', $node_my_account->title, 'The display name should be escaped in the my-account node.' );
+		$this->assertStringContainsString( '&lt;svg onload=alert(1)&gt;', $node_my_account->title );
+		$this->assertStringNotContainsString( '<svg', $node_user_info->title, 'The display name should be escaped in the user-info node.' );
+		$this->assertStringNotContainsString( '<b>login</b>', $node_user_info->title, 'The user login should be escaped in the user-info node.' );
+		$this->assertStringContainsString( '&lt;b&gt;login&lt;/b&gt;', $node_user_info->title );
+	}
+
+	/**
+	 * Tests that the toolbar has a link to skip it when rendered on 'wp_body_open'.
+	 *
+	 * @ticket 66331
+	 *
+	 * @covers WP_Admin_Bar::render
+	 */
+	public function test_render_outputs_skip_toolbar_link_when_rendered_on_wp_body_open() {
+		$admin_bar_html = $this->render_admin_bar_on_action( 'wp_body_open' );
+
+		$processor = new WP_HTML_Tag_Processor( $admin_bar_html );
+		$processor->next_tag( array( 'tag_name' => 'A' ) );
+		$this->assertSame( '#wp-toolbar-skip-target', $processor->get_attribute( 'href' ), 'The "Skip toolbar" link should be the first link in the toolbar.' );
+		$this->assertStringContainsString( '>Skip toolbar</a>', $admin_bar_html, 'The "Skip toolbar" link text should be output.' );
+
+		$this->assertGreaterThan(
+			strrpos( $admin_bar_html, 'ab-item' ),
+			strpos( $admin_bar_html, '<div id="wp-toolbar-skip-target"></div>' ),
+			'The "Skip toolbar" link target should follow all toolbar items.'
+		);
+	}
+
+	/**
+	 * Tests that the toolbar has no link to skip it when it doesn't precede the page content.
+	 *
+	 * @ticket 66331
+	 *
+	 * @covers WP_Admin_Bar::render
+	 *
+	 * @dataProvider data_render_does_not_output_skip_toolbar_link
+	 *
+	 * @param bool   $is_admin          Whether the toolbar is rendered in the admin.
+	 * @param bool   $fire_wp_body_open Whether the 'wp_body_open' action fires before the toolbar is rendered.
+	 * @param string $hook_name         The action on which the toolbar is rendered.
+	 */
+	public function test_render_does_not_output_skip_toolbar_link( $is_admin, $fire_wp_body_open, $hook_name ) {
+		if ( $is_admin ) {
+			set_current_screen( 'dashboard' );
+		}
+
+		if ( $fire_wp_body_open ) {
+			remove_all_actions( 'wp_body_open' );
+			do_action( 'wp_body_open' );
+		}
+
+		$admin_bar_html = $this->render_admin_bar_on_action( $hook_name );
+
+		$this->assertStringNotContainsString( 'wp-toolbar-skip-target', $admin_bar_html, 'The "Skip toolbar" link and its target should not be output.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_render_does_not_output_skip_toolbar_link() {
+		return array(
+			'theme without wp_body_open support' => array( false, false, 'wp_footer' ),
+			'toolbar moved to the footer'        => array( false, true, 'wp_footer' ),
+			'admin'                              => array( true, true, 'in_admin_header' ),
+		);
+	}
+
+	/**
+	 * Renders a toolbar with a single node while the given action is running.
+	 *
+	 * @param string $hook_name The action on which to render the toolbar.
+	 * @return string The toolbar HTML.
+	 */
+	private function render_admin_bar_on_action( $hook_name ) {
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node( array( 'id' => 'test-node' ) );
+
+		$admin_bar_html = '';
+
+		remove_all_actions( $hook_name );
+		add_action(
+			$hook_name,
+			static function () use ( $admin_bar, &$admin_bar_html ) {
+				$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
+			}
+		);
+		do_action( $hook_name );
+
+		return $admin_bar_html;
+	}
+
+	/**
 	 * This test ensures that WP_Admin_Bar::$proto is not defined (including magic methods).
 	 *
 	 * @ticket 56876
@@ -993,285 +1107,121 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns a pattern that matches a rendered item made of an SVG icon element followed by the given HTML.
+	 * Tests that the Shortlink node is not added when shortlink is empty.
 	 *
-	 * @param string $following_html The HTML expected between the icon element and the end of the item.
-	 * @return string Regular expression.
+	 * @ticket 66223
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
 	 */
-	private function get_item_with_icon_pattern( $following_html ): string {
-		return '#<a class=\'ab-item\'[^>]*><span class="ab-icon svg-icon" aria-hidden="true"><svg\b.*?</svg>\s*</span>' . preg_quote( $following_html, '#' ) . '</a>#s';
+	public function test_wp_admin_bar_shortlink_menu_does_not_add_node_when_shortlink_is_empty() {
+		$this->go_to( home_url( '/' ) );
+		$this->assertFalse( is_singular(), 'Precondition: the query should not be singular.' );
+
+		$admin_bar = new WP_Admin_Bar();
+
+		wp_admin_bar_shortlink_menu( $admin_bar );
+
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNull( $node, 'The Shortlink node should not be added when shortlink is empty.' );
 	}
 
 	/**
-	 * Dashicons back-compat: core nodes whose icon used to be on `.ab-item::before` get the icon from their ID alone.
+	 * Tests that the Shortlink node is added when a shortlink exists.
+	 *
+	 * @ticket 66223
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_adds_node_when_shortlink_exists() {
+		$post_id  = self::factory()->post->create();
+		$expected = home_url( '?p=' . $post_id );
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_shortlink_menu( $admin_bar );
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNotNull( $node, 'The Shortlink node should be added when shortlink exists.' );
+		$this->assertSame( $expected, $node->href, 'The node href should be the post shortlink.' );
+		$this->assertSame( 'Shortlink', $node->title, 'The node title should be "Shortlink".' );
+		$this->assertStringContainsString(
+			'value="' . esc_attr( $expected ) . '"',
+			$node->meta['html'],
+			'The node HTML should contain the shortlink as the input value.'
+		);
+		$this->assertStringContainsString(
+			'aria-label="Shortlink"',
+			$node->meta['html'],
+			'The node HTML should contain "Shortlink" as the aria label.'
+		);
+	}
+
+	/**
+	 * Tests that the Shortlink node escapes the shortlink value in the HTML input value.
+	 *
+	 * @ticket 66223
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_escapes_shortlink_in_input_value() {
+		$expected = home_url( '?test=&quot;first&quot;&amp;coverage=&quot;second&quot;' );
+
+		add_filter(
+			'pre_get_shortlink',
+			static function () {
+				return home_url( '?test="first"&coverage="second"' );
+			}
+		);
+
+		$admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_shortlink_menu( $admin_bar );
+
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNotNull( $node, 'The Shortlink node should be added when a shortlink exists.' );
+		$this->assertStringContainsString(
+			'value="' . $expected . '"',
+			$node->meta['html'],
+			'The node HTML should contain the properly escaped shortlink in the input value.'
+		);
+	}
+
+	/**
+	 * Dashicons back-compat: replacing the title of the `wp-logo` node also replaces the WordPress logo.
 	 *
 	 * @ticket 65089
 	 *
-	 * @covers WP_Admin_Bar::_render_item
-	 *
-	 * @dataProvider data_node_ids_with_icon_on_ab_item_before
-	 *
-	 * @param string $id Node ID.
-	 */
-	public function test_node_with_icon_on_ab_item_before_gets_default_icon_when_added_without_one( $id ): void {
-		wp_set_current_user( self::$editor_id );
-
-		$admin_bar = new WP_Admin_Bar();
-		$admin_bar->add_node(
-			array(
-				'id'    => $id,
-				'title' => 'Custom title',
-				'href'  => 'https://example.org/',
-			)
-		);
-		$html = get_echo( array( $admin_bar, 'render' ) );
-
-		$this->assertMatchesRegularExpression( $this->get_item_with_icon_pattern( 'Custom title' ), $html );
-	}
-
-	/**
-	 * Dashicons back-compat: the `my-account` node gets no default icon when it has an avatar.
-	 *
-	 * @ticket 65089
-	 *
+	 * @covers ::wp_admin_bar_wp_menu
 	 * @covers WP_Admin_Bar::_render_item
 	 */
-	public function test_my_account_node_with_avatar_gets_no_default_icon(): void {
+	public function test_wp_logo_node_title_replaced_without_icon_renders_no_icon(): void {
+		$title     = '<img src="https://example.org/logo.png" alt="" /> Brand';
 		$admin_bar = new WP_Admin_Bar();
-		$admin_bar->add_node(
-			array(
-				'id'    => 'my-account',
-				'title' => 'Custom title',
-				'href'  => 'https://example.org/',
-				'meta'  => array( 'class' => 'with-avatar' ),
-			)
-		);
-		$html = get_echo( array( $admin_bar, 'render' ) );
-
-		$this->assertStringNotContainsString( 'ab-icon', $html );
-		$this->assertStringContainsString( 'Custom title', $html );
-	}
-
-	/**
-	 * Dashicons back-compat: core nodes whose icon used to be on `.ab-icon::before` get the icon in place of the empty icon element.
-	 *
-	 * @ticket 65089
-	 *
-	 * @covers WP_Admin_Bar::_render_item
-	 *
-	 * @dataProvider data_node_ids_with_icon_on_ab_icon_before
-	 *
-	 * @param string $id Node ID.
-	 */
-	public function test_node_with_icon_on_ab_icon_before_gets_default_icon_in_place_of_empty_icon_element( $id ): void {
-		$admin_bar = new WP_Admin_Bar();
-		$admin_bar->add_node(
-			array(
-				'id'    => $id,
-				'title' => '<span class="ab-icon" aria-hidden="true"></span><span class="ab-label">Label</span>',
-				'href'  => 'https://example.org/',
-			)
-		);
-		$html = get_echo( array( $admin_bar, 'render' ) );
-
-		$this->assertMatchesRegularExpression( $this->get_item_with_icon_pattern( '<span class="ab-label">Label</span>' ), $html );
-		$this->assertStringNotContainsString( '<span class="ab-icon" aria-hidden="true"></span>', $html, 'The empty icon element should be removed.' );
-	}
-
-	/**
-	 * Dashicons back-compat: core nodes whose icon used to be on `.ab-icon::before` get the given icon in place of the empty icon element.
-	 *
-	 * @ticket 65089
-	 *
-	 * @covers WP_Admin_Bar::_render_item
-	 *
-	 * @dataProvider data_node_ids_with_icon_on_ab_icon_before
-	 *
-	 * @param string $id Node ID.
-	 */
-	public function test_node_with_icon_on_ab_icon_before_gets_given_icon_in_place_of_empty_icon_element( $id ): void {
-		$admin_bar = new WP_Admin_Bar();
-		$admin_bar->add_node(
-			array(
-				'id'    => $id,
-				'title' => '<span class="ab-icon" aria-hidden="true"></span><span class="ab-label">Label</span>',
-				'href'  => 'https://example.org/',
-			)
-		);
-		$admin_bar->add_node(
-			array(
-				'id'   => $id,
-				'icon' => 'core-admin/pencil',
-			)
-		);
-		$html = get_echo( array( $admin_bar, 'render' ) );
-
-		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/pencil' ) . '</span><span class="ab-label">Label</span>', $html );
-		$this->assertStringNotContainsString( '<span class="ab-icon" aria-hidden="true"></span>', $html, 'The empty icon element should be removed.' );
-	}
-
-	/**
-	 * Dashicons back-compat: core nodes whose icon used to be on `.ab-icon::before` get no icon when their title has no empty icon element.
-	 *
-	 * @ticket 65089
-	 *
-	 * @covers WP_Admin_Bar::_render_item
-	 *
-	 * @dataProvider data_node_ids_with_icon_on_ab_icon_before
-	 *
-	 * @param string $id Node ID.
-	 */
-	public function test_node_with_icon_on_ab_icon_before_gets_no_icon_without_empty_icon_element( $id ): void {
-		$admin_bar = new WP_Admin_Bar();
-		$admin_bar->add_node(
-			array(
-				'id'    => $id,
-				'title' => '<span class="ab-label">Label</span>',
-				'href'  => 'https://example.org/',
-			)
-		);
-		$html = get_echo( array( $admin_bar, 'render' ) );
-
-		$this->assertStringNotContainsString( 'ab-icon', $html );
-		$this->assertStringContainsString( '<span class="ab-label">Label</span>', $html );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
-	 */
-	public static function data_node_ids_with_icon_on_ab_item_before(): array {
-		return array(
-			'edit'        => array( 'edit' ),
-			'customize'   => array( 'customize' ),
-			'site-editor' => array( 'site-editor' ),
-			'my-sites'    => array( 'my-sites' ),
-			'site-name'   => array( 'site-name' ),
-			'my-account'  => array( 'my-account' ),
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
-	 */
-	public static function data_node_ids_with_icon_on_ab_icon_before(): array {
-		return array(
-			'wp-logo'         => array( 'wp-logo' ),
-			'menu-toggle'     => array( 'menu-toggle' ),
-			'command-palette' => array( 'command-palette' ),
-			'new-content'     => array( 'new-content' ),
-			'comments'        => array( 'comments' ),
-			'updates'         => array( 'updates' ),
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
-	 */
-	public static function data_core_node_ids(): array {
-		return array_merge( self::data_node_ids_with_icon_on_ab_item_before(), self::data_node_ids_with_icon_on_ab_icon_before() );
-	}
-
-	/**
-	 * Dashicons back-compat: the empty icon element is found whatever its attributes and position, and only the first one is replaced.
-	 *
-	 * @ticket 65089
-	 *
-	 * @covers WP_Admin_Bar::_render_item
-	 *
-	 * @dataProvider data_empty_icon_elements
-	 *
-	 * @param string $title         Node title.
-	 * @param string $expected_rest The title expected after the icon element.
-	 */
-	public function test_empty_icon_elements_are_replaced_with_default_icon( $title, $expected_rest ): void {
-		$admin_bar = new WP_Admin_Bar();
+		wp_admin_bar_wp_menu( $admin_bar );
 		$admin_bar->add_node(
 			array(
 				'id'    => 'wp-logo',
 				'title' => $title,
-				'href'  => 'https://example.org/',
 			)
 		);
 		$html = get_echo( array( $admin_bar, 'render' ) );
 
-		$this->assertMatchesRegularExpression( $this->get_item_with_icon_pattern( $expected_rest ), $html );
+		$this->assertStringNotContainsString( 'svg-icon', $html, 'The WordPress logo should not be rendered.' );
+		$this->assertStringContainsString( $title, $html, 'The new title should be rendered.' );
 	}
 
 	/**
-	 * Data provider.
+	 * An icon that is not registered counts as no icon, so that a Dashicon drawn for earlier versions still shows.
 	 *
-	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: non-falsy-string }>
-	 */
-	public static function data_empty_icon_elements(): array {
-		return array(
-			'extra classes and attributes' => array( '<span id="logo" class="my-class ab-icon other" data-a="1"></span>Label', 'Label' ),
-			'single quotes'                => array( "<span class='ab-icon'></span>Label", 'Label' ),
-			'whitespace inside'            => array( "<span class=\"ab-icon\"> \n </span>Label", 'Label' ),
-			'not at the start'             => array( 'Label <span class="ab-icon"></span>', 'Label ' ),
-			'only the first of many'       => array( '<span class="ab-icon"></span><span class="ab-icon"></span>Label', '<span class="ab-icon"></span>Label' ),
-		);
-	}
-
-	/**
-	 * Dashicons back-compat: an icon element that has content is left as it is.
-	 *
-	 * @ticket 65089
-	 *
-	 * @covers WP_Admin_Bar::_render_item
-	 */
-	public function test_icon_element_with_content_is_not_replaced(): void {
-		$title     = '<span class="ab-icon"><img src="https://example.org/logo.png" alt="" /></span>Label';
-		$admin_bar = new WP_Admin_Bar();
-		$admin_bar->add_node(
-			array(
-				'id'    => 'wp-logo',
-				'title' => $title,
-				'href'  => 'https://example.org/',
-			)
-		);
-		$html = get_echo( array( $admin_bar, 'render' ) );
-
-		$this->assertStringNotContainsString( 'svg-icon', $html );
-		$this->assertStringContainsString( $title, $html );
-	}
-
-	/**
-	 * Dashicons back-compat: only core nodes get a default icon.
-	 *
-	 * @ticket 65089
-	 *
-	 * @covers WP_Admin_Bar::_render_item
-	 */
-	public function test_other_nodes_get_no_default_icon(): void {
-		$title     = '<span class="ab-icon" aria-hidden="true"></span>Label';
-		$admin_bar = new WP_Admin_Bar();
-		$admin_bar->add_node(
-			array(
-				'id'    => 'my-plugin',
-				'title' => $title,
-				'href'  => 'https://example.org/',
-			)
-		);
-		$html = get_echo( array( $admin_bar, 'render' ) );
-
-		$this->assertStringNotContainsString( 'svg-icon', $html );
-		$this->assertStringContainsString( $title, $html );
-	}
-
-	/**
 	 * @ticket 65089
 	 *
 	 * @covers WP_Admin_Bar::_render_item
 	 *
 	 * @expectedIncorrectUsage WP_Admin_Bar::_render_item
 	 */
-	public function test_unregistered_icon_renders_empty_icon_element(): void {
+	public function test_unregistered_icon_renders_no_icon_element(): void {
 		$admin_bar = new WP_Admin_Bar();
 		$admin_bar->add_node(
 			array(
@@ -1283,7 +1233,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 		$html = get_echo( array( $admin_bar, 'render' ) );
 
-		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true"></span>Label', $html );
+		$this->assertStringNotContainsString( 'ab-icon', $html, 'No icon element should be rendered.' );
+		$this->assertStringContainsString( 'Label', $html, 'The title should be rendered.' );
 	}
 
 	/**
@@ -1293,7 +1244,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Admin_Bar::_render_item
 	 *
-	 * @dataProvider data_values_that_are_not_icon_names
+	 * @dataProvider data_value_that_is_not_an_icon_name_renders_no_icon
 	 *
 	 * @param mixed $icon Value of the `icon` argument.
 	 */
@@ -1309,8 +1260,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 		$html = get_echo( array( $admin_bar, 'render' ) );
 
-		$this->assertStringNotContainsString( 'ab-icon', $html );
-		$this->assertStringContainsString( 'Label', $html );
+		$this->assertStringNotContainsString( 'ab-icon', $html, 'No icon element should be rendered.' );
+		$this->assertStringContainsString( 'Label', $html, 'The title should be rendered.' );
 	}
 
 	/**
@@ -1318,7 +1269,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed }>
 	 */
-	public static function data_values_that_are_not_icon_names(): array {
+	public static function data_value_that_is_not_an_icon_name_renders_no_icon(): array {
 		return array(
 			'Dashicons class'  => array( 'dashicons-admin-site' ),
 			'URL'              => array( 'https://example.org/icon.png' ),
@@ -1326,33 +1277,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 			'empty string'     => array( '' ),
 			'false'            => array( false ),
 		);
-	}
-
-	/**
-	 * @ticket 65089
-	 *
-	 * @covers WP_Admin_Bar::_render_item
-	 *
-	 * @dataProvider data_core_node_ids
-	 *
-	 * @param string $id Node ID.
-	 */
-	public function test_icon_argument_takes_precedence_over_default_icon( $id ): void {
-		wp_set_current_user( self::$editor_id );
-
-		$admin_bar = new WP_Admin_Bar();
-		$admin_bar->add_node(
-			array(
-				'id'    => $id,
-				'icon'  => 'core-admin/pin',
-				'title' => '<span class="ab-icon" aria-hidden="true"></span>Label',
-				'href'  => 'https://example.org/',
-			)
-		);
-		$html = get_echo( array( $admin_bar, 'render' ) );
-
-		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/pin' ) . '</span>', $html );
-		$this->assertSame( 1, substr_count( $html, 'svg-icon' ) );
 	}
 
 	/**
@@ -1379,41 +1303,5 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$html = get_echo( array( $admin_bar, 'render' ) );
 
 		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/plus' ) . '</span>New label', $html );
-	}
-
-	/**
-	 * Dashicons back-compat: the titles of these nodes keep their empty icon element.
-	 *
-	 * @ticket 65089
-	 *
-	 * @covers ::wp_admin_bar_wp_menu
-	 * @covers ::wp_admin_bar_new_content_menu
-	 * @covers ::wp_admin_bar_comments_menu
-	 *
-	 * @dataProvider data_core_node_ids_with_empty_icon_element
-	 *
-	 * @param string $id Node ID.
-	 */
-	public function test_core_node_title_starts_with_empty_icon_element( $id ): void {
-		wp_set_current_user( self::$editor_id );
-
-		$node = $this->get_standard_admin_bar()->get_node( $id );
-
-		$this->assertIsObject( $node );
-		$this->assertStringStartsWith( '<span class="ab-icon" aria-hidden="true"></span>', $node->title );
-		$this->assertFalse( $node->icon );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<non-falsy-string, array{ 0: non-falsy-string }>
-	 */
-	public static function data_core_node_ids_with_empty_icon_element(): array {
-		return array(
-			'wp-logo'     => array( 'wp-logo' ),
-			'new-content' => array( 'new-content' ),
-			'comments'    => array( 'comments' ),
-		);
 	}
 }

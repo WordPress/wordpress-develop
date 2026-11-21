@@ -199,7 +199,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( $expected['description'], $description );
 	}
 
-	public function data_customize_register_control_label_and_description() {
+	public static function data_customize_register_control_label_and_description() {
 		return array(
 			'with widgets block editor' => array(
 				'sidebars'            => array(

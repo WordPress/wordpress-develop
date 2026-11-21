@@ -62,6 +62,7 @@ class Tests_Admin_Includes_Plugin_WpCleanPluginsCache extends WP_UnitTestCase {
 			wp_cache_get( 'plugins', 'plugins' ),
 			'Plugins cache should be primed before the call.'
 		);
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			$this->update_plugins_data,
 			get_site_transient( 'update_plugins' ),
@@ -90,6 +91,7 @@ class Tests_Admin_Includes_Plugin_WpCleanPluginsCache extends WP_UnitTestCase {
 			wp_cache_get( 'plugins', 'plugins' ),
 			'Plugins object cache should still be cleared.'
 		);
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			$this->update_plugins_data,
 			get_site_transient( 'update_plugins' ),

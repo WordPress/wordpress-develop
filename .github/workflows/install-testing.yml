@@ -13,18 +13,22 @@ on:
     # Always test the workflow after it's updated.
     paths:
       - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/actions/smoke-check/**'
       - '.github/workflows/install-testing.yml'
       - '.version-support-*.json'
       - '.github/workflows/reusable-support-json-reader-v1.yml'
+      - '.github/workflows/reusable-download-wordpress-release.yml'
   pull_request:
     # Always test the workflow when changes are suggested.
     paths:
       - '.github/actions/setup-wp-cli/**'
+      - '.github/actions/run-with-retry/**'
       - '.github/actions/smoke-check/**'
       - '.version-support-*.json'
       - '.github/workflows/install-testing.yml'
       - '.github/workflows/reusable-support-json-reader-v1.yml'
+      - '.github/workflows/reusable-download-wordpress-release.yml'
 
   schedule:
     - cron: '0 0 * * 1'
@@ -37,9 +41,9 @@ on:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
+  # The concurrency group contains the workflow name and the pull request number for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ inputs.wp-version || github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ inputs.wp-version || github.event_name == 'pull_request' && github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.
@@ -57,6 +61,16 @@ jobs:
     with:
       wp-version: ${{ inputs.wp-version }}
 
+  # Downloads a release zip once for every matrix job, waiting until WordPress.org serves it.
+  download-wordpress:
+    name: Download WordPress
+    uses: $/.github/workflows/reusable-download-wordpress-release.yml
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    with:
+      version: ${{ inputs.wp-version || 'nightly' }}
+
   # Test the WordPress installation process through WP-CLI.
   #
   # Performs the following steps:
@@ -72,7 +86,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     timeout-minutes: 15
-    needs: [ build-test-matrix ]
+    needs: [ build-test-matrix, download-wordpress ]
 
     env:
       WP_ADMIN_USER: admin
@@ -80,7 +94,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04 ]
+        os: [ ubuntu-26.04 ]
         php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
         db-type: [ 'mysql' ]
         db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
@@ -104,11 +118,16 @@ jobs:
           - db-version: '9.4'
           - db-version: '9.5'
           - db-version: '9.6'
+          - db-version: '26.7'
           # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
             db-version: '9.7'
           - php: '7.3'
             db-version: '9.7'
+          - php: '7.2'
+            db-version: '26.10'
+          - php: '7.3'
+            db-version: '26.10'
 
     services:
       database:
@@ -138,10 +157,35 @@ jobs:
       - name: Set up WP-CLI
         uses: $/.github/actions/setup-wp-cli
         with:
-          version: ${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && '2.4.0' || 'latest' }}
+          version: ${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && '2.4.0' || contains( fromJSON('["5.6", "7.0", "7.1"]'), matrix.php ) && '2.12.0' || 'latest' }}
 
+      - name: Download the WordPress release artifact
+        if: ${{ needs.download-wordpress.outputs.artifact != '' }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ needs.download-wordpress.outputs.artifact }}
+          path: ${{ runner.temp }}
+
+      # WP-CLI 2.4.0 cannot install from a local zip, so unzip it.
+      - name: Extract WordPress
+        if: ${{ needs.download-wordpress.outputs.artifact != '' }}
+        run: |
+          unzip -q "${RUNNER_TEMP}/wordpress.zip" -d "${RUNNER_TEMP}"
+          mv "${RUNNER_TEMP}"/wordpress/* .
+
+      # WP-CLI 2.x extracts tarballs with PharData, which truncates paths longer than 100 characters.
+      # Zip archives are not affected, so download the zip for every version.
       - name: Download WordPress
-        run: wp core download --version="${WP_VERSION}"
+        if: ${{ needs.download-wordpress.outputs.artifact == '' }}
+        # WP-CLI requests WordPress from WordPress.org once, so a network error fails the job.
+        # It extracts only after a complete download, so a retry starts from an empty directory.
+        uses: $/.github/actions/run-with-retry
+        with:
+          command: |
+            case "${WP_VERSION}" in
+              nightly|trunk) wp core download --version=nightly ;;
+              *) wp core download "https://wordpress.org/wordpress-${WP_VERSION}.zip" ;;
+            esac
         env:
           WP_VERSION: ${{ inputs.wp-version || 'nightly' }}
 
@@ -170,10 +214,11 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ install-tests-mysql ]
+    needs: [ download-wordpress, install-tests-mysql ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+      version: ${{ inputs.wp-version || 'nightly' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
@@ -182,7 +227,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
