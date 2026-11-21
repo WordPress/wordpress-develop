@@ -354,7 +354,19 @@ function get_inline_data( $post ) {
 			continue;
 		}
 
-		if ( $taxonomy->hierarchical ) {
+		if ( ! $taxonomy->allow_multiple_terms ) {
+
+			/*
+			 * Single-term taxonomies render radio buttons (hierarchical) or a dropdown
+			 * (non-hierarchical) in Quick Edit, both keyed by term ID, so expose the
+			 * current term ID for inline-edit-post.js to preselect.
+			 */
+			$terms   = get_the_terms( $post->ID, $taxonomy_name );
+			$term_id = ( is_array( $terms ) && ! empty( $terms ) ) ? (int) reset( $terms )->term_id : 0;
+
+			echo '<div class="post_single_term" id="' . $taxonomy_name . '_' . $post->ID . '">' . $term_id . '</div>';
+
+		} elseif ( $taxonomy->hierarchical ) {
 
 			$terms = get_object_term_cache( $post->ID, $taxonomy_name );
 			if ( false === $terms ) {

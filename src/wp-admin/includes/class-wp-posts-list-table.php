@@ -1900,10 +1900,56 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<?php foreach ( $hierarchical_taxonomies as $taxonomy ) : ?>
 
 						<span class="title inline-edit-categories-label"><?php echo esc_html( $taxonomy->labels->name ); ?></span>
-						<input type="hidden" name="<?php echo ( 'category' === $taxonomy->name ) ? 'post_category[]' : 'tax_input[' . esc_attr( $taxonomy->name ) . '][]'; ?>" value="0" />
-						<ul class="cat-checklist <?php echo esc_attr( $taxonomy->name ); ?>-checklist">
-							<?php wp_terms_checklist( 0, array( 'taxonomy' => $taxonomy->name ) ); ?>
-						</ul>
+						<?php
+						$tax_field_name = ( 'category' === $taxonomy->name )
+							? 'post_category[]'
+							: 'tax_input[' . esc_attr( $taxonomy->name ) . '][]';
+
+						$single_term = isset( $taxonomy->allow_multiple_terms ) && ! $taxonomy->allow_multiple_terms;
+						?>
+						<input type="hidden" name="<?php echo $tax_field_name; ?>" value="0" />
+						<?php if ( $single_term ) : ?>
+							<ul class="cat-checklist <?php echo esc_attr( $taxonomy->name ); ?>-checklist single-term-checklist">
+								<?php
+								$terms = get_terms(
+									array(
+										'taxonomy'   => $taxonomy->name,
+										'hide_empty' => false,
+									)
+								);
+								if ( ! is_wp_error( $terms ) ) :
+									$has_default_term = ! empty( $taxonomy->default_term );
+									if ( ! $has_default_term ) :
+										?>
+										<li>
+											<label>
+												<input type="radio" name="<?php echo $tax_field_name; ?>" value="0" />
+												<?php
+												/* translators: Option shown when no single-term value is selected. */
+												esc_html_e( 'None' );
+												?>
+											</label>
+										</li>
+										<?php
+									endif;
+									foreach ( $terms as $term ) :
+										?>
+										<li>
+											<label>
+												<input type="radio" name="<?php echo $tax_field_name; ?>" value="<?php echo (int) $term->term_id; ?>" />
+												<?php echo esc_html( $term->name ); ?>
+											</label>
+										</li>
+										<?php
+									endforeach;
+								endif;
+								?>
+							</ul>
+						<?php else : ?>
+							<ul class="cat-checklist <?php echo esc_attr( $taxonomy->name ); ?>-checklist">
+								<?php wp_terms_checklist( 0, array( 'taxonomy' => $taxonomy->name ) ); ?>
+							</ul>
+						<?php endif; ?>
 
 					<?php endforeach; // $hierarchical_taxonomies as $taxonomy ?>
 
@@ -1996,13 +2042,37 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<?php foreach ( $flat_taxonomies as $taxonomy ) : ?>
 
 						<?php if ( current_user_can( $taxonomy->cap->assign_terms ) ) : ?>
-							<?php $taxonomy_name = esc_attr( $taxonomy->name ); ?>
+							<?php
+							$taxonomy_name = esc_attr( $taxonomy->name );
+							$single_term   = isset( $taxonomy->allow_multiple_terms ) && ! $taxonomy->allow_multiple_terms;
+							?>
 							<div class="inline-edit-tags-wrap">
 							<label class="inline-edit-tags">
 								<span class="title"><?php echo esc_html( $taxonomy->labels->name ); ?></span>
-								<textarea data-wp-taxonomy="<?php echo $taxonomy_name; ?>" cols="22" rows="1" name="tax_input[<?php echo esc_attr( $taxonomy->name ); ?>]" class="tax_input_<?php echo esc_attr( $taxonomy->name ); ?>" aria-describedby="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"></textarea>
+								<?php if ( $single_term ) : ?>
+									<?php
+									$has_default_term = ! empty( $taxonomy->default_term );
+									wp_dropdown_categories(
+										array(
+											'taxonomy'          => $taxonomy->name,
+											'hide_empty'        => false,
+											'hierarchical'      => false,
+											'orderby'           => 'name',
+											'name'              => 'tax_input[' . $taxonomy->name . '][]',
+											'id'                => 'inline-edit-' . $taxonomy->name . '-select',
+											'show_option_none'  => $has_default_term ? '' : __( 'None' ),
+											'option_none_value' => 0,
+											'value_field'       => 'term_id',
+										)
+									);
+									?>
+								<?php else : ?>
+									<textarea data-wp-taxonomy="<?php echo $taxonomy_name; ?>" cols="22" rows="1" name="tax_input[<?php echo esc_attr( $taxonomy->name ); ?>]" class="tax_input_<?php echo esc_attr( $taxonomy->name ); ?>" aria-describedby="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"></textarea>
+								<?php endif; ?>
 							</label>
-							<p class="howto" id="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"><?php echo esc_html( $taxonomy->labels->separate_items_with_commas ); ?></p>
+							<?php if ( ! $single_term ) : ?>
+								<p class="howto" id="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"><?php echo esc_html( $taxonomy->labels->separate_items_with_commas ); ?></p>
+							<?php endif; ?>
 							</div>
 						<?php endif; // current_user_can( 'assign_terms' ) ?>
 

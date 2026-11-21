@@ -412,6 +412,19 @@ window.wp = window.wp || {};
 		});
 
 		/**
+		 * Preselects the current term for single-term taxonomies, which render
+		 * radio buttons (hierarchical) or a dropdown (non-hierarchical).
+		 * A value of 0 selects the "None" option when one is offered.
+		 */
+		$( '.post_single_term', rowData ).each( function() {
+			var taxname = $( this ).attr( 'id' ).replace( '_' + id, '' ),
+				termId = $( this ).text().trim() || '0';
+
+			$( 'ul.' + taxname + '-checklist :radio', editRow ).val( [ termId ] );
+			$( 'select[name="tax_input[' + taxname + '][]"]', editRow ).val( termId );
+		});
+
+		/**
 		 * Gets all the taxonomies for live auto-fill suggestions when typing the name
 		 * of a tag.
 		 */
