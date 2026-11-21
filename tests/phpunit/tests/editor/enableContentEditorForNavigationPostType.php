@@ -65,7 +65,7 @@ class Tests_Editor_EnableContentEditorForNavigationPostType extends WP_UnitTestC
 	 *
 	 * @return array
 	 */
-	public function data_should_not_enable() {
+	public static function data_should_not_enable() {
 		return array(
 			'invalid post type'   => array( 'book' ),
 			'attachments'         => array( 'attachments' ),
@@ -98,7 +98,7 @@ class Tests_Editor_EnableContentEditorForNavigationPostType extends WP_UnitTestC
 	 *
 	 * @return array
 	 */
-	public function data_should_not_change_post_type_support() {
+	public static function data_should_not_change_post_type_support() {
 		return array(
 			'post'                => array( 'post' ),
 			'page'                => array( 'page' ),

@@ -6,8 +6,12 @@
  * @group feeds
  */
 class Tests_Query_CommentFeed extends WP_UnitTestCase {
-	public static $post_type   = 'post';
-	protected static $post_ids = array();
+	public static string $post_type = 'post';
+
+	/**
+	 * @var int[]
+	 */
+	protected static array $post_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_ids = $factory->post->create_many(
@@ -28,7 +32,6 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	 * @ticket 36904
 	 */
 	public function test_archive_comment_feed() {
-		global $wpdb;
 		add_filter( 'split_the_query', '__return_false' );
 		$q1   = new WP_Query();
 		$args = array(
@@ -42,12 +45,12 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 			'cache_results'          => false,
 		);
 		$q1->query( $args );
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$q2          = new WP_Query();
 		$q2->query( $args );
 		$this->assertTrue( $q2->is_comment_feed() );
 		$this->assertFalse( $q2->is_singular() );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 	}
 
 	/**
@@ -84,10 +87,126 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65613
+	 * @ticket 64638
+	 *
+	 * @dataProvider data_internal_comment_types
+	 *
+	 * @param string $comment_type Internal comment type.
+	 */
+	public function test_main_comment_feed_should_exclude_internal_comment_types( string $comment_type ): void {
+		$internal_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_ids[0],
+				'comment_type'     => $comment_type,
+				'comment_approved' => '1',
+			)
+		);
+
+		$q = new WP_Query();
+		$q->query(
+			array(
+				'withcomments' => 1,
+				'feed'         => 'comments-rss',
+			)
+		);
+
+		$this->assertTrue( $q->is_comment_feed() );
+		$this->assertFalse( $q->is_singular() );
+
+		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
+		$this->assertNotContains( $internal_id, $comment_ids, "Comments feed should not include '{$comment_type}' comments." );
+		$this->assertSame( 15, $q->comment_count, 'Comments feed should include all regular comments.' );
+	}
+
+	/**
+	 * @ticket 65613
+	 * @ticket 64638
+	 *
+	 * @dataProvider data_internal_comment_types
+	 *
+	 * @param string $comment_type Internal comment type.
+	 */
+	public function test_archive_comment_feed_should_exclude_internal_comment_types( string $comment_type ): void {
+		$internal_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_ids[0],
+				'comment_type'     => $comment_type,
+				'comment_approved' => '1',
+			)
+		);
+
+		$q = new WP_Query();
+		$q->query(
+			array(
+				'withcomments' => 1,
+				'feed'         => 'comments-rss',
+				'year'         => (int) get_the_date( 'Y', self::$post_ids[0] ),
+			)
+		);
+
+		$this->assertTrue( $q->is_comment_feed() );
+		$this->assertTrue( $q->is_archive() );
+
+		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
+		$this->assertNotContains( $internal_id, $comment_ids, "Archive comments feed should not include '{$comment_type}' comments." );
+		$this->assertSame( 15, $q->comment_count, 'Archive comments feed should include all regular comments.' );
+	}
+
+	/**
+	 * @ticket 65613
+	 * @ticket 64638
+	 *
+	 * @dataProvider data_internal_comment_types
+	 *
+	 * @param string $comment_type Internal comment type.
+	 */
+	public function test_single_comment_feed_should_exclude_internal_comment_types( string $comment_type ): void {
+		$post = get_post( self::$post_ids[0] );
+		$this->assertInstanceOf( WP_Post::class, $post );
+
+		$internal_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post->ID,
+				'comment_type'     => $comment_type,
+				'comment_approved' => '1',
+			)
+		);
+
+		$q = new WP_Query();
+		$q->query(
+			array(
+				'withcomments' => 1,
+				'feed'         => 'comments-rss',
+				'post_type'    => $post->post_type,
+				'name'         => $post->post_name,
+			)
+		);
+
+		$this->assertTrue( $q->is_comment_feed() );
+		$this->assertTrue( $q->is_singular() );
+
+		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
+		$this->assertNotContains( $internal_id, $comment_ids, "Singular comments feed should not include '{$comment_type}' comments." );
+		$this->assertSame( 5, $q->comment_count, 'Singular comments feed should include all regular comments.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public static function data_internal_comment_types(): array {
+		return array(
+			'note'     => array( 'note' ),
+			'reaction' => array( 'reaction' ),
+		);
+	}
+
+	/**
 	 * @ticket 36904
 	 */
 	public function test_single_comment_feed() {
-		global $wpdb;
 		$post = get_post( self::$post_ids[0] );
 
 		$q1   = new WP_Query();
@@ -103,12 +222,12 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		);
 
 		$q1->query( $args );
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$q2          = new WP_Query();
 		$q2->query( $args );
 
 		$this->assertTrue( $q2->is_comment_feed() );
 		$this->assertTrue( $q2->is_singular() );
-		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, get_num_queries() );
 	}
 }

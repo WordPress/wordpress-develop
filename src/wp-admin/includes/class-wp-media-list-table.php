@@ -23,8 +23,20 @@ class WP_Media_List_Table extends WP_List_Table {
 	 */
 	protected $comment_pending_count = array();
 
+	/**
+	 * Whether the list table is for detached media.
+	 *
+	 * @since 3.1.0
+	 * @var bool
+	 */
 	private $detached;
 
+	/**
+	 * Whether the list table is for trash.
+	 *
+	 * @since 3.1.0
+	 * @var bool
+	 */
 	private $is_trash;
 
 	/**
@@ -47,23 +59,31 @@ class WP_Media_List_Table extends WP_List_Table {
 		parent::__construct(
 			array(
 				'plural' => 'media',
-				'screen' => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen' => $args['screen'] ?? null,
 			)
 		);
 	}
 
 	/**
-	 * @return bool
+	 * Checks if the current user has permissions to upload files.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @return bool Whether the user can upload files.
 	 */
 	public function ajax_user_can() {
 		return current_user_can( 'upload_files' );
 	}
 
 	/**
+	 * Prepares the list of items for displaying.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global string   $mode                  List table view mode.
 	 * @global WP_Query $wp_query              WordPress Query object.
-	 * @global array    $post_mime_types
-	 * @global array    $avail_post_mime_types
+	 * @global array    $post_mime_types       An array of post mime types.
+	 * @global array    $avail_post_mime_types An array of available post mime types.
 	 */
 	public function prepare_items() {
 		global $mode, $wp_query, $post_mime_types, $avail_post_mime_types;
@@ -117,9 +137,13 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global array $post_mime_types
-	 * @global array $avail_post_mime_types
-	 * @return array
+	 * Gets an array of links for the available views on this table.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @global array $post_mime_types       An array of post mime types.
+	 * @global array $avail_post_mime_types An array of available post mime types.
+	 * @return array<string, string> An array of links for the available views.
 	 */
 	protected function get_views() {
 		global $post_mime_types, $avail_post_mime_types;
@@ -140,7 +164,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			}
 
 			$selected = selected(
-				$filter && 0 === strpos( $filter, 'post_mime_type:' ) &&
+				$filter && str_starts_with( $filter, 'post_mime_type:' ) &&
 					wp_match_mime_types( $mime_type, str_replace( 'post_mime_type:', '', $filter ) ),
 				true,
 				false
@@ -174,7 +198,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * @return array<string, string> An associative array of bulk actions.
 	 */
 	protected function get_bulk_actions() {
 		$actions = array();
@@ -198,7 +222,11 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @param string $which
+	 * Displays extra controls between bulk actions and pagination.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param string $which The location of the extra table nav: 'top' or 'bottom'.
 	 */
 	protected function extra_tablenav( $which ) {
 		if ( 'bar' !== $which ) {
@@ -214,12 +242,12 @@ class WP_Media_List_Table extends WP_List_Table {
 			/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
 			do_action( 'restrict_manage_posts', $this->screen->post_type, $which );
 
-			submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+			submit_button( __( 'Filter' ), 'compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 
 			if ( $this->is_trash && $this->has_items()
 				&& current_user_can( 'edit_others_posts' )
 			) {
-				submit_button( __( 'Empty Trash' ), 'apply', 'delete_all', false );
+				submit_button( __( 'Empty Trash' ), 'apply compact', 'delete_all', false );
 			}
 			?>
 		</div>
@@ -227,7 +255,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return string
+	 * @return string|false The current action.
 	 */
 	public function current_action() {
 		if ( isset( $_REQUEST['found_post_id'] ) && isset( $_REQUEST['media'] ) ) {
@@ -246,13 +274,16 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return bool
+	 * @return bool Whether the list table has items to display.
 	 */
 	public function has_items() {
 		return have_posts();
 	}
 
 	/**
+	 * Displays a message when no media items are found.
+	 *
+	 * @since 3.1.0
 	 */
 	public function no_items() {
 		if ( $this->is_trash ) {
@@ -263,7 +294,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Override parent views so we can use the filter bar display.
+	 * Overrides parent views to use the filter bar display.
 	 *
 	 * @global string $mode List table view mode.
 	 */
@@ -297,7 +328,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				<?php
 				$this->extra_tablenav( 'bar' );
 
-				/** This filter is documented in wp-admin/inclues/class-wp-list-table.php */
+				/** This filter is documented in wp-admin/includes/class-wp-list-table.php */
 				$views = apply_filters( "views_{$this->screen->id}", array() );
 
 				// Back compat for pre-4.0 view links.
@@ -312,15 +343,23 @@ class WP_Media_List_Table extends WP_List_Table {
 			</div>
 
 			<div class="search-form">
-				<label for="media-search-input" class="media-search-input-label"><?php esc_html_e( 'Search' ); ?></label>
-				<input type="search" id="media-search-input" class="search" name="s" value="<?php _admin_search_query(); ?>">
+				<p class="search-box">
+					<label class="screen-reader-text" for="media-search-input">
+					<?php
+					/* translators: Hidden accessibility text. */
+					esc_html_e( 'Search Media' );
+					?>
+					</label>
+					<input type="search" id="media-search-input" class="search" name="s" value="<?php _admin_search_query(); ?>">
+					<input id="search-submit" type="submit" class="button button-compact" value="<?php esc_attr_e( 'Search Media' ); ?>">
+				</p>
 			</div>
 		</div>
 		<?php
 	}
 
 	/**
-	 * @return array
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		$posts_columns       = array();
@@ -359,7 +398,7 @@ class WP_Media_List_Table extends WP_List_Table {
 		if ( ! $this->detached ) {
 			$posts_columns['parent'] = _x( 'Uploaded to', 'column name' );
 
-			if ( post_type_supports( 'attachment', 'comments' ) ) {
+			if ( post_type_supports( 'attachment', 'comments' ) && get_option( 'wp_attachment_pages_enabled' ) ) {
 				$posts_columns['comments'] = sprintf(
 					'<span class="vers comment-grey-bubble" title="%1$s" aria-hidden="true"></span><span class="screen-reader-text">%2$s</span>',
 					esc_attr__( 'Comments' ),
@@ -385,15 +424,15 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * @return array<string, array<int, mixed>> An array of sortable columns.
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'title'    => 'title',
-			'author'   => 'author',
-			'parent'   => 'parent',
-			'comments' => 'comment_count',
-			'date'     => array( 'date', true ),
+			'title'    => array( 'title', false, _x( 'File', 'column name' ), __( 'Table ordered by File Name.' ) ),
+			'author'   => array( 'author', false, __( 'Author' ), __( 'Table ordered by Author.' ) ),
+			'parent'   => array( 'parent', false, _x( 'Uploaded to', 'column name' ), __( 'Table ordered by Uploaded To.' ) ),
+			'comments' => array( 'comment_count', __( 'Comments' ), false, __( 'Table ordered by Comments.' ) ),
+			'date'     => array( 'date', true, __( 'Date' ), __( 'Table ordered by Date.' ), 'desc' ),
 		);
 	}
 
@@ -411,13 +450,15 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'edit_post', $post->ID ) ) {
 			?>
-			<label class="screen-reader-text" for="cb-select-<?php echo $post->ID; ?>">
+			<input type="checkbox" name="media[]" id="cb-select-<?php echo $post->ID; ?>" value="<?php echo $post->ID; ?>" />
+			<label for="cb-select-<?php echo $post->ID; ?>">
+				<span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. %s: Attachment title. */
 				printf( __( 'Select %s' ), _draft_or_post_title() );
 				?>
+				</span>
 			</label>
-			<input type="checkbox" name="media[]" id="cb-select-<?php echo $post->ID; ?>" value="<?php echo $post->ID; ?>" />
 			<?php
 		}
 	}
@@ -449,12 +490,10 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'edit_post', $post->ID ) && ! $this->is_trash ) {
 			$link_start = sprintf(
-				'<a href="%s" aria-label="%s">',
+				'<a href="%s">',
 				get_edit_post_link( $post->ID ),
-				/* translators: %s: Attachment title. */
-				esc_attr( sprintf( __( '&#8220;%s&#8221; (Edit)' ), $title ) )
 			);
-			$link_end = '</a>';
+			$link_end   = '</a>';
 		}
 
 		$class = $thumb ? ' class="has-media-icon"' : '';
@@ -493,15 +532,22 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * Handles the author column output.
 	 *
 	 * @since 4.3.0
+	 * @since 6.8.0 Added fallback text when author's name is unknown.
 	 *
 	 * @param WP_Post $post The current WP_Post object.
 	 */
 	public function column_author( $post ) {
-		printf(
-			'<a href="%s">%s</a>',
-			esc_url( add_query_arg( array( 'author' => get_the_author_meta( 'ID' ) ), 'upload.php' ) ),
-			get_the_author()
-		);
+		$author = get_the_author();
+
+		if ( ! empty( $author ) ) {
+			printf(
+				'<a href="%s">%s</a>',
+				esc_url( add_query_arg( array( 'author' => get_the_author_meta( 'ID' ) ), 'upload.php' ) ),
+				esc_html( $author )
+			);
+		} else {
+			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . __( '(no author)' ) . '</span>';
+		}
 	}
 
 	/**
@@ -652,7 +698,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			$taxonomy = 'category';
 		} elseif ( 'tags' === $column_name ) {
 			$taxonomy = 'post_tag';
-		} elseif ( 0 === strpos( $column_name, 'taxonomy-' ) ) {
+		} elseif ( str_starts_with( $column_name, 'taxonomy-' ) ) {
 			$taxonomy = substr( $column_name, 9 );
 		} else {
 			$taxonomy = false;
@@ -698,6 +744,10 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global WP_Post  $post     Global post object.
 	 * @global WP_Query $wp_query WordPress Query object.
 	 */
@@ -741,136 +791,105 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @param WP_Post $post
-	 * @param string  $att_title
-	 * @return array
+	 * Gets the row actions for a media item.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param WP_Post $post      The current WP_Post object.
+	 * @param string  $att_title The attachment title.
+	 * @return array<string, string> An array of row actions.
 	 */
 	private function _get_row_actions( $post, $att_title ) {
 		$actions = array();
 
-		if ( $this->detached ) {
-			if ( current_user_can( 'edit_post', $post->ID ) ) {
-				$actions['edit'] = sprintf(
-					'<a href="%s" aria-label="%s">%s</a>',
-					get_edit_post_link( $post->ID ),
+		if ( ! $this->is_trash && current_user_can( 'edit_post', $post->ID ) ) {
+			$actions['edit'] = sprintf(
+				'<a href="%s" aria-label="%s">%s</a>',
+				esc_url( get_edit_post_link( $post->ID ) ),
+				/* translators: %s: Attachment title. */
+				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ),
+				__( 'Edit' )
+			);
+		}
+
+		if ( current_user_can( 'delete_post', $post->ID ) ) {
+			if ( $this->is_trash ) {
+				$actions['untrash'] = sprintf(
+					'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
+					esc_url( wp_nonce_url( "post.php?action=untrash&amp;post=$post->ID", 'untrash-post_' . $post->ID ) ),
 					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'Edit' )
+					esc_attr( sprintf( __( 'Restore &#8220;%s&#8221; from the Trash' ), $att_title ) ),
+					__( 'Restore' )
+				);
+			} elseif ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
+				$actions['trash'] = sprintf(
+					'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
+					esc_url( wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ) ),
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
+					_x( 'Trash', 'verb' )
 				);
 			}
 
-			if ( current_user_can( 'delete_post', $post->ID ) ) {
-				if ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
-					$actions['trash'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
-						_x( 'Trash', 'verb' )
-					);
-				} else {
-					$delete_ays        = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
-					$actions['delete'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js"%s aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-post_' . $post->ID ),
-						$delete_ays,
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
-						__( 'Delete Permanently' )
-					);
-				}
-			}
+			if ( $this->is_trash || ! EMPTY_TRASH_DAYS || ! MEDIA_TRASH ) {
+				$show_confirmation = ( ! $this->is_trash && ! MEDIA_TRASH ) ? " onclick='return showNotice.warn();'" : '';
 
-			if ( get_permalink( $post->ID ) ) {
+				$actions['delete'] = sprintf(
+					'<a href="%s" class="submitdelete aria-button-if-js"%s aria-label="%s">%s</a>',
+					esc_url( wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-post_' . $post->ID ) ),
+					$show_confirmation,
+					/* translators: %s: Attachment title. */
+					esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
+					__( 'Delete Permanently' )
+				);
+			}
+		}
+
+		$attachment_url = wp_get_attachment_url( $post->ID );
+
+		if ( ! $this->is_trash ) {
+			$permalink = get_permalink( $post->ID );
+
+			if ( $permalink ) {
 				$actions['view'] = sprintf(
 					'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
-					get_permalink( $post->ID ),
+					esc_url( $permalink ),
 					/* translators: %s: Attachment title. */
 					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
 					__( 'View' )
 				);
 			}
 
-			if ( current_user_can( 'edit_post', $post->ID ) ) {
-				$actions['attach'] = sprintf(
-					'<a href="#the-list" onclick="findPosts.open( \'media[]\', \'%s\' ); return false;" class="hide-if-no-js aria-button-if-js" aria-label="%s">%s</a>',
-					$post->ID,
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Attach &#8220;%s&#8221; to existing content' ), $att_title ) ),
-					__( 'Attach' )
-				);
-			}
-		} else {
-			if ( current_user_can( 'edit_post', $post->ID ) && ! $this->is_trash ) {
-				$actions['edit'] = sprintf(
-					'<a href="%s" aria-label="%s">%s</a>',
-					get_edit_post_link( $post->ID ),
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'Edit' )
-				);
-			}
-
-			if ( current_user_can( 'delete_post', $post->ID ) ) {
-				if ( $this->is_trash ) {
-					$actions['untrash'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=untrash&amp;post=$post->ID", 'untrash-post_' . $post->ID ),
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Restore &#8220;%s&#8221; from the Trash' ), $att_title ) ),
-						__( 'Restore' )
-					);
-				} elseif ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
-					$actions['trash'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js" aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=trash&amp;post=$post->ID", 'trash-post_' . $post->ID ),
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Move &#8220;%s&#8221; to the Trash' ), $att_title ) ),
-						_x( 'Trash', 'verb' )
-					);
-				}
-
-				if ( $this->is_trash || ! EMPTY_TRASH_DAYS || ! MEDIA_TRASH ) {
-					$delete_ays        = ( ! $this->is_trash && ! MEDIA_TRASH ) ? " onclick='return showNotice.warn();'" : '';
-					$actions['delete'] = sprintf(
-						'<a href="%s" class="submitdelete aria-button-if-js"%s aria-label="%s">%s</a>',
-						wp_nonce_url( "post.php?action=delete&amp;post=$post->ID", 'delete-post_' . $post->ID ),
-						$delete_ays,
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
-						__( 'Delete Permanently' )
-					);
-				}
-			}
-
-			if ( ! $this->is_trash ) {
-				if ( get_permalink( $post->ID ) ) {
-					$actions['view'] = sprintf(
-						'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
-						get_permalink( $post->ID ),
-						/* translators: %s: Attachment title. */
-						esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $att_title ) ),
-						__( 'View' )
-					);
-				}
-
+			if ( $attachment_url ) {
 				$actions['copy'] = sprintf(
 					'<span class="copy-to-clipboard-container"><button type="button" class="button-link copy-attachment-url media-library" data-clipboard-text="%s" aria-label="%s">%s</button><span class="success hidden" aria-hidden="true">%s</span></span>',
-					esc_url( wp_get_attachment_url( $post->ID ) ),
+					esc_url( $attachment_url ),
 					/* translators: %s: Attachment title. */
 					esc_attr( sprintf( __( 'Copy &#8220;%s&#8221; URL to clipboard' ), $att_title ) ),
 					__( 'Copy URL' ),
 					__( 'Copied!' )
 				);
-
-				$actions['download'] = sprintf(
-					'<a href="%s" aria-label="%s" download>%s</a>',
-					esc_url( wp_get_attachment_url( $post->ID ) ),
-					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
-					__( 'Download file' )
-				);
 			}
+		}
+
+		if ( $attachment_url ) {
+			$actions['download'] = sprintf(
+				'<a href="%s" aria-label="%s" download>%s</a>',
+				esc_url( $attachment_url ),
+				/* translators: %s: Attachment title. */
+				esc_attr( sprintf( __( 'Download &#8220;%s&#8221;' ), $att_title ) ),
+				__( 'Download file' )
+			);
+		}
+
+		if ( $this->detached && current_user_can( 'edit_post', $post->ID ) ) {
+			$actions['attach'] = sprintf(
+				'<a href="#the-list" onclick="findPosts.open( \'media[]\', \'%s\' ); return false;" class="hide-if-no-js aria-button-if-js" aria-label="%s">%s</a>',
+				$post->ID,
+				/* translators: %s: Attachment title. */
+				esc_attr( sprintf( __( 'Attach &#8220;%s&#8221; to existing content' ), $att_title ) ),
+				__( 'Attach' )
+			);
 		}
 
 		/**
@@ -879,7 +898,8 @@ class WP_Media_List_Table extends WP_List_Table {
 		 * @since 2.8.0
 		 *
 		 * @param string[] $actions  An array of action links for each attachment.
-		 *                           Default 'Edit', 'Delete Permanently', 'View'.
+		 *                           Includes 'Edit', 'Delete Permanently', 'View',
+		 *                           'Copy URL' and 'Download file'.
 		 * @param WP_Post  $post     WP_Post object for the current attachment.
 		 * @param bool     $detached Whether the list table contains media not attached
 		 *                           to any posts. Default true.
@@ -904,12 +924,31 @@ class WP_Media_List_Table extends WP_List_Table {
 			return '';
 		}
 
+		// Restores the more descriptive, specific name for use within this method.
+		$post = $item;
+
 		$att_title = _draft_or_post_title();
-		$actions   = $this->_get_row_actions(
-			$item, // WP_Post object for an attachment.
-			$att_title
-		);
+		$actions   = $this->_get_row_actions( $post, $att_title );
 
 		return $this->row_actions( $actions );
+	}
+
+	/**
+	 * Returns a clean label for the primary (File) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the attachment title as the row header
+	 * name, preventing them from computing the name from the full cell content.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Post $post The current WP_Post object.
+	 * @return string The attachment title.
+	 */
+	protected function get_primary_column_aria_label( $post ) {
+		// The title may contain HTML. The printed aria-label uses esc_attr() later.
+		$attachment_title = html_entity_decode( _draft_or_post_title( $post ), ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$attachment_title = wp_strip_all_tags( $attachment_title );
+
+		return $attachment_title;
 	}
 }

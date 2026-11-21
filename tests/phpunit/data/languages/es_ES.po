@@ -1,55 +1,64 @@
-# Translation of Development (5.2.x) in Spanish (Spain)
-# This file is distributed under the same license as the Development (5.2.x) package.
+# Translation of WordPress - 6.4.x - Development in Spanish (Spain)
+# This file is distributed under the same license as the WordPress - 6.4.x - Development package.
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2020-07-23 21:12+0300\n"
+"Project-Id-Version: WordPress - 6.4.x - Development\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2024-02-28 14:31-0500\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Poedit 2.3\n"
-"Project-Id-Version: Development (5.2.x)\n"
-"Language: es_ES\n"
-"POT-Creation-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"X-Generator: Poedit 3.4.2\n"
+
+#: wp-includes/functions.php:6635
+msgid "Manual Offsets"
+msgstr "Compensaciones manuales"
+
+#: wp-includes/functions.php:6574
+msgid "Select a city"
+msgstr "Elige una ciudad"
 
 #. translators: 'rtl' or 'ltr'. This sets the text direction for WordPress.
-#: wp-includes/locale.php:201
+#: wp-includes/class-wp-locale.php:248 wp-includes/script-loader.php:325
+#: wp-includes/js/dist/i18n.js:1398
+#, gp-priority: high
 msgctxt "text direction"
 msgid "ltr"
 msgstr "ltr"
 
-#: wp-includes/user.php:2132
-msgid "<strong>ERROR</strong>: Sorry, that username is not allowed."
-msgstr "<strong>ERROR</strong>: Lo siento, ese nombre de usuario no está permitido."
+#: wp-includes/user.php:3357 wp-admin/includes/user.php:202
+msgid "<strong>Error:</strong> Sorry, that username is not allowed."
+msgstr "<strong>Error</strong>: lo siento, ese nombre de usuario no está permitido."
 
-#: wp-includes/rest-api/class-wp-rest-request.php:850
+#: wp-includes/rest-api/class-wp-rest-request.php:916
 msgid "Invalid parameter."
 msgstr "Parámetro no válido. "
 
-#. translators: %s: menu name
-#: wp-includes/customize/class-wp-customize-nav-menu-control.php:76
+#. translators: %s: Menu name.
+#: wp-includes/customize/class-wp-customize-nav-menu-locations-control.php:79
 msgctxt "menu location"
 msgid "(Current: %s)"
 msgstr "(Actual: %s)"
 
-#. translators: %s: menu location slug
-#: wp-includes/class-wp-customize-nav-menus.php:340
+#. translators: %s: Menu location.
+#: wp-includes/class-wp-customize-nav-menus.php:510
 msgctxt "menu"
 msgid "(Currently set to: %s)"
 msgstr "(Actualmente fijado en: %s)"
 
-#. translators: Privacy data request subject. 1: Site name, 2: Name of the action
-#: wp-includes/user.php:3445
+#. translators: Confirm privacy data request notification email subject. 1:
+#. Site title, 2: Name of the action.
+#: wp-includes/user.php:4705
 msgid "[%1$s] Confirm Action: %2$s"
 msgstr "[%1$s] Confirmar la acción: %2$s"
 
-#. translators: %s: Site name.
-#: wp-includes/user.php:3175
+#. translators: Erasure request fulfilled notification email subject. %s: Site
+#. title.
+#: wp-includes/user.php:4299
 msgid "[%s] Erasure Request Fulfilled"
 msgstr "[%s] Solicitud de borrado completada"
 
-#: wp-admin/includes/file.php:2415
-msgid "[%s] Personal Data Export"
-msgstr "[%s] Exportación de datos personales"

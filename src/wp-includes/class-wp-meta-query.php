@@ -36,6 +36,7 @@ class WP_Meta_Query {
 	 *
 	 * @since 3.2.0
 	 * @var string
+	 * @phpstan-var 'AND'|'OR'|null
 	 */
 	public $relation;
 
@@ -123,7 +124,7 @@ class WP_Meta_Query {
 	 *                                            - 'NOT IN'
 	 *                                            - 'REGEXP'
 	 *                                            - 'NOT REGEXP'
-	 *                                            - 'RLIKE',
+	 *                                            - 'RLIKE'
 	 *                                            - 'EXISTS' (alias of '=')
 	 *                                            - 'NOT EXISTS' (alias of '!=')
 	 *                                            Default is 'IN' when `$key` is an array, '=' otherwise.
@@ -132,7 +133,7 @@ class WP_Meta_Query {
 	 *                                            comparisons. Default is ''.
 	 *         @type string|string[] $value       Meta value or values to filter by.
 	 *         @type string          $compare     MySQL operator used for comparing the $value. Accepts:
-	 *                                            - '=',
+	 *                                            - '='
 	 *                                            - '!='
 	 *                                            - '>'
 	 *                                            - '>='
@@ -165,13 +166,13 @@ class WP_Meta_Query {
 	 *     }
 	 * }
 	 */
-	public function __construct( $meta_query = false ) {
+	public function __construct( $meta_query = array() ) {
 		if ( ! $meta_query ) {
 			return;
 		}
 
-		if ( isset( $meta_query['relation'] ) && 'OR' === strtoupper( $meta_query['relation'] ) ) {
-			$this->relation = 'OR';
+		if ( isset( $meta_query['relation'] ) ) {
+			$this->relation = $this->sanitize_relation( $meta_query['relation'] );
 		} else {
 			$this->relation = 'AND';
 		}
@@ -209,6 +210,19 @@ class WP_Meta_Query {
 					unset( $query['value'] );
 				}
 
+				/*
+				 * Dropping an empty value can leave a clause that is no longer
+				 * first-order, so sanitize it as a nested query instead. Otherwise
+				 * it would be stored unsanitized and later treated as a nested
+				 * query when the SQL is generated.
+				 */
+				if ( ! $this->is_first_order_clause( $query ) ) {
+					$query = $this->sanitize_query( $query );
+				} elseif ( array_key_exists( 'relation', $query ) ) {
+					// A first-order clause has no relation of its own, but never store an unvalidated one.
+					$query['relation'] = $this->sanitize_relation( $query['relation'] );
+				}
+
 				$clean_queries[ $key ] = $query;
 
 				// Otherwise, it's a nested query, so we recurse.
@@ -226,7 +240,7 @@ class WP_Meta_Query {
 		}
 
 		// Sanitize the 'relation' key provided in the query.
-		if ( isset( $relation ) && 'OR' === strtoupper( $relation ) ) {
+		if ( isset( $relation ) && 'OR' === $this->sanitize_relation( $relation ) ) {
 			$clean_queries['relation'] = 'OR';
 			$this->has_or_relation     = true;
 
@@ -244,6 +258,23 @@ class WP_Meta_Query {
 		}
 
 		return $clean_queries;
+	}
+
+	/**
+	 * Sanitizes a 'relation' operator.
+	 *
+	 * @since 7.1.5
+	 *
+	 * @param mixed $relation Raw relation key from the query argument. Typically the string 'AND' or 'OR'.
+	 * @return string Sanitized relation. Either 'AND' or 'OR'.
+	 * @phpstan-return 'AND'|'OR'
+	 */
+	public function sanitize_relation( $relation ) {
+		if ( is_string( $relation ) && 'OR' === strtoupper( $relation ) ) {
+			return 'OR';
+		} else {
+			return 'AND';
+		}
 	}
 
 	/**
@@ -374,7 +405,7 @@ class WP_Meta_Query {
 		 * If any JOINs are LEFT JOINs (as in the case of NOT EXISTS), then all JOINs should
 		 * be LEFT. Otherwise posts with no metadata will be excluded from results.
 		 */
-		if ( false !== strpos( $sql['join'], 'LEFT JOIN' ) ) {
+		if ( str_contains( $sql['join'], 'LEFT JOIN' ) ) {
 			$sql['join'] = str_replace( 'INNER JOIN', 'LEFT JOIN', $sql['join'] );
 		}
 
@@ -461,7 +492,8 @@ class WP_Meta_Query {
 
 		foreach ( $query as $key => &$clause ) {
 			if ( 'relation' === $key ) {
-				$relation = $query['relation'];
+				// Clauses that bypassed sanitize_query() may carry an unvalidated relation.
+				$relation = $this->sanitize_relation( $query['relation'] );
 			} elseif ( is_array( $clause ) ) {
 
 				// This is a first-order clause.
@@ -523,11 +555,11 @@ class WP_Meta_Query {
 	 * @param string $clause_key   Optional. The array key used to name the clause in the original `$meta_query`
 	 *                             parameters. If not provided, a key will be generated automatically.
 	 *                             Default empty string.
-	 * @return string[] {
+	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to a first-order query.
 	 *
-	 *     @type string $join  SQL fragment to append to the main JOIN clause.
-	 *     @type string $where SQL fragment to append to the main WHERE clause.
+	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
+	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
 	 */
 	public function get_sql_for_clause( &$clause, $parent_query, $clause_key = '' ) {
@@ -619,7 +651,7 @@ class WP_Meta_Query {
 		$clause['alias'] = $alias;
 
 		// Determine the data type.
-		$_meta_type     = isset( $clause['type'] ) ? $clause['type'] : '';
+		$_meta_type     = $clause['type'] ?? '';
 		$meta_type      = $this->get_cast_for_type( $_meta_type );
 		$clause['cast'] = $meta_type;
 
@@ -633,7 +665,7 @@ class WP_Meta_Query {
 		$clause_key_base = $clause_key;
 		while ( isset( $this->clauses[ $clause_key ] ) ) {
 			$clause_key = $clause_key_base . '-' . $iterator;
-			$iterator++;
+			++$iterator;
 		}
 
 		// Store the clause in our flat array.

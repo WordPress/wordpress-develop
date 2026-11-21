@@ -3,7 +3,7 @@
 /**
  * Test WP_List_Util class.
  *
- * @group functions.php
+ * @group functions
  */
 class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 
@@ -89,7 +89,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_pluck() {
+	public static function data_wp_list_util_pluck() {
 		return array(
 			'simple'        => array(
 				'target_array' => array(
@@ -147,9 +147,9 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	/**
 	 * Data provider that provides invalid input arrays.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
-	public function data_wp_list_pluck_should_throw_doing_it_wrong_with_invalid_input() {
+	public static function data_wp_list_pluck_should_throw_doing_it_wrong_with_invalid_input() {
 		return array(
 			'int[] 0'                   => array( array( 0 ) ),
 			'int[] 1'                   => array( array( 1 ) ),
@@ -210,6 +210,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 * @dataProvider data_wp_list_util_sort_int_arrays
 	 * @dataProvider data_wp_list_util_sort_arrays_of_arrays
 	 * @dataProvider data_wp_list_util_sort_object_arrays
+	 * @dataProvider data_wp_list_util_sort_non_existent_orderby_fields
 	 *
 	 * @covers WP_List_Util::sort
 	 * @covers ::wp_list_sort
@@ -245,7 +246,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_sort_string_arrays() {
+	public static function data_wp_list_util_sort_string_arrays() {
 		return array(
 			'string[], no keys, no ordering'     => array(
 				'expected'     => array( 'four', 'two', 'three', 'one' ),
@@ -321,7 +322,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_sort_int_arrays() {
+	public static function data_wp_list_util_sort_int_arrays() {
 		return array(
 			'int[], no keys, no ordering'     => array(
 				'expected'     => array( 4, 2, 3, 1 ),
@@ -397,7 +398,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_sort_arrays_of_arrays() {
+	public static function data_wp_list_util_sort_arrays_of_arrays() {
 		return array(
 			'array[], no keys, no ordering'     => array(
 				'expected'     => array(
@@ -773,7 +774,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_sort_object_arrays() {
+	public static function data_wp_list_util_sort_object_arrays() {
 		return array(
 			'object[], no keys, no ordering'     => array(
 				'expected'     => array(
@@ -1002,54 +1003,11 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests non-existent '$orderby' fields.
-	 *
-	 * In PHP < 7.0.0, the sorting behavior is different, which Core does not
-	 * currently handle. Until this is fixed, or the minimum PHP version is
-	 * raised to PHP 7.0.0+, these tests will be skipped on PHP < 7.0.0.
-	 *
-	 * @ticket 55300
-	 *
-	 * @dataProvider data_wp_list_util_sort_php_7_or_greater
-	 *
-	 * @covers WP_List_Util::sort
-	 * @covers ::wp_list_sort
-	 *
-	 * @param array  $expected      The expected array.
-	 * @param array  $target_array  The array to create a list from.
-	 * @param array  $orderby       Optional. Either the field name to order by or an array
-	 *                              of multiple orderby fields as `$orderby => $order`.
-	 *                              Default empty array.
-	 * @param string $order         Optional. Either 'ASC' or 'DESC'. Only used if `$orderby`
-	 *                              is a string. Default 'ASC'.
-	 * @param bool   $preserve_keys Optional. Whether to preserve keys. Default false.
-	 */
-	public function test_wp_list_util_sort_php_7_or_greater( $expected, $target_array, $orderby = array(), $order = 'ASC', $preserve_keys = false ) {
-		if ( version_compare( PHP_VERSION, '7.0.0', '<' ) ) {
-			$this->markTestSkipped( 'This test can only run on PHP 7.0 or greater due to an unstable sort order.' );
-		}
-
-		$util   = new WP_List_Util( $target_array );
-		$actual = $util->sort( $orderby, $order, $preserve_keys );
-
-		$this->assertEqualSetsWithIndex(
-			$expected,
-			$actual,
-			'The sorted value did not match the expected value.'
-		);
-		$this->assertEqualSetsWithIndex(
-			$expected,
-			$util->get_output(),
-			'::get_output() did not return the expected value.'
-		);
-	}
-
-	/**
-	 * Data provider for test_wp_list_util_sort_php_7_or_greater().
+	 * Data provider for test_wp_list_util_sort().
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_util_sort_php_7_or_greater() {
+	public static function data_wp_list_util_sort_non_existent_orderby_fields() {
 		return array(
 			'int[], int keys, $orderby a non-existent field, $order = ASC and $preserve_keys = false' => array(
 				'expected'      => array( 4, 2, 3, 1 ),
@@ -1203,5 +1161,4 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

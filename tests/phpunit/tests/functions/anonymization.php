@@ -6,8 +6,9 @@
  *
  * @since 4.9.6
  *
- * @group functions.php
+ * @group functions
  * @group privacy
+ *
  * @covers ::wp_privacy_anonymize_data
  */
 class Tests_Functions_Anonymization extends WP_UnitTestCase {
@@ -40,12 +41,12 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $raw_ip          Raw IP address.
-	 *         @string string $expected_result Expected result.
+	 *         @type string $raw_ip          Raw IP address.
+	 *         @type string $expected_result Expected result.
 	 *     }
 	 * }
 	 */
-	public function data_wp_privacy_anonymize_ip() {
+	public static function data_wp_privacy_anonymize_ip() {
 		return array(
 			// Invalid IP.
 			array(
@@ -194,12 +195,12 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $raw_ip          Raw IP address.
-	 *         @string string $expected_result Expected result.
+	 *         @type string $raw_ip          Raw IP address.
+	 *         @type string $expected_result Expected result.
 	 *     }
 	 * }
 	 */
-	public function data_wp_privacy_anonymize_ip_with_inet_dependency() {
+	public static function data_wp_privacy_anonymize_ip_with_inet_dependency() {
 		return array(
 			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
 			array(
@@ -320,5 +321,4 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 		}
 		return $anonymous;
 	}
-
 }

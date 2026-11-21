@@ -3,7 +3,8 @@
 /**
  * Test wp_list_pluck().
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_list_pluck
  */
 class Tests_Functions_wpListPluck extends WP_UnitTestCase {
@@ -215,7 +216,12 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $expected, wp_list_pluck( $input_list, $field, $index_key ) );
 	}
 
-	public function data_wp_list_pluck() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_list_pluck() {
 		return array(
 			'arrays'                         => array(
 				array(

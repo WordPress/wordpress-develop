@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ *
  * @covers ::date_i18n
  */
 class Tests_Date_DateI18n extends WP_UnitTestCase {
@@ -117,10 +118,6 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 		update_option( 'timezone_string', 'America/Buenos_Aires' ); // This timezone was deprecated pre-PHP 5.6.
 
 		$expected = '2022-08-01 00:00:00 -03 -03:00 America/Buenos_Aires';
-		if ( PHP_VERSION_ID < 70000 ) {
-			// PHP 5.6.
-			$expected = '2022-08-01 00:00:00 ART -03:00 America/Buenos_Aires';
-		}
 
 		$this->assertSame( $expected, date_i18n( 'Y-m-d H:i:s T P e', strtotime( '2022-08-01 00:00:00' ) ) );
 	}
@@ -154,7 +151,7 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 		$this->assertSame( $short, date_i18n( '\\' . $short ) );
 	}
 
-	public function data_formats() {
+	public static function data_formats() {
 		return array(
 			array(
 				'c',
@@ -219,7 +216,7 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 		$this->assertSame( $datetime->format( $format ), date_i18n( $format, $wp_timestamp ) );
 	}
 
-	public function data_should_handle_dst() {
+	public static function data_should_handle_dst() {
 		return array(
 			'Before DST start' => array( '2019-03-31 02:59:00', 'Europe/Helsinki' ),
 			'After DST start'  => array( '2019-03-31 04:01:00', 'Europe/Helsinki' ),

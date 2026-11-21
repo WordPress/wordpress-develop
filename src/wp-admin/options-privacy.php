@@ -14,7 +14,7 @@ if ( ! current_user_can( 'manage_privacy_options' ) ) {
 }
 
 if ( isset( $_GET['tab'] ) && 'policyguide' === $_GET['tab'] ) {
-	require_once dirname( __FILE__ ) . '/privacy-policy-guide.php';
+	require_once __DIR__ . '/privacy-policy-guide.php';
 	return;
 }
 
@@ -23,14 +23,14 @@ $title = __( 'Privacy' );
 
 add_filter(
 	'admin_body_class',
-	static function( $body_class ) {
+	static function ( $body_class ) {
 		$body_class .= ' privacy-settings ';
 
 		return $body_class;
 	}
 );
 
-$action = isset( $_POST['action'] ) ? $_POST['action'] : '';
+$action = $_POST['action'] ?? '';
 
 get_current_screen()->add_help_tab(
 	array(
@@ -51,12 +51,15 @@ if ( ! empty( $action ) ) {
 	check_admin_referer( $action );
 
 	if ( 'set-privacy-page' === $action ) {
-		$privacy_policy_page_id = isset( $_POST['page_for_privacy_policy'] ) ? (int) $_POST['page_for_privacy_policy'] : 0;
+		$previous_privacy_policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+		$privacy_policy_page_id          = isset( $_POST['page_for_privacy_policy'] ) ? (int) $_POST['page_for_privacy_policy'] : 0;
 		update_option( 'wp_page_for_privacy_policy', $privacy_policy_page_id );
 
-		$privacy_page_updated_message = __( 'Privacy Policy page updated successfully.' );
+		$privacy_page_message_type = 'success';
 
 		if ( $privacy_policy_page_id ) {
+			$privacy_page_updated_message = __( 'Privacy Policy page updated successfully.' );
+
 			/*
 			 * Don't always link to the menu customizer:
 			 *
@@ -75,9 +78,16 @@ if ( ! empty( $action ) ) {
 					esc_url( add_query_arg( 'autofocus[panel]', 'nav_menus', admin_url( 'customize.php' ) ) )
 				);
 			}
+		} elseif ( $previous_privacy_policy_page_id ) {
+			// A previously set Privacy Policy page was cleared.
+			$privacy_page_updated_message = __( 'Privacy Policy page removed.' );
+		} else {
+			// No Privacy Policy page was set before, and none is set now.
+			$privacy_page_updated_message = __( 'No Privacy Policy page is currently set.' );
+			$privacy_page_message_type    = 'info';
 		}
 
-		add_settings_error( 'page_for_privacy_policy', 'page_for_privacy_policy', $privacy_page_updated_message, 'success' );
+		add_settings_error( 'page_for_privacy_policy', 'page_for_privacy_policy', $privacy_page_updated_message, $privacy_page_message_type );
 	} elseif ( 'create-privacy-page' === $action ) {
 
 		if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
@@ -177,9 +187,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <hr class="wp-header-end">
 
-<div class="notice notice-error hide-if-js">
-	<p><?php _e( 'The Privacy Settings require JavaScript.' ); ?></p>
-</div>
+<?php
+wp_admin_notice(
+	__( 'The Privacy Settings require JavaScript.' ),
+	array(
+		'type'               => 'error',
+		'additional_classes' => array( 'hide-if-js' ),
+	)
+);
+?>
 
 <div class="privacy-settings-body hide-if-no-js">
 	<h2><?php _e( 'Privacy Settings' ); ?></h2>
@@ -230,7 +246,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		}
 		printf(
 			/* translators: 1: Privacy Policy guide URL, 2: Additional link attributes, 3: Accessibility text. */
-			__( 'Need help putting together your new Privacy Policy page? <a href="%1$s" %2$s>Check out our privacy policy guide%3$s</a> for recommendations on what content to include, along with policies suggested by your plugins and theme.' ),
+			__( 'Need help putting together your new Privacy Policy page? <a href="%1$s" %2$s>Check out the privacy policy guide%3$s</a> for recommendations on what content to include, along with policies suggested by your plugins and theme.' ),
 			esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) ),
 			'',
 			''
@@ -264,7 +280,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</label>
 			</th>
 			<td>
-				<form class="wp-create-privacy-page" method="post" action="">
+				<form class="wp-create-privacy-page" method="post">
 					<input type="hidden" name="action" value="create-privacy-page" />
 					<?php
 					wp_nonce_field( 'create-privacy-page' );
@@ -287,7 +303,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</label>
 			</th>
 			<td>
-				<form method="post" action="">
+				<form method="post">
 					<input type="hidden" name="action" value="set-privacy-page" />
 					<?php
 					wp_dropdown_pages(

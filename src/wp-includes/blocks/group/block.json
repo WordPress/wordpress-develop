@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/group",
 	"title": "Group",
 	"category": "design",
@@ -24,25 +24,38 @@
 		"anchor": true,
 		"ariaLabel": true,
 		"html": false,
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"gradient": true,
+			"__experimentalDefaultControls": {
+				"backgroundImage": true,
+				"gradient": true
+			}
+		},
 		"color": {
 			"gradients": true,
+			"heading": true,
+			"button": true,
 			"link": true,
 			"__experimentalDefaultControls": {
 				"background": true,
 				"text": true
 			}
 		},
+		"shadow": true,
 		"spacing": {
 			"margin": [ "top", "bottom" ],
 			"padding": true,
-			"blockGap": true,
+			"blockGap": [ "horizontal", "vertical" ],
 			"__experimentalDefaultControls": {
 				"padding": true,
 				"blockGap": true
 			}
 		},
 		"dimensions": {
-			"minHeight": true
+			"minHeight": true,
+			"minWidth": true
 		},
 		"__experimentalBorder": {
 			"color": true,
@@ -62,6 +75,7 @@
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
+			"textColumns": true,
 			"__experimentalFontFamily": true,
 			"__experimentalFontWeight": true,
 			"__experimentalFontStyle": true,
@@ -72,9 +86,13 @@
 				"fontSize": true
 			}
 		},
-		"__experimentalLayout": {
+		"layout": {
 			"allowSizingOnChildren": true
-		}
+		},
+		"interactivity": {
+			"clientNavigation": true
+		},
+		"allowedBlocks": true
 	},
 	"editorStyle": "wp-block-group-editor",
 	"style": "wp-block-group"

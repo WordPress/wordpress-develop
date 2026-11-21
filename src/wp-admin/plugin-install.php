@@ -40,6 +40,15 @@ if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
 
 $wp_list_table->prepare_items();
 
+/**
+ * WP_Plugin_Install_List_Table::prepare_items() populates these globals, which
+ * are used throughout the rest of this file.
+ *
+ * @global string $tab   The current tab of the Install Plugins screen.
+ * @global int    $paged The current page number of the plugins list.
+ */
+global $tab, $paged;
+
 $total_pages = $wp_list_table->get_pagination_arg( 'total_pages' );
 
 if ( $pagenum > $total_pages && $total_pages > 0 ) {
@@ -134,6 +143,10 @@ get_current_screen()->set_screen_reader_content(
  * WordPress Administration Template Header.
  */
 require_once ABSPATH . 'wp-admin/admin-header.php';
+
+WP_Plugin_Dependencies::initialize();
+WP_Plugin_Dependencies::display_admin_notice_for_unmet_dependencies();
+WP_Plugin_Dependencies::display_admin_notice_for_circular_dependencies();
 ?>
 <div class="wrap <?php echo esc_attr( "plugin-install-tab-$tab" ); ?>">
 <h1 class="wp-heading-inline">
@@ -165,7 +178,7 @@ if ( 'upload' !== $tab ) {
 	<div class="upload-plugin-wrap">
 		<?php
 		/** This action is documented in wp-admin/plugin-install.php */
-		do_action( 'install_plugins_upload' );
+		do_action( 'install_plugins_upload', $paged );
 		?>
 	</div>
 	<?php

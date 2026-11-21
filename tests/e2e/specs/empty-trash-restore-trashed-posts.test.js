@@ -1,72 +1,110 @@
+/**
+ * Internal dependencies
+ */
+import { test, expect } from '../fixtures';
 import {
-  visitAdminPage,
-  createNewPost,
-  trashAllPosts,
-  publishPost,
-} from "@wordpress/e2e-test-utils";
+	adminNotice,
+	bulkActionApply,
+	bulkActionSelect,
+	postRow,
+} from '../utils/admin';
 
-const POST_TITLE = "Test Title";
+test( 'Undo restores a trashed post to its published status', async ( {
+	page,
+	admin,
+	postFactory,
+	requestUtils,
+} ) => {
+	const title = postFactory.uniqueTitle( 'Undo trash' );
 
-describe("Empty Trash", () => {
-  async function createPost(title) {
-    // Create a Post
-    await createNewPost({ title });
-    await publishPost();
-  }
+	const post = await postFactory.create( {
+		title,
+		status: 'publish',
+	} );
+	const postId = post.id;
+	await admin.visitAdminPage(
+		'edit.php',
+		new URLSearchParams( { s: title } ).toString()
+	);
+	const row = postRow( page, postId );
+	await row.getByRole( 'link', { name: title, exact: true } ).hover();
+	await row
+		.getByRole( 'link', {
+			name: `Move “${ title }” to the Trash`,
+			exact: true,
+		} )
+		.click();
+	await expect( adminNotice( page ) ).toContainText(
+		'1 post moved to the Trash.'
+	);
+	await expect( row ).toHaveCount( 0 );
+	const trashedPost = await requestUtils.rest( {
+		path: `/wp/v2/posts/${ postId }`,
+		params: { context: 'edit' },
+	} );
+	expect( trashedPost.status ).toBe( 'trash' );
 
-  afterEach(async () => {
-    await trashAllPosts();
-  });
+	await page.getByRole( 'link', { name: 'Undo', exact: true } ).click();
+	await expect( adminNotice( page ) ).toContainText(
+		'1 post restored from the Trash.'
+	);
+	await admin.visitAdminPage(
+		'edit.php',
+		new URLSearchParams( { s: title } ).toString()
+	);
+	await expect(
+		row.getByRole( 'link', { name: title, exact: true } )
+	).toBeVisible();
+	const restoredPost = await requestUtils.rest( {
+		path: `/wp/v2/posts/${ postId }`,
+		params: { context: 'edit' },
+	} );
+	expect( restoredPost.status ).toBe( 'publish' );
+} );
 
-  it("Empty Trash", async () => {
-    await createPost(POST_TITLE);
+test( 'bulk trashes only the selected posts', async ( {
+	page,
+	admin,
+	postFactory,
+	requestUtils,
+} ) => {
+	const posts = [];
+	const titlePrefix = postFactory.uniqueTitle( 'Bulk trash' );
 
-    await visitAdminPage("/edit.php");
+	for ( const suffix of [ 'first', 'second', 'control' ] ) {
+		posts.push(
+			await postFactory.create( {
+				title: `${ titlePrefix } ${ suffix }`,
+				status: 'publish',
+			} )
+		);
+	}
 
-    // Move post to trash
-    await page.hover(`[aria-label^="“${POST_TITLE}”"]`);
-    await page.click(`[aria-label='Move “${POST_TITLE}” to the Trash']`);
+	await admin.visitAdminPage(
+		'edit.php',
+		new URLSearchParams( { s: titlePrefix } ).toString()
+	);
+	for ( const post of posts.slice( 0, 2 ) ) {
+		await postRow( page, post.id ).getByRole( 'checkbox' ).check();
+	}
+	await bulkActionSelect( page ).selectOption( 'trash' );
+	await bulkActionApply( page ).click();
+	await expect( adminNotice( page ) ).toContainText(
+		'2 posts moved to the Trash.'
+	);
 
-    // Empty trash
-    const trashTab = await page.waitForXPath('//h2[text()="Filter posts list"]/following-sibling::ul//a[contains(text(), "Trash")]');
-    await Promise.all([
-      trashTab.click(),
-      page.waitForNavigation(),
-    ]);
-    const deleteAllButton = await page.waitForSelector('input[value="Empty Trash"]');
-    await Promise.all([
-      deleteAllButton.click(),
-      page.waitForNavigation(),
-    ]);
-
-    const messageElement = await page.waitForSelector("#message");
-    const message = await messageElement.evaluate((node) => node.innerText);
-    // Until we have `deleteAllPosts`, the number of posts being deleted could be dynamic.
-    expect(message).toMatch(/\d+ posts? permanently deleted\./);
-  });
-
-  it("Restore trash post", async () => {
-    await createPost(POST_TITLE);
-
-    await visitAdminPage("/edit.php");
-
-    // Move one post to trash.
-    await page.hover(`[aria-label^="“${POST_TITLE}”"]`);
-    await page.click(`[aria-label='Move “${POST_TITLE}” to the Trash']`);
-
-    // Remove post from trash.
-    const trashTab = await page.waitForXPath('//h2[text()="Filter posts list"]/following-sibling::ul//a[contains(text(), "Trash")]');
-    await Promise.all([
-      trashTab.click(),
-      page.waitForNavigation(),
-    ]);
-    const [postTitle] = await page.$x(`//*[text()="${POST_TITLE}"]`);
-    await postTitle.hover();
-    await page.click(`[aria-label="Restore “${POST_TITLE}” from the Trash"]`);
-
-    // Expect for success message for trashed post.
-    const messageElement = await page.waitForSelector("#message");
-    const message = await messageElement.evaluate((element) => element.innerText);
-    expect(message).toContain("1 post restored from the Trash.");
-  });
-});
+	for ( const post of posts.slice( 0, 2 ) ) {
+		await expect( postRow( page, post.id ) ).toHaveCount( 0 );
+		const savedPost = await requestUtils.rest( {
+			path: `/wp/v2/posts/${ post.id }`,
+			params: { context: 'edit' },
+		} );
+		expect( savedPost.status ).toBe( 'trash' );
+	}
+	await expect( postRow( page, posts[ 2 ].id ) ).toBeVisible();
+	const control = await requestUtils.rest( {
+		path: `/wp/v2/posts/${ posts[ 2 ].id }`,
+		params: { context: 'edit' },
+	} );
+	expect( control.status ).toBe( 'publish' );
+} );
