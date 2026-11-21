@@ -1255,7 +1255,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				return new WP_Error(
 					'rest_comment_invalid_post_id',
 					__( 'Invalid post ID.' ),
-					array( 'status' => 403 )
+					array( 'status' => 404 )
 				);
 			}
 		}
@@ -2656,8 +2656,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! $post ) {
 			return new WP_Error(
 				'rest_comment_invalid_post_id',
-				__( 'Sorry, you are not allowed to create this comment without a post.' ),
-				array( 'status' => 403 )
+				__( 'Invalid post ID.' ),
+				array( 'status' => 404 )
 			);
 		}
 
