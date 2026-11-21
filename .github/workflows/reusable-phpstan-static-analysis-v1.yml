@@ -1,7 +1,7 @@
 ##
 # A reusable workflow that runs PHP Static Analysis tests.
 #
-# This workflow is used by `trunk` and branches >= 7.0.
+# This workflow is used by branches 7.0 and 7.1.
 ##
 name: PHP Static Analysis
 
@@ -40,7 +40,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   phpstan:
     name: Run PHP static analysis
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     timeout-minutes: 20
@@ -283,9 +283,9 @@ jobs:
           composer phpstan:fix
           ```
 
-          That runs PHPStan with `--fix`, which lowers the counts in the files under [`tests/phpstan/baselines`][baselines], removes the entries that no longer match, and removes any `@phpstan-ignore` annotation in the code that no longer ignores anything. It then deletes any baseline left with no entries, and updates the list of them in `phpstan.neon.dist`.
+          That runs PHPStan with `--fix`, which lowers the counts in the files under [`tests/phpstan/baselines`][baselines], removes the entries that no longer match, and removes any `@phpstan-ignore` annotation in the code that no longer ignores anything. It then deletes any baseline left with no entries.
 
-          Alternatively, regenerate the baselines with `npm run typecheck:php:baselines` or `composer phpstan:baselines`. That also deletes any baseline whose errors are now all fixed, and updates the list of them in `phpstan.neon.dist`, but it does not clear an `@phpstan-ignore` annotation.
+          Alternatively, regenerate the baselines with `npm run typecheck:php:baselines` or `composer phpstan:baselines`. That also deletes any baseline whose errors are now all fixed, but it does not clear an `@phpstan-ignore` annotation.
 
           See [`tests/phpstan/README.md`][readme] for details.
 

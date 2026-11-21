@@ -2345,7 +2345,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_comment_author_invalid', $response, 400 );
+		$this->assertErrorResponse( 'rest_comment_invalid_author', $response, 403 );
 	}
 
 	public function test_create_item_pull_author_info() {

@@ -5,8 +5,39 @@ import { test, expect } from '../fixtures';
 import { signIn } from '../fixtures/user';
 
 test.describe( 'Quick Draft', () => {
-	test.beforeEach( async ({ requestUtils }) => {
-		await requestUtils.deleteAllPosts();
+	// Recent Drafts and the author-filtered post list show only this user's posts.
+	test.use( { storageState: { cookies: [], origins: [] } } );
+	let userId;
+
+	test.beforeEach( async ( { page, userFactory } ) => {
+		userId = undefined;
+		const { user, username, password } = await userFactory.create( {
+			roles: [ 'administrator' ],
+		} );
+		userId = user.id;
+		await signIn( page, username, password );
+		await expect(
+			page.getByRole( 'heading', { name: 'Dashboard', exact: true } )
+		).toBeVisible();
+	} );
+
+	// Deleting the user would move its saved drafts to the trash.
+	test.afterEach( async ( { requestUtils } ) => {
+		// Without an author, the query would match other workers' drafts.
+		if ( ! userId ) {
+			return;
+		}
+		const drafts = await requestUtils.rest( {
+			path: '/wp/v2/posts',
+			params: { author: userId, status: 'draft', per_page: 100 },
+		} );
+		for ( const draft of drafts ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/posts/${ draft.id }`,
+				params: { force: true },
+			} );
+		}
 	} );
 
 	test( 'should allow Quick Draft to be created with Title and Content', async ( {
@@ -57,7 +88,7 @@ test.describe( 'Quick Draft', () => {
 		).toBeVisible();
 
 		// Check that the new draft appears in the Posts page.
-		await admin.visitAdminPage( '/edit.php' );
+		await admin.visitAdminPage( '/edit.php', `author=${ userId }` );
 
 		await expect(
 			page
@@ -92,7 +123,7 @@ test.describe( 'Quick Draft', () => {
 		).toHaveText( 'Cannot create a draft post with empty title and content.' );
 
 		// Check that no new draft appears in the Posts page.
-		await admin.visitAdminPage( '/edit.php' );
+		await admin.visitAdminPage( '/edit.php', `author=${ userId }` );
 
 		await expect(
 			page.getByRole( 'cell', { name: 'No posts found.' } )
@@ -132,7 +163,7 @@ test.describe( 'Quick Draft', () => {
 		).toHaveText( 'Quick Draft test title' );
 
 		// Check that the new draft appears in the Posts page.
-		await admin.visitAdminPage( '/edit.php' );
+		await admin.visitAdminPage( '/edit.php', `author=${ userId }` );
 
 		await expect(
 			page
@@ -181,7 +212,7 @@ test.describe( 'Quick Draft', () => {
 		).toBeVisible();
 
 		// Check that the new draft appears in the Posts page.
-		await admin.visitAdminPage( '/edit.php' );
+		await admin.visitAdminPage( '/edit.php', `author=${ userId }` );
 
 		await expect(
 			page
