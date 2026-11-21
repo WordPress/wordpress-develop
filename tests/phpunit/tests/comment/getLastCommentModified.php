@@ -7,6 +7,20 @@
  * @covers ::get_lastcommentmodified
  */
 class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
+
+	/**
+	 * Retrieves the server date cached for the default excluded comment types.
+	 *
+	 * @return string Cached date.
+	 */
+	private function get_cached_server_date(): string {
+		$cached = wp_cache_get_salted( 'lastcommentmodified:server', 'timeinfo', 'note,reaction' );
+
+		$this->assertIsString( $cached, 'The last comment modified date should be cached.' );
+
+		return $cached;
+	}
+
 	public function test_no_comments() {
 		$this->assertFalse( get_lastcommentmodified() );
 	}
@@ -81,7 +95,7 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 		);
 
 		get_lastcommentmodified();
-		$this->assertSame( strtotime( '2015-04-01 10:00:00' ), strtotime( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) ) );
+		$this->assertSame( strtotime( '2015-04-01 10:00:00' ), strtotime( $this->get_cached_server_date() ) );
 	}
 
 	public function test_cache_is_cleared() {
@@ -95,7 +109,7 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 
 		get_lastcommentmodified();
 
-		$this->assertSame( strtotime( '2000-01-01 10:00:00' ), strtotime( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) ) );
+		$this->assertSame( strtotime( '2000-01-01 10:00:00' ), strtotime( $this->get_cached_server_date() ) );
 
 		self::factory()->comment->create_and_get(
 			array(
@@ -107,7 +121,7 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 
 		$this->assertFalse( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) );
 		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( get_lastcommentmodified() ) );
-		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) ) );
+		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( $this->get_cached_server_date() ) );
 	}
 
 	public function test_cache_is_cleared_when_comment_is_trashed() {
@@ -129,13 +143,13 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 
 		get_lastcommentmodified();
 
-		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) ) );
+		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( $this->get_cached_server_date() ) );
 
 		wp_trash_comment( $comment_2->comment_ID );
 
 		$this->assertFalse( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) );
 		$this->assertSame( strtotime( '1998-01-01 10:00:00' ), strtotime( get_lastcommentmodified() ) );
-		$this->assertSame( strtotime( '1998-01-01 10:00:00' ), strtotime( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) ) );
+		$this->assertSame( strtotime( '1998-01-01 10:00:00' ), strtotime( $this->get_cached_server_date() ) );
 	}
 	/**
 	 * Internal comment types are not user-facing discussion, so they must not
@@ -211,5 +225,122 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 		}
 
 		$this->assertFalse( get_lastcommentmodified() );
+	}
+
+	/**
+	 * Tests that a comment type added via the 'default_excluded_comment_types' filter
+	 * does not move the last comment modified date.
+	 *
+	 * @ticket 65537
+	 *
+	 * @dataProvider data_internal_comment_types_are_excluded
+	 *
+	 * @param string $timezone Timezone argument to pass to get_lastcommentmodified().
+	 * @param string $expected Expected date.
+	 */
+	public function test_filtered_excluded_comment_type_is_excluded( string $timezone, string $expected ): void {
+		add_filter(
+			'default_excluded_comment_types',
+			static function ( array $types ): array {
+				$types[] = 'review';
+				return $types;
+			}
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_date'     => '2000-01-01 11:00:00',
+				'comment_date_gmt' => '2000-01-01 10:00:00',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_type'     => 'review',
+				'comment_date'     => '2020-01-01 11:00:00',
+				'comment_date_gmt' => '2020-01-01 10:00:00',
+			)
+		);
+
+		$modified = get_lastcommentmodified( $timezone );
+
+		$this->assertIsString( $modified );
+		$this->assertSame( strtotime( $expected ), strtotime( $modified ) );
+	}
+
+	/**
+	 * Tests that emptying the excluded comment types lets notes move the date.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_empty_excluded_comment_types_includes_notes(): void {
+		add_filter( 'default_excluded_comment_types', '__return_empty_array' );
+
+		self::factory()->comment->create(
+			array(
+				'comment_date'     => '2000-01-01 11:00:00',
+				'comment_date_gmt' => '2000-01-01 10:00:00',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_type'     => 'note',
+				'comment_date'     => '2020-01-01 11:00:00',
+				'comment_date_gmt' => '2020-01-01 10:00:00',
+			)
+		);
+
+		$modified = get_lastcommentmodified( 'gmt' );
+
+		$this->assertIsString( $modified );
+		$this->assertSame( strtotime( '2020-01-01 10:00:00' ), strtotime( $modified ) );
+	}
+
+	/**
+	 * Tests that a cached date is not served once the excluded comment types change,
+	 * which happens without any comment being added or updated.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_cached_date_is_not_served_after_the_excluded_comment_types_change(): void {
+		self::factory()->comment->create(
+			array(
+				'comment_date'     => '2000-01-01 11:00:00',
+				'comment_date_gmt' => '2000-01-01 10:00:00',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_type'     => 'review',
+				'comment_date'     => '2020-01-01 11:00:00',
+				'comment_date_gmt' => '2020-01-01 10:00:00',
+			)
+		);
+
+		$callback = static function ( array $types ): array {
+			$types[] = 'review';
+			return $types;
+		};
+
+		$this->assertSame(
+			strtotime( '2020-01-01 10:00:00' ),
+			strtotime( (string) get_lastcommentmodified( 'gmt' ) ),
+			'The review should set the date before its type is excluded.'
+		);
+
+		add_filter( 'default_excluded_comment_types', $callback );
+
+		$this->assertSame(
+			strtotime( '2000-01-01 10:00:00' ),
+			strtotime( (string) get_lastcommentmodified( 'gmt' ) ),
+			'A warm cache should not serve the date of a type that is now excluded.'
+		);
+
+		remove_filter( 'default_excluded_comment_types', $callback );
+
+		$this->assertSame(
+			strtotime( '2020-01-01 10:00:00' ),
+			strtotime( (string) get_lastcommentmodified( 'gmt' ) ),
+			'The review should set the date again once its type is no longer excluded.'
+		);
 	}
 }

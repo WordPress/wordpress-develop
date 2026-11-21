@@ -2839,13 +2839,15 @@ class WP_Query {
 
 		// Comments feeds.
 		if ( $this->is_comment_feed && ! $this->is_singular ) {
+			$ctype_not_in = wp_get_excluded_comment_types_clause( "{$wpdb->comments}.comment_type" );
+
 			if ( $this->is_archive || $this->is_search ) {
 				$cjoin    = "JOIN {$wpdb->posts} ON ( {$wpdb->comments}.comment_post_ID = {$wpdb->posts}.ID ) $join ";
-				$cwhere   = "WHERE comment_approved = '1' AND {$wpdb->comments}.comment_type NOT IN ( 'note', 'reaction' ) $where";
+				$cwhere   = "WHERE comment_approved = '1'$ctype_not_in $where";
 				$cgroupby = "{$wpdb->comments}.comment_id";
 			} else { // Other non-singular, e.g. front.
 				$cjoin    = "JOIN {$wpdb->posts} ON ( {$wpdb->comments}.comment_post_ID = {$wpdb->posts}.ID )";
-				$cwhere   = "WHERE ( post_status = 'publish' OR ( post_status = 'inherit' AND post_type = 'attachment' ) ) AND comment_approved = '1' AND {$wpdb->comments}.comment_type NOT IN ( 'note', 'reaction' )";
+				$cwhere   = "WHERE ( post_status = 'publish' OR ( post_status = 'inherit' AND post_type = 'attachment' ) ) AND comment_approved = '1'$ctype_not_in";
 				$cgroupby = '';
 			}
 
@@ -3561,11 +3563,13 @@ class WP_Query {
 		}
 
 		if ( ! empty( $this->posts ) && $this->is_comment_feed && $this->is_singular ) {
+			$ctype_not_in = wp_get_excluded_comment_types_clause( "{$wpdb->comments}.comment_type" );
+
 			/** This filter is documented in wp-includes/class-wp-query.php */
 			$cjoin = apply_filters_ref_array( 'comment_feed_join', array( '', &$this ) );
 
 			/** This filter is documented in wp-includes/class-wp-query.php */
-			$cwhere = apply_filters_ref_array( 'comment_feed_where', array( $wpdb->prepare( "WHERE comment_post_ID = '%d' AND comment_approved = '1' AND {$wpdb->comments}.comment_type NOT IN ( 'note', 'reaction' )", $this->posts[0]->ID ), &$this ) ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedSimplePlaceholder -- Quoted to keep the SQL unchanged for filters.
+			$cwhere = apply_filters_ref_array( 'comment_feed_where', array( $wpdb->prepare( "WHERE comment_post_ID = '%d' AND comment_approved = '1'", $this->posts[0]->ID ) . $ctype_not_in, &$this ) ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedSimplePlaceholder -- Quoted to keep the SQL unchanged for filters.
 
 			/** This filter is documented in wp-includes/class-wp-query.php */
 			$cgroupby = apply_filters_ref_array( 'comment_feed_groupby', array( '', &$this ) );
