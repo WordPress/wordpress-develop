@@ -99,9 +99,16 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	 * @covers ::_wp_menu_output
 	 */
 	public function test_dashicon_with_unregistered_replacement_is_rendered_as_dashicon(): void {
-		$registry = WP_Icons_Registry::get_instance();
-		$icon     = $registry->get_registered_icon( 'core-admin/cart' );
-		$registry->unregister( 'core-admin/cart' );
+		/*
+		 * The core icons in the "core-admin" collection cannot be unregistered,
+		 * so swap in an empty registry instance instead.
+		 */
+		$instance_property = new ReflectionProperty( WP_Icons_Registry::class, 'instance' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$instance_property->setAccessible( true );
+		}
+		$original_registry = $instance_property->getValue();
+		$instance_property->setValue( null, null );
 
 		// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
 		$menu = array(
@@ -109,13 +116,7 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 		);
 		$html = get_echo( '_wp_menu_output', array( $menu, array() ) );
 
-		$registry->register(
-			'core-admin/cart',
-			array(
-				'label'     => $icon['label'],
-				'file_path' => $icon['file_path'],
-			)
-		);
+		$instance_property->setValue( null, $original_registry );
 
 		$this->assertStringContainsString( "<div class='wp-menu-image dashicons-before dashicons-cart' aria-hidden='true'><br /></div>", $html );
 	}
