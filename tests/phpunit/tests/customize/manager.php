@@ -27,6 +27,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	protected static $admin_user_id;
 
 	/**
+	 * Second admin user ID.
+	 *
+	 * @var int
+	 */
+	protected static $other_admin_user_id;
+
+	/**
 	 * Subscriber user ID.
 	 *
 	 * @var int
@@ -41,13 +48,22 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private $attachments_created = false;
 
 	/**
+	 * Theme support state before the class tests run.
+	 *
+	 * @var array
+	 */
+	protected static $theme_features;
+
+	/**
 	 * Set up before class.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$subscriber_user_id = $factory->user->create( array( 'role' => 'subscriber' ) );
-		self::$admin_user_id      = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$subscriber_user_id  = $factory->user->create( array( 'role' => 'subscriber' ) );
+		self::$admin_user_id       = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$other_admin_user_id = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$theme_features      = $GLOBALS['_wp_theme_features'];
 	}
 
 	/**
@@ -70,7 +86,12 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
-		$_REQUEST = array();
+		$_REQUEST                      = array();
+		$GLOBALS['_wp_theme_features'] = self::$theme_features;
+
+		// Undo enabling revisions for changesets, since post type supports are not reset between tests.
+		remove_post_type_support( 'customize_changeset', 'revisions' );
+
 		parent::tear_down();
 	}
 
@@ -153,7 +174,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function test_constructor_deferred_changeset_uuid() {
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'admin' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$data = array(
 			'blogname' => array(
@@ -400,7 +421,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$wp_customize = new WP_Customize_Manager();
 		$title        = 'Hello World';
 		$wp_customize->set_post_value( 'blogname', $title );
-		$this->assertNotEquals( $title, get_option( 'blogname' ) );
+		$this->assertNotSame( $title, get_option( 'blogname' ) );
 		$wp_customize->wp_loaded();
 		$this->assertFalse( $wp_customize->is_preview() );
 		$this->assertSame( $title, $wp_customize->get_setting( 'blogname' )->value() );
@@ -429,7 +450,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertSame( $post_id, $wp_customize->find_changeset_post_id( $uuid ) );
 
 		// Verify that the found post ID was cached under the given UUID, not the manager's UUID.
-		$this->assertNotEquals( $post_id, $wp_customize->find_changeset_post_id( $wp_customize->changeset_uuid() ) );
+		$this->assertNotSame( $post_id, $wp_customize->find_changeset_post_id( $wp_customize->changeset_uuid() ) );
 	}
 
 	/**
@@ -513,7 +534,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			)
 		);
 		$this->assertTrue( $wp_customize->autosaved() );
-		$this->assertNotEquals( $data, $wp_customize->changeset_data() );
+		$this->assertNotSame( $data, $wp_customize->changeset_data() );
 		$this->assertSame(
 			array_merge(
 				wp_list_pluck( $data, 'value' ),
@@ -779,7 +800,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$changeset_data = $wp_customize->changeset_data();
 		$this->assertSame( $previous_blogname, $changeset_data['blogname']['value'] );
 		$this->assertArrayNotHasKey( 'starter_content', $changeset_data['blogname'] );
-		$this->assertNotEquals( $previous_blogdescription, $changeset_data['blogdescription']['value'] );
+		$this->assertNotSame( $previous_blogdescription, $changeset_data['blogdescription']['value'] );
 		$this->assertArrayHasKey( 'starter_content', $changeset_data['blogdescription'] );
 
 		// Publish.
@@ -791,7 +812,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertEmpty( get_theme_mod( 'background_image' ) );
 		$this->assertSame( 'auto-draft', get_post( $posts_by_name['about'] )->post_status );
 		$this->assertSame( 'auto-draft', get_post( $posts_by_name['waffles'] )->post_status );
-		$this->assertNotEquals( $changeset_data['blogname']['value'], get_option( 'blogname' ) );
+		$this->assertNotSame( $changeset_data['blogname']['value'], get_option( 'blogname' ) );
 		$r = $wp_customize->save_changeset_post( array( 'status' => 'publish' ) );
 		$this->assertIsArray( $r );
 		$this->assertSame( 'publish', get_post( $posts_by_name['about'] )->post_status );
@@ -1066,7 +1087,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertSame( 'Auto Draft', get_post( $post_id )->post_title );
 		$this->assertSame( 'auto-draft', get_post( $post_id )->post_status );
 		$this->assertSame( $date, get_post( $post_id )->post_date_gmt );
-		$this->assertNotEquals( 'Changeset Title', get_option( 'blogname' ) );
+		$this->assertNotSame( 'Changeset Title', get_option( 'blogname' ) );
 		$this->assertArrayHasKey( 'setting_validities', $r );
 
 		// Test saving with invalid settings, ensuring transaction blocked.
@@ -1102,7 +1123,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->assertInstanceOf( 'WP_Error', $r );
+		$this->assertWPError( $r );
 		$this->assertSame( 'transaction_fail', $r->get_error_code() );
 		$this->assertIsArray( $r->get_error_data() );
 		$this->assertArrayHasKey( 'setting_validities', $r->get_error_data() );
@@ -1110,13 +1131,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'blogname', $error_data['setting_validities'] );
 		$this->assertTrue( $error_data['setting_validities']['blogname'] );
 		$this->assertArrayHasKey( 'foo_unauthorized', $error_data['setting_validities'] );
-		$this->assertInstanceOf( 'WP_Error', $error_data['setting_validities']['foo_unauthorized'] );
+		$this->assertWPError( $error_data['setting_validities']['foo_unauthorized'] );
 		$this->assertSame( 'unauthorized', $error_data['setting_validities']['foo_unauthorized']->get_error_code() );
 		$this->assertArrayHasKey( 'bar_unknown', $error_data['setting_validities'] );
-		$this->assertInstanceOf( 'WP_Error', $error_data['setting_validities']['bar_unknown'] );
+		$this->assertWPError( $error_data['setting_validities']['bar_unknown'] );
 		$this->assertSame( 'unrecognized', $error_data['setting_validities']['bar_unknown']->get_error_code() );
 		$this->assertArrayHasKey( 'baz_illegal', $error_data['setting_validities'] );
-		$this->assertInstanceOf( 'WP_Error', $error_data['setting_validities']['baz_illegal'] );
+		$this->assertWPError( $error_data['setting_validities']['baz_illegal'] );
 		$this->assertSame( 'illegal', $error_data['setting_validities']['baz_illegal']->get_error_code() );
 
 		// Since transactional, ensure no changes have been made.
@@ -1146,9 +1167,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertIsArray( $r );
 		$this->assertArrayHasKey( 'setting_validities', $r );
 		$this->assertTrue( $r['setting_validities']['blogname'] );
-		$this->assertInstanceOf( 'WP_Error', $r['setting_validities']['bar_unknown'] );
+		$this->assertWPError( $r['setting_validities']['bar_unknown'] );
 		$saved_data = json_decode( get_post( $post_id )->post_content, true );
-		$this->assertNotEquals( $previous_saved_data, $saved_data );
+		$this->assertNotSame( $previous_saved_data, $saved_data );
 		$this->assertSame( 'Non-Transactional \o/ <script>unsanitized</script>', $saved_data['blogname']['value'] );
 
 		// Ensure the filter applies.
@@ -1254,7 +1275,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function test_save_changeset_post_without_kses_corrupting_json() {
 		global $wp_customize;
-		$lesser_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$lesser_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = new WP_Customize_Manager(
@@ -1349,11 +1370,11 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// User saved as one who cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_2' ) );
-		$this->assertStringContainsString( 'WordPress', get_option( 'custom_html_2' ) );
+		$this->assertStringNotContainsString( 'WordPress', get_option( 'custom_html_2' ) );
 
 		// User saved as one who also cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_3' ) );
-		$this->assertStringContainsString( 'WordPress', get_option( 'custom_html_3' ) );
+		$this->assertStringNotContainsString( 'WordPress', get_option( 'custom_html_3' ) );
 	}
 
 	/**
@@ -1499,7 +1520,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		add_theme_support( 'custom-background' );
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = $this->create_test_manager( $uuid );
@@ -1700,7 +1721,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		);
 
 		$post = get_post( $changeset_post_id );
-		$this->assertNotEquals( $post->post_date, $original_post_date );
+		$this->assertNotSame( $post->post_date, $original_post_date );
 	}
 
 	/**
@@ -1714,7 +1735,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		add_theme_support( 'custom-background' );
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = $this->create_test_manager( $uuid );
@@ -1752,9 +1773,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->assertInstanceOf( 'WP_Error', $r['setting_validities']['unknownsetting'] );
+		$this->assertWPError( $r['setting_validities']['unknownsetting'] );
 		$this->assertSame( 'unrecognized', $r['setting_validities']['unknownsetting']->get_error_code() );
-		$this->assertInstanceOf( 'WP_Error', $r['setting_validities']['blogterminated'] );
+		$this->assertWPError( $r['setting_validities']['blogterminated'] );
 		$this->assertSame( 'unauthorized', $r['setting_validities']['blogterminated']->get_error_code() );
 		$this->assertSame( $data, get_post( $wp_customize->changeset_post_id() )->post_content );
 
@@ -1861,7 +1882,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				'date_gmt' => ( gmdate( 'Y' ) + 1 ) . '-12-01 00:00:00',
 			)
 		);
-		$this->assertInstanceOf( 'WP_Error', $r );
+		$this->assertWPError( $r );
 		$this->assertSame( 'illegal_autosave_with_date_gmt', $r->get_error_code() );
 
 		// Fail: illegal_autosave_with_status.
@@ -1877,7 +1898,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$r = $wp_customize->save_changeset_post(
 			array(
 				'autosave' => true,
-				'user_id'  => self::factory()->user->create( array( 'role' => 'administrator' ) ),
+				'user_id'  => self::$other_admin_user_id,
 			)
 		);
 		$this->assertSame( 'illegal_autosave_with_non_current_user', $r->get_error_code() );
@@ -1983,7 +2004,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$wp_customize = new WP_Customize_Manager( array( 'changeset_uuid' => $wp_customize->changeset_uuid() ) );
 		do_action( 'customize_register', $wp_customize );
 		$wp_customize->save_changeset_post( array( 'status' => 'publish' ) );
-		$this->assertSame( 'Unfilteredevil', get_option( 'scratchpad' ) );
+		$this->assertSame( 'Unfiltered', get_option( 'scratchpad' ) );
 
 		// Attempt publishing scratchpad as anonymous user when changeset was set by privileged user.
 		update_option( 'scratchpad', '' );
@@ -2000,7 +2021,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 		$wp_customize = null;
 		unset( $GLOBALS['wp_actions']['customize_register'] );
-		$this->assertSame( 'Unfilteredevil', apply_filters( 'content_save_pre', 'Unfiltered<script>evil</script>' ) );
+		$this->assertSame( 'Unfiltered', apply_filters( 'content_save_pre', 'Unfiltered<script>evil</script>' ) );
 		wp_publish_post( $changeset_post_id ); // @todo If wp_update_post() is used here, then kses will corrupt the post_content.
 		$this->assertSame( 'Unfiltered<script>evil</script>', get_option( 'scratchpad' ) );
 	}
@@ -2105,7 +2126,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		);
 
 		$r = $manager->save_changeset_post( $args );
-		$this->assertInstanceOf( 'WP_Error', $r );
+		$this->assertWPError( $r );
 		$this->assertSame( 'json_parse_error', $r->get_error_code() );
 
 		wp_update_post(
@@ -2115,7 +2136,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			)
 		);
 		$r = $manager->save_changeset_post( $args );
-		$this->assertInstanceOf( 'WP_Error', $r );
+		$this->assertWPError( $r );
 		$this->assertSame( 'expected_array', $r->get_error_code() );
 	}
 
@@ -2626,7 +2647,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$invalid_settings = $this->manager->validate_setting_values( $this->manager->unsanitized_post_values() );
 		$this->assertCount( 1, $invalid_settings );
 		$this->assertArrayHasKey( $setting->id, $invalid_settings );
-		$this->assertInstanceOf( 'WP_Error', $invalid_settings[ $setting->id ] );
+		$this->assertWPError( $invalid_settings[ $setting->id ] );
 		$error = $invalid_settings[ $setting->id ];
 		$this->assertSame( 'invalid_value_in_sanitize', $error->get_error_code() );
 		$this->assertSame( array( 'source' => 'filter_customize_sanitize_foo' ), $error->get_error_data() );
@@ -2635,7 +2656,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$invalid_settings = $this->manager->validate_setting_values( $this->manager->unsanitized_post_values() );
 		$this->assertCount( 1, $invalid_settings );
 		$this->assertArrayHasKey( $setting->id, $invalid_settings );
-		$this->assertInstanceOf( 'WP_Error', $invalid_settings[ $setting->id ] );
+		$this->assertWPError( $invalid_settings[ $setting->id ] );
 		$this->assertNull( $invalid_settings[ $setting->id ]->get_error_data() );
 
 		$post_value = '<script>evil</script>';
@@ -2643,7 +2664,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$invalid_settings = $this->manager->validate_setting_values( $this->manager->unsanitized_post_values() );
 		$this->assertCount( 1, $invalid_settings );
 		$this->assertArrayHasKey( $setting->id, $invalid_settings );
-		$this->assertInstanceOf( 'WP_Error', $invalid_settings[ $setting->id ] );
+		$this->assertWPError( $invalid_settings[ $setting->id ] );
 		$error = $invalid_settings[ $setting->id ];
 		$this->assertSame( 'invalid_value_in_validate', $error->get_error_code() );
 		$this->assertSame( array( 'source' => 'filter_customize_validate_foo' ), $error->get_error_data() );
@@ -2659,9 +2680,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$setting = new Test_Setting_Without_Applying_Validate_Filter( $this->manager, 'required' );
 		$this->manager->add_setting( $setting );
 
-		$this->assertInstanceOf( 'WP_Error', $setting->validate( '' ) );
+		$this->assertWPError( $setting->validate( '' ) );
 		$setting_validities = $this->manager->validate_setting_values( array( $setting->id => '' ) );
-		$this->assertInstanceOf( 'WP_Error', $setting_validities[ $setting->id ] );
+		$this->assertWPError( $setting_validities[ $setting->id ] );
 
 		$this->assertTrue( $setting->validate( 'ok' ) );
 		$setting_validities = $this->manager->validate_setting_values( array( $setting->id => 'ok' ) );
@@ -2671,7 +2692,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertTrue( $setting->validate( 'bad' ) );
 		$setting_validities = $this->manager->validate_setting_values( array( $setting->id => 'bad' ) );
 		$validity           = $setting_validities[ $setting->id ];
-		$this->assertInstanceOf( 'WP_Error', $validity );
+		$this->assertWPError( $validity );
 		$this->assertSame( 'minlength', $validity->get_error_code() );
 	}
 
@@ -2695,7 +2716,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertNotEmpty( $validities );
 		$this->assertArrayHasKey( 'unknown', $validities );
 		$error = $validities['unknown'];
-		$this->assertInstanceOf( 'WP_Error', $error );
+		$this->assertWPError( $error );
 		$this->assertSame( 'unrecognized', $error->get_error_code() );
 
 		$this->manager->get_setting( 'blogname' )->capability = 'do_not_allow';
@@ -2705,7 +2726,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$validities = $this->manager->validate_setting_values( array( 'blogname' => 'X' ), array( 'validate_capability' => true ) );
 		$this->assertArrayHasKey( 'blogname', $validities );
 		$error = $validities['blogname'];
-		$this->assertInstanceOf( 'WP_Error', $error );
+		$this->assertWPError( $error );
 		$this->assertSame( 'unauthorized', $error->get_error_code() );
 	}
 
@@ -3009,7 +3030,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @see WP_Customize_Manager::set_return_url()
 	 */
 	public function test_return_url() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'author' ) ) );
+		wp_set_current_user( self::$subscriber_user_id );
 		$this->assertSame( home_url( '/' ), $this->manager->get_return_url() );
 
 		wp_set_current_user( self::$admin_user_id );
@@ -3033,7 +3054,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$url                     = 'http://badreferer.example.com/';
 		$_SERVER['HTTP_REFERER'] = wp_slash( $url );
-		$this->assertNotEquals( $url, $this->manager->get_return_url() );
+		$this->assertNotSame( $url, $this->manager->get_return_url() );
 		$this->assertSame( $preview_url, $this->manager->get_return_url() );
 
 		$this->manager->set_return_url( admin_url( 'edit.php?trashed=1' ) );
@@ -3244,7 +3265,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_widgets( $components, $customize_manager ) {
@@ -3261,7 +3281,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_nav_menus( $components, $customize_manager ) {
@@ -3511,14 +3530,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		// The default devices list.
 		$default_devices = array(
 			'desktop' => array(
-				'label'   => __( 'Enter desktop preview mode' ),
+				'label'   => __( 'Desktop' ),
 				'default' => true,
 			),
 			'tablet'  => array(
-				'label' => __( 'Enter tablet preview mode' ),
+				'label' => __( 'Tablet' ),
 			),
 			'mobile'  => array(
-				'label' => __( 'Enter mobile preview mode' ),
+				'label' => __( 'Mobile' ),
 			),
 		);
 
@@ -3543,7 +3562,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private function filtered_device_list() {
 		return array(
 			'custom-device' => array(
-				'label'   => __( 'Enter custom-device preview mode' ),
+				'label'   => __( 'Custom device' ),
 				'default' => true,
 			),
 		);
@@ -3553,7 +3572,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Callback for the customize_previewable_devices filter.
 	 *
 	 * @param array $devices The list of devices.
-	 *
 	 * @return array
 	 */
 	public function filter_customize_previewable_devices( $devices ) {

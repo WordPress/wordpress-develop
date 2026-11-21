@@ -6,31 +6,15 @@
  * @group dependencies
  * @group scripts
  */
-class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
+class Tests_Dependencies_wpScriptTag extends WP_UnitTestCase {
 
 	public function get_script_tag_type_set() {
-		add_theme_support( 'html5', array( 'script' ) );
-
-		$this->assertSame(
+		$this->assertEqualHTML(
 			'<script src="https://localhost/PATH/FILE.js" type="application/javascript" nomodule></script>' . "\n",
 			wp_get_script_tag(
 				array(
 					'type'     => 'application/javascript',
 					'src'      => 'https://localhost/PATH/FILE.js',
-					'async'    => false,
-					'nomodule' => true,
-				)
-			)
-		);
-
-		remove_theme_support( 'html5' );
-
-		$this->assertSame(
-			'<script src="https://localhost/PATH/FILE.js" type="application/javascript" nomodule></script>' . "\n",
-			wp_get_script_tag(
-				array(
-					'src'      => 'https://localhost/PATH/FILE.js',
-					'type'     => 'application/javascript',
 					'async'    => false,
 					'nomodule' => true,
 				)
@@ -42,9 +26,7 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 	 * @covers ::wp_get_script_tag
 	 */
 	public function test_get_script_tag_type_not_set() {
-		add_theme_support( 'html5', array( 'script' ) );
-
-		$this->assertSame(
+		$this->assertEqualHTML(
 			'<script src="https://localhost/PATH/FILE.js" nomodule></script>' . "\n",
 			wp_get_script_tag(
 				array(
@@ -54,8 +36,6 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 				)
 			)
 		);
-
-		remove_theme_support( 'html5' );
 	}
 
 	/**
@@ -72,30 +52,82 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 			}
 		);
 
-		add_theme_support( 'html5', array( 'script' ) );
-
 		$attributes = array(
 			'src'      => 'https://localhost/PATH/FILE.js',
 			'id'       => 'utils-js-extra',
 			'nomodule' => true,
 		);
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			wp_get_script_tag( $attributes ),
 			get_echo(
 				'wp_print_script_tag',
 				array( $attributes )
 			)
 		);
+	}
 
-		remove_theme_support( 'html5' );
+	/**
+	 * Test the behavior of generated script tag attributes passed different values and types of values.
+	 *
+	 * @ticket 64500
+	 */
+	public function test_script_tag_attribute_value_types() {
+		$expected = <<<'HTML'
+<script
+	true
+	null
+	empty-string=""
+	0-string="0"
+	1-string="1"
+	0-numeric="0"
+	1-numeric="1"
+></script>
 
-		$this->assertSame(
-			wp_get_script_tag( $attributes ),
-			get_echo(
-				'wp_print_script_tag',
-				array( $attributes )
-			)
+HTML;
+
+		$this->assertEqualHTML(
+			$expected,
+			wp_get_script_tag(
+				array(
+					'true'         => true,
+					'false'        => false,
+					'null'         => null,
+					'empty-string' => '',
+					'0-string'     => '0',
+					'1-string'     => '1',
+					'0-numeric'    => 0,
+					'1-numeric'    => 1,
+				)
+			),
+		);
+	}
+
+	/**
+	 * Test the behavior of generated script tag repeated attributes.
+	 *
+	 * HTML will ignore case-insensitive repeated attributes. Ensure that the handling of input
+	 * attributes aligns with expectations.
+	 *
+	 * @ticket 64500
+	 */
+	public function test_script_tag_repeat_attributes() {
+		$expected = <<<'HTML'
+<script test="test-a"></script>
+
+HTML;
+
+		$this->assertEqualHTML(
+			$expected,
+			wp_get_script_tag(
+				array(
+					'test' => 'test-a',
+					'tesT' => 'tesT-b',
+					'teST' => 'teST-c',
+					'tEST' => 'tEST-d',
+					'TEST' => 'TEST-e',
+				)
+			),
 		);
 	}
 }

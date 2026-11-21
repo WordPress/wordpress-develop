@@ -81,8 +81,8 @@ class Text_Diff {
     {
         $count = 0;
         foreach ($this->_edits as $edit) {
-            if (is_a($edit, 'Text_Diff_Op_add') ||
-                is_a($edit, 'Text_Diff_Op_change')) {
+            if ($edit instanceof Text_Diff_Op_add ||
+                $edit instanceof Text_Diff_Op_change) {
                 $count += $edit->nfinal();
             }
         }
@@ -100,8 +100,8 @@ class Text_Diff {
     {
         $count = 0;
         foreach ($this->_edits as $edit) {
-            if (is_a($edit, 'Text_Diff_Op_delete') ||
-                is_a($edit, 'Text_Diff_Op_change')) {
+            if ($edit instanceof Text_Diff_Op_delete ||
+                $edit instanceof Text_Diff_Op_change) {
                 $count += $edit->norig();
             }
         }
@@ -144,7 +144,7 @@ class Text_Diff {
     function isEmpty()
     {
         foreach ($this->_edits as $edit) {
-            if (!is_a($edit, 'Text_Diff_Op_copy')) {
+            if (!($edit instanceof Text_Diff_Op_copy)) {
                 return false;
             }
         }
@@ -162,7 +162,7 @@ class Text_Diff {
     {
         $lcs = 0;
         foreach ($this->_edits as $edit) {
-            if (is_a($edit, 'Text_Diff_Op_copy')) {
+            if ($edit instanceof Text_Diff_Op_copy) {
                 $lcs += count($edit->orig);
             }
         }
@@ -223,33 +223,10 @@ class Text_Diff {
      * @access protected
      *
      * @return string  A directory name which can be used for temp files.
-     *                 Returns false if one could not be found.
      */
     static function _getTempDir()
     {
-        $tmp_locations = array('/tmp', '/var/tmp', 'c:\WUTemp', 'c:\temp',
-                               'c:\windows\temp', 'c:\winnt\temp');
-
-        /* Try PHP's upload_tmp_dir directive. */
-        $tmp = ini_get('upload_tmp_dir');
-
-        /* Otherwise, try to determine the TMPDIR environment variable. */
-        if (!strlen($tmp)) {
-            $tmp = getenv('TMPDIR');
-        }
-
-        /* If we still cannot determine a value, then cycle through a list of
-         * preset possibilities. */
-        while (!strlen($tmp) && count($tmp_locations)) {
-            $tmp_check = array_shift($tmp_locations);
-            if (@is_dir($tmp_check)) {
-                $tmp = $tmp_check;
-            }
-        }
-
-        /* If it is still empty, we have failed, so return false; otherwise
-         * return the directory determined. */
-        return strlen($tmp) ? $tmp : false;
+        return get_temp_dir();
     }
 
     /**

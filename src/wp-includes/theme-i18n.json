@@ -3,33 +3,38 @@
 	"description": "Style variation description",
 	"settings": {
 		"typography": {
-				"fontSizes": [
-					{
-						"name": "Font size name"
-					}
-				],
-				"fontFamilies": [
-					{
-						"name": "Font family name"
-					}
-				]
+			"fontSizes": [
+				{
+					"name": "Font size name"
+				}
+			],
+			"fontFamilies": [
+				{
+					"name": "Font family name"
+				}
+			],
+			"textShadowPresets": [
+				{
+					"name": "Text shadow name"
+				}
+			]
 		},
 		"color": {
-				"palette": [
-					{
-						"name": "Color name"
-					}
-				],
-				"gradients": [
-					{
-						"name": "Gradient name"
-					}
-				],
-				"duotone": [
-					{
-						"name": "Duotone name"
-					}
-				]
+			"palette": [
+				{
+					"name": "Color name"
+				}
+			],
+			"gradients": [
+				{
+					"name": "Gradient name"
+				}
+			],
+			"duotone": [
+				{
+					"name": "Duotone name"
+				}
+			]
 		},
 		"spacing": {
 			"spacingSizes": [
@@ -42,6 +47,25 @@
 			"aspectRatios": [
 				{
 					"name": "Aspect ratio name"
+				}
+			],
+			"dimensionSizes": [
+				{
+					"name": "Dimension size name"
+				}
+			]
+		},
+		"shadow": {
+			"presets": [
+				{
+					"name": "Shadow name"
+				}
+			]
+		},
+		"border": {
+			"radiusSizes": [
+				{
+					"name": "Border radius size name"
 				}
 			]
 		},
@@ -57,6 +81,11 @@
 						{
 							"name": "Font family name"
 						}
+					],
+					"textShadowPresets": [
+						{
+							"name": "Text shadow name"
+						}
 					]
 				},
 				"color": {
@@ -69,12 +98,36 @@
 						{
 							"name": "Gradient name"
 						}
+					],
+					"duotone": [
+						{
+							"name": "Duotone name"
+						}
+					]
+				},
+				"dimensions": {
+					"aspectRatios": [
+						{
+							"name": "Aspect ratio name"
+						}
+					],
+					"dimensionSizes": [
+						{
+							"name": "Dimension size name"
+						}
 					]
 				},
 				"spacing": {
 					"spacingSizes": [
 						{
 							"name": "Space size name"
+						}
+					]
+				},
+				"border": {
+					"radiusSizes": [
+						{
+							"name": "Border radius size name"
 						}
 					]
 				}

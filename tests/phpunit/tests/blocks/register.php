@@ -11,6 +11,28 @@
 class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	/**
+	 * @var WP_Scripts|null
+	 */
+	protected $original_wp_scripts;
+
+	/**
+	 * @var WP_Styles|null
+	 */
+	protected $original_wp_styles;
+
+	/**
+	 * @var WP_Script_Modules|null
+	 */
+	protected $original_wp_script_modules;
+
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * ID for a test post.
 	 *
 	 * @since 5.0.0
@@ -47,6 +69,24 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	public function render_stub() {}
 
 	/**
+	 * Set up.
+	 */
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+
+		global $wp_scripts, $wp_styles, $wp_script_modules;
+		$this->original_wp_scripts        = $wp_scripts;
+		$this->original_wp_styles         = $wp_styles;
+		$this->original_wp_script_modules = $wp_script_modules;
+		$wp_scripts                       = null;
+		$wp_styles                        = null;
+		$wp_script_modules                = null;
+		wp_scripts();
+		wp_styles();
+	}
+
+	/**
 	 * Tear down after each test.
 	 *
 	 * @since 5.0.0
@@ -65,6 +105,15 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			if ( str_starts_with( $script_handle, 'tests-' ) ) {
 				wp_deregister_script( $script_handle );
 			}
+		}
+
+		global $wp_scripts, $wp_styles, $wp_script_modules;
+		$wp_scripts        = $this->original_wp_scripts;
+		$wp_styles         = $this->original_wp_styles;
+		$wp_script_modules = $this->original_wp_script_modules;
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
 		}
 
 		parent::tear_down();
@@ -401,6 +450,107 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that blocks with supports.interactivity have the
+	 * `data-wp-router-options` directive.
+	 *
+	 * @ticket 64122
+	 *
+	 * @covers ::register_block_script_module_id
+	 */
+	public function test_register_block_script_module_id_with_interactivity_true() {
+		$metadata = array(
+			'file'             => DIR_TESTDATA . '/blocks/notice/block.json',
+			'viewScriptModule' => 'file:./block.js',
+		);
+
+		$interactivity_true                    = array_merge(
+			$metadata,
+			array(
+				'name'     => 'tests/interactivity-true',
+				'supports' => array( 'interactivity' => true ),
+			)
+		);
+		$interactive_and_client_navigation     = array_merge(
+			$metadata,
+			array(
+				'name'     => 'tests/interactive-and-client-navigation',
+				'supports' => array(
+					'interactivity' => array(
+						'interactive'      => true,
+						'clientNavigation' => true,
+					),
+				),
+			)
+		);
+		$interactive_and_not_client_navigation = array_merge(
+			$metadata,
+			array(
+				'name'     => 'tests/interactive-and-not-client-navigation',
+				'supports' => array(
+					'interactivity' => array(
+						'interactive'      => true,
+						'clientNavigation' => false,
+					),
+				),
+			)
+		);
+		$not_interactive_and_client_navigation = array_merge(
+			$metadata,
+			array(
+				'name'     => 'tests/not-interactive-and-client-navigation',
+				'supports' => array(
+					'interactivity' => array(
+						'interactive'      => false,
+						'clientNavigation' => true,
+					),
+				),
+			)
+		);
+		$no_interactivity                      = array_merge(
+			$metadata,
+			array(
+				'name'     => 'tests/no-interactivity',
+				'supports' => array(),
+			)
+		);
+
+		$interactivity_true_module_id                    = register_block_script_module_id( $interactivity_true, 'viewScriptModule' );
+		$interactive_and_client_navigation_module_id     = register_block_script_module_id( $interactive_and_client_navigation, 'viewScriptModule' );
+		$interactive_and_not_client_navigation_module_id = register_block_script_module_id( $interactive_and_not_client_navigation, 'viewScriptModule' );
+		$not_interactive_and_client_navigation_module_id = register_block_script_module_id( $not_interactive_and_client_navigation, 'viewScriptModule' );
+		$no_interactivity_module_id                      = register_block_script_module_id( $no_interactivity, 'viewScriptModule' );
+		wp_enqueue_script_module( $interactivity_true_module_id );
+		wp_enqueue_script_module( $interactive_and_client_navigation_module_id );
+		wp_enqueue_script_module( $interactive_and_not_client_navigation_module_id );
+		wp_enqueue_script_module( $not_interactive_and_client_navigation_module_id );
+		wp_enqueue_script_module( $no_interactivity_module_id );
+
+		$output = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$p = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
+		$this->assertSame( 'tests-interactivity-true-view-script-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertSame( '{"loadOnClientNavigation":true}', $p->get_attribute( 'data-wp-router-options' ) );
+
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
+		$this->assertSame( 'tests-interactive-and-client-navigation-view-script-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertSame( '{"loadOnClientNavigation":true}', $p->get_attribute( 'data-wp-router-options' ) );
+
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
+		$this->assertSame( 'tests-interactive-and-not-client-navigation-view-script-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
+
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
+		$this->assertSame( 'tests-not-interactive-and-client-navigation-view-script-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
+
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
+		$this->assertSame( 'tests-no-interactivity-view-script-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
+	}
+
+	/**
 	 * @ticket 50263
 	 */
 	public function test_handle_passed_register_block_script_handle() {
@@ -579,13 +729,9 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$block_name = str_replace( 'core/', '', $metadata['name'] );
 
 		// Normalize metadata similar to `register_block_type_from_metadata()`.
-		$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
-		if ( ! isset( $metadata['style'] ) ) {
-			$metadata['style'] = "wp-block-$block_name";
-		}
-		if ( ! isset( $metadata['editorStyle'] ) ) {
-			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
-		}
+		$metadata['file']          = wp_normalize_path( realpath( $metadata_file ) );
+		$metadata['style']       ??= "wp-block-$block_name";
+		$metadata['editorStyle'] ??= "wp-block-{$block_name}-editor";
 
 		// Ensure block assets are separately registered.
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
@@ -608,7 +754,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_register_block_style_handle_uses_correct_core_stylesheet() {
+	public static function data_register_block_style_handle_uses_correct_core_stylesheet() {
 		return array(
 			'block with style'           => array(
 				WPINC . '/blocks/archives/block.json',
@@ -932,7 +1078,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_register_block_registers_with_args_override_returns_false_when_name_is_missing() {
+	public static function data_register_block_registers_with_args_override_returns_false_when_name_is_missing() {
 		return array(
 			'no block.json file and no name argument' => array(
 				'file' => '', // No block.json file.
@@ -1002,6 +1148,18 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$result = register_block_type_from_metadata(
 			DIR_TESTDATA . '/blocks/notice'
 		);
+
+		// Register the styles not included in the metadata above.
+		$metadata = array(
+			'file'      => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'      => 'tests/notice',
+			'style'     => 'file:./block.css',
+			'viewStyle' => 'file:./block-view.css',
+		);
+		$this->assertSame( 'tests-notice-style', register_block_style_handle( $metadata, 'style' ), 'Style handle is expected to be tests-notice-style' );
+		$this->assertSame( 'tests-notice-view-style', register_block_style_handle( $metadata, 'viewStyle' ), 'View style handle is expected to be tests-notice-view-style' );
+		$this->assertTrue( wp_style_is( 'tests-notice-style', 'registered' ), 'Expected "tests-notice-style" style to be registered.' );
+		$this->assertTrue( wp_style_is( 'tests-notice-view-style', 'registered' ), 'Expected "tests-notice-view-style" style to be registered.' );
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
 		$this->assertSame( 2, $result->api_version );
@@ -1121,13 +1279,13 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		// @ticket 50328
 		$this->assertSame(
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
-			wp_normalize_path( wp_styles()->get_data( 'tests-test-block-style', 'path' ) )
+			wp_normalize_path( wp_styles()->get_data( 'tests-notice-style', 'path' ) )
 		);
 
 		// @ticket 59673
 		$this->assertSame(
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block-view.css' ) ),
-			wp_normalize_path( wp_styles()->get_data( 'tests-test-block-view-style', 'path' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'tests-notice-view-style', 'path' ) ),
 			'viewStyle asset path is not correct'
 		);
 
@@ -1192,7 +1350,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_register_block_type_accepts_editor_script_array() {
+	public static function data_register_block_type_accepts_editor_script_array() {
 		return array(
 			'an empty array'      => array(
 				'editor_script' => array(),
@@ -1258,7 +1416,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_register_block_type_throws_doing_it_wrong() {
+	public static function data_register_block_type_throws_doing_it_wrong() {
 		return array(
 			'a non-string array'     => array(
 				'editor_script' => array( null, false, true, -1, 0, 1, -1.0, 0.0, 1.0, INF, NAN, new stdClass() ),
@@ -1449,7 +1607,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_register_block_style_name_contains_spaces() {
+	public static function data_register_block_style_name_contains_spaces() {
 		return array(
 			'multiple spaces' => array(
 				array(
@@ -1500,5 +1658,16 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			array( 'tests/other-block' => 'after' ),
 			$block_type->block_hooks
 		);
+	}
+
+	/**
+	 * @ticket 63027
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_register_block_type_from_metadata_with_windows_path() {
+		$windows_like_path = str_replace( '/', '\\', DIR_TESTDATA ) . '\\blocks\\notice';
+
+		$this->assertNotFalse( register_block_type_from_metadata( $windows_like_path ) );
 	}
 }

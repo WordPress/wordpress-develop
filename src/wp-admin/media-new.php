@@ -17,6 +17,7 @@ if ( ! current_user_can( 'upload_files' ) ) {
 }
 
 wp_enqueue_script( 'plupload-handlers' );
+wp_enqueue_media_new_upload();
 
 $post_id = 0;
 if ( isset( $_REQUEST['post_id'] ) ) {
@@ -40,7 +41,7 @@ if ( $_POST ) {
 }
 
 // Used in the HTML title tag.
-$title       = __( 'Upload New Media' );
+$title       = __( 'Upload Media' );
 $parent_file = 'upload.php';
 
 get_current_screen()->add_help_tab(
@@ -64,7 +65,7 @@ get_current_screen()->set_help_sidebar(
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
-$form_class = 'media-upload-form type-form validate';
+$form_class = 'wp-upload-form media-upload-form type-form validate';
 
 if ( get_user_setting( 'uploader' ) || isset( $_GET['browser-uploader'] ) ) {
 	$form_class .= ' html-uploader';
@@ -77,7 +78,7 @@ if ( get_user_setting( 'uploader' ) || isset( $_GET['browser-uploader'] ) ) {
 
 	<?php media_upload_form(); ?>
 
-	<script type="text/javascript">
+	<script>
 	var post_id = <?php echo absint( $post_id ); ?>, shortform = 3;
 	</script>
 	<input type="hidden" name="post_id" id="post_id" value="<?php echo absint( $post_id ); ?>" />

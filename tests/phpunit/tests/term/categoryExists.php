@@ -20,7 +20,7 @@ class Tests_Term_CategoryExists extends WP_UnitTestCase {
 
 		$found = category_exists( 'Foo', 0 );
 
-		$this->assertEquals( $found, $c3 );
+		$this->assertSame( (string) $c3, $found );
 	}
 
 	/**
@@ -43,7 +43,7 @@ class Tests_Term_CategoryExists extends WP_UnitTestCase {
 
 		$found = category_exists( 'Foo' );
 
-		$this->assertEquals( $found, $c2 );
+		$this->assertSame( (string) $c2, $found );
 	}
 
 	/**
@@ -66,7 +66,7 @@ class Tests_Term_CategoryExists extends WP_UnitTestCase {
 
 		$found = category_exists( 'Foo' );
 
-		$this->assertEquals( $found, $c2 );
+		$this->assertSame( (string) $c2, $found );
 	}
 
 	/**
@@ -88,6 +88,6 @@ class Tests_Term_CategoryExists extends WP_UnitTestCase {
 
 		$found = category_exists( 'Foo', $c1 );
 
-		$this->assertEquals( $found, $c2 );
+		$this->assertSame( (string) $c2, $found );
 	}
 }

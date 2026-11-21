@@ -30,7 +30,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_preload_resources() {
+	public static function data_preload_resources() {
 		return array(
 			'basic_preload'          => array(
 				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' />\n",
@@ -254,6 +254,33 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 						'href'          => 'https://example.com/image.jpg',
 						'as'            => 'image',
 						'fetchpriority' => 'high',
+					),
+				),
+			),
+			'imagesizes_only'        => array(
+				'expected'  => "<link rel='preload' as='image' imagesrcset='640.png 640w, 800.png 800w' imagesizes='100vw' />\n",
+				'resources' => array(
+					// No href and no imagesrcset, so there is nothing to preload.
+					array(
+						'as'         => 'image',
+						'imagesizes' => '100vw',
+					),
+					array(
+						'as'         => 'image',
+						'imagesizes' => '50vw',
+					),
+					array(
+						'as'          => 'image',
+						'imagesrcset' => '640.png 640w, 800.png 800w',
+						'imagesizes'  => '100vw',
+					),
+				),
+			),
+			'missing_href_and_as'    => array(
+				'expected'  => '',
+				'resources' => array(
+					array(
+						'imagesrcset' => '640.png 640w, 800.png 800w',
 					),
 				),
 			),
