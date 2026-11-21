@@ -1974,9 +1974,9 @@ function rest_stabilize_value( $value ) {
  *
  * @since 5.6.0
  *
- * @param string $pattern The pattern to match against.
- * @param string $value   The value to check.
- * @return bool           True if the pattern matches the given value, false otherwise.
+ * @param string|int $pattern The pattern to match against.
+ * @param string|int $value   The value to check.
+ * @return bool               True if the pattern matches the given value, false otherwise.
  */
 function rest_validate_json_schema_pattern( $pattern, $value ) {
 	$escaped_pattern = str_replace( '#', '\\#', $pattern );
@@ -1989,9 +1989,9 @@ function rest_validate_json_schema_pattern( $pattern, $value ) {
  *
  * @since 5.6.0
  *
- * @param string $property The property name to check.
- * @param array  $args     The schema array to use.
- * @return array|null      The schema of matching pattern property, or null if no patterns match.
+ * @param string|int $property The property name to check.
+ * @param array      $args     The schema array to use.
+ * @return array|null          The schema of matching pattern property, or null if no patterns match.
  */
 function rest_find_matching_pattern_property_schema( $property, $args ) {
 	if ( isset( $args['patternProperties'] ) ) {

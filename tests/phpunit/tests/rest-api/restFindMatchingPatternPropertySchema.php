@@ -13,6 +13,7 @@ class Tests_REST_API_RestFindMatchingPatternPropertySchema extends WP_UnitTestCa
 	 * Tests that the schema of the matching pattern is returned.
 	 *
 	 * @ticket 65819
+	 * @ticket 66770
 	 *
 	 * @dataProvider data_matching_pattern_properties
 	 *
@@ -59,6 +60,20 @@ class Tests_REST_API_RestFindMatchingPatternPropertySchema extends WP_UnitTestCa
 				'é',
 				array(
 					'^.$' => array( 'type' => 'string' ),
+				),
+				array( 'type' => 'string' ),
+			),
+			'numeric pattern key'       => array(
+				'a123',
+				array(
+					'123' => array( 'type' => 'string' ),
+				),
+				array( 'type' => 'string' ),
+			),
+			'integer name and pattern'  => array(
+				123,
+				array(
+					'123' => array( 'type' => 'string' ),
 				),
 				array( 'type' => 'string' ),
 			),
