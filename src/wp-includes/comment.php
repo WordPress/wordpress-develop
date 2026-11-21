@@ -331,6 +331,408 @@ function get_comments( $args = '' ) {
 }
 
 /**
+ * Creates the initial comment types when 'init' action is fired.
+ *
+ * See register_comment_type() for accepted arguments.
+ *
+ * @since 7.3.0
+ */
+function create_initial_comment_types(): void {
+	global $wp_comment_types;
+
+	if ( ! is_array( $wp_comment_types ) ) {
+		$wp_comment_types = array();
+	}
+
+	WP_Comment_Type::reset_default_labels();
+
+	/*
+	 * The 'comment', 'pingback', and 'trackback' labels reuse existing translation
+	 * strings; 'note' and 'reaction' use new strings with explicit contexts.
+	 */
+	$builtin_comment_types = array(
+		'comment'   => array(
+			'label'  => __( 'Comments' ),
+			'labels' => array(
+				'singular_name' => _x( 'Comment', 'noun' ),
+			),
+		),
+		'pingback'  => array(
+			'label'  => __( 'Pingbacks' ),
+			'labels' => array(
+				'singular_name' => __( 'Pingback' ),
+			),
+		),
+		'trackback' => array(
+			'label'  => __( 'Trackbacks' ),
+			'labels' => array(
+				'singular_name' => __( 'Trackback' ),
+			),
+		),
+		'note'      => array(
+			'label'    => _x( 'Notes', 'comment type general name' ),
+			'labels'   => array(
+				'singular_name' => _x( 'Note', 'comment type singular name' ),
+			),
+			'public'   => false,
+			'internal' => true,
+		),
+		'reaction'  => array(
+			'label'    => _x( 'Reactions', 'comment type general name' ),
+			'labels'   => array(
+				'singular_name' => _x( 'Reaction', 'comment type singular name' ),
+			),
+			'public'   => false,
+			'internal' => true,
+		),
+	);
+
+	foreach ( $builtin_comment_types as $comment_type => $args ) {
+		// Re-registration of a built-in type is rejected, so clear it first ('init', 'change_locale').
+		unset( $wp_comment_types[ $comment_type ] );
+
+		$args['_builtin'] = true;
+
+		register_comment_type( $comment_type, $args );
+	}
+}
+
+/**
+ * Registers a comment type.
+ *
+ * Note: Comment type registrations should not be hooked before the {@see 'init'} action.
+ * Registering a comment type earlier can result in its labels being generated before
+ * the current locale's translations are loaded.
+ *
+ * Comment types are stored verbatim in the `comment_type` column of the comments table.
+ * Registration provides labels and metadata for a type; it does not constrain which values
+ * may be stored. Comment types that are stored but never registered keep behaving exactly
+ * as they did before this API existed.
+ *
+ * Like post types, registrations are not scoped to a site on multisite.
+ *
+ * Cannot be used to re-register built-in comment types. The names WP_Comment_Query reads
+ * as query tokens ('all', 'comments', 'pings') cannot be registered either.
+ *
+ * The key is stored and matched verbatim, so a key that sanitize_key() would change
+ * (for example one with uppercase letters) is rejected rather than silently rewritten.
+ * The key '0' is rejected too, since wp_insert_comment() would store it as 'comment'.
+ *
+ * @since 7.3.0
+ *
+ * @global WP_Comment_Type[] $wp_comment_types List of comment types.
+ *
+ * @param string $comment_type Comment type key. Must not exceed 20 characters and may only
+ *                             contain lowercase alphanumeric characters, dashes, and underscores.
+ *                             See sanitize_key().
+ * @param array  $args {
+ *     Optional. Array of arguments for registering a comment type. Default empty array.
+ *
+ *     @type string     $label       Name of the comment type. Usually plural.
+ *                                   Default is the value of $labels['name'].
+ *     @type string[]   $labels      An array of labels for this comment type. If not set, the
+ *                                   default comment labels are used. See get_comment_type_labels()
+ *                                   for a full list of supported labels.
+ *     @type string     $description A short descriptive summary of what the comment type is.
+ *                                   Default empty.
+ *     @type bool       $public      Whether the comment type is intended for use publicly either via
+ *                                   the admin interface or by front-end users. Core does not
+ *                                   currently act on this argument. Default true.
+ *     @type bool       $internal    Whether the comment type is for internal use only. Internal
+ *                                   types are meant to be excluded from comment queries and counts
+ *                                   by default. Core does not currently act on this argument.
+ *                                   Default false.
+ *     @type bool       $_builtin    For internal core use only. Marks the type as native to
+ *                                   WordPress, which blocks it from being re-registered or
+ *                                   unregistered. Cannot be changed by the
+ *                                   {@see 'register_comment_type_args'} filters. Default false.
+ * }
+ * @return WP_Comment_Type|WP_Error The registered comment type object on success,
+ *                                  WP_Error object on failure.
+ *
+ * @phpstan-param non-falsy-string $comment_type
+ */
+function register_comment_type( string $comment_type, array $args = array() ) {
+	global $wp_comment_types;
+
+	if ( ! is_array( $wp_comment_types ) ) {
+		$wp_comment_types = array();
+	}
+
+	// Stored comment_type values are matched verbatim, so reject keys sanitize_key() would alter.
+	if ( sanitize_key( $comment_type ) !== $comment_type ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			__( 'Comment type names may only contain lowercase alphanumeric characters, dashes, and underscores.' ),
+			'7.3.0'
+		);
+		return new WP_Error( 'comment_type_name_invalid', __( 'Comment type names may only contain lowercase alphanumeric characters, dashes, and underscores.' ) );
+	}
+
+	if ( '' === $comment_type || strlen( $comment_type ) > 20 ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Comment type names must be between 1 and 20 characters in length.' ), '7.3.0' );
+		return new WP_Error( 'comment_type_length_invalid', __( 'Comment type names must be between 1 and 20 characters in length.' ) );
+	}
+
+	// wp_insert_comment() treats an empty() type as 'comment', so '0' could never be stored.
+	if ( '0' === $comment_type ) {
+		_doing_it_wrong( __FUNCTION__, __( 'The "0" comment type name cannot be stored and is not allowed.' ), '7.3.0' );
+		return new WP_Error( 'comment_type_name_invalid', __( 'The "0" comment type name cannot be stored and is not allowed.' ) );
+	}
+
+	if ( isset( $wp_comment_types[ $comment_type ] ) && $wp_comment_types[ $comment_type ]->_builtin ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: Comment type key. */
+				__( 'The "%s" comment type is a built-in type and cannot be re-registered.' ),
+				$comment_type
+			),
+			'7.3.0'
+		);
+		return new WP_Error( 'comment_type_builtin', __( 'Built-in comment types cannot be re-registered.' ) );
+	}
+
+	// WP_Comment_Query treats these names as query tokens, not comment_type values.
+	if ( in_array( $comment_type, array( 'all', 'comments', 'pings' ), true ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: Comment type key. */
+				__( 'The "%s" comment type name is reserved for use by WP_Comment_Query.' ),
+				$comment_type
+			),
+			'7.3.0'
+		);
+		return new WP_Error( 'comment_type_reserved', __( 'This comment type name is reserved.' ) );
+	}
+
+	$comment_type_object = new WP_Comment_Type( $comment_type, $args );
+
+	$wp_comment_types[ $comment_type ] = $comment_type_object;
+
+	/**
+	 * Fires after a comment type is registered.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string          $comment_type        Comment type key.
+	 * @param WP_Comment_Type $comment_type_object Comment type object.
+	 */
+	do_action( 'registered_comment_type', $comment_type, $comment_type_object );
+
+	/**
+	 * Fires after a specific comment type is registered.
+	 *
+	 * The dynamic portion of the hook name, `$comment_type`, refers to the comment type key.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `registered_comment_type_comment`
+	 *  - `registered_comment_type_pingback`
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string          $comment_type        Comment type key.
+	 * @param WP_Comment_Type $comment_type_object Comment type object.
+	 */
+	do_action( "registered_comment_type_{$comment_type}", $comment_type, $comment_type_object );
+
+	return $comment_type_object;
+}
+
+/**
+ * Unregisters a comment type.
+ *
+ * Cannot be used to unregister built-in comment types.
+ *
+ * @since 7.3.0
+ *
+ * @global array<string, WP_Comment_Type> $wp_comment_types List of comment types.
+ *
+ * @param string $comment_type Comment type key.
+ * @return true|WP_Error True on success, WP_Error on failure or if the comment type doesn't exist.
+ */
+function unregister_comment_type( string $comment_type ) {
+	global $wp_comment_types;
+
+	$comment_type_object = get_comment_type_object( $comment_type );
+
+	if ( ! $comment_type_object ) {
+		return new WP_Error( 'invalid_comment_type', __( 'Invalid comment type.' ) );
+	}
+
+	// Do not allow unregistering built-in comment types.
+	if ( $comment_type_object->_builtin ) {
+		return new WP_Error( 'invalid_comment_type', __( 'Unregistering a built-in comment type is not allowed.' ) );
+	}
+
+	unset( $wp_comment_types[ $comment_type ] );
+
+	/**
+	 * Fires after a comment type is unregistered.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $comment_type Comment type key.
+	 */
+	do_action( 'unregistered_comment_type', $comment_type );
+
+	return true;
+}
+
+/**
+ * Retrieves a comment type object by name.
+ *
+ * @since 7.3.0
+ *
+ * @global array<string, WP_Comment_Type> $wp_comment_types List of comment types.
+ *
+ * @param string $comment_type The name of a registered comment type.
+ * @return WP_Comment_Type|null WP_Comment_Type object if it exists, null otherwise.
+ */
+function get_comment_type_object( $comment_type ): ?WP_Comment_Type {
+	global $wp_comment_types;
+
+	if ( ! is_scalar( $comment_type ) || empty( $wp_comment_types[ $comment_type ] ) ) {
+		return null;
+	}
+
+	return $wp_comment_types[ $comment_type ];
+}
+
+/**
+ * Retrieves a list of registered comment type names or objects.
+ *
+ * @since 7.3.0
+ *
+ * @global array<string, WP_Comment_Type> $wp_comment_types List of comment types.
+ *
+ * @param array<string, mixed> $args     Optional. An array of key => value arguments to match against
+ *                                       the comment type objects. Default empty array.
+ * @param string               $output   Optional. The type of output to return. Either comment type 'names'
+ *                                       or 'objects'. Default 'names'.
+ * @param string               $operator Optional. The logical operation to perform. 'or' means only one
+ *                                       element from the array needs to match; 'and' means all elements
+ *                                       must match; 'not' means no elements may match. Default 'and'.
+ * @return string[]|WP_Comment_Type[] An array of comment type names or objects.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
+ * @phpstan-return ( $output is 'names' ? array<non-falsy-string, non-falsy-string> : array<non-falsy-string, WP_Comment_Type> )
+ */
+function get_comment_types( $args = array(), $output = 'names', $operator = 'and' ): array {
+	global $wp_comment_types;
+
+	$field = ( 'names' === $output ) ? 'name' : false;
+
+	/** @var array<non-falsy-string, non-falsy-string>|array<non-falsy-string, WP_Comment_Type> $comment_types */
+	$comment_types = wp_filter_object_list( $wp_comment_types, $args, $operator, $field );
+
+	return $comment_types;
+}
+
+/**
+ * Adds the comment types registered as internal to the default-excluded comment types.
+ *
+ * Hooked to {@see 'default_excluded_comment_types'}, so registering a type as internal
+ * is enough to keep it out of comment queries, counts and feeds by default.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param string[] $excluded_types Comment types excluded by default.
+ * @return string[] Comment types excluded by default, including every internal type.
+ */
+function _wp_exclude_internal_comment_types( $excluded_types ): array {
+	$internal_types = get_comment_types( array( 'internal' => true ) );
+
+	return array_values( array_unique( array_merge( (array) $excluded_types, $internal_types ) ) );
+}
+
+/**
+ * Determines whether a comment type is registered.
+ *
+ * @since 7.3.0
+ *
+ * @param string $comment_type Comment type name.
+ * @return bool Whether the comment type is registered.
+ */
+function comment_type_exists( $comment_type ): bool {
+	return (bool) get_comment_type_object( $comment_type );
+}
+
+/**
+ * Builds an object with all comment type labels out of a comment type object.
+ *
+ * @since 7.3.0
+ *
+ * @param WP_Comment_Type $comment_type_object Comment type object.
+ * @return stdClass {
+ *     Comment type labels object.
+ *
+ *     @type string $name          General name for the comment type, usually plural. The same as and
+ *                                 overridden by `$comment_type_object->label`. Default 'Comments'.
+ *     @type string $singular_name Name for one object of this comment type. Default 'Comment'.
+ *     @type string $menu_name     Label for the menu name. Default is the same as `name`.
+ * }
+ */
+function get_comment_type_labels( $comment_type_object ): stdClass {
+	$defaults = array();
+
+	foreach ( WP_Comment_Type::get_default_labels() as $key => $value ) {
+		$defaults[ $key ] = $value[0];
+	}
+
+	$defaults['menu_name'] = $defaults['name'];
+
+	$labels = (array) $comment_type_object->labels;
+
+	if ( ! empty( $comment_type_object->label ) && empty( $labels['name'] ) ) {
+		$labels['name'] = $comment_type_object->label;
+	}
+
+	if ( ! isset( $labels['singular_name'] ) && isset( $labels['name'] ) ) {
+		$labels['singular_name'] = $labels['name'];
+	}
+
+	if ( ! isset( $labels['menu_name'] ) && isset( $labels['name'] ) ) {
+		$labels['menu_name'] = $labels['name'];
+	}
+
+	$labels = (object) array_merge( $defaults, $labels );
+
+	$comment_type = $comment_type_object->name;
+
+	$default_labels = clone $labels;
+
+	/**
+	 * Filters the labels of a specific comment type.
+	 *
+	 * The dynamic portion of the hook name, `$comment_type`, refers to the comment type slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `comment_type_labels_comment`
+	 *  - `comment_type_labels_pingback`
+	 *
+	 * Labels are stored unescaped, mirroring the post type and taxonomy label
+	 * contract; callers must escape them on output (for example with esc_html()).
+	 *
+	 * @since 7.3.0
+	 *
+	 * @see get_comment_type_labels() for the full list of comment type labels.
+	 *
+	 * @param object $labels Object with labels for the comment type as member variables.
+	 */
+	$labels = apply_filters( "comment_type_labels_{$comment_type}", $labels );
+
+	// Ensure that the filtered labels contain all required default values.
+	$labels = (object) array_merge( (array) $default_labels, (array) $labels );
+
+	return $labels;
+}
+
+/**
  * Retrieves all of the WordPress supported comment statuses.
  *
  * Comments have a limited set of valid status values, this provides the comment

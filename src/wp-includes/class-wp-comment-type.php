@@ -1,0 +1,233 @@
+<?php
+/**
+ * Comment API: WP_Comment_Type class
+ *
+ * @package WordPress
+ * @subpackage Comments
+ * @since 7.3.0
+ */
+
+/**
+ * Core class used for interacting with comment types.
+ *
+ * @since 7.3.0
+ *
+ * @see register_comment_type()
+ */
+#[AllowDynamicProperties]
+final class WP_Comment_Type {
+	/**
+	 * Comment type key.
+	 *
+	 * @since 7.3.0
+	 */
+	public string $name;
+
+	/**
+	 * Name of the comment type. Usually plural.
+	 *
+	 * @since 7.3.0
+	 */
+	public string $label;
+
+	/**
+	 * Labels object for this comment type.
+	 *
+	 * If not set, the default comment labels are used.
+	 *
+	 * @see get_comment_type_labels()
+	 *
+	 * @since 7.3.0
+	 */
+	public stdClass $labels;
+
+	/**
+	 * Default labels.
+	 *
+	 * @since 7.3.0
+	 * @var array<string, array<string|null>> $default_labels
+	 * @phpstan-var array{
+	 *     name:          array{ string, null },
+	 *     singular_name: array{ string, null },
+	 * }|array{}
+	 */
+	protected static array $default_labels = array();
+
+	/**
+	 * A short descriptive summary of what the comment type is for.
+	 *
+	 * @since 7.3.0
+	 */
+	public string $description = '';
+
+	/**
+	 * Whether a comment type is intended for use publicly either via the admin interface or by front-end users.
+	 *
+	 * Core does not currently act on this property.
+	 *
+	 * Default true.
+	 *
+	 * @since 7.3.0
+	 */
+	public bool $public = true;
+
+	/**
+	 * Whether the comment type is for internal use only.
+	 *
+	 * Internal types are meant to be excluded from comment queries and counts by
+	 * default. Core does not currently act on this property.
+	 *
+	 * Default false.
+	 *
+	 * @since 7.3.0
+	 */
+	public bool $internal = false;
+
+	/**
+	 * Whether this comment type is a native or "built-in" comment type.
+	 *
+	 * Default false.
+	 *
+	 * @since 7.3.0
+	 */
+	public bool $_builtin = false;
+
+	/**
+	 * Constructor.
+	 *
+	 * See the register_comment_type() function for accepted arguments for `$args`.
+	 *
+	 * Will populate object properties from the provided arguments and assign other
+	 * default properties based on that information.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @see register_comment_type()
+	 *
+	 * @param string               $comment_type Comment type key.
+	 * @param array<string, mixed> $args         Optional. Array of arguments for registering
+	 *                                           a comment type. Default empty array.
+	 */
+	public function __construct( string $comment_type, array $args = array() ) {
+		$this->name = $comment_type;
+
+		$this->set_props( $args );
+	}
+
+	/**
+	 * Sets comment type properties.
+	 *
+	 * See the register_comment_type() function for accepted arguments for `$args`.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $args Array of arguments for registering a comment type.
+	 */
+	public function set_props( array $args ): void {
+		// Captured before the filters run, so they cannot add or remove built-in status.
+		$is_builtin = ! empty( $args['_builtin'] );
+
+		/**
+		 * Filters the arguments for registering a comment type.
+		 *
+		 * Changes to the `_builtin` argument are ignored.
+		 *
+		 * @since 7.3.0
+		 *
+		 * @param array  $args         Array of arguments for registering a comment type.
+		 *                             See the register_comment_type() function for accepted arguments.
+		 * @param string $comment_type Comment type key.
+		 */
+		$args = apply_filters( 'register_comment_type_args', $args, $this->name );
+
+		$comment_type = $this->name;
+
+		/**
+		 * Filters the arguments for registering a specific comment type.
+		 *
+		 * The dynamic portion of the filter name, `$comment_type`, refers to the comment type key.
+		 * Changes to the `_builtin` argument are ignored.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `register_comment_comment_type_args`
+		 *  - `register_pingback_comment_type_args`
+		 *
+		 * @since 7.3.0
+		 *
+		 * @param array  $args         Array of arguments for registering a comment type.
+		 *                             See the register_comment_type() function for accepted arguments.
+		 * @param string $comment_type Comment type key.
+		 */
+		$args = apply_filters( "register_{$comment_type}_comment_type_args", $args, $this->name );
+
+		// No 'label' default, so get_comment_type_labels() can fall back to the default name.
+		$defaults = array(
+			'labels'      => array(),
+			'description' => '',
+			'public'      => true,
+			'internal'    => false,
+			'_builtin'    => false,
+		);
+
+		$args = array_merge( $defaults, (array) $args );
+
+		$args['name']     = $this->name;
+		$args['_builtin'] = $is_builtin;
+
+		// The filters can return anything, so match the declared property types before assigning.
+		$args['labels']      = is_array( $args['labels'] ) || is_object( $args['labels'] ) ? (object) (array) $args['labels'] : new stdClass();
+		$args['description'] = is_string( $args['description'] ) ? $args['description'] : '';
+		$args['public']      = (bool) $args['public'];
+		$args['internal']    = (bool) $args['internal'];
+
+		if ( isset( $args['label'] ) && ! is_string( $args['label'] ) ) {
+			unset( $args['label'] );
+		}
+
+		foreach ( $args as $property_name => $property_value ) {
+			$this->$property_name = $property_value;
+		}
+
+		$this->labels = get_comment_type_labels( $this );
+		$this->label  = $this->labels->name;
+	}
+
+	/**
+	 * Returns the default labels for comment types.
+	 *
+	 * @since 7.3.0
+	 *
+	 * Each label is a pair of non-hierarchical and hierarchical values, matching the
+	 * post type and taxonomy shape. Comment types are never hierarchical, so only the
+	 * first value is used.
+	 *
+	 * @return array<string, array<string|null>> The default labels for comment types.
+	 *
+	 * @phpstan-return array{
+	 *     name:          array{ string, null },
+	 *     singular_name: array{ string, null },
+	 * }
+	 */
+	public static function get_default_labels(): array {
+		if ( ! empty( self::$default_labels ) ) {
+			return self::$default_labels;
+		}
+
+		self::$default_labels = array(
+			'name'          => array( _x( 'Comments', 'comment type general name' ), null ),
+			'singular_name' => array( _x( 'Comment', 'comment type singular name' ), null ),
+		);
+
+		return self::$default_labels;
+	}
+
+	/**
+	 * Resets the cache for the default labels.
+	 *
+	 * @since 7.3.0
+	 */
+	public static function reset_default_labels(): void {
+		self::$default_labels = array();
+	}
+}
