@@ -1,8 +1,12 @@
 <?php
 /**
- * Class for a set of entries for translation and their associated headers
+ * Class for a set of entries for translation and their associated headers.
  *
- * @version $Id: translations.php 1157 2015-11-20 04:30:11Z dd32 $
+ * The wp-includes/pomo/ directory is the canonical upstream copy of the pomo
+ * library (PO/MO file reading and writing, translations, and plural-form helpers).
+ * All changes to the library should be made here and reviewed under the I18N
+ * component.
+ *
  * @package pomo
  * @subpackage translations
  * @since 2.8.0
