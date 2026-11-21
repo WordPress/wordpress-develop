@@ -157,4 +157,114 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 
 		$this->assertSame( $sticky_query_vars['posts_per_page'], $sticky_count );
 	}
+
+	/**
+	 * Stickies fetched for injection should honor the query's author__in constraint:
+	 * stickies by other authors must not be prepended, while stickies matching the
+	 * constraint are still moved to the top.
+	 *
+	 * @ticket 63360
+	 */
+	public function test_stickies_should_obey_author__in() {
+		$author_1 = self::factory()->user->create( array( 'role' => 'author' ) );
+		$author_2 = self::factory()->user->create( array( 'role' => 'author' ) );
+
+		$now = time();
+
+		$sticky_by_author_1 = self::factory()->post->create(
+			array(
+				'post_author' => $author_1,
+				'post_date'   => gmdate( 'Y-m-d H:i:s', $now - 20 ),
+			)
+		);
+		$plain_by_author_1  = self::factory()->post->create(
+			array(
+				'post_author' => $author_1,
+				'post_date'   => gmdate( 'Y-m-d H:i:s', $now - 10 ),
+			)
+		);
+		$sticky_by_author_2 = self::factory()->post->create(
+			array(
+				'post_author' => $author_2,
+				'post_date'   => gmdate( 'Y-m-d H:i:s', $now ),
+			)
+		);
+
+		stick_post( $sticky_by_author_1 );
+		stick_post( $sticky_by_author_2 );
+
+		$q = new WP_Query(
+			array(
+				'author__in' => array( $author_1 ),
+			)
+		);
+
+		unstick_post( $sticky_by_author_1 );
+		unstick_post( $sticky_by_author_2 );
+
+		$this->assertSame(
+			array( $sticky_by_author_1, $plain_by_author_1 ),
+			wp_list_pluck( $q->posts, 'ID' )
+		);
+	}
+
+	/**
+	 * Stickies fetched for injection should honor the query's post_name__in
+	 * constraint: querying specific slugs must not prepend unrelated stickies.
+	 *
+	 * @ticket 63360
+	 */
+	public function test_stickies_should_obey_post_name__in() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_name' => 'not-sticky-1',
+			)
+		);
+
+		$sticky_id = self::factory()->post->create(
+			array(
+				'post_name' => 'sticky-unrelated',
+			)
+		);
+
+		stick_post( $sticky_id );
+
+		$q = new WP_Query(
+			array(
+				'post_name__in' => array( 'not-sticky-1' ),
+			)
+		);
+
+		unstick_post( $sticky_id );
+
+		$this->assertSame( array( $post_id ), wp_list_pluck( $q->posts, 'ID' ) );
+	}
+
+	/**
+	 * Stickies fetched for injection should honor the query's category__not_in
+	 * constraint: stickies assigned to an excluded term must not be prepended.
+	 *
+	 * @ticket 63360
+	 */
+	public function test_stickies_should_obey_category__not_in() {
+		$category_id = self::factory()->category->create();
+
+		$sticky_in_excluded_category = self::factory()->post->create(
+			array(
+				'post_category' => array( $category_id ),
+			)
+		);
+
+		stick_post( $sticky_in_excluded_category );
+
+		$q = new WP_Query(
+			array(
+				'category__not_in' => array( $category_id ),
+			)
+		);
+
+		unstick_post( $sticky_in_excluded_category );
+
+		$this->assertNotContains( $sticky_in_excluded_category, wp_list_pluck( $q->posts, 'ID' ) );
+	}
 }
