@@ -177,19 +177,22 @@
 	 * @param {Event}    event        The click event.
 	 */
 	function mobileHover( topMenuItems, event ) {
-		var wrapper;
+		var wrapper = getClosest( event.target, '.menupop' );
 
-		if ( !! getClosest( event.target, '.ab-sub-wrapper' ) ) {
+		// Each menu popover handles its own tap; ignore events bubbling from nested items.
+		if ( ! wrapper || wrapper !== event.currentTarget ) {
+			return;
+		}
+
+		// Plain submenu links keep navigating; nested menu popovers toggle on the first tap.
+		if (
+			!! getClosest( event.target, '.ab-sub-wrapper' ) &&
+			! getClosest( event.target, 'li.menupop > .ab-item' )
+		) {
 			return;
 		}
 
 		event.preventDefault();
-
-		wrapper = getClosest( event.target, '.menupop' );
-
-		if ( ! wrapper ) {
-			return;
-		}
 
 		if ( hasClass( wrapper, 'hover' ) ) {
 			removeClass( wrapper, 'hover' );
