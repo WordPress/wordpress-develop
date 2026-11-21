@@ -1822,8 +1822,8 @@ function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 		if ( is_wp_error( $rss ) ) {
 			$error = $rss->get_error_message();
 		} else {
-			$link = esc_url( strip_tags( $rss->get_permalink() ) );
-			while ( stristr( $link, 'http' ) !== $link ) {
+			$link = esc_url( strip_tags( (string) $rss->get_permalink() ) );
+			while ( ! empty( $link ) && stristr( $link, 'http' ) !== $link ) {
 				$link = substr( $link, 1 );
 			}
 

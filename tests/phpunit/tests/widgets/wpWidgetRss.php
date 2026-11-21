@@ -95,6 +95,67 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Ensures that processing a feed returns when its channel link is not an HTTP URL.
+	 *
+	 * @ticket 62341
+	 * @covers ::wp_widget_rss_process
+	 * @dataProvider data_wp_widget_rss_process_channel_link
+	 *
+	 * @param string $channel_link Markup of the channel link in the feed.
+	 * @param string $expected     Expected link.
+	 */
+	public function test_wp_widget_rss_process_channel_link( $channel_link, $expected ) {
+		add_filter(
+			'pre_http_request',
+			static function () use ( $channel_link ) {
+				return array(
+					'headers'  => new WpOrg\Requests\Utility\CaseInsensitiveDictionary(
+						array( 'Content-Type' => 'application/rss+xml; charset=UTF-8' )
+					),
+					'body'     => '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Feed</title>' . $channel_link . '</channel></rss>',
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			}
+		);
+
+		$result = wp_widget_rss_process(
+			array(
+				'url'   => 'https://example.org/feed/',
+				'items' => 5,
+			)
+		);
+
+		$this->assertSame( $expected, $result['link'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_widget_rss_process_channel_link() {
+		return array(
+			'HTTPS URL'       => array(
+				'channel_link' => '<link>https://example.com/</link>',
+				'expected'     => 'https://example.com/',
+			),
+			'FTP URL'         => array(
+				'channel_link' => '<link>ftp://example.com/</link>',
+				'expected'     => '',
+			),
+			'no link element' => array(
+				'channel_link' => '',
+				'expected'     => '',
+			),
+		);
+	}
+
 	public function mocked_rss_response() {
 		$single_value_headers = array(
 			'Content-Type' => 'application/rss+xml; charset=UTF-8',
