@@ -835,7 +835,7 @@ function wp_feed_namespaces( string $type ): void {
 }
 
 /**
- * Gets the UTC time of the most recently modified post from WP_Query.
+ * Gets the UTC time of the most recently published or modified post from WP_Query.
  *
  * If viewing a comment feed, the time of the most recently modified
  * comment will be returned.
@@ -856,7 +856,7 @@ function get_feed_build_date( $format ) {
 
 	if ( $wp_query instanceof WP_Query && is_array( $wp_query->posts ) ) {
 		/*
-		 * Collect the post modified times. WP_Post objects are read as-is, since
+		 * Collect the post publication and modified times. WP_Post objects are read as-is, since
 		 * passing them through get_post() would look them up again by ID, which
 		 * drops virtual posts and discards in-memory changes. Queries using
 		 * fields => 'ids' (or 'id=>parent') yield post IDs instead, which are
@@ -866,6 +866,7 @@ function get_feed_build_date( $format ) {
 		$post_ids       = array();
 		foreach ( $wp_query->posts as $post ) {
 			if ( $post instanceof WP_Post ) {
+				$modified_times[] = $post->post_date_gmt;
 				$modified_times[] = $post->post_modified_gmt;
 			} elseif ( is_int( $post ) ) {
 				// A post ID, from a query with fields => 'ids'.
@@ -885,6 +886,7 @@ function get_feed_build_date( $format ) {
 			foreach ( $post_ids as $post_id ) {
 				$post = get_post( $post_id );
 				if ( $post instanceof WP_Post ) {
+					$modified_times[] = $post->post_date_gmt;
 					$modified_times[] = $post->post_modified_gmt;
 				}
 			}
