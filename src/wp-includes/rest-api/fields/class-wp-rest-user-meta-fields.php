@@ -17,6 +17,14 @@
 class WP_REST_User_Meta_Fields extends WP_REST_Meta_Fields {
 
 	/**
+	 * Cache invalidation callback for users.
+	 *
+	 * @since TBD
+	 * @var string
+	 */
+	protected $cache_callback = 'wp_cache_set_users_last_changed';
+
+	/**
 	 * Retrieves the user meta type.
 	 *
 	 * @since 4.7.0
