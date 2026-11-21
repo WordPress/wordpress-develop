@@ -1725,6 +1725,145 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66337
+	 *
+	 * @dataProvider data_email_with_apostrophe_slashing
+	 *
+	 * @param bool $slash Whether to slash the user data before inserting.
+	 */
+	public function test_wp_insert_user_should_reject_existing_email_with_apostrophe( $slash ) {
+		self::factory()->user->create( array( 'user_email' => "o'brien@example.com" ) );
+
+		$userdata = array(
+			'user_login' => 'obrien_duplicate',
+			'user_pass'  => 'password',
+			'user_email' => "o'brien@example.com",
+		);
+
+		$result = wp_insert_user( $slash ? wp_slash( $userdata ) : $userdata );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'existing_user_email', $result->get_error_code() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_email_with_apostrophe_slashing() {
+		return array(
+			'slashed user data'   => array( true ),
+			'unslashed user data' => array( false ),
+		);
+	}
+
+	/**
+	 * @ticket 66337
+	 *
+	 * @dataProvider data_email_filters_should_return_unslashed_email
+	 *
+	 * @param string $filter Filter name.
+	 * @param string $email  Email address passed to the filter.
+	 */
+	public function test_email_filters_should_return_unslashed_email( $filter, $email ) {
+		$this->assertSame( "o'brien@example.com", apply_filters( $filter, $email ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_email_filters_should_return_unslashed_email() {
+		return array(
+			'pre_user_email, unslashed'           => array( 'pre_user_email', "o'brien@example.com" ),
+			'pre_user_email, slashed'             => array( 'pre_user_email', "o\\'brien@example.com" ),
+			'pre_comment_author_email, unslashed' => array( 'pre_comment_author_email', "o'brien@example.com" ),
+			'pre_comment_author_email, slashed'   => array( 'pre_comment_author_email', "o\\'brien@example.com" ),
+		);
+	}
+
+	/**
+	 * @ticket 66337
+	 */
+	public function test_wp_update_user_should_reject_existing_email_with_apostrophe() {
+		self::factory()->user->create( array( 'user_email' => "o'brien@example.com" ) );
+
+		$result = wp_update_user(
+			array(
+				'ID'         => self::$editor_id,
+				'user_email' => "o'brien@example.com",
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'existing_user_email', $result->get_error_code() );
+	}
+
+	/**
+	 * @ticket 66337
+	 */
+	public function test_wp_update_user_should_allow_keeping_own_email_with_apostrophe() {
+		$user_id = self::factory()->user->create( array( 'user_email' => "o'brien@example.com" ) );
+
+		$result = wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'user_email' => "O'Brien@example.com",
+			)
+		);
+
+		$this->assertSame( $user_id, $result );
+	}
+
+	/**
+	 * @ticket 66337
+	 */
+	public function test_wp_update_user_should_keep_activation_key_for_email_with_apostrophe() {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create( array( 'user_email' => "o'brien@example.com" ) );
+		$wpdb->update( $wpdb->users, array( 'user_activation_key' => 'key' ), array( 'ID' => $user_id ) );
+		clean_user_cache( $user_id );
+
+		wp_update_user(
+			array(
+				'ID'            => $user_id,
+				'user_nicename' => 'obrien',
+			)
+		);
+
+		$this->assertSame( 'key', get_userdata( $user_id )->user_activation_key );
+	}
+
+	/**
+	 * @ticket 66337
+	 */
+	public function test_profile_update_should_receive_unslashed_old_email_with_apostrophe() {
+		$user_id   = self::factory()->user->create( array( 'user_email' => "o'brien@example.com" ) );
+		$old_email = null;
+
+		add_action(
+			'profile_update',
+			static function ( $user_id, $old_user_data ) use ( &$old_email ) {
+				$old_email = $old_user_data->user_email;
+			},
+			10,
+			2
+		);
+
+		wp_update_user(
+			array(
+				'ID'            => $user_id,
+				'user_nicename' => 'obrien',
+			)
+		);
+
+		$this->assertSame( "o'brien@example.com", $old_email );
+	}
+
+	/**
 	 * Testing wp_new_user_notification email statuses.
 	 *
 	 * @dataProvider data_wp_new_user_notifications

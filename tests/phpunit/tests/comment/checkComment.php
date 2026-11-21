@@ -69,6 +69,67 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		$this->assertTrue( $results );
 	}
 
+	/**
+	 * @ticket 66337
+	 *
+	 * @dataProvider data_should_return_true_for_previously_approved_author_with_apostrophe
+	 *
+	 * @param string $author       Comment author name.
+	 * @param string $author_email Comment author email.
+	 */
+	public function test_should_return_true_for_previously_approved_author_with_apostrophe( $author, $author_email ) {
+		global $wpdb;
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::factory()->post->create(),
+				'comment_approved'     => 1,
+				'comment_author'       => $author,
+				'comment_author_email' => $author_email,
+			)
+		);
+
+		// The approved comment is stored unslashed.
+		$this->assertSame(
+			'1',
+			$wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT comment_approved FROM $wpdb->comments WHERE comment_author = %s AND comment_author_email = %s",
+					$author,
+					$author_email
+				)
+			)
+		);
+
+		update_option( 'comment_previously_approved', 1 );
+
+		// check_comment() receives slashed data from wp_check_comment_data().
+		$results = check_comment(
+			wp_slash( $author ),
+			wp_slash( $author_email ),
+			'http://example.com',
+			'A second comment.',
+			'192.168.0.1',
+			'',
+			''
+		);
+
+		$this->assertTrue( $results );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_should_return_true_for_previously_approved_author_with_apostrophe() {
+		return array(
+			'apostrophe in author'           => array( "Pat O'Brien", 'pat@example.com' ),
+			'apostrophe in email'            => array( 'Pat', "o'brien@example.com" ),
+			'apostrophe in author and email' => array( "Pat O'Brien", "o'brien@example.com" ),
+		);
+	}
+
 	public function test_should_return_false_when_content_matches_moderation_keys() {
 		update_option( 'comment_previously_approved', 0 );
 

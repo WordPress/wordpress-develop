@@ -1365,6 +1365,29 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->check_add_edit_user_response( $response );
 	}
 
+	/**
+	 * @ticket 66337
+	 * @group ms-excluded
+	 */
+	public function test_create_item_existing_email_with_apostrophe() {
+		self::factory()->user->create( array( 'user_email' => "o'brien@example.com" ) );
+
+		wp_set_current_user( self::$user );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params(
+			array(
+				'username' => 'obrien_duplicate',
+				'password' => 'testpassword',
+				'email'    => "o'brien@example.com",
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'existing_user_email', $response );
+	}
+
 	public function test_create_item_invalid_username() {
 		$this->allow_user_to_manage_multisite();
 
