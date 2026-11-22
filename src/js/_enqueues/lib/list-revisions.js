@@ -4,12 +4,10 @@
 
 /**
  * Hides the revisions radio buttons to stop selecting reverse comparisons
- *
- * @param {Window} w The global window object.
  */
 
-( function ( w ) {
-	const init = function () {
+( () => {
+	const init = () => {
 		const pr = document.getElementById( 'post-revisions' );
 		if ( ! pr ) {
 			return;
@@ -20,7 +18,7 @@
 			return;
 		}
 
-		const update = function () {
+		const update = () => {
 			let checkCount = 0;
 			for ( let i = 0; i < inputs.length; i++ ) {
 				checkCount += inputs[ i ].checked ? 1 : 0;
@@ -48,5 +46,5 @@
 		pr.addEventListener( 'click', update );
 		update();
 	};
-	w.addEventListener( 'load', init, false );
-} )( window );
+	window.addEventListener( 'load', init, false );
+} )();
