@@ -391,6 +391,9 @@ class WP_Block {
 	 * block, can't render forever. Bindings that ask a source something else
 	 * still resolve, inside supplied inner blocks too.
 	 *
+	 * Nor when the block doesn't accept one of the top-level supplied blocks: it
+	 * then keeps its own inner blocks.
+	 *
 	 * @since 7.3.0
 	 *
 	 * @param WP_Block_Bindings_Source $source      The source of the binding.
@@ -409,7 +412,10 @@ class WP_Block {
 			return;
 		}
 
-		$blocks        = $this->parse_bound_inner_blocks( $value, $source, $source_args );
+		$blocks = $this->parse_bound_inner_blocks( $value, $source, $source_args );
+		if ( ! $this->are_inner_blocks_allowed( $blocks ) ) {
+			return;
+		}
 		$inner_content = self::get_inner_content_with_slots( $this->parsed_block['innerContent'] ?? null, count( $blocks ) );
 		if ( null === $inner_content ) {
 			return;
@@ -585,6 +591,46 @@ class WP_Block {
 			$block['innerBlocks'] = self::prepare_bound_inner_blocks( $block['innerBlocks'] );
 		}
 		return $blocks;
+	}
+
+	/**
+	 * Determines whether the block accepts the top-level blocks a block
+	 * bindings source supplies.
+	 *
+	 * A block fails when the `allowedBlocks` of this block's type or attributes
+	 * leaves it out, or when its own `parent` or `ancestor` leaves out this
+	 * block. Inner blocks of the supplied blocks are not checked.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array[] $blocks The parsed blocks.
+	 * @return bool Whether every block is allowed.
+	 */
+	private function are_inner_blocks_allowed( array $blocks ): bool {
+		$allowed_lists = array(
+			$this->block_type->allowed_blocks ?? null,
+			$this->attributes['allowedBlocks'] ?? null,
+		);
+		foreach ( $blocks as $block ) {
+			if ( null === $block['blockName'] ) {
+				continue;
+			}
+			foreach ( $allowed_lists as $allowed_blocks ) {
+				if ( is_array( $allowed_blocks ) && ! in_array( $block['blockName'], $allowed_blocks, true ) ) {
+					return false;
+				}
+			}
+			$block_type = $this->registry->get_registered( $block['blockName'] );
+			if ( ! $block_type ) {
+				continue;
+			}
+			foreach ( array( $block_type->parent, $block_type->ancestor ) as $allowed_parents ) {
+				if ( is_array( $allowed_parents ) && ! in_array( $this->name, $allowed_parents, true ) ) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	/**
