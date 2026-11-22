@@ -3819,7 +3819,7 @@ function wp_nonce_ays( $action ) {
 			get_bloginfo( 'name' )
 		);
 
-		$redirect_to = $_REQUEST['redirect_to'] ?? '';
+		$redirect_to = ( isset( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) ? $_REQUEST['redirect_to'] : '';
 
 		$html  = $title;
 		$html .= '</p><p>';
