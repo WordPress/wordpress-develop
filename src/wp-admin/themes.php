@@ -638,7 +638,8 @@ foreach ( $themes as $theme ) :
 		$theme_badge = '';
 		if ( ! empty( $theme['closed'] ) || ! empty( $theme['is_suspended'] ) ) {
 			$badge_label = ! empty( $theme['is_security'] ) ? __( 'Closed (Security)' ) : __( 'Closed' );
-			$theme_badge = ' <span class="theme-status-badge theme-status-badge-closed" role="status"><span class="screen-reader-text">' . __( 'Theme status:' ) . ' </span>' . esc_html( $badge_label ) . '</span>';
+			$badge_class = ! empty( $theme['is_security'] ) ? 'theme-status-badge-closed theme-status-badge-security' : 'theme-status-badge-closed';
+			$theme_badge = ' <span class="theme-status-badge ' . esc_attr( $badge_class ) . '" role="status"><span class="screen-reader-text">' . __( 'Theme status:' ) . ' </span>' . esc_html( $badge_label ) . '</span>';
 		} elseif ( ! empty( $theme['is_outdated'] ) ) {
 			$theme_badge = ' <span class="theme-status-badge theme-status-badge-outdated" role="status"><span class="screen-reader-text">' . __( 'Theme status:' ) . ' </span>' . __( 'Outdated' ) . '</span>';
 		}
@@ -1051,7 +1052,8 @@ function wp_theme_auto_update_setting_template() {
 	<div class="theme-id-container">
 		<# var themeBadge = ''; #>
 		<# if ( data.closed || data.is_suspended ) { #>
-			<# themeBadge = ' <span class="theme-status-badge theme-status-badge-closed" role="status"><span class="screen-reader-text"><?php _e( 'Theme status:' ); ?> </span>' + ( data.is_security ? '<?php echo esc_js( __( 'Closed (Security)' ) ); ?>' : '<?php echo esc_js( __( 'Closed' ) ); ?>' ) + '</span>'; #>
+			<# var badgeClass = data.is_security ? 'theme-status-badge-closed theme-status-badge-security' : 'theme-status-badge-closed'; #>
+			<# themeBadge = ' <span class="theme-status-badge ' + badgeClass + '" role="status"><span class="screen-reader-text"><?php _e( 'Theme status:' ); ?> </span>' + ( data.is_security ? '<?php echo esc_js( __( 'Closed (Security)' ) ); ?>' : '<?php echo esc_js( __( 'Closed' ) ); ?>' ) + '</span>'; #>
 		<# } else if ( data.is_outdated ) { #>
 			<# themeBadge = ' <span class="theme-status-badge theme-status-badge-outdated" role="status"><span class="screen-reader-text"><?php _e( 'Theme status:' ); ?> </span><?php echo esc_js( __( 'Outdated' ) ); ?></span>'; #>
 		<# } #>

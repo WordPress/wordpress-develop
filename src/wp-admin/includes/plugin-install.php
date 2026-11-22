@@ -528,7 +528,7 @@ function install_plugin_information() {
 	$is_closed = false;
 	if ( is_object( $api ) && ( ( isset( $api->error ) && 'closed' === $api->error ) || ! empty( $api->closed ) ) ) {
 		$is_closed = true;
-	} elseif ( is_wp_error( $api ) && 'closed' === $api->get_error_code() ) {
+	} elseif ( is_wp_error( $api ) && ( 'closed' === $api->get_error_code() || 'closed' === $api->get_error_message() ) ) {
 		$is_closed  = true;
 		$error_data = $api->get_error_data();
 		if ( is_object( $error_data ) || is_array( $error_data ) ) {

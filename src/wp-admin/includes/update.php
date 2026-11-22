@@ -540,24 +540,33 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 		$compatible_php = is_php_version_compatible( $requires_php );
 		$notice_type    = $compatible_php ? 'notice-warning' : 'notice-error';
 
+		$status_tr_class     = '';
+		$status_notice_class = '';
+
 		if ( $is_closed ) {
-			$notice_type = $is_security ? 'notice-error' : 'notice-warning';
+			$notice_type         = $is_security ? 'notice-error' : 'notice-warning';
+			$status_tr_class     = $is_security ? ' closed security-issue' : ' closed';
+			$status_notice_class = $is_security ? ' notice-plugin-closed notice-plugin-security' : ' notice-plugin-closed';
 		} elseif ( $is_outdated && ! isset( $current->response[ $file ] ) ) {
-			$notice_type = 'notice-warning';
+			$notice_type         = 'notice-warning';
+			$status_tr_class     = ' outdated';
+			$status_notice_class = ' notice-plugin-outdated';
 		}
 
 		$role_attr = ( $is_closed && $is_security ) || ! $compatible_php ? ' role="alert"' : ' role="status"';
 
 		printf(
-			'<tr class="plugin-update-tr%s" id="%s" data-slug="%s" data-plugin="%s">' .
+			'<tr class="plugin-update-tr%s%s" id="%s" data-slug="%s" data-plugin="%s">' .
 			'<td colspan="%s" class="plugin-update colspanchange">' .
-			'<div class="update-message notice inline %s notice-alt"%s><p>',
+			'<div class="update-message notice inline %s notice-alt%s"%s><p>',
 			$active_class,
+			$status_tr_class,
 			esc_attr( $plugin_slug . '-update' ),
 			esc_attr( $plugin_slug ),
 			esc_attr( $file ),
 			esc_attr( $wp_list_table->get_column_count() ),
 			$notice_type,
+			$status_notice_class,
 			$role_attr
 		);
 

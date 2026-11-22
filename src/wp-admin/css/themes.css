@@ -100,6 +100,11 @@ body.js .theme-browser.search-loading {
 }
 
 .theme-browser .theme .theme-status-badge-closed {
+	background-color: #50575e;
+	color: #fff;
+}
+
+.theme-browser .theme .theme-status-badge-security {
 	background-color: #d63638;
 	color: #fff;
 }
@@ -115,6 +120,10 @@ body.js .theme-browser.search-loading {
 }
 
 .theme-browser .theme.closed {
+	border-color: #50575e;
+}
+
+.theme-browser .theme.closed.security-issue {
 	border-color: #d63638;
 }
 

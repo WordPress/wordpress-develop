@@ -1362,6 +1362,11 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 }
 
 .plugins .plugin-status-badge-closed {
+	background-color: #50575e;
+	color: #fff;
+}
+
+.plugins .plugin-status-badge-security {
 	background-color: #d63638;
 	color: #fff;
 }
@@ -1374,6 +1379,24 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 [dir="rtl"] .plugins .plugin-status-badge {
 	margin-left: 0;
 	margin-right: 6px;
+}
+
+.plugins .plugin-update-tr .update-message.notice-plugin-closed p::before {
+	color: #dba617;
+	content: "\f534";
+	content: "\f534" / "";
+}
+
+.plugins .plugin-update-tr .update-message.notice-plugin-security p::before {
+	color: #d63638;
+	content: "\f534";
+	content: "\f534" / "";
+}
+
+.plugins .plugin-update-tr .update-message.notice-plugin-outdated p::before {
+	color: #dba617;
+	content: "\f534";
+	content: "\f534" / "";
 }
 
 .plugins .plugin-title .dashicons,

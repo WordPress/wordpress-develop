@@ -215,6 +215,8 @@ class Tests_Plugins_ClosedPlugins extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( 'notice-error', $output );
+		$this->assertStringContainsString( 'notice-plugin-closed', $output );
+		$this->assertStringContainsString( 'notice-plugin-security', $output );
 		$this->assertStringContainsString( 'role="alert"', $output );
 		$this->assertStringContainsString( 'Warning: This plugin was closed on', $output );
 		$this->assertStringContainsString( 'due to a security issue and is no longer available for download. It should be uninstalled or replaced immediately.', $output );
@@ -253,6 +255,8 @@ class Tests_Plugins_ClosedPlugins extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( 'notice-warning', $output );
+		$this->assertStringContainsString( 'notice-plugin-closed', $output );
+		$this->assertStringNotContainsString( 'notice-plugin-security', $output );
 		$this->assertStringContainsString( 'role="status"', $output );
 		$this->assertStringContainsString( 'Notice: This plugin was closed on', $output );
 		$this->assertStringContainsString( 'Author Request', $output );
@@ -290,6 +294,7 @@ class Tests_Plugins_ClosedPlugins extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( 'notice-warning', $output );
+		$this->assertStringContainsString( 'notice-plugin-outdated', $output );
 		$this->assertStringContainsString( 'role="status"', $output );
 		$this->assertStringContainsString( 'Custom outdated warning notice.', $output );
 	}

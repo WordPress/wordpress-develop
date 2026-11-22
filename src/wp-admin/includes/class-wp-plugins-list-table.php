@@ -1242,6 +1242,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		if ( $is_plugin_closed ) {
 			$class .= ' closed';
+			if ( $is_plugin_security ) {
+				$class .= ' security-issue';
+			}
 		}
 
 		if ( $is_plugin_outdated ) {
