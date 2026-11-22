@@ -542,18 +542,19 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 
 		$status_tr_class     = '';
 		$status_notice_class = '';
+		$role_attr           = '';
 
 		if ( $is_closed ) {
 			$notice_type         = $is_security ? 'notice-error' : 'notice-warning';
 			$status_tr_class     = $is_security ? ' closed security-issue' : ' closed';
 			$status_notice_class = $is_security ? ' notice-plugin-closed notice-plugin-security' : ' notice-plugin-closed';
+			$role_attr           = $is_security ? ' role="alert"' : ' role="status"';
 		} elseif ( $is_outdated && ! isset( $current->response[ $file ] ) ) {
 			$notice_type         = 'notice-warning';
 			$status_tr_class     = ' outdated';
 			$status_notice_class = ' notice-plugin-outdated';
+			$role_attr           = ' role="status"';
 		}
-
-		$role_attr = ( $is_closed && $is_security ) || ! $compatible_php ? ' role="alert"' : ' role="status"';
 
 		printf(
 			'<tr class="plugin-update-tr%s%s" id="%s" data-slug="%s" data-plugin="%s">' .

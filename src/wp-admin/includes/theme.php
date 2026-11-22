@@ -670,13 +670,19 @@ function wp_prepare_themes_for_js( $themes = null ) {
 
 	$updates           = array();
 	$no_updates        = array();
-	$updates_transient = get_site_transient( 'update_themes' );
-	if ( isset( $updates_transient->response ) && is_array( $updates_transient->response ) ) {
-		$updates = $updates_transient->response;
+	if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
+		$updates_transient = get_site_transient( 'update_themes' );
+		if ( isset( $updates_transient->response ) ) {
+			$updates = $updates_transient->response;
+		}
+		if ( isset( $updates_transient->no_update ) ) {
+			$no_updates = $updates_transient->no_update;
+		}
 	}
-	if ( isset( $updates_transient->no_update ) && is_array( $updates_transient->no_update ) ) {
-		$no_updates = $updates_transient->no_update;
-	}
+
+	$all_themes_transient = get_site_transient( 'update_themes' );
+	$all_themes_response  = ( is_object( $all_themes_transient ) && isset( $all_themes_transient->response ) && is_array( $all_themes_transient->response ) ) ? $all_themes_transient->response : array();
+	$all_themes_no_update = ( is_object( $all_themes_transient ) && isset( $all_themes_transient->no_update ) && is_array( $all_themes_transient->no_update ) ) ? $all_themes_transient->no_update : array();
 
 	WP_Theme::sort_by_name( $themes );
 
@@ -749,7 +755,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 
 		$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, $auto_update_filter_payload );
 
-		$theme_status_data = $updates[ $slug ] ?? ( $no_updates[ $slug ] ?? array() );
+		$theme_status_data = $all_themes_response[ $slug ] ?? ( $all_themes_no_update[ $slug ] ?? array() );
 		if ( is_object( $theme_status_data ) ) {
 			$theme_status_data = (array) $theme_status_data;
 		}
@@ -779,7 +785,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			),
 			'parent'         => $parent,
 			'active'         => $slug === $current_theme,
-			'hasUpdate'      => ! empty( $updates[ $slug ] ) && current_user_can( 'update_themes' ),
+			'hasUpdate'      => isset( $updates[ $slug ] ),
 			'hasPackage'     => isset( $updates[ $slug ] ) && ! empty( $updates[ $slug ]['package'] ),
 			'update'         => get_theme_update_available( $theme ),
 			'closed'         => $is_theme_closed,
