@@ -58,17 +58,6 @@ function edit_comment() {
 		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 	}
 
-	$comment = get_comment( (int) $_POST['comment_ID'] );
-
-	if ( ! $comment ) {
-		wp_die( __( 'Sorry, you are not allowed to edit comments on this post.' ), 403 );
-	}
-
-	// Reactions are only validated on creation. Removing one is a delete.
-	if ( 'reaction' === strtolower( $comment->comment_type ) ) {
-		wp_die( __( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ), 403 );
-	}
-
 	if ( isset( $_POST['newcomment_author'] ) ) {
 		$_POST['comment_author'] = $_POST['newcomment_author'];
 	}
@@ -90,6 +79,11 @@ function edit_comment() {
 
 	$comment_id = (int) $_POST['comment_ID'];
 	$comment    = get_comment( $comment_id );
+
+	// Reactions are only validated on creation. Removing one is a delete.
+	if ( $comment && 'reaction' === strtolower( $comment->comment_type ) ) {
+		wp_die( __( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ), 403 );
+	}
 
 	/*
 	 * The comment type is not editable from the Edit Comment screen. Changing it
@@ -209,7 +203,7 @@ function edit_comment() {
 
 	// The checks above only run when the parent changes. A kept parent must be on the destination post too.
 	if ( $comment && $comment_post_id !== (int) $comment->comment_post_ID ) {
-		$kept_parent = (int) ( $_POST['comment_parent'] ?? $comment->comment_parent );
+		$kept_parent = isset( $_POST['comment_parent'] ) && is_int( $_POST['comment_parent'] ) ? $_POST['comment_parent'] : (int) $comment->comment_parent;
 
 		if ( $kept_parent ) {
 			$parent = get_comment( $kept_parent );

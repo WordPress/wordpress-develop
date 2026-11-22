@@ -732,8 +732,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// A note reply must answer a note on the same post.
-		if ( ! empty( $request['type'] ) && 'note' === $request['type'] && ! empty( $request['parent'] ) ) {
-			$parent_note = get_comment( $request['parent'] );
+		$parent_id = $request['parent'];
+
+		if ( 'note' === $request['type'] && is_int( $parent_id ) && $parent_id > 0 ) {
+			$parent_note = get_comment( $parent_id );
 
 			if (
 				! $parent_note ||
@@ -1274,15 +1276,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'rest_comment_invalid_post_id',
 					__( 'Invalid post ID.' ),
 					array( 'status' => 403 )
-				);
-			}
-
-			// A note stays on its post, since its reactions would not follow it.
-			if ( 'note' === $comment->comment_type && $post->ID !== (int) $comment->comment_post_ID ) {
-				return new WP_Error(
-					'rest_comment_note_post_immutable',
-					__( 'Notes cannot be moved to another post.' ),
-					array( 'status' => 400 )
 				);
 			}
 		}
