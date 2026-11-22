@@ -7,10 +7,10 @@
 /**
  * Watches Enter in the command palette and loads the teletype on a match.
  *
- * @param {Object} wp       The global WordPress JS object.
- * @param {Object} settings Settings printed by wp_enqueue_command_palette_assets().
+ * @param {any}                           wp       The global WordPress JS object.
+ * @param {WPTeletypeSettings|undefined} settings Settings printed by wp_enqueue_command_palette_assets().
  */
-( function ( wp, settings ) {
+( ( wp, settings ) => {
 	'use strict';
 
 	if ( ! wp || ! wp.data || ! settings || ! settings.i18n ) {
@@ -23,75 +23,65 @@
 	 * @param {string} value Text to normalize.
 	 * @return {string} Normalized text.
 	 */
-	function normalize( value ) {
-		return value.toLowerCase().replace( /[\s!-\/:-@\[-`{-~\u3000-\u303f\uff01-\uff0f]/g, '' );
-	}
+	const normalize = ( value ) =>
+		value.toLowerCase().replace( /[\s!-\/:-@\[-`{-~　-〿！-／]/g, '' );
 
-	var trigger = normalize( settings.i18n.trigger || '' );
+	const { name, src, i18n } = settings;
+	const trigger = normalize( i18n.trigger || '' );
 
 	/**
 	 * Loads the teletype if needed, then runs it.
 	 */
-	function play() {
-		var script;
-
+	const play = () => {
 		if ( wp.teletype ) {
-			wp.teletype.run( settings.name, settings.i18n );
+			wp.teletype.run( name, i18n );
 			return;
 		}
 
-		script = document.createElement( 'script' );
-		script.src = settings.src;
-
-		script.onload = function () {
-			if ( wp.teletype ) {
-				wp.teletype.run( settings.name, settings.i18n );
-			}
-		};
+		const script = document.createElement( 'script' );
+		script.src = src;
+		script.addEventListener( 'load', () => {
+			wp.teletype?.run( name, i18n );
+		} );
 
 		document.head.appendChild( script );
-	}
+	};
 
-	/**
-	 * Handles Enter in an open command palette.
-	 *
-	 * @param {KeyboardEvent} event The keydown event.
-	 */
-	function onKeydown( event ) {
-		var store,
-			input = event.target,
-			value;
+	document.addEventListener(
+		'keydown',
+		( event ) => {
+			const input = event.target;
 
-		if ( 'Enter' !== event.key || ! input || ! input.value ) {
-			return;
-		}
+			if ( 'Enter' !== event.key || ! ( input instanceof HTMLInputElement ) || ! input.value ) {
+				return;
+			}
 
-		store = wp.data.select( 'core/commands' );
+			const store = wp.data.select( 'core/commands' );
 
-		if ( ! store || ! store.isOpen() ) {
-			return;
-		}
+			if ( ! store?.isOpen() ) {
+				return;
+			}
 
-		// Leave Enter to the palette whenever one of its results is active.
-		if (
-			'combobox' !== input.getAttribute( 'role' ) ||
-			input.getAttribute( 'aria-activedescendant' )
-		) {
-			return;
-		}
+			// Leave Enter to the palette whenever one of its results is active.
+			if (
+				'combobox' !== input.getAttribute( 'role' ) ||
+				input.getAttribute( 'aria-activedescendant' )
+			) {
+				return;
+			}
 
-		value = normalize( input.value );
+			const value = normalize( input.value );
 
-		if ( ! value || value !== trigger ) {
-			return;
-		}
+			if ( ! value || value !== trigger ) {
+				return;
+			}
 
-		event.preventDefault();
-		event.stopPropagation();
+			event.preventDefault();
+			event.stopPropagation();
 
-		wp.data.dispatch( 'core/commands' ).close();
-		play();
-	}
-
-	document.addEventListener( 'keydown', onKeydown, true );
-}( window.wp, window.wpTeletype ) );
+			wp.data.dispatch( 'core/commands' ).close();
+			play();
+		},
+		true
+	);
+} )( window.wp, window.wpTeletype );

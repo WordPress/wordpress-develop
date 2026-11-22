@@ -7,13 +7,13 @@
 /**
  * Defines wp.teletype, which plays the scene.
  *
- * @param {Object} wp       The global WordPress JS object.
- * @param {Object} settings Settings printed by wp_enqueue_command_palette_assets().
+ * @param {any}                          wp       The global WordPress JS object.
+ * @param {WPTeletypeSettings|undefined} settings Settings printed by wp_enqueue_command_palette_assets().
  */
-( function ( wp, settings ) {
+( ( wp, settings ) => {
 	'use strict';
 
-	var TYPE_SPEED  = 100,  // Milliseconds per character.
+	const TYPE_SPEED  = 100,  // Milliseconds per character.
 		LINE_PAUSE  = 2000, // Between lines.
 		START_DELAY = 3000, // Before the first line.
 		FADE_TIME   = 3000, // Cursor fade-in, once the lights go out.
@@ -22,27 +22,26 @@
 		RAIN_SPEED  = 60;   // Milliseconds between rain rows.
 
 	// Half-width katakana and digits.
-	var GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789';
+	const GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789';
 
-	var STYLE = [
-		`.wp-teletype { --wp-teletype-transition-duration: ${ FADE_TIME / 1000 }s }`,
-		settings.styles,
-	].join( '' );
+	const STYLE = `.wp-teletype { --wp-teletype-transition-duration: ${ FADE_TIME / 1000 }s }${ settings?.styles ?? '' }`;
 
 	/**
 	 * Runs the falling glyph rain behind the scene.
 	 *
 	 * @param {HTMLElement} parent Element to render into.
-	 * @return {Function} Stops the rain and removes it.
+	 * @return {() => void} Stops the rain and removes it.
 	 */
-	function rain( parent ) {
-		var canvas  = document.createElement( 'canvas' ),
-			context = canvas.getContext( '2d' ),
-			columns = [],
-			width   = 0,
-			height  = 0,
-			frame   = null,
-			last    = 0;
+	const rain = ( parent ) => {
+		const canvas  = document.createElement( 'canvas' );
+		const context = canvas.getContext( '2d' );
+
+		/** @type {number[]} */
+		const columns = [];
+		let width     = 0;
+		let height    = 0;
+		let frame     = 0;
+		let last      = 0;
 
 		canvas.className = 'rain';
 		canvas.setAttribute( 'aria-hidden', 'true' );
@@ -50,64 +49,62 @@
 		/**
 		 * Sizes the canvas to its parent and adds or drops columns to fit.
 		 */
-		function resize() {
-			var ratio = window.devicePixelRatio || 1,
-				count,
-				i;
+		const resize = () => {
+			const ratio = window.devicePixelRatio || 1;
 
 			width  = parent.clientWidth;
 			height = parent.clientHeight;
 
 			canvas.width        = width * ratio;
 			canvas.height       = height * ratio;
-			canvas.style.width  = width + 'px';
-			canvas.style.height = height + 'px';
+			canvas.style.width  = `${ width }px`;
+			canvas.style.height = `${ height }px`;
 
-			context.setTransform( ratio, 0, 0, ratio, 0, 0 );
-			context.font = RAIN_SIZE + 'px courier, monospace';
+			if ( context ) {
+				context.setTransform( ratio, 0, 0, ratio, 0, 0 );
+				context.font = `${ RAIN_SIZE }px courier, monospace`;
+			}
 
-			count = Math.ceil( width / RAIN_SIZE );
+			const count = Math.ceil( width / RAIN_SIZE );
 
 			// New columns start at a random height so they do not arrive as a straight line.
-			for ( i = columns.length; i < count; i++ ) {
+			while ( columns.length < count ) {
 				columns.push( Math.random() * height );
 			}
 
 			columns.length = count;
-		}
+		};
 
 		/**
 		 * Draws one row of glyphs and advances each column.
 		 */
-		function draw() {
-			var i;
+		const draw = () => {
+			if ( ! context ) {
+				return;
+			}
 
 			// Painting over the last frame rather than clearing it leaves the trails.
 			context.fillStyle = 'rgba(0,0,0,.08)';
 			context.fillRect( 0, 0, width, height );
 			context.fillStyle = '#0f0';
 
-			for ( i = 0; i < columns.length; i++ ) {
+			columns.forEach( ( y, i ) => {
 				context.fillText(
 					GLYPHS.charAt( Math.floor( Math.random() * GLYPHS.length ) ),
 					i * RAIN_SIZE,
-					columns[ i ]
+					y
 				);
 
-				if ( columns[ i ] > height && Math.random() > 0.975 ) {
-					columns[ i ] = 0;
-				} else {
-					columns[ i ] += RAIN_SIZE;
-				}
-			}
-		}
+				columns[ i ] = y > height && Math.random() > 0.975 ? 0 : y + RAIN_SIZE;
+			} );
+		};
 
 		/**
 		 * Draws a row once every RAIN_SPEED milliseconds.
 		 *
 		 * @param {DOMHighResTimeStamp} now Current frame time.
 		 */
-		function tick( now ) {
+		const tick = ( now ) => {
 			frame = window.requestAnimationFrame( tick );
 
 			if ( now - last < RAIN_SPEED ) {
@@ -116,44 +113,43 @@
 
 			last = now;
 			draw();
-		}
+		};
 
 		resize();
 		parent.appendChild( canvas );
 		window.addEventListener( 'resize', resize );
 		frame = window.requestAnimationFrame( tick );
 
-		return function () {
+		return () => {
 			window.cancelAnimationFrame( frame );
 			window.removeEventListener( 'resize', resize );
 			canvas.remove();
 		};
-	}
+	};
 
 	/**
 	 * Plays the scene.
 	 *
-	 * @param {string}   displayName    The current user's display name.
-	 * @param {Object}   i18n           Translated strings.
-	 * @param {string}   i18n.label     Accessible name of the dialog.
-	 * @param {string}   i18n.exit      Text of the Exit button.
-	 * @param {string}   i18n.rain      Description of the rain for screen readers.
-	 * @param {string[]} i18n.actOne    Lines typed on the white screen.
-	 * @param {string[]} i18n.countdown The 2 and 1 typed after the white screen's last line.
-	 * @param {string[]} i18n.actTwo    Lines typed on the black screen; %s is the display name.
+	 * @param {string}         displayName The current user's display name.
+	 * @param {WPTeletypeI18n} i18n        Translated strings.
 	 */
-	function run( displayName, i18n ) {
-		var aborted          = false,
-			timer            = null,
-			stopRain         = null,
-			previousFocus    = document.activeElement,
-			previousOverflow = document.documentElement.style.overflow,
-			actOneLines      = i18n.actOne.concat( i18n.countdown );
+	const run = ( displayName, i18n ) => {
+		let aborted = false;
 
-		var style = document.createElement( 'style' );
+		/** @type {number|undefined} */
+		let timer;
+
+		/** @type {(() => void)|null} */
+		let stopRain = null;
+
+		const previousFocus    = document.activeElement;
+		const previousOverflow = document.documentElement.style.overflow;
+		const actOneLines      = [ ...i18n.actOne, ...i18n.countdown ];
+
+		const style = document.createElement( 'style' );
 		style.textContent = STYLE;
 
-		var overlay = document.createElement( 'div' );
+		const overlay = document.createElement( 'div' );
 		overlay.className = 'wp-teletype';
 		overlay.setAttribute( 'role', 'dialog' );
 		overlay.setAttribute( 'aria-modal', 'true' );
@@ -161,115 +157,115 @@
 		overlay.setAttribute( 'tabindex', '-1' );
 
 		// Hidden from screen readers, which get whole lines from the live region.
-		var line = document.createElement( 'p' );
+		const line = document.createElement( 'p' );
 		line.setAttribute( 'aria-hidden', 'true' );
 
-		var narration = document.createElement( 'div' );
+		const narration = document.createElement( 'div' );
 		narration.className = 'narration';
 		narration.setAttribute( 'aria-live', 'polite' );
 		narration.setAttribute( 'aria-atomic', 'true' );
 
-		var exit = document.createElement( 'button' );
+		const exit = document.createElement( 'button' );
 		exit.type = 'button';
 		exit.className = 'exit';
 		exit.textContent = i18n.exit;
 
-		var cursor = document.createElement( 'span' );
+		const cursor = document.createElement( 'span' );
 		cursor.className = 'cursor';
 		cursor.textContent = '▌';
 
-		line.appendChild( cursor );
-		overlay.appendChild( line );
-		overlay.appendChild( narration );
-		overlay.appendChild( exit );
+		line.append( cursor );
+		overlay.append( line, narration, exit );
 
 		/**
 		 * Hands a whole line to the live region.
 		 *
 		 * @param {string} text Line to announce.
 		 */
-		function say( text ) {
+		const say = ( text ) => {
 			narration.textContent = text;
-		}
+		};
 
 		/**
 		 * Calls a function after a delay unless the scene has ended.
 		 *
-		 * @param {number}   ms   Milliseconds to wait.
-		 * @param {Function} next Function to call.
+		 * @param {number}     ms   Milliseconds to wait.
+		 * @param {() => void} next Function to call.
 		 */
-		function wait( ms, next ) {
+		const wait = ( ms, next ) => {
 			timer = window.setTimeout( () => {
 				if ( ! aborted ) {
 					next();
 				}
 			}, ms );
-		}
+		};
 
 		/**
 		 * Removes the typed text, leaving the cursor.
 		 */
-		function clear() {
-			while ( line.firstChild !== cursor ) {
-				line.removeChild( line.firstChild );
+		const clear = () => {
+			while ( line.firstChild && line.firstChild !== cursor ) {
+				line.firstChild.remove();
 			}
-		}
+		};
 
 		/**
 		 * Starts a new line ahead of the cursor.
 		 */
-		function newline() {
-			line.insertBefore( document.createElement( 'br' ), cursor );
-		}
+		const newline = () => {
+			cursor.before( document.createElement( 'br' ) );
+		};
 
 		/**
 		 * Types one line, a character at a time, ahead of the cursor.
 		 *
-		 * @param {string}   text Text to type.
-		 * @param {Function} done Called once the line is typed.
+		 * @param {string}     text Text to type.
+		 * @param {() => void} done Called once the line is typed.
 		 */
-		function type( text, done ) {
-			var chars = text.split( '' );
+		const type = ( text, done ) => {
+			const chars = [ ...text ];
 
-			( function next() {
+			const next = () => {
 				if ( aborted ) {
 					return;
 				}
 
-				if ( ! chars.length ) {
+				const char = chars.shift();
+
+				if ( undefined === char ) {
 					done();
 					return;
 				}
 
-				line.insertBefore( document.createTextNode( chars.shift() ), cursor );
+				cursor.before( char );
 				wait( TYPE_SPEED, next );
-			}() );
-		}
+			};
+
+			next();
+		};
 
 		/**
 		 * Types act one on the white screen, each line under the last.
 		 *
 		 * @param {number} index Index of the line to type.
 		 */
-		function actOne( index ) {
+		const actOne = ( index ) => {
 			if ( index >= actOneLines.length ) {
 				lightsOut();
 				return;
 			}
 
 			say( actOneLines[ index ] );
-			type( actOneLines[ index ], function () {
+			type( actOneLines[ index ], () => {
 				newline();
-				wait( LINE_PAUSE, function () {
-					actOne( index + 1 );
-				} );
+				wait( LINE_PAUSE, () => actOne( index + 1 ) );
 			} );
-		}
+		};
 
 		/**
 		 * Switches the screen to black, starts the rain, and fades the cursor in.
 		 */
-		function lightsOut() {
+		const lightsOut = () => {
 			overlay.className = 'wp-teletype is-dark';
 			clear();
 			cursor.className = 'cursor is-visible';
@@ -282,66 +278,37 @@
 			// Describe the rain once for screen readers.
 			say( i18n.rain );
 
-			wait( ACT_PAUSE, function () {
-				actTwo( 0 );
-			} );
-		}
+			wait( ACT_PAUSE, () => actTwo( 0 ) );
+		};
 
 		/**
 		 * Types act two one line at a time, then ends the scene after the last line.
 		 *
 		 * @param {number} index Index of the line to type.
 		 */
-		function actTwo( index ) {
-			var text = i18n.actTwo[ index ].replace( '%s', function () {
-				return displayName;
-			} );
+		const actTwo = ( index ) => {
+			const text = i18n.actTwo[ index ].replace( '%s', () => displayName );
 
 			say( text );
-			type( text, function () {
+			type( text, () => {
 				if ( index + 1 >= i18n.actTwo.length ) {
 					wait( ACT_PAUSE, abort );
 					return;
 				}
 
-				wait( LINE_PAUSE, function () {
+				wait( LINE_PAUSE, () => {
 					clear();
 					actTwo( index + 1 );
 				} );
 			} );
-		}
-
-		/**
-		 * Ends the scene and restores the page, its scrolling, and focus.
-		 */
-		function abort() {
-			if ( aborted ) {
-				return;
-			}
-
-			aborted = true;
-			window.clearTimeout( timer );
-
-			if ( stopRain ) {
-				stopRain();
-			}
-
-			document.removeEventListener( 'keydown', onKeydown );
-			document.documentElement.style.overflow = previousOverflow;
-			overlay.remove();
-			style.remove();
-
-			if ( previousFocus && previousFocus.focus ) {
-				previousFocus.focus();
-			}
-		}
+		};
 
 		/**
 		 * Exits on Escape and keeps Tab on the Exit button.
 		 *
 		 * @param {KeyboardEvent} event The keydown event.
 		 */
-		function onKeydown( event ) {
+		const onKeydown = ( event ) => {
 			if ( 'Escape' === event.key ) {
 				abort();
 				return;
@@ -352,20 +319,40 @@
 				event.preventDefault();
 				exit.focus();
 			}
-		}
+		};
+
+		/**
+		 * Ends the scene and restores the page, its scrolling, and focus.
+		 */
+		const abort = () => {
+			if ( aborted ) {
+				return;
+			}
+
+			aborted = true;
+			window.clearTimeout( timer );
+			stopRain?.();
+
+			document.removeEventListener( 'keydown', onKeydown );
+			document.documentElement.style.overflow = previousOverflow;
+			overlay.remove();
+			style.remove();
+
+			if ( previousFocus instanceof HTMLElement ) {
+				previousFocus.focus();
+			}
+		};
 
 		document.addEventListener( 'keydown', onKeydown );
 		overlay.addEventListener( 'click', abort );
 
-		document.head.appendChild( style );
-		document.body.appendChild( overlay );
+		document.head.append( style );
+		document.body.append( overlay );
 		document.documentElement.style.overflow = 'hidden';
 		overlay.focus();
 
-		wait( START_DELAY, () => {
-			actOne( 0 );
-		} );
-	}
+		wait( START_DELAY, () => actOne( 0 ) );
+	};
 
-	wp.teletype = { run: run };
-}( window.wp = window.wp || {}, window.wpTeletype ) );
+	wp.teletype = { run };
+} )( /** @type {any} */ ( window.wp = window.wp || {} ), window.wpTeletype );
