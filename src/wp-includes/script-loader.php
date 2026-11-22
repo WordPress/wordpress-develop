@@ -4051,7 +4051,7 @@ function wp_enqueue_command_palette_assets() {
 				transition:none
 			}
 		}
-	CSS;
+		CSS;
 
 	// Someone has to keep an eye on the terminal.
 	wp_enqueue_script( 'wp-teletype-loader' );

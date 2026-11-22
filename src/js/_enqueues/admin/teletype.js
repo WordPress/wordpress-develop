@@ -25,7 +25,7 @@
 	var GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789';
 
 	var STYLE = [
-		'.wp-teletype { --wp-teletype-transition-duration: ' + FADE_TIME / 1000 + 's }',
+		`.wp-teletype { --wp-teletype-transition-duration: ${ FADE_TIME / 1000 }s }`,
 		settings.styles,
 	].join( '' );
 
@@ -199,7 +199,7 @@
 		 * @param {Function} next Function to call.
 		 */
 		function wait( ms, next ) {
-			timer = window.setTimeout( function () {
+			timer = window.setTimeout( () => {
 				if ( ! aborted ) {
 					next();
 				}
@@ -355,16 +355,14 @@
 		}
 
 		document.addEventListener( 'keydown', onKeydown );
-		overlay.addEventListener( 'click', function () {
-			abort();
-		} );
+		overlay.addEventListener( 'click', abort );
 
 		document.head.appendChild( style );
 		document.body.appendChild( overlay );
 		document.documentElement.style.overflow = 'hidden';
 		overlay.focus();
 
-		wait( START_DELAY, function () {
+		wait( START_DELAY, () => {
 			actOne( 0 );
 		} );
 	}
