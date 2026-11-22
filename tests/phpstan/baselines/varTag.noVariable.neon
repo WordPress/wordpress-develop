@@ -41,7 +41,7 @@ parameters:
 		-
 			message: '#^PHPDoc tag @var above assignment does not specify variable name\.$#'
 			identifier: varTag.noVariable
-			count: 9
+			count: 2
 			path: ../../../src/wp-includes/class-wp-query.php
 		-
 			message: '#^PHPDoc tag @var does not specify variable name\.$#'

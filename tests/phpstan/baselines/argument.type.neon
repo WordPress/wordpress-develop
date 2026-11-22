@@ -714,11 +714,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-image-editor-imagick.php
 		-
-			message: '#^Parameter \#1 \$ids of function _prime_post_caches expects array\<int\>, list\<string\|null\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-query.php
-		-
 			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1022,11 +1017,6 @@ parameters:
 			message: '#^Parameter \#1 \$post of function clean_post_cache expects int\|WP_Post, stdClass given\.$#'
 			identifier: argument.type
 			count: 1
-			path: ../../../src/wp-includes/post.php
-		-
-			message: '#^Parameter \#1 \$post of function get_post expects int\|decimal\-int\-string\|WP_Post\|null, stdClass given\.$#'
-			identifier: argument.type
-			count: 2
 			path: ../../../src/wp-includes/post.php
 		-
 			message: '#^Parameter \#1 \$post_id of function wp_delete_post expects int, string\|null given\.$#'
