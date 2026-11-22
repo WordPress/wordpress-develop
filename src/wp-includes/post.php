@@ -1741,6 +1741,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type bool         $randomable                      Whether posts of this post type can be selected by random content
  *                                                         redirects, such as example.com/random/. If not set, the default is
  *                                                         true when $publicly_queryable is true and $has_archive is set.
+ *     @type bool         $show_in_home_page_list          Whether this post type can be shown on the home page in place of posts.
+ *                                                         Default false.
  *     @type bool         $show_ui                         Whether to generate and allow a UI for managing this post type in the
  *                                                         admin. Default is value of $public.
  *     @type bool|string  $show_in_menu                    Where to show the post type in the admin menu. To work, $show_ui
@@ -4226,7 +4228,7 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
  */
 function _reset_front_page_settings_for_post( $post_id ) {
 	$post = get_post( $post_id );
-	/** This filter is documented in wp-includes/class-wp-query.php:1057 */
+	/** This filter is documented in wp-includes/class-wp-query.php */
 	$post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_page', array_keys( get_post_types( array( 'show_in_home_page_list' => true ) ) ) );
 	if ( in_array( $post->post_type, $post_types_allowed_on_home_page, true ) ) {
 		/*

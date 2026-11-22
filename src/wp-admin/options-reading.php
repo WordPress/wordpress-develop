@@ -69,7 +69,7 @@ settings_fields( 'reading' );
 if ( ! is_utf8_charset() ) {
 	add_settings_field( 'blog_charset', __( 'Encoding for pages and feeds' ), 'options_reading_blog_charset', 'reading', 'default', array( 'label_for' => 'blog_charset' ) );
 }
-/** This filter is documented in wp-includes/class-wp-query.php:1057 */
+/** This filter is documented in wp-includes/class-wp-query.php */
 $post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_page', array_keys( get_post_types( array( 'show_in_home_page_list' => true ) ) ) );
 $args = array(
 	'post_type'   => $post_types_allowed_on_home_page,
