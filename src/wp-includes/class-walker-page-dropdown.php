@@ -70,7 +70,7 @@ class Walker_PageDropdown extends Walker {
 		}
 
 		$output .= "\t<option class=\"level-$depth\" value=\"" . esc_attr( $page->{$args['value_field']} ) . '"';
-		if ( $page->ID === (int) $args['selected'] ) {
+		if ( (string) $page->{$args['value_field']} === (string) $args['selected'] ) {
 			$output .= ' selected="selected"';
 		}
 		$output .= '>';

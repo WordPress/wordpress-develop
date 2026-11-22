@@ -180,6 +180,35 @@ NO;
 	}
 
 	/**
+	 * @ticket 41471
+	 */
+	public function test_wp_dropdown_pages_should_select_page_by_value_field() {
+		self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'foo',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+				'post_name' => 'bar',
+			)
+		);
+
+		$found = wp_dropdown_pages(
+			array(
+				'echo'        => 0,
+				'value_field' => 'post_name',
+				'selected'    => 'foo',
+			)
+		);
+
+		$this->assertStringContainsString( 'value="foo" selected="selected"', $found, 'The page with the matching slug should be selected.' );
+		$this->assertStringNotContainsString( 'value="bar" selected="selected"', $found, 'Other pages should not be selected.' );
+	}
+
+	/**
 	 * @ticket 30082
 	 */
 	public function test_wp_dropdown_pages_should_not_contain_class_attribute_when_no_class_is_passed() {
