@@ -452,6 +452,47 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a date query which is not an array is removed.
+	 *
+	 * @ticket 60745
+	 */
+	public function test_date_query_given_non_array_is_removed(): void {
+		$query = new WP_Query( array( 'date_query' => 'admin' ) );
+
+		$this->assertArrayNotHasKey( 'date_query', $query->query_vars );
+		$this->assertFalse( $query->date_query );
+	}
+
+	/**
+	 * Tests that the top-level keys of a date query which take a string are normalized.
+	 *
+	 * @ticket 60745
+	 */
+	public function test_date_query_top_level_strings_are_normalized(): void {
+		$post_id = self::factory()->post->create( array( 'post_date' => '2020-01-01 00:00:00' ) );
+		self::factory()->post->create( array( 'post_date' => '2021-01-01 00:00:00' ) );
+
+		$query = new WP_Query(
+			array(
+				'fields'     => 'ids',
+				'date_query' => array(
+					'relation' => array( 'OR' ),
+					'compare'  => new stdClass(),
+					'column'   => 1,
+					array( 'year' => 2020 ),
+				),
+			)
+		);
+
+		$date_query = $query->query_vars['date_query'];
+		$this->assertIsArray( $date_query, 'Expected the date query to be kept.' );
+		$this->assertArrayNotHasKey( 'relation', $date_query, 'Expected a non-scalar relation to be removed.' );
+		$this->assertArrayNotHasKey( 'compare', $date_query, 'Expected a non-scalar comparison operator to be removed.' );
+		$this->assertSame( '1', $date_query['column'], 'Expected a scalar column to be converted to a string.' );
+		$this->assertSame( array( $post_id ), $query->posts, 'Expected the date query clause to still apply.' );
+	}
+
+	/**
 	 * Tests that a non-scalar order is replaced with the default.
 	 *
 	 * @ticket 60745

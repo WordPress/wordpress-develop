@@ -142,6 +142,7 @@
  *     term?: scalar,
  *     exact?: scalar,
  *     random?: scalar,
+ *     date_query?: array{ column?: string, compare?: string, relation?: string, ...<array-key, mixed> },
  *     robots?: scalar,
  *     favicon?: scalar,
  *     perm?: scalar,
@@ -994,6 +995,28 @@ class WP_Query {
 		 */
 		if ( isset( $query_vars['random'] ) && ! is_scalar( $query_vars['random'] ) ) {
 			$query_vars['random'] = '1';
+		}
+
+		/*
+		 * A date query, which is only set when given, so any value other than an array is removed.
+		 * The clauses are sanitized by WP_Date_Query, but the column, comparison operator, and relation
+		 * at its top level must be strings, so a scalar is converted to a string and any other value removed.
+		 */
+		if ( isset( $query_vars['date_query'] ) ) {
+			if ( ! is_array( $query_vars['date_query'] ) ) {
+				unset( $query_vars['date_query'] );
+			} else {
+				foreach ( array( 'column', 'compare', 'relation' ) as $key ) {
+					if ( ! isset( $query_vars['date_query'][ $key ] ) ) {
+						continue;
+					}
+					if ( is_scalar( $query_vars['date_query'][ $key ] ) ) {
+						$query_vars['date_query'][ $key ] = (string) $query_vars['date_query'][ $key ];
+					} else {
+						unset( $query_vars['date_query'][ $key ] );
+					}
+				}
+			}
 		}
 
 		$query_vars['error']         = is_scalar( $query_vars['error'] ) ? $query_vars['error'] : '';
