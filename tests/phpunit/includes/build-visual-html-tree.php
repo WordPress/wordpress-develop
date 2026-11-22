@@ -5,8 +5,9 @@
  *
  * This is inspired by the representation used by the HTML5lib tests. It's been extended here for
  * blocks to render the semantic structure of blocks and their attributes.
- * The order of attributes and class names is normalized both for HTML tags and blocks,
- * as is the whitespace in HTML tags' style attribute.
+ * The order of attributes and class names is normalized both for HTML tags and blocks.
+ * The declarations in HTML tags' style attribute are written as build_style_attribute_declarations()
+ * writes them.
  *
  * For example, consider the following block markup:
  *
@@ -166,19 +167,11 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 							sort( $class_names, SORT_STRING );
 							$val = implode( ' ', $class_names );
 						} elseif ( 'style' === $attribute_name ) {
-							$normalized_style = '';
-							foreach ( explode( ';', $val ) as $style ) {
-								if ( empty( trim( $style ) ) ) {
-									continue;
-								}
-								list( $style_key, $style_val ) = explode( ':', $style );
-
-								$style_key = trim( $style_key );
-								$style_val = trim( $style_val );
-
-								$normalized_style .= "{$style_key}:{$style_val};";
+							// A value with text that is not a declaration is shown as it is.
+							$declarations = build_style_attribute_declarations( $val );
+							if ( null !== $declarations ) {
+								$val = implode( '', $declarations );
 							}
-							$val = $normalized_style;
 						}
 						$output .= str_repeat( $tree_indent, $tag_indent + 1 ) . "{$display_name}=\"{$val}\"\n";
 					}
