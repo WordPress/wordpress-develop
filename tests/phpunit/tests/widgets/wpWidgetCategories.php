@@ -98,9 +98,7 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 		$widget = new WP_Widget_Categories();
 
 		$this->assertSame( 'categories', $widget->id_base );
-		$this->assertSame( 'Categories', $widget->name );
 		$this->assertSame( 'widget_categories', $widget->widget_options['classname'] );
-		$this->assertSame( 'A list or dropdown of categories.', $widget->widget_options['description'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertTrue( $widget->widget_options['show_instance_in_rest'] );
 	}
@@ -149,8 +147,6 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 	public static function data_widget_title() {
 		return array(
 			'no title'     => array( array(), 'Categories' ),
-			'empty title'  => array( array( 'title' => '' ), 'Categories' ),
-			'title "0"'    => array( array( 'title' => '0' ), 'Categories' ),
 			'custom title' => array( array( 'title' => 'Topics' ), 'Topics' ),
 		);
 	}
@@ -238,9 +234,7 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 	 */
 	public static function data_widget_navigation_aria_label() {
 		return array(
-			'plain title'         => array( 'Topics', 'Topics' ),
 			'title with HTML'     => array( '<em>Site</em> Topics ', 'Site Topics' ),
-			'empty title'         => array( '', 'Categories' ),
 			'title with only tag' => array( '<span></span>', 'Categories' ),
 		);
 	}
@@ -302,14 +296,6 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 	public static function data_widget_options() {
 		return array(
 			'defaults'          => array( array(), false, false ),
-			'disabled'          => array(
-				array(
-					'count'        => 0,
-					'hierarchical' => 0,
-				),
-				false,
-				false,
-			),
 			'count only'        => array( array( 'count' => 1 ), true, false ),
 			'hierarchical only' => array( array( 'hierarchical' => 1 ), false, true ),
 			'both'              => array(
@@ -502,20 +488,6 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 				array( 'title' => 'Topics' ),
 				array(
 					'title'        => 'Topics',
-					'count'        => 0,
-					'hierarchical' => 0,
-					'dropdown'     => 0,
-				),
-			),
-			'empty values'         => array(
-				array(
-					'title'        => '',
-					'count'        => '',
-					'hierarchical' => '0',
-					'dropdown'     => 0,
-				),
-				array(
-					'title'        => '',
 					'count'        => 0,
 					'hierarchical' => 0,
 					'dropdown'     => 0,

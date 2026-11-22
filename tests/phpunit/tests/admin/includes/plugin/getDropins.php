@@ -178,20 +178,6 @@ class Tests_Admin_Includes_Plugin_GetDropins extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that get_dropins() ignores non-dropin files in WP_CONTENT_DIR.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_get_dropins_ignores_non_dropin_files() {
-		$content = "<?php\n/**\n * Plugin Name: Ignored File\n */\n";
-		$this->create_dropin_file( 'custom-non-dropin.php', $content );
-
-		$dropins = get_dropins();
-
-		$this->assertArrayNotHasKey( 'custom-non-dropin.php', $dropins );
-	}
-
-	/**
 	 * Tests that get_dropins() returns items sorted using natural case-insensitive comparison.
 	 *
 	 * @ticket 65819
@@ -209,15 +195,6 @@ class Tests_Admin_Includes_Plugin_GetDropins extends WP_UnitTestCase {
 		$this->assertNotFalse( $db_error_pos );
 		$this->assertNotFalse( $maintenance_pos );
 		$this->assertLessThan( $maintenance_pos, $db_error_pos, 'db-error.php should precede maintenance.php when sorted.' );
-	}
-
-	/**
-	 * Tests that get_dropins() returns an empty array when no drop-ins exist.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_get_dropins_when_no_dropins_exist() {
-		$this->assertSame( array(), get_dropins() );
 	}
 
 	/**

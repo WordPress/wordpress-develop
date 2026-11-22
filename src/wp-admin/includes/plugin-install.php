@@ -103,18 +103,11 @@ function plugins_api( $action, $args = array() ) {
 	}
 
 	if ( 'query_plugins' === $action ) {
-		if ( ! isset( $args->per_page ) ) {
-			$args->per_page = 24;
-		}
+		$args->per_page ??= 24;
 	}
 
-	if ( ! isset( $args->locale ) ) {
-		$args->locale = get_user_locale();
-	}
-
-	if ( ! isset( $args->wp_version ) ) {
-		$args->wp_version = substr( wp_get_wp_version(), 0, 3 ); // x.y
-	}
+	$args->locale     ??= get_user_locale();
+	$args->wp_version ??= substr( wp_get_wp_version(), 0, 3 ); // x.y
 
 	/**
 	 * Filters the WordPress.org Plugin Installation API arguments.
@@ -223,9 +216,9 @@ function plugins_api( $action, $args = array() ) {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param object|WP_Error $res    Response object or WP_Error.
-	 * @param string          $action The type of information being requested from the Plugin Installation API.
-	 * @param object          $args   Plugin API arguments.
+	 * @param object|array|WP_Error $res    Response object or array, or WP_Error on failure.
+	 * @param string                $action The type of information being requested from the Plugin Installation API.
+	 * @param object                $args   Plugin API arguments.
 	 */
 	return apply_filters( 'plugins_api_result', $res, $action, $args );
 }

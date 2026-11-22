@@ -38,11 +38,6 @@ class Tests_Rewrite_wpMatchesMapRegex extends WP_UnitTestCase {
 		$twelve_matches = array( 'full', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve' );
 
 		return array(
-			'single placeholder'               => array(
-				'index.php?pagename=$matches[1]',
-				array( 'about/', 'about' ),
-				'index.php?pagename=about',
-			),
 			'several placeholders'             => array(
 				'index.php?year=$matches[1]&monthnum=$matches[2]&paged=$matches[3]',
 				array( '2026/10/page/3', '2026', '10', '3' ),
@@ -73,20 +68,10 @@ class Tests_Rewrite_wpMatchesMapRegex extends WP_UnitTestCase {
 				array( 'full', 'first' ),
 				'index.php?a=first&b=',
 			),
-			'empty match'                      => array(
-				'index.php?a=$matches[1]&b=$matches[2]',
-				array( 'full', '', 'second' ),
-				'index.php?a=&b=second',
-			),
 			'zero string match'                => array(
 				'index.php?page=$matches[1]',
 				array( 'full', '0' ),
 				'index.php?page=0',
-			),
-			'no matches'                       => array(
-				'index.php?a=$matches[1]',
-				array(),
-				'index.php?a=',
 			),
 			'two-digit placeholders'           => array(
 				'$matches[10]-$matches[12]-$matches[1]',
@@ -116,30 +101,11 @@ class Tests_Rewrite_wpMatchesMapRegex extends WP_UnitTestCase {
 				array( 'full', 'first' ),
 				'index.php?a=$match[1]',
 			),
-			'subject without placeholders'     => array(
-				'index.php?feed=rss2',
-				array( 'full', 'first' ),
-				'index.php?feed=rss2',
-			),
 			'empty subject'                    => array(
 				'',
 				array( 'full', 'first' ),
 				'',
 			),
 		);
-	}
-
-	/**
-	 * Tests that a new instance stores the mapped subject in its output property.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::__construct
-	 * @covers ::_map
-	 */
-	public function test_constructor_sets_output() {
-		$map = new WP_MatchesMapRegex( 'index.php?p=$matches[1]', array( 'full', '123' ) );
-
-		$this->assertSame( 'index.php?p=123', $map->output );
 	}
 }

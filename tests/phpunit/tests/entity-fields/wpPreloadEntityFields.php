@@ -96,7 +96,7 @@ class Tests_Entity_Fields_WpPreloadEntityFields extends WP_Entity_Fields_UnitTes
 	 *
 	 * @return array[]
 	 */
-	public function data_site_editor_screens() {
+	public static function data_site_editor_screens() {
 		return array(
 			'pages'         => array( '/page', array( 'page' ) ),
 			'page'          => array( '/page/12', array( 'page' ) ),
@@ -198,7 +198,7 @@ class Tests_Entity_Fields_WpPreloadEntityFields extends WP_Entity_Fields_UnitTes
 	 *
 	 * @return array[]
 	 */
-	public function data_non_array_paths() {
+	public static function data_non_array_paths() {
 		$object = new stdClass();
 
 		return array(
