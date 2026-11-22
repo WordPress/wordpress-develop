@@ -10,9 +10,8 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '' );
 
-		global $wp_scripts, $wp_styles;
+		global $wp_scripts;
 		$wp_scripts = null;
-		$wp_styles  = null;
 
 		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
