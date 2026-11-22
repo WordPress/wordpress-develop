@@ -86,6 +86,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
+		unset( $GLOBALS['wp_scripts'] );
+		unset( $GLOBALS['wp_styles'] );
 		$_REQUEST                      = array();
 		$GLOBALS['_wp_theme_features'] = self::$theme_features;
 
