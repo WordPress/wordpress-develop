@@ -34,7 +34,7 @@ class WP {
 	 * These are query variables that will hit a fatal error if they are given an
 	 * array instead of a single value.
 	 *
-	 * @since 7.1.0
+	 * @since 7.3.0
 	 * @var string[]
 	 */
 	public $single_value_query_vars = array( 'attachment', 'author_name', 'feed', 'post_format' );
