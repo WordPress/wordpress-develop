@@ -45,6 +45,17 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down() {
+		$this->wp_customize = null;
+		unset( $GLOBALS['wp_customize'] );
+		unset( $GLOBALS['wp_scripts'] );
+		unset( $GLOBALS['wp_styles'] );
+		parent::tear_down();
+	}
+
+	/**
 	 * Delete the $wp_customize global when cleaning up scope.
 	 */
 	public function clean_up_global_scope() {
