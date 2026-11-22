@@ -79,6 +79,11 @@ function _register_core_block_patterns_and_categories() {
 			'query-grid-posts',
 			'query-large-title-posts',
 			'query-offset-posts',
+			'navigation-overlay',
+			'navigation-overlay-black-bg',
+			'navigation-overlay-accent-bg',
+			'navigation-overlay-centered',
+			'navigation-overlay-centered-with-extras',
 		);
 
 		foreach ( $core_block_patterns as $core_block_pattern ) {
@@ -228,6 +233,13 @@ function _register_core_block_patterns_and_categories() {
 			'description' => __( 'A variety of header designs displaying your site title and navigation.' ),
 		)
 	);
+	register_block_pattern_category(
+		'navigation',
+		array(
+			'label'       => _x( 'Navigation', 'Block pattern category' ),
+			'description' => __( 'A variety of designs displaying site navigation.' ),
+		)
+	);
 }
 
 /**
@@ -265,6 +277,8 @@ function wp_normalize_remote_block_pattern( $pattern ) {
  * @since 6.3.0 Add 'pattern-directory/core' to the pattern's 'source'.
  *
  * @param WP_Screen $deprecated Unused. Formerly the screen that the current request was triggered from.
+ *
+ * @phpstan-param null $deprecated
  */
 function _load_remote_block_patterns( $deprecated = null ) {
 	if ( ! empty( $deprecated ) ) {

@@ -23,22 +23,18 @@ if ( ! function_exists( 'twentytwenty_generate_css' ) ) {
 	 * @return string Generated CSS.
 	 */
 	function twentytwenty_generate_css( $selector, $style, $value, $prefix = '', $suffix = '', $display = true ) {
-
-		$return = '';
-
 		/*
 		 * Bail early if we have no $selector elements or properties and $value.
 		 */
 		if ( ! $value || ! $selector ) {
-
-			return;
+			return '';
 		}
 
 		$return = sprintf( '%s { %s: %s; }', $selector, $style, $prefix . $value . $suffix );
 
 		if ( $display ) {
 
-			echo $return; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to double check this, but for now, we want to pass PHPCS ;)
+			echo $return;
 
 		}
 

@@ -1,6 +1,6 @@
 {
 	"name": "twentytwentyone",
-	"version": "2.7.0",
+	"version": "2.9.0",
 	"description": "Default WP Theme",
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
@@ -13,8 +13,19 @@
 	},
 	"homepage": "https://wordpress.org/themes/twentytwentyone/",
 	"engines": {
-		"node": ">=20.10.0",
-		"npm": ">=10.2.3"
+		"node": ">=24.18.0",
+		"npm": ">=11.16.0"
+	},
+	"devEngines": {
+		"runtime": {
+			"name": "node",
+			"version": ">=24.18.0"
+		},
+		"packageManager": {
+			"name": "npm",
+			"version": ">=11.16.0",
+			"onFail": "error"
+		}
 	},
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^6.34.0",
@@ -64,8 +75,6 @@
 		"build:rtl": "rtlcss style.css style-rtl.css",
 		"build:dark-rtl": "rtlcss assets/css/style-dark-mode.css assets/css/style-dark-mode-rtl.css",
 		"build:print": "sass assets/sass/07-utilities/print.scss:assets/css/print.css --style=expanded --source-map",
-		"build:ie": "postcss style.css -o assets/css/ie.css",
-		"build:ie-editor": "postcss assets/css/style-editor.css -o assets/css/ie-editor.css",
 		"build:stylelint": "stylelint **/*.css --fix --config .stylelintrc-css.json",
 		"build": "run-s \"build:*\"",
 		"watch": "chokidar \"**/*.scss\" -c \"npm run build\" --initial",

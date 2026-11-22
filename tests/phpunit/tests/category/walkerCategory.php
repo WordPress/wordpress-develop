@@ -56,7 +56,7 @@ class Tests_Category_Walker_Category extends WP_UnitTestCase {
 		$this->assertSame( "<li class=\"cat-item cat-item-{$category->term_id}\"><a href=\"{$link}\"{$expected}>{$category->name}</a>", trim( $output ) );
 	}
 
-	public function data_start_el_with_empty_attributes() {
+	public static function data_start_el_with_empty_attributes() {
 		return array(
 			array(
 				'',

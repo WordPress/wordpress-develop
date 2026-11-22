@@ -31,7 +31,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
-	 * @global int $post_id
+	 * @global int $post_id The ID of the post to show comments for.
 	 *
 	 * @param array $args An associative array of arguments.
 	 */
@@ -62,6 +62,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * @param string $name       Comment author name.
 	 * @param int    $comment_id Comment ID.
 	 * @return string Avatar with the user name.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function floated_admin_avatar( $name, $comment_id ) {
 		$comment = get_comment( $comment_id );
@@ -105,7 +107,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$comment_type = '';
 
-		if ( ! empty( $_REQUEST['comment_type'] ) && 'note' !== $_REQUEST['comment_type'] ) {
+		if ( ! empty( $_REQUEST['comment_type'] ) && ! in_array( $_REQUEST['comment_type'], array( 'note', 'reaction' ), true ) ) {
 			$comment_type = $_REQUEST['comment_type'];
 		}
 
@@ -155,7 +157,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			'number'                    => $number,
 			'post_id'                   => $post_id,
 			'type'                      => $comment_type,
-			'type__not_in'              => array( 'note' ),
+			'type__not_in'              => array( 'note', 'reaction' ),
 			'orderby'                   => $orderby,
 			'order'                     => $order,
 			'post_type'                 => $post_type,
@@ -224,8 +226,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 	/**
 	 * Displays a message when no comments are found.
-	 *
-	 * @global string $comment_status
+	 * @global string $comment_status The current comment status filter.
 	 */
 	public function no_items() {
 		global $comment_status;
@@ -242,9 +243,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 	/**
 	 * Returns an array of comment status links.
 	 *
-	 * @global int    $post_id
-	 * @global string $comment_status
-	 * @global string $comment_type
+	 * @global int    $post_id        The ID of the post to show comments for.
+	 * @global string $comment_status The current comment status.
+	 * @global string $comment_type   The current comment type.
 	 *
 	 * @return array<string, string> Comment status HTML links keyed by view.
 	 */
@@ -412,8 +413,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 	/**
 	 * Displays extra controls between bulk actions and pagination.
 	 *
-	 * @global string $comment_status
-	 * @global string $comment_type
+	 * @global string $comment_status Current comment status.
+	 * @global string $comment_type   Current comment type.
 	 *
 	 * @param string $which The location of the extra table nav markup: Either 'top' or 'bottom'.
 	 */
@@ -443,7 +444,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 			if ( ! empty( $output ) && $this->has_items() ) {
 				echo $output;
-				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+				submit_button( __( 'Filter' ), 'compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 			}
 		}
 
@@ -485,7 +486,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	/**
 	 * Gets the list of columns.
 	 *
-	 * @global int $post_id
+	 * @global int $post_id The ID of the post comments are being shown for.
 	 *
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
@@ -876,7 +877,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 				'replyto',
 				'vim-r comment-inline',
 				esc_attr__( 'Reply to this comment' ),
-				__( 'Reply' )
+				/* translators: Comment reply button text. */
+				_x( 'Reply', 'verb' )
 			);
 		}
 
@@ -1011,7 +1013,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	/**
 	 * Outputs the author column.
 	 *
-	 * @global string $comment_status
+	 * @global string $comment_status The current comment status.
 	 *
 	 * @param WP_Comment $comment The comment object.
 	 */

@@ -3,6 +3,8 @@
 /**
  * @group ms-required
  * @group multisite
+ *
+ * @covers ::wpmu_log_new_registrations
  */
 class Tests_Multisite_wpmuLogNewRegistrations extends WP_UnitTestCase {
 

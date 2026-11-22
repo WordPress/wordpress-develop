@@ -64,13 +64,13 @@ class WP_HTTP_Requests_Hooks extends WpOrg\Requests\Hooks {
 		 *
 		 * This action maps Requests internal hook to a native WordPress action.
 		 *
-		 * @see https://github.com/WordPress/Requests/blob/master/docs/hooks.md
-		 *
 		 * @since 4.7.0
 		 *
-		 * @param array $parameters Parameters from Requests internal hook.
-		 * @param array $request Request data in WP_Http format.
-		 * @param string $url URL to request.
+		 * @link https://github.com/WordPress/Requests/blob/stable/docs/hooks.md
+		 *
+		 * @param array  $parameters Parameters from Requests internal hook.
+		 * @param array  $request    Request data in WP_Http format.
+		 * @param string $url        URL to request.
 		 */
 		do_action_ref_array( "requests-{$hook}", $parameters, $this->request, $this->url ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 

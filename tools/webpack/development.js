@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-const TerserPlugin = require( 'terser-webpack-plugin' );
+const TerserPlugin = require( 'minimizer-webpack-plugin' );
 
 /**
  * Internal dependencies

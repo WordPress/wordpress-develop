@@ -17,6 +17,7 @@ if ( ! current_user_can( 'upload_files' ) ) {
 }
 
 wp_enqueue_script( 'plupload-handlers' );
+wp_enqueue_media_new_upload();
 
 $post_id = 0;
 if ( isset( $_REQUEST['post_id'] ) ) {
@@ -40,7 +41,7 @@ if ( $_POST ) {
 }
 
 // Used in the HTML title tag.
-$title       = __( 'Upload New Media' );
+$title       = __( 'Upload Media' );
 $parent_file = 'upload.php';
 
 get_current_screen()->add_help_tab(

@@ -208,7 +208,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * slugs cannot contain slashes.
 	 *
 	 * @since 5.9.0
-	 * @see https://core.trac.wordpress.org/ticket/54507
+	 * @link https://core.trac.wordpress.org/ticket/54507
 	 *
 	 * @param string $id Template ID.
 	 * @return string Sanitized template ID.
@@ -640,12 +640,11 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $request['author'] ) ) {
-			$post_author = (int) $request['author'];
+			$post_author    = (int) $request['author'];
+			$current_author = $template instanceof WP_Block_Template ? (int) $template->author : 0;
 
-			if ( get_current_user_id() !== $post_author ) {
-				$user_obj = get_userdata( $post_author );
-
-				if ( ! $user_obj ) {
+			if ( get_current_user_id() !== $post_author && $current_author !== $post_author ) {
+				if ( ! is_user_member_of_blog( $post_author ) ) {
 					return new WP_Error(
 						'rest_invalid_author',
 						__( 'Invalid author ID.' ),
@@ -667,12 +666,27 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 * @since 5.9.0 Renamed `$template` to `$item` to match parent class for PHP 8 named parameter support.
 	 * @since 6.3.0 Added `modified` property to the response.
+	 * @since 7.1.0 Added `date` property to the response.
+	 * @since 7.1.0 The `modified` property is `null` for templates that have no
+	 *              modification date.
+	 * @since 7.2.0 Returns a `WP_Error` instead of causing a fatal error
+	 *              when the template is `null`.
 	 *
-	 * @param WP_Block_Template $item    Template instance.
-	 * @param WP_REST_Request   $request Request object.
-	 * @return WP_REST_Response Response object.
+	 * @param WP_Block_Template|null $item    Template instance.
+	 * @param WP_REST_Request        $request Request object.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error when the template is `null`.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
+		/*
+		 * `update_item()` passes its `get_block_template()` refetches here
+		 * unchecked, both after writing an update and after deleting the
+		 * template's post on its revert-to-theme path. Reading `$item->content`
+		 * on `null` is a fatal error, so answer with an error response instead.
+		 */
+		if ( ! $item ) {
+			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
+		}
+
 		// Don't prepare the response body for HEAD requests.
 		if ( $request->is_method( 'HEAD' ) ) {
 			return new WP_REST_Response( array() );
@@ -775,7 +789,23 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'modified', $fields ) ) {
-			$data['modified'] = mysql_to_rfc3339( $template->modified );
+			/*
+			 * File-backed templates have no modification date, and `mysql_to_rfc3339()`
+			 * returns `false` for an empty or malformed value, which the schema does
+			 * not allow. Return `null` in that case.
+			 */
+			$modified         = mysql_to_rfc3339( $template->modified );
+			$data['modified'] = false !== $modified ? $modified : null;
+		}
+
+		if ( rest_is_field_included( 'date', $fields ) ) {
+			/*
+			 * File-backed templates have no date, and `mysql_to_rfc3339()` returns
+			 * `false` for an empty or malformed value, which the schema does not
+			 * allow. Return `null` in that case.
+			 */
+			$date         = mysql_to_rfc3339( $template->date );
+			$data['date'] = false !== $date ? $date : null;
 		}
 
 		if ( rest_is_field_included( 'author_text', $fields ) ) {
@@ -821,7 +851,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 6.5.0
 	 *
 	 * @param WP_Block_Template $template_object Template instance.
-	 * @return string                            Original source of the template one of theme, plugin, site, or user.
+	 * @return string Original source of the template one of theme, plugin, site, or user.
 	 */
 	private static function get_wp_templates_original_source_field( $template_object ) {
 		if ( 'wp_template' === $template_object->type || 'wp_template_part' === $template_object->type ) {
@@ -873,7 +903,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 6.5.0
 	 *
 	 * @param WP_Block_Template $template_object Template instance.
-	 * @return string                            Human readable text for the author.
+	 * @return string Human readable text for the author.
 	 */
 	private static function get_wp_templates_author_text_field( $template_object ) {
 		$original_source = self::get_wp_templates_original_source_field( $template_object );
@@ -936,7 +966,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param integer $id ID.
+	 * @param int $id ID.
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $id ) {
@@ -982,6 +1012,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @return string[] List of link relations.
+	 *
+	 * @phpstan-return array<non-falsy-string>
 	 */
 	protected function get_available_actions() {
 		$rels = array();
@@ -1149,7 +1181,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 				'modified'        => array(
 					'description' => __( "The date the template was last modified, in the site's timezone." ),
-					'type'        => 'string',
+					'type'        => array( 'string', 'null' ),
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
@@ -1171,6 +1203,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 						'site',
 						'user',
 					),
+				),
+				'date'            => array(
+					'description' => __( "The date the template was published, in the site's timezone." ),
+					'type'        => array( 'string', 'null' ),
+					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 			),
 		);
