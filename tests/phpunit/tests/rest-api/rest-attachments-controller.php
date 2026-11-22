@@ -1315,6 +1315,90 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that an attachment is readable when its parent was published and then trashed.
+	 *
+	 * @ticket 41445
+	 *
+	 * @covers WP_REST_Posts_Controller::check_read_permission
+	 */
+	public function test_get_item_with_trashed_published_parent_not_authenticated() {
+		wp_set_current_user( 0 );
+		$parent_id     = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$attachment_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			$parent_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+		wp_trash_post( $parent_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $attachment_id, $response->get_data()['id'] );
+	}
+
+	/**
+	 * Tests that an attachment stays private when its parent was a draft and then trashed.
+	 *
+	 * @ticket 41445
+	 *
+	 * @covers WP_REST_Posts_Controller::check_read_permission
+	 */
+	public function test_get_item_with_trashed_draft_parent_not_authenticated() {
+		wp_set_current_user( 0 );
+		$parent_id     = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		$attachment_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			$parent_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+		wp_trash_post( $parent_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
+	}
+
+	/**
+	 * Tests that featured media is embedded when the attachment's original parent was trashed.
+	 *
+	 * @ticket 41445
+	 *
+	 * @covers WP_REST_Posts_Controller::check_read_permission
+	 */
+	public function test_featured_media_is_embedded_when_parent_is_trashed() {
+		wp_set_current_user( 0 );
+		$first_post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$attachment_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			$first_post_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+		set_post_thumbnail( $first_post_id, $attachment_id );
+
+		$second_post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		set_post_thumbnail( $second_post_id, $attachment_id );
+
+		wp_trash_post( $first_post_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $second_post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = rest_get_server()->response_to_data( $response, true );
+
+		$this->assertArrayHasKey( 'wp:featuredmedia', $data['_embedded'] );
+		$this->assertArrayNotHasKey( 'code', $data['_embedded']['wp:featuredmedia'][0] );
+		$this->assertSame( $attachment_id, $data['_embedded']['wp:featuredmedia'][0]['id'] );
+	}
+
+	/**
 	 * @requires function imagejpeg
 	 */
 	public function test_create_item() {
