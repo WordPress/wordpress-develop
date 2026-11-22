@@ -44,7 +44,7 @@ jobs:
     name: Determine major WordPress version
     permissions:
       contents: read
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     outputs:
       version: ${{ steps.major-wp-version.outputs.version }}
@@ -80,7 +80,7 @@ jobs:
     name: Determine PHP versions
     permissions:
       contents: read
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [ major-wp-version ]
     timeout-minutes: 5
     outputs:
@@ -123,7 +123,7 @@ jobs:
     name: Determine MySQL versions
     permissions:
       contents: read
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [ major-wp-version ]
     timeout-minutes: 5
     outputs:
