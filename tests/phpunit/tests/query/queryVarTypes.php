@@ -436,6 +436,22 @@ class Tests_Query_QueryVarTypes extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a non-scalar random content flag is replaced with '1', so that it is still set.
+	 *
+	 * @ticket 60745
+	 */
+	public function test_random_given_non_scalar_is_set_to_one(): void {
+		$query = new WP_Query( array( 'random' => array( '1' ) ) );
+		$this->assertSame( '1', $query->query_vars['random'], 'Expected an array value to be replaced.' );
+
+		$query = new WP_Query( array( 'random' => new stdClass() ) );
+		$this->assertSame( '1', $query->query_vars['random'], 'Expected an object value to be replaced.' );
+
+		$query = new WP_Query( array( 'random' => '' ) );
+		$this->assertSame( '', $query->query_vars['random'], 'Expected an empty string to be kept.' );
+	}
+
+	/**
 	 * Tests that a non-scalar order is replaced with the default.
 	 *
 	 * @ticket 60745

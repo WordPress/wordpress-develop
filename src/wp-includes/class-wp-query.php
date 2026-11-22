@@ -141,6 +141,7 @@
  *     taxonomy?: scalar,
  *     term?: scalar,
  *     exact?: scalar,
+ *     random?: scalar,
  *     robots?: scalar,
  *     favicon?: scalar,
  *     perm?: scalar,
@@ -984,6 +985,15 @@ class WP_Query {
 		}
 		if ( isset( $query_vars['order'] ) && ! is_scalar( $query_vars['order'] ) ) {
 			unset( $query_vars['order'] );
+		}
+
+		/*
+		 * A flag for random content, which is only checked for whether it is set. Rewrite rules set it
+		 * to '1', and a query string may set it to an empty string or an array. Any other value is
+		 * replaced with '1', so that random content is still requested.
+		 */
+		if ( isset( $query_vars['random'] ) && ! is_scalar( $query_vars['random'] ) ) {
+			$query_vars['random'] = '1';
 		}
 
 		$query_vars['error']         = is_scalar( $query_vars['error'] ) ? $query_vars['error'] : '';
