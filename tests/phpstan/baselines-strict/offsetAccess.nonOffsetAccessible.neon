@@ -33,3 +33,43 @@ parameters:
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: ../../../src/wp-includes/abilities-api/class-wp-ability.php
+		-
+			message: '#^Cannot access an offset on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Cannot access offset ''alias'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Cannot access offset ''cast'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Cannot access offset ''field'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Cannot access offset ''key'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Cannot access offset ''terms'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Cannot access offset ''type'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Cannot access offset 0 on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: ../../../src/wp-includes/class-wp-query.php

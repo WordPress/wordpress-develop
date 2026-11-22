@@ -54,6 +54,7 @@ parameters:
 		- src/wp-includes/class-wp-connector-registry.php
 		- src/wp-includes/class-wp-error.php
 		- src/wp-includes/class-wp-post.php
+		- src/wp-includes/class-wp-query.php
 		- src/wp-includes/class-wp-url-pattern-prefixer.php
 		- src/wp-includes/html-api/class-wp-html-attribute-token.php
 		- src/wp-includes/html-api/class-wp-html-decoder.php

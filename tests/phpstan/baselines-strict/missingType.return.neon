@@ -19,6 +19,71 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Method WP_Query\:\:init\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:init_query_flags\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:parse_query\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:parse_query_vars\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:parse_tax_query\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:reset_postdata\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:rewind_comments\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:rewind_posts\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:set\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:set_404\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:set_found_posts\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:the_comment\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:the_post\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
 			message: '#^Method WP_Style_Engine_CSS_Rules_Store\:\:remove_all_stores\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1

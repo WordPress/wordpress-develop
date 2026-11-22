@@ -44,6 +44,161 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ai-client/adapters/class-wp-ai-client-http-client.php
 		-
+			message: '#^Parameter \#1 \$args of function wp_parse_args expects array\<string, mixed\>\|object\|string, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$args of function wp_parse_args expects array\<string, mixed\>\|object\|string, array\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$arr1 of function array_intersect expects an array of values castable to string, array\<int, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$array of function array_unique expects an array of values castable to string, array\<mixed, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$array of function reset expects array\|object, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(bool\|float\|int\|string\)\: mixed\)\|null, ''sanitize_title_for…'' given\.$#'
+			identifier: argument.type
+			count: 3
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, ''get_post'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, ''sanitize_title_for…'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$capability of function current_user_can expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$field of function get_term_by expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$ids of function _prime_post_caches expects array\<int\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$input of function array_reduce expects array\<int\|stdClass\|WP_Post\>, array\<int\|stdClass\|WP_Post\>\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$page of method WP_Query\:\:is_page\(\) expects array\<int\|string\>\|int\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$path of function wp_basename expects string, bool\|float\|int\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$post of function get_post expects int\|object\|decimal\-int\-string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$post of method WP_Query\:\:setup_postdata\(\) expects int\|object, WP_Post\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$post_type of function get_post_type_object expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$posts of function update_post_author_caches expects array\<WP_Post\>, array\<int\|stdClass\|WP_Post\|null\>\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$tax_query of class WP_Tax_Query constructor expects array\{relation\?\: string, \.\.\.\}, array\<mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#1 \$term of function get_term expects int\|object, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, list\<string\>\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 4
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, list\<mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#2 \$haystack of function in_array expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#2 \$str of function explode expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#2 \$update_term_cache of function _prime_post_caches expects bool, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#2 \$value of function get_term_by expects int\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 5
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#2 \$value of function get_user_by expects int\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#2 \$value of function sanitize_term_field expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Parameter \#3 \$update_meta_cache of function _prime_post_caches expects bool, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
 			message: '#^Parameter \#4 \$options of static method WP_Style_Engine_CSS_Declarations\:\:filter_declaration\(\) expects array\{important\?\: bool, \.\.\.\}, mixed given\.$#'
 			identifier: argument.type
 			count: 1

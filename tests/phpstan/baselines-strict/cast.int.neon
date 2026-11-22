@@ -23,3 +23,8 @@ parameters:
 			identifier: cast.int
 			count: 1
 			path: ../../../src/wp-includes/class-wp-post.php
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 6
+			path: ../../../src/wp-includes/class-wp-query.php
