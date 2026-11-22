@@ -2262,6 +2262,7 @@ function filter_block_core_template_part_attributes( $attribute_value, $attribut
  * this function renders the blocks that are most likely to contain such text.
  *
  * @since 5.0.0
+ * @since 7.3.0 Renders the inner blocks that block bindings supply.
  *
  * @param string $content The content to parse.
  * @return string The parsed and filtered content.
@@ -2331,6 +2332,11 @@ function excerpt_remove_blocks( $content ) {
 		}
 
 		if ( in_array( $block['blockName'], $allowed_blocks, true ) ) {
+			if ( isset( $block['attrs']['metadata']['bindings']['innerBlocks'] ) && in_array( 'innerBlocks', get_block_bindings_supported_attributes( $block['blockName'] ), true ) ) {
+				$output .= _excerpt_render_bound_inner_blocks( $block, $allowed_blocks );
+				continue;
+			}
+
 			if ( ! empty( $block['innerBlocks'] ) ) {
 				if ( in_array( $block['blockName'], $allowed_wrapper_blocks, true ) ) {
 					$output .= _excerpt_render_inner_blocks( $block, $allowed_blocks );
@@ -2381,6 +2387,7 @@ function excerpt_remove_footnotes( $content ) {
  * for generating an excerpt.
  *
  * @since 5.8.0
+ * @since 7.3.0 Renders the inner blocks that block bindings supply.
  * @access private
  *
  * @param array $parsed_block   The parsed block.
@@ -2403,7 +2410,9 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
 			continue;
 		}
 
-		if ( empty( $inner_block['innerBlocks'] ) ) {
+		if ( isset( $inner_block['attrs']['metadata']['bindings']['innerBlocks'] ) && in_array( 'innerBlocks', get_block_bindings_supported_attributes( $inner_block['blockName'] ), true ) ) {
+			$output .= _excerpt_render_bound_inner_blocks( $inner_block, $allowed_blocks );
+		} elseif ( empty( $inner_block['innerBlocks'] ) ) {
 			$output .= render_block( $inner_block );
 		} else {
 			$output .= _excerpt_render_inner_blocks( $inner_block, $allowed_blocks );
@@ -2411,6 +2420,39 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
 	}
 
 	return $output;
+}
+
+/**
+ * Renders a block whose inner blocks a block bindings source supplies, for
+ * generating an excerpt.
+ *
+ * The block renders as on the front end, so its binding resolves with the same
+ * rules, and the blocks the excerpt doesn't allow render nothing.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param array $parsed_block   The parsed block.
+ * @param array $allowed_blocks The list of allowed blocks.
+ * @return string The rendered block.
+ */
+function _excerpt_render_bound_inner_blocks( $parsed_block, $allowed_blocks ) {
+	$skip_disallowed_blocks = static function ( $pre_render, $block ) use ( $allowed_blocks ) {
+		if (
+			false === ( $block['attrs']['metadata']['blockVisibility'] ?? null ) ||
+			! in_array( $block['blockName'], $allowed_blocks, true )
+		) {
+			return '';
+		}
+		return $pre_render;
+	};
+
+	add_filter( 'pre_render_block', $skip_disallowed_blocks, 10, 2 );
+	try {
+		return render_block( $parsed_block );
+	} finally {
+		remove_filter( 'pre_render_block', $skip_disallowed_blocks );
+	}
 }
 
 /**

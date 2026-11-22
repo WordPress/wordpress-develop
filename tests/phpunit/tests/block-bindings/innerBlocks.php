@@ -846,4 +846,90 @@ class Tests_Block_Bindings_InnerBlocks extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<iframe class="test-embed" src="https://example.org/embed/one"></iframe>', $output );
 		$this->assertStringContainsString( '<iframe class="test-embed" src="https://example.org/embed/two"></iframe>', $output );
 	}
+
+	/**
+	 * @ticket 66415
+	 *
+	 * @covers ::excerpt_remove_blocks
+	 */
+	public function test_excerpt_has_the_text_of_the_value() {
+		$this->value = '<!-- wp:paragraph --><p>One</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->';
+		$excerpt     = excerpt_remove_blocks( $this->bound_group_markup( array(), 'Default' ) );
+		$this->assertStringContainsString( '>One</p>', $excerpt );
+		$this->assertStringContainsString( '>Two</p>', $excerpt );
+		$this->assertStringNotContainsString( 'Default', $excerpt );
+	}
+
+	/**
+	 * @ticket 66415
+	 *
+	 * @covers ::excerpt_remove_blocks
+	 */
+	public function test_excerpt_of_a_rejected_value_has_the_text_of_the_own_inner_blocks() {
+		$this->value = 'Plain text';
+		$excerpt     = excerpt_remove_blocks( $this->bound_group_markup( array(), 'Default' ) );
+		$this->assertStringContainsString( '>Default</p>', $excerpt );
+		$this->assertStringNotContainsString( 'Plain text', $excerpt );
+	}
+
+	/**
+	 * @ticket 66415
+	 *
+	 * @covers ::excerpt_remove_blocks
+	 */
+	public function test_excerpt_of_the_value_is_sanitized() {
+		$this->value = '<!-- wp:paragraph --><p>One<script>alert(1)</script></p><!-- /wp:paragraph -->';
+		$excerpt     = excerpt_remove_blocks( $this->bound_group_markup( array(), 'Default' ) );
+		$this->assertStringContainsString( 'One', $excerpt );
+		$this->assertStringNotContainsString( '<script', $excerpt );
+	}
+
+	/**
+	 * @ticket 66415
+	 *
+	 * @covers ::excerpt_remove_blocks
+	 */
+	public function test_excerpt_leaves_out_the_blocks_of_the_value_that_excerpts_do_not_allow() {
+		$this->value = '<!-- wp:paragraph --><p>One</p><!-- /wp:paragraph --><!-- wp:code --><pre class="wp-block-code"><code>Code</code></pre><!-- /wp:code -->';
+		$excerpt     = excerpt_remove_blocks( $this->bound_group_markup( array(), 'Default' ) );
+		$this->assertStringContainsString( '>One</p>', $excerpt );
+		$this->assertStringNotContainsString( 'Code', $excerpt );
+	}
+
+	/**
+	 * @ticket 66415
+	 *
+	 * @covers ::excerpt_remove_blocks
+	 */
+	public function test_excerpt_leaves_out_the_blocks_that_excerpts_do_not_allow_from_the_value_of_a_group_without_own_inner_blocks() {
+		$this->value = '<!-- wp:paragraph --><p>One</p><!-- /wp:paragraph --><!-- wp:code --><pre class="wp-block-code"><code>Code</code></pre><!-- /wp:code -->';
+		$excerpt     = excerpt_remove_blocks( '<!-- wp:group {"metadata":{"bindings":{"innerBlocks":{"source":"' . self::SOURCE . '"}}}} --><div class="wp-block-group"></div><!-- /wp:group -->' );
+		$this->assertStringContainsString( '>One</p>', $excerpt );
+		$this->assertStringNotContainsString( 'Code', $excerpt );
+	}
+
+	/**
+	 * @ticket 66415
+	 *
+	 * @covers ::excerpt_remove_blocks
+	 */
+	public function test_excerpt_has_the_text_of_the_value_of_a_group_inside_another_group() {
+		$this->value = '<!-- wp:paragraph --><p>One</p><!-- /wp:paragraph -->';
+		$excerpt     = excerpt_remove_blocks( '<!-- wp:group --><div class="wp-block-group">' . $this->bound_group_markup( array(), 'Default' ) . '</div><!-- /wp:group -->' );
+		$this->assertStringContainsString( '>One</p>', $excerpt );
+		$this->assertStringNotContainsString( 'Default', $excerpt );
+	}
+
+	/**
+	 * @ticket 66415
+	 *
+	 * @covers ::excerpt_remove_blocks
+	 */
+	public function test_excerpt_ignores_bindings_to_the_same_source_inside_the_value() {
+		$this->value = $this->bound_group_markup();
+		$excerpt     = excerpt_remove_blocks( $this->bound_group_markup( array(), 'Default' ) );
+		$this->assertStringContainsString( '>Nested own</p>', $excerpt );
+		$this->assertStringNotContainsString( 'Default', $excerpt );
+		$this->assertSame( 1, $this->inner_blocks_calls );
+	}
 }
