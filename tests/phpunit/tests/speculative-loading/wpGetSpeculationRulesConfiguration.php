@@ -331,12 +331,20 @@ class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_Un
 	 */
 	public static function data_default_eagerness_with_page_cache(): array {
 		return array(
-			'no object cache, no transient'               => array(
+			'no object cache, no transient'                 => array(
 				false,
 				null,
 				'conservative',
 			),
-			'object cache, no transient'                  => array(
+			'no object cache, page cache signals present'   => array(
+				false,
+				array(
+					'advanced_cache_present'   => true,
+					'caching_response_headers' => array( 'cache-control' ),
+				),
+				'conservative',
+			),
+			'object cache, no transient'                    => array(
 				true,
 				null,
 				'conservative',
@@ -349,7 +357,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_Un
 				),
 				'conservative',
 			),
-			'object cache, advanced-cache only'           => array(
+			'object cache, advanced-cache only'             => array(
 				true,
 				array(
 					'advanced_cache_present'   => true,
@@ -357,7 +365,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_Un
 				),
 				'moderate',
 			),
-			'object cache, caching response headers only' => array(
+			'object cache, caching response headers only'   => array(
 				true,
 				array(
 					'advanced_cache_present'   => false,
@@ -365,7 +373,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_Un
 				),
 				'moderate',
 			),
-			'object cache, both signals present'          => array(
+			'object cache, both signals present'            => array(
 				true,
 				array(
 					'advanced_cache_present'   => true,
@@ -453,43 +461,21 @@ class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_Un
 	}
 
 	/**
-	 * A `null` page-cache detail transient must not cause an error or warning.
-	 * The function should gracefully fall back to the `conservative` default.
-	 *
-	 * @ticket 64066
-	 */
-	public function test_null_page_cache_detail_transient_does_not_promote() {
-		wp_using_ext_object_cache( true );
-
-		// Explicitly ensure the transient is absent.
-		delete_transient( self::PAGE_CACHE_DETAIL_TRANSIENT );
-
-		$config = wp_get_speculation_rules_configuration();
-
-		$this->assertIsArray( $config );
-		$this->assertSame( 'conservative', $config['eagerness'] );
-	}
-
-	/**
-	 * A transient whose value is not an array (e.g. a serialized boolean
-	 * left over from a corrupt update) must not promote the default eagerness
-	 * and must not emit warnings under `beStrictAboutOutputDuringTests`.
+	 * A transient whose value is not an array (e.g. a string or boolean
+	 * from an unexpected update) must not promote the default eagerness.
 	 *
 	 * @ticket 64066
 	 */
 	public function test_non_array_page_cache_detail_transient_does_not_promote() {
 		wp_using_ext_object_cache( true );
 
-		// Use the underlying option API directly to bypass array-shape validation
-		// that `set_transient()` may apply in future versions.
-		update_option( '_transient_' . self::PAGE_CACHE_DETAIL_TRANSIENT, 'yes' );
+		set_transient( self::PAGE_CACHE_DETAIL_TRANSIENT, 'invalid' );
+		$this->assertSame( 'invalid', get_transient( self::PAGE_CACHE_DETAIL_TRANSIENT ) );
 
 		$config = wp_get_speculation_rules_configuration();
 
 		$this->assertIsArray( $config );
 		$this->assertSame( 'conservative', $config['eagerness'] );
-
-		delete_option( '_transient_' . self::PAGE_CACHE_DETAIL_TRANSIENT );
 	}
 
 	/**
