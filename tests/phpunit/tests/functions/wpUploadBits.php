@@ -31,6 +31,8 @@ class Tests_Functions_wpUploadBits extends WP_UnitTestCase {
 
 	/**
 	 * Tests that a complete write is reported as a success.
+	 *
+	 * @ticket 66786
 	 */
 	public function test_should_return_the_file_when_all_bytes_are_written() {
 		$actual = $this->upload_bits_to_stream( 'WP_Test_Stream', 'File contents.' );
@@ -42,6 +44,8 @@ class Tests_Functions_wpUploadBits extends WP_UnitTestCase {
 
 	/**
 	 * Tests that an incomplete write is reported as an error.
+	 *
+	 * @ticket 66786
 	 */
 	public function test_should_return_an_error_when_not_all_bytes_are_written() {
 		$actual = $this->upload_bits_to_stream( 'WP_Test_Stream_Upload_Bits_Short_Write', 'File contents.' );
@@ -54,6 +58,8 @@ class Tests_Functions_wpUploadBits extends WP_UnitTestCase {
 	 * Tests that a failure while flushing the stream is reported as an error.
 	 *
 	 * PHP 8.6 is the first version where fclose() reports flush and close failures.
+	 *
+	 * @ticket 66786
 	 *
 	 * @requires PHP >= 8.6
 	 */
