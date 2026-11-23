@@ -78,7 +78,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'Introducing Ipsum, the next default theme' ); ?></h3>
 				<p>
 					<strong><?php _e( 'A blank canvas, until real words arrive.' ); ?></strong><br />
-					<?php _e( 'WordPress 7.2 introduces Ipsum, a minimal default theme built around blogging so your writing is the main focus. It starts simple on purpose, with various patterns to match how you want your content to shine and style variations that change the whole look in a click..' ); ?>
+					<?php _e( 'WordPress 7.2 introduces Ipsum, a minimal default theme built around blogging so your writing is the main focus. It starts simple on purpose, with various patterns to match how you want your content to shine and style variations that change the whole look in a click.' ); ?>
 				</p>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
@@ -108,7 +108,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'React on notes' ); ?></h3>
 				<p>
 					<strong><?php _e( 'Say it with an emoji.' ); ?></strong><br />
-					<?php _e( 'Emoji reactions now available in Notes. Acknowledge feedback, agree with a note, or celebrate a finished draft without writing a reply. Hover a reaction to see who left it, or click it to add your own.' ); ?>
+					<?php _e( 'Emoji reactions are now available in Notes. Acknowledge feedback, agree with a note, or celebrate a finished draft without writing a reply. Hover a reaction to see who left it, or click it to add your own.' ); ?>
 				</p>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
