@@ -80,9 +80,9 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 
 		reset_mbstring_encoding();
 
-		fclose( $fp );
+		$closed = fclose( $fp );
 
-		if ( $data_length !== $bytes_written ) {
+		if ( $data_length !== $bytes_written || ! $closed ) {
 			return false;
 		}
 
