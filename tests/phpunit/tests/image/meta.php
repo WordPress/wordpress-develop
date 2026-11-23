@@ -182,6 +182,36 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that Exif data is read from a WebP image when PHP supports it.
+	 *
+	 * @ticket 66789
+	 *
+	 * @requires PHP >= 8.6
+	 */
+	public function test_exif_webp() {
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/webp-exif.webp' );
+
+		$this->assertSame( 'Synthetic test author', $out['credit'], 'The credit should be read from the Exif data.' );
+		$this->assertSame( 'Synthetic test copyright', $out['copyright'], 'The copyright should be read from the Exif data.' );
+		$this->assertSame( '6', (string) $out['orientation'], 'The orientation should be read from the Exif data.' );
+	}
+
+	/**
+	 * Tests that a WebP image is not passed to exif_read_data() on PHP versions that cannot read it.
+	 *
+	 * @ticket 66789
+	 *
+	 * @requires PHP < 8.6
+	 */
+	public function test_exif_webp_is_not_read_before_php_8_6() {
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/webp-exif.webp' );
+
+		$this->assertSame( '', $out['credit'], 'The credit should be empty.' );
+		$this->assertSame( '', $out['copyright'], 'The copyright should be empty.' );
+		$this->assertSame( '0', (string) $out['orientation'], 'The orientation should be the default.' );
+	}
+
+	/**
 	 * @ticket 9417
 	 */
 	public function test_utf8_iptc_tags() {

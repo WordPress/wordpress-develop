@@ -931,15 +931,23 @@ function wp_read_image_metadata( $file ) {
 
 	$exif = array();
 
+	$exif_image_types = array( IMAGETYPE_JPEG, IMAGETYPE_TIFF_II, IMAGETYPE_TIFF_MM );
+
+	// As of PHP 8.6, exif_read_data() can read Exif data from WebP images.
+	if ( PHP_VERSION_ID >= 80600 ) {
+		$exif_image_types[] = IMAGETYPE_WEBP;
+	}
+
 	/**
 	 * Filters the image types to check for exif data.
 	 *
 	 * @since 2.5.0
+	 * @since 7.3.0 `IMAGETYPE_WEBP` is included by default on PHP 8.6 and later.
 	 *
 	 * @param int[] $image_types Array of image types to check for exif data. Each value
 	 *                           is usually one of the `IMAGETYPE_*` constants.
 	 */
-	$exif_image_types = apply_filters( 'wp_read_image_metadata_types', array( IMAGETYPE_JPEG, IMAGETYPE_TIFF_II, IMAGETYPE_TIFF_MM ) );
+	$exif_image_types = apply_filters( 'wp_read_image_metadata_types', $exif_image_types );
 
 	if ( is_callable( 'exif_read_data' ) && in_array( $image_type, $exif_image_types, true ) ) {
 		// Don't silence errors when in debug mode, unless running unit tests.
