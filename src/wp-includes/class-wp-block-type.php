@@ -497,6 +497,7 @@ class WP_Block_Type {
 	 * defaulted and missing values.
 	 *
 	 * @since 5.0.0
+	 * @since 7.3.0 Validates the `datetime` and `url` types as strings with a format.
 	 *
 	 * @param array $attributes Original block attributes.
 	 * @return array Prepared block attributes.
@@ -515,7 +516,7 @@ class WP_Block_Type {
 				continue;
 			}
 
-			$schema = $this->attributes[ $attribute_name ];
+			$schema = _wp_get_block_attribute_json_schema( $this->attributes[ $attribute_name ] );
 
 			// Validate value by JSON schema. An invalid value should revert to
 			// its default, if one exists. This occurs by virtue of the missing

@@ -255,6 +255,53 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66852
+	 *
+	 * @dataProvider data_prepare_attributes_field_api_types
+	 *
+	 * @param string $type     Attribute type.
+	 * @param mixed  $value    Attribute value.
+	 * @param bool   $is_valid Whether the value is kept.
+	 */
+	public function test_prepare_attributes_field_api_types( $type, $value, $is_valid ) {
+		$block_type = new WP_Block_Type(
+			'core/fake',
+			array(
+				'attributes' => array(
+					'value' => array(
+						'type' => $type,
+					),
+				),
+			)
+		);
+
+		$prepared_attributes = $block_type->prepare_attributes_for_render( array( 'value' => $value ) );
+
+		$this->assertSame( $is_valid ? array( 'value' => $value ) : array(), $prepared_attributes );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_prepare_attributes_field_api_types() {
+		return array(
+			'datetime from new Date()'      => array( 'datetime', '2025-12-03T17:48:48.089Z', true ),
+			'datetime from the date picker' => array( 'datetime', '2026-07-30T04:30:00', true ),
+			'datetime from core/post-data'  => array( 'datetime', '2025-12-03T17:48:48+00:00', true ),
+			'datetime with a space'         => array( 'datetime', '2025-01-01 00:00:00', true ),
+			'datetime with only a date'     => array( 'datetime', '2025-12-03', false ),
+			'datetime that is not a date'   => array( 'datetime', 'not a date', false ),
+			'datetime that is a number'     => array( 'datetime', 1764784128, false ),
+			'datetime that is null'         => array( 'datetime', null, false ),
+			'absolute url'                  => array( 'url', 'https://wordpress.org/', true ),
+			'relative url'                  => array( 'url', '/about/', true ),
+			'url that is a number'          => array( 'url', 5, false ),
+		);
+	}
+
+	/**
 	 * @ticket 45145
 	 */
 	public function test_prepare_attributes_none_defined() {

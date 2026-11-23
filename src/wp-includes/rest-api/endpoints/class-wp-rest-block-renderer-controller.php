@@ -30,6 +30,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 * Registers the necessary REST API routes, one for each dynamic block.
 	 *
 	 * @since 5.0.0
+	 * @since 7.3.0 Validates the `datetime` and `url` attribute types as strings with a format.
 	 *
 	 * @see register_rest_route()
 	 */
@@ -64,7 +65,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 
 								$schema = array(
 									'type'                 => 'object',
-									'properties'           => $block->get_attributes(),
+									'properties'           => array_map( '_wp_get_block_attribute_json_schema', $block->get_attributes() ),
 									'additionalProperties' => false,
 								);
 
@@ -80,7 +81,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 
 								$schema = array(
 									'type'                 => 'object',
-									'properties'           => $block->get_attributes(),
+									'properties'           => array_map( '_wp_get_block_attribute_json_schema', $block->get_attributes() ),
 									'additionalProperties' => false,
 								);
 

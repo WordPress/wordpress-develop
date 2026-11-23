@@ -3467,3 +3467,29 @@ function _wp_enqueue_auto_register_blocks() {
 		);
 	}
 }
+
+/**
+ * Maps a block attribute schema to the JSON Schema used to validate its value.
+ *
+ * Block attributes can use the types `datetime` and `url`, which
+ * aren't JSON Schema types. They are validated as strings with a format.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param array $schema Block attribute schema.
+ * @return array JSON Schema for the attribute value.
+ */
+function _wp_get_block_attribute_json_schema( $schema ) {
+	$formats = array(
+		'datetime' => 'date-time',
+		'url'      => 'uri',
+	);
+
+	if ( isset( $schema['type'] ) && is_string( $schema['type'] ) && isset( $formats[ $schema['type'] ] ) ) {
+		$schema['format'] = $formats[ $schema['type'] ];
+		$schema['type']   = 'string';
+	}
+
+	return $schema;
+}
