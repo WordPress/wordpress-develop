@@ -1261,7 +1261,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @param string $email  Unused, since pingbacks have no author email address.
 	 * @param string $url    Linking page URL containing some form of line feed.
 	 */
-	public function test_pingback_cannot_inject_into_comment_notifications( $author, $email, $url ) {
+	public function test_pingback_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
 		/**
 		 * @see wp_xmlrpc_server::pingback_ping().
 		 */
