@@ -26,7 +26,8 @@
  *   mc|key                keys on the memcached servers
  *   stale|source|blog|group|key[|option]
  *                         cached option/network option disagreeing with the DB
- *   global|name[|key]     globals, arrays one level deeper; $wpdb minus query noise
+ *   global|name[|key]     globals, arrays one level deeper; $wpdb minus query noise,
+ *                         $wp_object_cache minus its entries and counters
  *   static|Class::$prop   class static properties
  *   fstatic|fn()|$var     static variables of functions and methods
  *   const|NAME            user-defined constants
@@ -37,10 +38,13 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;
 
-	const SKIP_GLOBALS = array( 'GLOBALS', 'wp_object_cache', 'timestart', 'argv', 'argc', '__composer_autoload_files', '__PHPUNIT_BOOTSTRAP' );
+	const SKIP_GLOBALS = array( 'GLOBALS', 'timestart', 'argv', 'argc', '__composer_autoload_files', '__PHPUNIT_BOOTSTRAP' );
 
 	// $wpdb properties that change on every query, the listener's own included.
 	const WPDB_NOISE = array( 'last_query', 'last_result', 'col_info', 'queries', 'num_queries', 'num_rows', 'rows_affected', 'insert_id', 'result', 'func_call', 'time_start', 'last_error', 'dbh', 'col_meta' );
+
+	// $wp_object_cache entries, snapshotted by cache(), and hit counters, which every read changes.
+	const CACHE_NOISE = array( 'cache', 'cache_hits', 'cache_misses' );
 
 	// Test tooling, PHPUnit 5's PEAR-style names (PHPUnit_, PHP_Timer, ...) included.
 	const SKIP_PREFIXES = array( 'PHPUnit', 'PHP_', 'Text_Template', 'File_Iterator', 'Composer\\', 'SebastianBergmann\\', 'Doctrine\\', 'Yoast\\', __CLASS__ );
@@ -678,6 +682,10 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 				$value = array_diff_key( $this->props( $value ), array_flip( self::WPDB_NOISE ) );
 			}
 
+			if ( 'wp_object_cache' === $name && is_object( $value ) ) {
+				$value = array_diff_key( $this->props( $value ), array_flip( self::CACHE_NOISE ) );
+			}
+
 			if ( is_array( $value ) && $value ) {
 				// The listener's own queries run the `query` filter too.
 				if ( 'wp_filters' === $name ) {
@@ -757,7 +765,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 					continue;
 				}
 
-				$functions[ "$class_name::{$method->getName()}()" ] = $inherited ? new ReflectionMethod( $class_name, $method->getName() ) : $method;
+				$functions[ "$class_name::{$method->getName()}()" ] = $method;
 			}
 		}
 
@@ -836,6 +844,12 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			if ( ! str_starts_with( $file->getFilename(), self::PHPUNIT_TEMP_PREFIX ) ) {
 				$state[ "file|$path" ] = $this->file( $file );
 			}
+		}
+
+		// The listener's own output, e.g. with WP_TESTS_LEAKS_OUT in the temp dir.
+		$own = realpath( $this->out );
+		if ( false !== $own ) {
+			unset( $state[ "file|$own" ] );
 		}
 
 		return $state;

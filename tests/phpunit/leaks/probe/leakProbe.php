@@ -77,6 +77,11 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 		$this->assertSame( array( 'leak-probe-admin' ), get_site_option( 'site_admins' ) );
 	}
 
+	public function test_leaks_cache_global_group() {
+		wp_cache_add_global_groups( 'leak_probe_group' );
+		$this->assertTrue( true );
+	}
+
 	public function test_leaks_function_static_var() {
 		$this->assertSame( 1, leak_probe_counter() );
 		$this->assertSame( 1, self::method_counter() );

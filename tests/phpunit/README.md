@@ -47,6 +47,7 @@ To find out why a class only fails after others, run it alone and in sequence, e
 
 ```
 node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_OUT=/var/www/tests/phpunit/build/leaks/alone.jsonl php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --filter Tests_Class_Name
+node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_OUT=/var/www/tests/phpunit/build/leaks/sequence.jsonl php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --filter 'Tests_Earlier_Class|Tests_Class_Name'
 node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/diff.php tests/phpunit/build/leaks/alone.jsonl tests/phpunit/build/leaks/sequence.jsonl Tests_Class_Name
 ```
 
