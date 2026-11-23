@@ -197,18 +197,99 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a WebP image is not passed to exif_read_data() on PHP versions that cannot read it.
+	 * Tests that WebP is only one of the default image types read for Exif data on PHP 8.6 and later.
+	 *
+	 * @ticket 66789
+	 */
+	public function test_webp_is_a_default_exif_image_type_as_of_php_8_6() {
+		$image_types = null;
+
+		add_filter(
+			'wp_read_image_metadata_types',
+			static function ( $types ) use ( &$image_types ) {
+				$image_types = $types;
+				return $types;
+			}
+		);
+
+		wp_read_image_metadata( DIR_TESTDATA . '/images/webp-exif.webp' );
+
+		$this->assertIsArray( $image_types, 'The filter should have been applied.' );
+		$this->assertContains( IMAGETYPE_JPEG, $image_types, 'JPEG should be a default image type.' );
+
+		if ( PHP_VERSION_ID >= 80600 ) {
+			$this->assertContains( IMAGETYPE_WEBP, $image_types, 'WebP should be a default image type on PHP 8.6 and later.' );
+		} else {
+			$this->assertNotContains( IMAGETYPE_WEBP, $image_types, 'WebP should not be a default image type before PHP 8.6.' );
+		}
+	}
+
+	/**
+	 * Tests that a WebP image without Exif data is not passed to exif_read_data().
+	 *
+	 * On PHP 8.6.0, exif_read_data() raises an "Invalid WebP file" warning for such an image.
+	 * The warning is silenced while running the tests, but still reaches a custom error handler.
 	 *
 	 * @ticket 66789
 	 *
-	 * @requires PHP < 8.6
+	 * @dataProvider data_webp_without_exif
+	 *
+	 * @param string $file Name of a WebP image that has no Exif data.
 	 */
-	public function test_exif_webp_is_not_read_before_php_8_6() {
-		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/webp-exif.webp' );
+	public function test_webp_without_exif_does_not_raise_a_warning( $file ) {
+		add_filter(
+			'wp_read_image_metadata_types',
+			static function ( $types ) {
+				$types[] = IMAGETYPE_WEBP;
+				return $types;
+			}
+		);
 
+		$errors = array();
+
+		set_error_handler(
+			static function ( $errno, $errstr ) use ( &$errors ) {
+				$errors[] = $errstr;
+				return true;
+			}
+		);
+
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/' . $file );
+
+		restore_error_handler();
+
+		$this->assertSame( array(), $errors, 'No error should be raised.' );
+		$this->assertIsArray( $out, 'The image metadata should be returned.' );
 		$this->assertSame( '', $out['credit'], 'The credit should be empty.' );
-		$this->assertSame( '', $out['copyright'], 'The copyright should be empty.' );
-		$this->assertSame( '0', (string) $out['orientation'], 'The orientation should be the default.' );
+		$this->assertSame( 0, (int) $out['orientation'], 'The orientation should be the default.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_webp_without_exif() {
+		return array(
+			'lossy'                   => array( 'webp-lossy.webp' ),
+			'lossless'                => array( 'webp-lossless.webp' ),
+			'extended with alpha'     => array( 'webp-transparent.webp' ),
+			'extended with animation' => array( 'webp-animated.webp' ),
+		);
+	}
+
+	/**
+	 * Tests the detection of Exif data in WebP images.
+	 *
+	 * @ticket 66789
+	 *
+	 * @covers ::_wp_webp_has_exif_data
+	 */
+	public function test_wp_webp_has_exif_data() {
+		$this->assertTrue( _wp_webp_has_exif_data( DIR_TESTDATA . '/images/webp-exif.webp' ), 'A WebP image with the Exif flag should be detected.' );
+		$this->assertFalse( _wp_webp_has_exif_data( DIR_TESTDATA . '/images/webp-transparent.webp' ), 'An extended WebP image without the Exif flag should not be detected.' );
+		$this->assertFalse( _wp_webp_has_exif_data( DIR_TESTDATA . '/images/webp-lossy.webp' ), 'A simple WebP image should not be detected.' );
+		$this->assertFalse( _wp_webp_has_exif_data( DIR_TESTDATA . '/images/test-image.jpg' ), 'A JPEG image should not be detected.' );
 	}
 
 	/**

@@ -807,6 +807,33 @@ function wp_exif_date2ts( $str ) {
 }
 
 /**
+ * Determines whether a WebP image declares Exif metadata.
+ *
+ * Exif metadata can only be stored in the extended WebP file format, which
+ * starts with a `VP8X` chunk holding a flag for the presence of Exif data.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param string $file Path to the WebP image.
+ * @return bool True if the image declares Exif metadata, false otherwise.
+ */
+function _wp_webp_has_exif_data( $file ) {
+	$header = file_get_contents( $file, false, null, 0, 21 );
+
+	if ( false === $header || strlen( $header ) < 21 ) {
+		return false;
+	}
+
+	if ( 'RIFF' !== substr( $header, 0, 4 ) || 'WEBPVP8X' !== substr( $header, 8, 8 ) ) {
+		return false;
+	}
+
+	// The Exif flag is the fourth bit of the first byte of the VP8X chunk data.
+	return (bool) ( ord( $header[20] ) & 0x08 );
+}
+
+/**
  * Gets extended image metadata, exif or iptc as available.
  *
  * Retrieves the EXIF metadata aperture, credit, camera, caption, copyright, iso
@@ -949,7 +976,17 @@ function wp_read_image_metadata( $file ) {
 	 */
 	$exif_image_types = apply_filters( 'wp_read_image_metadata_types', $exif_image_types );
 
-	if ( is_callable( 'exif_read_data' ) && in_array( $image_type, $exif_image_types, true ) ) {
+	$read_exif = is_callable( 'exif_read_data' ) && in_array( $image_type, $exif_image_types, true );
+
+	/*
+	 * exif_read_data() raises an "Invalid WebP file" warning for a WebP image
+	 * that contains no Exif data, so only WebP images that declare some are read.
+	 */
+	if ( $read_exif && IMAGETYPE_WEBP === $image_type && ! _wp_webp_has_exif_data( $file ) ) {
+		$read_exif = false;
+	}
+
+	if ( $read_exif ) {
 		// Don't silence errors when in debug mode, unless running unit tests.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG
 			&& ! defined( 'WP_RUN_CORE_TESTS' )
