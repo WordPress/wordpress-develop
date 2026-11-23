@@ -3437,9 +3437,9 @@ function attachment_submitbox_metadata() {
 	?>
 	<div class="misc-pub-section misc-pub-uploadedby word-wrap-break-word">
 		<?php if ( $uploaded_by_link ) { ?>
-			<?php _e( 'Uploaded by:' ); ?> <a href="<?php echo $uploaded_by_link; ?>"><strong><?php echo $uploaded_by_name; ?></strong></a>
+			<?php _e( 'Uploaded by:' ); ?> <a href="<?php echo esc_url( $uploaded_by_link ); ?>"><strong><?php echo esc_html( $uploaded_by_name ); ?></strong></a>
 		<?php } else { ?>
-			<?php _e( 'Uploaded by:' ); ?> <strong><?php echo $uploaded_by_name; ?></strong>
+			<?php _e( 'Uploaded by:' ); ?> <strong><?php echo esc_html( $uploaded_by_name ); ?></strong>
 		<?php } ?>
 	</div>
 
@@ -3452,9 +3452,9 @@ function attachment_submitbox_metadata() {
 			?>
 			<div class="misc-pub-section misc-pub-uploadedto">
 				<?php if ( $uploaded_to_link ) { ?>
-					<?php _e( 'Uploaded to:' ); ?> <a href="<?php echo $uploaded_to_link; ?>"><strong><?php echo $uploaded_to_title; ?></strong></a>
+					<?php _e( 'Uploaded to:' ); ?> <a href="<?php echo esc_url( $uploaded_to_link ); ?>"><strong><?php echo esc_html( $uploaded_to_title ); ?></strong></a>
 				<?php } else { ?>
-					<?php _e( 'Uploaded to:' ); ?> <strong><?php echo $uploaded_to_title; ?></strong>
+					<?php _e( 'Uploaded to:' ); ?> <strong><?php echo esc_html( $uploaded_to_title ); ?></strong>
 				<?php } ?>
 			</div>
 			<?php
