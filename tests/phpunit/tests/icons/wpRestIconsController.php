@@ -51,7 +51,7 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function tear_down() {
-		foreach ( array( 'rest-visibility-public', 'rest-visibility-private' ) as $slug ) {
+		foreach ( array( 'rest-visibility-public', 'rest-visibility-private', 'rest-visibility-other' ) as $slug ) {
 			if ( WP_Icon_Collections_Registry::get_instance()->is_registered( $slug ) ) {
 				wp_unregister_icon_collection( $slug );
 			}
@@ -701,6 +701,74 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 		$names = wp_list_pluck( $response->get_data(), 'name' );
 		$this->assertContains( 'rest-visibility-public/visibility-icon', $names );
 		$this->assertNotContains( 'rest-visibility-private/visibility-icon', $names );
+	}
+
+	/**
+	 * Test that icon content is only loaded for the icons included in the response.
+	 *
+	 * The excluded icon points at a file that does not exist, so loading its
+	 * content would trigger an error.
+	 *
+	 * @ticket 66710
+	 *
+	 * @dataProvider data_get_items_excluded_icons
+	 *
+	 * @covers ::get_items
+	 *
+	 * @param string $route               REST API route.
+	 * @param array  $query               REST API query parameters.
+	 * @param string $excluded_collection Collection of the icon excluded from the response.
+	 * @param bool   $is_public           Whether the excluded icon's collection is public.
+	 */
+	public function test_get_items_does_not_load_content_of_excluded_icons( $route, $query, $excluded_collection, $is_public ) {
+		$this->register_visibility_collections();
+		if ( ! WP_Icon_Collections_Registry::get_instance()->is_registered( $excluded_collection ) ) {
+			wp_register_icon_collection(
+				$excluded_collection,
+				array(
+					'label'  => 'REST Visibility Other',
+					'public' => $is_public,
+				)
+			);
+		}
+		wp_register_icon(
+			$excluded_collection . '/visibility-missing-file',
+			array(
+				'label'     => 'Visibility Missing File',
+				'file_path' => trailingslashit( get_temp_dir() ) . 'wp-icon-does-not-exist-66710.svg',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$error_action = new MockAction();
+		add_action( 'wp_trigger_error_always_run', array( $error_action, 'action' ) );
+		add_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+
+		$request = new WP_REST_Request( 'GET', $route );
+		$request->set_query_params( $query );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'The request should succeed.' );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+		$this->assertContains( 'rest-visibility-public/visibility-icon', $names, 'The public icon should be included.' );
+		$this->assertNotContains( $excluded_collection . '/visibility-missing-file', $names, 'The excluded icon should not be included.' );
+		$this->assertSame( 0, $error_action->get_call_count(), 'The content of the excluded icon should not be loaded.' );
+	}
+
+	/**
+	 * Data provider for requests that exclude an icon from the response.
+	 *
+	 * @return array[]
+	 */
+	public static function data_get_items_excluded_icons() {
+		return array(
+			'all icons, non-public collection'    => array( '/wp/v2/icons', array(), 'rest-visibility-private', false ),
+			'search icons, non-public collection' => array( '/wp/v2/icons', array( 'search' => 'visibility' ), 'rest-visibility-private', false ),
+			'collection route, other collection'  => array( '/wp/v2/icons/rest-visibility-public', array(), 'rest-visibility-other', true ),
+			'collection param, other collection'  => array( '/wp/v2/icons', array( 'collection' => 'rest-visibility-public' ), 'rest-visibility-other', true ),
+		);
 	}
 
 	/**

@@ -22,7 +22,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		foreach ( array( 'plugin-a', 'plugin-b', 'my-collection' ) as $slug ) {
+		foreach ( array( 'plugin-a', 'plugin-a-extra', 'plugin-b', 'my-collection' ) as $slug ) {
 			if ( $this->collections->is_registered( $slug ) ) {
 				$this->collections->unregister( $slug );
 			}
@@ -187,6 +187,69 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 		$this->assertTrue( $icons->is_registered( 'plugin-b/gamma' ) );
 
 		$icons->unregister( 'plugin-b/gamma' );
+	}
+
+	/**
+	 * Unregistering a collection should not load the content of file-based icons.
+	 *
+	 * The icon below points at a file that does not exist, so reading its
+	 * content would trigger an error.
+	 *
+	 * @ticket 66710
+	 *
+	 * @covers ::unregister
+	 */
+	public function test_unregister_collection_does_not_load_icon_files() {
+		$this->collections->register( 'plugin-a', array( 'label' => 'A' ) );
+		$this->register_icon(
+			'plugin-a/from-file',
+			array(
+				'label'     => 'From File',
+				'file_path' => trailingslashit( get_temp_dir() ) . 'wp-icon-does-not-exist-66710.svg',
+			)
+		);
+
+		$error_action = new MockAction();
+		add_action( 'wp_trigger_error_always_run', array( $error_action, 'action' ) );
+		add_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+
+		$this->assertTrue( $this->collections->unregister( 'plugin-a' ), 'The collection should be unregistered.' );
+		$this->assertFalse( WP_Icons_Registry::get_instance()->is_registered( 'plugin-a/from-file' ), 'The icon should be unregistered along with its collection.' );
+		$this->assertSame( 0, $error_action->get_call_count(), 'Icon content should not be loaded when unregistering a collection.' );
+	}
+
+	/**
+	 * Unregistering a collection should not remove icons from a collection
+	 * whose slug starts with the same characters.
+	 *
+	 * @ticket 66710
+	 *
+	 * @covers ::unregister
+	 */
+	public function test_unregister_collection_does_not_affect_collections_sharing_a_prefix() {
+		$this->collections->register( 'plugin-a', array( 'label' => 'A' ) );
+		$this->collections->register( 'plugin-a-extra', array( 'label' => 'A Extra' ) );
+
+		$icons = WP_Icons_Registry::get_instance();
+		$this->register_icon(
+			'plugin-a/alpha',
+			array(
+				'label'   => 'Alpha',
+				'content' => '<svg></svg>',
+			)
+		);
+		$this->register_icon(
+			'plugin-a-extra/alpha',
+			array(
+				'label'   => 'Alpha Extra',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		$this->assertTrue( $this->collections->unregister( 'plugin-a' ) );
+
+		$this->assertFalse( $icons->is_registered( 'plugin-a/alpha' ) );
+		$this->assertTrue( $icons->is_registered( 'plugin-a-extra/alpha' ) );
 	}
 
 	/**

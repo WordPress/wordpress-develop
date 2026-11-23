@@ -512,6 +512,34 @@ class WP_Icons_Registry {
 	}
 
 	/**
+	 * Retrieves the names of all registered icons.
+	 *
+	 * Unlike {@see WP_Icons_Registry::get_registered_icons()}, this does not
+	 * load icon content, so no icon files are read from disk.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $search Optional. Search term matched against each icon's name,
+	 *                       label, and keywords. Default empty string, which returns
+	 *                       the name of every registered icon.
+	 * @return string[] Namespaced names of the registered icons (e.g. "core/arrow-left").
+	 */
+	public function get_registered_icon_names( $search = '' ) {
+		if ( empty( $search ) ) {
+			return array_keys( $this->registered_icons );
+		}
+
+		$names = array();
+		foreach ( $this->registered_icons as $icon_name => $icon ) {
+			if ( $this->icon_matches_search( $icon, $search ) ) {
+				$names[] = $icon_name;
+			}
+		}
+
+		return $names;
+	}
+
+	/**
 	 * Checks if an icon is registered.
 	 *
 	 * @since 7.0.0
