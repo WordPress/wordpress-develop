@@ -32,8 +32,8 @@ class Tests_Post_Walker_PageDropdown extends WP_UnitTestCase {
 	/**
 	 * Tests the option element generated for a page.
 	 *
-	 * @ticket 65819
 	 * @ticket 41471
+	 * @ticket 65819
 	 *
 	 * @covers ::start_el
 	 *
