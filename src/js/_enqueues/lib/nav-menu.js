@@ -8,7 +8,6 @@
  * Handles the WordPress Administration Navigation Menu Interface functionality.
  *
  * @version 2.0.0
- * @package WordPress
  *
  * @param {JQueryStatic} $ The jQuery object.
  */

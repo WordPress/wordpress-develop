@@ -36,6 +36,7 @@ module.exports = [
 			},
 		},
 		rules: {
+			'jsdoc/check-access': 'error',
 			'jsdoc/check-alignment': 'error',
 			'jsdoc/check-indentation': [ 'error', {
 				excludeTags: [
@@ -62,9 +63,15 @@ module.exports = [
 					'link',
 				],
 			} ],
+			'jsdoc/check-template-names': 'error',
 			'jsdoc/check-types': 'error',
+			'jsdoc/empty-tags': 'error',
+			'jsdoc/implements-on-classes': 'error',
+			'jsdoc/multiline-blocks': 'error',
 			'jsdoc/no-blank-blocks': 'error',
 			'jsdoc/no-blank-block-descriptions': 'error',
+			'jsdoc/no-multi-asterisks': 'error',
+			'jsdoc/require-asterisk-prefix': 'error',
 			'jsdoc/require-description': 'error',
 			'jsdoc/require-hyphen-before-param-description': [ 'error', 'never' ],
 			'jsdoc/require-jsdoc': 'error',
@@ -82,6 +89,7 @@ module.exports = [
 			'jsdoc/require-returns-check': 'error',
 			'jsdoc/require-returns-description': 'error',
 			'jsdoc/require-returns-type': 'error',
+			'jsdoc/require-yields': 'error',
 			'jsdoc/valid-types': 'error',
 		},
 	},

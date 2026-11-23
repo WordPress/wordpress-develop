@@ -538,10 +538,10 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		/**
 		 * Filters attachments based on a search query.
 		 *
-		 * @static
 		 * Note that this client-side searching is *not* equivalent
 		 * to our server-side searching.
 		 *
+		 * @static
 		 * @param {wp.media.model.Attachment} attachment The attachment to filter based on the search query.
 		 *
 		 * @this {wp.media.model.Attachments}
