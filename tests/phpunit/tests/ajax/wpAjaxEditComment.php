@@ -244,6 +244,11 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * The curated reaction key for the heart emoji, as stored in a reaction's content.
+	 */
+	private const HEART_REACTION_KEY = '2764';
+
+	/**
 	 * Creates an administrator's open note and approved reaction on a post.
 	 *
 	 * @param int $post_id  Post to attach the note to.
@@ -268,7 +273,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => $admin_id,
-				'comment_content'  => '2764',
+				'comment_content'  => self::HEART_REACTION_KEY,
 			)
 		);
 	}
@@ -292,12 +297,16 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 		);
 		$reaction_id = $this->create_admin_reaction( $draft_id, $admin_id );
 
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = (string) $reaction_id;
-		$_POST['content']                     = 'rewritten';
-		$_POST['newcomment_author']           = 'Forged';
-		$_POST['newcomment_author_email']     = 'forged@example.org';
-		$_POST['user_id']                     = (string) get_current_user_id();
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $reaction_id,
+				'content'                     => 'rewritten',
+				'newcomment_author'           => 'Forged',
+				'newcomment_author_email'     => 'forged@example.org',
+				'user_id'                     => (string) get_current_user_id(),
+			)
+		);
 
 		try {
 			$this->_handleAjax( 'edit-comment' );
@@ -308,7 +317,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 
 		$reaction = get_comment( $reaction_id );
 		$this->assertInstanceOf( WP_Comment::class, $reaction );
-		$this->assertSame( '2764', $reaction->comment_content );
+		$this->assertSame( self::HEART_REACTION_KEY, $reaction->comment_content );
 		$this->assertSame( (string) $admin_id, $reaction->user_id );
 		$this->assertSame( '', $reaction->comment_author_email );
 	}
@@ -332,10 +341,14 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 		$admin_post_id = self::factory()->post->create( array( 'post_author' => $admin_id ) );
 		$comment_id    = self::factory()->comment->create( array( 'comment_post_ID' => $draft_id ) );
 
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = $comment_id;
-		$_POST['content']                     = 'Moved';
-		$_POST['comment_post_ID']             = $admin_post_id;
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $comment_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $admin_post_id,
+			)
+		);
 
 		try {
 			$this->_handleAjax( 'edit-comment' );
@@ -361,10 +374,14 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 		$target_post_id = self::factory()->post->create();
 		$comment_id     = self::factory()->comment->create( array( 'comment_post_ID' => $source_post_id ) );
 
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = $comment_id;
-		$_POST['content']                     = 'Moved';
-		$_POST['comment_post_ID']             = $target_post_id;
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $comment_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $target_post_id,
+			)
+		);
 
 		try {
 			$this->_handleAjax( 'edit-comment' );
@@ -399,10 +416,14 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 		);
 
 		// Step 1: reply beneath the note with an ordinary comment.
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_post_ID']             = $post_id;
-		$_POST['comment_ID']                  = $note_id;
-		$_POST['content']                     = 'Ordinary reply';
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_post_ID'             => (string) $post_id,
+				'comment_ID'                  => (string) $note_id,
+				'content'                     => 'Ordinary reply',
+			)
+		);
 
 		try {
 			$this->_handleAjax( 'replyto-comment' );
@@ -423,12 +444,15 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 		$reply_id = (int) $replies[0];
 
 		// Step 2: edit the reply into a reaction owned by the administrator.
-		$_POST                                = array();
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = $reply_id;
-		$_POST['content']                     = '2764';
-		$_POST['comment_type']                = 'reaction';
-		$_POST['user_id']                     = $admin_id;
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $reply_id,
+				'content'                     => self::HEART_REACTION_KEY,
+				'comment_type'                => 'reaction',
+				'user_id'                     => (string) $admin_id,
+			)
+		);
 
 		try {
 			$this->_handleAjax( 'edit-comment' );
@@ -469,10 +493,14 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 			)
 		);
 
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = $note_id;
-		$_POST['content']                     = 'Editorial note';
-		$_POST['comment_post_ID']             = 0;
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $note_id,
+				'content'                     => 'Editorial note',
+				'comment_post_ID'             => '0',
+			)
+		);
 
 		try {
 			$this->_handleAjax( 'edit-comment' );
@@ -500,11 +528,15 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 		$parent_id  = self::factory()->comment->create( array( 'comment_post_ID' => $post_a_id ) );
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_a_id ) );
 
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = $comment_id;
-		$_POST['content']                     = 'Moved';
-		$_POST['comment_post_ID']             = $post_b_id;
-		$_POST['comment_parent']              = $parent_id;
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $comment_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $post_b_id,
+				'comment_parent'              => (string) $parent_id,
+			)
+		);
 
 		try {
 			$this->_handleAjax( 'edit-comment' );
@@ -538,10 +570,14 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 			)
 		);
 
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = $reply_id;
-		$_POST['content']                     = 'Moved';
-		$_POST['comment_post_ID']             = $post_b_id;
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $reply_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $post_b_id,
+			)
+		);
 
 		try {
 			$this->_handleAjax( 'edit-comment' );
@@ -552,6 +588,48 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 		$reply = get_comment( $reply_id );
 		$this->assertInstanceOf( WP_Comment::class, $reply );
 		$this->assertSame( (string) $post_a_id, $reply->comment_post_ID );
+	}
+
+	/**
+	 * A reply can move to another post when the same request detaches it from
+	 * its parent, since the submitted parent is the one that will be kept.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_can_move_reply_to_another_post_when_detached_from_its_parent(): void {
+		$this->_setRole( 'editor' );
+		update_option( 'thread_comments', 1 );
+
+		$post_a_id = self::factory()->post->create();
+		$post_b_id = self::factory()->post->create();
+		$parent_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_a_id ) );
+		$reply_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_a_id,
+				'comment_parent'  => $parent_id,
+			)
+		);
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $reply_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $post_b_id,
+				'comment_parent'              => '0',
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$reply = get_comment( $reply_id );
+		$this->assertInstanceOf( WP_Comment::class, $reply );
+		$this->assertSame( (string) $post_b_id, $reply->comment_post_ID );
+		$this->assertSame( '0', $reply->comment_parent );
 	}
 
 	/**
@@ -575,10 +653,14 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 			)
 		);
 
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = $note_id;
-		$_POST['content']                     = 'Converted';
-		$_POST['comment_type']                = $type;
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $note_id,
+				'content'                     => 'Converted',
+				'comment_type'                => $type,
+			)
+		);
 
 		try {
 			$this->_handleAjax( 'edit-comment' );

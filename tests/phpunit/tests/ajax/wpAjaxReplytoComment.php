@@ -287,11 +287,15 @@ class Tests_Ajax_wpAjaxReplytoComment extends WP_Ajax_UnitTestCase {
 		$post_id   = self::factory()->post->create();
 		$parent_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
 
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = $parent_id;
-		$_POST['content']                     = '2764';
-		$_POST['comment_post_ID']             = $post_id;
-		$_POST['comment_type']                = $type;
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $parent_id,
+				'content'                     => '2764',
+				'comment_post_ID'             => (string) $post_id,
+				'comment_type'                => $type,
+			)
+		);
 
 		try {
 			$this->_handleAjax( 'replyto-comment' );
@@ -341,10 +345,14 @@ class Tests_Ajax_wpAjaxReplytoComment extends WP_Ajax_UnitTestCase {
 		$other_post    = self::factory()->post->create();
 		$other_comment = self::factory()->comment->create( array( 'comment_post_ID' => $other_post ) );
 
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = $other_comment;
-		$_POST['content']                     = 'Reply across posts';
-		$_POST['comment_post_ID']             = $post_id;
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $other_comment,
+				'content'                     => 'Reply across posts',
+				'comment_post_ID'             => (string) $post_id,
+			)
+		);
 
 		try {
 			$this->_handleAjax( 'replyto-comment' );
