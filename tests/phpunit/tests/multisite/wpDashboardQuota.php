@@ -150,4 +150,54 @@ class Tests_Multisite_WpDashboardQuota extends WP_UnitTestCase {
 		$this->assertStringContainsString( '0 MB Space Allowed', $output );
 		$this->assertStringContainsString( '(100%) Space Used', $output );
 	}
+
+	/**
+	 * `display_space_usage()` must report all of the space as used for a zero quota.
+	 *
+	 * @ticket 65439
+	 */
+	public function test_display_space_usage_reports_full_usage_for_zero_quota() {
+		$this->set_quota( 0, 0 );
+
+		ob_start();
+		display_space_usage();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'Used: 100%', $output );
+	}
+
+	/**
+	 * The reported percentage must be unchanged for a normal quota.
+	 *
+	 * @ticket 65439
+	 */
+	public function test_percentage_is_calculated_for_normal_quota() {
+		$this->set_quota( 100, 5 );
+
+		ob_start();
+		wp_dashboard_quota();
+		$dashboard_output = ob_get_clean();
+
+		ob_start();
+		display_space_usage();
+		$usage_output = ob_get_clean();
+
+		$this->assertStringContainsString( '5.00 MB (5%) Space Used', $dashboard_output );
+		$this->assertStringContainsString( 'Used: 5% of 100 MB', $usage_output );
+	}
+
+	/**
+	 * The dashboard widget must cap the percentage at 100 when over quota.
+	 *
+	 * @ticket 65439
+	 */
+	public function test_wp_dashboard_quota_caps_percentage_when_over_quota() {
+		$this->set_quota( 100, 150 );
+
+		ob_start();
+		wp_dashboard_quota();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '(100%) Space Used', $output );
+	}
 }
