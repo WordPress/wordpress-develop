@@ -6941,4 +6941,39 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( (string) $other_post_id, $note->comment_post_ID );
 	}
 
+	/**
+	 * The reaction summary ignores a reaction stored on another post, so the
+	 * uniqueness check has to as well, or the user is refused a reaction they
+	 * cannot see.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_reaction_stored_on_another_post_does_not_block_a_new_reaction(): void {
+		list( $post_id, $note_id ) = $this->create_editor_note();
+		$other_post_id             = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $other_post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => self::HEART_REACTION_KEY,
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->set_param( 'type', 'reaction' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'parent', $note_id );
+		$request->set_param( 'content', self::HEART_REACTION_KEY );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertArrayHasKey( self::HEART_REACTION_KEY, $this->get_reaction_summary( $note_id ) );
+	}
 }

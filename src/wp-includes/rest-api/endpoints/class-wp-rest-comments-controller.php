@@ -849,10 +849,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			 *
 			 * Scope to active (approved) reactions only — trashed reactions
 			 * are invisible to the user and must not block re-adding the
-			 * same emoji.
+			 * same emoji. The same goes for a reaction stored on another
+			 * post, which the reaction summary leaves out.
 			 */
 			$existing = get_comments(
 				array(
+					'post_id' => absint( $request['post'] ),
 					'parent'  => $request['parent'],
 					'user_id' => get_current_user_id(),
 					'type'    => 'reaction',
@@ -1043,6 +1045,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( null !== $reaction_key ) {
 			$matching   = get_comments(
 				array(
+					'post_id' => absint( $request['post'] ),
 					'parent'  => $request['parent'],
 					'user_id' => get_current_user_id(),
 					'type'    => 'reaction',
