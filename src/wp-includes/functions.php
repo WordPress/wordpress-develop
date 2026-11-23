@@ -3046,9 +3046,20 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 		);
 	}
 
-	fwrite( $ifp, $bits );
-	fclose( $ifp );
+	$bytes_written = fwrite( $ifp, $bits );
+	$closed        = fclose( $ifp );
 	clearstatcache();
+
+	/*
+	 * A short write means the file is incomplete. As of PHP 8.6, fclose() also
+	 * returns false when flushing or closing the stream fails.
+	 */
+	if ( strlen( $bits ) !== $bytes_written || ! $closed ) {
+		return array(
+			/* translators: %s: File name. */
+			'error' => sprintf( __( 'Could not write file %s' ), $new_file ),
+		);
+	}
 
 	// Set correct file permissions.
 	$stat  = @ stat( dirname( $new_file ) );
