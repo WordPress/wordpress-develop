@@ -2029,12 +2029,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'parent'            => array(
 					'description' => __( 'The ID for the parent of the comment.' ),
 					'type'        => 'integer',
+					'minimum'     => 0,
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'default'     => 0,
 				),
 				'post'              => array(
 					'description' => __( 'The ID of the associated post object.' ),
 					'type'        => 'integer',
+					'minimum'     => 0,
 					'context'     => array( 'view', 'edit' ),
 					'default'     => 0,
 				),
@@ -2209,7 +2211,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'        => 'array',
 			'items'       => array(
 				'type'    => 'integer',
-				'minimum' => 1,
+				'minimum' => 0,
 			),
 		);
 
