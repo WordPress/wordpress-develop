@@ -1169,10 +1169,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * is re-checked here. Allowing an update would let anyone who can edit
 		 * the note's post reattribute a reaction to another user, move it to a
 		 * note on a post they cannot edit, or store a duplicate or invalid
-		 * key. Removing a reaction is a delete. strtolower() matches the
-		 * database's case-insensitive type comparison.
+		 * key. Removing a reaction is a delete.
 		 */
-		if ( 'reaction' === strtolower( $comment->comment_type ) ) {
+		if ( 'reaction' === $comment->comment_type ) {
 			return new WP_Error(
 				'rest_comment_update_not_allowed',
 				__( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ),

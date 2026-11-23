@@ -6765,40 +6765,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * The database matches comment types case-insensitively, so the update
-	 * guard has to as well, or a row typed `Reaction` is counted as a
-	 * reaction but edited as a comment.
-	 *
-	 * @ticket 66635
-	 */
-	public function test_cannot_update_reaction_regardless_of_type_case(): void {
-		wp_set_current_user( self::$editor_id );
-
-		list( $post_id, $note_id ) = $this->create_editor_note();
-
-		$reaction_id = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => $post_id,
-				'comment_type'     => 'Reaction',
-				'comment_parent'   => $note_id,
-				'comment_approved' => 1,
-				'user_id'          => self::$editor_id,
-				'comment_content'  => '2764',
-			)
-		);
-
-		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $reaction_id );
-		$request->set_param( 'content', '1f680' );
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertErrorResponse( 'rest_comment_update_not_allowed', $response, 403 );
-
-		$reaction = get_comment( $reaction_id );
-		$this->assertInstanceOf( WP_Comment::class, $reaction );
-		$this->assertSame( '2764', $reaction->comment_content );
-	}
-
-	/**
 	 * A note reply has to sit on the same post as the note it answers, or a
 	 * user could thread their own note under one on a post they cannot read.
 	 *

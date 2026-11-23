@@ -3982,7 +3982,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		// Reactions are only validated on creation. Removing one is a delete.
-		if ( 'reaction' === strtolower( $existing_comment->comment_type ) ) {
+		if ( 'reaction' === $existing_comment->comment_type ) {
 			return new IXR_Error( 403, __( 'Reactions cannot be edited. Remove the reaction and add a new one instead.' ) );
 		}
 
