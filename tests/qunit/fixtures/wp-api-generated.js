@@ -10598,7 +10598,8 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to comments of specific parent IDs.",
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "type": "integer",
+                                "minimum": 0
                             },
                             "required": false
                         },
@@ -10616,8 +10617,7 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to comments assigned to specific post IDs.",
                             "type": "array",
                             "items": {
-                                "type": "integer",
-                                "minimum": 0
+                                "type": "integer"
                             },
                             "required": false
                         },
