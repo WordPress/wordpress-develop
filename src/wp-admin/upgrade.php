@@ -27,7 +27,11 @@ $step = $_GET['step'] ?? 0;
 
 // Do it. No output.
 if ( 'upgrade_db' === $step ) {
-	wp_upgrade();
+	if ( is_wp_error( wp_upgrade() ) ) {
+		status_header( 500 );
+		die( '1' );
+	}
+
 	die( '0' );
 }
 
@@ -159,11 +163,35 @@ else :
 			<?php
 			break;
 		case 1:
-			wp_upgrade();
+			$upgraded = wp_upgrade();
 
 			$backto = ! empty( $_GET['backto'] ) ? wp_unslash( urldecode( $_GET['backto'] ) ) : __get_option( 'home' ) . '/';
 			$backto = esc_url( $backto );
 			$backto = wp_validate_redirect( $backto, __get_option( 'home' ) . '/' );
+
+			if ( is_wp_error( $upgraded ) ) :
+				$error_count = count( $upgraded->get_error_messages( 'db_upgrade_error' ) );
+				?>
+	<h1><?php _e( 'Database Update Failed' ); ?></h1>
+	<p><?php _e( 'Your WordPress database could not be updated.' ); ?></p>
+	<p>
+				<?php
+				printf(
+					/* translators: %s: Number of failed database queries. */
+					_n(
+						'%s database query failed. The details have been written to the error log of your server.',
+						'%s database queries failed. The details have been written to the error log of your server.',
+						$error_count
+					),
+					number_format_i18n( $error_count )
+				);
+				?>
+	</p>
+	<p><?php _e( 'Once the cause is resolved, you can run the database update again. If the problem persists, please contact your hosting provider.' ); ?></p>
+	<p class="step"><a class="button button-large button-primary" href="upgrade.php?step=1&amp;backto=<?php echo urlencode( $backto ); ?>"><?php _e( 'Try Again' ); ?></a></p>
+				<?php
+				break;
+			endif;
 			?>
 	<h1><?php _e( 'Update Complete' ); ?></h1>
 	<p><?php _e( 'Your WordPress database has been successfully updated!' ); ?></p>

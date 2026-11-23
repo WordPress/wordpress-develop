@@ -104,6 +104,16 @@ switch ( $action ) {
 				);
 			}
 
+			if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
+				wp_die(
+					sprintf(
+						/* translators: %s: Site URL. */
+						__( 'Warning! Problem updating %s. The database update did not complete successfully. Check the error log of your server for details.' ),
+						$siteurl
+					)
+				);
+			}
+
 			/**
 			 * Fires after the Multisite DB upgrade for each site is complete.
 			 *

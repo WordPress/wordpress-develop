@@ -1818,6 +1818,7 @@ class wpdb {
 	 * Prints SQL/DB error.
 	 *
 	 * @since 0.71
+	 * @since 7.3.0 The `$EZSQL_ERROR` entries record whether errors were suppressed.
 	 *
 	 * @global array $EZSQL_ERROR Stores error information of query and error string.
 	 *
@@ -1832,8 +1833,9 @@ class wpdb {
 		}
 
 		$EZSQL_ERROR[] = array(
-			'query'     => $this->last_query,
-			'error_str' => $str,
+			'query'      => $this->last_query,
+			'error_str'  => $str,
+			'suppressed' => $this->suppress_errors,
 		);
 
 		if ( $this->suppress_errors ) {
