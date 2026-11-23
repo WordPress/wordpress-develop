@@ -44,6 +44,8 @@ class Tests_Filesystem_WpFilesystemDirect_PutContents extends WP_Filesystem_Dire
 	/**
 	 * Tests that writing to a stream preserves successful and empty writes.
 	 *
+	 * @ticket 66784
+	 *
 	 * @dataProvider data_stream_contents
 	 *
 	 * @param string $contents Contents to write.
@@ -69,6 +71,8 @@ class Tests_Filesystem_WpFilesystemDirect_PutContents extends WP_Filesystem_Dire
 
 	/**
 	 * Tests that an incomplete stream write is reported as a failure.
+	 *
+	 * @ticket 66784
 	 */
 	public function test_should_return_false_when_stream_write_fails() {
 		$actual = $this->put_contents_to_stream( 'WP_Test_Stream_Filesystem_Write_Failure', 'New content.', false );
@@ -80,6 +84,8 @@ class Tests_Filesystem_WpFilesystemDirect_PutContents extends WP_Filesystem_Dire
 	 * Tests that a stream flush failure is reported even when all bytes were written.
 	 *
 	 * PHP 8.6 is the first version where fclose() reports flush and close failures.
+	 *
+	 * @ticket 66784
 	 *
 	 * @requires PHP >= 8.6
 	 */
