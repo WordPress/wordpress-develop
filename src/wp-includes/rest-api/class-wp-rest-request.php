@@ -820,7 +820,18 @@ class WP_REST_Request implements ArrayAccess {
 			return;
 		}
 
-		parse_str( $this->get_body(), $params );
+		$body = (string) $this->get_body();
+
+		/*
+		 * As of PHP 8.6, parse_str() throws a ValueError when the string contains a NUL byte.
+		 * Earlier versions stopped reading at the first NUL byte, so the same result is kept here.
+		 */
+		$nul_position = strpos( $body, "\0" );
+		if ( false !== $nul_position ) {
+			$body = substr( $body, 0, $nul_position );
+		}
+
+		parse_str( $body, $params );
 
 		/*
 		 * Add to the POST parameters stored internally. If a user has already
