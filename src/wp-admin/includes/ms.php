@@ -302,7 +302,7 @@ function upload_space_setting( $id ) {
 	$quota = get_option( 'blog_upload_space' );
 	restore_current_blog();
 
-	if ( ! $quota ) {
+	if ( ! is_numeric( $quota ) ) {
 		$quota = '';
 	}
 
