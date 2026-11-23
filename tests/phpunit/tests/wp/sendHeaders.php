@@ -8,6 +8,12 @@
 class Tests_WP_SendHeaders extends WP_UnitTestCase {
 	protected $headers_sent = array();
 
+	public function tear_down() {
+		unset( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 56068
 	 */

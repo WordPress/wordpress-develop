@@ -39,7 +39,7 @@ class Tests_Admin_Includes_Misc_WpAdminViewportMeta_Test extends WP_UnitTestCase
 	 *     expected:     string,
 	 * }>
 	 */
-	public function data_wp_admin_viewport_meta(): array {
+	public static function data_wp_admin_viewport_meta(): array {
 		return array(
 			'default value'          => array(
 				'filter_value' => null,

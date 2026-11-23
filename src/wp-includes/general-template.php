@@ -255,7 +255,13 @@ function get_template_part( $slug, $name = null, $args = array() ) {
  *                              multiple search forms on the same page and improve
  *                              accessibility. Default empty.
  * }
- * @return void|string Void if 'echo' argument is true, search form HTML if 'echo' is false.
+ * @return string|void Search form HTML if 'echo' is false, nothing otherwise.
+ * @phpstan-param array<string, mixed>|bool $args
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is false|0|''|'0' ? string : void )
+ * )
  */
 function get_search_form( $args = array() ) {
 	/**
@@ -403,7 +409,7 @@ function get_search_form( $args = array() ) {
  *     @type string $id          Unique ID for the popover element. Default is a
  *                               generated unique ID.
  *     @type string $button      Existing `button` or `a` markup. Used instead of generated button.
- *                               Default standard button HTML.
+ *                               Default empty string.
  *     @type string $label       Not used for tooltips.
  *     @type string $close_label Not used for tooltips.
  *     @type string $icon        Dashicons icon class for the toggle button.
@@ -433,7 +439,7 @@ function wp_get_tooltip( $content, $args = array() ) {
  *     @type string $id          Unique ID for the popover element. Default is a
  *                               generated unique ID.
  *     @type string $button      Existing `button` markup. Used instead of generated button.
- *                               Default standard button HTML.
+ *                               Default empty string.
  *     @type string $label       Accessible label for the toggle button.
  *                               Default 'Help', matching the default icon.
  *                               Ignored for tooltips.
@@ -468,7 +474,7 @@ function wp_get_toggletip( $content, $args = array() ) {
  *     @type string $id          Unique ID for the popover element. Default is a
  *                               generated unique ID.
  *     @type string $button      Existing `button` or `a` markup. Used instead of generated button.
- *                               Default standard button HTML.
+ *                               Default empty string.
  *     @type string $label       Accessible label for the toggle button.
  *                               Default 'Help', matching the default icon.
  *                               Ignored for tooltips.
@@ -492,7 +498,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 
 	$defaults = array(
 		'id'          => wp_unique_id( 'wp-tooltip-' ),
-		'button'      => '<button type="button" aria-label="%3$s"><span class="dashicons %4$s" aria-hidden="true"></span></button>',
+		'button'      => '',
 		'label'       => __( 'Help' ),
 		'close_label' => __( 'Close' ),
 		'icon'        => 'dashicons-editor-help',
@@ -507,38 +513,66 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		$classes .= ' ' . $args['class'];
 	}
 
-	$icon      = ( $args['icon'] ) ? trim( $args['icon'] ) : $defaults['icon'];
-	$id        = ( $args['id'] ) ? $args['id'] : $defaults['id'];
-	$button    = ( $args['button'] ) ? $args['button'] : $defaults['button'];
-	$processed = false;
+	$icon = ( $args['icon'] ) ? trim( $args['icon'] ) : $defaults['icon'];
+	$id   = ( $args['id'] ) ? $args['id'] : $defaults['id'];
+
+	// Tooltips use the content as the accessible name; toggletips use the label.
+	$label = ( 'tooltip' === $args['type'] ) ? wp_strip_all_tags( $content, true ) : $args['label'];
+
+	/*
+	 * The generated button is a plain skeleton. Every dynamic attribute is
+	 * added through the tag processor below, so caller-supplied markup is
+	 * never scanned or substituted and a percent sign in custom markup,
+	 * such as a percent-encoded URL, is never treated as a conversion
+	 * specification.
+	 */
+	$default_button = '<button type="button"><span></span></button>';
+
+	$is_default = ! $args['button'];
+	$button     = ( $args['button'] ) ? $args['button'] : $default_button;
+
+	// The accepted root element is a `button`, or an `a` for tooltips.
+	$tag       = false;
 	$processor = new WP_HTML_Tag_Processor( $button );
 	if ( true === $processor->next_tag( 'button' ) ) {
-		$processor->add_class( 'wp-tooltip__toggle' );
-		if ( 'tooltip' !== $args['type'] ) {
-			$processor->set_attribute( 'popovertarget', '%2$s' );
-			$processor->set_attribute( 'aria-haspopup', 'dialog' );
-		}
-		$button    = $processor->get_updated_html();
-		$processed = true;
+		$tag = 'button';
 	} else {
-		// Reset processor.
 		$processor = new WP_HTML_Tag_Processor( $button );
-		if ( true === $processor->next_tag( 'a' ) && 'tooltip' === $args['type'] ) {
-			$processor->add_class( 'wp-tooltip__toggle' );
-			$button    = $processor->get_updated_html();
-			$processed = true;
+		if ( 'tooltip' === $args['type'] && true === $processor->next_tag( 'a' ) ) {
+			$tag = 'a';
 		}
 	}
-	if ( ! $processed ) {
-		// Button HTML passed was not valid.
-		$processor = new WP_HTML_Tag_Processor( $defaults['button'] );
-		$processor->add_class( 'wp-tooltip__toggle' );
-		if ( 'tooltip' !== $args['type'] ) {
-			$processor->set_attribute( 'popovertarget', '%2$s' );
-			$processor->set_attribute( 'aria-haspopup', 'dialog' );
-		}
-		$button = $processor->get_updated_html();
+
+	if ( false === $tag ) {
+		// Button HTML passed was not valid. Reset to default.
+		$is_default = true;
+		$button     = $default_button;
+		$processor  = new WP_HTML_Tag_Processor( $button );
+		$processor->next_tag( 'button' );
+		$tag = 'button';
 	}
+
+	/*
+	 * Attributes that apply to every accepted button are added in one pass.
+	 * Attributes that name the control are only added when the caller's
+	 * markup did not already provide them.
+	 */
+	if ( null === $processor->get_attribute( 'aria-label' ) ) {
+		$processor->set_attribute( 'aria-label', $label );
+	}
+	$processor->add_class( 'wp-tooltip__toggle' );
+	if ( 'button' === $tag && 'tooltip' !== $args['type'] ) {
+		$processor->set_attribute( 'popovertarget', $id );
+		$processor->set_attribute( 'aria-haspopup', 'dialog' );
+	}
+
+	// The generated button also carries the dashicon on its inner span.
+	if ( $is_default && true === $processor->next_tag( 'span' ) ) {
+		$processor->set_attribute( 'class', 'dashicons ' . $icon );
+		$processor->set_attribute( 'aria-hidden', 'true' );
+	}
+
+	$button = $processor->get_updated_html();
 
 	/*
 	 * The markup only uses phrasing content so it is valid when nested
@@ -547,11 +581,9 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 	 * the layout. See #65660.
 	 */
 	if ( 'tooltip' === $args['type'] ) {
-		// Tooltips are only used to visually display labels.
-		$label  = wp_strip_all_tags( $content, true );
 		$markup = sprintf(
 			'<span class="%1$s">
-				' . $button . '
+				%6$s
 				<span popover="hint" id="%2$s" class="wp-tooltip__bubble" role="tooltip">' .
 					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
 				'</span>' .
@@ -561,6 +593,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 			esc_attr( $label ),
 			esc_attr( $icon ),
 			esc_html( $content ),
+			$button,
 		);
 	} else {
 		/*
@@ -570,8 +603,11 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		 */
 		$markup = sprintf(
 			'<span class="%1$s">
-				' . $button . '
-				<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
+				%8$s
+				<span popover="hint" id="%2$s-hint" class="wp-tooltip__bubble wp-tooltip__hint" aria-hidden="true">' .
+					'<span class="wp-tooltip__text">%7$s</span>' .
+				'</span>' .
+				'<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
 					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
 					'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%6$s">' .
 						'<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>' .
@@ -580,10 +616,12 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 			'</span>',
 			esc_attr( $classes ),
 			esc_attr( $id ),
-			esc_attr( $args['label'] ),
+			esc_attr( $label ),
 			esc_attr( $icon ),
 			esc_html( $content ),
 			esc_attr( $args['close_label'] ),
+			esc_html( $args['label'] ),
+			$button,
 		);
 	}
 
@@ -600,7 +638,8 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
  *
  * @param string $redirect Optional path to redirect to on login/logout.
  * @param bool   $display  Default to echo and not return the link.
- * @return void|string Void if `$display` argument is true, log in/out link if `$display` is false.
+ * @return string|void Log in/out link if `$display` is false, nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function wp_loginout( $redirect = '', $display = true ) {
 	if ( ! is_user_logged_in() ) {
@@ -740,7 +779,8 @@ function wp_registration_url() {
  *                                     Default false.
  *
  * }
- * @return void|string Void if 'echo' argument is true, login form HTML if 'echo' is false.
+ * @return string|void Login form HTML if 'echo' is false, nothing otherwise.
+ * @phpstan-return ( $args is array{ echo: false|0|''|'0', ... } ? string : void )
  */
 function wp_login_form( $args = array() ) {
 	$defaults = array(
@@ -920,8 +960,10 @@ function wp_lostpassword_url( $redirect = '' ) {
  * @param string $before  Text to output before the link. Default `<li>`.
  * @param string $after   Text to output after the link. Default `</li>`.
  * @param bool   $display Default to echo and not return the link.
- * @return void|string Void if `$display` argument is true, registration or admin link
- *                     if `$display` is false.
+ * @return string|void The registration or admin link when `$display` is false, or an empty
+ *                     string when registration is disabled or the logged-in user cannot
+ *                     access the dashboard. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function wp_register( $before = '<li>', $after = '</li>', $display = true ) {
 	if ( ! is_user_logged_in() ) {
@@ -1201,7 +1243,7 @@ function get_site_icon_url( $size = 512, $url = '', $blog_id = 0 ) {
 		}
 		$attachment_url = wp_get_attachment_image_url( $site_icon_id, $size_data );
 		if ( $attachment_url ) {
-			$url = $attachment_url;
+			$url = is_ssl() ? set_url_scheme( $attachment_url, 'https' ) : $attachment_url;
 		}
 	}
 
@@ -1562,7 +1604,8 @@ function _wp_render_title_tag() {
  *                            Default '&raquo;'.
  * @param bool   $display     Optional. Whether to display or retrieve title. Default true.
  * @param string $seplocation Optional. Location of the separator (either 'left' or 'right').
- * @return string|null String when `$display` is false, null otherwise.
+ * @return string|void String when `$display` is false, nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	global $wp_locale;
@@ -1692,11 +1735,11 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	$title = apply_filters( 'wp_title', $title, $sep, $seplocation );
 
 	// Send it out.
-	if ( $display ) {
-		echo $title;
-	} else {
+	if ( ! $display ) {
 		return $title;
 	}
+
+	echo $title;
 }
 
 /**
@@ -1713,7 +1756,9 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_post_title( $prefix = '', $display = true ) {
 	$_post = get_queried_object();
@@ -1731,11 +1776,12 @@ function single_post_title( $prefix = '', $display = true ) {
 	 * @param WP_Post $_post       The current post.
 	 */
 	$title = apply_filters( 'single_post_title', $_post->post_title, $_post );
-	if ( $display ) {
-		echo $prefix . $title;
-	} else {
+
+	if ( ! $display ) {
 		return $prefix . $title;
 	}
+
+	echo $prefix . $title;
 }
 
 /**
@@ -1748,7 +1794,9 @@ function single_post_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving, null when displaying or on failure.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function post_type_archive_title( $prefix = '', $display = true ) {
 	if ( ! is_post_type_archive() ) {
@@ -1772,11 +1820,11 @@ function post_type_archive_title( $prefix = '', $display = true ) {
 	 */
 	$title = apply_filters( 'post_type_archive_title', $post_type_obj->labels->name, $post_type );
 
-	if ( $display ) {
-		echo $prefix . $title;
-	} else {
+	if ( ! $display ) {
 		return $prefix . $title;
 	}
+
+	echo $prefix . $title;
 }
 
 /**
@@ -1790,10 +1838,16 @@ function post_type_archive_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_cat_title( $prefix = '', $display = true ) {
-	return single_term_title( $prefix, $display );
+	if ( ! $display ) {
+		return single_term_title( $prefix, false );
+	}
+
+	single_term_title( $prefix, true );
 }
 
 /**
@@ -1807,10 +1861,16 @@ function single_cat_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_tag_title( $prefix = '', $display = true ) {
-	return single_term_title( $prefix, $display );
+	if ( ! $display ) {
+		return single_term_title( $prefix, false );
+	}
+
+	single_term_title( $prefix, true );
 }
 
 /**
@@ -1824,7 +1884,9 @@ function single_tag_title( $prefix = '', $display = true ) {
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
- * @return string|null Title when retrieving.
+ * @return string|null|void Title when retrieving, null on failure.
+ *                          Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function single_term_title( $prefix = '', $display = true ) {
 	$term = get_queried_object();
@@ -1868,11 +1930,11 @@ function single_term_title( $prefix = '', $display = true ) {
 		return null;
 	}
 
-	if ( $display ) {
-		echo $prefix . $term_name;
-	} else {
+	if ( ! $display ) {
 		return $prefix . $term_name;
 	}
+
+	echo $prefix . $term_name;
 }
 
 /**
@@ -1890,6 +1952,8 @@ function single_term_title( $prefix = '', $display = true ) {
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
  * @return string|false|null False if there's no valid title for the month. Title when retrieving.
+ *
+ * @phpstan-return ( $display is true ? false|null : string|false )
  */
 function single_month_title( $prefix = '', $display = true ) {
 	global $wp_locale;
@@ -1915,7 +1979,10 @@ function single_month_title( $prefix = '', $display = true ) {
 	if ( ! $display ) {
 		return $result;
 	}
+
 	echo $result;
+
+	return null;
 }
 
 /**
@@ -2221,7 +2288,13 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
  *     @type string     $day             Day. Default current day.
  *     @type string     $w               Week. Default current week.
  * }
- * @return void|string Void if 'echo' argument is true, archive links if 'echo' is false.
+ * @return string|null|void Archive links when 'echo' is false, null when the post type is
+ *                          not viewable. Nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string|null
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_get_archives( $args = '' ) {
 	global $wpdb, $wp_locale;
@@ -2257,7 +2330,7 @@ function wp_get_archives( $args = '' ) {
 
 	$post_type_object = get_post_type_object( $parsed_args['post_type'] );
 	if ( ! is_post_type_viewable( $post_type_object ) ) {
-		return;
+		return null;
 	}
 
 	$parsed_args['post_type'] = $post_type_object->name;
@@ -2366,14 +2439,15 @@ function wp_get_archives( $args = '' ) {
 			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
 		}
 		if ( $results ) {
-			$after = $parsed_args['after'];
+			$after       = $parsed_args['after'];
+			$date_format = get_option( 'date_format' );
 			foreach ( (array) $results as $result ) {
 				$url = get_day_link( $result->year, $result->month, $result->dayofmonth );
 				if ( 'post' !== $parsed_args['post_type'] ) {
 					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
 				$date = sprintf( '%1$d-%2$02d-%3$02d 00:00:00', $result->year, $result->month, $result->dayofmonth );
-				$text = mysql2date( get_option( 'date_format' ), $date );
+				$text = mysql2date( $date_format, $date );
 				if ( $parsed_args['show_post_count'] ) {
 					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 				}
@@ -2393,14 +2467,16 @@ function wp_get_archives( $args = '' ) {
 		}
 		$arc_w_last = '';
 		if ( $results ) {
-			$after = $parsed_args['after'];
+			$after         = $parsed_args['after'];
+			$start_of_week = get_option( 'start_of_week' );
+			$date_format   = get_option( 'date_format' );
 			foreach ( (array) $results as $result ) {
 				if ( $result->week !== $arc_w_last ) {
 					$arc_year       = $result->yr;
 					$arc_w_last     = $result->week;
-					$arc_week       = get_weekstartend( $result->yyyymmdd, get_option( 'start_of_week' ) );
-					$arc_week_start = date_i18n( get_option( 'date_format' ), $arc_week['start'] );
-					$arc_week_end   = date_i18n( get_option( 'date_format' ), $arc_week['end'] );
+					$arc_week       = get_weekstartend( $result->yyyymmdd, $start_of_week );
+					$arc_week_start = date_i18n( $date_format, $arc_week['start'] );
+					$arc_week_end   = date_i18n( $date_format, $arc_week['end'] );
 					$url            = add_query_arg(
 						array(
 							'm' => $arc_year,
@@ -2491,7 +2567,9 @@ function calendar_week_mod( $num ) {
  *     @type bool   $display   Whether to display the calendar output. Default true.
  *     @type string $post_type Optional. Post type. Default 'post'.
  * }
- * @return void|string Void if `$display` argument is true, calendar HTML if `$display` is false.
+ * @return string|null|void Calendar HTML when `$display` is false, null when the site has
+ *                          no posts. Nothing otherwise.
+ * @phpstan-return ( $args is array{ display: false|0|''|'0', ... } ? string|null : void )
  */
 function get_calendar( $args = array() ) {
 	global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;
@@ -2602,12 +2680,15 @@ function get_calendar( $args = array() ) {
 		if ( ! $gotsome ) {
 			$cache[ $key ] = '';
 			wp_cache_set( 'get_calendar', $cache, 'calendar' );
-			return;
+			return null;
 		}
 	}
 
 	// week_begins = 0 stands for Sunday.
-	$week_begins = (int) get_option( 'start_of_week' );
+	$week_begins = absint( get_option( 'start_of_week' ) ) % 7;
+
+	// Read the current date.
+	list( $current_year, $current_month, $current_day ) = array_map( 'intval', explode( '-', current_time( 'Y-m-j' ) ) );
 
 	// Let's figure out when we are.
 	if ( ! empty( $monthnum ) && ! empty( $year ) ) {
@@ -2633,8 +2714,8 @@ function get_calendar( $args = array() ) {
 			$thismonth = (int) substr( $m, 4, 2 );
 		}
 	} else {
-		$thisyear  = (int) current_time( 'Y' );
-		$thismonth = (int) current_time( 'm' );
+		$thisyear  = $current_year;
+		$thismonth = $current_month;
 	}
 
 	$unixmonth = mktime( 0, 0, 0, $thismonth, 1, $thisyear );
@@ -2740,9 +2821,9 @@ function get_calendar( $args = array() ) {
 
 		$newrow = false;
 
-		if ( (int) current_time( 'j' ) === $day
-			&& (int) current_time( 'm' ) === $thismonth
-			&& (int) current_time( 'Y' ) === $thisyear
+		if ( $current_day === $day
+			&& $current_month === $thismonth
+			&& $current_year === $thisyear
 		) {
 			$calendar_output .= '<td id="today">';
 		} else {
@@ -2905,7 +2986,9 @@ function the_date_xml() {
  * @param string $before  Optional. Output before the date. Default empty.
  * @param string $after   Optional. Output after the date. Default empty.
  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
- * @return string|null String if retrieving.
+ * @return string|void The date when `$display` is false, or an empty string when the post's
+ *                     date matches the previously output one. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function the_date( $format = '', $before = '', $after = '', $display = true ) {
 	global $currentday, $previousday;
@@ -2929,11 +3012,11 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
 	 */
 	$the_date = apply_filters( 'the_date', $the_date, $format, $before, $after );
 
-	if ( $display ) {
-		echo $the_date;
-	} else {
+	if ( ! $display ) {
 		return $the_date;
 	}
+
+	echo $the_date;
 }
 
 /**
@@ -2947,6 +3030,8 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
  * @param string           $format Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Date the current post was written. False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_date( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -2980,7 +3065,8 @@ function get_the_date( $format = '', $post = null ) {
  * @param string $before  Optional. Output before the date. Default empty.
  * @param string $after   Optional. Output after the date. Default empty.
  * @param bool   $display Optional. Whether to echo the date or return it. Default true.
- * @return string|null String if retrieving.
+ * @return string|void The modified date when `$display` is false, nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function the_modified_date( $format = '', $before = '', $after = '', $display = true ) {
 	$the_modified_date = $before . get_the_modified_date( $format ) . $after;
@@ -2997,11 +3083,11 @@ function the_modified_date( $format = '', $before = '', $after = '', $display = 
 	 */
 	$the_modified_date = apply_filters( 'the_modified_date', $the_modified_date, $format, $before, $after );
 
-	if ( $display ) {
-		echo $the_modified_date;
-	} else {
+	if ( ! $display ) {
 		return $the_modified_date;
 	}
+
+	echo $the_modified_date;
 }
 
 /**
@@ -3013,6 +3099,8 @@ function the_modified_date( $format = '', $before = '', $after = '', $display = 
  * @param string           $format Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Date the current post was modified. False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_modified_date( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -3072,6 +3160,8 @@ function the_time( $format = '' ) {
  * @param int|WP_Post|null $post   Post ID or post object. Default is global `$post` object.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_time( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -3109,6 +3199,22 @@ function get_the_time( $format = '', $post = null ) {
  * @param bool             $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
+ *
+ * @phpstan-return (
+ *     $format is 'U'|'G' ? int|false : (
+ *     $format is 'w' ? '0'|'1'|'2'|'3'|'4'|'5'|'6'|false : (
+ *     $format is 'N' ? '1'|'2'|'3'|'4'|'5'|'6'|'7'|false : (
+ *     $format is 'L'|'I' ? '0'|'1'|false : (
+ *     $format is 't' ? '28'|'29'|'30'|'31'|false : (
+ *     $format is 'm'|'h' ? '01'|'02'|'03'|'04'|'05'|'06'|'07'|'08'|'09'|'10'|'11'|'12'|false : (
+ *     $format is 'n'|'g' ? '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'10'|'11'|'12'|false : (
+ *     $format is 'H' ? '00'|'01'|'02'|'03'|'04'|'05'|'06'|'07'|'08'|'09'|'10'|'11'|'12'|'13'|'14'|'15'|'16'|'17'|'18'|'19'|'20'|'21'|'22'|'23'|false : (
+ *     $format is 'd' ? '01'|'02'|'03'|'04'|'05'|'06'|'07'|'08'|'09'|'10'|'11'|'12'|'13'|'14'|'15'|'16'|'17'|'18'|'19'|'20'|'21'|'22'|'23'|'24'|'25'|'26'|'27'|'28'|'29'|'30'|'31'|false : (
+ *     $format is 'j' ? '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'10'|'11'|'12'|'13'|'14'|'15'|'16'|'17'|'18'|'19'|'20'|'21'|'22'|'23'|'24'|'25'|'26'|'27'|'28'|'29'|'30'|'31'|false : (
+ *     $format is 'z'|'W'|'o'|'Y'|'y'|'B'|'i'|'s'|'u'|'v'|'Z' ? numeric-string|false :
+ *     string|false
+ *     ) ) ) ) ) ) ) ) ) )
+ * )
  */
 function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = false ) {
 	$post = get_post( $post );
@@ -3144,7 +3250,13 @@ function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = 
 	/**
 	 * Filters the localized time of the post.
 	 *
+	 * The filtered value should match the type and values that `$format` produces,
+	 * for example, an integer for 'U' or 'G', or a numeric string from '0' to '6' for 'w'.
+	 *
 	 * @since 2.6.0
+	 *
+	 * @see get_post_time()
+	 * @link https://www.php.net/manual/en/datetime.format.php
 	 *
 	 * @param string|int $time   Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
 	 * @param string     $format Format to use for retrieving the date of the post.
@@ -3259,6 +3371,8 @@ function the_modified_time( $format = '' ) {
  *                                 Defaults to the 'time_format' option.
  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Formatted date string or Unix timestamp. False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_modified_time( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -3298,6 +3412,8 @@ function get_the_modified_time( $format = '', $post = null ) {
  * @param bool             $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_post_modified_time( $format = 'U', $gmt = false, $post = null, $translate = false ) {
 	$post = get_post( $post );
@@ -3347,6 +3463,7 @@ function get_post_modified_time( $format = 'U', $gmt = false, $post = null, $tra
  * Displays the localized weekday for the post.
  *
  * @since 0.71
+ * @since 7.2.0 Passes an empty string to the filter instead of 'Sunday' if the post date is invalid.
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  */
@@ -3359,7 +3476,12 @@ function the_weekday() {
 		return;
 	}
 
-	$the_weekday = $wp_locale->get_weekday( get_post_time( 'w', false, $post ) );
+	$the_weekday    = '';
+	$weekday_number = get_post_time( 'w', false, $post );
+
+	if ( false !== $weekday_number ) {
+		$the_weekday = $wp_locale->get_weekday( (int) $weekday_number );
+	}
 
 	/**
 	 * Filters the localized weekday of the post, for display.
@@ -3378,6 +3500,7 @@ function the_weekday() {
  * the previous one output.
  *
  * @since 0.71
+ * @since 7.2.0 Outputs nothing instead of 'Sunday' if the post date is invalid.
  *
  * @global WP_Locale $wp_locale       WordPress date and time locale object.
  * @global string    $currentday      The day of the current post in the loop.
@@ -3398,10 +3521,15 @@ function the_weekday_date( $before = '', $after = '' ) {
 	$the_weekday_date = '';
 
 	if ( $currentday !== $previousweekday ) {
-		$the_weekday_date .= $before;
-		$the_weekday_date .= $wp_locale->get_weekday( get_post_time( 'w', false, $post ) );
-		$the_weekday_date .= $after;
-		$previousweekday   = $currentday;
+		$weekday_number = get_post_time( 'w', false, $post );
+
+		if ( false !== $weekday_number ) {
+			$the_weekday_date .= $before;
+			$the_weekday_date .= $wp_locale->get_weekday( (int) $weekday_number );
+			$the_weekday_date .= $after;
+		}
+
+		$previousweekday = $currentday;
 	}
 
 	/**
@@ -3996,7 +4124,8 @@ function wp_preload_resources() {
 	 *     @type array ...$0 {
 	 *         Array of resource attributes.
 	 *
-	 *         @type string $href          URL to include in resource preloads. Required.
+	 *         @type string $href          URL to include in resource preloads. May be omitted
+	 *                                     for an image preloaded by its `$imagesrcset`.
 	 *         @type string $as            How the browser should treat the resource
 	 *                                     (`script`, `style`, `image`, `document`, etc).
 	 *         @type string $crossorigin   Indicates the CORS policy of the specified resource.
@@ -4030,9 +4159,7 @@ function wp_preload_resources() {
 			}
 			$unique_resources[ $href ] = $attributes;
 			// Media can use imagesrcset and not href.
-		} elseif ( ( 'image' === $resource['as'] ) &&
-			( isset( $resource['imagesrcset'] ) || isset( $resource['imagesizes'] ) )
-		) {
+		} elseif ( isset( $resource['as'], $resource['imagesrcset'] ) && 'image' === $resource['as'] ) {
 			if ( isset( $unique_resources[ $resource['imagesrcset'] ] ) ) {
 				continue;
 			}
@@ -4684,9 +4811,9 @@ function wp_get_code_editor_settings( $args ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array $settings The array of settings passed to the code editor.
-	 *                        A falsey value disables the editor.
-	 * @param array $args {
+	 * @param array|false $settings The array of settings passed to the code editor.
+	 *                              A falsey value disables the editor.
+	 * @param array       $args {
 	 *     Args passed when calling `get_code_editor_settings()`.
 	 *
 	 *     @type string   $type       The MIME type of the file to be edited.
@@ -4789,7 +4916,7 @@ function get_language_attributes( $doctype = 'html' ) {
 	 * @since 2.5.0
 	 * @since 4.3.0 Added the `$doctype` parameter.
 	 *
-	 * @param string $output A space-separated list of language attributes.
+	 * @param string $output  A space-separated list of language attributes.
 	 * @param string $doctype The type of HTML document (xhtml|html).
 	 */
 	return apply_filters( 'language_attributes', $output, $doctype );
@@ -4888,6 +5015,16 @@ function language_attributes( $doctype = 'html' ) {
  * }
  * @return string|string[]|null String of page links or array of page links, depending on 'type' argument.
  *                              Null if total number of pages is less than 2.
+ *
+ * @phpstan-return (
+ *     $args is array{ total: int<min, 1>, ... }
+ *         ? null
+ *         : (
+ *             $args is array{ total: int<2, max>, ... }
+ *                 ? ( $args is array{ type: 'array', ... } ? list<string> : string )
+ *                 : ( $args is array{ type: 'array', ... } ? list<string> : string )|null
+ *         )
+ * )
  */
 function paginate_links( $args = '' ) {
 	global $wp_query, $wp_rewrite;
@@ -4897,7 +5034,7 @@ function paginate_links( $args = '' ) {
 	$url_parts    = explode( '?', $pagenum_link );
 
 	// Get max pages and current page out of the current query, if available.
-	$total   = $wp_query->max_num_pages ?? 1;
+	$total   = $wp_query->max_num_pages;
 	$current = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
 
 	/*
@@ -5114,9 +5251,7 @@ function paginate_links( $args = '' ) {
 function wp_admin_css_color( $key, $name, $url, $colors = array(), $icons = array() ) {
 	global $_wp_admin_css_colors;
 
-	if ( ! isset( $_wp_admin_css_colors ) ) {
-		$_wp_admin_css_colors = array();
-	}
+	$_wp_admin_css_colors ??= array();
 
 	$_wp_admin_css_colors[ $key ] = (object) array(
 		'name'        => $name,
@@ -5158,7 +5293,7 @@ function register_admin_color_schemes() {
 		false,
 		array( '#1d2327', '#2c3338', '#2271b1', '#72aee6' ),
 		array(
-			'base'    => '#a7aaad',
+			'base'    => '#c3c4c7',
 			'focus'   => '#72aee6',
 			'current' => '#fff',
 		)
