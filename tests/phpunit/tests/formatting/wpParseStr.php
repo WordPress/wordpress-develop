@@ -13,6 +13,8 @@ class Tests_Formatting_wpParseStr extends WP_UnitTestCase {
 	 * Note: While the function under test does not contain any significant logic,
 	 * these tests document the behavior and safeguard PHP cross-version compatibility.
 	 *
+	 * @ticket 66785
+	 *
 	 * @dataProvider data_wp_parse_str
 	 *
 	 * @param mixed $input    Value to parse.
