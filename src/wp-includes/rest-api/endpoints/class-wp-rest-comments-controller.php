@@ -734,13 +734,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		// A note reply must answer a note on the same post.
 		$parent_id = $request['parent'];
 
-		if ( 'note' === $request['type'] && is_int( $parent_id ) && $parent_id > 0 ) {
+		if ( 'note' === $request['type'] && $parent_id ) {
 			$parent_note = get_comment( $parent_id );
 
 			if (
 				! $parent_note ||
 				'note' !== $parent_note->comment_type ||
-				( ! empty( $request['post'] ) && $request['post'] !== (int) $parent_note->comment_post_ID )
+				( $request['post'] && $request['post'] !== (int) $parent_note->comment_post_ID )
 			) {
 				return new WP_Error(
 					'rest_comment_invalid_parent',

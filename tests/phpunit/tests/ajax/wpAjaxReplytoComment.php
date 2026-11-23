@@ -279,7 +279,7 @@ class Tests_Ajax_wpAjaxReplytoComment extends WP_Ajax_UnitTestCase {
 	 *
 	 * @dataProvider data_restricted_comment_types
 	 *
-	 * @param string $type The comment type to request.
+	 * @param non-falsy-string $type The comment type to request.
 	 */
 	public function test_cannot_reply_with_restricted_comment_type( string $type ): void {
 		$this->_setRole( 'administrator' );
@@ -316,7 +316,7 @@ class Tests_Ajax_wpAjaxReplytoComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{string}>
+	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
 	public function data_restricted_comment_types(): array {
 		return array(

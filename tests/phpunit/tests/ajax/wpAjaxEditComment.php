@@ -248,7 +248,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param int $post_id  Post to attach the note to.
 	 * @param int $admin_id User who owns the note and reaction.
-	 * @return int The reaction ID.
+	 * @return positive-int The reaction ID.
 	 */
 	private function create_admin_reaction( int $post_id, int $admin_id ): int {
 		$note_id = self::factory()->comment->create(
@@ -293,11 +293,11 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 		$reaction_id = $this->create_admin_reaction( $draft_id, $admin_id );
 
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = $reaction_id;
+		$_POST['comment_ID']                  = (string) $reaction_id;
 		$_POST['content']                     = 'rewritten';
 		$_POST['newcomment_author']           = 'Forged';
 		$_POST['newcomment_author_email']     = 'forged@example.org';
-		$_POST['user_id']                     = get_current_user_id();
+		$_POST['user_id']                     = (string) get_current_user_id();
 
 		try {
 			$this->_handleAjax( 'edit-comment' );
@@ -561,7 +561,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	 *
 	 * @dataProvider data_types_a_note_cannot_become
 	 *
-	 * @param string $type The requested comment type.
+	 * @param non-falsy-string $type The requested comment type.
 	 */
 	public function test_cannot_convert_note_into_another_type( string $type ): void {
 		$this->_setRole( 'editor' );
@@ -595,7 +595,7 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{string}>
+	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
 	public function data_types_a_note_cannot_become(): array {
 		return array(
