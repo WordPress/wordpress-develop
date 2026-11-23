@@ -6637,6 +6637,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * The curated reaction key for the heart emoji, as stored in a reaction's content.
+	 */
+	private const HEART_REACTION_KEY = '2764';
+
+	/**
 	 * Creates an open note by the editor on a new post.
 	 *
 	 * @return array{int, int} The post ID and the note ID.
@@ -6696,7 +6701,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$subscriber_id,
-				'comment_content'  => '2764',
+				'comment_content'  => self::HEART_REACTION_KEY,
 			)
 		);
 
@@ -6741,7 +6746,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$editor_id,
-				'comment_content'  => '2764',
+				'comment_content'  => self::HEART_REACTION_KEY,
 			)
 		);
 
@@ -6752,16 +6757,16 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$subscriber_id,
-				'comment_content'  => '<b>2764</b>',
+				'comment_content'  => '<b>' . self::HEART_REACTION_KEY . '</b>',
 			)
 		);
 
 		$summary = $this->get_reaction_summary( $note_id );
 
 		$this->assertCount( 1, $summary );
-		$this->assertArrayHasKey( '2764', $summary );
-		$this->assertSame( 2, $summary['2764']['count'] );
-		$this->assertSame( $heart_id, $summary['2764']['current_user_reaction'] );
+		$this->assertArrayHasKey( self::HEART_REACTION_KEY, $summary );
+		$this->assertSame( 2, $summary[ self::HEART_REACTION_KEY ]['count'] );
+		$this->assertSame( $heart_id, $summary[ self::HEART_REACTION_KEY ]['current_user_reaction'] );
 	}
 
 	/**
