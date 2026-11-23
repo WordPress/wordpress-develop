@@ -1865,6 +1865,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$result  = $ability->execute();
 
 		$this->assertWPError( $received_error );
+		$this->assertSame( 'ability_output_schema_mismatch', $received_error->get_error_code() );
 		$this->assertSame( 'Ability "test/calculator" returned a result that failed validation. Reason: output is not of type string.', $received_message );
 		$this->assertSame( $received_error, $result );
 	}
@@ -2869,15 +2870,19 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$args['meta']['annotations']['readonly'] = $is_readonly;
 		$ability                                 = new WP_Ability( self::$test_ability_name, $args );
 
-		$this->assertSame( $expected, $ability->execute()->get_error_message() );
+		$result = $ability->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_output_rejected', $result->get_error_code() );
+		$this->assertSame( $expected, $result->get_error_message() );
 	}
 
 	/**
 	 * @return array[] Read-only annotations and their expected messages.
 	 */
 	public static function data_output_retry_guidance() {
-		$readonly_message = 'Ability "test/calculator" returned a result that failed validation.';
-		$write_message    = 'Ability "test/calculator" ran, but its result failed validation. The requested action may already have taken effect. Check the outcome before retrying.';
+		$readonly_message = 'Ability "test/calculator" returned a result that failed validation. Reason: Not specified.';
+		$write_message    = 'Ability "test/calculator" ran, but its result failed validation. The requested action may already have taken effect. Check the outcome before retrying. Reason: Not specified.';
 
 		return array(
 			'read-only'     => array( true, $readonly_message ),
