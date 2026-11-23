@@ -2209,7 +2209,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'description' => __( 'Limit result set to comments of specific parent IDs.' ),
 			'type'        => 'array',
 			'items'       => array(
-				'type' => 'integer',
+				'type'    => 'integer',
+				'minimum' => 1,
 			),
 		);
 
