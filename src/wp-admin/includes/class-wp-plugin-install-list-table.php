@@ -832,7 +832,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * Returns a line of text listing the dependencies required by the plugin.
 	 *
 	 * @since 6.5.0
-	 * @since 7.2.0 The dependencies are listed in a line of text instead of a notice.
+	 * @since 7.3.0 The dependencies are listed in a line of text instead of a notice.
 	 *
 	 * @param array  $plugin_data An array of plugin data. See {@see plugins_api()}
 	 *                            for the list of possible values.
@@ -882,7 +882,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * Creates a 'More details' link for the plugin.
 	 *
 	 * @since 6.5.0
-	 * @since 7.2.0 Added the `$link_text` parameter.
+	 * @since 7.3.0 Added the `$link_text` parameter.
 	 *
 	 * @param string $name      The plugin's name.
 	 * @param string $slug      The plugin's slug.
