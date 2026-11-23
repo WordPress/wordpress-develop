@@ -394,6 +394,50 @@ class Tests_Block_Bindings_InnerBlocks extends WP_UnitTestCase {
 	/**
 	 * @ticket 66415
 	 */
+	public function test_bindings_asking_for_the_same_value_with_other_arguments_stop_at_the_budget() {
+		$this->value_callback = function () {
+			$value = '<!-- wp:paragraph --><p>Supplied</p><!-- /wp:paragraph -->';
+			foreach ( range( 1, 6 ) as $variant ) {
+				$value .= $this->bound_group_markup( array( 'variant' => $variant ) );
+			}
+			return $value;
+		};
+		$budget               = static function () {
+			return 10;
+		};
+		add_filter( 'block_bindings_inner_blocks_budget', $budget );
+		$output = $this->render_group();
+		remove_filter( 'block_bindings_inner_blocks_budget', $budget );
+
+		$this->assertSame( 11, substr_count( $output, '>Supplied</p>' ) );
+		$this->assertStringContainsString( '>Nested own</p>', $output );
+	}
+
+	/**
+	 * @ticket 66415
+	 */
+	public function test_budget_starts_again_for_the_next_outermost_bound_block() {
+		$this->value_callback = function () {
+			$value = '<!-- wp:paragraph --><p>Supplied</p><!-- /wp:paragraph -->';
+			foreach ( range( 1, 6 ) as $variant ) {
+				$value .= $this->bound_group_markup( array( 'variant' => $variant ) );
+			}
+			return $value;
+		};
+		$budget               = static function () {
+			return 10;
+		};
+		add_filter( 'block_bindings_inner_blocks_budget', $budget );
+		$this->render_group();
+		$output = $this->render_group();
+		remove_filter( 'block_bindings_inner_blocks_budget', $budget );
+
+		$this->assertSame( 11, substr_count( $output, '>Supplied</p>' ) );
+	}
+
+	/**
+	 * @ticket 66415
+	 */
 	public function test_bindings_with_other_attributes_inside_the_value_resolve() {
 		$this->value = '<!-- wp:group {"tagName":"section","metadata":{"bindings":{"innerBlocks":{"source":"' . self::SOURCE . '"}}}} --><section class="wp-block-group"><!-- wp:paragraph --><p>Nested own</p><!-- /wp:paragraph --></section><!-- /wp:group -->';
 		$output      = $this->render_group();

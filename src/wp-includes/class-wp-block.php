@@ -75,6 +75,15 @@ class WP_Block {
 	private static $rendering_inner_blocks = array();
 
 	/**
+	 * How many blocks got inner blocks from a block bindings source inside the
+	 * ones supplied to the outermost block rendering them.
+	 *
+	 * @since 7.3.0
+	 * @var int
+	 */
+	private static $inner_blocks_budget_spent = 0;
+
+	/**
 	 * List of inner blocks (of this same class)
 	 *
 	 * @since 5.5.0
@@ -394,6 +403,13 @@ class WP_Block {
 	 * Nor when the block doesn't accept one of the top-level supplied blocks: it
 	 * then keeps its own inner blocks.
 	 *
+	 * Only within a budget, though: whoever writes a value writes the arguments
+	 * of the bindings inside it, and a value whose bindings ask for it again
+	 * with other arguments would otherwise render once for every order they can
+	 * nest in. The budget counts every block that gets inner blocks inside the
+	 * ones supplied to the outermost block, at any depth. Once it is spent, a
+	 * block inside supplied inner blocks keeps its own.
+	 *
 	 * @since 7.3.0
 	 *
 	 * @param WP_Block_Bindings_Source $source      The source of the binding.
@@ -403,6 +419,28 @@ class WP_Block {
 		$request = $this->get_inner_blocks_request( $source, $source_args );
 		foreach ( self::$rendering_inner_blocks as $rendering ) {
 			if ( $rendering['request'] === $request ) {
+				return;
+			}
+		}
+
+		$is_nested = ! empty( self::$rendering_inner_blocks );
+		if ( $is_nested ) {
+			/**
+			 * Filters the inner blocks bindings budget: how many blocks may get
+			 * inner blocks from a block bindings source inside the inner blocks
+			 * a source supplied to one block.
+			 *
+			 * The budget counts blocks at every depth below that block, and
+			 * siblings alike, rather than levels of nesting. It keeps a value
+			 * from rendering without bound through bindings that ask for it
+			 * again with other arguments or context.
+			 *
+			 * @since 7.3.0
+			 *
+			 * @param int $budget The number of blocks. Default 100.
+			 */
+			$budget = (int) apply_filters( 'block_bindings_inner_blocks_budget', 100 );
+			if ( self::$inner_blocks_budget_spent >= $budget ) {
 				return;
 			}
 		}
@@ -429,7 +467,8 @@ class WP_Block {
 		$this->inner_html                   = $this->parsed_block['innerHTML'];
 		$this->refresh_parsed_block_dependents();
 
-		self::$rendering_inner_blocks[] = array(
+		self::$inner_blocks_budget_spent = $is_nested ? self::$inner_blocks_budget_spent + 1 : 0;
+		self::$rendering_inner_blocks[]  = array(
 			'block'   => $this,
 			'request' => $request,
 		);
