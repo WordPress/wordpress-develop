@@ -6218,7 +6218,12 @@ function wp_encode_emoji( $content ) {
  * Example:
  *
  *     '�'        === _wp_escape_html_for_mysql_charset( 'utf8mb4', "\xC0" );
- *     '&#xFFFD;' === _wp_escape_html_for_mysql_charset( 'utf8mb3', "\xC0" );
+ *     '�'        === _wp_escape_html_for_mysql_charset( 'utf8mb3', "\xC0" );
+ *
+ *     // Input HTML must be UTF-8; convert into UTF-8 first if not.
+ *     '&#xFFFD;' === _wp_escape_html_for_mysql_charset( 'latin1', "\xC0" );
+ *     'À'        === _wp_escape_html_for_mysql_charset( 'latin1', "\u{C0}" );
+ *     'À'        === _wp_escape_html_for_mysql_charset( 'latin1', "\xC3\x80" );
  *
  * Future improvement would scan through the HTML using the HTML API and make
  * semantic substitutions where appropriate. For example, JavaScript, JSON,
@@ -6236,18 +6241,19 @@ function wp_encode_emoji( $content ) {
  * @return string Transformed input safe for storing in a MySQL column of the given charset.
  */
 function _wp_escape_html_for_mysql_charset( string $mysql_charset, string $html_in_utf8 ): string {
+	$html_in_utf8 = wp_scrub_utf8( $html_in_utf8 );
+
 	if ( 'utf8mb4' === $mysql_charset ) {
-		return wp_scrub_utf8( $html_in_utf8 );
+		return $html_in_utf8;
 	}
 
-	$is_utf8mb3           = 'utf8' === $mysql_charset || 'utf8mb3' === $mysql_charset;
-	$substitute_character = $is_utf8mb3 ? 0xFFFD : 0x3F;
-	$replacement_range    = $is_utf8mb3
+	$is_utf8mb3        = 'utf8' === $mysql_charset || 'utf8mb3' === $mysql_charset;
+	$replacement_range = $is_utf8mb3
 		? array( 0x10000, 0x10FFFF, 0, 0x1FFFFF ) // Replace four-byte UTF-8 code points.
 		: array( 0x80, 0x10FFFF, 0, 0x1FFFFF );   // Replace all multi-byte UTF-8 code points.
 
 	$previous_substitute_character = mb_substitute_character();
-	mb_substitute_character( $substitute_character );
+	mb_substitute_character( 0xFFFD );
 	$transformed = mb_encode_numericentity( $html_in_utf8, $replacement_range, 'UTF-8', true );
 	mb_substitute_character( $previous_substitute_character );
 
@@ -6255,8 +6261,8 @@ function _wp_escape_html_for_mysql_charset( string $mysql_charset, string $html_
 }
 
 /**
- * Replaces four-byte UTF-8 characters with HTML character references in fields whose database
- * columns use `utf8` or `utf8mb3`.
+ * Encodes multibyte UTF-8 characters inside field values into HTML character references
+ * when the database table storing them cannot represent the corresponding Unicode character.
  *
  * Use for fields where consumers interpret HTML character references.
  *
