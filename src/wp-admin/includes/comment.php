@@ -301,6 +301,20 @@ function _wp_check_comment_target_post( WP_Comment $comment, int $post_id ) {
 		return new WP_Error( 'comment_post_invalid', __( 'Sorry, you are not allowed to move this comment to that post.' ) );
 	}
 
+	// Replies and reactions stay on the note's post, so a move would separate them.
+	$children = get_comments(
+		array(
+			'parent' => $comment->comment_ID,
+			'type'   => array( 'note', 'reaction' ),
+			'status' => 'any',
+			'count'  => true,
+		)
+	);
+
+	if ( $children ) {
+		return new WP_Error( 'comment_post_invalid', __( 'A note with replies or reactions cannot be moved to another post.' ) );
+	}
+
 	return true;
 }
 

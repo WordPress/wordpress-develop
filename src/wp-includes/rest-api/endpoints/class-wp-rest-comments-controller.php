@@ -731,22 +731,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// A note reply must answer a note on the same post.
-		$parent_id = $request['parent'];
+		if ( 'note' === $request['type'] && $request['parent'] ) {
+			$parent_check = $this->check_note_parent( absint( $request['parent'] ), absint( $request['post'] ) );
 
-		if ( 'note' === $request['type'] && $parent_id ) {
-			$parent_note = get_comment( $parent_id );
-
-			if (
-				! $parent_note ||
-				'note' !== $parent_note->comment_type ||
-				( $request['post'] && $request['post'] !== (int) $parent_note->comment_post_ID )
-			) {
-				return new WP_Error(
-					'rest_comment_invalid_parent',
-					__( 'A note reply must be attached to a note on the same post.' ),
-					array( 'status' => 400 )
-				);
+			if ( is_wp_error( $parent_check ) ) {
+				return $parent_check;
 			}
 		}
 
@@ -1250,6 +1239,40 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				__( 'Sorry, you are not allowed to change the comment type.' ),
 				array( 'status' => 404 )
 			);
+		}
+
+		if ( 'note' === $comment->comment_type ) {
+			$post_id   = isset( $request['post'] ) ? absint( $request['post'] ) : (int) $comment->comment_post_ID;
+			$parent_id = isset( $request['parent'] ) ? absint( $request['parent'] ) : (int) $comment->comment_parent;
+			$is_moving = $post_id !== (int) $comment->comment_post_ID;
+
+			if ( $parent_id && ( $is_moving || $parent_id !== (int) $comment->comment_parent ) ) {
+				$parent_check = $this->check_note_parent( $parent_id, $post_id );
+
+				if ( is_wp_error( $parent_check ) ) {
+					return $parent_check;
+				}
+			}
+
+			// Replies and reactions stay on the note's post, so a move would separate them.
+			if ( $is_moving ) {
+				$children = get_comments(
+					array(
+						'parent' => $id,
+						'type'   => array( 'note', 'reaction' ),
+						'status' => 'any',
+						'count'  => true,
+					)
+				);
+
+				if ( $children ) {
+					return new WP_Error(
+						'rest_comment_has_children',
+						__( 'A note with replies or reactions cannot be moved to another post.' ),
+						array( 'status' => 400 )
+					);
+				}
+			}
 		}
 
 		/*
@@ -2728,6 +2751,33 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'rest_cannot_read_post',
 				__( 'Sorry, you are not allowed to read the post for this comment.' ),
 				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Checks that a note's parent is a note on the same post.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int $parent_id ID of the parent comment.
+	 * @param int $post_id   ID of the post the note is, or will be, on.
+	 * @return true|WP_Error True if the parent is valid, error object otherwise.
+	 */
+	private function check_note_parent( int $parent_id, int $post_id ) {
+		$parent = get_comment( $parent_id );
+
+		if (
+			! $parent ||
+			'note' !== $parent->comment_type ||
+			( $post_id && $post_id !== (int) $parent->comment_post_ID )
+		) {
+			return new WP_Error(
+				'rest_comment_invalid_parent',
+				__( 'A note reply must be attached to a note on the same post.' ),
+				array( 'status' => 400 )
 			);
 		}
 

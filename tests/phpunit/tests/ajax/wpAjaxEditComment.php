@@ -633,6 +633,80 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * A note's reactions stay on its post, so moving the note would separate
+	 * them and empty its reaction summary.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_move_note_that_has_reactions(): void {
+		$this->_setRole( 'editor' );
+
+		$post_a_id   = self::factory()->post->create();
+		$post_b_id   = self::factory()->post->create();
+		$reaction_id = $this->create_admin_reaction( $post_a_id, get_current_user_id() );
+		$reaction    = get_comment( $reaction_id );
+		$this->assertInstanceOf( WP_Comment::class, $reaction );
+		$note_id = (int) $reaction->comment_parent;
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $note_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $post_b_id,
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPDieException $e ) {
+			unset( $e );
+		}
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( (string) $post_a_id, $note->comment_post_ID );
+	}
+
+	/**
+	 * A note with no replies or reactions can still move.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_can_move_note_without_children(): void {
+		$this->_setRole( 'editor' );
+
+		$post_a_id = self::factory()->post->create();
+		$post_b_id = self::factory()->post->create();
+		$note_id   = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_a_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $note_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $post_b_id,
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( (string) $post_b_id, $note->comment_post_ID );
+	}
+
+	/**
 	 * A note cannot stop being one, including by a change of case.
 	 *
 	 * @ticket 66635

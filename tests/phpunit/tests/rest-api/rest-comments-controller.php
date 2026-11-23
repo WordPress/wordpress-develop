@@ -6791,4 +6791,154 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertErrorResponse( 'rest_comment_invalid_parent', $response, 400 );
 	}
+
+	/**
+	 * The same-post rule for note replies holds on update too.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_update_note_parent_to_note_on_another_post(): void {
+		list( , $note_a_id ) = $this->create_editor_note();
+		list( , $note_b_id ) = $this->create_editor_note();
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_b_id );
+		$request->set_param( 'parent', $note_a_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_invalid_parent', $response, 400 );
+
+		$note_b = get_comment( $note_b_id );
+		$this->assertInstanceOf( WP_Comment::class, $note_b );
+		$this->assertSame( '0', $note_b->comment_parent );
+	}
+
+	/**
+	 * A note cannot be threaded under a regular comment by an update.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_update_note_parent_to_a_comment(): void {
+		list( $post_id, $note_id ) = $this->create_editor_note();
+		$comment_id                = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'parent', $comment_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_invalid_parent', $response, 400 );
+	}
+
+	/**
+	 * Moving a note reply to another post would leave it under a note on the
+	 * post it left.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_move_note_reply_away_from_its_parent(): void {
+		list( $post_id, $note_id ) = $this->create_editor_note();
+		$other_post_id             = self::factory()->post->create();
+		$reply_id                  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $reply_id );
+		$request->set_param( 'post', $other_post_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_invalid_parent', $response, 400 );
+
+		$reply = get_comment( $reply_id );
+		$this->assertInstanceOf( WP_Comment::class, $reply );
+		$this->assertSame( (string) $post_id, $reply->comment_post_ID );
+	}
+
+	/**
+	 * A note's replies and reactions stay on its post, so moving the note
+	 * would separate them and empty its reaction summary.
+	 *
+	 * @ticket 66635
+	 *
+	 * @dataProvider data_note_child_types
+	 *
+	 * @param string $child_type Comment type of the note's child.
+	 */
+	public function test_cannot_move_note_that_has_children( string $child_type ): void {
+		list( $post_id, $note_id ) = $this->create_editor_note();
+		$other_post_id             = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => $child_type,
+				'comment_parent'   => $note_id,
+				'comment_approved' => 'reaction' === $child_type ? 1 : 0,
+				'user_id'          => self::$subscriber_id,
+				'comment_content'  => 'reaction' === $child_type ? self::HEART_REACTION_KEY : 'Reply',
+			)
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'post', $other_post_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_has_children', $response, 400 );
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( (string) $post_id, $note->comment_post_ID );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public function data_note_child_types(): array {
+		return array(
+			'a reaction' => array( 'reaction' ),
+			'a reply'    => array( 'note' ),
+		);
+	}
+
+	/**
+	 * A note with no replies or reactions can still move.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_can_move_note_without_children(): void {
+		list( , $note_id ) = $this->create_editor_note();
+		$other_post_id     = self::factory()->post->create();
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $note_id );
+		$request->set_param( 'post', $other_post_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( (string) $other_post_id, $note->comment_post_ID );
+	}
+
 }
