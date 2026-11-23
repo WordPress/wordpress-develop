@@ -75,6 +75,23 @@ class Tests_Formatting_wpParseStr extends WP_UnitTestCase {
 					'_baba' => 'dudu',
 				),
 			),
+			'NUL byte in value' => array(
+				'input'    => "x=5\0z&_baba=dudu",
+				'expected' => array(
+					'x' => '5',
+				),
+			),
+			'NUL byte in name'  => array(
+				'input'    => "x=5&_ba\0ba=dudu",
+				'expected' => array(
+					'x'   => '5',
+					'_ba' => '',
+				),
+			),
+			'leading NUL byte'  => array(
+				'input'    => "\0x=5",
+				'expected' => array(),
+			),
 			'stringable object' => array(
 				'input'    => new Fixture_Formatting_wpParseStr(),
 				'expected' => array(

@@ -5299,7 +5299,18 @@ function map_deep( $value, $callback ) {
  * @param array  $result       Variables will be stored in this array.
  */
 function wp_parse_str( $input_string, &$result ) {
-	parse_str( (string) $input_string, $result );
+	$input_string = (string) $input_string;
+
+	/*
+	 * As of PHP 8.6, parse_str() throws a ValueError when the string contains a NUL byte.
+	 * Earlier versions stopped reading at the first NUL byte, so the same result is kept here.
+	 */
+	$nul_position = strpos( $input_string, "\0" );
+	if ( false !== $nul_position ) {
+		$input_string = substr( $input_string, 0, $nul_position );
+	}
+
+	parse_str( $input_string, $result );
 
 	/**
 	 * Filters the array of variables derived from a parsed string.
