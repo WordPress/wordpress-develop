@@ -83,7 +83,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="<?php echo esc_url( admin_url( 'images/about-feature-01.webp?ver=7.2' ) ); ?>" alt="" height="900" width="900" />
+					<img src="https://s.w.org/images/core/7.2/about-feature-01.webp?ver=20261123" alt="" height="900" width="900" />
 				</div>
 			</div>
 		</div>
@@ -91,7 +91,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img loading="lazy" src="<?php echo esc_url( admin_url( 'images/about-feature-02.webp?ver=7.2' ) ); ?>" alt="" height="900" width="900" />
+					<img loading="lazy" src="https://s.w.org/images/core/7.2/about-feature-02.webp?ver=20261123" alt="" height="900" width="900" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
@@ -113,7 +113,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img loading="lazy" src="<?php echo esc_url( admin_url( 'images/about-feature-03.webp?ver=7.2' ) ); ?>" alt="" height="900" width="900" />
+					<img loading="lazy" src="https://s.w.org/images/core/7.2/about-feature-03.webp?ver=20261123" alt="" height="900" width="900" />
 				</div>
 			</div>
 		</div>
@@ -121,7 +121,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img loading="lazy" src="<?php echo esc_url( admin_url( 'images/about-feature-04.webp?ver=7.2' ) ); ?>" alt="" height="900" width="900" />
+					<img loading="lazy" src="https://s.w.org/images/core/7.2/about-feature-04.webp?ver=20261123" alt="" height="900" width="900" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
