@@ -843,10 +843,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			return '';
 		}
 
-		$no_name_markup  = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span></div>';
-		$has_name_markup = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span> %s</div>';
+		$dependency_markup = '<span class="plugin-dependency"><span class="plugin-dependency-name">%s</span></span>';
 
-		$dependencies_list = '';
+		$dependencies = array();
 		foreach ( $plugin_data['requires_plugins'] as $dependency ) {
 			$dependency_data = WP_Plugin_Dependencies::get_dependency_data( $dependency );
 
@@ -856,26 +855,33 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				! empty( $dependency_data['slug'] ) &&
 				! empty( $dependency_data['version'] )
 			) {
-				$more_details_link  = $this->get_more_details_link( $dependency_data['name'], $dependency_data['slug'] );
-				$dependencies_list .= sprintf( $has_name_markup, esc_html( $dependency_data['name'] ), $more_details_link );
+				$dependencies[] = sprintf(
+					$dependency_markup,
+					$this->get_more_details_link( $dependency_data['name'], $dependency_data['slug'], $dependency_data['name'] )
+				);
 				continue;
 			}
 
 			$result = plugins_api( 'plugin_information', array( 'slug' => $dependency ) );
 
 			if ( ! empty( $result->name ) ) {
-				$more_details_link  = $this->get_more_details_link( $result->name, $result->slug );
-				$dependencies_list .= sprintf( $has_name_markup, esc_html( $result->name ), $more_details_link );
+				$dependencies[] = sprintf(
+					$dependency_markup,
+					$this->get_more_details_link( $result->name, $result->slug, $result->name )
+				);
 				continue;
 			}
 
-			$dependencies_list .= sprintf( $no_name_markup, esc_html( $dependency ) );
+			$dependencies[] = sprintf( $dependency_markup, esc_html( $dependency ) );
 		}
 
 		$dependencies_notice = sprintf(
-			'<div class="plugin-dependencies notice notice-alt notice-info inline"><p class="plugin-dependencies-explainer-text">%s</p> %s</div>',
-			'<strong>' . __( 'Additional plugins are required' ) . '</strong>',
-			$dependencies_list
+			'<div class="plugin-dependencies notice notice-alt notice-info inline"><p>%s</p></div>',
+			sprintf(
+				/* translators: %s: Comma-separated list of plugin names. */
+				_n( 'Requires: %s', 'Requires: %s', count( $dependencies ) ),
+				implode( wp_get_list_item_separator(), $dependencies )
+			)
 		);
 
 		return $dependencies_notice;
@@ -885,12 +891,18 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * Creates a 'More details' link for the plugin.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 Added the `$link_text` parameter.
 	 *
-	 * @param string $name The plugin's name.
-	 * @param string $slug The plugin's slug.
+	 * @param string $name      The plugin's name.
+	 * @param string $slug      The plugin's slug.
+	 * @param string $link_text Optional. The text of the link. Default 'More Details'.
 	 * @return string The 'More details' link for the plugin.
 	 */
-	protected function get_more_details_link( $name, $slug ) {
+	protected function get_more_details_link( $name, $slug, $link_text = '' ) {
+		if ( '' === $link_text ) {
+			$link_text = __( 'More Details' );
+		}
+
 		$url = add_query_arg(
 			array(
 				'tab'       => 'plugin-information',
@@ -908,7 +920,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			/* translators: %s: Plugin name. */
 			sprintf( __( 'More information about %s' ), esc_html( $name ) ),
 			esc_attr( $name ),
-			__( 'More Details' )
+			esc_html( $link_text )
 		);
 
 		return $more_details_link;
