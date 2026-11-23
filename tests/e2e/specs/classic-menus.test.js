@@ -12,6 +12,7 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
  * Internal dependencies
  */
 import { NAV_MENU_LOCATIONS } from '../utils/locks';
+import { adminNotice } from '../utils/admin';
 
 /**
  * The classic menus admin screen (nav-menus.php). Relies on Twenty
@@ -102,7 +103,7 @@ test.describe( 'Classic Menus', { lock: NAV_MENU_LOCATIONS }, () => {
 		// See https://core.trac.wordpress.org/ticket/65684.
 		await page.locator( '#save_menu_footer' ).focus();
 		await page.keyboard.press( 'Enter' );
-		await expect( page.locator( '#message' ) ).toContainText(
+		await expect( adminNotice( page ) ).toContainText(
 			`${ menuName } has been updated.`
 		);
 

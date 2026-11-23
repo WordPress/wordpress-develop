@@ -925,6 +925,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertSame( 10, has_filter( 'wp_headers', array( $wp_customize, 'filter_iframe_security_headers' ) ) );
 		$this->assertSame( 10, has_filter( 'wp_redirect', array( $wp_customize, 'add_state_query_params' ) ) );
 		$this->assertTrue( wp_script_is( 'customize-preview', 'enqueued' ) );
+		$this->assertTrue( wp_style_is( 'customize-preview', 'enqueued' ) );
 		$this->assertSame( 10, has_action( 'wp_head', array( $wp_customize, 'customize_preview_loading_style' ) ) );
 		$this->assertSame( 20, has_action( 'wp_footer', array( $wp_customize, 'customize_preview_settings' ) ) );
 
