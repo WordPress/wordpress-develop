@@ -57,6 +57,57 @@ function got_url_rewrite() {
 }
 
 /**
+ * Splits lines into those preceding, between, and following the BEGIN and END markers.
+ *
+ * A line is treated as a marker only when it matches `# BEGIN {$marker}` or
+ * `# END {$marker}` exactly, ignoring surrounding whitespace. This allows markers
+ * to be indented, and prevents a marker such as `WordPress` from matching
+ * `WordPress_Foo`. An END marker is only recognized after the BEGIN marker.
+ *
+ * @since 7.3.0
+ *
+ * @param string[] $lines  Lines to split, without trailing newline characters.
+ * @param string   $marker The marker to look for.
+ * @return array {
+ *     The split lines. Marker lines themselves are not included.
+ *
+ *     @type string[] $0 Lines preceding the BEGIN marker.
+ *     @type string[] $1 Lines between the BEGIN and END markers.
+ *     @type string[] $2 Lines following the END marker.
+ * }
+ */
+function split_by_markers( $lines, $marker ) {
+	$start_marker = "# BEGIN {$marker}";
+	$end_marker   = "# END {$marker}";
+
+	$pre_lines        = array();
+	$existing_lines   = array();
+	$post_lines       = array();
+	$found_marker     = false;
+	$found_end_marker = false;
+
+	foreach ( $lines as $line ) {
+		if ( ! $found_marker && trim( $line ) === $start_marker ) {
+			$found_marker = true;
+			continue;
+		} elseif ( $found_marker && ! $found_end_marker && trim( $line ) === $end_marker ) {
+			$found_end_marker = true;
+			continue;
+		}
+
+		if ( ! $found_marker ) {
+			$pre_lines[] = $line;
+		} elseif ( $found_end_marker ) {
+			$post_lines[] = $line;
+		} else {
+			$existing_lines[] = $line;
+		}
+	}
+
+	return array( $pre_lines, $existing_lines, $post_lines );
+}
+
+/**
  * Extracts strings from between the BEGIN and END markers in the .htaccess file.
  *
  * @since 1.5.0
@@ -72,26 +123,18 @@ function extract_from_markers( $filename, $marker ) {
 		return $result;
 	}
 
-	$markerdata = explode( "\n", implode( '', file( $filename ) ) );
+	// FILE_IGNORE_NEW_LINES strips both "\n" and "\r\n" line endings.
+	$markerdata = file( $filename, FILE_IGNORE_NEW_LINES );
 
-	$state = false;
+	list( , $existing_lines ) = split_by_markers( $markerdata, $marker );
 
-	foreach ( $markerdata as $markerline ) {
-		if ( str_contains( $markerline, '# END ' . $marker ) ) {
-			$state = false;
+	foreach ( $existing_lines as $markerline ) {
+		// Skip comments, such as the inline instructions added by insert_with_markers().
+		if ( str_starts_with( ltrim( $markerline ), '#' ) ) {
+			continue;
 		}
 
-		if ( $state ) {
-			if ( str_starts_with( $markerline, '#' ) ) {
-				continue;
-			}
-
-			$result[] = $markerline;
-		}
-
-		if ( str_contains( $markerline, '# BEGIN ' . $marker ) ) {
-			$state = true;
-		}
+		$result[] = $markerline;
 	}
 
 	return $result;
@@ -188,29 +231,7 @@ Any changes to the directives between these markers will be overwritten.'
 	}
 
 	// Split out the existing file into the preceding lines, and those that appear after the marker.
-	$pre_lines        = array();
-	$post_lines       = array();
-	$existing_lines   = array();
-	$found_marker     = false;
-	$found_end_marker = false;
-
-	foreach ( $lines as $line ) {
-		if ( ! $found_marker && str_contains( $line, $start_marker ) ) {
-			$found_marker = true;
-			continue;
-		} elseif ( ! $found_end_marker && str_contains( $line, $end_marker ) ) {
-			$found_end_marker = true;
-			continue;
-		}
-
-		if ( ! $found_marker ) {
-			$pre_lines[] = $line;
-		} elseif ( $found_end_marker ) {
-			$post_lines[] = $line;
-		} else {
-			$existing_lines[] = $line;
-		}
-	}
+	list( $pre_lines, $existing_lines, $post_lines ) = split_by_markers( $lines, $marker );
 
 	// Check to see if there was a change.
 	if ( $existing_lines === $insertion ) {
