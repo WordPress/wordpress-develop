@@ -27,10 +27,6 @@
 	 * image to avoid display issues if the image fails to load.
 	 */
 	--background: #eeece5;
-	--background-credits: #3858e9;
-	--background-freedoms: #757575;
-	--background-privacy: #323232;
-	--background-get-involved: #eeece5;
 	--subtle-background: #F3F2EE;
 
 	/* Main text color */
@@ -637,22 +633,21 @@
 
 .credits-php .about__header {
 	background-image: url(../images/about-header-credits.svg?ver=7.2);
-	background-color: var(--background-credits);
+	--background: #3858e9;
 }
 
 .freedoms-php .about__header {
 	background-image: url(../images/about-header-freedoms.svg?ver=7.2);
-	background-color: var(--background-freedoms);
+	--background: #757575;
 }
 
 .privacy-php .about__header {
 	background-image: url(../images/about-header-privacy.svg?ver=7.2);
-	background-color: var(--background-privacy);
+	--background: #323232;
 }
 
 .contribute-php .about__header {
 	background-image: url(../images/about-header-get-involved.svg?ver=7.2);
-	background-color: var(--background-get-involved);
 }
 
 [dir="rtl"] .about__header {
