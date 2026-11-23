@@ -2153,9 +2153,10 @@ function wp_mkdir_p( $target ) {
 /**
  * Tests if a given filesystem path is absolute.
  *
- * For example, '/foo/bar', or 'c:\windows'.
+ * For example, '/foo/bar', 'c:\windows', or 'c:/windows'.
  *
  * @since 2.5.0
+ * @since 7.2.0 Windows drive-letter paths using forward slashes are now recognized as absolute.
  *
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
@@ -2184,8 +2185,8 @@ function path_is_absolute( $path ) {
 		return false;
 	}
 
-	// Windows allows absolute paths like this.
-	if ( preg_match( '#^[a-zA-Z]:\\\\#', $path ) ) {
+	// Windows allows absolute paths like this, with either separator.
+	if ( preg_match( '#^[a-zA-Z]:[\\\\/]#', $path ) ) {
 		return true;
 	}
 

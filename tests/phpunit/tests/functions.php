@@ -111,6 +111,45 @@ class Tests_Functions extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Tests that Windows drive-letter paths using forward slashes are absolute.
+	 *
+	 * @ticket 48289
+	 * @covers ::path_is_absolute
+	 * @dataProvider data_path_is_absolute_windows_forward_slashes
+	 *
+	 * @param string $path Path to test.
+	 */
+	public function test_path_is_absolute_accepts_windows_drive_path_with_forward_slashes( $path ) {
+		$this->assertTrue( path_is_absolute( $path ), "path_is_absolute('$path') should return true" );
+	}
+
+	/**
+	 * Data provider for test_path_is_absolute_accepts_windows_drive_path_with_forward_slashes().
+	 *
+	 * @return array[]
+	 */
+	public function data_path_is_absolute_windows_forward_slashes() {
+		return array(
+			'drive root'                 => array( 'C:/' ),
+			'drive directory'            => array( 'C:/WINDOWS' ),
+			'lowercase drive'            => array( 'c:/foo/bar' ),
+			'nested directory'           => array( 'D:/wamp/www/wp-content' ),
+			'wp_normalize_path() output' => array( wp_normalize_path( 'C:\\wamp\\www\\wp-content' ) ),
+		);
+	}
+
+	/**
+	 * Tests that Windows drive-relative paths are not absolute.
+	 *
+	 * @ticket 48289
+	 * @covers ::path_is_absolute
+	 */
+	public function test_path_is_absolute_rejects_windows_drive_relative_path() {
+		$this->assertFalse( path_is_absolute( 'C:foo' ) );
+		$this->assertFalse( path_is_absolute( 'C:' ) );
+	}
+
 	public function test_path_is_not_absolute() {
 		$relative_paths = array(
 			'',
