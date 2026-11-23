@@ -256,7 +256,12 @@ function display_space_usage() {
 	$space_allowed = get_space_allowed();
 	$space_used    = get_space_used();
 
-	$percent_used = $space_allowed > 0 ? ( $space_used / $space_allowed ) * 100 : 0;
+	if ( $space_allowed > 0 ) {
+		$percent_used = ( $space_used / $space_allowed ) * 100;
+	} else {
+		// No space is allowed, so none is left.
+		$percent_used = 100;
+	}
 
 	$space = size_format( $space_allowed * MB_IN_BYTES );
 	?>

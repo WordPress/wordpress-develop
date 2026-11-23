@@ -132,4 +132,22 @@ class Tests_Multisite_WpDashboardQuota extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Used:', $output );
 	}
+
+	/**
+	 * `wp_dashboard_quota()` must render the widget for a zero quota,
+	 * reporting all of the space as used.
+	 *
+	 * @ticket 65439
+	 */
+	public function test_wp_dashboard_quota_renders_full_usage_for_zero_quota() {
+		$this->set_quota( 0, 0 );
+
+		ob_start();
+		wp_dashboard_quota();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'Storage Space', $output );
+		$this->assertStringContainsString( '0 MB Space Allowed', $output );
+		$this->assertStringContainsString( '(100%) Space Used', $output );
+	}
 }
