@@ -68,12 +68,13 @@ final class WP_Abilities_Content {
 	 * Requests that include any of these, directly or through their whole object, prime
 	 * the post meta and term caches for the page. Rendered excerpts and content may read
 	 * either, and permalinks read terms when the permalink structure contains `%category%`.
+	 * Fields that plugins add under `extensions` often read meta or terms too.
 	 * Other fields, such as the rendered title, do not need that cache priming.
 	 *
 	 * @since 7.2.0
 	 * @var list<string>
 	 */
-	private const CACHE_PRIMING_FIELDS = array( 'link', 'excerpt.rendered', 'content.rendered' );
+	private const CACHE_PRIMING_FIELDS = array( 'link', 'excerpt.rendered', 'content.rendered', 'extensions' );
 
 	/**
 	 * Default field paths returned when the caller does not request a field subset.
@@ -638,6 +639,15 @@ final class WP_Abilities_Content {
 			return $this->prepare_output( array(), 0, 0 );
 		}
 
+		/*
+		 * Query filters change the arguments before the query runs, so the count query of
+		 * get_query_total(), which starts from the same arguments, applies them too.
+		 */
+		$query_args = $this->apply_extension_query_filters( $query_args, $where, $post_type_object );
+		if ( is_wp_error( $query_args ) ) {
+			return $query_args;
+		}
+
 		$query = new WP_Query( $query_args );
 		$total = $this->get_query_total( $query, $query_args, $page );
 
@@ -773,6 +783,102 @@ final class WP_Abilities_Content {
 		$count_query = new WP_Query( $count_args );
 
 		return (int) $count_query->found_posts;
+	}
+
+	/**
+	 * Applies the query filters that plugins registered to the query arguments.
+	 *
+	 * Each filter given in `where.extensions` returns a limited set of query arguments,
+	 * which are joined with the arguments of the other filters, so a post must match all
+	 * of them, and no filter can undo another. A filter that is not registered, or does not
+	 * apply to the post type, is refused rather than ignored, as other unsupported filters
+	 * are: ignoring it would widen the query.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $query_args       The query arguments.
+	 * @param array<mixed>         $where            The `where` input.
+	 * @param WP_Post_Type         $post_type_object The queried post type.
+	 * @return array<string, mixed>|WP_Error The query arguments, or a WP_Error when a filter
+	 *                                       cannot be applied or refuses the query.
+	 */
+	private function apply_extension_query_filters( array $query_args, array $where, WP_Post_Type $post_type_object ) {
+		if ( ! array_key_exists( 'extensions', $where ) ) {
+			return $query_args;
+		}
+
+		$input = $this->get_input_object( $where, 'extensions' );
+		if ( null === $input ) {
+			return $this->invalid_filter_error( 'where[extensions]', __( 'The extensions filter must be an object.' ) );
+		}
+
+		$query_filters = _wp_get_ability_post_extensions( 'query_filters' );
+		foreach ( $input as $namespace => $values ) {
+			$values = $this->get_input_object( $input, (string) $namespace );
+			if ( null === $values ) {
+				return $this->invalid_filter_error( "where[extensions][{$namespace}]", __( 'The filters of a namespace must be an object.' ) );
+			}
+
+			foreach ( $values as $name => $value ) {
+				$param        = "where[extensions][{$namespace}][{$name}]";
+				$query_filter = $query_filters[ $namespace ][ $name ] ?? null;
+				if ( null === $query_filter ) {
+					return $this->invalid_filter_error( $param, __( 'The filter is not registered.' ) );
+				}
+
+				if ( ! empty( $query_filter['object_types'] ) && ! in_array( $post_type_object->name, $query_filter['object_types'], true ) ) {
+					return $this->invalid_filter_error( $param, __( 'The filter is not supported for this post type.' ) );
+				}
+
+				$clauses = call_user_func( $query_filter['callback'], $value, $post_type_object );
+				if ( is_wp_error( $clauses ) ) {
+					return $clauses;
+				}
+
+				$allowed = array( 'meta_query', 'tax_query', 'post__in', 'post__not_in' );
+				if ( ! is_array( $clauses ) || array_diff_key( $clauses, array_flip( $allowed ) ) ) {
+					return new WP_Error(
+						'ability_invalid_query_filter',
+						/* translators: %s: Parameter. */
+						sprintf( __( 'The %s filter returned invalid query arguments.' ), $param ),
+						array( 'status' => 500 )
+					);
+				}
+
+				foreach ( array( 'meta_query', 'tax_query' ) as $key ) {
+					if ( ! empty( $clauses[ $key ] ) ) {
+						// Nested as one clause, so its own relation cannot change how the other clauses join.
+						$query_args[ $key ][] = $clauses[ $key ];
+					}
+				}
+
+				if ( isset( $clauses['post__in'] ) ) {
+					$ids = array_map( 'absint', (array) $clauses['post__in'] );
+
+					$query_args['post__in'] = isset( $query_args['post__in'] ) ? array_intersect( $query_args['post__in'], $ids ) : $ids;
+					$query_args['post__in'] = array_values( array_filter( $query_args['post__in'] ) );
+
+					// WP_Query ignores an empty `post__in`, which would return every post.
+					if ( empty( $query_args['post__in'] ) ) {
+						$query_args['post__in'] = array( 0 );
+					}
+				}
+
+				if ( ! empty( $clauses['post__not_in'] ) ) {
+					$query_args['post__not_in'] = array_values( array_unique( array_merge( $query_args['post__not_in'] ?? array(), array_map( 'absint', (array) $clauses['post__not_in'] ) ) ) );
+				}
+			}
+		}
+
+		// WP_Query ignores `post__not_in` when `post__in` is set, so apply the exclusions to the inclusions.
+		if ( ! empty( $query_args['post__in'] ) && ! empty( $query_args['post__not_in'] ) ) {
+			$query_args['post__in'] = array_values( array_diff( $query_args['post__in'], $query_args['post__not_in'] ) );
+			if ( empty( $query_args['post__in'] ) ) {
+				$query_args['post__in'] = array( 0 );
+			}
+		}
+
+		return $query_args;
 	}
 
 	/**
@@ -971,7 +1077,7 @@ final class WP_Abilities_Content {
 	 * @return array<string, mixed> Post field definitions.
 	 */
 	private function get_post_properties(): array {
-		return array(
+		$properties = array(
 			'id'       => array(
 				'type'        => 'integer',
 				'description' => __( 'The post ID.' ),
@@ -1104,6 +1210,16 @@ final class WP_Abilities_Content {
 				'description' => __( 'The parent post ID. Present for hierarchical post types.' ),
 			),
 		);
+
+		$extensions = $this->get_extensions_schema(
+			_wp_get_ability_post_extensions( 'fields' ),
+			__( 'The fields that plugins add to the post, keyed by plugin namespace, then field name. Present when a requested extension field applies to the post type.' )
+		);
+		if ( null !== $extensions ) {
+			$properties['extensions'] = $extensions;
+		}
+
+		return $properties;
 	}
 
 	/**
@@ -1123,8 +1239,15 @@ final class WP_Abilities_Content {
 		foreach ( $this->get_post_properties() as $name => $schema ) {
 			$paths[] = $name;
 
-			foreach ( array_keys( $schema['properties'] ?? array() ) as $sub_field ) {
+			foreach ( $schema['properties'] ?? array() as $sub_field => $sub_schema ) {
 				$paths[] = "{$name}.{$sub_field}";
+
+				// Extension fields are nested one level deeper, under their namespace.
+				if ( 'extensions' === $name ) {
+					foreach ( array_keys( $sub_schema['properties'] ) as $extension_field ) {
+						$paths[] = "{$name}.{$sub_field}.{$extension_field}";
+					}
+				}
 			}
 		}
 
@@ -1171,7 +1294,7 @@ final class WP_Abilities_Content {
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
 	private function get_content_query_input_schema( array $post_types, array $statuses ): array {
-		return array(
+		$schema = array(
 			'type'                 => 'object',
 			'additionalProperties' => false,
 			'required'             => array( 'where' ),
@@ -1269,6 +1392,51 @@ final class WP_Abilities_Content {
 					'description'          => __( 'Selects the page of results to return.' ),
 				),
 			),
+		);
+
+		$extensions = $this->get_extensions_schema(
+			_wp_get_ability_post_extensions( 'query_filters' ),
+			__( 'The filters that plugins add, keyed by plugin namespace, then filter name. A post must match every given filter. A filter is refused for post types it does not apply to.' )
+		);
+		if ( null !== $extensions ) {
+			$schema['properties']['where']['properties']['extensions'] = $extensions;
+		}
+
+		return $schema;
+	}
+
+	/**
+	 * Builds the schema of the `extensions` object of post fields or query filters.
+	 *
+	 * Each namespace is an object that holds its fields or filters, and every object sets
+	 * `additionalProperties: false`, so an unregistered extension fails validation.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<string, array<string, array<string, mixed>>> $extensions  The registered extensions,
+	 *                                                                         keyed by namespace, then name.
+	 * @param string                                             $description The description of the object.
+	 * @return array<string, mixed>|null The `extensions` JSON Schema, or null when none is registered.
+	 */
+	private function get_extensions_schema( array $extensions, string $description ): ?array {
+		if ( empty( $extensions ) ) {
+			return null;
+		}
+
+		$properties = array();
+		foreach ( $extensions as $namespace => $items ) {
+			$properties[ $namespace ] = array(
+				'type'                 => 'object',
+				'additionalProperties' => false,
+				'properties'           => wp_list_pluck( $items, 'schema' ),
+			);
+		}
+
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'properties'           => $properties,
+			'description'          => $description,
 		);
 	}
 
@@ -1535,6 +1703,21 @@ final class WP_Abilities_Content {
 
 		if ( $this->is_field_requested( 'parent', $fields ) && is_post_type_hierarchical( $post_type ) ) {
 			$data['parent'] = (int) $post->post_parent;
+		}
+
+		$extensions = array();
+		foreach ( _wp_get_ability_post_extensions( 'fields' ) as $namespace => $extension_fields ) {
+			foreach ( $extension_fields as $name => $extension_field ) {
+				if ( ! empty( $extension_field['object_types'] ) && ! in_array( $post_type, $extension_field['object_types'], true ) ) {
+					continue;
+				}
+				if ( $this->is_field_requested( "extensions.{$namespace}.{$name}", $fields ) ) {
+					$extensions[ $namespace ][ $name ] = call_user_func( $extension_field['callback'], $post );
+				}
+			}
+		}
+		if ( ! empty( $extensions ) ) {
+			$data['extensions'] = $extensions;
 		}
 
 		return $data;
