@@ -24,8 +24,6 @@
 	// Half-width katakana and digits.
 	const GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789';
 
-	const STYLE = `.wp-teletype { --wp-teletype-transition-duration: ${ FADE_TIME / 1000 }s }${ settings?.styles ?? '' }`;
-
 	/**
 	 * Runs the falling glyph rain behind the scene.
 	 *
@@ -146,8 +144,9 @@
 		const previousOverflow = document.documentElement.style.overflow;
 		const actOneLines      = [ ...i18n.actOne, ...i18n.countdown ];
 
-		const style = document.createElement( 'style' );
-		style.textContent = STYLE;
+		const stylesheet = document.createElement( 'link' );
+		stylesheet.rel  = 'stylesheet';
+		stylesheet.href = settings?.styles ?? '';
 
 		const overlay = document.createElement( 'div' );
 		overlay.className = 'wp-teletype';
@@ -155,6 +154,7 @@
 		overlay.setAttribute( 'aria-modal', 'true' );
 		overlay.setAttribute( 'aria-label', i18n.label );
 		overlay.setAttribute( 'tabindex', '-1' );
+		overlay.style.setProperty( '--wp-teletype-transition-duration', `${ FADE_TIME / 1000 }s` );
 
 		// Hidden from screen readers, which get whole lines from the live region.
 		const line = document.createElement( 'p' );
@@ -336,22 +336,27 @@
 			document.removeEventListener( 'keydown', onKeydown );
 			document.documentElement.style.overflow = previousOverflow;
 			overlay.remove();
-			style.remove();
+			stylesheet.remove();
 
 			if ( previousFocus instanceof HTMLElement ) {
 				previousFocus.focus();
 			}
 		};
 
-		document.addEventListener( 'keydown', onKeydown );
 		overlay.addEventListener( 'click', abort );
 
-		document.head.append( style );
-		document.body.append( overlay );
-		document.documentElement.style.overflow = 'hidden';
-		overlay.focus();
+		// Show the scene once its styles are in, so it never flashes unstyled.
+		stylesheet.addEventListener( 'load', () => {
+			document.addEventListener( 'keydown', onKeydown );
+			document.body.append( overlay );
+			document.documentElement.style.overflow = 'hidden';
+			overlay.focus();
 
-		wait( START_DELAY, () => actOne( 0 ) );
+			wait( START_DELAY, () => actOne( 0 ) );
+		} );
+		stylesheet.addEventListener( 'error', abort );
+
+		document.head.append( stylesheet );
 	};
 
 	wp.teletype = { run };

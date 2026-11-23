@@ -3,7 +3,7 @@
  *
  * These live here rather than beside either script because two files share them: the loader
  * (js/_enqueues/admin/teletype-loader.js) reads the trigger, and the teletype
- * (js/_enqueues/admin/teletype.js) reads the styles and plays the strings.
+ * (js/_enqueues/admin/teletype.js) loads the styles and plays the strings.
  */
 
 /**
@@ -34,7 +34,7 @@ interface WPTeletypeSettings {
 	src: string;
 	/** The current user's display name. */
 	name: string;
-	/** Styles injected while the scene plays. */
+	/** URL of the teletype stylesheet, loaded on demand. */
 	styles: string;
 	/** Translated strings. */
 	i18n: WPTeletypeI18n;
