@@ -12,11 +12,18 @@
 class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitTestCase {
 
 	/**
-	 * The notice before the list of dependencies.
+	 * The start of the line listing the dependencies.
 	 *
 	 * @var string
 	 */
-	const NOTICE_START = '<div class="plugin-dependencies notice notice-alt notice-info inline"><p class="plugin-dependencies-explainer-text"><strong>Additional plugins are required</strong></p> ';
+	const NOTICE_START = '<p class="plugin-dependencies-inline">Requires: ';
+
+	/**
+	 * The end of the line listing the dependencies.
+	 *
+	 * @var string
+	 */
+	const NOTICE_END = '</p>';
 
 	/**
 	 * The list table.
@@ -88,7 +95,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 	}
 
 	/**
-	 * Tests that no notice is returned for a plugin without dependencies.
+	 * Tests that nothing is returned for a plugin without dependencies.
 	 *
 	 * @ticket 65819
 	 *
@@ -129,7 +136,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 		);
 
 		$this->assertSame(
-			self::NOTICE_START . $this->get_named_dependency( 'Dep &lt;b&gt;&amp;&lt;/b&gt; &quot;One&quot;', 'dep-one' ) . '</div>',
+			self::NOTICE_START . $this->get_named_dependency( 'Dep &lt;b&gt;&amp;&lt;/b&gt; &quot;One&quot;', 'dep-one' ) . self::NOTICE_END,
 			$this->get_dependencies_notice( array( 'requires_plugins' => array( 'dep-one' ) ) ),
 			'The dependency should be named from the stored data.'
 		);
@@ -153,7 +160,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 		);
 
 		$this->assertSame(
-			self::NOTICE_START . $this->get_named_dependency( 'Dep One', 'dep-one-renamed' ) . '</div>',
+			self::NOTICE_START . $this->get_named_dependency( 'Dep One', 'dep-one-renamed' ) . self::NOTICE_END,
 			$this->get_dependencies_notice( array( 'requires_plugins' => array( 'dep-one' ) ) )
 		);
 	}
@@ -178,7 +185,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 		);
 
 		$this->assertSame(
-			self::NOTICE_START . $this->get_named_dependency( 'Dep One From API', 'dep-one' ) . '</div>',
+			self::NOTICE_START . $this->get_named_dependency( 'Dep One From API', 'dep-one' ) . self::NOTICE_END,
 			$this->get_dependencies_notice( array( 'requires_plugins' => array( 'dep-one' ) ) ),
 			'The dependency should be named from the plugins API.'
 		);
@@ -218,7 +225,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 		);
 
 		$this->assertSame(
-			self::NOTICE_START . $this->get_named_dependency( 'Dep &lt;i&gt;One&lt;/i&gt;', 'renamed-dep' ) . '</div>',
+			self::NOTICE_START . $this->get_named_dependency( 'Dep &lt;i&gt;One&lt;/i&gt;', 'renamed-dep' ) . self::NOTICE_END,
 			$this->get_dependencies_notice( array( 'requires_plugins' => array( 'dep-one' ) ) )
 		);
 	}
@@ -241,7 +248,7 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 			);
 
 		$this->assertSame(
-			self::NOTICE_START . '<div class="plugin-dependency"><span class="plugin-dependency-name">dep&lt;one&gt;</span></div></div>',
+			self::NOTICE_START . 'dep&lt;one&gt;' . self::NOTICE_END,
 			$this->get_dependencies_notice( array( 'requires_plugins' => array( 'dep<one>' ) ) )
 		);
 	}
@@ -283,9 +290,11 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 		$this->assertSame(
 			self::NOTICE_START
 				. $this->get_named_dependency( 'Dep One', 'dep-one' )
+				. wp_get_list_item_separator()
 				. $this->get_named_dependency( 'Dep Two', 'dep-two' )
-				. '<div class="plugin-dependency"><span class="plugin-dependency-name">dep-three</span></div>'
-				. '</div>',
+				. wp_get_list_item_separator()
+				. 'dep-three'
+				. self::NOTICE_END,
 			$this->get_dependencies_notice( array( 'requires_plugins' => array( 'dep-one', 'dep-two', 'dep-three' ) ) ),
 			'Each dependency should be listed in order.'
 		);
@@ -303,9 +312,8 @@ class Tests_Admin_wpPluginInstallListTableGetDependenciesNotice extends WP_UnitT
 		$url = 'http://' . WP_TESTS_DOMAIN . '/wp-admin/' . ( is_multisite() ? 'network/' : '' )
 			. 'plugin-install.php?tab=plugin-information&#038;plugin=' . $slug . '&#038;TB_iframe=true&#038;width=600&#038;height=550';
 
-		return '<div class="plugin-dependency"><span class="plugin-dependency-name">' . $escaped_name . '</span> '
-			. '<a href="' . $url . '" class="more-details-link thickbox open-plugin-details-modal" aria-label="More information about ' . $escaped_name . '" data-title="' . $escaped_name . '">More Details</a>'
-			. '</div>';
+		return '<a href="' . $url . '" class="more-details-link thickbox open-plugin-details-modal" aria-label="More information about '
+			. $escaped_name . '" data-title="' . $escaped_name . '">' . $escaped_name . '</a>';
 	}
 
 	/**

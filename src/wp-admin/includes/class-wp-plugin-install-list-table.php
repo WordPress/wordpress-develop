@@ -760,14 +760,14 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				<div class="desc column-description">
 					<p><?php echo $description; ?></p>
 					<p class="authors"><?php echo $author; ?></p>
+					<?php
+					$dependencies_notice = $this->get_dependencies_notice( $plugin );
+					if ( ! empty( $dependencies_notice ) ) {
+						echo $dependencies_notice;
+					}
+					?>
 				</div>
 			</div>
-			<?php
-			$dependencies_notice = $this->get_dependencies_notice( $plugin );
-			if ( ! empty( $dependencies_notice ) ) {
-				echo $dependencies_notice;
-			}
-			?>
 			<div class="plugin-card-bottom">
 				<div class="vers column-rating">
 					<?php
@@ -829,13 +829,14 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Returns a notice containing a list of dependencies required by the plugin.
+	 * Returns a line of text listing the dependencies required by the plugin.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 The dependencies are listed in a line of text instead of a notice.
 	 *
 	 * @param array  $plugin_data An array of plugin data. See {@see plugins_api()}
 	 *                            for the list of possible values.
-	 * @return string A notice containing a list of dependencies required by the plugin,
+	 * @return string A line of text listing the dependencies required by the plugin,
 	 *                or an empty string if none is required.
 	 */
 	protected function get_dependencies_notice( $plugin_data ) {
@@ -843,10 +844,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			return '';
 		}
 
-		$no_name_markup  = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span></div>';
-		$has_name_markup = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span> %s</div>';
-
-		$dependencies_list = '';
+		$dependencies = array();
 		foreach ( $plugin_data['requires_plugins'] as $dependency ) {
 			$dependency_data = WP_Plugin_Dependencies::get_dependency_data( $dependency );
 
@@ -856,41 +854,42 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				! empty( $dependency_data['slug'] ) &&
 				! empty( $dependency_data['version'] )
 			) {
-				$more_details_link  = $this->get_more_details_link( $dependency_data['name'], $dependency_data['slug'] );
-				$dependencies_list .= sprintf( $has_name_markup, esc_html( $dependency_data['name'] ), $more_details_link );
+				$dependencies[] = $this->get_more_details_link( $dependency_data['name'], $dependency_data['slug'], $dependency_data['name'] );
 				continue;
 			}
 
 			$result = plugins_api( 'plugin_information', array( 'slug' => $dependency ) );
 
 			if ( ! empty( $result->name ) ) {
-				$more_details_link  = $this->get_more_details_link( $result->name, $result->slug );
-				$dependencies_list .= sprintf( $has_name_markup, esc_html( $result->name ), $more_details_link );
+				$dependencies[] = $this->get_more_details_link( $result->name, $result->slug, $result->name );
 				continue;
 			}
 
-			$dependencies_list .= sprintf( $no_name_markup, esc_html( $dependency ) );
+			$dependencies[] = esc_html( $dependency );
 		}
 
-		$dependencies_notice = sprintf(
-			'<div class="plugin-dependencies notice notice-alt notice-info inline"><p class="plugin-dependencies-explainer-text">%s</p> %s</div>',
-			'<strong>' . __( 'Additional plugins are required' ) . '</strong>',
-			$dependencies_list
+		return sprintf(
+			'<p class="plugin-dependencies-inline">%s</p>',
+			sprintf(
+				/* translators: %s: List of dependency names. */
+				_n( 'Requires: %s', 'Requires: %s', count( $dependencies ) ),
+				implode( wp_get_list_item_separator(), $dependencies )
+			)
 		);
-
-		return $dependencies_notice;
 	}
 
 	/**
 	 * Creates a 'More details' link for the plugin.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 Added the `$link_text` parameter.
 	 *
-	 * @param string $name The plugin's name.
-	 * @param string $slug The plugin's slug.
+	 * @param string $name      The plugin's name.
+	 * @param string $slug      The plugin's slug.
+	 * @param string $link_text Optional. The link's text. Default 'More Details'.
 	 * @return string The 'More details' link for the plugin.
 	 */
-	protected function get_more_details_link( $name, $slug ) {
+	protected function get_more_details_link( $name, $slug, $link_text = '' ) {
 		$url = add_query_arg(
 			array(
 				'tab'       => 'plugin-information',
@@ -902,13 +901,17 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			network_admin_url( 'plugin-install.php' )
 		);
 
+		if ( '' === $link_text ) {
+			$link_text = __( 'More Details' );
+		}
+
 		$more_details_link = sprintf(
 			'<a href="%1$s" class="more-details-link thickbox open-plugin-details-modal" aria-label="%2$s" data-title="%3$s">%4$s</a>',
 			esc_url( $url ),
 			/* translators: %s: Plugin name. */
 			sprintf( __( 'More information about %s' ), esc_html( $name ) ),
 			esc_attr( $name ),
-			__( 'More Details' )
+			esc_html( $link_text )
 		);
 
 		return $more_details_link;
