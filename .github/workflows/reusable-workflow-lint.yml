@@ -18,7 +18,7 @@ jobs:
   # `run:` script checking, glob syntax validation, and more.
   actionlint:
     name: Run actionlint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     timeout-minutes: 5
@@ -52,7 +52,7 @@ jobs:
   # - Uploads the SARIF file to GitHub.
   zizmor:
     name: Zizmor
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # GitHub Code Security is not enabled on any of the private mirrors.
     if: ${{ github.event.repository.private == false }}
     permissions:

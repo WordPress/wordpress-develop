@@ -11,11 +11,6 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		self::$post_ids = $factory->post->create_many( 5 );
 	}
 
-	public function tear_down() {
-		unregister_taxonomy( 'wptests_tax' );
-		parent::tear_down();
-	}
-
 	/**
 	 * @ticket 22560
 	 */

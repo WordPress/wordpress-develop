@@ -43,12 +43,6 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		);
 	}
 
-	public function tear_down() {
-		unregister_post_type( 'cpt' );
-
-		parent::tear_down();
-	}
-
 	public function set_up() {
 		parent::set_up();
 
