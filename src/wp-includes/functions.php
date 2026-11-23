@@ -4023,17 +4023,15 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		$message  .= "\n<p><a href='javascript:history.back()'>$back_text</a></p>";
 	}
 
-	/*
-	 * Send the status code even if the admin header was already output,
-	 * so that errors such as critical errors are not served with a 200 status.
-	 */
-	if ( ! headers_sent() ) {
+	// Critical errors must not be served with a 200 status, even if the admin header was already output.
+	if ( did_action( 'admin_head' ) && 'internal_server_error' === $parsed_args['code'] && ! headers_sent() ) {
 		status_header( $parsed_args['response'] );
 	}
 
 	if ( ! did_action( 'admin_head' ) ) :
 		if ( ! headers_sent() ) {
 			header( "Content-Type: text/html; charset={$parsed_args['charset']}" );
+			status_header( $parsed_args['response'] );
 			nocache_headers();
 		}
 

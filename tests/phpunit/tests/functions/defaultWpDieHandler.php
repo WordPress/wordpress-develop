@@ -117,38 +117,99 @@ class Tests_Functions_DefaultWpDieHandler extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64256
-	 */
-	public function test_should_send_500_response_code_by_default_after_admin_head() {
-		$this->mark_admin_head_as_done();
-
-		$this->assertSame( 500, $this->get_response_code_from_wp_die( 'Error message' ) );
-	}
-
-	/**
-	 * @ticket 64256
-	 */
-	public function test_should_send_custom_response_code_after_admin_head() {
-		$this->mark_admin_head_as_done();
-
-		$this->assertSame( 404, $this->get_response_code_from_wp_die( 'Error message', array( 'response' => 404 ) ) );
-	}
-
-	/**
-	 * Tests that the status_header filter is applied to the response code after the admin header was output.
+	 * Tests that the status header is only sent once for a critical error before the admin header was output.
 	 *
 	 * @ticket 64256
 	 */
-	public function test_should_apply_status_header_filter_after_admin_head() {
+	public function test_should_apply_status_header_filter_once_for_internal_server_error() {
+		$filter = new MockAction();
+		add_filter( 'status_header', array( $filter, 'filter' ) );
+
+		$this->get_response_code_from_wp_die( 'Error message', array( 'code' => 'internal_server_error' ) );
+
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * Tests that a critical error without a response sends the default 500 response code after the admin header was output.
+	 *
+	 * @ticket 64256
+	 */
+	public function test_should_send_500_response_code_for_internal_server_error_by_default_after_admin_head() {
+		$this->mark_admin_head_as_done();
+
+		$this->assertSame( 500, $this->get_response_code_from_wp_die( 'Error message', array( 'code' => 'internal_server_error' ) ) );
+	}
+
+	/**
+	 * Tests that a critical error WP_Error without a status sends the default 500 response code after the admin header was output.
+	 *
+	 * @ticket 64256
+	 */
+	public function test_should_send_500_response_code_for_internal_server_error_wp_error_after_admin_head() {
+		$this->mark_admin_head_as_done();
+
+		$error = new WP_Error( 'internal_server_error', 'Error message' );
+
+		$this->assertSame( 500, $this->get_response_code_from_wp_die( $error ) );
+	}
+
+	/**
+	 * Tests that the response code passed with a critical error is respected after the admin header was output.
+	 *
+	 * @ticket 64256
+	 */
+	public function test_should_send_custom_response_code_for_internal_server_error_after_admin_head() {
+		$this->mark_admin_head_as_done();
+
+		$error = new WP_Error( 'internal_server_error', 'Error message', array( 'status' => 503 ) );
+
+		$this->assertSame( 503, $this->get_response_code_from_wp_die( $error ) );
+	}
+
+	/**
+	 * Tests that non-critical errors still do not send a response code after the admin header was output.
+	 *
+	 * @ticket 64256
+	 */
+	public function test_should_not_send_response_code_for_non_critical_error_after_admin_head() {
+		$this->mark_admin_head_as_done();
+
+		$this->assertFalse( $this->get_response_code_from_wp_die( 'Error message' ) );
+	}
+
+	/**
+	 * Tests that non-critical errors with a response still do not send a response code after the admin header was output.
+	 *
+	 * @ticket 64256
+	 */
+	public function test_should_not_send_custom_response_code_for_non_critical_error_after_admin_head() {
+		$this->mark_admin_head_as_done();
+
+		$this->assertFalse( $this->get_response_code_from_wp_die( 'Error message', array( 'response' => 404 ) ) );
+	}
+
+	/**
+	 * Tests that the status_header filter is applied to the response code of a critical error after the admin header was output.
+	 *
+	 * @ticket 64256
+	 */
+	public function test_should_apply_status_header_filter_for_internal_server_error_after_admin_head() {
 		$this->mark_admin_head_as_done();
 
 		$filter = new MockAction();
 		add_filter( 'status_header', array( $filter, 'filter' ), 10, 2 );
 
-		$this->get_response_code_from_wp_die( 'Error message', array( 'response' => 403 ) );
+		$this->get_response_code_from_wp_die(
+			'Error message',
+			array(
+				'code'     => 'internal_server_error',
+				'response' => 503,
+			)
+		);
 
 		$this->assertSame( 1, $filter->get_call_count(), 'The status_header filter should be applied once.' );
-		$this->assertSame( 403, $filter->get_args()[0][1], 'The status_header filter should receive the response code.' );
+		$this->assertSame( 503, $filter->get_args()[0][1], 'The status_header filter should receive the response code.' );
 	}
 
 	/**
