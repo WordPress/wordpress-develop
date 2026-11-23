@@ -299,7 +299,7 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 	 *
 	 * @return array<string, array{string}> Test cases.
 	 */
-	public function data_settings_route_spellings(): array {
+	public static function data_settings_route_spellings(): array {
 		return array(
 			'lowercase'        => array( '/wp/v2/settings' ),
 			'mixed case'       => array( '/wp/v2/Settings' ),
@@ -314,7 +314,7 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 	 *
 	 * @return array<string, array{string}> Test cases.
 	 */
-	public function data_settings_rest_route_query_values(): array {
+	public static function data_settings_rest_route_query_values(): array {
 		return array(
 			'lowercase'                => array( '/wp/v2/settings' ),
 			'mixed case'               => array( '/wp/v2/Settings' ),

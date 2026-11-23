@@ -47,7 +47,7 @@ class Tests_Load_WpGetEnvironmentType extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_valid_environment_types() {
+	public static function data_valid_environment_types(): array {
 		return array(
 			'local'       => array( 'local' ),
 			'development' => array( 'development' ),

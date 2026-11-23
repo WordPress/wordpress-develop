@@ -57,6 +57,7 @@ class Tests_Link_PaginateCommentsLinks extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_paginate_comments_links_plain_permalinks() {
+		$this->set_permalink_structure( '' );
 		$this->go_to( get_permalink( self::$post_id ) );
 
 		$output = paginate_comments_links(
@@ -78,7 +79,6 @@ class Tests_Link_PaginateCommentsLinks extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_paginate_comments_links_pretty_permalinks() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 		$this->go_to( get_permalink( self::$post_id ) );
 
 		$output = paginate_comments_links(
@@ -100,6 +100,7 @@ class Tests_Link_PaginateCommentsLinks extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_paginate_comments_links_echoes_by_default() {
+		$this->set_permalink_structure( '' );
 		$this->go_to( get_permalink( self::$post_id ) );
 
 		$args = array(

@@ -80,8 +80,6 @@ class Tests_Link_GetSearchFeedLink extends WP_UnitTestCase {
 	 * @covers ::get_search_comments_feed_link
 	 */
 	public function test_search_feed_links_use_default_feed_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		add_filter(
 			'default_feed',
 			static function () {
@@ -131,8 +129,6 @@ class Tests_Link_GetSearchFeedLink extends WP_UnitTestCase {
 	 * @covers ::get_search_comments_feed_link
 	 */
 	public function test_get_search_comments_feed_link_applies_search_feed_link_filter() {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$filter = new MockAction();
 		add_filter( 'search_feed_link', array( $filter, 'filter' ), 10, 3 );
 		add_filter(

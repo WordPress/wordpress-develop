@@ -449,7 +449,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 *
 	 * return array[]
 	 */
-	public function data_get_items_query_args() {
+	public static function data_get_items_query_args() {
 		return array(
 			'per_page default'   => array(
 				'param'    => 'per_page',
@@ -784,7 +784,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 *
 	 * @ticket 55617
 	 */
-	public function data_get_query_parameters() {
+	public static function data_get_query_parameters() {
 		return array(
 			'same key and empty slugs'              => array(
 				'parameters_1' => array(
