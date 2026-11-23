@@ -35,7 +35,7 @@ class Tests_Functions_DefaultWpDieHandler extends WP_UnitTestCase {
 	/**
 	 * Simulates the admin header having been output, without running the callbacks hooked to it.
 	 *
-	 * In this state, _default_wp_die_handler() does not output its own HTML head or call status_header().
+	 * In this state, _default_wp_die_handler() does not output its own HTML head.
 	 */
 	private function mark_admin_head_as_done() {
 		global $wp_actions;
@@ -61,85 +61,11 @@ class Tests_Functions_DefaultWpDieHandler extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64256
-	 */
-	public function test_should_send_500_response_code_by_default() {
-		$this->assertSame( 500, $this->get_response_code_from_wp_die( 'Error message' ) );
-	}
-
-	/**
-	 * @ticket 64256
-	 */
-	public function test_should_send_500_response_code_when_response_is_500() {
-		$this->assertSame( 500, $this->get_response_code_from_wp_die( 'Error message', array( 'response' => 500 ) ) );
-	}
-
-	/**
-	 * @ticket 64256
-	 */
-	public function test_should_send_500_response_code_for_internal_server_error_code() {
-		$response_code = $this->get_response_code_from_wp_die(
-			'Error message',
-			array(
-				'code'     => 'internal_server_error',
-				'response' => 403,
-			)
-		);
-
-		$this->assertSame( 500, $response_code );
-	}
-
-	/**
-	 * @ticket 64256
-	 */
-	public function test_should_send_500_response_code_for_internal_server_error_wp_error() {
-		$error = new WP_Error( 'internal_server_error', 'Error message', array( 'status' => 403 ) );
-
-		$this->assertSame( 500, $this->get_response_code_from_wp_die( $error ) );
-	}
-
-	/**
-	 * Tests that a critical error sends a 500 response code even after the admin header was output.
+	 * Displays the default critical error template of the fatal error handler and returns the resulting HTTP response code.
 	 *
-	 * @ticket 64256
+	 * @return int|false The HTTP response code, or false if none was set.
 	 */
-	public function test_should_send_500_response_code_for_critical_error_after_admin_head() {
-		$this->mark_admin_head_as_done();
-
-		$error = new WP_Error( 'internal_server_error', 'There has been a critical error on this website.' );
-
-		$this->assertSame( 500, $this->get_response_code_from_wp_die( $error, array( 'response' => 500 ) ) );
-	}
-
-	/**
-	 * Tests that non-critical errors still do not send a response code after the admin header was output.
-	 *
-	 * @ticket 64256
-	 */
-	public function test_should_not_send_response_code_for_non_critical_error_after_admin_head() {
-		$this->mark_admin_head_as_done();
-
-		$response_code = $this->get_response_code_from_wp_die(
-			'Error message',
-			array(
-				'code'     => 'not_found',
-				'response' => 404,
-			)
-		);
-
-		$this->assertFalse( $response_code );
-	}
-
-	/**
-	 * Tests the default critical error template of the fatal error handler, after the admin header was output.
-	 *
-	 * @ticket 64256
-	 *
-	 * @covers WP_Fatal_Error_Handler::display_default_error_template
-	 */
-	public function test_fatal_error_handler_default_template_should_send_500_response_code() {
-		$this->mark_admin_head_as_done();
-
+	private function get_response_code_from_fatal_error_template() {
 		$error = array(
 			'type'    => E_ERROR,
 			'message' => 'Fatal error',
@@ -156,21 +82,106 @@ class Tests_Functions_DefaultWpDieHandler extends WP_UnitTestCase {
 		$method->invoke( new WP_Fatal_Error_Handler(), $error, false );
 		ob_end_clean();
 
-		$this->assertSame( 500, http_response_code() );
+		return http_response_code();
 	}
 
 	/**
 	 * @ticket 64256
 	 */
-	public function test_should_send_custom_response_code_for_non_critical_errors() {
+	public function test_should_send_500_response_code_by_default() {
+		$this->assertSame( 500, $this->get_response_code_from_wp_die( 'Error message' ) );
+	}
+
+	/**
+	 * @ticket 64256
+	 */
+	public function test_should_send_custom_response_code() {
+		$this->assertSame( 404, $this->get_response_code_from_wp_die( 'Error message', array( 'response' => 404 ) ) );
+	}
+
+	/**
+	 * Tests that the response code passed by the caller is not overridden for internal server errors.
+	 *
+	 * @ticket 64256
+	 */
+	public function test_should_send_custom_response_code_for_internal_server_error_code() {
 		$response_code = $this->get_response_code_from_wp_die(
 			'Error message',
 			array(
-				'code'     => 'not_found',
-				'response' => 404,
+				'code'     => 'internal_server_error',
+				'response' => 503,
 			)
 		);
 
-		$this->assertSame( 404, $response_code );
+		$this->assertSame( 503, $response_code );
+	}
+
+	/**
+	 * @ticket 64256
+	 */
+	public function test_should_send_500_response_code_by_default_after_admin_head() {
+		$this->mark_admin_head_as_done();
+
+		$this->assertSame( 500, $this->get_response_code_from_wp_die( 'Error message' ) );
+	}
+
+	/**
+	 * @ticket 64256
+	 */
+	public function test_should_send_custom_response_code_after_admin_head() {
+		$this->mark_admin_head_as_done();
+
+		$this->assertSame( 404, $this->get_response_code_from_wp_die( 'Error message', array( 'response' => 404 ) ) );
+	}
+
+	/**
+	 * Tests that the status_header filter is applied to the response code after the admin header was output.
+	 *
+	 * @ticket 64256
+	 */
+	public function test_should_apply_status_header_filter_after_admin_head() {
+		$this->mark_admin_head_as_done();
+
+		$filter = new MockAction();
+		add_filter( 'status_header', array( $filter, 'filter' ), 10, 2 );
+
+		$this->get_response_code_from_wp_die( 'Error message', array( 'response' => 403 ) );
+
+		$this->assertSame( 1, $filter->get_call_count(), 'The status_header filter should be applied once.' );
+		$this->assertSame( 403, $filter->get_args()[0][1], 'The status_header filter should receive the response code.' );
+	}
+
+	/**
+	 * Tests the default critical error template of the fatal error handler, after the admin header was output.
+	 *
+	 * @ticket 64256
+	 *
+	 * @covers WP_Fatal_Error_Handler::display_default_error_template
+	 */
+	public function test_fatal_error_handler_default_template_should_send_500_response_code_after_admin_head() {
+		$this->mark_admin_head_as_done();
+
+		$this->assertSame( 500, $this->get_response_code_from_fatal_error_template() );
+	}
+
+	/**
+	 * Tests that the response code set via the wp_php_error_args filter is respected.
+	 *
+	 * @ticket 64256
+	 *
+	 * @covers WP_Fatal_Error_Handler::display_default_error_template
+	 */
+	public function test_fatal_error_handler_default_template_should_respect_wp_php_error_args_response_after_admin_head() {
+		$this->mark_admin_head_as_done();
+
+		add_filter(
+			'wp_php_error_args',
+			static function ( $args ) {
+				$args['response'] = 503;
+				return $args;
+			}
+		);
+
+		$this->assertSame( 503, $this->get_response_code_from_fatal_error_template() );
 	}
 }
