@@ -16,8 +16,6 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34971
-	 *
-	 * @requires extension simplexml
 	 */
 	public function test_add_oembed_discovery_links_static_front_page() {
 		update_option( 'show_on_front', 'page' );
@@ -35,23 +33,24 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_front_page', 'is_singular', 'is_page' );
 
 		$expected  = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
-		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		if ( class_exists( 'SimpleXMLElement' ) ) {
+			$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		}
 
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 
 		update_option( 'show_on_front', 'posts' );
 	}
 
-	/**
-	 * @requires extension simplexml
-	 */
 	public function test_add_oembed_discovery_links_to_post() {
 		$post_id = self::factory()->post->create();
 		$this->go_to( get_permalink( $post_id ) );
 		$this->assertQueryTrue( 'is_single', 'is_singular' );
 
 		$expected  = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
-		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		if ( class_exists( 'SimpleXMLElement' ) ) {
+			$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		}
 
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 
@@ -59,9 +58,6 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertSame( '', get_echo( 'wp_oembed_add_discovery_links' ), 'Expected filtering oembed_discovery_links to empty string to result in no wp_oembed_add_discovery_links() output.' );
 	}
 
-	/**
-	 * @requires extension simplexml
-	 */
 	public function test_add_oembed_discovery_links_to_page() {
 		$post_id = self::factory()->post->create(
 			array(
@@ -72,14 +68,13 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_page', 'is_singular' );
 
 		$expected  = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
-		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		if ( class_exists( 'SimpleXMLElement' ) ) {
+			$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		}
 
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 
-	/**
-	 * @requires extension simplexml
-	 */
 	public function test_add_oembed_discovery_links_to_attachment() {
 		$post_id       = self::factory()->post->create();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
@@ -95,7 +90,9 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_attachment', 'is_singular', 'is_single' );
 
 		$expected  = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
-		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		if ( class_exists( 'SimpleXMLElement' ) ) {
+			$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		}
 
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
@@ -118,8 +115,6 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 	/**
 	 * @ticket 64178
 	 * @covers ::wp_oembed_add_discovery_links
-	 *
-	 * @requires extension simplexml
 	 */
 	public function test_wp_oembed_add_discovery_links_back_compat() {
 		$action       = 'wp_head';
@@ -146,7 +141,9 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertSame( 1, $mock_action->get_call_count() );
 
 		$expected  = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
-		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		if ( class_exists( 'SimpleXMLElement' ) ) {
+			$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		}
 
 		$this->assertSame( $expected, $wp_head_output, 'Expected wp_head output to be the same as the wp_oembed_add_discovery_links() output.' );
 		$this->assertSame( $expected, get_echo( $callback ), 'Expected wp_oembed_add_discovery_links() output to be the same as the wp_head output when called outside of wp_head.' );
