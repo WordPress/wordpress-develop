@@ -82,6 +82,8 @@ A form save writes every field on the page, not only the field that the test cha
 
 WordPress reads the full `active_plugins` list, changes it, and writes the full list back. If two tests turn plugins on or off at the same time, one change can be lost. A spec in `parallel` that installs, deletes, activates or deactivates a plugin must hold `PLUGINS`.
 
+Before WordPress unzips an uploaded plugin or theme, it deletes everything in `wp-content/upgrade/`. This can delete the files of an upload in another test. A spec in `parallel` that uploads a plugin or theme zip must hold `UPGRADER`.
+
 ## Logged-out pages
 
 Most specs run logged in as the admin user. There are two ways to run a test logged out:
