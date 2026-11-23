@@ -455,6 +455,8 @@ class Tests_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66788
+	 *
 	 * @requires extension simplexml
 	 */
 	public function test_rest_pre_serve_request() {
