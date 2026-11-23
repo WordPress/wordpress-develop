@@ -1295,7 +1295,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @param string $email  Unused, since trackbacks have no author email address.
 	 * @param string $url    Linking page URL containing some form of line feed.
 	 */
-	public function test_trackback_cannot_inject_into_comment_notifications( $author, $email, $url ) {
+	public function test_trackback_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
 		/**
 		 * @see wp-trackback.php
 		 */
@@ -1327,7 +1327,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @param string $email  Author email address containing some form of line feed.
 	 * @param string $url    Author URL containing some form of line feed.
 	 */
-	public function test_xmlrpc_comment_cannot_inject_into_comment_notifications( $author, $email, $url ) {
+	public function test_xmlrpc_comment_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
 		require_once ABSPATH . 'wp-admin/includes/admin.php';
 		require_once ABSPATH . WPINC . '/class-IXR.php';
 		require_once ABSPATH . WPINC . '/class-wp-xmlrpc-server.php';
@@ -1365,7 +1365,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @param string $email  Author email address containing some form of line feed.
 	 * @param string $url    Author URL containing some form of line feed.
 	 */
-	public function test_comment_form_cannot_inject_into_comment_notifications( $author, $email, $url ) {
+	public function test_comment_form_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
 		$comment = wp_handle_comment_submission(
 			array(
 				'comment_post_ID' => self::$post_id,
@@ -1392,7 +1392,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @param string $email  User email address containing some form of line feed.
 	 * @param string $url    User URL containing some form of line feed.
 	 */
-	public function test_logged_in_comment_form_cannot_inject_into_comment_notifications( $author, $email, $url ) {
+	public function test_logged_in_comment_form_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
 		wp_set_current_user(
 			self::factory()->user->create(
 				array(
@@ -1426,7 +1426,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @param string $email  Author email address containing some form of line feed.
 	 * @param string $url    Author URL containing some form of line feed.
 	 */
-	public function test_rest_api_comment_cannot_inject_into_comment_notifications( $author, $email, $url ) {
+	public function test_rest_api_comment_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
@@ -1458,7 +1458,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @param string $email  User email address containing some form of line feed.
 	 * @param string $url    User URL containing some form of line feed.
 	 */
-	public function test_logged_in_rest_api_comment_cannot_inject_into_comment_notifications( $author, $email, $url ) {
+	public function test_logged_in_rest_api_comment_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
 		wp_set_current_user(
 			self::factory()->user->create(
 				array(
@@ -1495,7 +1495,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @param string $email  Author email address containing some form of line feed.
 	 * @param string $url    Author URL containing some form of line feed.
 	 */
-	public function test_comment_edit_cannot_inject_into_comment_notifications( $author, $email, $url ) {
+	public function test_comment_edit_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 
 		wp_update_comment(
@@ -1527,7 +1527,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * @param string $email  Stored comment author email address.
 	 * @param string $url    Stored comment author URL.
 	 */
-	public function test_stored_comment_cannot_inject_into_comment_notifications( $author, $email, $url ) {
+	public function test_stored_comment_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
 		$comment_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'      => self::$post_id,
@@ -1547,9 +1547,9 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * replace the sender and add a recipient when read as email headers, or
 	 * which look like part of the notification when read in the email body.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ string, string, string }>
 	 */
-	public static function data_line_break_injections() {
+	public static function data_line_break_injections(): array {
 		$author = static function ( $line_break ) {
 			return "Name{$line_break}From: spoof@example.net{$line_break}Bcc: attacker@example.net{$line_break}X:";
 		};
@@ -1584,9 +1584,9 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * These sources refuse such submissions before saving them, so a valid
 	 * address replaces those emails to still test the other fields.
 	 *
-	 * @return array[]
+	 * @return array<non-falsy-string, array{ string, string, string }>
 	 */
-	public static function data_line_break_injections_with_valid_email() {
+	public static function data_line_break_injections_with_valid_email(): array {
 		$data = self::data_line_break_injections();
 
 		foreach ( $data as $name => $values ) {
@@ -1604,7 +1604,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * Sends the post author and moderator notifications, then checks the
 	 * headers and body of every email sent.
 	 *
-	 * @param int $comment_id Comment ID.
+	 * @param mixed $comment_id Comment ID, or an error value from attempting to create a comment.
 	 */
 	private function assert_comment_notifications_not_injected( $comment_id ) {
 		$this->assertIsInt( $comment_id, 'The comment should have been created.' );
