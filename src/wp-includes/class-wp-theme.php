@@ -380,7 +380,7 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		if ( ! $this->template && $this->stylesheet === $this->headers['Template'] ) {
-			$this->errors   = new WP_Error(
+			$this->errors = new WP_Error(
 				'theme_child_invalid',
 				sprintf(
 					/* translators: %s: Template. */
