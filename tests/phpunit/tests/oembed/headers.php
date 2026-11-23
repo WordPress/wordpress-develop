@@ -10,8 +10,6 @@
 class Tests_oEmbed_HTTP_Headers extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 66788
-	 *
 	 * @requires function xdebug_get_headers
 	 * @requires extension simplexml
 	 */

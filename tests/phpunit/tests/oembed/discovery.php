@@ -16,6 +16,8 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34971
+	 *
+	 * @requires extension simplexml
 	 */
 	public function test_add_oembed_discovery_links_static_front_page() {
 		update_option( 'show_on_front', 'page' );
@@ -40,6 +42,9 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		update_option( 'show_on_front', 'posts' );
 	}
 
+	/**
+	 * @requires extension simplexml
+	 */
 	public function test_add_oembed_discovery_links_to_post() {
 		$post_id = self::factory()->post->create();
 		$this->go_to( get_permalink( $post_id ) );
@@ -54,6 +59,9 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertSame( '', get_echo( 'wp_oembed_add_discovery_links' ), 'Expected filtering oembed_discovery_links to empty string to result in no wp_oembed_add_discovery_links() output.' );
 	}
 
+	/**
+	 * @requires extension simplexml
+	 */
 	public function test_add_oembed_discovery_links_to_page() {
 		$post_id = self::factory()->post->create(
 			array(
@@ -69,6 +77,9 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 
+	/**
+	 * @requires extension simplexml
+	 */
 	public function test_add_oembed_discovery_links_to_attachment() {
 		$post_id       = self::factory()->post->create();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
@@ -107,6 +118,8 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 	/**
 	 * @ticket 64178
 	 * @covers ::wp_oembed_add_discovery_links
+	 *
+	 * @requires extension simplexml
 	 */
 	public function test_wp_oembed_add_discovery_links_back_compat() {
 		$action       = 'wp_head';

@@ -185,6 +185,9 @@ class Tests_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( 'json', wp_oembed_ensure_format( array() ) );
 	}
 
+	/**
+	 * @requires extension simplexml
+	 */
 	public function test_oembed_create_xml() {
 		$actual = _oembed_create_xml(
 			array(
@@ -455,8 +458,6 @@ class Tests_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 66788
-	 *
 	 * @requires extension simplexml
 	 */
 	public function test_rest_pre_serve_request() {
