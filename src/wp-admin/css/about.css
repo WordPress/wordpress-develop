@@ -27,7 +27,7 @@
 	 * image to avoid display issues if the image fails to load.
 	 */
 	--background: #eeece5;
-	--subtle-background: #F3F2EE;
+	--subtle-background: #f3f2ee;
 
 	/* Main text color */
 	--text: #1e1e1e;
