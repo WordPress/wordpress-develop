@@ -28,7 +28,7 @@
  * @since 6.7.0 Added support for typography.writingMode.
  * @since 7.0.0 Added support for typography.textIndent.
  * @since 7.2.0 Added support for typography.textShadow.
- * @since 7.3.0 Added support for transform.rotate and transform.translate.
+ * @since 7.3.0 Added support for transform.rotate, transform.translate and transform.scale.
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
@@ -57,6 +57,14 @@ final class WP_Style_Engine {
 	const VALID_LENGTH_PERCENTAGE_PATTERN = '/^(?:[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:%|px|cm|mm|q|in|pt|pc|r?em|r?ex|r?ch|r?cap|r?ic|r?lh|[sld]?v(?:w|h|i|b|min|max)|cq(?:w|h|i|b|min|max))|0)$/iD';
 
 	/**
+	 * Matches a single uniform scale: a non-negative number, or a non-negative percentage.
+	 *
+	 * @since 7.3.0
+	 * @var string
+	 */
+	const VALID_SCALE_PATTERN = '/^(?:\d+(?:\.\d+)?|\.\d+)%?$/D';
+
+	/**
 	 * Style definitions that contain the instructions to parse/output valid Gutenberg styles from a block's attributes.
 	 *
 	 * For every style definition, the following properties are valid:
@@ -76,7 +84,7 @@ final class WP_Style_Engine {
 	 * @since 6.1.0
 	 * @since 7.1.0 Added `background.gradient` property.
 	 * @since 7.2.0 Added `background.backgroundClip` property.
-	 * @since 7.3.0 Added `transform.rotate` and `transform.translate` properties.
+	 * @since 7.3.0 Added `transform.rotate`, `transform.translate` and `transform.scale` properties.
 	 * @var array
 	 */
 	const BLOCK_STYLE_DEFINITIONS_METADATA = array(
@@ -336,6 +344,13 @@ final class WP_Style_Engine {
 				'value_func'    => array( self::class, 'get_translate_css_declarations' ),
 				'path'          => array( 'transform', 'translate' ),
 			),
+			'scale'     => array(
+				'property_keys' => array(
+					'default' => 'scale',
+				),
+				'value_func'    => array( self::class, 'get_scale_css_declarations' ),
+				'path'          => array( 'transform', 'scale' ),
+			),
 		),
 		'typography' => array(
 			'fontSize'       => array(
@@ -568,6 +583,11 @@ final class WP_Style_Engine {
 			}
 			foreach ( $definition_group_style as $style_definition ) {
 				$style_value = _wp_array_get( $block_styles, $style_definition['path'], null );
+
+				// A numeric transform value, such as a `0` scale, is not empty.
+				if ( 'transform' === $definition_group_key && ( is_int( $style_value ) || is_float( $style_value ) ) ) {
+					$style_value = (string) $style_value;
+				}
 
 				if ( ! static::is_valid_style_value( $style_value ) ) {
 					continue;
@@ -906,6 +926,27 @@ final class WP_Style_Engine {
 
 		$declarations[ $style_definition['property_keys']['default'] ] = 'var(--wp--style--translate-x, 0) var(--wp--style--translate-y, 0)';
 		return $declarations;
+	}
+
+	/**
+	 * Style value parser that returns a CSS definition array for the `scale` property.
+	 *
+	 * The value is a non-negative number, such as `1.2`, or a non-negative
+	 * percentage, such as `"120%"`. Negative values, lists and functions
+	 * such as `calc()` or `var()` are rejected.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $style_value      A single raw style value from $block_styles array.
+	 * @param array $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
+	 * @return array<string, string> An associative array of CSS definitions, mapping properties to values.
+	 */
+	protected static function get_scale_css_declarations( $style_value, $style_definition ) {
+		if ( ! is_string( $style_value ) || ! preg_match( static::VALID_SCALE_PATTERN, $style_value ) ) {
+			return array();
+		}
+
+		return array( $style_definition['property_keys']['default'] => $style_value );
 	}
 
 	/**

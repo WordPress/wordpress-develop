@@ -1288,6 +1288,7 @@ EOF;
 	 * @ticket 65832
 	 * @ticket 64972
 	 * @ticket 66468
+	 * @ticket XXXXX
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -2084,6 +2085,55 @@ EOF;
 			),
 			array(
 				'css'      => '--wp--style--translate-y: 10',
+				'expected' => '',
+			),
+			// `scale` introduced in 7.3, limited to a single non-negative number or percentage.
+			array(
+				'css'      => 'scale: 1.2',
+				'expected' => 'scale: 1.2',
+			),
+			array(
+				'css'      => 'scale: 2',
+				'expected' => 'scale: 2',
+			),
+			array(
+				'css'      => 'scale: 0',
+				'expected' => 'scale: 0',
+			),
+			array(
+				'css'      => 'scale: .5',
+				'expected' => 'scale: .5',
+			),
+			array(
+				'css'      => 'scale: 120%',
+				'expected' => 'scale: 120%',
+			),
+			array(
+				'css'      => 'scale: -1',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'scale: 1.2 1.5',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'scale: 1 1 1',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'scale: 2px',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'scale: none',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'scale: calc(1 + 0.2)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'scale: var(--scale)',
 				'expected' => '',
 			),
 		);

@@ -3730,7 +3730,8 @@ function kses_init() {
  * @since 7.3.0 Added support for `rotate`, limited to a single angle, and `translate`,
  *              limited to one or two lengths or percentages or CSS functions such as `var()`.
  *              The `--wp--style--translate-x` and `--wp--style--translate-y` custom properties
- *              are limited to a single length or percentage.
+ *              are limited to a single length or percentage. Added support for `scale`,
+ *              limited to a single non-negative number or percentage.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -3982,6 +3983,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'transform-origin',
 			'rotate',
 			'translate',
+			'scale',
 
 			'pointer-events',
 			'visibility',
@@ -4055,6 +4057,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		$gradient_attr   = false;
 		$angle_attr      = false;
 		$translate_attr  = false;
+		$scale_attr      = false;
 		$is_custom_var   = false;
 
 		if ( ! str_contains( $css_item, ':' ) ) {
@@ -4075,6 +4078,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				$gradient_attr  = in_array( $css_selector, $css_gradient_data_types, true );
 				$angle_attr     = 'rotate' === $css_selector;
 				$translate_attr = in_array( $css_selector, array( 'translate', '--wp--style--translate-x', '--wp--style--translate-y' ), true );
+				$scale_attr     = 'scale' === $css_selector;
 			}
 
 			if ( $is_custom_var ) {
@@ -4180,6 +4184,11 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 						$allow_css = false;
 					}
 				}
+			}
+
+			// Only allow a single uniform scale for `scale`, mirroring the style engine.
+			if ( $allow_css && $scale_attr ) {
+				$allow_css = 1 === preg_match( WP_Style_Engine::VALID_SCALE_PATTERN, trim( $parts[1] ) );
 			}
 
 			/**
