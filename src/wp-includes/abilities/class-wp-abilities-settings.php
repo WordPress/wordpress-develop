@@ -82,7 +82,9 @@ final class WP_Abilities_Settings {
 		 * `readonly` to true in its schema.
 		 *
 		 * Intentionally strict: a setting whose schema is read-only cannot be updated, so naming
-		 * it is refused like any unknown name.
+		 * it is refused like any unknown name. Only `readonly` at the top level of the schema
+		 * counts: a read-only property inside an object setting is written with the rest of
+		 * the object.
 		 */
 		$this->writable_settings = array_filter(
 			$this->exposed_settings,
@@ -108,7 +110,7 @@ final class WP_Abilities_Settings {
 				'description'           => __( 'Returns WordPress settings as a flat map of setting name to value. By default returns all settings exposed to abilities, or optionally a subset filtered by settings group, by setting name, or both. A setting whose value does not match its schema is left out. Requires an authenticated user who can manage options.' ),
 				'category'              => self::CATEGORY,
 				'input_schema'          => $this->get_settings_get_input_schema( $groups, array_map( 'strval', array_keys( $this->exposed_settings ) ) ),
-				'output_schema'         => $this->get_settings_output_schema( __( 'A map of setting name to its current value.' ) ),
+				'output_schema'         => $this->get_settings_output_schema( $this->exposed_settings, __( 'A map of setting name to its current value.' ) ),
 				'execute_callback'      => function ( $input = array() ): array {
 					return $this->execute_settings_get( $input );
 				},
@@ -145,10 +147,10 @@ final class WP_Abilities_Settings {
 			'core/settings-update',
 			array(
 				'label'                 => __( 'Update Settings' ),
-				'description'           => __( 'Updates WordPress settings and returns the saved values of the settings named in the call. A null value deletes the stored value of a setting, which then reads as its default when it has one. Requires an authenticated user who can manage options.' ),
+				'description'           => __( 'Updates WordPress settings and returns the saved values of the settings named in the call. A null value deletes the stored value of a setting, which then reads as its default when it has one. Read-only settings cannot be updated. Requires an authenticated user who can manage options, and who can also manage privacy options to set the privacy policy page.' ),
 				'category'              => self::CATEGORY,
 				'input_schema'          => $this->get_settings_update_input_schema(),
-				'output_schema'         => $this->get_settings_output_schema( __( 'A map of setting name to its value after the update.' ) ),
+				'output_schema'         => $this->get_settings_output_schema( $this->writable_settings, __( 'A map of setting name to its value after the update.' ) ),
 				'execute_callback'      => function ( $input ) {
 					return $this->execute_settings_update( $input );
 				},
@@ -166,6 +168,34 @@ final class WP_Abilities_Settings {
 	}
 
 	/**
+	 * Executes the `core/settings-get` ability.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $input Optional. The ability input. Default empty array.
+	 * @return array<string, mixed> Map of exposed setting name to current value.
+	 */
+	private function execute_settings_get( $input = array() ): array {
+		$input  = rest_sanitize_object( $input );
+		$group  = isset( $input['group'] ) && is_string( $input['group'] ) ? $input['group'] : '';
+		$fields = rest_sanitize_array( $input['fields'] ?? array() );
+
+		$requested = array();
+		foreach ( $this->exposed_settings as $exposed_name => $setting ) {
+			if ( '' !== $group && $setting['group'] !== $group ) {
+				continue;
+			}
+			if ( ! empty( $fields ) && ! in_array( (string) $exposed_name, $fields, true ) ) {
+				continue;
+			}
+
+			$requested[ $exposed_name ] = $setting;
+		}
+
+		return $this->get_setting_values( $requested );
+	}
+
+	/**
 	 * Executes the `core/settings-update` ability.
 	 *
 	 * Every check runs before the first write, so a call that ends in an error changes nothing.
@@ -174,7 +204,7 @@ final class WP_Abilities_Settings {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param array{data: array<string, mixed>} $input The ability input, as prepared by WP_Ability::execute().
+	 * @param array{data: array<int|string, mixed>} $input The ability input, as prepared by WP_Ability::execute().
 	 * @return array<string, mixed>|WP_Error Map of the named setting names to their values after the update,
 	 *                                       or an error when the update is refused.
 	 */
@@ -191,13 +221,6 @@ final class WP_Abilities_Settings {
 		$data  = $input['data'];
 		$named = array_intersect_key( $this->writable_settings, $data );
 
-		// A setting unregistered since the abilities initialized is neither checked, written nor returned.
-		$registered = get_registered_settings();
-		$named      = array_filter(
-			$named,
-			static fn( array $setting ): bool => isset( $registered[ $setting['option'] ] )
-		);
-
 		/*
 		 * Intentionally strict: the whole call is refused, instead of leaving this one setting out
 		 * of the update. The rule belongs to the option, whatever name exposes it.
@@ -211,12 +234,25 @@ final class WP_Abilities_Settings {
 		}
 
 		/*
-		 * Intentionally strict: every null value is checked before the first write, so a refused
-		 * call changes nothing. A null value is refused while the stored value does not match the
-		 * setting's schema.
+		 * Intentionally strict: every value is checked before the first write, so a refused call
+		 * changes nothing. A null value is refused while the stored value does not match the
+		 * setting's schema. Any other value is refused when the setting cannot use it, instead of
+		 * being saved as sent or silently replaced with the stored value.
 		 */
 		foreach ( $named as $exposed_name => $setting ) {
 			if ( null !== $data[ $exposed_name ] ) {
+				$message = $this->get_invalid_value_message( $setting['option'], $data[ $exposed_name ] );
+				if ( null !== $message ) {
+					// The error data maps the setting's input path to the message, so callers can tell which setting failed.
+					return new WP_Error(
+						'settings_invalid_value',
+						$message,
+						array(
+							'status' => 400,
+							'params' => array( "data[{$exposed_name}]" => $message ),
+						)
+					);
+				}
 				continue;
 			}
 
@@ -248,31 +284,55 @@ final class WP_Abilities_Settings {
 	}
 
 	/**
-	 * Executes the `core/settings-get` ability.
+	 * Checks a value that matches its schema against what the option can use.
 	 *
-	 * @since 7.2.0
+	 * The rules belong to the option, whatever name exposes it: a timezone and a language must be
+	 * empty or known to the site, a default post format must be `0` or a post format, a page
+	 * setting must be 0 or the ID of a page, and the default category must be the ID of a category.
 	 *
-	 * @param mixed $input Optional. The ability input. Default empty array.
-	 * @return array<string, mixed> Map of exposed setting name to current value.
+	 * @since 7.3.0
+	 *
+	 * @param string $option The option name.
+	 * @param mixed  $value  The value to save, which is not null.
+	 * @return string|null The error message when the option cannot use the value, null otherwise.
 	 */
-	private function execute_settings_get( $input = array() ): array {
-		$input  = rest_sanitize_object( $input );
-		$group  = isset( $input['group'] ) && is_string( $input['group'] ) ? $input['group'] : '';
-		$fields = rest_sanitize_array( $input['fields'] ?? array() );
+	private function get_invalid_value_message( string $option, $value ): ?string {
+		switch ( $option ) {
+			case 'timezone_string':
+				if ( '' !== $value && ! in_array( $value, timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true ) ) {
+					return __( 'The timezone you have entered is not valid. Please select a valid timezone.' );
+				}
+				break;
 
-		$requested = array();
-		foreach ( $this->exposed_settings as $exposed_name => $setting ) {
-			if ( '' !== $group && $setting['group'] !== $group ) {
-				continue;
-			}
-			if ( ! empty( $fields ) && ! in_array( (string) $exposed_name, $fields, true ) ) {
-				continue;
-			}
+			case 'WPLANG':
+				if ( '' !== $value && ! in_array( $value, get_available_languages(), true ) ) {
+					return __( 'The language is not installed.' );
+				}
+				break;
 
-			$requested[ $exposed_name ] = $setting;
+			case 'default_post_format':
+				if ( '0' !== $value && ! in_array( $value, get_post_format_slugs(), true ) ) {
+					return __( 'Invalid post format.' );
+				}
+				break;
+
+			case 'page_on_front':
+			case 'page_for_posts':
+			case 'wp_page_for_privacy_policy':
+				if ( 0 !== $value && ( ! is_int( $value ) || $value < 0 || 'page' !== get_post_type( $value ) ) ) {
+					return __( 'Invalid page ID.' );
+				}
+				break;
+
+			case 'default_category':
+				// A negative ID would be looked up as its absolute value.
+				if ( ! is_int( $value ) || $value <= 0 || ! term_exists( $value, 'category' ) ) {
+					return __( 'Invalid term ID.' );
+				}
+				break;
 		}
 
-		return $this->get_setting_values( $requested );
+		return null;
 	}
 
 	/**
@@ -339,55 +399,6 @@ final class WP_Abilities_Settings {
 	}
 
 	/**
-	 * Builds the input schema for the `core/settings-update` ability.
-	 *
-	 * Each writable setting accepts a value of its own schema, or null.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return array<string, mixed> The input JSON Schema.
-	 */
-	private function get_settings_update_input_schema(): array {
-		return array(
-			'type'                 => 'object',
-			'properties'           => array(
-				'data' => array(
-					'type'                 => 'object',
-					'description'          => __( 'Settings to update, keyed by setting name. A null value deletes the stored value of a setting.' ),
-					'properties'           => array_map(
-						fn( array $schema ): array => $this->nullable_schema( $schema ),
-						wp_list_pluck( $this->writable_settings, 'schema' )
-					),
-					'additionalProperties' => false,
-					'minProperties'        => 1,
-				),
-			),
-			'required'             => array( 'data' ),
-			'additionalProperties' => false,
-		);
-	}
-
-	/**
-	 * Allows null in a setting's value schema.
-	 *
-	 * Adds `null` to the type, and to the allowed values when the schema lists them. Nested
-	 * schemas are not changed.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param array<string, mixed> $schema The value JSON Schema.
-	 * @return array<string, mixed> The value JSON Schema that also accepts null.
-	 */
-	private function nullable_schema( array $schema ): array {
-		$schema['type'] = array( $schema['type'], 'null' );
-		if ( isset( $schema['enum'] ) ) {
-			$schema['enum'][] = null;
-		}
-
-		return $schema;
-	}
-
-	/**
 	 * Builds the input schema for the `core/settings-get` ability: optional filters by group and/or name.
 	 *
 	 * Both `group` and `fields` are optional; supplying both narrows the response to their
@@ -424,23 +435,74 @@ final class WP_Abilities_Settings {
 	}
 
 	/**
-	 * Builds the output schema shared by the settings abilities.
+	 * Builds the input schema for the `core/settings-update` ability.
+	 *
+	 * Each writable setting accepts a value of its own schema, or null.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array<string, mixed> The input JSON Schema.
+	 */
+	private function get_settings_update_input_schema(): array {
+		return array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'data' => array(
+					'type'                 => 'object',
+					'description'          => __( 'Settings to update, keyed by setting name. A null value deletes the stored value of a setting.' ),
+					'properties'           => array_map( array( $this, 'nullable_schema' ), wp_list_pluck( $this->writable_settings, 'schema' ) ),
+					'additionalProperties' => false,
+					'minProperties'        => 1,
+				),
+			),
+			'required'             => array( 'data' ),
+			'additionalProperties' => false,
+		);
+	}
+
+	/**
+	 * Allows null in a setting's value schema.
+	 *
+	 * Adds `null` to the type, and to the allowed values when the schema lists them. Removes
+	 * the default, which is for reading a setting: a client that fills in defaults would
+	 * otherwise write it on every call. Nested schemas are not changed.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $schema The value JSON Schema.
+	 * @return array<string, mixed> The value JSON Schema that also accepts null.
+	 */
+	private function nullable_schema( array $schema ): array {
+		$schema['type'] = array( $schema['type'], 'null' );
+		if ( isset( $schema['enum'] ) ) {
+			$schema['enum'][] = null;
+		}
+		unset( $schema['default'] );
+
+		return $schema;
+	}
+
+	/**
+	 * Builds the output schema of a settings ability, from the settings it can return.
 	 *
 	 * No setting is marked required because both abilities return a subset: `core/settings-get`
 	 * the settings its `group` and `fields` inputs ask for, and `core/settings-update` the settings
 	 * named in the call. A setting without a value, or whose value does not match its schema, is
 	 * also left out.
 	 *
-	 * @since 7.3.0
+	 * @since 7.2.0
+	 * @since 7.3.0 Renamed from get_settings_get_output_schema(). Added the `$settings` and
+	 *              `$description` parameters.
 	 *
-	 * @param string $description The description of the output.
+	 * @param array<string, array{option: string, group: string, default: mixed, schema: array<string, mixed>}> $settings    Exposed settings the ability can return, keyed by exposed name.
+	 * @param string                                                                                              $description The description of the output.
 	 * @return array<string, mixed> The output JSON Schema.
 	 */
-	private function get_settings_output_schema( string $description ): array {
+	private function get_settings_output_schema( array $settings, string $description ): array {
 		return array(
 			'type'                 => 'object',
 			'description'          => $description,
-			'properties'           => wp_list_pluck( $this->exposed_settings, 'schema' ),
+			'properties'           => wp_list_pluck( $settings, 'schema' ),
 			'additionalProperties' => false,
 		);
 	}

@@ -3068,7 +3068,8 @@ function _wp_register_initial_settings_for_abilities(): void {
  *                                            It may also be an array with 'name' and 'schema' keys, used instead of
  *                                            `$show_in_rest` rather than merged with it.
  *                                            A setting whose schema sets 'readonly' to true can be read but
- *                                            not updated.
+ *                                            not updated. Only 'readonly' at the top level of the schema
+ *                                            counts, not inside the properties of an object setting.
  *                                            Settings registered after abilities initialize are not exposed.
  *     @type mixed         $default           Default value when calling `get_option()`.
  * }

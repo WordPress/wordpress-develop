@@ -37,15 +37,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_Abilities_
 	}
 
 	/**
-	 * Unregisters the setting registered by register_test_settings().
-	 *
-	 * @since 7.3.0
-	 */
-	protected static function unregister_test_settings(): void {
-		unregister_setting( 'general', 'core_settings_get_ability_test_option' );
-	}
-
-	/**
 	 * Core settings are exposed even when the abilities registry initializes in a request
 	 * where `rest_api_init` (which registers core's initial settings) has never fired.
 	 *

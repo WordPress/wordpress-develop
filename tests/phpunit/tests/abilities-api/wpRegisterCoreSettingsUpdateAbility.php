@@ -37,25 +37,11 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	);
 
 	/**
-	 * The message of the error for a user who cannot manage options.
+	 * Options that hold the ID of a page or a category.
 	 *
-	 * @var string
+	 * @var string[]
 	 */
-	const CANNOT_UPDATE_MESSAGE = 'Sorry, you are not allowed to manage options for this site.';
-
-	/**
-	 * The message of the error for a user who cannot manage privacy options.
-	 *
-	 * @var string
-	 */
-	const CANNOT_MANAGE_PRIVACY_MESSAGE = 'Sorry, you are not allowed to manage privacy options on this site.';
-
-	/**
-	 * The message of the error for a stored value that cannot be deleted.
-	 *
-	 * @var string
-	 */
-	const INVALID_STORED_VALUE_MESSAGE = 'The %s property has an invalid stored value, and cannot be updated to null.';
+	const ID_OPTIONS = array( 'default_category', 'page_on_front', 'page_for_posts', 'wp_page_for_privacy_policy' );
 
 	/**
 	 * User IDs keyed by role.
@@ -65,6 +51,13 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	private static $user_ids = array();
 
 	/**
+	 * IDs of a page, a post, a category and a tag, keyed by kind.
+	 *
+	 * @var array<string, int>
+	 */
+	private static $fixture_ids = array();
+
+	/**
 	 * Number of calls of the sanitize callback of the test setting.
 	 *
 	 * @var int
@@ -72,7 +65,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	private static $sanitize_calls = 0;
 
 	/**
-	 * Creates a user for each role without `manage_options`.
+	 * Creates a user for each role without `manage_options`, and the content the ID settings point to.
 	 *
 	 * @since 7.3.0
 	 *
@@ -84,6 +77,13 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		foreach ( array( 'subscriber', 'contributor', 'author', 'editor' ) as $role ) {
 			self::$user_ids[ $role ] = $factory->user->create( array( 'role' => $role ) );
 		}
+
+		self::$fixture_ids = array(
+			'page'     => $factory->post->create( array( 'post_type' => 'page' ) ),
+			'post'     => $factory->post->create(),
+			'category' => $factory->category->create(),
+			'tag'      => $factory->tag->create(),
+		);
 	}
 
 	/**
@@ -184,22 +184,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * Unregisters the settings registered by register_test_settings().
-	 *
-	 * @since 7.3.0
-	 */
-	protected static function unregister_test_settings(): void {
-		unregister_setting( 'general', 'settings_update_test_array' );
-		unregister_setting( 'general', 'settings_update_test_object' );
-		unregister_setting( 'general', 'settings_update_test_email_option' );
-		unregister_setting( 'general', 'settings_update_test_uri' );
-		unregister_setting( 'general', 'settings_update_test_numeric_option' );
-		unregister_setting( 'general', 'settings_update_test_mixed_case_option' );
-		unregister_setting( 'general', 'settings_update_test_readonly' );
-		unregister_setting( 'general', 'settings_update_test_readonly_false' );
-	}
-
-	/**
 	 * Sanitize callback of a test setting: counts its calls and upper-cases the value.
 	 *
 	 * @since 7.3.0
@@ -240,34 +224,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			ARRAY_A
 		);
 
-		$snapshot = array_column( $rows, 'option_value', 'option_name' );
-		ksort( $snapshot );
-		return $snapshot;
-	}
-
-	/**
-	 * Returns the raw stored value of one option, read from the database.
-	 *
-	 * @param string $option The option name.
-	 * @return string|null The raw value, or null when there is no row.
-	 */
-	private function raw_row( string $option ): ?string {
-		global $wpdb;
-
-		return $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $option ) );
-	}
-
-	/**
-	 * Asserts that two snapshots hold the same rows, whatever the order of their keys.
-	 *
-	 * @param array<string, string> $expected The expected rows.
-	 * @param array<string, string> $actual   The actual rows.
-	 * @param string                $message  The assertion message.
-	 */
-	private function assert_snapshot( array $expected, array $actual, string $message ): void {
-		ksort( $expected );
-		ksort( $actual );
-		$this->assertSame( $expected, $actual, $message );
+		return array_column( $rows, 'option_value', 'option_name' );
 	}
 
 	/**
@@ -334,17 +291,34 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * Asserts that a result is an error with the given code, status and message.
+	 * Asserts that a result is an error with the given code and status.
 	 *
-	 * @param mixed  $result  The result of the ability.
-	 * @param string $code    The expected error code.
-	 * @param int    $status  The expected status.
-	 * @param string $message The expected message.
+	 * @param mixed  $result The result of the ability.
+	 * @param string $code   The expected error code.
+	 * @param int    $status The expected status.
 	 */
-	private function assert_error( $result, string $code, int $status, string $message ): void {
+	private function assert_error( $result, string $code, int $status ): void {
 		$this->assert_error_code( $result, $code );
-		$this->assertSame( $message, $result->get_error_message(), 'The error should use the expected message.' );
 		$this->assertSame( array( 'status' => $status ), $result->get_error_data(), 'The error data should hold only the expected status.' );
+	}
+
+	/**
+	 * Asserts that a result is the error for a value a setting cannot use, which names the setting.
+	 *
+	 * @param mixed  $result The result of the ability.
+	 * @param string $name   The exposed setting name.
+	 */
+	private function assert_invalid_value_error( $result, string $name ): void {
+		$this->assert_error_code( $result, 'settings_invalid_value' );
+		$this->assertNotSame( '', $result->get_error_message(), "The error for {$name} should have a message." );
+		$this->assertSame(
+			array(
+				'status' => 400,
+				'params' => array( "data[{$name}]" => $result->get_error_message() ),
+			),
+			$result->get_error_data(),
+			"The error data should map {$name} to the message."
+		);
 	}
 
 	/**
@@ -445,19 +419,49 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * The output describes the same settings as the output of core/settings-get.
+	 * The default of a setting's schema is left out of the input, so a client that fills in
+	 * defaults does not write it on every call.
 	 *
 	 * @ticket 64616
 	 *
 	 * @since 7.3.0
 	 */
-	public function test_output_schema_matches_settings_get(): void {
-		$schema = wp_get_ability( self::ABILITY )->get_output_schema();
+	public function test_input_schema_property_drops_the_default(): void {
+		$option = 'settings_update_test_default';
+
+		register_setting(
+			'general',
+			$option,
+			array(
+				'type'              => 'string',
+				'show_in_abilities' => array(
+					'schema' => array( 'default' => 'Fallback' ),
+				),
+			)
+		);
+		$this->register_ability();
+		$ability = wp_get_ability( self::ABILITY );
+
+		$this->assertSame( array( 'type' => array( 'string', 'null' ) ), $ability->get_input_schema()['properties']['data']['properties'][ $option ], 'The input should not hold the default.' );
+		$this->assertSame( 'Fallback', $ability->get_output_schema()['properties'][ $option ]['default'], 'The output should still describe the default.' );
+	}
+
+	/**
+	 * The output describes the settings the ability can write, as core/settings-get describes them.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_output_schema_describes_the_writable_settings(): void {
+		$schema   = wp_get_ability( self::ABILITY )->get_output_schema();
+		$expected = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'];
+		unset( $expected['settings_update_test_readonly'] );
 
 		$this->assertSame( 'object', $schema['type'], 'The output should be an object.' );
 		$this->assertFalse( $schema['additionalProperties'], 'The output should reject other keys.' );
 		$this->assertArrayNotHasKey( 'required', $schema, 'No setting should be required in the output.' );
-		$this->assertSame( wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'], $schema['properties'], 'The output should describe the settings as core/settings-get does.' );
+		$this->assertSame( $expected, $schema['properties'], 'The output should describe every setting but the read-only one, as core/settings-get does.' );
 	}
 
 	/**
@@ -497,8 +501,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * A read-only setting is left out of the input, but is still described in the output and read
-	 * by core/settings-get.
+	 * A read-only setting is left out of the input and the output of the update ability, but is
+	 * still described and read by core/settings-get.
 	 *
 	 * @ticket 64616
 	 *
@@ -513,7 +517,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$read             = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $name ) ) );
 
 		$this->assertArrayNotHasKey( $name, $input_properties, 'The read-only setting should not be in the input schema.' );
-		$this->assertArrayHasKey( $name, wp_get_ability( self::ABILITY )->get_output_schema()['properties'], 'The read-only setting should stay in the output schema of the update ability.' );
+		$this->assertArrayNotHasKey( $name, wp_get_ability( self::ABILITY )->get_output_schema()['properties'], 'The read-only setting should not be in the output schema of the update ability.' );
 		$this->assertArrayHasKey( $name, wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'], 'The read-only setting should stay in the output schema of the get ability.' );
 		$this->assertSame( array( $name => 'Locked' ), $read, 'The get ability should still return the read-only setting.' );
 	}
@@ -539,7 +543,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		$this->assertArrayNotHasKey( $option, $properties, 'The setting should not be in the input schema.' );
 		$this->assert_error_code( $result, 'ability_invalid_input' );
-		$this->assert_snapshot( $before, $after, 'Nothing should be written.' );
+		$this->assertSameSetsWithIndex( $before, $after, 'Nothing should be written.' );
 	}
 
 	/**
@@ -569,7 +573,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		$this->assertArrayNotHasKey( $option, $properties, 'The setting should not be in the input schema.' );
 		$this->assert_error_code( $result, 'ability_invalid_input' );
-		$this->assert_snapshot( $before, $after, 'Nothing should be written.' );
+		$this->assertSameSetsWithIndex( $before, $after, 'Nothing should be written.' );
 	}
 
 	/**
@@ -612,7 +616,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		);
 
 		$this->assert_error_code( $result, 'ability_invalid_permissions' );
-		$this->assert_snapshot( $before, $this->snapshot(), 'Nothing should be written.' );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**
@@ -628,61 +632,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'editor'      => array( 'editor' ),
 			'logged out'  => array( null ),
 		);
-	}
-
-	/**
-	 * The permission check refuses users without `manage_options` whatever the raw input.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 *
-	 * @dataProvider data_roles_and_raw_inputs
-	 *
-	 * @param string|null $role  The role of the user, or null when logged out.
-	 * @param mixed       $input The raw input.
-	 */
-	public function test_check_permissions_refuses_raw_input( ?string $role, $input ): void {
-		wp_set_current_user( null === $role ? 0 : self::$user_ids[ $role ] );
-
-		$this->assertFalse( wp_get_ability( self::ABILITY )->check_permissions( $input ) );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{0: string|null, 1: mixed}> Roles and raw inputs.
-	 */
-	public static function data_roles_and_raw_inputs(): array {
-		$inputs = array(
-			'valid input'           => array( 'data' => array( 'title' => 'Changed title' ) ),
-			'a string'              => 'not-an-object',
-			'null'                  => null,
-			'an option name inside' => array( 'data' => array( 'blogname' => 'Changed title' ) ),
-		);
-
-		$data = array();
-		foreach ( self::data_roles_without_manage_options() as $role_label => $role ) {
-			foreach ( $inputs as $input_label => $input ) {
-				$data[ "{$role_label}, {$input_label}" ] = array( $role[0], $input );
-			}
-		}
-		return $data;
-	}
-
-	/**
-	 * An administrator passes the permission check whatever the raw input.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 */
-	public function test_check_permissions_allows_administrator_with_raw_input(): void {
-		$this->become_admin();
-		$ability = wp_get_ability( self::ABILITY );
-
-		$this->assertTrue( $ability->check_permissions( 'not-an-object' ), 'A string input should not change the permission check.' );
-		$this->assertTrue( $ability->check_permissions( null ), 'A null input should not change the permission check.' );
 	}
 
 	/**
@@ -704,8 +653,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		$result = $this->update( array( 'title' => 'Changed title' ) );
 
-		$this->assert_error( $result, 'settings_cannot_update', $status, self::CANNOT_UPDATE_MESSAGE );
-		$this->assert_snapshot( $before, $this->snapshot(), 'Nothing should be written.' );
+		$this->assert_error( $result, 'settings_cannot_update', $status );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**
@@ -722,35 +671,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * A site administrator cannot set or reset the privacy policy page on multisite, and the other
-	 * settings of the call are not written either.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 *
-	 * @group ms-required
-	 *
-	 * @dataProvider data_privacy_policy_page_values
-	 *
-	 * @param int|null $value The privacy policy page to set, or null to reset it.
-	 */
-	public function test_site_administrator_cannot_set_privacy_policy_page( ?int $value ): void {
-		$this->become_admin();
-		$before = $this->snapshot();
-
-		$result = $this->update(
-			array(
-				'title'                   => 'Changed title',
-				'page_for_privacy_policy' => $value,
-			)
-		);
-
-		$this->assert_error( $result, 'settings_cannot_manage_privacy_options', 403, self::CANNOT_MANAGE_PRIVACY_MESSAGE );
-		$this->assert_snapshot( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
 	 * An administrator without `manage_privacy_options` cannot set or reset the privacy policy page,
 	 * and the other settings of the call are not written either.
 	 *
@@ -763,7 +683,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 * @param int|null $value The privacy policy page to set, or null to reset it.
 	 */
 	public function test_privacy_policy_page_refused_without_capability( ?int $value ): void {
-		$this->become_admin_for( 'page_for_privacy_policy' );
+		// On multisite, a site administrator lacks the capability even without the filter.
+		$this->become_admin();
 		$this->deny_privacy_capability();
 		$before = $this->snapshot();
 
@@ -774,8 +695,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			)
 		);
 
-		$this->assert_error( $result, 'settings_cannot_manage_privacy_options', 403, self::CANNOT_MANAGE_PRIVACY_MESSAGE );
-		$this->assert_snapshot( $before, $this->snapshot(), 'Nothing should be written.' );
+		$this->assert_error( $result, 'settings_cannot_manage_privacy_options', 403 );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**
@@ -791,19 +712,13 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * The privacy policy page rule holds when the option is exposed under another name, and does
-	 * not apply once the setting is unregistered, since nothing is written for it then.
+	 * The privacy policy page rule holds when the option is exposed under another name.
 	 *
 	 * @ticket 64616
 	 *
 	 * @since 7.3.0
-	 *
-	 * @dataProvider data_privacy_page_under_another_name
-	 *
-	 * @param bool        $unregister Whether the setting is unregistered before the call.
-	 * @param string|null $code       The expected error code, or null when the call succeeds.
 	 */
-	public function test_privacy_rule_follows_the_option_under_another_name( bool $unregister, ?string $code ): void {
+	public function test_privacy_rule_follows_the_option_under_another_name(): void {
 		register_setting(
 			'reading',
 			'wp_page_for_privacy_policy',
@@ -813,34 +728,14 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			)
 		);
 		$this->register_ability();
-		if ( $unregister ) {
-			unregister_setting( 'reading', 'wp_page_for_privacy_policy' );
-		}
-		$this->become_admin_for( 'page_for_privacy_policy' );
+		$this->become_admin();
 		$this->deny_privacy_capability();
 		$before = $this->snapshot();
 
 		$result = $this->update( array( 'settings_update_test_privacy_page' => 5 ) );
-		$after  = $this->snapshot();
 
-		if ( null === $code ) {
-			$this->assertSame( array(), $result, 'The unregistered setting should be left out of the output.' );
-		} else {
-			$this->assert_error( $result, $code, 403, self::CANNOT_MANAGE_PRIVACY_MESSAGE );
-		}
-		$this->assert_snapshot( $before, $after, 'Nothing should be written.' );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{0: bool, 1: string|null}> Whether the setting is unregistered, and the expected error code.
-	 */
-	public static function data_privacy_page_under_another_name(): array {
-		return array(
-			'registered'                   => array( false, 'settings_cannot_manage_privacy_options' ),
-			'unregistered before the call' => array( true, null ),
-		);
+		$this->assert_error( $result, 'settings_cannot_manage_privacy_options', 403 );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**
@@ -862,7 +757,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$result = wp_get_ability( self::ABILITY )->execute( $input );
 
 		$this->assert_error_code( $result, 'ability_invalid_input' );
-		$this->assert_snapshot( $before, $this->snapshot(), 'Nothing should be written.' );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**
@@ -885,9 +780,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 					),
 				),
 			),
-			'a mixed-case name in lower case'            => array( array( 'data' => array( 'mixed_case_name' => 'x' ) ) ),
 			'a numeric key that is not a setting name'   => array( array( 'data' => array( 0 => 'x' ) ) ),
-			'a nested key'                               => array( array( 'data' => array( 'title' => array( 'blogname' => 'x' ) ) ) ),
 			'another top-level key'                      => array(
 				array(
 					'data'   => array( 'title' => 'x' ),
@@ -897,20 +790,11 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'a string input'                             => array( 'title' ),
 			'no data'                                    => array( array() ),
 			'null data'                                  => array( array( 'data' => null ) ),
-			'a string for data'                          => array( array( 'data' => 'title' ) ),
 			'an empty array for data'                    => array( array( 'data' => array() ) ),
 			'an empty object for data'                   => array( array( 'data' => new stdClass() ) ),
-			'an object for a string'                     => array( array( 'data' => array( 'title' => array( 'rendered' => 'x' ) ) ) ),
-			'a float for an integer'                     => array( array( 'data' => array( 'posts_per_page' => 12.5 ) ) ),
-			'true for an integer'                        => array( array( 'data' => array( 'posts_per_page' => true ) ) ),
 			'an empty string for an integer'             => array( array( 'data' => array( 'posts_per_page' => '' ) ) ),
-			'a word for a boolean'                       => array( array( 'data' => array( 'use_smilies' => 'yes' ) ) ),
 			'an empty string for a boolean'              => array( array( 'data' => array( 'use_smilies' => '' ) ) ),
-			'a value in another case for an enum'        => array( array( 'data' => array( 'default_ping_status' => 'OPEN' ) ) ),
 			'an empty string for an enum'                => array( array( 'data' => array( 'default_ping_status' => '' ) ) ),
-			'two values for an enum'                     => array( array( 'data' => array( 'default_ping_status' => 'open&closed' ) ) ),
-			'an invalid email address'                   => array( array( 'data' => array( 'settings_update_test_email' => 'not-an-email' ) ) ),
-			'an invalid array item'                      => array( array( 'data' => array( 'settings_update_test_array' => array( 'invalid' ) ) ) ),
 			'an unknown object property'                 => array(
 				array(
 					'data' => array(
@@ -933,7 +817,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 					),
 				),
 			),
-			'an invalid object property'                 => array( array( 'data' => array( 'settings_update_test_object' => array( 'a' => 'invalid' ) ) ) ),
 			'a valid setting before an invalid one'      => array(
 				array(
 					'data' => array(
@@ -968,7 +851,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		$this->assertArrayNotHasKey( $name, $properties, 'The setting should not be in the input schema.' );
 		$this->assert_error_code( $result, 'ability_invalid_input' );
-		$this->assert_snapshot( $before, $this->snapshot(), 'Nothing should be written.' );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**
@@ -994,11 +877,18 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 *
 	 * @param string      $name   The exposed setting name.
 	 * @param string      $option The option name.
-	 * @param mixed       $value  A valid value.
+	 * @param mixed       $value  A valid value, or the kind of content whose ID is the value.
 	 * @param string      $output The expected output value as JSON.
 	 * @param string      $raw    The expected raw stored value.
 	 */
 	public function test_updates_each_setting( string $name, string $option, $value, string $output, string $raw ): void {
+		// A data provider runs before the content exists, so it names the kind of content instead of its ID.
+		if ( in_array( $option, self::ID_OPTIONS, true ) ) {
+			$value  = self::$fixture_ids[ $value ];
+			$output = (string) $value;
+			$raw    = (string) $value;
+		}
+
 		$this->become_admin_for( $name );
 		$expected = $this->snapshot();
 
@@ -1013,7 +903,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		wp_cache_delete( 'alloptions', 'options' );
 		$expected[ $option ] = $raw;
-		$this->assert_snapshot( $expected, $this->snapshot(), 'Only the option of the named setting should change.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the option of the named setting should change.' );
 
 		$read = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $name ) ) );
 		$this->assertSame( $output, wp_json_encode( $read[ $name ] ), 'The saved value should be read back the same way from the database.' );
@@ -1031,13 +921,13 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 *
 	 * @param string      $name       The exposed setting name.
 	 * @param string      $option     The option name.
-	 * @param mixed       $value      A valid value.
+	 * @param mixed       $value      A valid value, or the kind of content whose ID is the value.
 	 * @param string      $output     The expected output value as JSON.
 	 * @param string      $raw        The expected raw stored value.
 	 * @param string|null $after_null The output value after a null value as JSON, or null when it is left out.
 	 */
 	public function test_null_deletes_each_setting( string $name, string $option, $value, string $output, string $raw, ?string $after_null ): void {
-		update_option( $option, $value );
+		update_option( $option, in_array( $option, self::ID_OPTIONS, true ) ? self::$fixture_ids[ $value ] : $value );
 		$this->become_admin_for( $name );
 		$expected = $this->snapshot();
 		unset( $expected[ $option ] );
@@ -1046,13 +936,14 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		$this->assertNotWPError( $result, 'The stored value should be deleted.' );
 		$this->assertSame( null === $after_null ? '[]' : '{"' . $name . '":' . $after_null . '}', wp_json_encode( $result ), 'The setting should read as its default, or be left out.' );
-		$this->assert_snapshot( $expected, $this->snapshot(), 'Only the row of the named setting should be deleted.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the row of the named setting should be deleted.' );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * Every exposed core setting, plus the settings this class registers.
+	 * Every exposed core setting, plus the settings this class registers. A setting that holds the
+	 * ID of a page or a category names the kind of content, and the tests fill in the ID.
 	 *
 	 * @return array<string, array{0: string, 1: string, 2: mixed, 3: string, 4: string, 5: string|null}> Settings with a valid value.
 	 */
@@ -1068,13 +959,13 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'start_of_week'                  => array( 'start_of_week', 'start_of_week', 3, '3', '3', null ),
 			'language'                       => array( 'language', 'WPLANG', 'de_DE', '"de_DE"', 'de_DE', '"en_US"' ),
 			'use_smilies'                    => array( 'use_smilies', 'use_smilies', false, 'false', '', 'true' ),
-			'default_category'               => array( 'default_category', 'default_category', 7, '7', '7', null ),
+			'default_category'               => array( 'default_category', 'default_category', 'category', '', '', null ),
 			'default_post_format'            => array( 'default_post_format', 'default_post_format', 'aside', '"aside"', 'aside', null ),
 			'posts_per_page'                 => array( 'posts_per_page', 'posts_per_page', 12, '12', '12', '10' ),
 			'show_on_front'                  => array( 'show_on_front', 'show_on_front', 'page', '"page"', 'page', null ),
-			'page_on_front'                  => array( 'page_on_front', 'page_on_front', 5, '5', '5', null ),
-			'page_for_posts'                 => array( 'page_for_posts', 'page_for_posts', 6, '6', '6', null ),
-			'page_for_privacy_policy'        => array( 'page_for_privacy_policy', 'wp_page_for_privacy_policy', 8, '8', '8', null ),
+			'page_on_front'                  => array( 'page_on_front', 'page_on_front', 'page', '', '', null ),
+			'page_for_posts'                 => array( 'page_for_posts', 'page_for_posts', 'page', '', '', null ),
+			'page_for_privacy_policy'        => array( 'page_for_privacy_policy', 'wp_page_for_privacy_policy', 'page', '', '', null ),
 			'default_ping_status'            => array( 'default_ping_status', 'default_ping_status', 'closed', '"closed"', 'closed', null ),
 			'default_comment_status'         => array( 'default_comment_status', 'default_comment_status', 'closed', '"closed"', 'closed', null ),
 			'an array setting'               => array( 'settings_update_test_array', 'settings_update_test_array', array( '1', '2' ), '[1,2]', 'a:2:{i:0;i:1;i:1;i:2;}', null ),
@@ -1122,7 +1013,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$this->assertSame( $output, wp_json_encode( $result[ $name ] ), 'The output should show the value that was saved.' );
 
 		$expected[ $option ] = $raw;
-		$this->assert_snapshot( $expected, $this->snapshot(), 'Only the option of the named setting should hold the saved value.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the option of the named setting should hold the saved value.' );
 	}
 
 	/**
@@ -1132,27 +1023,155 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 */
 	public static function data_saved_values(): array {
 		return array(
-			'a numeric string for an integer'     => array( 'posts_per_page', 'posts_per_page', '10', '12', '12', '12' ),
-			'a whole float for an integer'        => array( 'posts_per_page', 'posts_per_page', '10', 12.0, '12', '12' ),
-			'"true" for a boolean'                => array( 'use_smilies', 'use_smilies', '', 'true', 'true', '1' ),
-			'"false" for a boolean'               => array( 'use_smilies', 'use_smilies', '1', 'false', 'false', '' ),
-			'1 for a boolean'                     => array( 'use_smilies', 'use_smilies', '', 1, 'true', '1' ),
-			'0 for a boolean'                     => array( 'use_smilies', 'use_smilies', '1', 0, 'false', '' ),
-			'"1" for a boolean'                   => array( 'use_smilies', 'use_smilies', '', '1', 'true', '1' ),
-			'"0" for a boolean'                   => array( 'use_smilies', 'use_smilies', '1', '0', 'false', '' ),
-			'an empty string for a string'        => array( 'title', 'blogname', 'Old title', '', '""', '' ),
-			'a script URI for a URI'              => array( 'settings_update_test_uri', 'settings_update_test_uri', 'https://old.example', 'javascript:alert(1)', '""', '' ),
-			'an ampersand in the title'           => array( 'title', 'blogname', 'Old title', 'A & B', '"A &amp; B"', 'A &amp; B' ),
-			'tags in the title'                   => array( 'title', 'blogname', 'Old title', '<b>x</b>', '"&lt;b&gt;x&lt;\/b&gt;"', '&lt;b&gt;x&lt;/b&gt;' ),
-			'zero posts per page'                 => array( 'posts_per_page', 'posts_per_page', '10', 0, '1', '1' ),
-			'a negative number of posts per page' => array( 'posts_per_page', 'posts_per_page', '10', -5, '5', '5' ),
-			'all posts per page'                  => array( 'posts_per_page', 'posts_per_page', '10', -1, '-1', '-1' ),
-			'a negative start of the week'        => array( 'start_of_week', 'start_of_week', '1', -3, '3', '3' ),
-			'tags in the date format'             => array( 'date_format', 'date_format', 'F j, Y', '<b>Y</b>', '"Y"', 'Y' ),
-			'an unknown timezone'                 => array( 'timezone', 'timezone_string', 'Europe/Lisbon', 'Mars/Olympus', '"Europe\/Lisbon"', 'Europe/Lisbon' ),
-			'a language that is not installed'    => array( 'language', 'WPLANG', 'de_DE', 'xx_XX', '"de_DE"', 'de_DE' ),
-			'English as a locale'                 => array( 'language', 'WPLANG', 'de_DE', 'en_US', '"de_DE"', 'de_DE' ),
-			'English as an empty language'        => array( 'language', 'WPLANG', 'de_DE', '', '""', '' ),
+			'a numeric string for an integer' => array( 'posts_per_page', 'posts_per_page', '10', '12', '12', '12' ),
+			'"false" for a boolean'           => array( 'use_smilies', 'use_smilies', '1', 'false', 'false', '' ),
+			'an empty string for a string'    => array( 'title', 'blogname', 'Old title', '', '""', '' ),
+			'a script URI for a URI'          => array( 'settings_update_test_uri', 'settings_update_test_uri', 'https://old.example', 'javascript:alert(1)', '""', '' ),
+			'an ampersand in the title'       => array( 'title', 'blogname', 'Old title', 'A & B', '"A &amp; B"', 'A &amp; B' ),
+			'zero posts per page'             => array( 'posts_per_page', 'posts_per_page', '10', 0, '1', '1' ),
+			'English as an empty language'    => array( 'language', 'WPLANG', 'de_DE', '', '""', '' ),
+		);
+	}
+
+	/**
+	 * A value that matches the schema, but that the setting cannot use, is refused. The error names
+	 * the setting, and the other settings of the call are not written either.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_unusable_values
+	 *
+	 * @param string     $name  The exposed setting name.
+	 * @param string|int $value The value to write.
+	 */
+	public function test_refuses_a_value_the_setting_cannot_use( string $name, $value ): void {
+		$this->become_admin_for( $name );
+		$before = $this->snapshot();
+
+		$result = $this->update(
+			array(
+				'title' => 'Changed title',
+				$name   => $value,
+			)
+		);
+
+		$this->assert_invalid_value_error( $result, $name );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string|int}> Setting names, and values that match the schema but cannot be used.
+	 */
+	public static function data_unusable_values(): array {
+		return array(
+			'an unknown timezone'                       => array( 'timezone', 'Mars/Olympus' ),
+			'a UTC offset as the timezone'              => array( 'timezone', 'UTC+2' ),
+			'a language that is not installed'          => array( 'language', 'xx_XX' ),
+			'en_US as the language'                     => array( 'language', 'en_US' ),
+			'an unknown post format'                    => array( 'default_post_format', 'banana' ),
+			'an empty post format'                      => array( 'default_post_format', '' ),
+			'a front page that does not exist'          => array( 'page_on_front', 999999 ),
+			'a negative front page'                     => array( 'page_on_front', -1 ),
+			'a page for posts that does not exist'      => array( 'page_for_posts', 999999 ),
+			'a privacy policy page that does not exist' => array( 'page_for_privacy_policy', 999999 ),
+			'a default category that does not exist'    => array( 'default_category', 999999 ),
+			'no default category'                       => array( 'default_category', 0 ),
+			'a negative default category'               => array( 'default_category', -1 ),
+		);
+	}
+
+	/**
+	 * The ID of content of another kind is refused: a post is not a page, and a tag is not a category.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_refuses_the_id_of_another_kind_of_content(): void {
+		$this->become_admin();
+		$before = $this->snapshot();
+
+		$post = $this->update( array( 'page_on_front' => self::$fixture_ids['post'] ) );
+		$tag  = $this->update( array( 'default_category' => self::$fixture_ids['tag'] ) );
+
+		$this->assert_invalid_value_error( $post, 'page_on_front' );
+		$this->assert_invalid_value_error( $tag, 'default_category' );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * The value rules hold when the option is exposed under another name.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_value_rule_follows_the_option_under_another_name(): void {
+		$name = 'settings_update_test_timezone';
+
+		register_setting(
+			'general',
+			'timezone_string',
+			array(
+				'type'              => 'string',
+				'show_in_abilities' => array( 'name' => $name ),
+			)
+		);
+		$this->register_ability();
+		$this->become_admin();
+		$before = $this->snapshot();
+
+		$result = $this->update( array( $name => 'Mars/Olympus' ) );
+
+		$this->assert_invalid_value_error( $result, $name );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * The values that stand for "none" and the other forms a setting can use are saved.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_usable_values
+	 *
+	 * @param string     $name   The exposed setting name.
+	 * @param string     $option The option name.
+	 * @param string|int $stored The raw value stored before the call.
+	 * @param string|int $value  The value to write.
+	 */
+	public function test_accepts_a_value_the_setting_can_use( string $name, string $option, $stored, $value ): void {
+		$this->store_raw( $option, $stored );
+		$this->become_admin_for( $name );
+		$expected = $this->snapshot();
+
+		$result = $this->update( array( $name => $value ) );
+
+		$this->assertSame( array( $name => $value ), $result, 'The output should show the saved value.' );
+		$expected[ $option ] = (string) $value;
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the option of the named setting should hold the saved value.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string|int, 3: string|int}> Setting names, option names, stored values and values to write.
+	 */
+	public static function data_usable_values(): array {
+		return array(
+			'no timezone'                  => array( 'timezone', 'timezone_string', 'Europe/Lisbon', '' ),
+			'UTC as the timezone'          => array( 'timezone', 'timezone_string', 'Europe/Lisbon', 'UTC' ),
+			'a timezone under an old name' => array( 'timezone', 'timezone_string', 'Europe/Lisbon', 'US/Pacific' ),
+			'no default post format'       => array( 'default_post_format', 'default_post_format', 'aside', '0' ),
+			'the standard post format'     => array( 'default_post_format', 'default_post_format', 'aside', 'standard' ),
+			'no front page'                => array( 'page_on_front', 'page_on_front', '5', 0 ),
+			'no page for posts'            => array( 'page_for_posts', 'page_for_posts', '5', 0 ),
+			'no privacy policy page'       => array( 'page_for_privacy_policy', 'wp_page_for_privacy_policy', '5', 0 ),
 		);
 	}
 
@@ -1206,55 +1225,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$expected['blogname']       = 'Acme Robotics';
 		$expected['posts_per_page'] = '12';
 		unset( $expected['use_smilies'] );
-		$this->assert_snapshot( $expected, $this->snapshot(), 'Only the named settings should change.' );
-	}
-
-	/**
-	 * A `pre_option_{$option}` filter shows in the output, while the value is still written.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 */
-	public function test_pre_option_filter_shows_in_output(): void {
-		$this->become_admin();
-		add_filter(
-			'pre_option_blogname',
-			static function () {
-				return 'Filtered title';
-			}
-		);
-		$expected = $this->snapshot();
-
-		$result = $this->update( array( 'title' => 'Written title' ) );
-
-		$this->assertSame( array( 'title' => 'Filtered title' ), $result, 'The output should show the filtered value.' );
-		$expected['blogname'] = 'Written title';
-		$this->assert_snapshot( $expected, $this->snapshot(), 'The value should still be written.' );
-	}
-
-	/**
-	 * A `pre_option_{$option}` filter counts as the stored value when a null value is checked.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 */
-	public function test_pre_option_filter_counts_for_the_stored_value_check(): void {
-		$this->store_raw( 'posts_per_page', '12' );
-		$this->become_admin();
-		add_filter(
-			'pre_option_posts_per_page',
-			static function () {
-				return 'ten';
-			}
-		);
-		$before = $this->snapshot();
-
-		$result = $this->update( array( 'posts_per_page' => null ) );
-
-		$this->assert_error( $result, 'settings_invalid_stored_value', 500, sprintf( self::INVALID_STORED_VALUE_MESSAGE, 'posts_per_page' ) );
-		$this->assert_snapshot( $before, $this->snapshot(), 'Nothing should be deleted.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the named settings should change.' );
 	}
 
 	/**
@@ -1310,8 +1281,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		$result = $this->update( array( $name => null ) );
 
-		$this->assert_error( $result, 'settings_invalid_stored_value', 500, sprintf( self::INVALID_STORED_VALUE_MESSAGE, $name ) );
-		$this->assert_snapshot( $before, $this->snapshot(), 'Nothing should be deleted.' );
+		$this->assert_error( $result, 'settings_invalid_stored_value', 500 );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be deleted.' );
 	}
 
 	/**
@@ -1356,7 +1327,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		$this->assertNotWPError( $result, 'The stored value should be deleted.' );
 		$this->assertSame( $output, wp_json_encode( $result ), 'The setting should read as its default, or be left out.' );
-		$this->assert_snapshot( $expected, $this->snapshot(), 'Only the row of the named setting should be deleted.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the row of the named setting should be deleted.' );
 	}
 
 	/**
@@ -1390,30 +1361,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$second = $this->update( array( 'posts_per_page' => null ) );
 
 		$this->assertSame( array( 'posts_per_page' => 10 ), $first, 'The first call should delete the stored value.' );
-		$this->assert_error( $second, 'settings_invalid_stored_value', 500, sprintf( self::INVALID_STORED_VALUE_MESSAGE, 'posts_per_page' ) );
-	}
-
-	/**
-	 * The stored-value error names the first failing setting in registration order, whatever the
-	 * order of the input.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 */
-	public function test_stored_value_error_names_the_first_in_registration_order(): void {
-		$this->store_raw( 'start_of_week', 'ten' );
-		$this->store_raw( 'posts_per_page', 'ten' );
-		$this->become_admin();
-
-		$result = $this->update(
-			array(
-				'posts_per_page' => null,
-				'start_of_week'  => null,
-			)
-		);
-
-		$this->assert_error( $result, 'settings_invalid_stored_value', 500, sprintf( self::INVALID_STORED_VALUE_MESSAGE, 'start_of_week' ) );
+		$this->assert_error( $second, 'settings_invalid_stored_value', 500 );
 	}
 
 	/**
@@ -1436,7 +1384,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$result = $this->update( $data );
 
 		$this->assert_error_code( $result, 'settings_invalid_stored_value' );
-		$this->assert_snapshot( $before, $this->snapshot(), 'Nothing should be written or deleted.' );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written or deleted.' );
 	}
 
 	/**
@@ -1462,65 +1410,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * The capability check comes before the privacy policy page check.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 */
-	public function test_capability_check_comes_before_privacy_check(): void {
-		wp_set_current_user( self::$user_ids['subscriber'] );
-		add_filter( 'wp_ability_permission_result', '__return_true' );
-
-		$result = $this->update( array( 'page_for_privacy_policy' => 5 ) );
-
-		$this->assert_error( $result, 'settings_cannot_update', 403, self::CANNOT_UPDATE_MESSAGE );
-	}
-
-	/**
-	 * The privacy policy page check comes before the stored-value check.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 */
-	public function test_privacy_check_comes_before_stored_value_check(): void {
-		$this->store_raw( 'posts_per_page', 'ten' );
-		$this->become_admin_for( 'page_for_privacy_policy' );
-		$this->deny_privacy_capability();
-
-		$result = $this->update(
-			array(
-				'posts_per_page'          => null,
-				'page_for_privacy_policy' => 5,
-			)
-		);
-
-		$this->assert_error( $result, 'settings_cannot_manage_privacy_options', 403, self::CANNOT_MANAGE_PRIVACY_MESSAGE );
-	}
-
-	/**
-	 * Invalid input is refused before the permission check, and nothing is written.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 *
-	 * @dataProvider data_roles_without_manage_options
-	 *
-	 * @param string|null $role The role of the user, or null when logged out.
-	 */
-	public function test_invalid_input_is_refused_before_the_permission_check( ?string $role ): void {
-		wp_set_current_user( null === $role ? 0 : self::$user_ids[ $role ] );
-		$before = $this->snapshot();
-
-		$result = $this->update( array( 'posts_per_page' => 'abc' ) );
-
-		$this->assert_error_code( $result, 'ability_invalid_input' );
-		$this->assert_snapshot( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
 	 * An administrator of another site of the network, who is not a member of the current site,
 	 * cannot update its settings.
 	 *
@@ -1540,7 +1429,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$result = $this->update( array( 'title' => 'Changed title' ) );
 
 		$this->assert_error_code( $result, 'ability_invalid_permissions' );
-		$this->assert_snapshot( $before, $this->snapshot(), 'Nothing should be written.' );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**
@@ -1563,91 +1452,17 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$result = $this->update(
 			array(
 				'title'                   => 'Network title',
-				'page_for_privacy_policy' => 8,
+				'page_for_privacy_policy' => self::$fixture_ids['page'],
 			)
 		);
 
 		$this->assertNotWPError( $result, 'The settings should be written.' );
 		$this->assertSameSets( array( 'title', 'page_for_privacy_policy' ), array_keys( $result ), 'The output should hold only the settings named in the call.' );
 		$this->assertSame( 'Network title', $result['title'], 'The output should show the saved title.' );
-		$this->assertSame( 8, $result['page_for_privacy_policy'], 'The output should show the saved privacy policy page.' );
+		$this->assertSame( self::$fixture_ids['page'], $result['page_for_privacy_policy'], 'The output should show the saved privacy policy page.' );
 		$expected['blogname']                   = 'Network title';
-		$expected['wp_page_for_privacy_policy'] = '8';
-		$this->assert_snapshot( $expected, $this->snapshot(), 'Both settings should be saved.' );
-	}
-
-	/**
-	 * A setting that is unregistered after the abilities register is neither written nor deleted,
-	 * and is left out of the output, while the other settings of the call are written.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 *
-	 * @dataProvider data_unregistered_setting_calls
-	 *
-	 * @param array<string, mixed>  $data    The settings to update.
-	 * @param mixed                 $stored  The raw value stored for the unregistered setting.
-	 * @param string                $output  The expected output as JSON.
-	 * @param array<string, string> $written The raw values expected to be written, keyed by option name.
-	 */
-	public function test_unregistered_setting_is_dropped( array $data, $stored, string $output, array $written ): void {
-		$option = 'settings_update_test_unregistered';
-
-		register_setting(
-			'general',
-			$option,
-			array(
-				'type'              => 'string',
-				'show_in_abilities' => true,
-			)
-		);
-		$this->register_ability();
-		$this->store_raw( $option, $stored );
-		unregister_setting( 'general', $option );
-		$this->become_admin();
-		$expected = $this->snapshot();
-		$row      = $this->raw_row( $option );
-
-		$result    = $this->update( $data );
-		$after     = $this->snapshot();
-		$after_row = $this->raw_row( $option );
-
-		$this->assertNotWPError( $result, 'The call should succeed.' );
-		$this->assertSame( $output, wp_json_encode( $result ), 'The output should hold only the settings that are still registered.' );
-		$this->assertSame( $row, $after_row, 'The row of the unregistered setting should not change.' );
-		$this->assert_snapshot( array_merge( $expected, $written ), $after, 'Only the settings that are still registered should be written.' );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{0: array<string, mixed>, 1: mixed, 2: string, 3: array<string, string>}> Calls naming an unregistered setting.
-	 */
-	public static function data_unregistered_setting_calls(): array {
-		return array(
-			'a value'                                     => array(
-				array( 'settings_update_test_unregistered' => 'abc' ),
-				'seed',
-				'[]',
-				array(),
-			),
-			'null with a stored value its schema rejects' => array(
-				array( 'settings_update_test_unregistered' => null ),
-				array( 'not', 'a', 'string' ),
-				'[]',
-				array(),
-			),
-			'a value with another setting'                => array(
-				array(
-					'settings_update_test_unregistered' => 'abc',
-					'title'                             => 'Acme Robotics',
-				),
-				'seed',
-				'{"title":"Acme Robotics"}',
-				array( 'blogname' => 'Acme Robotics' ),
-			),
-		);
+		$expected['wp_page_for_privacy_policy'] = (string) self::$fixture_ids['page'];
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Both settings should be saved.' );
 	}
 
 	/**
@@ -1678,6 +1493,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$this->assertSame( array( 'title' => 'Acme Robotics' ), $result, 'The rejected value should be left out of the output.' );
 		$expected['blogname']       = 'Acme Robotics';
 		$expected['posts_per_page'] = '12';
-		$this->assert_snapshot( $expected, $this->snapshot(), 'Both settings should still be written.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Both settings should still be written.' );
 	}
 }

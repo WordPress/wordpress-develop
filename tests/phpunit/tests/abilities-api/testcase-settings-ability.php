@@ -22,6 +22,13 @@ abstract class WP_Abilities_Settings_UnitTestCase extends WP_UnitTestCase {
 	private static $registered_settings_backup;
 
 	/**
+	 * Backup of the `$new_allowed_options` global, restored after the class.
+	 *
+	 * @var array|null
+	 */
+	private static $allowed_options_backup;
+
+	/**
 	 * The `$wp_registered_settings` global as the class setup leaves it, restored after each test.
 	 *
 	 * @var array|null
@@ -50,6 +57,7 @@ abstract class WP_Abilities_Settings_UnitTestCase extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
 		global $wp_registered_settings, $new_allowed_options, $wp_actions;
 		self::$registered_settings_backup = $wp_registered_settings;
+		self::$allowed_options_backup     = $new_allowed_options;
 		$rest_api_init_count              = $wp_actions['rest_api_init'] ?? null;
 		$wp_registered_settings           = array();
 		unset( $wp_actions['rest_api_init'] );
@@ -95,10 +103,9 @@ abstract class WP_Abilities_Settings_UnitTestCase extends WP_UnitTestCase {
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
 
-		static::unregister_test_settings();
-
-		global $wp_registered_settings;
+		global $wp_registered_settings, $new_allowed_options;
 		$wp_registered_settings = self::$registered_settings_backup;
+		$new_allowed_options    = self::$allowed_options_backup;
 	}
 
 	/**
@@ -122,16 +129,12 @@ abstract class WP_Abilities_Settings_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Registers the settings a test class needs before the abilities register.
 	 *
-	 * @since 7.3.0
-	 */
-	protected static function register_test_settings(): void {}
-
-	/**
-	 * Unregisters the settings registered by register_test_settings().
+	 * The settings need no cleanup: the registered settings and the allowed options are restored
+	 * after the class.
 	 *
 	 * @since 7.3.0
 	 */
-	protected static function unregister_test_settings(): void {}
+	protected static function register_test_settings(): void {}
 
 	/**
 	 * Registers the settings abilities again inside a faked init action.
