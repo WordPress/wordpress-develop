@@ -483,12 +483,31 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 	 * @ticket 66343
 	 */
 	public function test_the_script_modules_of_the_core_actions_are_registered() {
+		global $wp_script_modules, $wp_interactivity;
+
 		wp_set_current_user( self::$admin_id );
 
-		foreach ( wp_get_all_registered_entity_action_modules()['postType'] as $post_type => $modules ) {
-			foreach ( $modules as $module ) {
-				$this->assertNotNull( wp_script_modules()->get_registered( $module ), "The $module module of $post_type is registered." );
+		/*
+		 * Register the default script modules in fresh instances, so the test neither
+		 * depends on nor changes the shared ones. Registering them also marks the
+		 * block library modules in the Interactivity API.
+		 */
+		$original_script_modules = $wp_script_modules;
+		$original_interactivity  = $wp_interactivity;
+		$wp_script_modules       = null;
+		$wp_interactivity        = null;
+
+		try {
+			wp_default_script_modules();
+
+			foreach ( wp_get_all_registered_entity_action_modules()['postType'] as $post_type => $modules ) {
+				foreach ( $modules as $module ) {
+					$this->assertNotNull( wp_script_modules()->get_registered( $module ), "The $module module of $post_type is registered." );
+				}
 			}
+		} finally {
+			$wp_script_modules = $original_script_modules;
+			$wp_interactivity  = $original_interactivity;
 		}
 	}
 
