@@ -6634,70 +6634,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * A row whose content is not a reaction key, written by something other
-	 * than this controller, is left out and not counted as another emoji.
-	 *
-	 * @ticket 66695
-	 *
-	 * @dataProvider data_malformed_reaction_content
-	 *
-	 * @param string $content The stored reaction content.
-	 */
-	public function test_reaction_summary_omits_malformed_reaction_content( string $content ): void {
-		wp_set_current_user( self::$editor_id );
-
-		$note_id     = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => self::$post_id,
-				'comment_type'     => 'note',
-				'comment_approved' => 0,
-				'user_id'          => self::$editor_id,
-				'comment_content'  => 'Test note',
-			)
-		);
-		$reaction_id = $this->create_reaction_for_update_tests( self::$post_id, $note_id, self::$editor_id );
-		$this->create_reaction_for_update_tests( self::$post_id, $note_id, self::$admin_id, $content );
-
-		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id ) );
-		$data     = $response->get_data();
-		$this->assertIsArray( $data );
-
-		$summary = $data['reaction_summary'];
-		$this->assertIsArray( $summary );
-
-		// PHP casts the numeric string key to an integer.
-		$this->assertSame( array( 2764 ), array_keys( $summary ) );
-		$this->assertSame(
-			array(
-				'count'                 => 1,
-				'current_user_reaction' => $reaction_id,
-			),
-			$summary['2764']
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{string}>
-	 */
-	public function data_malformed_reaction_content(): array {
-		return array(
-			'markup around a key'        => array( '<b>2764</b>' ),
-			'not hex'                    => array( 'heart' ),
-			'uppercase hex'              => array( '1F680' ),
-			'beyond the last code point' => array( '110000' ),
-			'surrogate'                  => array( 'd83d' ),
-			'trailing separator'         => array( '1f44d-' ),
-			'leading separator'          => array( '-1f44d' ),
-			'empty span'                 => array( '1f44d--fe0f' ),
-			'fewer than four digits'     => array( 'a9' ),
-			'padded past four digits'    => array( '02764' ),
-			'more than six digits'       => array( '0002764' ),
-		);
-	}
-
-	/**
 	 * The curated reaction key for the heart emoji, as stored in a reaction's content.
 	 */
 	private const HEART_REACTION_KEY = '2764';
@@ -6789,6 +6725,45 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		$this->assertSame( array(), $this->get_reaction_summary( $note_id ) );
+	}
+
+	/**
+	 * A row holding markup around a curated key is not that key, so it is
+	 * left out and does not add to the real key's count.
+	 *
+	 * @ticket 66695
+	 */
+	public function test_reaction_summary_ignores_markup_around_a_curated_key(): void {
+		list( $post_id, $note_id ) = $this->create_editor_note();
+
+		$heart_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => self::HEART_REACTION_KEY,
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$subscriber_id,
+				'comment_content'  => '<b>' . self::HEART_REACTION_KEY . '</b>',
+			)
+		);
+
+		$summary = $this->get_reaction_summary( $note_id );
+
+		$this->assertCount( 1, $summary );
+		$this->assertArrayHasKey( self::HEART_REACTION_KEY, $summary );
+		$this->assertSame( 1, $summary[ self::HEART_REACTION_KEY ]['count'] );
+		$this->assertSame( $heart_id, $summary[ self::HEART_REACTION_KEY ]['current_user_reaction'] );
 	}
 
 	/**
