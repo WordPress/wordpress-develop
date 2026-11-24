@@ -1561,6 +1561,67 @@ function wp_count_comments( $post_id = 0 ) {
 }
 
 /**
+ * Checks whether the current user may remove a reaction or change its status.
+ *
+ * A reaction speaks for its author, so only they can remove it, and reactions
+ * on a resolved note thread are frozen. These rules apply on top of the usual
+ * 'edit_comment' check, which grants access to anyone who can edit the post.
+ *
+ * Comments that are not reactions always pass. Internal cascades, such as
+ * trashing or deleting a note together with its reactions, call the comment
+ * functions directly and are not affected.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param WP_Comment|string|int $comment Comment to check.
+ * @return true|WP_Error True if the current user may remove the reaction or change its status,
+ *                       or if the comment is not a reaction. WP_Error otherwise.
+ */
+function _wp_check_reaction_removal_permission( $comment ) {
+	$comment = get_comment( $comment );
+
+	if ( ! $comment instanceof WP_Comment || 'reaction' !== strtolower( $comment->comment_type ) ) {
+		return true;
+	}
+
+	if ( get_current_user_id() !== (int) $comment->user_id ) {
+		return new WP_Error(
+			'reaction_not_author',
+			__( 'Sorry, you can only remove your own reactions.' )
+		);
+	}
+
+	// Find the root of the note thread. A resolved thread has an approved root.
+	$thread_root = get_comment( $comment->comment_parent );
+	if ( ! $thread_root instanceof WP_Comment ) {
+		return true;
+	}
+
+	$visited = array( (int) $thread_root->comment_ID => true );
+	while ( $thread_root->comment_parent ) {
+		$ancestor = get_comment( $thread_root->comment_parent );
+
+		// Stop at a missing ancestor or a corrupt, cyclic chain.
+		if ( ! $ancestor || isset( $visited[ (int) $ancestor->comment_ID ] ) ) {
+			break;
+		}
+
+		$visited[ (int) $ancestor->comment_ID ] = true;
+		$thread_root                            = $ancestor;
+	}
+
+	if ( '1' === $thread_root->comment_approved ) {
+		return new WP_Error(
+			'reaction_thread_resolved',
+			__( 'A reaction cannot be removed from a resolved note.' )
+		);
+	}
+
+	return true;
+}
+
+/**
  * Trashes or deletes a comment.
  *
  * The comment is moved to Trash instead of permanently deleted unless Trash is

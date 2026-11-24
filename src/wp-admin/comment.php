@@ -296,6 +296,11 @@ switch ( $action ) {
 			comment_footer_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 		}
 
+		$reaction_check = _wp_check_reaction_removal_permission( $comment );
+		if ( is_wp_error( $reaction_check ) ) {
+			comment_footer_die( $reaction_check->get_error_message() );
+		}
+
 		if ( wp_get_referer() && ! $noredir && ! str_contains( wp_get_referer(), 'comment.php' ) ) {
 			$redir = wp_get_referer();
 		} elseif ( wp_get_original_referer() && ! $noredir ) {

@@ -1409,25 +1409,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'reaction' === strtolower( $comment->comment_type ) ) {
-			// A reaction speaks for its author, so only they can remove it.
-			if ( get_current_user_id() !== (int) $comment->user_id ) {
-				return new WP_Error(
-					'rest_cannot_delete',
-					__( 'Sorry, you can only remove your own reactions.' ),
-					array( 'status' => rest_authorization_required_code() )
-				);
-			}
-
-			// Reactions on a resolved thread are frozen, like adding new ones.
-			$note = get_comment( $comment->comment_parent );
-			if ( $note instanceof WP_Comment && $this->is_thread_resolved( $note ) ) {
-				return new WP_Error(
-					'rest_cannot_delete',
-					__( 'A reaction cannot be removed from a resolved note.' ),
-					array( 'status' => 403 )
-				);
-			}
+		// Only a reaction's author can remove it, and not once its thread is resolved.
+		$reaction_check = _wp_check_reaction_removal_permission( $comment );
+		if ( is_wp_error( $reaction_check ) ) {
+			return new WP_Error(
+				'rest_cannot_delete',
+				$reaction_check->get_error_message(),
+				array(
+					'status' => 'reaction_thread_resolved' === $reaction_check->get_error_code()
+						? 403
+						: rest_authorization_required_code(),
+				)
+			);
 		}
 
 		return true;
