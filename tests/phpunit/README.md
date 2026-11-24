@@ -26,7 +26,7 @@ Look for `PHPUnit Tests (full matrix)` in GitHub Actions and the PHPUnit checks 
 
 A test or test class that changes shared state and does not restore it can make later tests pass or fail depending on the order they run in. `tests/phpunit/leaks/` holds an opt-in PHPUnit listener that snapshots state between tests and classes, and a script that reports what changed.
 
-It snapshots database rows, schema and `AUTO_INCREMENT` counters, temporary tables, the object cache (including the keys on memcached servers), cached options that disagree with the database, globals, static properties and variables, constants, ini settings, environment variables, other process state such as the error handler, and files under `wp-content` and the temporary directory. A process-isolated test's child process is snapshotted too, if the test has `@preserveGlobalState disabled` as core's do. It needs PHPUnit 9 or earlier: PHPUnit 10 removed test listeners.
+It snapshots database rows, schema and `AUTO_INCREMENT` counters, temporary tables, the object cache (including the keys on memcached servers), cached options that disagree with the database, globals, static properties and variables, constants, ini settings, environment variables, other process state such as the error handler, and files under `wp-content` and the temporary directory. A process-isolated test's child process is snapshotted too, if the test has `@preserveGlobalState disabled` as core's do: only the state that outlives it (database, files, memcached, stale memcached options). It needs PHPUnit 9 or earlier: PHPUnit 10 removed test listeners.
 
 Run the tests with the leak configuration (`tests/phpunit/leaks/multisite.xml` for multisite), then compare the snapshots:
 
@@ -43,7 +43,7 @@ To sweep the whole suite, snapshot only the state that outlives the PHP process 
 node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_SCOPE=class php ./vendor/bin/phpunit -c tests/phpunit/leaks/multisite.xml
 ```
 
-To find out why a class only fails after others, run it alone and in sequence, each with its own `WP_TESTS_LEAKS_OUT` and without `WP_TESTS_LEAKS_SCOPE`, then compare the state it starts with:
+To find out why a class only fails after others, run it alone and in sequence, each with its own `WP_TESTS_LEAKS_OUT` and without `WP_TESTS_LEAKS_SCOPE`, then compare the state it starts with. Keys that differ between the two runs before any class ran, e.g. timestamps, are run noise and left out:
 
 ```
 node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_OUT=/var/www/tests/phpunit/build/leaks/alone.jsonl php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --filter Tests_Class_Name
@@ -56,4 +56,11 @@ Environment variables:
 * `WP_TESTS_LEAKS_OUT`: snapshots file, default `tests/phpunit/build/leaks/snapshots.jsonl`.
 * `WP_TESTS_LEAKS_SCOPE`: `class` for the whole-suite sweep.
 
-The `leak-probe` test suite leaks one kind of state per test, to check the listener sees each: `--testsuite leak-probe`. It runs only when named, except on PHPUnit 5, which ignores `defaultTestSuite`: run `--testsuite default`, then `--testsuite restapi-autosave` there. With a persistent object cache, `tear_down()` flushes it, so the cached option probes leave nothing.
+The `leak-probe` test suite leaks one kind of state per test, to check the listener sees each. `check-probes.php` exits with 1 if the report misses one, or if an isolated child reports state that dies with it; pass it the same `WP_TESTS_LEAKS_SCOPE`, if any, as the run:
+
+```
+node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --testsuite leak-probe
+node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/check-probes.php tests/phpunit/build/leaks/snapshots.jsonl
+```
+
+The suite runs only when named, except on PHPUnit 5, which ignores `defaultTestSuite`: run `--testsuite default` and `--testsuite restapi-autosave` there, each with its own `WP_TESTS_LEAKS_OUT`, and diff each file. With a persistent object cache, `tear_down()` flushes it, so the cached option probes leave nothing.

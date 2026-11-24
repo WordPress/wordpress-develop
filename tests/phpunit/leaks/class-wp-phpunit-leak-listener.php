@@ -6,7 +6,7 @@
  *   class_start (before setUpBeforeClass), test_start (before setUp),
  *   test_end (after tearDown), class_end (after tearDownAfterClass).
  * In a process-isolated test's child process, test_start and test_end wrap the whole
- * child, class hooks included.
+ * child, class hooks included, and snapshot only the areas that outlive it.
  *
  * Each snapshot is a flat map "area|key" => [hash, preview], appended as one JSON line
  * to WP_TESTS_LEAKS_OUT. diff.php compares snapshots.
@@ -38,51 +38,51 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	use Yoast\PHPUnitPolyfills\TestListeners\TestListenerDefaultImplementation;
 
-	const SKIP_GLOBALS = array( 'GLOBALS', 'timestart', 'argv', 'argc', '__composer_autoload_files', '__PHPUNIT_BOOTSTRAP' );
+	private const SKIP_GLOBALS = array( 'GLOBALS', 'timestart', 'argv', 'argc', '__composer_autoload_files', '__PHPUNIT_BOOTSTRAP' );
 
 	// $wpdb properties that change on every query, the listener's own included.
-	const WPDB_NOISE = array( 'last_query', 'last_result', 'col_info', 'queries', 'num_queries', 'num_rows', 'rows_affected', 'insert_id', 'result', 'func_call', 'time_start', 'last_error', 'dbh', 'col_meta' );
+	private const WPDB_NOISE = array( 'last_query', 'last_result', 'col_info', 'queries', 'num_queries', 'num_rows', 'rows_affected', 'insert_id', 'result', 'func_call', 'time_start', 'last_error', 'dbh', 'col_meta', 'table_charset' );
 
 	// $wp_object_cache entries, snapshotted by cache(), and hit counters, which every read changes.
-	const CACHE_NOISE = array( 'cache', 'cache_hits', 'cache_misses' );
+	private const CACHE_NOISE = array( 'cache', 'cache_hits', 'cache_misses' );
 
 	// Test tooling, PHPUnit 5's PEAR-style names (PHPUnit_, PHP_Timer, ...) included.
-	const SKIP_PREFIXES = array( 'PHPUnit', 'PHP_', 'Text_Template', 'File_Iterator', 'Composer\\', 'SebastianBergmann\\', 'Doctrine\\', 'Yoast\\', __CLASS__ );
+	private const SKIP_PREFIXES = array( 'PHPUnit', 'PHP_', 'Text_Template', 'File_Iterator', 'Composer\\', 'SebastianBergmann\\', 'Doctrine\\', 'Yoast\\', __CLASS__ );
 
-	const MAX_DEPTH = 12;
+	private const MAX_DEPTH = 12;
 
-	const PREVIEW_LENGTH = 200;
+	private const PREVIEW_LENGTH = 200;
 
-	const MISMATCH_PREVIEW_LENGTH = 90;
+	private const MISMATCH_PREVIEW_LENGTH = 90;
 
-	const MEMCACHED_BATCH = 500;
+	private const MEMCACHED_BATCH = 500;
 
-	const MEMCACHED_TIMEOUT = 2;
+	private const MEMCACHED_TIMEOUT = 2;
 
-	const SCOPE_CLASS = 'class';
+	private const SCOPE_CLASS = 'class';
 
-	const JSON_FLAGS = JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR;
+	private const JSON_FLAGS = JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR;
 
 	// SHOW CREATE TABLE has the live counter; information_schema caches it.
-	const AUTO_INCREMENT = '/ AUTO_INCREMENT=(\d+)/';
+	private const AUTO_INCREMENT = '/ AUTO_INCREMENT=(\d+)/';
 
 	// The result file PHPUnit 9 hands an isolated child, see TestCase::run().
-	const PHPUNIT_TEMP_PREFIX = 'phpunit_';
-
-	// An isolated child's test_end runs at shutdown: output buffers are closed, the shutdown action ran.
-	const CHILD_SHUTDOWN_NOISE = array( 'proc|ob_level', 'global|wp_actions|shutdown' );
+	private const PHPUNIT_TEMP_PREFIX = 'phpunit_';
 
 	// The listener's own environment: its settings, and the test name handed to an isolated child.
-	const ENV_PREFIX = 'WP_TESTS_LEAKS_';
+	private const ENV_PREFIX = 'WP_TESTS_LEAKS_';
 
-	const ENV_TEST = 'WP_TESTS_LEAKS_TEST';
+	private const ENV_TEST = 'WP_TESTS_LEAKS_TEST';
 
 	/*
-	 * Areas that outlive the PHP process, so isolated children and later runs inherit them.
-	 * Not row counts, they repeat the db rows, nor temporary tables: a child's own connection
-	 * can't see them.
+	 * Areas the next class inherits. Not row counts, they repeat the db rows, nor AUTO_INCREMENT
+	 * counters, which nearly every class's fixtures bump, nor temporary tables: a child's own
+	 * connection can't see them.
 	 */
-	const PERSISTENT = '/^(db|schema|mc|file|stale)\|/';
+	private const PERSISTENT = '/^(db|schema|mc|file|stale)\|/';
+
+	// Those an isolated child leaves its parent and later runs: not the in-process caches' stale|runtime and stale|local.
+	private const OUTLIVES_PROCESS = '/^(db|schema|mc|file|stale\|memcached)\|/';
 
 	private $out;
 
@@ -296,7 +296,13 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 		$this->rows = array();
 
-		$state = self::SCOPE_CLASS === $this->scope ? $this->persistent() : $this->everything();
+		if ( $this->child ) {
+			$state = $this->persistent( self::OUTLIVES_PROCESS );
+		} elseif ( self::SCOPE_CLASS === $this->scope ) {
+			$state = $this->persistent( self::PERSISTENT );
+		} else {
+			$state = $this->everything();
+		}
 
 		// Ends the snapshot's read view: its metadata locks would block e.g. a child's DDL.
 		$wpdb->query( 'COMMIT' );
@@ -304,18 +310,18 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		return $state;
 	}
 
-	private function persistent() {
+	private function persistent( $areas ) {
 		return array_filter(
 			array_merge( $this->db(), $this->cache(), $this->memcached(), $this->files() ),
-			static function ( $key ) {
-				return preg_match( self::PERSISTENT, $key );
+			static function ( $key ) use ( $areas ) {
+				return preg_match( $areas, $key );
 			},
 			ARRAY_FILTER_USE_KEY
 		);
 	}
 
 	private function everything() {
-		$state = array_merge(
+		return array_merge(
 			$this->db(),
 			$this->cache(),
 			$this->memcached(),
@@ -326,8 +332,6 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			$this->process(),
 			$this->files()
 		);
-
-		return $this->child ? array_diff_key( $state, array_flip( self::CHILD_SHUTDOWN_NOISE ) ) : $state;
 	}
 
 	private function append( array $line ) {
@@ -348,10 +352,10 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		$state = array();
 
 		/*
-		 * Tests leave autocommit off, so an earlier snapshot's SELECT left a REPEATABLE READ
-		 * read view open that hides rows committed since, e.g. by an isolated child process.
-		 * Snapshots run outside the tests' transactions and START TRANSACTION would commit
-		 * anything pending anyway, so this changes nothing for the tests.
+		 * Tests leave autocommit off, so a SELECT a test ran after tear_down()'s ROLLBACK left
+		 * a REPEATABLE READ read view open that hides rows committed since, e.g. by an isolated
+		 * child process. Snapshots run outside the tests' transactions and START TRANSACTION
+		 * would commit anything pending anyway, so this changes nothing for the tests.
 		 */
 		$wpdb->query( 'COMMIT' );
 
@@ -894,9 +898,10 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	private function entry( $value ) {
 		$seen = array();
 		$norm = $this->normalize( $value, 0, $seen );
-		$text = is_string( $norm ) ? $norm : json_encode( $norm, self::JSON_FLAGS );
+		$text = is_string( $norm ) ? $norm : (string) json_encode( $norm, self::JSON_FLAGS );
 
-		return $this->text( (string) $text );
+		// Not the JSON: it hashes 1 and "1" alike, and invalid UTF-8 as U+FFFD.
+		return array( md5( serialize( $norm ) ), substr( $text, 0, self::PREVIEW_LENGTH ) );
 	}
 
 	/*

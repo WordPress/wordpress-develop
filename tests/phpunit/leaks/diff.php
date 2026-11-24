@@ -6,7 +6,9 @@
  *                                         (test_start vs test_end, class_start vs class_end).
  *                                         WP_TESTS_LEAKS_SCOPE=class runs: install vs class end.
  * php diff.php alone.jsonl seq.jsonl ID   State the class ID inherits: its class_start
- *                                         in run A vs run B.
+ *                                         in run A vs run B, minus run noise (timestamps,
+ *                                         env, install rows): keys whose first class_start,
+ *                                         before any class ran, already differs.
  */
 
 const USAGE = "Usage: php diff.php run.jsonl\n       php diff.php a.jsonl b.jsonl ClassName\n";
@@ -61,19 +63,37 @@ function report( $title, array $lines ) {
 	echo "== $title (" . count( $lines ) . " changed)\n" . implode( "\n", $lines ) . "\n\n";
 }
 
-function class_start( $snaps, $id ) {
-	foreach ( $snaps as $snap ) {
-		if ( 'class_start' === $snap['point'] && $snap['id'] === $id ) {
-			return $snap['state'];
+// The first class_start and the class ID's.
+function class_starts( $file, $id ) {
+	$first = null;
+	foreach ( load( $file ) as $snap ) {
+		if ( 'class_start' !== $snap['point'] ) {
+			continue;
+		}
+
+		$first = $first ?? $snap['state'];
+		if ( $snap['id'] === $id ) {
+			return array( $first, $snap['state'] );
 		}
 	}
 
-	fwrite( STDERR, "No class_start for $id\n" );
+	fwrite( STDERR, "No class_start for $id in $file\n" );
 	exit( 1 );
 }
 
 if ( 4 === $argc ) {
-	report( "{$argv[3]} class_start: {$argv[1]} -> {$argv[2]}", compare( class_start( load( $argv[1] ), $argv[3] ), class_start( load( $argv[2] ), $argv[3] ) ) );
+	list( $first_a, $a ) = class_starts( $argv[1], $argv[3] );
+	list( $first_b, $b ) = class_starts( $argv[2], $argv[3] );
+
+	$noise = array_diff_key( $first_a, $first_b ) + array_diff_key( $first_b, $first_a );
+	foreach ( array_intersect_key( $first_a, $first_b ) as $key => $value ) {
+		if ( $value[0] !== $first_b[ $key ][0] ) {
+			$noise[ $key ] = true;
+		}
+	}
+
+	$lines = compare( array_diff_key( $a, $noise ), array_diff_key( $b, $noise ) );
+	report( "{$argv[3]} class_start: {$argv[1]} -> {$argv[2]}, " . count( $noise ) . ' run noise keys ignored', $lines );
 	exit( 0 );
 }
 

@@ -24,6 +24,9 @@ if ( ! isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] ) ) {
 		fwrite( STDERR, "Cannot write $leaks_out.\n" );
 		exit( 1 );
 	}
+
+	// Else the listener snapshots it as a global.
+	unset( $leaks_out );
 }
 
 require dirname( __DIR__ ) . '/includes/bootstrap.php';

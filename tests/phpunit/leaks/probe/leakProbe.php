@@ -24,6 +24,7 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create( array( 'post_category' => array( $cat_a, $cat_b ) ) );
 
 		$GLOBALS['leak_probe_big']  = range( 0, 2999 );
+		$GLOBALS['leak_probe_int']  = 1;
 		$GLOBALS['leak_probe_cb']   = function () {
 			return 'original';
 		};
@@ -54,7 +55,7 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 
 		// Commit a row the notoptions cache still says is missing.
 		global $wpdb;
-		$wpdb->insert(
+		$inserted = $wpdb->insert(
 			$wpdb->options,
 			array(
 				'option_name'  => 'leak_probe_missing',
@@ -62,7 +63,8 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 				'autoload'     => 'off',
 			)
 		);
-		$wpdb->query( 'COMMIT' );
+		$this->assertSame( 1, $inserted );
+		$this->assertNotFalse( $wpdb->query( 'COMMIT' ) );
 
 		$this->assertFalse( get_option( 'leak_probe_missing' ) );
 	}
@@ -116,6 +118,11 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 		$this->assertTrue( true );
 	}
 
+	public function test_leaks_type_only_change() {
+		$GLOBALS['leak_probe_int'] = '1';
+		$this->assertTrue( true );
+	}
+
 	public function test_leaks_closure_swap() {
 		$GLOBALS['leak_probe_cb'] = function () {
 			return 'original';
@@ -153,14 +160,12 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 
 	public function test_leaks_schema() {
 		global $wpdb;
-		$wpdb->query( "ALTER TABLE {$wpdb->options} ADD INDEX leak_probe (autoload)" );
-		$this->assertTrue( true );
+		$this->assertTrue( $wpdb->query( "ALTER TABLE {$wpdb->options} ADD INDEX leak_probe (autoload)" ) );
 	}
 
 	public function test_leaks_temp_table() {
 		global $wpdb;
-		$wpdb->query( "CREATE TABLE {$wpdb->prefix}leak_probe_tmp (id int)" );
-		$this->assertTrue( true );
+		$this->assertTrue( $wpdb->query( "CREATE TABLE {$wpdb->prefix}leak_probe_tmp (id int)" ) );
 	}
 
 	/**
@@ -168,19 +173,19 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 	 * @preserveGlobalState disabled
 	 */
 	public function test_leaks_in_child() {
+		// In-process state, which dies with the child: must not be reported.
 		define( 'LEAK_PROBE_CHILD_CONSTANT', 'leaked' );
-		leak_probe_counter();
 
 		// Committed to a table no class cleanup resets, so the parent sees it too.
 		global $wpdb;
-		$wpdb->insert(
+		$inserted = $wpdb->insert(
 			$wpdb->links,
 			array(
 				'link_url'  => 'https://leak-probe-child.example',
 				'link_name' => 'leak_probe_child_row',
 			)
 		);
-		$wpdb->query( 'COMMIT' );
-		$this->assertTrue( true );
+		$this->assertSame( 1, $inserted );
+		$this->assertNotFalse( $wpdb->query( 'COMMIT' ) );
 	}
 }
