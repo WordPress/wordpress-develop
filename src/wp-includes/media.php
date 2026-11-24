@@ -164,6 +164,8 @@ function image_constrain_size_for_editor( $width, $height, $size = 'medium', $co
  * @param int|string $width  Image width in pixels.
  * @param int|string $height Image height in pixels.
  * @return string HTML attributes for width and, or height.
+ *
+ * @phpstan-pure
  */
 function image_hwstring( $width, $height ) {
 	$out = '';
@@ -1374,6 +1376,8 @@ function _wp_get_attachment_relative_path( $file ) {
  *     @type int $0 Image width.
  *     @type int $1 Image height.
  * }
+ *
+ * @phpstan-pure
  */
 function _wp_get_image_size_from_meta( $size_name, $image_meta ) {
 	if ( 'full' === $size_name ) {
@@ -2175,6 +2179,8 @@ function wp_img_tag_add_auto_sizes( string $image ): string {
  *
  * @param string $sizes_attr The 'sizes' attribute value.
  * @return bool True if the 'auto' keyword is present, false otherwise.
+ *
+ * @phpstan-pure
  */
 function wp_sizes_attribute_includes_valid_auto( string $sizes_attr ): bool {
 	list( $first_size ) = explode( ',', $sizes_attr, 2 );

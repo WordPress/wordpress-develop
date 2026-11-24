@@ -525,6 +525,8 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
  * @param int $w Image width in pixels.
  * @param int $h Image height in pixels.
  * @return float|int Image preview ratio.
+ *
+ * @phpstan-pure
  */
 function _image_get_preview_ratio( $w, $h ) {
 	$max = max( $w, $h );

@@ -26,6 +26,8 @@
  * @param string $kind The entity kind (e.g. `postType`).
  * @param string $name The entity name (e.g. `page`).
  * @return string The filter name.
+ *
+ * @phpstan-pure
  */
 function wp_get_entity_view_config_hook_name( $kind, $name ) {
 	return strtolower( "get_entity_view_config_{$kind}_{$name}" );
