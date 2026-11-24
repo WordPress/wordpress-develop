@@ -14,6 +14,7 @@ on:
       - '.github/actions/smoke-check/**'
       - '.github/workflows/upgrade-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
+      - '.github/workflows/reusable-download-wordpress-release.yml'
   pull_request:
     # This workflow is only meant to run from trunk. Pull requests changing this file with different BASE branches should be ignored.
     branches:
@@ -24,6 +25,7 @@ on:
       - '.github/actions/run-with-retry/**'
       - '.github/workflows/upgrade-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
+      - '.github/workflows/reusable-download-wordpress-release.yml'
   workflow_dispatch:
     inputs:
       new-version:
@@ -152,12 +154,22 @@ jobs:
           filter wp-5x-php-8x "$WP_5X_PHP_8X"
           filter oldest-wp "$OLDEST_WP"
 
+  # Downloads a release zip once for every matrix job, waiting until WordPress.org serves it.
+  download-wordpress:
+    name: Download WordPress
+    uses: $/.github/workflows/reusable-download-wordpress-release.yml
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    with:
+      version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+
   # Tests the full list of PHP/MySQL combinations for the two most recent versions of WordPress.
   upgrade-tests-recent-releases:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' && needs.build-test-matrix.outputs.recent-releases != '[]' }}
-    needs: [ build-test-matrix ]
+    needs: [ build-test-matrix, download-wordpress ]
     permissions:
       contents: read
     strategy:
@@ -177,13 +189,14 @@ jobs:
       wp: ${{ matrix.wp }}
       new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
       multisite: ${{ matrix.multisite }}
+      new-version-artifact: ${{ needs.download-wordpress.outputs.artifact }}
 
   # Tests 6.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 7 & 8.
   upgrade-tests-wp-6x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' && needs.build-test-matrix.outputs.wp-6x != '[]' }}
-    needs: [ build-test-matrix ]
+    needs: [ build-test-matrix, download-wordpress ]
     permissions:
       contents: read
     strategy:
@@ -203,13 +216,14 @@ jobs:
       wp: ${{ matrix.wp }}
       new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
       multisite: ${{ matrix.multisite }}
+      new-version-artifact: ${{ needs.download-wordpress.outputs.artifact }}
 
   # Tests 5.x releases where the WordPress database version changed on the only supported version of PHP 7.
   upgrade-tests-wp-5x-php-7x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' && needs.build-test-matrix.outputs.wp-5x-php-7x != '[]' }}
-    needs: [ build-test-matrix ]
+    needs: [ build-test-matrix, download-wordpress ]
     permissions:
       contents: read
     strategy:
@@ -229,6 +243,7 @@ jobs:
       wp: ${{ matrix.wp }}
       new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
       multisite: ${{ matrix.multisite }}
+      new-version-artifact: ${{ needs.download-wordpress.outputs.artifact }}
 
   # Tests 5.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 8.
   #
@@ -239,7 +254,7 @@ jobs:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' && needs.build-test-matrix.outputs.wp-5x-php-8x != '[]' }}
-    needs: [ build-test-matrix ]
+    needs: [ build-test-matrix, download-wordpress ]
     permissions:
       contents: read
     strategy:
@@ -259,6 +274,7 @@ jobs:
       wp: ${{ matrix.wp }}
       new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
       multisite: ${{ matrix.multisite }}
+      new-version-artifact: ${{ needs.download-wordpress.outputs.artifact }}
 
   # The oldest version of WordPress receiving security updates should always be tested against
   # the widest possible list of PHP/MySQL combinations.
@@ -270,7 +286,7 @@ jobs:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' && needs.build-test-matrix.outputs.oldest-wp != '[]' }}
-    needs: [ build-test-matrix ]
+    needs: [ build-test-matrix, download-wordpress ]
     permissions:
       contents: read
     strategy:
@@ -290,6 +306,7 @@ jobs:
       wp: ${{ matrix.wp }}
       new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
       multisite: ${{ matrix.multisite }}
+      new-version-artifact: ${{ needs.download-wordpress.outputs.artifact }}
 
   slack-notifications:
     name: Slack Notifications
@@ -297,7 +314,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ build-test-matrix, upgrade-tests-recent-releases, upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-oldest-wp-mysql ]
+    needs: [ build-test-matrix, download-wordpress, upgrade-tests-recent-releases, upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-oldest-wp-mysql ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}

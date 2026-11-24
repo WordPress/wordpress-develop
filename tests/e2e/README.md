@@ -80,6 +80,10 @@ test.describe( 'Settings -> General', { lock: GENERAL_SETTINGS }, () => {} );
 
 A form save writes every field on the page, not only the field that the test changed. A spec that saves the General Settings form (`options-general.php`) must hold `GENERAL_SETTINGS`. A spec in `parallel` that changes a General Settings option in a different way, for example with `siteSettings` or `siteOptions`, must also hold it.
 
+WordPress reads the full `active_plugins` list, changes it, and writes the full list back. If two tests turn plugins on or off at the same time, one change can be lost. A spec in `parallel` that installs, deletes, activates or deactivates a plugin must hold `PLUGINS`.
+
+Before WordPress unzips an uploaded plugin or theme, it deletes everything in `wp-content/upgrade/`. This can delete the files of an upload in another test. A spec in `parallel` that uploads a plugin or theme zip must hold `UPGRADER`.
+
 ## Logged-out pages
 
 Most specs run logged in as the admin user. There are two ways to run a test logged out:
@@ -93,7 +97,7 @@ To create posts, pages or users, to upload attachments, or to change a setting, 
 
 * `siteSettings`: reads and changes the settings of `/wp/v2/settings` through REST, with `get()`, `remember( keys )` and `set( patch )`. It restores only the keys passed to `remember` or `set`. See `specs/privacy.test.js`.
 * `siteOptions`: reads and changes options through WP-CLI, with `get( names )`, `remember( names )` and `set( values )`. It reads and restores the stored `gmt_offset`, not the value calculated for a named timezone. It restores only the keys passed to `remember` or `set`. See `specs/general-settings-invalid-timezone.test.js`.
-* `muPlugin`: writes a must-use plugin with `write( fileName, php )`, and deletes the file when the test ends. Call `write` before the test visits a page. See `specs/fatal-error-handler.test.js`.
+* `muPlugin`: writes a must-use plugin with `write( fileName, php )`. Unlike the other fixtures, it does not delete the file when the test ends, because a request from another worker can fail if a file goes away while WordPress loads it. Global setup deletes the files before the next run, so a plugin must not change requests from other tests. Call `write` before the test visits a page. See `specs/fatal-error-handler.test.js`.
 * `postFactory`: creates posts with `create( data )` and pages with `createPage( data )`, and force-deletes them when the test ends. `uniqueTitle( prefix )` adds a UUID to the prefix. See `specs/edit-posts.test.js`.
 * `attachments`: uploads a file with `upload( absolutePath )`, records an attachment that the browser uploaded with `track( id )`, and deletes them when the test ends. See `specs/media-new-client-side-upload.test.js`.
 * `userFactory`: creates users with `create( { roles, ...data } )`, which returns `{ user, username, password }`. For a user that the test creates through a form, call `adopt( username )` before the form is submitted. When the test ends, it deletes each user and the user's auto-drafts. To log in as the user, import `signIn( page, username, password )` from `../fixtures/user`. See `specs/users.test.js`.
