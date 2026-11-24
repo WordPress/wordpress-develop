@@ -836,15 +836,19 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * @since 7.3.0
 	 *
 	 * @param string       $post_type       The post type the view list belongs to.
-	 * @param array        $view_list       The view list.
-	 * @param array|object $default_view    The default view the views inherit from.
-	 * @param array|object $default_layouts The default view properties of each layout.
-	 * @return array The view list, with a count on each view a status total answers.
+	 * @param array<mixed> $view_list       The view list.
+	 * @param mixed        $default_view    The default view the views inherit from.
+	 * @param mixed        $default_layouts The default view properties of each layout.
+	 * @return array<mixed> The view list, with a count on each view a status total answers.
 	 */
 	protected function add_counts_to_view_list( $post_type, $view_list, $default_view = array(), $default_layouts = array() ) {
 		$counts = (array) wp_count_posts( $post_type, 'readable' );
 
 		foreach ( $view_list as $index => $entry ) {
+			if ( ! is_array( $entry ) ) {
+				continue;
+			}
+
 			$statuses = $this->get_view_list_entry_statuses( $entry, $default_view, $default_layouts );
 			if ( null === $statuses ) {
 				continue;
@@ -852,9 +856,13 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 
 			$count = 0;
 			foreach ( $statuses as $status ) {
-				$count += isset( $counts[ $status ] ) ? (int) $counts[ $status ] : 0;
+				// wp_count_posts() can give numeric strings, and its filter anything.
+				if ( isset( $counts[ $status ] ) && is_numeric( $counts[ $status ] ) ) {
+					$count += (int) $counts[ $status ];
+				}
 			}
-			$view_list[ $index ]['count'] = $count;
+			$entry['count']      = $count;
+			$view_list[ $index ] = $entry;
 		}
 
 		return $view_list;
@@ -874,17 +882,13 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param mixed        $entry           A view list entry.
-	 * @param array|object $default_view    The default view the entry inherits from.
-	 * @param array|object $default_layouts The default view properties of each layout.
+	 * @param array<mixed> $entry           A view list entry.
+	 * @param mixed        $default_view    The default view the entry inherits from.
+	 * @param mixed        $default_layouts The default view properties of each layout.
 	 * @return string[]|null The statuses, or null when the view filters by anything
 	 *                       else in some layout or its shape is not recognized.
 	 */
 	protected function get_view_list_entry_statuses( $entry, $default_view = array(), $default_layouts = array() ) {
-		if ( ! is_array( $entry ) ) {
-			return null;
-		}
-
 		$view            = isset( $entry['view'] ) ? (array) $entry['view'] : array();
 		$default_view    = (array) $default_view;
 		$default_layouts = (array) $default_layouts;
@@ -916,7 +920,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param array[] $layers The view's layers, lowest first.
+	 * @param array<mixed>[] $layers The view's layers, lowest first.
 	 * @return string[]|null The statuses, or null when the view filters by anything
 	 *                       else or its shape is not recognized.
 	 */
