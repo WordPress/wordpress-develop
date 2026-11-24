@@ -2512,15 +2512,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				continue;
 			}
 
-			// Rows are grouped on the raw content, so several groups can strip to one key.
-			if ( ! isset( $this->reaction_summaries[ $note_id ][ $emoji_key ] ) ) {
-				$this->reaction_summaries[ $note_id ][ $emoji_key ] = array(
-					'count'                 => 0,
-					'current_user_reaction' => $my_reactions[ $key ] ?? 0,
-				);
-			}
-
-			$this->reaction_summaries[ $note_id ][ $emoji_key ]['count'] += (int) $row->reaction_count;
+			$this->reaction_summaries[ $note_id ][ $emoji_key ] = array(
+				'count'                 => (int) $row->reaction_count,
+				'current_user_reaction' => $my_reactions[ $key ] ?? 0,
+			);
 		}
 	}
 
