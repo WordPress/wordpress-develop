@@ -564,7 +564,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * Returns `permanent` values as they arrive in a query string, and the outcome.
 	 *
-	 * @return array<string, array{permanent: string, outcome: string}> The cases.
+	 * @return array<string, array{0: string, 1: string}> The cases.
 	 */
 	public static function data_permanent_query_string_values(): array {
 		return array(
@@ -618,7 +618,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * Returns `permanent` values in a query string that are not booleans.
 	 *
-	 * @return array<string, array{permanent: string}> The values.
+	 * @return array<string, array{0: string}> The values.
 	 */
 	public static function data_permanent_query_string_values_that_are_not_booleans(): array {
 		return array(
@@ -721,7 +721,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * Returns write abilities with a method they do not take.
 	 *
-	 * @return array<string, array{ability: string, method: string}> The cases.
+	 * @return array<string, array{0: string, 1: string}> The cases.
 	 */
 	public static function data_wrong_methods_for_write_abilities(): array {
 		return array(
@@ -771,35 +771,36 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A logged-out user is refused as unauthenticated.
+	 * Returns users that may not create content, and the status of the response they receive.
 	 *
-	 * @ticket 66706
-	 * @since 7.3.0
+	 * @return array<string, array{0: string, 1: int}> The cases.
 	 */
-	public function test_logged_out_create_receives_401(): void {
-		wp_set_current_user( 0 );
-
-		$before   = $this->snapshot();
-		$response = $this->server->dispatch( $this->write_request( 'POST', 'core/content-create', array( 'data' => array( 'type' => 'post' ) ) ) );
-
-		$this->assert_error_response( $response, 401, 'rest_ability_cannot_execute', 'A logged-out create' );
-		$this->assertSame( $before, $this->snapshot(), 'A logged-out create should write nothing.' );
+	public static function data_users_refused_a_create(): array {
+		return array(
+			'logged out' => array( 'logged-out', 401 ),
+			'subscriber' => array( 'subscriber', 403 ),
+		);
 	}
 
 	/**
-	 * A user the permission callback refuses is forbidden.
+	 * A logged-out user is refused as unauthenticated, and a user the permission callback refuses
+	 * is forbidden.
 	 *
 	 * @ticket 66706
+	 * @dataProvider data_users_refused_a_create
 	 * @since 7.3.0
+	 *
+	 * @param string $user   The user, `logged-out` or `subscriber`.
+	 * @param int    $status The expected status.
 	 */
-	public function test_subscriber_create_receives_403(): void {
-		wp_set_current_user( self::$subscriber_id );
+	public function test_refused_create_receives_401_or_403( string $user, int $status ): void {
+		wp_set_current_user( 'subscriber' === $user ? self::$subscriber_id : 0 );
 
 		$before   = $this->snapshot();
 		$response = $this->server->dispatch( $this->write_request( 'POST', 'core/content-create', array( 'data' => array( 'type' => 'post' ) ) ) );
 
-		$this->assert_error_response( $response, 403, 'rest_ability_cannot_execute', 'A subscriber create' );
-		$this->assertSame( $before, $this->snapshot(), 'A subscriber create should write nothing.' );
+		$this->assert_error_response( $response, $status, 'rest_ability_cannot_execute', "A {$user} create" );
+		$this->assertSame( $before, $this->snapshot(), "A {$user} create should write nothing." );
 	}
 
 	/**

@@ -27,6 +27,12 @@ declare( strict_types = 1 );
  * post type and the filters through the same code, and the input schema, output schema,
  * and field projection are built from the same field definitions.
  *
+ * The write abilities are deliberately kept in the same class as `core/content-query`, so
+ * that all four share these helpers, such as the read check, the field projection, and the
+ * input parsing, as private methods. Splitting them into separate classes would require
+ * making the shared helpers public or moving them to another class, and they are not meant
+ * to be part of the public API.
+ *
  * Only register() is public. The ability callbacks are closures that call private
  * methods, so callers go through the Abilities API, such as
  * `wp_get_ability( 'core/content-query' )->execute()`, which validates the input and
@@ -96,17 +102,6 @@ final class WP_Abilities_Content {
 	private const LOOP_GLOBALS = array( 'post', 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
 
 	/**
-	 * The `data` attributes the create and update abilities can write.
-	 *
-	 * An update must send at least one of them. {@see self::prepare_post_data()} maps each
-	 * one that is sent to a post field.
-	 *
-	 * @since 7.3.0
-	 * @var list<string>
-	 */
-	private const WRITE_ATTRIBUTES = array( 'title', 'content', 'excerpt', 'status', 'slug', 'date', 'author', 'parent' );
-
-	/**
 	 * Whether each author seen in the current call has posts the current user may read.
 	 *
 	 * @since 7.2.0
@@ -136,7 +131,7 @@ final class WP_Abilities_Content {
 		// The statuses that can be set: the ones that are not internal.
 		$statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
 
-		$this->register_content_query( $post_types );
+		$this->register_content_query( $post_types, $statuses );
 		$this->register_content_create( $post_types, $statuses );
 		$this->register_content_update( $post_types, $statuses );
 		$this->register_content_delete( $post_types );
@@ -146,18 +141,21 @@ final class WP_Abilities_Content {
 	 * Registers the read-only `core/content-query` ability.
 	 *
 	 * @since 7.2.0
-	 * @since 7.3.0 Added the `$post_types` parameter and support for `trash` in the `where.status` filter.
+	 * @since 7.3.0 Added the `$post_types` and `$statuses` parameters, and support for `trash`
+	 *              in the `where.status` filter.
 	 *
 	 * @param list<string> $post_types Exposed post type names.
+	 * @param list<string> $statuses   Post status slugs that are not internal.
 	 */
-	private function register_content_query( array $post_types ): void {
+	private function register_content_query( array $post_types, array $statuses ): void {
 		/*
-		 * Internal statuses (e.g. `inherit`) are excluded here, other than `trash`, and from
-		 * the statuses a query covers by default, so the posts of post types that rely on them
-		 * (attachments) cannot be queried, not even by ID. Revisit if such a post type is ever
-		 * exposed via `show_in_abilities`.
+		 * Of the internal statuses, only `trash` can be requested, and only by name: it is never
+		 * one of the statuses a query covers by default. The others, such as `inherit`, can never
+		 * be queried, so the posts of post types that rely on them (attachments) cannot be
+		 * queried, not even by ID. Revisit if such a post type is ever exposed via
+		 * `show_in_abilities`.
 		 */
-		$statuses = $this->get_queryable_statuses();
+		$statuses[] = 'trash';
 
 		wp_register_ability(
 			'core/content-query',
@@ -548,10 +546,10 @@ final class WP_Abilities_Content {
 		/*
 		 * Mirror the REST posts controller's inherited-parent behavior, but keep the
 		 * ability fail-closed for missing parents or parent loops. No input can request
-		 * `inherit`, since internal statuses other than `trash` are left out of the input
-		 * schema, and all of them of the statuses a query covers by default, but a query
-		 * filter such as a `pre_get_posts` callback can still add it, so such posts keep
-		 * their parent's read check.
+		 * `inherit`: the input schema leaves out every internal status other than `trash`,
+		 * and the statuses a query covers by default hold no internal status. A query
+		 * filter such as a `pre_get_posts` callback can still add it, though, so such posts
+		 * keep their parent's read check.
 		 */
 		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
 			$parent = get_post( $post->post_parent );
@@ -752,7 +750,7 @@ final class WP_Abilities_Content {
 		 * when none is left, which would cover every status, including internal ones such as
 		 * `trash`. Of the internal statuses, only `trash` can be requested, by name.
 		 */
-		if ( ! empty( array_diff( $statuses, $this->get_queryable_statuses() ) ) ) {
+		if ( ! empty( array_diff( $statuses, get_post_stati( array( 'internal' => false ) ), array( 'trash' ) ) ) ) {
 			return $this->invalid_filter_error(
 				'where[status]',
 				/* translators: %s: Parameter. */
@@ -942,16 +940,12 @@ final class WP_Abilities_Content {
 		 * rejected instead of saving the post unchanged.
 		 */
 		$data = $input['data'] ?? array();
-		if ( empty( array_intersect_key( $data, array_flip( self::WRITE_ATTRIBUTES ) ) ) ) {
+		if ( empty( array_intersect_key( $data, $this->get_content_write_properties( array() ) ) ) ) {
 			return $this->invalid_attribute_error( 'data', __( 'The data must be an object with at least one attribute to write.' ) );
 		}
 
-		$post_type_object = $this->get_exposed_post_type( $post->post_type );
-		if ( ! $post_type_object ) {
-			return $this->not_found_error();
-		}
-
-		$postarr = $this->prepare_post_data( $data, $post_type_object, $post );
+		// get_requested_post() only returns posts of an exposed post type.
+		$postarr = $this->prepare_post_data( $data, get_post_type_object( $post->post_type ), $post );
 		if ( is_wp_error( $postarr ) ) {
 			return $postarr;
 		}
@@ -1046,9 +1040,9 @@ final class WP_Abilities_Content {
 	 * Checks the `data` attributes and builds the array passed to the save.
 	 *
 	 * Shared by the create and update abilities. Only the attributes of
-	 * {@see self::WRITE_ATTRIBUTES} that were sent reach the array, each mapped to one post
-	 * field, next to the values the server sets: the post type on create, the post ID on
-	 * update. The first rule that fails is returned and nothing is written.
+	 * {@see self::get_content_write_properties()} that were sent reach the array, each mapped
+	 * to one post field, next to the values the server sets: the post type on create, the
+	 * post ID on update. The first rule that fails is returned and nothing is written.
 	 *
 	 * @since 7.3.0
 	 *
@@ -1109,7 +1103,7 @@ final class WP_Abilities_Content {
 		$postarr = array_merge( $postarr, $dates );
 
 		$final_status = $postarr['post_status'] ?? $post->post_status ?? 'draft';
-		$final_parent = $postarr['post_parent'] ?? (int) ( $post->post_parent ?? 0 );
+		$final_parent = $postarr['post_parent'] ?? $post->post_parent ?? 0;
 
 		$slug = $this->prepare_slug( $data, $post_type_object, $post, $final_status, $final_parent );
 		if ( is_wp_error( $slug ) ) {
@@ -1461,8 +1455,7 @@ final class WP_Abilities_Content {
 			return $post_id;
 		}
 
-		// get_post() would return the global post for an ID of 0.
-		$post = $post_id > 0 ? get_post( $post_id ) : null;
+		$post = get_post( $post_id );
 		if ( ! $post instanceof WP_Post ) {
 			return $this->not_found_error();
 		}
@@ -1633,25 +1626,6 @@ final class WP_Abilities_Content {
 	 */
 	private function get_requested_statuses( array $where ): array {
 		return array_map( 'sanitize_key', $this->parse_list_input( $where, 'status' ) );
-	}
-
-	/**
-	 * Returns the statuses the `status` filter accepts.
-	 *
-	 * These are the statuses that are not internal, followed by `trash`, so trashed posts can
-	 * be queried by name. `trash` is never one of the statuses a query covers by default, see
-	 * {@see self::normalize_statuses()}, and like every status that is not publicly viewable
-	 * it requires edit access, see {@see self::can_query_status()}.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return list<string> Post status slugs.
-	 */
-	private function get_queryable_statuses(): array {
-		$statuses   = array_values( get_post_stati( array( 'internal' => false ) ) );
-		$statuses[] = 'trash';
-
-		return $statuses;
 	}
 
 	/**

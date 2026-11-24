@@ -3577,46 +3577,76 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A query by ID without a status does not cover the internal `trash` status, even for a
-	 * role that can edit the trashed post.
+	 * Returns the filters that name a trashed post in a query without a status, and roles that
+	 * can edit that post.
 	 *
-	 * The default statuses with IDs are the statuses that are not internal, so the query
-	 * neither returns nor counts the trashed post. The post is named by ID, since trashing a
-	 * post renames its slug.
+	 * @return array<string, array{filter: string|null, role: string}> Query test cases.
+	 */
+	public static function data_queries_without_a_status(): array {
+		return array(
+			'IDs, administrator'       => array(
+				'filter' => 'ids',
+				'role'   => 'administrator',
+			),
+			'IDs, editor'              => array(
+				'filter' => 'ids',
+				'role'   => 'editor',
+			),
+			'slugs, administrator'     => array(
+				'filter' => 'slugs',
+				'role'   => 'administrator',
+			),
+			'no filter, administrator' => array(
+				'filter' => null,
+				'role'   => 'administrator',
+			),
+		);
+	}
+
+	/**
+	 * A query without a status does not cover the internal `trash` status, even for a role that
+	 * can edit the trashed post, also not when it lists IDs or slugs.
+	 *
+	 * The default statuses with IDs or slugs are the statuses that are not internal, so the query
+	 * neither returns nor counts the trashed post.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_roles_with_edit_access_to_other_users_posts
+	 * @ticket 66706
+	 * @dataProvider data_queries_without_a_status
 	 * @since 7.2.0
+	 * @since 7.3.0 Covers queries by slug and queries without a filter.
 	 *
-	 * @param string $role The role to query as.
+	 * @param string|null $filter The filter that names the trashed post, `ids` or `slugs`, or null for none.
+	 * @param string      $role   The role to query as.
 	 */
-	public function test_ids_without_a_status_do_not_cover_trashed_posts( string $role ): void {
-		$post_id = self::factory()->post->create(
-			array(
-				'post_author' => self::$user_ids['author'],
-				'post_status' => 'publish',
-			)
-		);
-		wp_trash_post( $post_id );
-
-		$this->assertSame( 'trash', get_post_status( $post_id ), 'Precondition: the post should be in the trash.' );
+	public function test_query_without_a_status_does_not_cover_trashed_posts( ?string $filter, string $role ): void {
+		$post_id = $this->create_trashed_post( 'author' );
 
 		$this->login_as( $role );
 		$this->register_ability();
 
 		$this->assertTrue( current_user_can( 'edit_post', $post_id ), 'Precondition: the role should be able to edit the trashed post.' );
 
+		$where = array( 'type' => 'post' );
+		if ( 'ids' === $filter ) {
+			$where['ids'] = array( $post_id );
+		} elseif ( 'slugs' === $filter ) {
+			$where['slugs'] = array( get_post( $post_id )->post_name );
+		}
+
+		if ( null === $filter ) {
+			$this->assertNotContains( $post_id, $this->query_ids( $where ), 'A query without a status should not return a trashed post.' );
+			return;
+		}
+
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
-				'where'  => array(
-					'type' => 'post',
-					'ids'  => array( $post_id ),
-				),
+				'where'  => $where,
 				'fields' => array( 'id' ),
 			)
 		);
 
-		$this->assertSame( self::EMPTY_RESULT, $result, 'A query by ID without a status should neither return nor count a trashed post.' );
+		$this->assertSame( self::EMPTY_RESULT, $result, "A query by {$filter} without a status should neither return nor count a trashed post." );
 	}
 
 	/**
@@ -6967,54 +6997,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A query without a status does not cover `trash`, also not when it lists slugs.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_slugs_without_a_status_do_not_cover_trashed_posts(): void {
-		$post_id = $this->create_trashed_post( 'author' );
-
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where'  => array(
-					'type'  => 'post',
-					'slugs' => array( get_post( $post_id )->post_name ),
-				),
-				'fields' => array( 'id' ),
-			)
-		);
-
-		$this->assertSame( self::EMPTY_RESULT, $result, 'A query by slug without a status should neither return nor count a trashed post.' );
-	}
-
-	/**
-	 * A query without a status does not cover `trash`.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_query_without_a_status_does_not_cover_trashed_posts(): void {
-		$post_id = $this->create_trashed_post( 'administrator' );
-
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$this->assertNotContains( $post_id, $this->query_ids( array( 'type' => 'post' ) ), 'A query without a status should not return a trashed post.' );
-	}
-
-	/**
 	 * Querying `trash` needs `edit_posts`.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
 	public function test_trash_needs_edit_posts(): void {
-		$this->create_trashed_post( 'author' );
-
 		$this->login_as( 'subscriber' );
 		$this->register_ability();
 
@@ -7038,8 +7026,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public static function data_roles_that_edit_only_their_own_trashed_posts(): array {
 		return array(
-			'author'      => array( 'author_secondary' ),
-			'contributor' => array( 'contributor' ),
+			'author'      => array( 'role' => 'author_secondary' ),
+			'contributor' => array( 'role' => 'contributor' ),
 		);
 	}
 
@@ -7077,28 +7065,5 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			),
 			'Only the own trashed post should be returned.'
 		);
-	}
-
-	/**
-	 * Other internal statuses are still rejected.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_other_internal_statuses_are_still_rejected(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type'   => 'post',
-					'status' => array( 'auto-draft' ),
-				),
-			)
-		);
-
-		$this->assertWPError( $result, 'An auto-draft query should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject auto-draft.' );
 	}
 }

@@ -30,81 +30,13 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	 * @param WP_UnitTest_Factory $factory The unit test factory.
 	 */
 	public static function wpSetUpBeforeClass( $factory ): void {
-		foreach ( self::ROLES as $role ) {
-			self::$user_ids[ $role ] = $factory->user->create( array( 'role' => $role ) );
-		}
-		self::$user_ids['other'] = $factory->user->create( array( 'role' => 'editor' ) );
+		self::create_shared_fixtures( $factory );
 
-		// One post per owner and status, for the matrix tests.
-		foreach ( array_merge( self::ROLES, array( 'other' ) ) as $owner ) {
-			foreach ( self::MATRIX_STATUSES as $status ) {
-				$stored_status = str_replace( 'trash_', '', $status );
-				$post_id       = $factory->post->create(
-					array(
-						'post_author' => self::$user_ids[ $owner ],
-						'post_status' => $stored_status,
-						'post_date'   => 'future' === $stored_status ? '2099-01-01 00:00:00' : '',
-					)
-				);
-				if ( $stored_status !== $status ) {
-					wp_trash_post( $post_id );
-				}
-				self::$post_ids[ "{$owner}:{$status}" ] = $post_id;
-			}
-		}
-
-		self::$post_ids['admin_post'] = $factory->post->create(
-			array(
-				'post_author' => self::$user_ids['administrator'],
-				'post_status' => 'publish',
-			)
-		);
-
-		foreach ( array( 'admin_page', 'front_page', 'posts_page', 'privacy_page' ) as $page ) {
+		foreach ( array( 'front_page', 'posts_page', 'privacy_page' ) as $page ) {
 			self::$post_ids[ $page ] = $factory->post->create(
 				array(
 					'post_author' => self::$user_ids['administrator'],
 					'post_type'   => 'page',
-					'post_status' => 'publish',
-				)
-			);
-		}
-
-		self::$post_ids['attachment'] = $factory->attachment->create_object(
-			'image.jpg',
-			self::$post_ids['admin_post'],
-			array(
-				'post_mime_type' => 'image/jpeg',
-				'post_author'    => self::$user_ids['administrator'],
-			)
-		);
-
-		$revisioned_id = $factory->post->create(
-			array(
-				'post_author'  => self::$user_ids['administrator'],
-				'post_status'  => 'publish',
-				'post_content' => 'First version.',
-			)
-		);
-		wp_update_post(
-			array(
-				'ID'           => $revisioned_id,
-				'post_content' => 'Second version.',
-			)
-		);
-		self::$post_ids['revision'] = (int) array_key_first( wp_get_post_revisions( $revisioned_id ) );
-		self::$post_ids['autosave'] = (int) _wp_put_post_revision( get_post( $revisioned_id ), true );
-
-		// Posts of core types that are not exposed.
-		foreach ( array(
-			'reusable_block' => 'wp_block',
-			'template'       => 'wp_template',
-			'menu_item'      => 'nav_menu_item',
-		) as $fixture => $post_type ) {
-			self::$post_ids[ $fixture ] = $factory->post->create(
-				array(
-					'post_author' => self::$user_ids['administrator'],
-					'post_type'   => $post_type,
 					'post_status' => 'publish',
 				)
 			);
@@ -204,22 +136,6 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
-	 * The ability is not registered when no post type is exposed to abilities.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_is_not_registered_without_exposed_post_types(): void {
-		foreach ( array( 'post', 'page' ) as $post_type ) {
-			get_post_type_object( $post_type )->show_in_abilities = false;
-		}
-
-		$this->register_abilities();
-
-		$this->assertFalse( wp_has_ability( self::ABILITY ), 'The delete ability should not be registered without an exposed post type.' );
-	}
-
-	/**
 	 * The input schema takes `where`, with the post type and ID, and `permanent`.
 	 *
 	 * @ticket 66706
@@ -267,32 +183,6 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A post is moved to the Trash by default.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_trashes_a_post(): void {
-		$post_id = self::$post_ids['admin_post'];
-
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$this->assert_trashed(
-			$this->run_ability(
-				array(
-					'where' => array(
-						'type' => 'post',
-						'id'   => $post_id,
-					),
-				)
-			),
-			$post_id,
-			'Trashing a post'
-		);
-	}
-
-	/**
 	 * A page is deleted permanently with `permanent`.
 	 *
 	 * @ticket 66706
@@ -304,19 +194,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$this->login_as( 'administrator' );
 		$this->register_abilities();
 
-		$this->assert_deleted(
-			$this->run_ability(
-				array(
-					'where'     => array(
-						'type' => 'page',
-						'id'   => $post_id,
-					),
-					'permanent' => true,
-				)
-			),
-			$post_id,
-			'Deleting a page permanently'
-		);
+		$this->assert_deleted( $this->run_ability( $this->delete_input( $post_id, true ) ), $post_id, 'Deleting a page permanently' );
 	}
 
 	/**
@@ -331,12 +209,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$this->login_as( 'administrator' );
 		$this->register_abilities();
 
-		$input = array(
-			'where' => array(
-				'type' => 'post',
-				'id'   => $post_id,
-			),
-		);
+		$input = $this->delete_input( $post_id );
 
 		$this->assert_trashed( $this->run_ability( $input ), $post_id, 'The first call' );
 
@@ -374,15 +247,14 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->run_ability( $this->delete_input( $post_id, true ) );
 
-		$this->assertWPError( $result, 'The call should be refused.' );
-		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'The permission callback should refuse a logged-out user.' );
+		$this->assert_refused( $result, 'A logged-out user' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
 	/**
 	 * Returns inputs for which the permission callback returns false, even for an administrator.
 	 *
-	 * @return array<string, array{input: mixed}> The inputs.
+	 * @return array<string, array{0: mixed}> The inputs.
 	 */
 	public static function data_inputs_refused_by_the_permission_callback(): array {
 		return array(
@@ -406,23 +278,6 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 				),
 			),
 		);
-	}
-
-	/**
-	 * The permission callback returns false for missing or malformed input.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_inputs_refused_by_the_permission_callback
-	 * @since 7.3.0
-	 *
-	 * @param mixed $input The input.
-	 */
-	public function test_permission_callback_returns_false_for_malformed_input( $input ): void {
-		$this->login_as( 'administrator' );
-
-		$permission = $this->get_ability_callbacks()['permission_callback'];
-
-		$this->assertFalse( $permission( $input ), 'The permission callback should return false.' );
 	}
 
 	/**
@@ -508,23 +363,6 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Returns ID values that are not a whole number of at least 1.
-	 *
-	 * @return array<string, array{id: mixed}> The IDs.
-	 */
-	public static function data_ids_that_are_not_whole_numbers_of_at_least_1(): array {
-		return array(
-			'digits and letters' => array( '123abc' ),
-			'fraction'           => array( 1.5 ),
-			'zero'               => array( 0 ),
-			'negative'           => array( -1 ),
-			'true'               => array( true ),
-			'null'               => array( null ),
-			'list'               => array( array( 1 ) ),
-		);
-	}
-
-	/**
 	 * An ID that is not a whole number of at least 1 fails input validation.
 	 *
 	 * @ticket 66706
@@ -599,15 +437,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$execute = $this->get_ability_callbacks()['execute_callback'];
 
 		$before = $this->snapshot( $post_id );
-		$result = $execute(
-			array(
-				'where'     => array(
-					'type' => 'cw_hidden',
-					'id'   => $post_id,
-				),
-				'permanent' => true,
-			)
-		);
+		$result = $execute( $this->delete_input( $post_id, true ) );
 
 		$this->assert_not_found( $result, 'A direct call for a type that is not exposed' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
@@ -631,8 +461,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->run_ability( $input );
 
-		$this->assertWPError( $result, 'The regular call should fail.' );
-		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'The permission callback should refuse a type that is no longer exposed.' );
+		$this->assert_refused( $result, 'A regular call for a type that is no longer exposed' );
 		$this->assert_not_found( $callbacks['execute_callback']( $input ), 'A direct call for a type that is no longer exposed' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
@@ -640,7 +469,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	/**
 	 * Returns direct-call inputs with a malformed `where`.
 	 *
-	 * @return array<string, array{input: array<string, mixed>}> The inputs.
+	 * @return array<string, array{0: array<string, mixed>}> The inputs.
 	 */
 	public static function data_direct_inputs_with_a_malformed_where(): array {
 		return array(
@@ -699,7 +528,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	/**
 	 * Returns whether each role may delete each matrix post.
 	 *
-	 * @return array<string, array{role: string, owner: string, status: string, may_delete: bool}> The cases.
+	 * @return array<string, array{0: string, 1: string, 2: string, 3: bool}> The cases.
 	 */
 	public static function data_delete_matrix(): array {
 		return array(
@@ -777,26 +606,42 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
+	 * Returns the cases of the delete matrix, plus one that sends `permanent` set to false.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string, 3: bool, 4?: bool}> The cases.
+	 */
+	public static function data_trash_matrix(): array {
+		return array_merge(
+			self::data_delete_matrix(),
+			array(
+				'administrator, own, publish, permanent false' => array( 'administrator', 'administrator', 'publish', true, false ),
+			)
+		);
+	}
+
+	/**
 	 * Each role may trash the posts it may delete, gets the 410 error for those already in the
-	 * Trash, and is refused for the others, whatever their status.
+	 * Trash, and is refused for the others, whatever their status. `permanent` set to false also
+	 * moves the post to the Trash.
 	 *
 	 * @ticket 66706
-	 * @dataProvider data_delete_matrix
+	 * @dataProvider data_trash_matrix
 	 * @since 7.3.0
 	 *
-	 * @param string $role       The role to delete as.
-	 * @param string $owner      The role of the author of the post, or `other`.
-	 * @param string $status     The matrix status of the post.
-	 * @param bool   $may_delete Whether the role may delete the post.
+	 * @param string    $role       The role to delete as.
+	 * @param string    $owner      The role of the author of the post, or `other`.
+	 * @param string    $status     The matrix status of the post.
+	 * @param bool      $may_delete Whether the role may delete the post.
+	 * @param bool|null $permanent  Optional. The `permanent` value, or null to send none. Default null.
 	 */
-	public function test_trash_matrix( string $role, string $owner, string $status, bool $may_delete ): void {
+	public function test_trash_matrix( string $role, string $owner, string $status, bool $may_delete, ?bool $permanent = null ): void {
 		$post_id = self::$post_ids[ "{$owner}:{$status}" ];
 
 		$this->login_as( $role );
 		$this->register_abilities();
 
 		$before = $this->snapshot( $post_id );
-		$result = $this->run_ability( $this->delete_input( $post_id ) );
+		$result = $this->run_ability( $this->delete_input( $post_id, $permanent ) );
 
 		if ( $may_delete && ! str_starts_with( $status, 'trash_' ) ) {
 			$this->assert_trashed( $result, $post_id, 'Trashing a post the role may delete' );
@@ -843,21 +688,6 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
-	 * `permanent` set to false moves the post to the Trash.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_permanent_false_trashes_the_post(): void {
-		$post_id = self::$post_ids['admin_post'];
-
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$this->assert_trashed( $this->run_ability( $this->delete_input( $post_id, false ) ), $post_id, 'Deleting with permanent false' );
-	}
-
-	/**
 	 * A post that cannot be moved to the Trash is not deleted in its place: the call fails
 	 * and asks for `permanent`, which then deletes the post.
 	 *
@@ -889,7 +719,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	/**
 	 * Returns the special pages of the site.
 	 *
-	 * @return array<string, array{page: string}> The pages, as fixture names.
+	 * @return array<string, array{0: string}> The pages, as fixture names.
 	 */
 	public static function data_special_pages(): array {
 		return array(
@@ -937,55 +767,57 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
-	 * On a single site, an administrator may trash the special pages.
+	 * Returns the special pages of the site, each with a trash and a permanent delete.
+	 *
+	 * @return array<string, array{0: string, 1: bool}> The cases.
+	 */
+	public static function data_special_page_deletes(): array {
+		return array(
+			'front page, trash'              => array( 'front_page', false ),
+			'front page, permanent'          => array( 'front_page', true ),
+			'posts page, trash'              => array( 'posts_page', false ),
+			'posts page, permanent'          => array( 'posts_page', true ),
+			'privacy policy page, trash'     => array( 'privacy_page', false ),
+			'privacy policy page, permanent' => array( 'privacy_page', true ),
+		);
+	}
+
+	/**
+	 * On a single site, an administrator may trash the special pages and delete them permanently.
+	 *
+	 * The page is not trashed before the permanent delete: trashing the front page or the posts
+	 * page clears the option that makes it special.
 	 *
 	 * @group ms-excluded
 	 *
 	 * @ticket 66706
-	 * @dataProvider data_special_pages
+	 * @dataProvider data_special_page_deletes
 	 * @since 7.3.0
 	 *
-	 * @param string $page The page, as a fixture name.
+	 * @param string $page      The page, as a fixture name.
+	 * @param bool   $permanent Whether the delete is permanent.
 	 */
-	public function test_administrator_can_trash_a_special_page( string $page ): void {
+	public function test_administrator_can_delete_a_special_page( string $page, bool $permanent ): void {
 		$this->set_special_pages();
 		$post_id = self::$post_ids[ $page ];
 
 		$this->login_as( 'administrator' );
 		$this->register_abilities();
 
-		$this->assert_trashed( $this->run_ability( $this->delete_input( $post_id ) ), $post_id, 'An administrator trashing a special page' );
+		$result = $this->run_ability( $this->delete_input( $post_id, $permanent ) );
+
+		if ( $permanent ) {
+			$this->assert_deleted( $result, $post_id, 'An administrator deleting a special page' );
+		} else {
+			$this->assert_trashed( $result, $post_id, 'An administrator trashing a special page' );
+		}
 	}
 
 	/**
-	 * On a single site, an administrator may delete the special pages permanently.
-	 *
-	 * The page is not trashed first: trashing the front page or the posts page clears the
-	 * option that makes it special.
-	 *
-	 * @group ms-excluded
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_special_pages
-	 * @since 7.3.0
-	 *
-	 * @param string $page The page, as a fixture name.
-	 */
-	public function test_administrator_can_delete_a_special_page( string $page ): void {
-		$this->set_special_pages();
-		$post_id = self::$post_ids[ $page ];
-
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$this->assert_deleted( $this->run_ability( $this->delete_input( $post_id, true ) ), $post_id, 'An administrator deleting a special page' );
-	}
-
-	/**
-	 * Returns the special pages of the site and whether a site administrator may delete them on
+	 * Returns the special pages of the site and whether a site administrator may trash them on
 	 * multisite.
 	 *
-	 * @return array<string, array{page: string, allowed: bool}> The cases.
+	 * @return array<string, array{0: string, 1: bool}> The cases.
 	 */
 	public static function data_special_pages_for_a_site_administrator(): array {
 		return array(
@@ -996,7 +828,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
-	 * On multisite, a site administrator may delete the front page and the posts page, but not
+	 * On multisite, a site administrator may trash the front page and the posts page, but not
 	 * the privacy policy page.
 	 *
 	 * @group ms-required
@@ -1006,9 +838,9 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	 * @since 7.3.0
 	 *
 	 * @param string $page    The page, as a fixture name.
-	 * @param bool   $allowed Whether the site administrator may delete it.
+	 * @param bool   $allowed Whether the site administrator may trash it.
 	 */
-	public function test_site_administrator_deletes_special_pages_on_multisite( string $page, bool $allowed ): void {
+	public function test_site_administrator_trashes_special_pages_on_multisite( string $page, bool $allowed ): void {
 		$this->set_special_pages();
 		$post_id = self::$post_ids[ $page ];
 
@@ -1054,7 +886,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	/**
 	 * Returns values for the pre-trash and pre-delete filters that stop the operation.
 	 *
-	 * @return array<string, array{permanent: bool, filter: string, value: mixed}> The cases.
+	 * @return array<string, array{0: bool, 1: string, 2: mixed}> The cases.
 	 */
 	public static function data_operations_that_are_stopped(): array {
 		return array(
@@ -1101,7 +933,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	/**
 	 * Returns keys that are not part of the input, and where they are sent.
 	 *
-	 * @return array<string, array{location: string|null, key: string, value: mixed}> The cases.
+	 * @return array<string, array{0: string|null, 1: string, 2: mixed}> The cases.
 	 */
 	public static function data_keys_outside_the_allow_list(): array {
 		return array(

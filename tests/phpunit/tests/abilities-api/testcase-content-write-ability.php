@@ -86,6 +86,98 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Creates the users and posts shared by the tests that write an existing post: a user per
+	 * role and an `other` editor, one post per owner and matrix status, and the posts that
+	 * data_posts_that_are_not_posts() names.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param WP_UnitTest_Factory $factory The unit test factory.
+	 */
+	protected static function create_shared_fixtures( WP_UnitTest_Factory $factory ): void {
+		foreach ( self::ROLES as $role ) {
+			self::$user_ids[ $role ] = $factory->user->create( array( 'role' => $role ) );
+		}
+		self::$user_ids['other'] = $factory->user->create( array( 'role' => 'editor' ) );
+
+		// One post per owner and status, for the matrix tests.
+		foreach ( array_merge( self::ROLES, array( 'other' ) ) as $owner ) {
+			foreach ( self::MATRIX_STATUSES as $status ) {
+				$stored_status = str_replace( 'trash_', '', $status );
+				$post_id       = $factory->post->create(
+					array(
+						'post_author' => self::$user_ids[ $owner ],
+						'post_status' => $stored_status,
+						'post_title'  => "Matrix {$owner} {$status}",
+						'post_date'   => 'future' === $stored_status ? '2099-01-01 00:00:00' : '',
+					)
+				);
+				if ( $stored_status !== $status ) {
+					wp_trash_post( $post_id );
+				}
+				self::$post_ids[ "{$owner}:{$status}" ] = $post_id;
+			}
+		}
+
+		self::$post_ids['admin_post'] = $factory->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_status' => 'publish',
+				'post_title'  => 'Launch notes',
+				'post_name'   => 'shared-slug',
+			)
+		);
+
+		self::$post_ids['admin_page'] = $factory->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+
+		self::$post_ids['attachment'] = $factory->attachment->create_object(
+			'image.jpg',
+			self::$post_ids['admin_post'],
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_author'    => self::$user_ids['administrator'],
+			)
+		);
+
+		$revisioned_id = $factory->post->create(
+			array(
+				'post_author'  => self::$user_ids['administrator'],
+				'post_status'  => 'publish',
+				'post_content' => 'First version.',
+			)
+		);
+		wp_update_post(
+			array(
+				'ID'           => $revisioned_id,
+				'post_content' => 'Second version.',
+			)
+		);
+		self::$post_ids['revision'] = (int) array_key_first( wp_get_post_revisions( $revisioned_id ) );
+		self::$post_ids['autosave'] = (int) _wp_put_post_revision( get_post( $revisioned_id ), true );
+
+		// Posts of core types that are not exposed.
+		foreach ( array(
+			'reusable_block' => 'wp_block',
+			'template'       => 'wp_template',
+			'menu_item'      => 'nav_menu_item',
+		) as $fixture => $post_type ) {
+			self::$post_ids[ $fixture ] = $factory->post->create(
+				array(
+					'post_author' => self::$user_ids['administrator'],
+					'post_type'   => $post_type,
+					'post_status' => 'publish',
+				)
+			);
+		}
+	}
+
+	/**
 	 * Unregisters the content abilities and registers the content category.
 	 *
 	 * @since 7.3.0
@@ -213,6 +305,57 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Registers custom statuses of every visibility, before the abilities are registered.
+	 *
+	 * @since 7.3.0
+	 */
+	protected function register_custom_statuses(): void {
+		register_post_status(
+			'cw_public',
+			array(
+				'label'  => 'Public',
+				'public' => true,
+			)
+		);
+		register_post_status(
+			'cw_private',
+			array(
+				'label'   => 'Private',
+				'private' => true,
+			)
+		);
+		register_post_status(
+			'cw_viewable',
+			array(
+				'label'              => 'Viewable',
+				'internal'           => false,
+				'public'             => false,
+				'publicly_queryable' => true,
+			)
+		);
+		register_post_status(
+			'cw_protected',
+			array(
+				'label'     => 'Protected',
+				'protected' => true,
+			)
+		);
+		register_post_status(
+			'cw_hidden',
+			array(
+				'label'     => 'Hidden',
+				'public'    => false,
+				'protected' => true,
+			)
+		);
+
+		$this->assertTrue( is_post_status_viewable( 'cw_viewable' ), 'Precondition: the viewable status should be publicly viewable.' );
+		$this->assertFalse( get_post_status_object( 'cw_viewable' )->internal, 'Precondition: the viewable status should not be internal.' );
+		$this->assertFalse( get_post_status_object( 'cw_hidden' )->internal, 'Precondition: the hidden status should not be internal.' );
+		$this->assertFalse( is_post_status_viewable( 'cw_hidden' ), 'Precondition: the hidden status should not be publicly viewable.' );
+	}
+
+	/**
 	 * Takes a snapshot of the stored content: the number of posts per type and status,
 	 * revisions included, the number of meta rows and term relationships, and, when a post
 	 * is given, the row and meta of that post.
@@ -323,8 +466,8 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Returns the forms a `where` can take in input that was not prepared.
 	 *
-	 * @return array<string, array{id_type: string, as_object: bool}> The type of the ID, and
-	 *                                                                 whether `where` is an object.
+	 * @return array<string, array{0: string, 1: bool}> The type of the ID, and whether `where` is
+	 *                                                  an object.
 	 */
 	public static function data_unprepared_where_forms(): array {
 		return array(
@@ -360,7 +503,7 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Returns posts that cannot be reached as a `post`.
 	 *
-	 * @return array<string, array{post: string}> The posts, as fixture names.
+	 * @return array<string, array{0: string}> The posts, as fixture names.
 	 */
 	public static function data_posts_that_are_not_posts(): array {
 		return array(
@@ -378,7 +521,7 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Returns statuses that can never be set.
 	 *
-	 * @return array<string, array{status: string}> The statuses.
+	 * @return array<string, array{0: string}> The statuses.
 	 */
 	public static function data_statuses_that_can_never_be_set(): array {
 		return array(
@@ -398,7 +541,7 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Returns authors that a user without `edit_others_posts` may not name.
 	 *
-	 * @return array<string, array{author: string}> The authors, as fixture names.
+	 * @return array<string, array{0: string}> The authors, as fixture names.
 	 */
 	public static function data_authors_named_without_edit_others_posts(): array {
 		return array(
@@ -410,7 +553,7 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Returns date values without a usable value for a direct call.
 	 *
-	 * @return array<string, array{date: array<string, string>}> The dates.
+	 * @return array<string, array{0: array<string, string>}> The dates.
 	 */
 	public static function data_dates_without_a_usable_value(): array {
 		return array(
@@ -418,5 +561,65 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 			'site date that cannot be parsed' => array( array( 'site' => 'not a date' ) ),
 			'GMT date that cannot be parsed'  => array( array( 'gmt' => 'not a date' ) ),
 		);
+	}
+
+	/**
+	 * Returns ID values that are not a whole number of at least 1.
+	 *
+	 * @return array<string, array{0: mixed}> The IDs.
+	 */
+	public static function data_ids_that_are_not_whole_numbers_of_at_least_1(): array {
+		return array(
+			'digits and letters' => array( '123abc' ),
+			'fraction'           => array( 1.5 ),
+			'zero'               => array( 0 ),
+			'negative'           => array( -1 ),
+			'true'               => array( true ),
+			'null'               => array( null ),
+			'list'               => array( array( 1 ) ),
+			'empty string'       => array( '' ),
+		);
+	}
+
+	/**
+	 * The ability is not registered when no post type is exposed to abilities.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_is_not_registered_without_exposed_post_types(): void {
+		foreach ( array( 'post', 'page' ) as $post_type ) {
+			get_post_type_object( $post_type )->show_in_abilities = false;
+		}
+
+		$this->register_abilities();
+
+		$ability = static::ABILITY;
+
+		$this->assertFalse( wp_has_ability( $ability ), "The {$ability} ability should not be registered without an exposed post type." );
+	}
+
+	/**
+	 * Returns inputs for which the permission callback returns false, even for an administrator.
+	 *
+	 * @return array<string, array{0: mixed}> The inputs.
+	 */
+	abstract public static function data_inputs_refused_by_the_permission_callback(): array;
+
+	/**
+	 * The permission callback returns false for missing or malformed input.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_inputs_refused_by_the_permission_callback
+	 * @since 7.3.0
+	 *
+	 * @param mixed $input The input.
+	 */
+	public function test_permission_callback_returns_false_for_malformed_input( $input ): void {
+		$this->login_as( 'administrator' );
+
+		$permission = $this->get_ability_callbacks()['permission_callback'];
+
+		$this->assertFalse( $permission( $input ), 'The permission callback should return false.' );
 	}
 }
