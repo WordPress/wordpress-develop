@@ -257,33 +257,30 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * Tests that users without edit_theme_options cannot read non-published templates via wp_id query.
+	 * Tests that users without edit_theme_options cannot read non-published templates or template parts via wp_id query.
 	 *
 	 * @ticket 66783
 	 * @covers WP_REST_Templates_Controller::get_items
 	 * @dataProvider data_non_published_template_statuses_for_collection
 	 *
-	 * @param string $status Post status to test.
+	 * @param string $post_type Post type (`wp_template` or `wp_template_part`).
+	 * @param string $rest_base REST base (`templates` or `template-parts`).
+	 * @param string $status    Post status to test.
 	 */
-	public function test_get_items_editor_cannot_read_non_published_templates_by_wp_id( $status ) {
+	public function test_get_items_editor_cannot_read_non_published_templates_by_wp_id( $post_type, $rest_base, $status ) {
 		$template_post = self::factory()->post->create_and_get(
 			array(
-				'post_type'    => 'wp_template',
-				'post_name'    => 'non_published_template_' . $status,
+				'post_type'    => $post_type,
+				'post_name'    => 'non_published_' . $post_type . '_' . $status,
 				'post_title'   => 'Non Published Template',
 				'post_content' => 'Secret template content',
 				'post_status'  => $status,
-				'tax_input'    => array(
-					'wp_theme' => array(
-						get_stylesheet(),
-					),
-				),
 			)
 		);
 		wp_set_post_terms( $template_post->ID, get_stylesheet(), 'wp_theme' );
 
 		wp_set_current_user( self::$editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/templates' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base );
 		$request->set_param( 'wp_id', $template_post->ID );
 		$response = rest_get_server()->dispatch( $request );
 
@@ -302,10 +299,12 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array[]
 	 */
-	public function data_non_published_template_statuses_for_collection() {
+	public static function data_non_published_template_statuses_for_collection() {
 		return array(
-			'draft'      => array( 'draft' ),
-			'auto-draft' => array( 'auto-draft' ),
+			'template draft'           => array( 'wp_template', 'templates', 'draft' ),
+			'template auto-draft'      => array( 'wp_template', 'templates', 'auto-draft' ),
+			'template part draft'      => array( 'wp_template_part', 'template-parts', 'draft' ),
+			'template part auto-draft' => array( 'wp_template_part', 'template-parts', 'auto-draft' ),
 		);
 	}
 
@@ -430,28 +429,35 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * Tests that users without edit_theme_options cannot read non-published templates by ID.
+	 * Tests that users without edit_theme_options cannot read non-published templates or template parts by ID.
 	 *
 	 * @ticket 66783
 	 * @covers WP_REST_Templates_Controller::get_item
 	 * @dataProvider data_non_published_template_statuses_for_item
 	 *
-	 * @param string $status Post status to test.
+	 * @param string $post_type Post type (`wp_template` or `wp_template_part`).
+	 * @param string $rest_base REST base (`templates` or `template-parts`).
+	 * @param string $status    Post status to test.
 	 */
-	public function test_get_item_editor_cannot_read_non_published_templates( $status ) {
-		$slug          = 'non_published_item_' . $status;
+	public function test_get_item_editor_cannot_read_non_published_templates( $post_type, $rest_base, $status ) {
+		$slug          = 'non_published_item_' . $post_type . '_' . $status;
 		$template_post = self::factory()->post->create_and_get(
 			array(
-				'post_type'    => 'wp_template',
+				'post_type'    => $post_type,
 				'post_name'    => $slug,
 				'post_title'   => 'Non Published Item Template',
 				'post_content' => 'Secret template content',
-				'post_status'  => $status,
+				'post_status'  => 'trash' === $status ? 'publish' : $status,
 			)
 		);
 		wp_set_post_terms( $template_post->ID, get_stylesheet(), 'wp_theme' );
 
-		$route = '/wp/v2/templates/' . get_stylesheet() . '//' . $slug;
+		if ( 'trash' === $status ) {
+			wp_trash_post( $template_post->ID );
+			$template_post = get_post( $template_post->ID );
+		}
+
+		$route = '/wp/v2/' . $rest_base . '/' . get_stylesheet() . '//' . $template_post->post_name;
 
 		wp_set_current_user( self::$editor_id );
 		$request  = new WP_REST_Request( 'GET', $route );
@@ -469,11 +475,14 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array[]
 	 */
-	public function data_non_published_template_statuses_for_item() {
+	public static function data_non_published_template_statuses_for_item() {
 		return array(
-			'trash'      => array( 'trash' ),
-			'draft'      => array( 'draft' ),
-			'auto-draft' => array( 'auto-draft' ),
+			'template trash'           => array( 'wp_template', 'templates', 'trash' ),
+			'template draft'           => array( 'wp_template', 'templates', 'draft' ),
+			'template auto-draft'      => array( 'wp_template', 'templates', 'auto-draft' ),
+			'template part trash'      => array( 'wp_template_part', 'template-parts', 'trash' ),
+			'template part draft'      => array( 'wp_template_part', 'template-parts', 'draft' ),
+			'template part auto-draft' => array( 'wp_template_part', 'template-parts', 'auto-draft' ),
 		);
 	}
 

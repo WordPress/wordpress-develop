@@ -264,6 +264,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Returns a list of templates.
 	 *
 	 * @since 5.8.0
+	 * @since 7.3.0 Restrict non-published templates to users with the `edit_theme_options` capability.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 * @return WP_REST_Response
@@ -330,6 +331,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Returns the given template
 	 *
 	 * @since 5.8.0
+	 * @since 7.3.0 Restrict non-published templates to users with the `edit_theme_options` capability.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 * @return WP_REST_Response|WP_Error
