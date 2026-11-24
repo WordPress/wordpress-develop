@@ -69,7 +69,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					);
 					?>
 				</h2>
-				<p class="is-subheading"><?php _e( 'WordPress 7.2 gives your words a fresh place to start. Ipsum, the new default theme, is a minimal blank canvas for blogging that&#8217;s ready to make your own. Text shadows and form styling in Global Styles add new ways to shape how your site looks, all without writing custom CSS. Notes now support emoji reactions and refreshed icons in the admin bring more visual consistency across WordPress.' ); ?></p>
+				<p class="is-subheading"><?php _e( 'WordPress 7.2 gives your words a fresh place to start. Ipsum, the new default theme, is a minimal blank canvas for blogging that&#8217;s ready to make your own. Text shadows and form styling in Global Styles add new ways to shape how your site looks, all without writing custom CSS. A new /random/ address invites readers to rediscover your archive, Notes now support emoji reactions, and refreshed icons in the admin bring more visual consistency across WordPress.' ); ?></p>
 			</div>
 		</div>
 
