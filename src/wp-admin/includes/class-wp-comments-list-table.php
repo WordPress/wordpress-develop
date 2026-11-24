@@ -618,7 +618,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * Overrides the parent display() method to render extra comments.
 	 *
 	 * @since 3.1.0
-	 * @since 7.2.0 Added a scrollable wrapper around the table.
+	 * @since 7.3.0 Added a scrollable wrapper around the table.
 	 */
 	public function display() {
 		wp_nonce_field( 'fetch-list-' . get_class( $this ), '_ajax_fetch_list_nonce' );
@@ -635,6 +635,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		$this->screen->render_screen_reader_content( 'heading_list' );
 		$table_label = $this->screen->get_screen_reader_text( 'heading_list' );
 
+		// Keep a Tab stop for keyboard scrolling without JavaScript. The script skips it when the table fits.
 		?>
 		<div class="wp-list-table-scroll" role="region" aria-label="<?php echo esc_attr( $table_label ? $table_label : __( 'Items list' ) ); ?>" tabindex="0">
 			<table class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">

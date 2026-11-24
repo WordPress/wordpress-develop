@@ -1,11 +1,11 @@
 /**
  * Tests list-table overflow indicators, keyboard access, and observer cleanup.
  *
- * @since 7.2.0
+ * @since 7.3.0
  */
 
 /* global sinon */
-jQuery( function() {
+document.addEventListener( 'DOMContentLoaded', function() {
 	const content = document.getElementById( 'wpbody-content' );
 	const tableMarkup =
 		'<table class="wp-list-table"><tbody><tr><td>Post title</td></tr></tbody></table>';
@@ -14,7 +14,7 @@ jQuery( function() {
 	/**
 	 * Gets the overflow indicator state at each edge of a wrapper.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param {HTMLElement} wrapper The list-table scroll wrapper.
 	 *
@@ -30,7 +30,7 @@ jQuery( function() {
 	/**
 	 * Sets a wrapper's scroll position and dispatches a scroll event.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param {HTMLElement} wrapper  The list-table scroll wrapper.
 	 * @param {number}      position The horizontal scroll offset, in pixels.
@@ -45,7 +45,7 @@ jQuery( function() {
 	/**
 	 * Waits for resize observers to receive layout changes.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return {Promise<number>} Resolves with the second animation frame's timestamp.
 	 */
@@ -61,7 +61,7 @@ jQuery( function() {
 	/**
 	 * Loads list-table markup and its admin styles in a desktop viewport.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param {string} direction Document direction, either ltr or rtl.
 	 * @param {string} markup    List-table fixture markup.
@@ -273,10 +273,16 @@ jQuery( function() {
 			const frame = await desktopFrame( direction, wrapperMarkup );
 			const wrapper = frame.contentDocument.querySelector( '.wp-list-table-scroll' );
 			const row = wrapper.querySelector( 'tr' );
-			const start = frame.contentWindow.getComputedStyle( row, '::before' );
-			const end = frame.contentWindow.getComputedStyle( row, '::after' );
+			const start = frame.contentWindow.getComputedStyle( wrapper, '::before' );
+			const end = frame.contentWindow.getComputedStyle( wrapper, '::after' );
 			const startEdge = direction === 'rtl' ? 'right' : 'left';
 			const endEdge = direction === 'rtl' ? 'left' : 'right';
+
+			// WebKit counts generated row cells as extra columns in its accessibility tree.
+			[ '::before', '::after' ].forEach( function( pseudo ) {
+				const content = frame.contentWindow.getComputedStyle( row, pseudo ).content;
+				assert.ok( [ 'none', 'normal' ].includes( content ), 'The row has no generated ' + pseudo + ' cell.' );
+			} );
 
 			wrapper.classList.add( 'has-scroll-overflow-end' );
 			assert.strictEqual( start.opacity, '0', 'The start fade is hidden at the start of the table.' );
@@ -288,12 +294,8 @@ jQuery( function() {
 			assert.strictEqual( start.opacity, '1', 'The start fade is visible at the end of the table.' );
 			assert.strictEqual( start[ startEdge ], '0px', 'The start fade sticks to the ' + startEdge + ' edge.' );
 
-			// The border images extend toward the table and are mirrored together in RTL.
-			const transform = direction === 'rtl' ? 'matrix(-1, 0, 0, 1, 0, 0)' : 'none';
-			assert.strictEqual( start.transform, transform, 'The start fade uses the correct painting direction.' );
-			assert.strictEqual( end.transform, transform, 'The end fade uses the correct painting direction.' );
-			assert.ok( start.borderImageSource.includes( 'to right' ), 'The start gradient runs rightward before mirroring.' );
-			assert.ok( end.borderImageSource.includes( 'to left' ), 'The end gradient runs leftward before mirroring.' );
+			assert.ok( start.backgroundImage.includes( 'to ' + endEdge ), 'The start gradient fades inward.' );
+			assert.ok( end.backgroundImage.includes( 'to ' + startEdge ), 'The end gradient fades inward.' );
 			frame.remove();
 		} );
 
@@ -316,7 +318,9 @@ jQuery( function() {
 		} );
 
 		QUnit.test( 'Keeps editing rows aligned with all columns in ' + direction, async function( assert ) {
-			const frame = await desktopFrame( direction, '<div class="wp-list-table-scroll has-scroll-overflow-start has-scroll-overflow-end"><table class="wp-list-table widefat" style="width: 800px; border-collapse: collapse"><thead><tr><th>One</th><th>Two</th><th>Three</th><th>Four</th><th>Five</th></tr></thead><tbody><tr><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td></tr><tr class="inline-edit-row"><td colspan="5">Quick Edit</td></tr><tr class="inline-editor"><td colspan="5">Inline editor</td></tr><tr id="replyrow" class="inline-edit-row"><td colspan="5"><fieldset class="comment-reply"><legend>Reply</legend><textarea style="width: 100%; box-sizing: border-box"></textarea><button>Update Comment</button></fieldset></td></tr></tbody></table></div>' );
+			// Make the fades hit-testable to check the painting order at both edges.
+			const styles = '.wp-list-table-scroll::before, .wp-list-table-scroll::after { pointer-events: auto; }';
+			const frame = await desktopFrame( direction, '<div class="wp-list-table-scroll has-scroll-overflow-start has-scroll-overflow-end"><table class="wp-list-table widefat" style="width: 800px; border-collapse: collapse"><thead><tr><th>One</th><th>Two</th><th>Three</th><th>Four</th><th>Five</th></tr></thead><tbody><tr><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td></tr><tr class="inline-edit-row"><td colspan="5">Quick Edit</td></tr><tr class="inline-editor"><td colspan="5">Inline editor</td></tr><tr id="replyrow" class="inline-edit-row"><td colspan="5"><fieldset class="comment-reply"><legend>Reply</legend><textarea style="width: 100%; box-sizing: border-box"></textarea><button>Update Comment</button></fieldset></td></tr></tbody></table></div>', styles );
 			const wrapper = frame.contentDocument.querySelector( '.wp-list-table-scroll' );
 			const table = wrapper.querySelector( 'table' );
 			const headers = table.tHead.rows[ 0 ].cells;
@@ -337,11 +341,16 @@ jQuery( function() {
 				} );
 			} );
 
+			frame.height = '400';
+			wrapper.scrollLeft = direction === 'rtl' ? -100 : 100;
+			const viewport = wrapper.getBoundingClientRect();
 			cells.forEach( function( cell ) {
-				[ '::before', '::after' ].forEach( function( pseudo ) {
-					assert.strictEqual( frame.contentWindow.getComputedStyle( cell.parentElement, pseudo ).visibility, 'hidden', cell.textContent + ' hides its ' + pseudo + ' fade.' );
+				const y = cell.getBoundingClientRect().top + 3;
+				[ viewport.left + 4, viewport.right - 4 ].forEach( function( x ) {
+					assert.ok( cell.contains( frame.contentDocument.elementFromPoint( x, y ) ), cell.textContent + ' paints above the fade.' );
 				} );
 			} );
+
 			const editor = table.querySelector( '.comment-reply' );
 			[ 0, direction === 'rtl' ? -200 : 200 ].forEach( function( position ) {
 				wrapper.scrollLeft = position;

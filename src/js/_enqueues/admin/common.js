@@ -2239,9 +2239,14 @@ $( function( $ ) {
 /**
  * Manages overflow indicators and keyboard access for list tables.
  *
- * @since 7.2.0
+ * @since 7.3.0
  */
-jQuery( () => {
+( function initListTableOverflow() {
+	if ( document.readyState === 'loading' ) {
+		document.addEventListener( 'DOMContentLoaded', initListTableOverflow, { once: true } );
+		return;
+	}
+
 	const content = document.getElementById( 'wpbody-content' );
 	if (
 		! content ||
@@ -2256,7 +2261,7 @@ jQuery( () => {
 	/**
 	 * Tracks a table's scroll position and dimensions.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param {HTMLTableElement} table The table inside a scroll wrapper.
 	 *
@@ -2269,7 +2274,7 @@ jQuery( () => {
 		/**
 		 * Updates the overflow indicators and the wrapper's place in the Tab order.
 		 *
-		 * @since 7.2.0
+		 * @since 7.3.0
 		 *
 		 * @return {void}
 		 */
@@ -2301,7 +2306,7 @@ jQuery( () => {
 			/**
 			 * Releases overflow tracking and restores the wrapper's original Tab order.
 			 *
-			 * @since 7.2.0
+			 * @since 7.3.0
 			 *
 			 * @return {void}
 			 */
@@ -2321,7 +2326,7 @@ jQuery( () => {
 	/**
 	 * Initializes added tables and releases observers for removed tables.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @return {void}
 	 */
@@ -2346,7 +2351,7 @@ jQuery( () => {
 	// Plugins live search replaces the table and its wrapper.
 	const observer = new window.MutationObserver( refreshTables );
 	observer.observe( content, { childList: true, subtree: true } );
-} );
+}() );
 
 /**
  * Freeze animated plugin icons when reduced motion is enabled.
