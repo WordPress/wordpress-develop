@@ -62,8 +62,6 @@ class Tests_Link_GetSearchLink extends WP_UnitTestCase {
 	 * @param string $expected Expected path relative to home_url().
 	 */
 	public function test_get_search_link_pretty_permastruct( $query, $expected ) {
-		$this->set_permalink_structure( '/%postname%/' );
-
 		$this->assertSame( home_url( $expected ), get_search_link( $query ) );
 	}
 

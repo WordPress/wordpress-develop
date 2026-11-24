@@ -3,7 +3,6 @@
  */
 const { DefinePlugin } = require( 'webpack' );
 const TerserPlugin = require( 'minimizer-webpack-plugin' );
-const postcss = require( 'postcss' );
 const { join } = require( 'path' );
 
 const baseDir = join( __dirname, '../../' );
@@ -66,29 +65,6 @@ const getBaseConfig = ( env ) => {
 	return config;
 };
 
-const stylesTransform = ( mode ) => ( content ) => {
-	return postcss( [
-		require( 'cssnano' )( {
-			preset:
-				mode === 'production'
-					? 'default'
-					: [
-							'default',
-							{
-								discardComments: {
-									removeAll:
-										! content.includes( 'Copyright' ) &&
-										! content.includes( 'License' ),
-								},
-								normalizeWhitespace: false,
-							},
-					  ],
-		} ),
-	] )
-		.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
-		.then( ( result ) => result.css );
-};
-
 const normalizeJoin = ( ...paths ) => join( ...paths ).replace( /\\/g, '/' );
 
 const BUNDLED_PACKAGES = [
@@ -116,7 +92,6 @@ module.exports = {
 	baseDir,
 	getBaseConfig,
 	normalizeJoin,
-	stylesTransform,
 	BUNDLED_PACKAGES,
 	MODULES,
 	SCRIPT_AND_MODULE_DUAL_PACKAGES,

@@ -11,8 +11,6 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->set_permalink_structure( '/%postname%/' );
-
 		/*
 		 * Priming the server re-registers the sitemap query vars. tear_down()
 		 * replaces the $wp global with a fresh WP instance, which carries only

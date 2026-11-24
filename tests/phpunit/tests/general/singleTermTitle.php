@@ -73,6 +73,7 @@ class Tests_General_SingleTermTitle extends WP_UnitTestCase {
 				'has_archive' => true,
 			)
 		);
+		flush_rewrite_rules();
 	}
 
 	/**
