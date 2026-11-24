@@ -818,7 +818,8 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 
 		$this->assertSame( 'recommended', $result['status'] );
 		$this->assertSame( "Your server cannot process $format images", $result['label'] );
-		$this->assertStringContainsString( "Supported browsers create them during upload instead, but $format uploads from other browsers will fail.", $result['description'] );
+		$this->assertStringContainsString( "Browsers that support client-side media processing create them during upload instead, but $format uploads from other browsers will fail.", $result['description'] );
+		$this->assertStringContainsString( "Upload $format images from a browser that supports client-side media processing.", $result['actions'] );
 	}
 
 	/**
