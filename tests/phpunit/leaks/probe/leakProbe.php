@@ -9,6 +9,16 @@ function leak_probe_counter() {
 	return ++$calls;
 }
 
+class Leak_Probe_Counter {
+	public static function count() {
+		static $calls = 0;
+		return ++$calls;
+	}
+}
+
+// Before PHP 8.1, has its own copy of count()'s static variable.
+class Leak_Probe_Counter_Child extends Leak_Probe_Counter {}
+
 class Tests_Leak_Probe extends WP_UnitTestCase {
 
 	const FILE = 'leak-probe.txt';
@@ -22,13 +32,17 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 	// A term_relationships row no fixture creates: object_id, term_taxonomy_id.
 	const ORPHAN_OBJECT_ID = 999999;
 
+	const PERMANENT_TABLE = 'leak_probe_permanent';
+
 	public static $post_id;
+
+	private static $site_id;
 
 	public static $leaked = 'original';
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		// An interrupted run's leftovers would make the file probes fail or go unreported.
-		self::remove_files();
+		// An interrupted run's leftovers would make the probes fail or go unreported.
+		self::remove_leftovers();
 
 		// Two term_relationships rows sharing object_id: the composite primary key case.
 		$cat_a         = $factory->category->create();
@@ -43,28 +57,33 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 		$GLOBALS['leak_probe_deep'] = array( 'l1' => array( 'l2' => array( 'l3' => array( 'l4' => array( 'l5' => array( 'l6' => array( 'l7' => array( 'l8' => array( 'l9' => 'original' ) ) ) ) ) ) ) ) );
 	}
 
+	// Leaves the site test_leaks_other_site() commits: the class leaks it.
 	public static function wpTearDownAfterClass() {
-		self::remove_files();
+		self::remove_leftovers();
 	}
 
-	private static function remove_files() {
-		$paths = array(
-			WP_CONTENT_DIR . '/' . self::FILE,
-			sys_get_temp_dir() . '/' . self::FILE,
-			WP_CONTENT_DIR . '/' . self::LINK,
+	private static function remove_leftovers() {
+		global $wpdb;
+
+		// Outside a test, CREATE and DROP TABLE are not rewritten to temporary ones.
+		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpdb->prefix . self::PERMANENT_TABLE ) );
+
+		foreach ( self::file_dirs() as $dir ) {
 			// A leftover link makes symlink() create its target.
-			WP_CONTENT_DIR . '/' . self::LINK_TARGET,
-		);
-		foreach ( $paths as $path ) {
-			if ( is_link( $path ) || is_file( $path ) ) {
-				unlink( $path );
+			foreach ( array( self::FILE, self::LINK, self::LINK_TARGET ) as $name ) {
+				if ( is_link( "$dir/$name" ) || is_file( "$dir/$name" ) ) {
+					unlink( "$dir/$name" );
+				}
+			}
+
+			if ( is_dir( "$dir/" . self::DIR ) && ! is_link( "$dir/" . self::DIR ) ) {
+				rmdir( "$dir/" . self::DIR );
 			}
 		}
+	}
 
-		$dir = WP_CONTENT_DIR . '/' . self::DIR;
-		if ( is_dir( $dir ) && ! is_link( $dir ) ) {
-			rmdir( $dir );
-		}
+	private static function file_dirs() {
+		return array( WP_CONTENT_DIR, sys_get_temp_dir() );
 	}
 
 	public function tear_down() {
@@ -75,6 +94,12 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 			$this->assertTrue( wp_cache_set( 'after_tear_down', 'leaked', 'leak_probe' ) );
 			// An option only the cache has.
 			$this->assertTrue( wp_cache_set( 'leak_probe_cached_only', 'leaked', 'options' ) );
+		}
+
+		if ( 'test_leaks_other_site' === $this->getName() && self::$site_id ) {
+			switch_to_blog( self::$site_id );
+			$this->assertTrue( wp_cache_set( 'leak_probe_cached_only', 'leaked', 'options' ) );
+			restore_current_blog();
 		}
 	}
 
@@ -135,6 +160,25 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 		$this->assertSame( array( 'leak-probe-admin' ), get_site_option( 'site_admins' ) );
 	}
 
+	public function test_leaks_other_site() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Only multisite has other sites.' );
+		}
+
+		global $wpdb;
+
+		// Its tables are temporary: the test case rewrites CREATE TABLE.
+		self::$site_id = self::factory()->blog->create();
+		$this->assertNotFalse( $wpdb->query( 'COMMIT' ) );
+
+		// Rolled back by tear_down(), not in the cache.
+		switch_to_blog( self::$site_id );
+		update_option( 'blogname', 'leaked blogname' );
+		restore_current_blog();
+
+		$this->assertSame( 'leaked blogname', get_blog_option( self::$site_id, 'blogname' ) );
+	}
+
 	public function test_leaks_cache_global_group() {
 		wp_cache_add_global_groups( 'leak_probe_group' );
 		$this->assertTrue( true );
@@ -143,6 +187,7 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 	public function test_leaks_function_static_var() {
 		$this->assertSame( 1, leak_probe_counter() );
 		$this->assertSame( 1, self::method_counter() );
+		$this->assertSame( 1, Leak_Probe_Counter_Child::count() );
 	}
 
 	private static function method_counter() {
@@ -209,11 +254,12 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 	}
 
 	public function test_leaks_files() {
-		file_put_contents( WP_CONTENT_DIR . '/' . self::FILE, 'leaked' );
-		file_put_contents( sys_get_temp_dir() . '/' . self::FILE, 'leaked' );
-		// Dangling: a link has no target metadata to read.
-		$this->assertTrue( symlink( WP_CONTENT_DIR . '/' . self::LINK_TARGET, WP_CONTENT_DIR . '/' . self::LINK ) );
-		$this->assertTrue( mkdir( WP_CONTENT_DIR . '/' . self::DIR ) );
+		foreach ( self::file_dirs() as $dir ) {
+			$this->assertNotFalse( file_put_contents( "$dir/" . self::FILE, 'leaked' ) );
+			// Dangling: a link has no target metadata to read.
+			$this->assertTrue( symlink( "$dir/" . self::LINK_TARGET, "$dir/" . self::LINK ) );
+			$this->assertTrue( mkdir( "$dir/" . self::DIR ) );
+		}
 	}
 
 	public function test_leaks_schema() {
@@ -224,6 +270,22 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 	public function test_leaks_temp_table() {
 		global $wpdb;
 		$this->assertTrue( $wpdb->query( "CREATE TABLE {$wpdb->prefix}leak_probe_tmp (id int)" ) );
+	}
+
+	public function test_reconnect_drops_temp_table() {
+		global $wpdb;
+		$this->assertTrue( $wpdb->query( "CREATE TABLE {$wpdb->prefix}leak_probe_gone (id int)" ) );
+
+		// As each class's set_up_before_class() does: the new connection has no temporary tables.
+		$this->assertTrue( $wpdb->db_connect() );
+	}
+
+	public function test_leaks_permanent_table() {
+		global $wpdb;
+
+		// As Tests_DB_dbDelta does.
+		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
+		$this->assertTrue( $wpdb->query( $wpdb->prepare( 'CREATE TABLE %i (id int)', $wpdb->prefix . self::PERMANENT_TABLE ) ) );
 	}
 
 	/**

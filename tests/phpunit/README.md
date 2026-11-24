@@ -56,7 +56,7 @@ Environment variables:
 * `WP_TESTS_LEAKS_OUT`: snapshots file, default `tests/phpunit/build/leaks/snapshots.jsonl`.
 * `WP_TESTS_LEAKS_SCOPE`: `class` for the whole-suite sweep.
 
-The `leak-probe` test suite leaks one kind of state per test, to check the listener sees each. `check-probes.php` exits with 1 if the report misses one, or lists state it must not, e.g. state that dies with an isolated child. Run it with the same `LOCAL_PHP_MEMCACHED` and `WP_TESTS_LEAKS_SCOPE` as the tests:
+The `leak-probe` test suite leaks one kind of state per test, to check the listener sees each. `check-probes.php` exits with 1 if the report misses one, or lists state it must not, e.g. state that dies with an isolated child. It reads the run's setup (multisite, PHP version, persistent object cache, scope) from the snapshots file:
 
 ```
 node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --testsuite leak-probe

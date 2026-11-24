@@ -55,11 +55,16 @@ function compare( array $a, array $b ) {
 			continue;
 		}
 
-		$lines[] = sprintf( "  %s\n      before: %s\n      after:  %s", $key, $before ? $before[1] : '(absent)', $after ? $after[1] : '(absent)' );
+		$lines[] = sprintf( "  %s\n      before: %s\n      after:  %s", $key, preview( $before ), preview( $after ) );
 	}
 	sort( $lines );
 
 	return $lines;
+}
+
+// One line: a multi-line value, e.g. a schema, would read as more keys.
+function preview( $entry ) {
+	return $entry ? preg_replace( '/\s*\n\s*/', ' ', $entry[1] ) : '(absent)';
 }
 
 function report( $title, array $lines ) {

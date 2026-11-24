@@ -164,9 +164,9 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	}
 
 	public function start_test_suite( $suite ) {
-		// Marks the run's start and end so diff.php sees a cut run.
+		// Marks the run's start and end so diff.php sees a cut run. The start holds the setup check-probes.php reads.
 		if ( 0 === $this->open_suites++ ) {
-			$this->mark( 'run_start' );
+			$this->mark( 'run_start', array( 'setup' => $this->setup() ) );
 		}
 
 		if ( ! class_exists( $suite->getName(), false ) ) {
@@ -223,7 +223,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		return $test instanceof PHPUnit\Framework\TestCase ? get_class( $test ) . '::' . $test->getName() : get_class( $test );
 	}
 
-	private function write( $point, $id, ?array $state = null ) {
+	private function write( $point, $id, ?array $state = null, array $extra = array() ) {
 		$this->append(
 			array(
 				'pid'   => getmypid(),
@@ -231,12 +231,21 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 				'point' => $point,
 				'id'    => $id,
 				'state' => $state ?? $this->state(),
-			)
+			) + $extra
 		);
 	}
 
-	private function mark( $point ) {
-		$this->write( $point, '', array() );
+	private function mark( $point, array $extra = array() ) {
+		$this->write( $point, '', array(), $extra );
+	}
+
+	private function setup() {
+		return array(
+			'multisite'        => is_multisite(),
+			'php'              => PHP_VERSION_ID,
+			'persistent_cache' => (bool) wp_using_ext_object_cache(),
+			'scope'            => $this->scope,
+		);
 	}
 
 	/*
@@ -645,8 +654,9 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	private function option_rows( $blog ) {
 		global $wpdb;
 
+		// A site created in a test has temporary tables, which SHOW TABLES leaves out.
 		$table = $wpdb->get_blog_prefix( $blog ) . 'options';
-		if ( ! isset( $this->tables[ $table ] ) ) {
+		if ( ! isset( $this->tables[ $table ] ) && ! isset( $this->temp_tables[ $table ] ) ) {
 			return null;
 		}
 
