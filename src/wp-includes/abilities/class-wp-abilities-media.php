@@ -399,28 +399,17 @@ final class WP_Abilities_Media {
 		}
 
 		/*
-		 * Intentionally strict: a media type group or a MIME type that selects no type the
-		 * current user may upload cannot be applied, so it is an error instead of matching
-		 * nothing or being dropped.
+		 * A MIME type must be a full type without wildcards, so it is matched exactly. A
+		 * media type group, such as `image`, matches every type of that group.
 		 */
-		$allowed_types = array_values( get_allowed_mime_types() );
-		$mime_types    = array();
-		foreach ( $where['media_type'] ?? array() as $group ) {
-			$group_types = array_filter( $allowed_types, static fn( $type ) => str_starts_with( $type, $group . '/' ) );
-			if ( empty( $group_types ) ) {
-				return $this->invalid_param_error( 'media_invalid_filter', 'where[media_type]', __( 'The media_type filter must list media types that have allowed MIME types.' ) );
-			}
-			$mime_types = array_merge( $mime_types, $group_types );
-		}
-
 		foreach ( $where['mime_type'] ?? array() as $mime_type ) {
-			if ( ! in_array( $mime_type, $allowed_types, true ) ) {
-				return $this->invalid_param_error( 'media_invalid_filter', 'where[mime_type]', __( 'The mime_type filter must list allowed MIME types.' ) );
+			if ( ! preg_match( '#^[-.a-z0-9]+/[-.+a-z0-9]+$#i', $mime_type ) ) {
+				return $this->invalid_param_error( 'media_invalid_filter', 'where[mime_type]', __( 'The mime_type filter must list full MIME types, such as image/jpeg.' ) );
 			}
-			$mime_types[] = $mime_type;
 		}
 
 		// With both filters, an attachment matches when it matches either.
+		$mime_types = array_merge( $where['media_type'] ?? array(), $where['mime_type'] ?? array() );
 		if ( ! empty( $mime_types ) ) {
 			$query_args['post_mime_type'] = array_values( array_unique( $mime_types ) );
 		}
@@ -579,8 +568,6 @@ final class WP_Abilities_Media {
 
 		$attachment_id = wp_insert_attachment( wp_slash( $postarr ), $stored['file'], 0, true, false );
 		if ( is_wp_error( $attachment_id ) ) {
-			$this->remove_stored_file( $stored );
-
 			return $this->save_failed_error( $attachment_id );
 		}
 
@@ -749,8 +736,7 @@ final class WP_Abilities_Media {
 	 *
 	 * The upload handling decides, for the current user, whether the file may be stored,
 	 * from its name and its content. It is given no type, so the type always comes from
-	 * that check. While it runs, a callback records whether the stored file is one this
-	 * call created, which {@see self::remove_stored_file()} relies on.
+	 * that check.
 	 *
 	 * @since 7.3.0
 	 *
@@ -758,48 +744,16 @@ final class WP_Abilities_Media {
 	 * @param string      $tmp_file   The path of the temporary file.
 	 * @param string|null $time       The time the uploads folder is chosen by, or null for now.
 	 * @param string      $type_param The input path a refused file type is reported for.
-	 * @return array<string, mixed>|WP_Error The `file`, `url` and `type` of the stored file, with
-	 *                                       `removable` for the cleanup, or a WP_Error.
+	 * @return array<string, mixed>|WP_Error The `file`, `url` and `type` of the stored file, or a WP_Error.
 	 */
 	private function store_file( string $filename, string $tmp_file, ?string $time, string $type_param ) {
-		/*
-		 * The facts start as those of a file this call did not create, so the file counts as
-		 * removable only when the callback below recorded otherwise.
-		 */
-		$move = array(
-			'path'       => '',
-			'existed'    => true,
-			'taken_over' => true,
-		);
-
-		/*
-		 * Records the path the upload handling chose, whether a file was there already,
-		 * and whether another callback took over the move. The filtered value is returned
-		 * unchanged.
-		 */
-		$record_move = static function ( $move_new_file, $file, $new_file ) use ( &$move ) {
-			$move = array(
-				'path'       => $new_file,
-				'existed'    => file_exists( $new_file ),
-				'taken_over' => null !== $move_new_file,
-			);
-
-			return $move_new_file;
-		};
-
 		$upload = array(
 			'name'     => $filename,
 			'tmp_name' => $tmp_file,
 			'type'     => '',
 		);
 
-		add_filter( 'pre_move_uploaded_file', $record_move, PHP_INT_MAX, 3 );
-		try {
-			$stored = wp_handle_sideload( $upload, array( 'test_form' => false ), $time );
-		} finally {
-			remove_filter( 'pre_move_uploaded_file', $record_move, PHP_INT_MAX );
-		}
-
+		$stored = wp_handle_sideload( $upload, array( 'test_form' => false ), $time );
 		if ( isset( $stored['error'] ) ) {
 			if ( __( 'Sorry, you are not allowed to upload this file type.' ) === $stored['error'] ) {
 				return $this->invalid_param_error( 'media_invalid_file', $type_param, $stored['error'] );
@@ -808,29 +762,7 @@ final class WP_Abilities_Media {
 			return new WP_Error( 'media_upload_failed', $stored['error'], array( 'status' => 500 ) );
 		}
 
-		$stored['removable'] = ! $move['existed'] && ! $move['taken_over'] && $move['path'] === $stored['file'];
-
 		return $stored;
-	}
-
-	/**
-	 * Removes a stored file after its attachment could not be saved.
-	 *
-	 * The file is removed only when this call created it: the path did not exist when the
-	 * upload handling chose it, it is the path the upload handling returned, and it lies
-	 * inside the uploads folder. Otherwise, such as when a callback swapped the returned
-	 * path for an existing file, nothing is removed.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param array<string, mixed> $stored The stored file from store_file().
-	 */
-	private function remove_stored_file( array $stored ): void {
-		if ( ! $stored['removable'] || ! is_file( $stored['file'] ) ) {
-			return;
-		}
-
-		wp_delete_file_from_directory( $stored['file'], wp_get_upload_dir()['basedir'] );
 	}
 
 	/**
@@ -2011,7 +1943,7 @@ final class WP_Abilities_Media {
 								'type' => 'string',
 								'enum' => self::MEDIA_TYPES,
 							),
-							'description' => __( 'Filter by one or more media types, the part of the MIME type before the slash. A media type without any MIME type the current user may upload is an error.' ),
+							'description' => __( 'Filter by one or more media types, the part of the MIME type before the slash.' ),
 						),
 						'mime_type'  => array(
 							'type'        => 'array',
@@ -2021,7 +1953,7 @@ final class WP_Abilities_Media {
 								'type'      => 'string',
 								'minLength' => 1,
 							),
-							'description' => __( 'Filter by one or more MIME types, such as `image/jpeg`. Each must be a MIME type the current user may upload. With `media_type`, an attachment matches when it matches either filter.' ),
+							'description' => __( 'Filter by one or more exact MIME types, such as `image/jpeg`. Wildcards are not supported. With `media_type`, an attachment matches when it matches either filter.' ),
 						),
 						'post'       => array(
 							'type'        => 'integer',

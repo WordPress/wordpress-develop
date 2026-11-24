@@ -609,7 +609,7 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 			return $schema;
 		}
 
-		if ( ! wp_is_numeric_array( $schema ) || array() === $schema ) {
+		if ( ! wp_is_numeric_array( $schema ) || empty( $schema ) ) {
 			if ( isset( $schema['description'] ) && is_string( $schema['description'] ) ) {
 				unset( $schema['description'] );
 			}

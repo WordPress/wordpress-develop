@@ -442,7 +442,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 			array(
 				'where' => array(
 					'status' => $status,
-					'ids'    => array() === $own ? array( self::$post_ids['unattached'] ) : $own,
+					'ids'    => empty( $own ) ? array( self::$post_ids['unattached'] ) : $own,
 				),
 			)
 		);
@@ -543,7 +543,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 			array(
 				'where' => array(
 					'status'    => array( 'trash' ),
-					'mime_type' => array( 'mdt/not-allowed' ),
+					'mime_type' => array( 'image/*' ),
 				),
 			)
 		);
@@ -594,7 +594,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	}
 
 	/**
-	 * A media type selects the allowed types of its group, and several groups add up.
+	 * A media type selects every type of its group, and several groups add up.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
@@ -632,30 +632,47 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	}
 
 	/**
-	 * A media type group without any allowed type is an invalid filter.
+	 * The MIME filters also match attachments of a type the current user may not upload.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
 	 */
-	public function test_media_type_without_allowed_types_is_an_invalid_filter(): void {
-		add_filter(
-			'upload_mimes',
-			static function ( array $mimes ): array {
-				return array_filter(
-					$mimes,
-					static function ( string $mime ): bool {
-						return ! str_starts_with( $mime, 'video/' );
-					}
-				);
-			}
+	public function test_mime_filters_match_types_outside_the_upload_list(): void {
+		$legacy = self::factory()->attachment->create_object(
+			array(
+				'file'           => '2026/01/mdt-legacy.mdtimg',
+				'post_mime_type' => 'image/x-mdt-legacy',
+			)
 		);
 
-		$this->login_as( 'editor' );
+		$this->login_as( 'subscriber' );
 		$this->register_abilities();
 
-		$result = $this->run_ability( array( 'where' => array( 'media_type' => array( 'image', 'video' ) ) ) );
-
-		$this->assert_error_with_params( $result, 'media_invalid_filter', 'where[media_type]', 'A media type without allowed types' );
+		$this->assertNotContains( 'image/x-mdt-legacy', get_allowed_mime_types(), 'The legacy type should not be an allowed upload type.' );
+		$this->assertSame(
+			array( $legacy ),
+			$this->query_ids(
+				array(
+					'where' => array(
+						'ids'        => array( $legacy, self::$post_ids['pdf'] ),
+						'media_type' => array( 'image' ),
+					),
+				)
+			),
+			'The image group should select the attachment of the legacy type.'
+		);
+		$this->assertSame(
+			array( $legacy ),
+			$this->query_ids(
+				array(
+					'where' => array(
+						'ids'       => array( $legacy, self::$post_ids['pdf'] ),
+						'mime_type' => array( 'image/x-mdt-legacy' ),
+					),
+				)
+			),
+			'The exact MIME type should select the attachment of the legacy type.'
+		);
 	}
 
 	/**
@@ -681,36 +698,55 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	}
 
 	/**
-	 * Returns MIME types that are not exactly one of the allowed types.
+	 * Returns values that are not a full MIME type.
 	 *
-	 * @return array<string, array{mime_type: string}> The MIME types.
+	 * @return array<string, array{mime_type: string}> The values.
 	 */
-	public static function data_mime_types_that_are_not_allowed(): array {
+	public static function data_values_that_are_not_full_mime_types(): array {
 		return array(
-			'alias'       => array( 'image/jpg' ),
-			'group only'  => array( 'image' ),
-			'wildcard'    => array( 'image/*' ),
-			'not allowed' => array( 'application/x-php' ),
-			'upper case'  => array( 'IMAGE/JPEG' ),
+			'group only'         => array( 'image' ),
+			'star wildcard'      => array( 'image/*' ),
+			'star only'          => array( '*' ),
+			'percent wildcard'   => array( 'image/%' ),
+			'percent only'       => array( '%' ),
+			'two slashes'        => array( 'image/jpeg/x' ),
+			'empty subtype'      => array( 'image/' ),
+			'white space'        => array( 'image/ jpeg' ),
+			'list in one string' => array( 'image/jpeg,image/png' ),
 		);
 	}
 
 	/**
-	 * A MIME type that is not exactly one of the allowed types is an invalid filter.
+	 * A value that is not a full MIME type is an invalid filter.
 	 *
 	 * @ticket 66719
-	 * @dataProvider data_mime_types_that_are_not_allowed
+	 * @dataProvider data_values_that_are_not_full_mime_types
 	 * @since 7.3.0
 	 *
-	 * @param string $mime_type The MIME type.
+	 * @param string $mime_type The value.
 	 */
-	public function test_mime_type_that_is_not_allowed_is_an_invalid_filter( string $mime_type ): void {
+	public function test_value_that_is_not_a_full_mime_type_is_an_invalid_filter( string $mime_type ): void {
 		$this->login_as( 'editor' );
 		$this->register_abilities();
 
 		$result = $this->run_ability( array( 'where' => array( 'mime_type' => array( 'image/jpeg', $mime_type ) ) ) );
 
-		$this->assert_error_with_params( $result, 'media_invalid_filter', 'where[mime_type]', 'A MIME type that is not allowed' );
+		$this->assert_error_with_params( $result, 'media_invalid_filter', 'where[mime_type]', 'A value that is not a full MIME type' );
+	}
+
+	/**
+	 * A full MIME type that no attachment has matches nothing.
+	 *
+	 * @ticket 66719
+	 * @since 7.3.0
+	 */
+	public function test_mime_type_without_attachments_matches_nothing(): void {
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$result = $this->run_ability( array( 'where' => array( 'mime_type' => array( 'application/x-php' ) ) ) );
+
+		$this->assertSame( self::EMPTY_RESULT, $result, 'A full MIME type without attachments should match nothing.' );
 	}
 
 	/**

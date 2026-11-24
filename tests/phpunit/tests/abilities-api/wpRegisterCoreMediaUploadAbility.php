@@ -2129,7 +2129,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	}
 
 	/**
-	 * When the save fails no attachment exists and the stored file is removed.
+	 * When the save fails no attachment exists and no temporary file is left.
 	 *
 	 * @ticket 66719
 	 * @dataProvider data_save_failures
@@ -2138,7 +2138,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	 * @param bool $database_error Whether the save fails with a database error.
 	 * @param int  $status         The expected status.
 	 */
-	public function test_failed_save_removes_the_stored_file( bool $database_error, int $status ): void {
+	public function test_failed_save_creates_no_attachment( bool $database_error, int $status ): void {
 		$this->login_as( 'editor' );
 		$this->register_abilities();
 
@@ -2146,243 +2146,12 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 		$this->make_saves_fail( $database_error );
 
 		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-failed-save.png' ) );
+		$after  = $this->snapshot();
 
 		$this->assert_error( $result, 'media_save_failed', $status, 'A failed save' );
-		$this->assert_nothing_changed( $before, 'A failed save' );
-	}
-
-	/**
-	 * Returns existing files another hook may swap the stored file for.
-	 *
-	 * @return array<string, array{place: string}> The places, as case names.
-	 */
-	public static function data_swapped_files(): array {
-		return array(
-			'inside the uploads folder'  => array( 'inside' ),
-			'outside the uploads folder' => array( 'outside' ),
-			'with the very same bytes'   => array( 'same_bytes' ),
-		);
-	}
-
-	/**
-	 * When another hook swapped the stored file for an existing one, nothing is removed after
-	 * a failed save.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_swapped_files
-	 * @since 7.3.0
-	 *
-	 * @param string $place Where the existing file is, as a case name.
-	 */
-	public function test_failed_save_never_removes_a_swapped_file( string $place ): void {
-		$bytes    = file_get_contents( self::fixture( 'images/codeispoetry.png' ) );
-		$basedir  = wp_upload_dir()['basedir'];
-		$paths    = array(
-			'inside'     => $basedir . '/mdt-swapped-inside.png',
-			'outside'    => get_temp_dir() . 'mdt-swapped-outside-' . wp_generate_password( 8, false ) . '.png',
-			'same_bytes' => $basedir . '/mdt-swapped-same.png',
-		);
-		$existing = $paths[ $place ];
-		$contents = 'same_bytes' === $place ? $bytes : 'MDT existing file';
-
-		wp_mkdir_p( dirname( $existing ) );
-		file_put_contents( $existing, $contents );
-
-		if ( 'outside' === $place ) {
-			$this->temp_files_to_remove[] = $existing;
-		}
-
-		add_filter(
-			'wp_handle_upload',
-			static function ( array $upload ) use ( $existing ): array {
-				$upload['file'] = $existing;
-				return $upload;
-			}
-		);
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-		$this->make_saves_fail( false );
-
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-swapped.png' ) );
-		$kept   = file_exists( $existing ) ? file_get_contents( $existing ) : null;
-
-		$this->assert_error( $result, 'media_save_failed', 400, 'A failed save after a swap' );
-		$this->assertSame( $contents, $kept, 'The existing file should be kept unchanged.' );
-	}
-
-	/**
-	 * When another callback took over the move of the file, nothing is removed after a failed
-	 * save, also when the file appears at the path only after the take-over and holds exactly
-	 * the uploaded bytes.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_failed_save_keeps_a_file_another_callback_moved(): void {
-		$moved          = null;
-		$existed_before = null;
-		add_filter(
-			'pre_move_uploaded_file',
-			static function ( $move, array $file, string $new_file ) use ( &$moved, &$existed_before ) {
-				$existed_before = file_exists( $new_file );
-
-				add_filter(
-					'pre_move_uploaded_file',
-					static function ( $move, array $file, string $new_file ) use ( &$moved ) {
-						copy( $file['tmp_name'], $new_file );
-						$moved = $new_file;
-						return $move;
-					},
-					PHP_INT_MAX,
-					3
-				);
-
-				return true;
-			},
-			10,
-			3
-		);
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-		$this->make_saves_fail( false );
-
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-moved-elsewhere.png' ) );
-
-		$this->assert_error( $result, 'media_save_failed', 400, 'A failed save after another callback moved the file' );
-		$this->assertFalse( $existed_before, 'The path should not exist when the move is taken over.' );
-		$this->assertIsString( $moved, 'The other callback should have moved the file.' );
-		$this->assertFileExists( $moved, 'The file the other callback moved should be kept.' );
-		$this->assertSame( file_get_contents( self::fixture( 'images/codeispoetry.png' ) ), file_get_contents( $moved ), 'The kept file should hold exactly the uploaded bytes.' );
-	}
-
-	/**
-	 * When the chosen path already held a file, that path is not removed after a failed save.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_failed_save_keeps_a_path_that_existed(): void {
-		$folder   = wp_upload_dir()['path'];
-		$existing = $folder . '/mdt-path-existed-target.png';
-		wp_mkdir_p( $folder );
-		file_put_contents( $existing, 'MDT existing file' );
-
-		add_filter(
-			'wp_unique_filename',
-			static function ( string $filename ): string {
-				return 'mdt-path-existed.png' === $filename ? 'mdt-path-existed-target.png' : $filename;
-			}
-		);
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-		$this->make_saves_fail( false );
-
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-path-existed.png' ) );
-
-		$this->assert_error( $result, 'media_save_failed', 400, 'A failed save to a path that existed' );
-		$this->assertFileExists( $existing, 'The path that existed should still hold a file.' );
-	}
-
-	/**
-	 * A file the call created is removed after a failed save, also when a callback changed
-	 * its bytes.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_failed_save_removes_a_file_with_other_bytes(): void {
-		$stored = null;
-		add_filter(
-			'wp_handle_upload',
-			static function ( array $upload ) use ( &$stored ): array {
-				file_put_contents( $upload['file'], 'MDT other bytes' );
-				$stored = $upload['file'];
-				return $upload;
-			}
-		);
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-		$this->make_saves_fail( false );
-
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-other-bytes.png' ) );
-
-		$this->assert_error( $result, 'media_save_failed', 400, 'A failed save of a file with other bytes' );
-		$this->assertIsString( $stored, 'The upload handling should return the stored file.' );
-		$this->assertFileDoesNotExist( $stored, 'The file with other bytes should be removed.' );
-	}
-
-	/**
-	 * When the stored file is gone, a failed save is still the save error, without a warning
-	 * or notice.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_failed_save_of_a_file_that_is_gone(): void {
-		add_filter(
-			'wp_handle_upload',
-			static function ( array $upload ): array {
-				unlink( $upload['file'] );
-				return $upload;
-			}
-		);
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-		$this->make_saves_fail( false );
-
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-gone.png' ) );
-
-		$this->assert_error( $result, 'media_save_failed', 400, 'A failed save of a file that is gone' );
-	}
-
-	/**
-	 * When the stored file lies outside the uploads folder, it is not removed after a failed
-	 * save.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_failed_save_keeps_a_file_outside_the_uploads_folder(): void {
-		$outside = get_temp_dir() . 'mdt-outside-uploads-' . wp_generate_password( 8, false );
-		add_filter(
-			'upload_dir',
-			static function ( array $uploads ) use ( $outside ): array {
-				$uploads['path'] = $outside;
-				return $uploads;
-			}
-		);
-
-		$stored = null;
-		add_filter(
-			'wp_handle_upload',
-			static function ( array $upload ) use ( &$stored ): array {
-				$stored = $upload['file'];
-				return $upload;
-			}
-		);
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-		$this->make_saves_fail( false );
-
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-outside-uploads.png' ) );
-		$kept   = is_string( $stored ) && file_exists( $stored );
-
-		// The file is removed before the folder that holds it.
-		if ( is_string( $stored ) ) {
-			$this->temp_files_to_remove[] = $stored;
-		}
-		$this->temp_files_to_remove[] = $outside;
-
-		$this->assert_error( $result, 'media_save_failed', 400, 'A failed save of a file outside the uploads folder' );
-		$this->assertIsString( $stored, 'The upload handling should return the stored file.' );
-		$this->assertStringStartsWith( $outside, $stored, 'The stored file should lie outside the uploads folder.' );
-		$this->assertTrue( $kept, 'The file outside the uploads folder should be kept.' );
+		$this->assertSame( $before['posts'], $after['posts'], 'A failed save should add no post.' );
+		$this->assertSame( $before['meta'], $after['meta'], 'A failed save should add no meta.' );
+		$this->assertSame( array(), $this->list_temp_files( 'mdt-failed-save.png' ), 'A failed save should leave no temporary file.' );
 	}
 
 	/**
