@@ -1506,6 +1506,29 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Tests that a stylesheet with an encoded NUL byte does not break the request.
+	 *
+	 * The stylesheet is URL-decoded, and as of PHP 8.6 `file_exists()` throws
+	 * a `ValueError` for a path containing a NUL byte.
+	 *
+	 * @ticket 66803
+	 *
+	 * @covers WP_REST_Themes_Controller::get_item_permissions_check
+	 * @covers WP_REST_Themes_Controller::get_item
+	 */
+	public function test_get_item_with_encoded_nul_byte() {
+		wp_set_current_user( 0 );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/invalid%00' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_view_themes', $response, 401 );
+
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/invalid%00' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_theme_not_found', $response, 404 );
+	}
+
+	/**
 	 * @ticket 50152
 	 */
 	public function test_get_active_item_as_contributor() {
