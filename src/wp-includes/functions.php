@@ -9656,6 +9656,8 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 		return;
 	}
 
+	$switched_locale = switch_to_user_locale( $user->ID );
+
 	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, ADMIN_EMAIL, SITENAME, SITEURL, EMAIL: those are placeholders. */
 	$application_password_create_text = __(
 		'Hi ###USERNAME###,
@@ -9739,4 +9741,8 @@ All at ###SITENAME###
 		$email['message'],
 		$email['headers']
 	);
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 }
