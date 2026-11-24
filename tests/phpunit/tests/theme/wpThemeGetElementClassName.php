@@ -2,7 +2,7 @@
 /**
  * Test wp_theme_get_element_class_name().
  *
- * @group theme
+ * @group themes
  *
  * @covers ::wp_theme_get_element_class_name
  */
@@ -11,7 +11,7 @@ class Tests_Theme_WpThemeGetElementClassName extends WP_UnitTestCase {
 	/**
 	 * Tests that wp_theme_get_element_class_name() returns correct class name for known and unknown elements.
 	 *
-	 * @ticket 56467
+	 * @ticket 65819
 	 *
 	 * @dataProvider data_elements_and_class_names
 	 *
