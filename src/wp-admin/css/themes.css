@@ -1258,6 +1258,72 @@ p.no-themes-local {
 	color: #d63638;
 }
 
+.update-from-upload-file-changes {
+	margin: 0 0 1.4rem;
+}
+
+.update-from-upload-file-changes h3 {
+	margin: 0 0 0.5rem;
+}
+
+.update-from-upload-file-counts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.2rem 1.4rem;
+	margin: 0 0 0.5rem;
+}
+
+.update-from-upload-file-counts li {
+	margin: 0;
+}
+
+.update-from-upload-file-counts .added,
+.update-from-upload-file-list .added {
+	color: #007017;
+}
+
+.update-from-upload-file-counts .removed,
+.update-from-upload-file-list .removed {
+	color: #b32d2e;
+}
+
+.update-from-upload-file-counts .changed,
+.update-from-upload-file-list .changed {
+	color: #996800;
+}
+
+.update-from-upload-file-changes summary {
+	cursor: pointer;
+	color: var(--wp-admin-theme-color, #3858e9);
+}
+
+.update-from-upload-file-list {
+	max-height: 20rem;
+	overflow: auto;
+	margin-top: 0.5rem;
+	padding: 0 1rem;
+	border: 1px solid #dcdcde;
+	background: #fff;
+}
+
+.update-from-upload-file-list h4 {
+	margin: 1rem 0 0.3rem;
+}
+
+.update-from-upload-file-list ul {
+	margin: 0 0 1rem;
+}
+
+.update-from-upload-file-list li {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.update-from-upload-file-list code {
+	padding: 0;
+	background: none;
+}
+
 .update-from-upload-actions {
 	margin-top: 1.4rem;
 }

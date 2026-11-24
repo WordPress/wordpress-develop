@@ -113,6 +113,17 @@ class WP_Upgrader {
 	public $update_current = 0;
 
 	/**
+	 * What an uploaded package would change in the folder it is replacing.
+	 *
+	 * Filled in by install_package() when an upload runs into an existing folder.
+	 * Same format as the return value of compare_package_files().
+	 *
+	 * @since 7.3.0
+	 * @var array
+	 */
+	public $package_file_changes = array();
+
+	/**
 	 * Stores the list of plugins or themes added to temporary backup directory.
 	 *
 	 * Used by the rollback functions.
@@ -703,6 +714,13 @@ class WP_Upgrader {
 			 */
 			$_files = $wp_filesystem->dirlist( $remote_destination );
 			if ( ! empty( $_files ) ) {
+				// The unpacked files are about to be deleted, so compare them now for the overwrite screen.
+				if ( isset( $this->skin->type ) && 'upload' === $this->skin->type ) {
+					$local_source = str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_DIR ), $source );
+
+					$this->package_file_changes = $this->compare_package_files( $local_source, $destination );
+				}
+
 				$wp_filesystem->delete( $remote_source, true ); // Clear out the source files.
 				return new WP_Error( 'folder_exists', $this->strings['folder_exists'], $remote_destination );
 			}
@@ -767,6 +785,88 @@ class WP_Upgrader {
 
 		// Bombard the calling function will all the info which we've just used.
 		return $this->result;
+	}
+
+	/**
+	 * Compares an unpacked package with the folder it would replace.
+	 *
+	 * Reads the files directly, so both paths need to be local.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $source      Folder with the unpacked package.
+	 * @param string $destination Folder the package would be installed to.
+	 * @return array {
+	 *     Empty if either folder is missing. Paths are relative to the two folders.
+	 *
+	 *     @type string[] $added     Files that only exist in the package.
+	 *     @type string[] $removed   Files that only exist in the destination.
+	 *     @type string[] $changed   Files that exist in both but differ.
+	 *     @type int      $unchanged How many files are identical.
+	 * }
+	 */
+	public function compare_package_files( $source, $destination ) {
+		$source      = trailingslashit( $source );
+		$destination = trailingslashit( $destination );
+
+		if ( ! is_dir( $source ) || ! is_dir( $destination ) ) {
+			return array();
+		}
+
+		$new_files = $this->list_package_files( $source );
+		$old_files = $this->list_package_files( $destination );
+
+		$changed   = array();
+		$unchanged = 0;
+
+		foreach ( array_intersect( $new_files, $old_files ) as $file ) {
+			// Only hash when the sizes match, a different size is already a change.
+			if ( filesize( $source . $file ) !== filesize( $destination . $file )
+				|| md5_file( $source . $file ) !== md5_file( $destination . $file )
+			) {
+				$changed[] = $file;
+			} else {
+				++$unchanged;
+			}
+		}
+
+		$added   = array_values( array_diff( $new_files, $old_files ) );
+		$removed = array_values( array_diff( $old_files, $new_files ) );
+
+		sort( $added );
+		sort( $removed );
+		sort( $changed );
+
+		return compact( 'added', 'removed', 'changed', 'unchanged' );
+	}
+
+	/**
+	 * Lists every file in a folder, relative to that folder.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $directory Folder to list, with a trailing slash.
+	 * @return string[] Relative file paths.
+	 */
+	protected function list_package_files( $directory ) {
+		$files = list_files( $directory, 100, array(), true );
+
+		if ( ! $files ) {
+			return array();
+		}
+
+		$paths = array();
+
+		foreach ( $files as $file ) {
+			// list_files() returns empty folders too, with a trailing slash.
+			if ( str_ends_with( $file, '/' ) ) {
+				continue;
+			}
+
+			$paths[] = wp_normalize_path( substr( $file, strlen( $directory ) ) );
+		}
+
+		return $paths;
 	}
 
 	/**
