@@ -5693,7 +5693,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * A stored date at the Unix epoch is returned: a timestamp of zero is a date, not a
 	 * date that could not be parsed.
 	 *
-	 * @ticket 00000
+	 * @ticket 66812
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_date_fields
