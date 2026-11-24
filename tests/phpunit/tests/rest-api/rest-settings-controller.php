@@ -719,7 +719,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * A value outside the ones a setting accepts is refused, and the setting keeps its value.
 	 *
-	 * @ticket TICKET_NUMBER
+	 * @ticket 66804
 	 *
 	 * @dataProvider data_update_item_with_value_outside_schema
 	 *
@@ -755,7 +755,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * The values a setting accepts are saved.
 	 *
-	 * @ticket TICKET_NUMBER
+	 * @ticket 66804
 	 *
 	 * @dataProvider data_update_item_with_value_inside_schema
 	 *
