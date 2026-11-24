@@ -143,8 +143,9 @@ final class WP_Abilities_Settings {
 	 * Registers nothing when no exposed setting is writable.
 	 *
 	 * The ability is marked destructive because a null value deletes the stored value of a
-	 * setting, see execute_settings_update(). It is not marked idempotent because repeating
-	 * a null value can fail: the second call finds no stored value left to delete.
+	 * setting without a default, see execute_settings_update(). It is not marked idempotent
+	 * because repeating a null value for such a setting can fail: the second call finds no
+	 * stored value left to delete.
 	 *
 	 * @since 7.3.0
 	 */
@@ -157,7 +158,7 @@ final class WP_Abilities_Settings {
 			'core/settings-update',
 			array(
 				'label'                 => __( 'Update Settings' ),
-				'description'           => __( 'Updates WordPress settings and returns the saved values of the settings named in the call. A null value deletes the stored value of a setting, which then reads as its default when it has one. Read-only settings, such as the site address and the administration email address, cannot be updated. Requires an authenticated user who can manage options, and who can also manage privacy options to set the privacy policy page.' ),
+				'description'           => __( 'Updates WordPress settings and returns the saved values of the settings named in the call. A null value resets a setting to its default, or deletes its stored value when it has no default. Read-only settings, such as the site address and the administration email address, cannot be updated. Requires an authenticated user who can manage options, and who can also manage privacy options to set the privacy policy page.' ),
 				'category'              => self::CATEGORY,
 				'input_schema'          => $this->get_settings_update_input_schema(),
 				'output_schema'         => $this->get_settings_output_schema( $this->writable_settings, __( 'A map of setting name to its value after the update.' ) ),
@@ -292,17 +293,15 @@ final class WP_Abilities_Settings {
 		}
 
 		/*
-		 * Intentional: a null value deletes the stored value, whether or not the setting has a
-		 * default. A setting without a default then has no value, and is left out of the output
-		 * and of `core/settings-get`, until a value is written again.
+		 * Intentional: a null value deletes the stored value, and stores the default in its place
+		 * when the setting has one. A registered default only applies in requests that register
+		 * the setting, and Core registers its own settings only in REST and abilities requests, so
+		 * other requests would read a deleted value as false. A setting without a default then has
+		 * no value, and is left out of the output and of `core/settings-get`, until a value is
+		 * written again.
 		 */
 		foreach ( $named as $exposed_name => $setting ) {
-			if ( null === $data[ $exposed_name ] ) {
-				delete_option( $setting['option'] );
-				continue;
-			}
-
-			$value = $data[ $exposed_name ];
+			$value = $data[ $exposed_name ] ?? $setting['default'];
 
 			/*
 			 * English is stored as an empty string. `en_US` is what the language reads as when
@@ -312,7 +311,20 @@ final class WP_Abilities_Settings {
 				$value = '';
 			}
 
+			if ( null === $data[ $exposed_name ] ) {
+				delete_option( $setting['option'] );
+			}
+
+			if ( null === $value ) {
+				continue;
+			}
+
 			update_option( $setting['option'], $value );
+
+			// update_option() stores nothing when no value is stored and the value matches the default it reads.
+			if ( $value === $setting['default'] && false === get_option( $setting['option'], false ) ) {
+				add_option( $setting['option'], $value );
+			}
 		}
 
 		return $this->get_setting_values( $named );
@@ -485,7 +497,7 @@ final class WP_Abilities_Settings {
 			'properties'           => array(
 				'data' => array(
 					'type'                 => 'object',
-					'description'          => __( 'Settings to update, keyed by setting name. A null value deletes the stored value of a setting.' ),
+					'description'          => __( 'Settings to update, keyed by setting name. A null value resets a setting to its default, or deletes its stored value when it has no default.' ),
 					'properties'           => array_map( array( $this, 'nullable_schema' ), wp_list_pluck( $this->writable_settings, 'schema' ) ),
 					'additionalProperties' => false,
 					'minProperties'        => 1,

@@ -44,6 +44,17 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	const ID_OPTIONS = array( 'default_category', 'page_on_front', 'page_for_posts', 'wp_page_for_privacy_policy' );
 
 	/**
+	 * Raw values a null value stores, keyed by option: the default of each core setting that has one.
+	 *
+	 * @var array<string, string>
+	 */
+	const STORED_DEFAULTS = array(
+		'WPLANG'         => '',
+		'use_smilies'    => '1',
+		'posts_per_page' => '10',
+	);
+
+	/**
 	 * User IDs keyed by role.
 	 *
 	 * @var array<string, int>
@@ -353,7 +364,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		unset( $meta['annotations'], $get_meta['annotations'] );
 
 		$this->assertFalse( $annotations['readonly'], 'The ability should not be marked read-only.' );
-		$this->assertTrue( $annotations['destructive'], 'The ability should be marked destructive, since a null value deletes a stored value.' );
+		$this->assertTrue( $annotations['destructive'], 'The ability should be marked destructive, since a null value deletes the stored value of a setting without a default.' );
 		$this->assertFalse( $annotations['idempotent'], 'The ability should not be marked idempotent, since repeating a null value can fail.' );
 		$this->assertSame( $get_meta, $meta, 'The other meta should match core/settings-get.' );
 	}
@@ -937,8 +948,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * A null value deletes the stored value of each setting, which then reads as its default or
-	 * is left out.
+	 * A null value stores the default of each setting that has one, and deletes the stored value
+	 * of the others, which are then left out.
 	 *
 	 * @ticket 64616
 	 *
@@ -953,17 +964,32 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 * @param string      $raw        The expected raw stored value.
 	 * @param string|null $after_null The output value after a null value as JSON, or null when it is left out.
 	 */
-	public function test_null_deletes_each_setting( string $name, string $option, $value, string $output, string $raw, ?string $after_null ): void {
+	public function test_null_resets_each_setting( string $name, string $option, $value, string $output, string $raw, ?string $after_null ): void {
 		update_option( $option, in_array( $option, self::ID_OPTIONS, true ) ? self::$fixture_ids[ $value ] : $value );
 		$this->become_admin_for( $name );
-		$expected = $this->snapshot();
-		unset( $expected[ $option ] );
+		$expected = $this->expected_after_null( $option );
 
 		$result = $this->update( array( $name => null ) );
 
-		$this->assertNotWPError( $result, 'The stored value should be deleted.' );
+		$this->assertNotWPError( $result, 'The setting should be reset.' );
 		$this->assertSame( null === $after_null ? '[]' : '{"' . $name . '":' . $after_null . '}', wp_json_encode( $result ), 'The setting should read as its default, or be left out.' );
-		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the row of the named setting should be deleted.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the row of the named setting should hold its default or be deleted.' );
+	}
+
+	/**
+	 * Returns the stored rows expected after a null value for the given option.
+	 *
+	 * @param string $option The option name.
+	 * @return array<string, string> Raw option values keyed by option name.
+	 */
+	private function expected_after_null( string $option ): array {
+		$expected = $this->snapshot();
+		unset( $expected[ $option ] );
+		if ( isset( self::STORED_DEFAULTS[ $option ] ) ) {
+			$expected[ $option ] = self::STORED_DEFAULTS[ $option ];
+		}
+
+		return $expected;
 	}
 
 	/**
@@ -982,7 +1008,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'date_format'                    => array( 'date_format', 'date_format', 'Y-m-d', '"Y-m-d"', 'Y-m-d', null ),
 			'time_format'                    => array( 'time_format', 'time_format', 'H:i', '"H:i"', 'H:i', null ),
 			'start_of_week'                  => array( 'start_of_week', 'start_of_week', 3, '3', '3', null ),
-			'language'                       => array( 'language', 'WPLANG', 'de_DE', '"de_DE"', 'de_DE', '"en_US"' ),
+			'language'                       => array( 'language', 'WPLANG', 'de_DE', '"de_DE"', 'de_DE', '""' ),
 			'use_smilies'                    => array( 'use_smilies', 'use_smilies', false, 'false', '', 'true' ),
 			'default_category'               => array( 'default_category', 'default_category', 'category', '', '', null ),
 			'default_post_format'            => array( 'default_post_format', 'default_post_format', 'aside', '"aside"', 'aside', null ),
@@ -1265,7 +1291,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * A call that names several settings writes and deletes exactly those, and returns only those.
+	 * A call that names several settings writes and resets exactly those, and returns only those.
 	 *
 	 * @ticket 64616
 	 *
@@ -1288,11 +1314,11 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$this->assertSameSets( array( 'title', 'posts_per_page', 'use_smilies' ), array_keys( $result ), 'The output should hold only the settings named in the call.' );
 		$this->assertSame( 'Acme Robotics', $result['title'], 'The output should show the new title.' );
 		$this->assertSame( 12, $result['posts_per_page'], 'The output should show the new number of posts per page.' );
-		$this->assertTrue( $result['use_smilies'], 'The deleted setting should read as its default.' );
+		$this->assertTrue( $result['use_smilies'], 'The reset setting should read as its default.' );
 
 		$expected['blogname']       = 'Acme Robotics';
 		$expected['posts_per_page'] = '12';
-		unset( $expected['use_smilies'] );
+		$expected['use_smilies']    = '1';
 		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the named settings should change.' );
 	}
 
@@ -1371,7 +1397,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * A null value deletes a stored value that matches the schema of the setting, including the
+	 * A null value resets a stored value that matches the schema of the setting, including the
 	 * forms in which a boolean is stored.
 	 *
 	 * @ticket 64616
@@ -1388,20 +1414,19 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	public function test_null_accepts_a_valid_stored_value( string $name, string $option, $stored, string $output ): void {
 		$this->store_raw( $option, $stored );
 		$this->become_admin();
-		$expected = $this->snapshot();
-		unset( $expected[ $option ] );
+		$expected = $this->expected_after_null( $option );
 
 		$result = $this->update( array( $name => null ) );
 
-		$this->assertNotWPError( $result, 'The stored value should be deleted.' );
+		$this->assertNotWPError( $result, 'The setting should be reset.' );
 		$this->assertSame( $output, wp_json_encode( $result ), 'The setting should read as its default, or be left out.' );
-		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the row of the named setting should be deleted.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the row of the named setting should hold its default or be deleted.' );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: string, 1: string, 2: mixed, 3: string}> Stored values that a null value deletes, and the output as JSON.
+	 * @return array<string, array{0: string, 1: string, 2: mixed, 3: string}> Stored values that a null value resets, and the output as JSON.
 	 */
 	public static function data_valid_stored_values(): array {
 		return array(
@@ -1415,21 +1440,50 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * Repeating a null value fails for an integer setting, which has no stored value left.
+	 * Repeating a null value works for a setting with a default, which is stored again, and fails
+	 * for a setting without one, which has no stored value left.
 	 *
 	 * @ticket 64616
 	 *
 	 * @since 7.3.0
 	 */
-	public function test_repeated_null_fails_for_an_integer(): void {
+	public function test_repeated_null(): void {
 		$this->store_raw( 'posts_per_page', '12' );
+		$this->store_raw( 'blogname', 'Acme Robotics' );
 		$this->become_admin();
 
-		$first  = $this->update( array( 'posts_per_page' => null ) );
-		$second = $this->update( array( 'posts_per_page' => null ) );
+		$this->assertSame( array( 'posts_per_page' => 10 ), $this->update( array( 'posts_per_page' => null ) ), 'The first call should store the default.' );
+		$this->assertSame( array( 'posts_per_page' => 10 ), $this->update( array( 'posts_per_page' => null ) ), 'The second call should store the default again.' );
 
-		$this->assertSame( array( 'posts_per_page' => 10 ), $first, 'The first call should delete the stored value.' );
-		$this->assert_error( $second, 'settings_invalid_stored_value', 500 );
+		$this->assertSame( array(), $this->update( array( 'title' => null ) ), 'The first call should delete the stored value.' );
+		$this->assert_error( $this->update( array( 'title' => null ) ), 'settings_invalid_stored_value', 500 );
+	}
+
+	/**
+	 * The default is stored when it is written to a setting that has no stored value, so requests
+	 * that do not register the setting read it too.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_default_is_stored_without_a_stored_value(): void {
+		$this->store_raw( 'use_smilies', null );
+		$this->store_raw( 'posts_per_page', null );
+		$this->become_admin();
+		$expected                   = $this->snapshot();
+		$expected['use_smilies']    = '1';
+		$expected['posts_per_page'] = '10';
+
+		$result = $this->update(
+			array(
+				'use_smilies'    => true,
+				'posts_per_page' => 10,
+			)
+		);
+
+		$this->assertNotWPError( $result, 'The defaults should be written.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'The defaults should be stored.' );
 	}
 
 	/**
