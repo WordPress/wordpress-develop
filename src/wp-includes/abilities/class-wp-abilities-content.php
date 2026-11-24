@@ -185,10 +185,12 @@ final class WP_Abilities_Content {
 	 * @param list<string> $statuses   Post status slugs that can be set.
 	 */
 	private function register_content_write_abilities( array $post_types, array $statuses ): void {
-		$abilities = array(
-			'core/content-create' => array(
+		wp_register_ability(
+			'core/content-create',
+			array(
 				'label'               => __( 'Create Content' ),
 				'description'         => __( 'Creates a post of a post type exposed to abilities and returns it. Requires an authenticated user who can create posts of that type. The post is saved as a draft unless another status is given.' ),
+				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_create_input_schema( $post_types, $statuses ),
 				'output_schema'       => $this->get_content_output_schema(),
 				'execute_callback'    => function ( $input ) {
@@ -197,14 +199,23 @@ final class WP_Abilities_Content {
 				'permission_callback' => function ( $input ): bool {
 					return $this->check_create_permission( $input );
 				},
-				'annotations'         => array(
-					'destructive' => false,
-					'idempotent'  => false,
+				'meta'                => array(
+					'annotations' => array(
+						'readonly'    => false,
+						'destructive' => false,
+						'idempotent'  => false,
+					),
+					'public'      => true,
 				),
-			),
-			'core/content-update' => array(
+			)
+		);
+
+		wp_register_ability(
+			'core/content-update',
+			array(
 				'label'               => __( 'Update Content' ),
 				'description'         => __( 'Updates the given attributes of a post of a post type exposed to abilities and returns it. Attributes that are left out keep their stored values. Requires an authenticated user who can edit the post.' ),
+				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_update_input_schema( $post_types, $statuses ),
 				'output_schema'       => $this->get_content_output_schema(),
 				'execute_callback'    => function ( $input ) {
@@ -213,14 +224,23 @@ final class WP_Abilities_Content {
 				'permission_callback' => function ( $input ): bool {
 					return $this->check_post_permission( $input, 'edit_post' );
 				},
-				'annotations'         => array(
-					'destructive' => false,
-					'idempotent'  => true,
+				'meta'                => array(
+					'annotations' => array(
+						'readonly'    => false,
+						'destructive' => false,
+						'idempotent'  => true,
+					),
+					'public'      => true,
 				),
-			),
-			'core/content-delete' => array(
+			)
+		);
+
+		wp_register_ability(
+			'core/content-delete',
+			array(
 				'label'               => __( 'Delete Content' ),
 				'description'         => __( 'Moves a post of a post type exposed to abilities to the Trash, or deletes it permanently when `permanent` is true. Requires an authenticated user who can delete the post.' ),
+				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_delete_input_schema( $post_types ),
 				'output_schema'       => $this->get_content_delete_output_schema(),
 				'execute_callback'    => function ( $input ) {
@@ -229,24 +249,16 @@ final class WP_Abilities_Content {
 				'permission_callback' => function ( $input ): bool {
 					return $this->check_post_permission( $input, 'delete_post' );
 				},
-				'annotations'         => array(
-					'destructive' => true,
-					'idempotent'  => true,
+				'meta'                => array(
+					'annotations' => array(
+						'readonly'    => false,
+						'destructive' => true,
+						'idempotent'  => true,
+					),
+					'public'      => true,
 				),
-			),
+			)
 		);
-
-		// Every write ability shares the category, the public flag, and the `readonly` annotation.
-		foreach ( $abilities as $name => $args ) {
-			$args['category'] = self::CATEGORY;
-			$args['meta']     = array(
-				'annotations' => array_merge( array( 'readonly' => false ), $args['annotations'] ),
-				'public'      => true,
-			);
-			unset( $args['annotations'] );
-
-			wp_register_ability( $name, $args );
-		}
 	}
 
 	/**
@@ -903,7 +915,7 @@ final class WP_Abilities_Content {
 		 * rejected instead of saving the post unchanged.
 		 */
 		$data = $input['data'] ?? array();
-		if ( empty( array_intersect_key( $data, $this->get_content_write_properties( array() ) ) ) ) {
+		if ( empty( $data ) ) {
 			return $this->invalid_attribute_error( 'data', __( 'The data must be an object with at least one attribute to write.' ) );
 		}
 
@@ -914,6 +926,7 @@ final class WP_Abilities_Content {
 		 * behind. The REST API posts endpoint has the same issue when an update sends a
 		 * status for a trashed post. The cause is in the save path, so the fix belongs there,
 		 * where it covers every caller of wp_update_post().
+		 * See https://core.trac.wordpress.org/ticket/66809.
 		 */
 
 		// get_requested_post() only returns posts of an exposed post type.
@@ -1073,6 +1086,7 @@ final class WP_Abilities_Content {
 		}
 		$postarr = array_merge( $postarr, $dates );
 
+		// Without a sent status, the save defaults to `draft`.
 		$final_status = $postarr['post_status'] ?? $post->post_status ?? 'draft';
 		$final_parent = $postarr['post_parent'] ?? $post->post_parent ?? 0;
 
@@ -1090,7 +1104,6 @@ final class WP_Abilities_Content {
 			// A stored page template that no longer exists must not fail an unrelated update.
 			$postarr['page_template'] = null;
 		} else {
-			// Without a sent status, the save defaults to `draft`.
 			$postarr['post_type'] = $post_type;
 		}
 
@@ -1202,10 +1215,7 @@ final class WP_Abilities_Content {
 			return null;
 		}
 
-		$author_id = $this->parse_filter_int( $data['author'], 1 );
-		if ( null === $author_id ) {
-			return $this->invalid_attribute_error( 'data[author]', __( 'The author must be a user ID.' ) );
-		}
+		$author_id = $data['author'];
 
 		// Keeping the stored author changes nothing.
 		if ( $post && (int) $post->post_author === $author_id ) {
@@ -1252,10 +1262,7 @@ final class WP_Abilities_Content {
 		}
 
 		$reason    = __( 'The parent must be 0, or a readable post of the same post type that is neither the post itself nor one of its descendants.' );
-		$parent_id = $this->parse_filter_int( $data['parent'], 0 );
-		if ( null === $parent_id ) {
-			return $this->invalid_attribute_error( 'data[parent]', $reason );
-		}
+		$parent_id = $data['parent'];
 
 		// Keeping the stored parent changes nothing.
 		if ( $post && (int) $post->post_parent === $parent_id ) {
@@ -1301,15 +1308,8 @@ final class WP_Abilities_Content {
 			return array();
 		}
 
-		$date = $data['date'];
-		if ( isset( $date['site'] ) ) {
-			$dates = rest_get_date_with_gmt( $date['site'] );
-		} elseif ( isset( $date['gmt'] ) ) {
-			$dates = rest_get_date_with_gmt( $date['gmt'], true );
-		} else {
-			$dates = null;
-		}
-
+		$date  = $data['date'];
+		$dates = isset( $date['site'] ) ? rest_get_date_with_gmt( $date['site'] ) : rest_get_date_with_gmt( $date['gmt'] ?? '', true );
 		if ( null === $dates ) {
 			return $this->invalid_attribute_error( 'data[date]', __( 'The date must be an object with a valid `site` or `gmt` date.' ) );
 		}

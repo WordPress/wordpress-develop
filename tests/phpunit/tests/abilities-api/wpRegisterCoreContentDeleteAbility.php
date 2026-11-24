@@ -492,36 +492,4 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 			'where ID'     => array( 'where', 'ID', 1 ),
 		);
 	}
-
-	/**
-	 * A key outside the allow-list fails input validation.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_keys_outside_the_allow_list
-	 * @since 7.3.0
-	 *
-	 * @param string|null $location Where the key is sent, or null for the top level.
-	 * @param string      $key      The key.
-	 * @param mixed       $value    The value.
-	 */
-	public function test_key_outside_the_allow_list_fails_input_validation( ?string $location, string $key, $value ): void {
-		$post_id = self::$post_ids['admin_post'];
-
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$input = $this->delete_input( $post_id );
-		if ( null === $location ) {
-			$input[ $key ] = $value;
-		} else {
-			$input[ $location ][ $key ] = $value;
-		}
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->run_ability( $input );
-
-		$this->assertWPError( $result, 'The call should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the key.' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
 }

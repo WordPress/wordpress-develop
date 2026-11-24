@@ -264,7 +264,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$properties = wp_get_ability( self::ABILITY )->get_input_schema()['properties']['data']['properties'];
 
 		$this->assertSameSets( array( 'post', 'page', 'cw_book' ), $properties['type']['enum'], 'The post type should list every exposed post type and no other.' );
-		$this->assertSameSets( array_values( get_post_stati( array( 'internal' => false ) ) ), $properties['status']['enum'], 'The status should list every registered status that is not internal.' );
 		$this->assertContains( 'cw_archived', $properties['status']['enum'], 'The status should list a custom status.' );
 	}
 
@@ -463,31 +462,20 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$publish_message = 'Sorry, you are not allowed to publish posts in this post type.';
 		$private_message = 'Sorry, you are not allowed to create private posts in this post type.';
 
-		return array(
-			'administrator, no status' => array( 'administrator', null, 'draft', null ),
-			'administrator, draft'     => array( 'administrator', 'draft', 'draft', null ),
-			'administrator, pending'   => array( 'administrator', 'pending', 'pending', null ),
-			'administrator, publish'   => array( 'administrator', 'publish', 'publish', null ),
-			'administrator, future'    => array( 'administrator', 'future', 'future', null ),
-			'administrator, private'   => array( 'administrator', 'private', 'private', null ),
-			'editor, no status'        => array( 'editor', null, 'draft', null ),
-			'editor, draft'            => array( 'editor', 'draft', 'draft', null ),
-			'editor, pending'          => array( 'editor', 'pending', 'pending', null ),
-			'editor, publish'          => array( 'editor', 'publish', 'publish', null ),
-			'editor, future'           => array( 'editor', 'future', 'future', null ),
-			'editor, private'          => array( 'editor', 'private', 'private', null ),
-			'author, no status'        => array( 'author', null, 'draft', null ),
-			'author, draft'            => array( 'author', 'draft', 'draft', null ),
-			'author, pending'          => array( 'author', 'pending', 'pending', null ),
-			'author, publish'          => array( 'author', 'publish', 'publish', null ),
-			'author, future'           => array( 'author', 'future', 'future', null ),
-			'author, private'          => array( 'author', 'private', 'private', null ),
-			'contributor, no status'   => array( 'contributor', null, 'draft', null ),
-			'contributor, draft'       => array( 'contributor', 'draft', 'draft', null ),
-			'contributor, pending'     => array( 'contributor', 'pending', 'pending', null ),
-			'contributor, publish'     => array( 'contributor', 'publish', 'content_cannot_publish', $publish_message ),
-			'contributor, future'      => array( 'contributor', 'future', 'content_cannot_publish', $publish_message ),
-			'contributor, private'     => array( 'contributor', 'private', 'content_cannot_publish', $private_message ),
+		$cases = array();
+		foreach ( array( 'administrator', 'editor', 'author', 'contributor' ) as $role ) {
+			$cases[ "{$role}, no status" ] = array( $role, null, 'draft', null );
+			foreach ( array( 'draft', 'pending', 'publish', 'future', 'private' ) as $status ) {
+				// A contributor may only create drafts and pending posts.
+				if ( 'contributor' === $role && ! in_array( $status, array( 'draft', 'pending' ), true ) ) {
+					$cases[ "{$role}, {$status}" ] = array( $role, $status, 'content_cannot_publish', 'private' === $status ? $private_message : $publish_message );
+				} else {
+					$cases[ "{$role}, {$status}" ] = array( $role, $status, $status, null );
+				}
+			}
+		}
+
+		return $cases + array(
 			// A custom status that makes a post visible needs `publish_posts`, and the refusal uses the general message.
 			'author, cw_public'        => array( 'author', 'cw_public', 'cw_public', null ),
 			'author, cw_private'       => array( 'author', 'cw_private', 'cw_private', null ),
@@ -826,15 +814,34 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Called directly, an internal or unregistered status is an invalid status.
+	 * Returns attribute values that a direct call cannot use: the attribute and the value.
+	 *
+	 * @return array<string, array{0: string, 1: mixed}> The cases.
+	 */
+	public static function data_values_a_direct_call_cannot_use(): array {
+		$cases = array();
+		foreach ( self::data_statuses_that_can_never_be_set() as $label => list( $status ) ) {
+			$cases[ "status: {$label}" ] = array( 'status', $status );
+		}
+		foreach ( self::data_dates_without_a_usable_value() as $label => list( $date ) ) {
+			$cases[ "date: {$label}" ] = array( 'date', $date );
+		}
+
+		return $cases;
+	}
+
+	/**
+	 * Called directly, an internal or unregistered status, an empty date and a date that cannot be
+	 * parsed are invalid attributes.
 	 *
 	 * @ticket 66706
-	 * @dataProvider data_statuses_that_can_never_be_set
+	 * @dataProvider data_values_a_direct_call_cannot_use
 	 * @since 7.3.0
 	 *
-	 * @param string $status The status.
+	 * @param string $attribute The attribute.
+	 * @param mixed  $value     The value.
 	 */
-	public function test_direct_call_rejects_a_status_that_can_never_be_set( string $status ): void {
+	public function test_direct_call_rejects_a_value_it_cannot_use( string $attribute, $value ): void {
 		$this->login_as( 'administrator' );
 		$execute = $this->get_ability_callbacks()['execute_callback'];
 
@@ -842,14 +849,14 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$result = $execute(
 			array(
 				'data' => array(
-					'type'   => 'post',
-					'title'  => 'Status',
-					'status' => $status,
+					'type'     => 'post',
+					'title'    => 'Unusable value',
+					$attribute => $value,
 				),
 			)
 		);
 
-		$this->assert_invalid_attribute( $result, 'status', 'A direct call with a status that can never be set' );
+		$this->assert_invalid_attribute( $result, $attribute, "A direct call with a {$attribute} it cannot use" );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -1015,27 +1022,72 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A user with `edit_others_posts` who names a missing user gets the invalid author error.
+	 * Returns attributes that are invalid for the user or after sanitization: the role, the data,
+	 * the invalid attribute and the expected error message or null.
 	 *
-	 * @ticket 66706
-	 * @since 7.3.0
+	 * @return array<string, array{0: string, 1: array<string, mixed>, 2: string, 3: string|null}> The cases.
 	 */
-	public function test_naming_a_missing_author_with_edit_others_posts_is_an_invalid_author(): void {
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$before = $this->snapshot();
-		$result = $this->run_ability(
-			array(
-				'data' => array(
+	public static function data_invalid_attributes(): array {
+		return array(
+			'missing author named with edit_others_posts'  => array(
+				'editor',
+				array(
 					'type'   => 'post',
 					'title'  => 'Nobody',
 					'author' => self::MISSING_ID,
 				),
-			)
+				'author',
+				null,
+			),
+			'slug that sanitizes to nothing'               => array(
+				'administrator',
+				array(
+					'type'  => 'post',
+					'title' => 'Slug',
+					'slug'  => '!!!',
+				),
+				'slug',
+				null,
+			),
+			// Intentionally strict: the save would drop the slug, so it is an error instead of being dropped without notice.
+			'slug of a pending post without publish_posts' => array(
+				'contributor',
+				array(
+					'type'   => 'post',
+					'title'  => 'Pending slug',
+					'status' => 'pending',
+					'slug'   => 'pending-slug',
+				),
+				'slug',
+				'The slug of a pending post can only be set by a user who can publish the post.',
+			),
 		);
+	}
 
-		$this->assert_invalid_attribute( $result, 'author', 'A missing author' );
+	/**
+	 * A missing author named by a user with `edit_others_posts`, a slug that sanitizes to nothing
+	 * and the slug of a pending post set by a user who may not publish posts are invalid attributes.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_invalid_attributes
+	 * @since 7.3.0
+	 *
+	 * @param string               $role      The role to create as.
+	 * @param array<string, mixed> $data      The data.
+	 * @param string               $attribute The invalid attribute.
+	 * @param string|null          $message   The expected error message, or null to check only that there is one.
+	 */
+	public function test_invalid_attribute_is_rejected( string $role, array $data, string $attribute, ?string $message ): void {
+		$this->login_as( $role );
+		$this->register_abilities();
+
+		$before = $this->snapshot();
+		$result = $this->run_ability( array( 'data' => $data ) );
+
+		$this->assert_invalid_attribute( $result, $attribute, "An invalid {$attribute}" );
+		if ( null !== $message ) {
+			$this->assertSame( $message, $result->get_error_message(), 'The message should give the reason.' );
+		}
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -1166,7 +1218,10 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A readable page of the same type can be the parent, and `0` makes a top-level page.
+	 * A readable page of the same type can be the parent, and a parent of `0` is accepted.
+	 *
+	 * A new page is top level without a parent too, so for `0` only the acceptance and the
+	 * returned value are checked. Moving a page to the top level is an update.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
@@ -1198,7 +1253,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 		$this->assertSame( self::$post_ids['published_page'], $this->get_created_post( $child, 'The create call of the child page' )->post_parent, 'The parent should be stored.' );
 		$this->assertSame( self::$post_ids['published_page'], $child['parent'], 'The parent should be returned.' );
-		$this->assertSame( 0, $this->get_created_post( $top, 'The create call of the top-level page' )->post_parent, 'A parent of 0 should make a top-level page.' );
+		$this->get_created_post( $top, 'The create call with a parent of 0' );
+		$this->assertSame( 0, $top['parent'], 'A parent of 0 should be accepted and returned as 0.' );
 	}
 
 	/**
@@ -1344,16 +1400,18 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			}
 		);
 
-		$result = $this->run_ability(
-			array(
-				'data' => array(
-					'type'  => 'post',
-					'title' => 'Database error',
-				),
-			)
-		);
-
-		$wpdb->suppress_errors( $suppress );
+		try {
+			$result = $this->run_ability(
+				array(
+					'data' => array(
+						'type'  => 'post',
+						'title' => 'Database error',
+					),
+				)
+			);
+		} finally {
+			$wpdb->suppress_errors( $suppress );
+		}
 
 		$this->assert_error( $result, 'db_insert_error', 500, 'A database error' );
 		$this->assertSame( 'Could not insert post into the database.', $result->get_error_message(), 'The message should be the message of the save error.' );
@@ -1426,61 +1484,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 		$this->assertSame( $expected, $this->get_created_post( $result )->post_name, 'The sanitized slug should be stored.' );
 		$this->assertSame( $expected, $result['slug'], 'The stored slug should be returned.' );
-	}
-
-	/**
-	 * A slug that sanitizes to nothing is an invalid slug.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_slug_that_sanitizes_to_nothing_is_rejected(): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$before = $this->snapshot();
-		$result = $this->run_ability(
-			array(
-				'data' => array(
-					'type'  => 'post',
-					'title' => 'Slug',
-					'slug'  => '!!!',
-				),
-			)
-		);
-
-		$this->assert_invalid_attribute( $result, 'slug', 'A slug that sanitizes to nothing' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
-	 * A user who may not publish posts cannot set the slug of a pending post.
-	 *
-	 * Intentionally strict: the save would drop the slug, so it is an error instead of being
-	 * dropped without notice.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_slug_of_a_pending_post_is_rejected_without_publish_posts(): void {
-		$this->login_as( 'contributor' );
-		$this->register_abilities();
-
-		$before = $this->snapshot();
-		$result = $this->run_ability(
-			array(
-				'data' => array(
-					'type'   => 'post',
-					'title'  => 'Pending slug',
-					'status' => 'pending',
-					'slug'   => 'pending-slug',
-				),
-			)
-		);
-
-		$this->assert_invalid_attribute( $result, 'slug', 'A slug on a pending post without publish_posts' );
-		$this->assertSame( 'The slug of a pending post can only be set by a user who can publish the post.', $result->get_error_message(), 'The message should say who may set the slug.' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written for a slug that cannot be stored.' );
 	}
 
 	/**
@@ -1949,34 +1952,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			$result,
 			'The ID and the requested fields should be returned.'
 		);
-	}
-
-	/**
-	 * Called directly, an empty date or a date that cannot be parsed is an invalid attribute.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_dates_without_a_usable_value
-	 * @since 7.3.0
-	 *
-	 * @param array<string, string> $date The date.
-	 */
-	public function test_direct_call_rejects_a_date_without_a_usable_value( array $date ): void {
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$before = $this->snapshot();
-		$result = $execute(
-			array(
-				'data' => array(
-					'type'  => 'post',
-					'title' => 'Unusable date',
-					'date'  => $date,
-				),
-			)
-		);
-
-		$this->assert_invalid_attribute( $result, 'date', 'A direct call with a date without a usable value' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**

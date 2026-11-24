@@ -76,15 +76,6 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	protected const ROLES = array( 'administrator', 'editor', 'author', 'contributor', 'subscriber' );
 
 	/**
-	 * The statuses of the matrix posts. `trash_<status>` is a post trashed from `<status>`.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var list<string>
-	 */
-	protected const MATRIX_STATUSES = array( 'draft', 'pending', 'publish', 'future', 'private', 'trash_draft', 'trash_publish' );
-
-	/**
 	 * Shared user IDs keyed by role or fixture name.
 	 *
 	 * @since 7.3.0
@@ -110,101 +101,6 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	public static function wpTearDownAfterClass(): void {
 		self::$user_ids = array();
 		self::$post_ids = array();
-	}
-
-	/**
-	 * Creates the users and posts shared by the tests that write an existing post: a user per
-	 * role and an `other` editor, one post per owner and matrix status, the posts that
-	 * data_posts_that_are_not_posts() names, and the pages that data_special_pages() names.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param WP_UnitTest_Factory $factory The unit test factory.
-	 */
-	protected static function create_shared_fixtures( WP_UnitTest_Factory $factory ): void {
-		foreach ( self::ROLES as $role ) {
-			self::$user_ids[ $role ] = $factory->user->create( array( 'role' => $role ) );
-		}
-		self::$user_ids['other'] = $factory->user->create( array( 'role' => 'editor' ) );
-
-		// One post per owner and status, for the matrix tests.
-		foreach ( array_merge( self::ROLES, array( 'other' ) ) as $owner ) {
-			foreach ( self::MATRIX_STATUSES as $status ) {
-				$stored_status = str_replace( 'trash_', '', $status );
-				$post_id       = $factory->post->create(
-					array(
-						'post_author' => self::$user_ids[ $owner ],
-						'post_status' => $stored_status,
-						'post_title'  => "Matrix {$owner} {$status}",
-						'post_date'   => 'future' === $stored_status ? '2099-01-01 00:00:00' : '',
-					)
-				);
-				if ( $stored_status !== $status ) {
-					wp_trash_post( $post_id );
-				}
-				self::$post_ids[ "{$owner}:{$status}" ] = $post_id;
-			}
-		}
-
-		self::$post_ids['admin_post'] = $factory->post->create(
-			array(
-				'post_author' => self::$user_ids['administrator'],
-				'post_status' => 'publish',
-				'post_title'  => 'Launch notes',
-				'post_name'   => 'shared-slug',
-			)
-		);
-
-		// A plain page, and the pages that set_special_pages() makes special.
-		foreach ( array( 'admin_page', 'front_page', 'posts_page', 'privacy_page' ) as $page ) {
-			self::$post_ids[ $page ] = $factory->post->create(
-				array(
-					'post_author' => self::$user_ids['administrator'],
-					'post_type'   => 'page',
-					'post_status' => 'publish',
-				)
-			);
-		}
-
-		self::$post_ids['attachment'] = $factory->attachment->create_object(
-			'image.jpg',
-			self::$post_ids['admin_post'],
-			array(
-				'post_mime_type' => 'image/jpeg',
-				'post_author'    => self::$user_ids['administrator'],
-			)
-		);
-
-		$revisioned_id = $factory->post->create(
-			array(
-				'post_author'  => self::$user_ids['administrator'],
-				'post_status'  => 'publish',
-				'post_content' => 'First version.',
-			)
-		);
-		wp_update_post(
-			array(
-				'ID'           => $revisioned_id,
-				'post_content' => 'Second version.',
-			)
-		);
-		self::$post_ids['revision'] = (int) array_key_first( wp_get_post_revisions( $revisioned_id ) );
-		self::$post_ids['autosave'] = (int) _wp_put_post_revision( get_post( $revisioned_id ), true );
-
-		// Posts of core types that are not exposed.
-		foreach ( array(
-			'reusable_block' => 'wp_block',
-			'template'       => 'wp_template',
-			'menu_item'      => 'nav_menu_item',
-		) as $fixture => $post_type ) {
-			self::$post_ids[ $fixture ] = $factory->post->create(
-				array(
-					'post_author' => self::$user_ids['administrator'],
-					'post_type'   => $post_type,
-					'post_status' => 'publish',
-				)
-			);
-		}
 	}
 
 	/**
@@ -486,61 +382,6 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns the forms a `where` can take in input that was not prepared.
-	 *
-	 * @return array<string, array{0: string, 1: bool}> The type of the ID, and whether `where` is
-	 *                                                  an object.
-	 */
-	public static function data_unprepared_where_forms(): array {
-		return array(
-			'integer ID'              => array( 'integer', false ),
-			'integer string ID'       => array( 'string', false ),
-			'float ID'                => array( 'float', false ),
-			'where that is an object' => array( 'integer', true ),
-		);
-	}
-
-	/**
-	 * Builds a `where` for a post in one of the forms of unprepared input.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param int    $post_id   The post ID.
-	 * @param string $id_type   The type to send the ID as.
-	 * @param bool   $as_object Whether to send `where` as an object.
-	 * @return array<string, mixed>|stdClass The `where`.
-	 */
-	protected function build_unprepared_where( int $post_id, string $id_type, bool $as_object ) {
-		$id = $post_id;
-		settype( $id, $id_type );
-
-		$where = array(
-			'type' => get_post_type( $post_id ),
-			'id'   => $id,
-		);
-
-		return $as_object ? (object) $where : $where;
-	}
-
-	/**
-	 * Returns posts that cannot be reached as a `post`.
-	 *
-	 * @return array<string, array{0: string}> The posts, as fixture names.
-	 */
-	public static function data_posts_that_are_not_posts(): array {
-		return array(
-			'revision'       => array( 'revision' ),
-			'attachment'     => array( 'attachment' ),
-			'page'           => array( 'admin_page' ),
-			'missing'        => array( 'missing' ),
-			'reusable block' => array( 'reusable_block' ),
-			'template'       => array( 'template' ),
-			'menu item'      => array( 'menu_item' ),
-			'autosave'       => array( 'autosave' ),
-		);
-	}
-
-	/**
 	 * Returns statuses that can never be set.
 	 *
 	 * @return array<string, array{0: string}> The statuses.
@@ -582,24 +423,6 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 			'empty date'                      => array( array() ),
 			'site date that cannot be parsed' => array( array( 'site' => 'not a date' ) ),
 			'GMT date that cannot be parsed'  => array( array( 'gmt' => 'not a date' ) ),
-		);
-	}
-
-	/**
-	 * Returns ID values that are not a whole number of at least 1.
-	 *
-	 * @return array<string, array{0: mixed}> The IDs.
-	 */
-	public static function data_ids_that_are_not_whole_numbers_of_at_least_1(): array {
-		return array(
-			'digits and letters' => array( '123abc' ),
-			'fraction'           => array( 1.5 ),
-			'zero'               => array( 0 ),
-			'negative'           => array( -1 ),
-			'true'               => array( true ),
-			'null'               => array( null ),
-			'list'               => array( array( 1 ) ),
-			'empty string'       => array( '' ),
 		);
 	}
 

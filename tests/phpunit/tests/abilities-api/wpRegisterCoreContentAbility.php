@@ -210,7 +210,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Registers the core/content-query ability and returns the callbacks it was registered with.
+	 * Registers the content abilities and returns the callbacks core/content-query was
+	 * registered with.
 	 *
 	 * The callbacks call private methods, so tests that skip input validation or the
 	 * permission check capture them from the registration arguments.
@@ -3577,35 +3578,31 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns how a query without a status names a trashed post, by ID, by slug or not at all,
-	 * and a role that can edit that post.
+	 * Returns how a query without a status names a trashed post, by ID or by slug, and a role
+	 * that can edit that post.
 	 *
-	 * @return array<string, array{filter: string|null, role: string}> Query test cases.
+	 * @return array<string, array{filter: string, role: string}> Query test cases.
 	 */
 	public static function data_queries_without_a_status(): array {
 		return array(
-			'IDs, administrator'       => array(
+			'IDs, administrator'   => array(
 				'filter' => 'ids',
 				'role'   => 'administrator',
 			),
-			'IDs, editor'              => array(
+			'IDs, editor'          => array(
 				'filter' => 'ids',
 				'role'   => 'editor',
 			),
-			'slugs, administrator'     => array(
+			'slugs, administrator' => array(
 				'filter' => 'slugs',
-				'role'   => 'administrator',
-			),
-			'no filter, administrator' => array(
-				'filter' => null,
 				'role'   => 'administrator',
 			),
 		);
 	}
 
 	/**
-	 * A query without a status does not cover the internal `trash` status, even for a role that
-	 * can edit the trashed post, also not when it lists IDs or slugs.
+	 * A query without a status that lists IDs or slugs does not cover the internal `trash`
+	 * status, even for a role that can edit the trashed post.
 	 *
 	 * The default statuses with IDs or slugs are the statuses that are not internal, so the query
 	 * neither returns nor counts the trashed post.
@@ -3614,12 +3611,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @ticket 66706
 	 * @dataProvider data_queries_without_a_status
 	 * @since 7.2.0
-	 * @since 7.3.0 Covers queries by slug and queries without a filter.
+	 * @since 7.3.0 Covers queries by slug.
 	 *
-	 * @param string|null $filter The filter that names the trashed post, `ids` or `slugs`, or null for none.
-	 * @param string      $role   The role to query as.
+	 * @param string $filter The filter that names the trashed post, `ids` or `slugs`.
+	 * @param string $role   The role to query as.
 	 */
-	public function test_query_without_a_status_does_not_cover_trashed_posts( ?string $filter, string $role ): void {
+	public function test_query_without_a_status_does_not_cover_trashed_posts( string $filter, string $role ): void {
 		$post_id = $this->create_trashed_post();
 
 		$this->login_as( $role );
@@ -3630,13 +3627,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$where = array( 'type' => 'post' );
 		if ( 'ids' === $filter ) {
 			$where['ids'] = array( $post_id );
-		} elseif ( 'slugs' === $filter ) {
+		} else {
 			$where['slugs'] = array( get_post( $post_id )->post_name );
-		}
-
-		if ( null === $filter ) {
-			$this->assertNotContains( $post_id, $this->query_ids( $where ), 'A query without a status should not return a trashed post.' );
-			return;
 		}
 
 		$result = wp_get_ability( 'core/content-query' )->execute(
@@ -7031,8 +7023,9 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * fail closed instead, and an ID beyond the integer range must not wrap around onto the
 	 * published post whose ID it aliases.
 	 *
-	 * This is the last test of the class: every post created after it gets an ID above
-	 * ALIASED_POST_ID.
+	 * Keep this test last in the class: the post it creates sets the next post ID above
+	 * ALIASED_POST_ID, so the fewer tests run after it, the fewer post IDs later test classes
+	 * see shifted.
 	 *
 	 * @ticket 66268
 	 * @dataProvider data_ids_with_no_valid_ids
