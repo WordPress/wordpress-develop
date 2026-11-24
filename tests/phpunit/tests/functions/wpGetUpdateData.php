@@ -299,15 +299,16 @@ class Tests_Functions_WpGetUpdateData extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that translation updates in any update transient are counted once.
+	 * Tests that each translation update in any update transient is counted.
 	 *
 	 * @ticket 65819
+	 * @ticket 66806
 	 *
 	 * @dataProvider data_update_transients
 	 *
 	 * @param string $transient The update transient holding the translations.
 	 */
-	public function test_should_count_translation_updates_once( $transient ) {
+	public function test_should_count_each_translation_update( $transient ) {
 		wp_set_current_user( self::$admin_id );
 
 		set_site_transient(
@@ -322,7 +323,7 @@ class Tests_Functions_WpGetUpdateData extends WP_UnitTestCase {
 
 		$data = wp_get_update_data();
 
-		$this->assertSame( 1, $data['counts']['translations'], 'Translation updates should be counted once.' );
+		$this->assertSame( 2, $data['counts']['translations'], 'Each translation update should be counted.' );
 		$this->assertSame( 'Translation Updates', $data['title'], 'The title should mention translation updates.' );
 	}
 

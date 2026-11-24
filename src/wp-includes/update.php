@@ -1112,8 +1112,8 @@ function wp_get_update_data() {
 		}
 	}
 
-	if ( ( $core || $plugins || $themes ) && wp_get_translation_updates() ) {
-		$counts['translations'] = 1;
+	if ( $core || $plugins || $themes ) {
+		$counts['translations'] = count( wp_get_translation_updates() );
 	}
 
 	$counts['total'] = $counts['plugins'] + $counts['themes'] + $counts['wordpress'] + $counts['translations'];
