@@ -39,15 +39,23 @@ p {
 	line-height: 1.5;
 }
 
+/*
+ * The login screen renders its messages through wp_admin_notice(), so the markup
+ * is the admin's. It does not load common.css, so the notice paint is repeated
+ * here, and the values below have to be kept in step with the notices section of
+ * that file by hand. Padding and margins are unchanged, so only the paint moves.
+ */
 .login .message,
 .login .notice,
 .login .success {
-	border-left: 4px solid #3858e9;
+	background: #f3f3f3;
+	border: 1px solid #dbdbdb;
+	border-radius: 8px;
+	color: #1e1e1e;
 	padding: 8px 12px;
 	margin-top: 0;
 	margin-left: 0;
 	margin-bottom: 20px;
-	background-color: #fff;
 	word-wrap: break-word;
 }
 
@@ -59,15 +67,31 @@ p {
 	margin: 0.5em 0;
 }
 
-.login .success {
-	border-left-color: #4ab866;
-	background-color: #eff9f1;
+/* An instructional message is rendered as an info notice, so it takes that tone. */
+.login .message,
+.login .notice-info {
+	border-color: #acc5e2;
+	background-color: #f3f9ff;
+	color: #001b4f;
 }
 
-/* Match border color from common.css */
+.login .success,
+.login .notice-success {
+	border-color: #91d29c;
+	background-color: #ebffed;
+	color: #002900;
+}
+
+.login .notice-warning {
+	border-color: #e0bc7d;
+	background-color: #fff7e1;
+	color: #2e1900;
+}
+
 .login .notice-error {
-	border-left-color: #cc1818;
-	background-color: #fcf0f0;
+	border-color: #e1b1a9;
+	background-color: #fff6f5;
+	color: #470000;
 }
 
 .login .login-error-list {
