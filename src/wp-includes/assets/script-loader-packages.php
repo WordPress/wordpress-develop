@@ -105,7 +105,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => 'f9a3114894c529a215ac'
+		'version' => 'd7e8b053f06b2e948e70'
 	),
 	'block-library.js' => array(
 		'dependencies' => array(
