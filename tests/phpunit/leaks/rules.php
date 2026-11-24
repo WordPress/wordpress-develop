@@ -3,7 +3,8 @@
  * What WP_PHPUnit_Leak_Listener snapshots, see tests/phpunit/README.md.
  *
  * Patterns are fnmatch() globs over snapshot keys, "area|key", without escapes. "!" negates.
- * The last pattern matching a key decides. A bare area name means all its keys, e.g. "mc".
+ * The last pattern matching a key decides. A bare area name means all its keys, e.g. "mc",
+ * except the WP_TESTS_LEAKS_AREAS shorthands, e.g. "db" and "cache", which span more areas.
  *
  * 'areas' holds each scope's defaults; WP_TESTS_LEAKS_AREAS replaces them. A test file's
  * patterns are its scope's defaults, then the 'areas' of each 'files' rule whose 'paths'
@@ -57,6 +58,7 @@ return array(
 			'why'   => 'Leak probe: a file no pattern keeps is not snapshotted, see check-probes.php.',
 			'paths' => array(
 				'tests/phpunit/leaks/probe/leakProbeSkipped.php',
+				'tests/phpunit/leaks/probe/leakProbeChildSkipped.php',
 			),
 			'areas' => array(
 				'!*',

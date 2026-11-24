@@ -54,6 +54,8 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	private const MAX_DEPTH = 12;
 
+	private const PHP_8_1 = 80100;
+
 	private const PREVIEW_LENGTH = 200;
 
 	private const MISMATCH_PREVIEW_LENGTH = 90;
@@ -115,6 +117,9 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	private const ENV_TEST = 'WP_TESTS_LEAKS_TEST';
 
+	// The child loads the test file after the bootstrap, where it plans.
+	private const ENV_FILE = 'WP_TESTS_LEAKS_FILE';
+
 	// Those an isolated child leaves its parent and later runs: not the in-process caches' stale|runtime and stale|local.
 	private const OUTLIVES_PROCESS = '/^(db|schema|mc|file|stale\|memcached)\|/';
 
@@ -137,7 +142,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	private $child = false;
 
-	// WP_TESTS_LEAKS_SCOPE=class: the state at the first class start and at the running class start.
+	// WP_TESTS_LEAKS_SCOPE=class: the state at the run start and at the running class start.
 	private $installed = null;
 
 	private $class_start = null;
@@ -156,6 +161,9 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	// Suites started and not ended: the run starts at the first and ends with it.
 	private $open_suites = 0;
+
+	// Whether any class's plan kept an area: else diff.php would read the run as clean.
+	private $snapshotted = false;
 
 	// DB rows read by the stale checks, reset per snapshot.
 	private $rows = array();
@@ -318,7 +326,10 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	 * all its keys, or its patterns, last first. Areas no pattern keeps are left out.
 	 */
 	private function plan( $class_name ) {
-		$file = class_exists( $class_name, false ) ? (string) ( new ReflectionClass( $class_name ) )->getFileName() : '';
+		return $this->file_plan( class_exists( $class_name, false ) ? (string) ( new ReflectionClass( $class_name ) )->getFileName() : '' );
+	}
+
+	private function file_plan( $file ) {
 		if ( isset( $this->plans[ $file ] ) ) {
 			return $this->plans[ $file ];
 		}
@@ -414,7 +425,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	 */
 	public function watch_child() {
 		$id   = getenv( self::ENV_TEST );
-		$plan = array_intersect_key( $this->plan( (string) strstr( $id, '::', true ) ), array_flip( self::CHILD_AREAS ) );
+		$plan = array_intersect_key( $this->file_plan( (string) getenv( self::ENV_FILE ) ), array_flip( self::CHILD_AREAS ) );
 		if ( self::SCOPE_CLASS === $this->scope || ! $plan ) {
 			return;
 		}
@@ -452,6 +463,11 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		if ( 0 === $this->open_suites++ ) {
 			$this->check_paths();
 			$this->mark( 'run_start', array( 'setup' => $this->setup() ) );
+
+			// Before any class runs, those rules.php skips included.
+			if ( self::SCOPE_CLASS === $this->scope ) {
+				$this->installed = $this->state( $this->union_plan() );
+			}
 		}
 
 		$class_name = $suite->getName();
@@ -464,14 +480,10 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			return;
 		}
 
+		$this->snapshotted = true;
+
 		if ( self::SCOPE_CLASS !== $this->scope ) {
 			$this->write( 'class_start', $class_name, $plan );
-			return;
-		}
-
-		if ( null === $this->installed ) {
-			$this->installed   = $this->state( $this->union_plan() );
-			$this->class_start = $this->filter( $this->installed, $plan );
 			return;
 		}
 
@@ -483,9 +495,17 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			$this->end_class( $suite->getName() );
 		}
 
-		if ( 0 === --$this->open_suites ) {
-			$this->mark( 'run_end' );
+		if ( 0 !== --$this->open_suites ) {
+			return;
 		}
+
+		// With no run_end, diff.php reports the run as incomplete.
+		if ( ! $this->snapshotted ) {
+			fwrite( STDERR, "No test file's patterns keep an area: nothing was snapshotted.\n" );
+			return;
+		}
+
+		$this->mark( 'run_end' );
 	}
 
 	private function end_class( $class_name ) {
@@ -507,6 +527,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 		// An isolated child inherits the environment.
 		putenv( self::ENV_TEST . '=' . $name );
+		putenv( self::ENV_FILE . '=' . ( new ReflectionClass( $test ) )->getFileName() );
 
 		$plan = $this->plan( get_class( $test ) );
 		if ( self::SCOPE_CLASS !== $this->scope && $plan ) {
@@ -565,7 +586,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 		$installed = array();
 		$left      = array();
-		foreach ( array_unique( array_merge( array_keys( $start ), array_keys( $end ) ) ) as $key ) {
+		foreach ( array_keys( $start + $end ) as $key ) {
 			$hash = $end[ $key ][0] ?? null;
 			if ( ( $start[ $key ][0] ?? null ) === $hash || ( $this->installed[ $key ][0] ?? null ) === $hash ) {
 				continue;
@@ -583,15 +604,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			return;
 		}
 
-		$this->append(
-			array(
-				'pid'       => getmypid(),
-				'point'     => 'class_leaks',
-				'id'        => $class_name,
-				'installed' => $installed,
-				'state'     => $left,
-			)
-		);
+		$this->append( $this->line( 'class_leaks', $class_name, $left ) + array( 'installed' => $installed ) );
 	}
 
 	// The keys the plan keeps, see plan().
@@ -1067,7 +1080,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 				 * Before PHP 8.1, each subclass has its own copy of an inherited method's static variables.
 				 * A test class's copies are the framework's, e.g. factory()'s.
 				 */
-				if ( $inherited && ( PHP_VERSION_ID >= 80100 || $ref->isSubclassOf( 'PHPUnit\Framework\TestCase' ) ) ) {
+				if ( $inherited && ( PHP_VERSION_ID >= self::PHP_8_1 || $ref->isSubclassOf( 'PHPUnit\Framework\TestCase' ) ) ) {
 					continue;
 				}
 
@@ -1177,7 +1190,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	// Private members need setAccessible() before PHP 8.1, which deprecates it in 8.5.
 	private function read( ReflectionProperty $prop, $instance = null ) {
-		if ( PHP_VERSION_ID < 80100 ) {
+		if ( PHP_VERSION_ID < self::PHP_8_1 ) {
 			$prop->setAccessible( true );
 		}
 

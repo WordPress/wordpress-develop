@@ -7,8 +7,9 @@
  *                                         WP_TESTS_LEAKS_SCOPE=class runs: install vs class end.
  * php diff.php alone.jsonl seq.jsonl ID   State the class ID inherits: its class_start
  *                                         in run A vs run B, minus run noise (timestamps,
- *                                         env, install rows): keys whose first class_start,
- *                                         before any class ran, already differs.
+ *                                         env, install rows): keys both first class_starts,
+ *                                         before any class ran, hold with different values.
+ *                                         A key only one holds is its first class's rules.
  */
 
 const CHANGES_FOUND = 2;
@@ -46,7 +47,7 @@ function load( $file ) {
 
 function compare( array $a, array $b ) {
 	$lines = array();
-	foreach ( array_unique( array_merge( array_keys( $a ), array_keys( $b ) ) ) as $key ) {
+	foreach ( array_keys( $a + $b ) as $key ) {
 		$before = $a[ $key ] ?? null;
 		$after  = $b[ $key ] ?? null;
 		if ( $before && $after && $before[0] === $after[0] ) {
@@ -102,7 +103,7 @@ if ( 4 === $argc ) {
 	list( $first_a, $a ) = class_starts( $argv[1], $argv[3] );
 	list( $first_b, $b ) = class_starts( $argv[2], $argv[3] );
 
-	$noise = array_diff_key( $first_a, $first_b ) + array_diff_key( $first_b, $first_a );
+	$noise = array();
 	foreach ( array_intersect_key( $first_a, $first_b ) as $key => $value ) {
 		if ( $value[0] !== $first_b[ $key ][0] ) {
 			$noise[ $key ] = true;
