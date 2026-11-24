@@ -1,55 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="300" viewBox="0 0 1000 300">
-	<style>@font-face{font-family:a;src:url(data:font/woff2;base64,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)}</style>
-	<defs>
-		<path id="av" d="M0 0v-.62h3.31V0z"/>
-		<path id="r" d="m.01 0-.1-1.15v-1.16h.75v1.16L.57 0z"/>
-	</defs>
+	<style>@font-face{font-family:a;src:url(data:font/woff2;base64,d09GMgABAAAAAAtsAA8AAAAAFXQAAAsTAAI2BAAAAAAAAAAAAAAAAAAAAAAAAAAAGkwbIBwqBmA/U1RBVEwAgUoRCAqdTJcXATYCJAOBUAtqAAQgBYM6ByAbzhCjopSxahD85QFPRjX+HBSKVSj4rFpbIxjRtB6++D61jO3i8DS+DtOAc/tTEOI0ag4VD8BAFcpd8DzOVe+nHUoGCLrb2WNEI06fUEQKhQa2qImH3k3/Jta51aAzNFX0koscUhKkLWUkNKVi0IlrZe7695771dy7Gyjsa3SBwIiO7+TuPpZA1QIlNrFlELaO0JaF7NSVh8/b+1uQdZ5/wM67BKKA8jTeBahti3POzwgDBAdMerAjdCqdgLAlvP/hy3b7ffu92neDqOKIVYTJiYrTUZP9+2HehGizIXoBgBLbnsq6ysoqAJSkIhuha0yVq5coVP3eNmOwYJVg0584+NueetzFCAiqDg2KJgKEYYiQEBERIWJiRFKSSMsQOUWirExUVQkBWpF52jFtzhIaswH/IY3ltDnU9bW4Nx7ZRycYPN0uq6SLB6opP4DZw/vLhT4mABQC3qqKh87aATyi6mz905+ia48umqFSvbZVnpgX+ymQTJ3mpmf7jiMC/G/GlZVbWxaxSLUlv+IoD7AIFVGI0IllUyFqmGq7a+qqglX3tXr0N9AI40xmI/AJKTXASKONHQSqOrpo+mgT4MmTlRsk4d2y+R2uP13oTI1AWuxTRikn1kwTdNW2rtzr0+Ggqa7GnVsG6m+AQYRaw6QMIuuTIQI7nInL7A+8643RO1CPZs0wWgVLn8UGkaAqFc0dDajAp5sDiUCgGgwFIgHXXzKZcDkTzutkJZzRoYiTjoez4XRfIh6qDG9qCsWgbYftRMJxkpC3/vhQaGA4iBgDyIoWPw19tKZX5ipcxAvB/LSXyVfcTzTiTcJVCye3GYrW52yH2wugLHMLohkrWDCG6h3BcIU9EgdkWBvsFcsWQXZ4SVJSIuihtQYW6dk4TE8KuwvmlLcOVWbrvI5UFeoZcDhWrUVRG7eEpRBetyjehCXq9dXjTu1C4oJ8tIVpiMCwZdqHfrU9Z9fpS+VIKKzGBkiZqmUL33EHNMMRlk4afkZUYAaV+vTHizzYwoj+piTRGyCxFIs5TNhIa36KdtjUgryGOT313GZcEKEpXHOdfRQtYA9ibT8NNhskkqKFvHNbLOw5ARhknFAUTk33UOsY0cacTN7koEmKVnM0X/vW6dvJIxXuUu2wNg2J7P/ligwcZhK6Pi8V9pFZgd3GhDquDu8BzHhNtlpdOHUkWO1Fi7Ng7ONEwIOG5upwI9UItXfsR3KzzG2fCmlkRh0TdjB9u4yktqz8hpFNIJ2CWhVT63JmBzevSekVIekro0+8Infykk/6bOC4VXHOLDevn3xNI0bKsoscOSpw6a1/Md+UENLtmImB9700jYRcO8DpYplW85gZ2u4hQ2/z1i16phR/vtjM4eea3w9BhbKg1hyjlms0XNdH2+WaW5fU4az5sbDq7zQGdMuauvJnxlCkGL/f8kItB0Cx7xoVXpo9UvKCCc0gfxKDP8DwyPkts3ZtD/MQTQ/zCA2enJOrl9bQN0H/+fpag/oaew0l0HEHvxQeKB3/EcHrPxvA7ui5JS85/Orp1OWxoOf+Q/c9mX879v8v1ldaKv8v+6Phn+fh6VHz4Nf3stt7wRYZnn4qn8FCBEJaNJ2biJys2ep0oonMGDNDZmTQ0DIGDEBKOkK0CpAISjoSSnpCJHmKwRYLy5ICZDmLhcEUDwlJ0oMIrrZX43G4yl6FwcZnHyfnEykSCVOk/GRUpR9VZbU7IGm3W6uA/OzFxDwiOWh18KV065WUtNAw1jh5rhnbLBaMzXOBBluoSfM3F4w8zVB20qAl2J9Sd3t7oQwbCZ+kgaGBpbl8BkOazbQhVUMwv6Tutg7uiN2Y6s/XggaLbtq+2G4sAkBO2O90yNne3Ya0f41DaBUrNGEHeLOC5fm+ka7y5r/HitxuykumeHdpBqu0KB2wTRifnRzQXuaf8SvB8LYQZjlobzgirRfDkXLahDhqBYU4kwFhcgWJMOgHhnTJQbgCJgdDOigNLKyTw3eizSYzx5IrIMeZTbSlI18nZ2AhiPIURMT1UjjiZXwOCNuC4Sv5Z7zcfgDps/eljZRtauuN3m4OXFDUE6JlhZUIjrhw9JAHrXK2EdHYmkL1ns7H0JW82tIPIQytNEYJrcDbzevwurDVhZnVeHVcbM/we/x+M1i/H2/WXFfBOsVtlBa3jfHJUXGoKEd8jBtbOrQqcmU4/T5PbLdQwqMOmRKlyJ/cxmf8jrJ2IUqwsR65yD+QL7GSTIYR2SgZrMAXqrbjf18dw2DLM375wHWfgkcaHO8prv/70D/giIZOUCD1f4dxQ1oxImE3BlOVLN1yo7pBX5WmiSPuobp9XyLdYd1o35j4V/dSp8SN1EZFo+7d/6zvAlnJF7ULUoLdNxC4m7pBUUeIsIYkgiMuHC0UhLWQEO9uZS2IQTWIZsxmmnrBhv37/ATWm18hrbeqAoIujck6hcdVbhz3y0Rx1ApEsSYDnbw9jcFhpauo7Sng5QOOnKKKYJy7KyKxeeXffKZUd4IG2vm86WpdSjRJ8f8lT7PMZi4bsklCIMkl2VYJIuqXlGLolXjgkruZuxnvZByh7CDYwTgw8qzAK5YLy1/ilx6aXIRBLzFamZfH55EUNhgRJsdeJq+yEnx/KNzjxqzqBmG3VaPHCPXDwQS/gjPMUhS2br1UQc5yUuRM/fipCuMsOqgImMYZt7WKneWwjgMj3+VQjDh4b+6V1NQrudWvN3io6dmcOPp46XUu7d/SMcfB4f3Co+vKPzF78Bsrfzc8MiurxVNEfIW/uMi/dWz5oo0YuChZlZxtJFnRlSipG2rpPgQyGjIoE9FHgy5KKkHJiaR/SHGYhXYyXaWz/SGqnYlcriVVJwT6mc39++mFVDOXKyhF1SctVqXbKeBSbEtUblcotisTt4HtqzNTR0xIBbtWu1KHj09VmWJrYmNrY9vEzszXz4gFfKQD2uGrPhJ8GD4nvvZq1bEwu2Jyef8OTrJFKJsY7z7GExNCvtE14NBwnmoh+YpO/pibJ4TmbuIMdphUzq4IH6vSP3hwK5IuKHrh+JgdiSIZ5aJwXHLMjoRenKBI13JadWa/mB2ZyG5qYEKOzJgd/TLVWg6siHAajblbzA4z5QBSKLu5sZs5pXpOuqDozSXUXYlRaDMmkpga3xsfEJitZCELRg+9QcC7M2bBcv/yJgtAzgpuC7f5O7uFBUtpl7Y6g5+0ONRJWytsf5oNhB5QtXf+Xw7o/b5RHJqU6w5YJw1lvI5yY0Y0czs0dE3odVpH0i7naDuduXrioGvO585N9YxpL5zVO3zNluN7Fu7YfWL99Mmq6V4YcmTARde92v/0wGu4rTK/WJpYqUwsFSbQMIkDr8ELMAEAWAGotLzn/zOiPxiozb7ZuDRpIDLma2PL+gh489jbAnxw4bXGcKqB1gwAXgqA4JeoUZ1QTF+gH3vfeAjAARlpyIeISKQMB9LBQq4YgLVO7Or8hAIknMroQcZg9IcRIZiRVJcxBRFevMAO7IaAUxhcl5tiDkz4DwD+yOxJPfi40hsbYjxLmlq3njZ+26DtMgWAe5jKE457eUrY29ywYT6VEQiGk2ehYwhH+MhxiE7OAqn81Vs/SKliJYYIO8gA2VQtYVDIsx5mCApmWZiowWTmqpxAJS/gqeMyVMJ2zERDUy7hZJCGOPZJ8IBJY9BfstuVgoR7+dQ2iytEaLwdlQv6P5/e0TXMWZnnUai4u3YF2aCYiCS8C8TwEMHqjks1RL2K+xfTmI/llKPQ7l4PbJNZ7iZLhXlWs0gWVc9b9f4PPRA=)}</style>
 	<path fill="#eeece5" d="M0 0h1000v300H0z"/>
 	<g fill="#cfc8b6" font-family="a" font-size="7.75" letter-spacing="0.25" font-variant-ligatures="none">
 		<text x="228.33" y="72.46">imp</text>
 		<text x="203.8" y="84.8">ort <tspan fill="#3858e9">{ </tspan>re</text>
 		<text x="184.2" y="97.15">gisterBlockT</text>
-		<text x="159.68" y="109.49">ype } from</text>
-		<text x="218.51" y="109.49">@word</text>
+		<text x="159.68" y="109.49">ype } from '@word</text>
 		<text x="135.17" y="121.83">press/blocks'; import { useBlockProps, RichText<tspan fill="#3858e9">, </tspan>InspectorControls</text>
-		<text x="110.67" y="134.17">} from</text>
-		<text x="149.87" y="134.17">@wordpress/block-editor'; import { PanelBody, RangeControl } fro</text>
-		<text x="86.17" y="146.5">m</text>
-		<text x="100.85" y="146.5"><tspan fill="#3858e9">@</tspan>wordpress/components'; import { __ <tspan fill="#3858e9">} </tspan>from</text>
-		<text x="316.54" y="146.5">@wordpress<tspan fill="#3858e9">/</tspan>i18n ; registerBloc</text>
-		<text x="86.15" y="158.85">kType(</text>
-		<text x="125.35" y="158.85">vamp/path , <tspan fill="#3858e9">{ </tspan>edit( { attributes, setAttributes } ) { const blockProp</text>
-		<text x="110.69" y="171.19">s</text>
-		<text x="130.27" y="171.19">useBlockProps(); return ( &lt;&gt; &lt;InspectorControls&gt; &lt;PanelBody title={</text>
-		<text x="135.16" y="183.52">_<tspan fill="#3858e9">_</tspan>( 'Spacing ,</text>
-		<text x="213.58" y="183.52">vamp</text>
-		<text x="243.06" y="183.52">) }&gt; &lt;RangeControl label { __( 'Tracking ,</text>
-		<text x="458.71" y="183.52">v</text>
-		<text x="159.69" y="195.86">amp</text>
-		<text x="184.23" y="195.86">) } value {</text>
+		<text x="110.67" y="134.17">} from '@wordpress/block-editor'; import { PanelBody, RangeControl } fro</text>
+		<text x="86.17" y="146.5">m '<tspan fill="#3858e9">@</tspan>wordpress/components'; import { __ <tspan fill="#3858e9">} </tspan>from '@wordpress<tspan fill="#3858e9">/</tspan>i18n'; registerBloc</text>
+		<text x="86.15" y="158.85">kType( 'vamp/path', <tspan fill="#3858e9">{ </tspan>edit( { attributes, setAttributes } ) { const blockProp</text>
+		<text x="110.69" y="171.19">s = useBlockProps(); return ( &lt;&gt; &lt;InspectorControls&gt; &lt;PanelBody title={</text>
+		<text x="135.16" y="183.52">_<tspan fill="#3858e9">_</tspan>( 'Spacing', 'vamp' ) }&gt; &lt;RangeControl label={ __( 'Tracking', 'v</text>
+		<text x="159.69" y="195.86">amp' ) } value={</text>
 		<text x="184.2" y="208.2">attributes<tspan fill="#3858e9">.</tspan>t</text>
 		<text x="203.81" y="220.54">racking</text>
 		<text x="228.32" y="232.89">} o</text>
-	</g>
-	<g fill="#cfc8b6">
-		<use href="#r" x="215.64" y="106.15"/>
-		<use href="#r" x="147" y="130.83"/>
-		<use href="#r" x="97.99" y="143.17"/>
-		<use href="#r" x="392.11" y="143.17"/>
-		<use href="#r" x="313.67" y="143.17"/>
-		<use href="#r" x="122.49" y="155.51"/>
-		<use href="#r" x="171.51" y="155.51"/>
-		<use href="#av" x="121.16" y="168.01"/>
-		<use href="#av" x="121.16" y="169.86"/>
-		<use href="#r" x="235.24" y="180.19"/>
-		<use href="#av" x="361.37" y="180.34"/>
-		<use href="#av" x="361.38" y="182.2"/>
-		<use href="#r" x="196.02" y="180.19"/>
-		<use href="#r" x="210.72" y="180.19"/>
-		<use href="#r" x="441.15" y="180.19"/>
-		<use href="#r" x="455.85" y="180.19"/>
-		<use href="#r" x="176.42" y="192.52"/>
-		<use href="#av" x="229.01" y="192.69"/>
-		<use href="#av" x="229.01" y="194.53"/>
 	</g>
 </svg>

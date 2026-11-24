@@ -1,14 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="300" viewBox="0 0 1000 300">
-	<style>@font-face{font-family:a;src:url(data:font/woff2;base64,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)}</style>
-	<defs>
-		<path id="an" d="M0 0h.9v-.9H0z"/>
-		<path id="ao" d="M0-1.8h.9v-.9H0zM0 0h.9v-.9H0zm1.8-1.8h.9v-.9h-.9zm0 1.8h.9v-.9h-.9z"/>
-		<path id="as" d="M0 0v-1.12h7.2V0z"/>
-		<path id="y" d="M0 0v-.9h.9V0zm-8.1 18.9V18h.9v.9zm0-1.8v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9V18h.9v.9zm-1.8-3.6v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9V18h.9v.9zm-3.6-5.4v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9V18h.9v.9zm-5.4-7.2v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9V18H0v.9zm-7.2-9V9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9H0v.9zm.9.9v-.9h.9v.9zm-8.1-9.9v-.9h.9v.9zm.9.9v-.9h.9V9zm.9.9V9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9H0v.9zm.9.9v-.9h.9v.9zm-8.1-9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9V9zm.9.9V9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9H0v.9zm.9.9v-.9h.9v.9zm-8.1-9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9V9zm.9.9V9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9H0v.9zm.9.9v-.9h.9v.9zm-8.1-9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9V9zm.9.9V9H0v.9zm.9.9v-.9h.9v.9zM-8.1.9V0h.9v.9zm.9.9V.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9H0v.9zM0 9v-.9h.9V9zm-7.2-9v-.9h.9V0zm.9.9V0h.9v.9zm.9.9V.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9H0v.9zm.9.9v-.9h.9v.9zM-5.4 0v-.9h.9V0zm.9.9V0h.9v.9zm.9.9V.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9h.9v.9zm.9.9v-.9H0v.9zm.9.9v-.9h.9v.9zM-3.6 0v-.9h.9V0zm.9.9V0h.9v.9zm.9.9V.9h.9v.9zm.9.9v-.9H0v.9zm.9.9v-.9h.9v.9zM-1.8 0v-.9h.9V0zm.9.9V0H0v.9zm.9.9V.9h.9v.9z"/>
-	</defs>
+	<style>@font-face{font-family:a;src:url(data:font/woff2;base64,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)}</style>
 	<path fill="#eeece5" d="M0 0h1000v300H0z"/>
 	<g fill="#cfc8b6" font-family="a" font-size="15.04" letter-spacing="0.61" font-variant-ligatures="none">
-		<text x="2.19" y="10.22">, { edit( <tspan fill="#3858e9">{ </tspan>attribut</text>
+		<text x="2.19" y="10.22">, { edit( <tspan fill="#3858e9">{ </tspan>attribut▒</text>
 		<text x="291.14" y="10.22">es, setAttr▓</text>
 		<text x="2.17" y="26.4">utes } ) { const ▓</text>
 		<text x="291.13" y="26.4">blockProps ▓</text>
@@ -18,345 +12,33 @@
 		<text x="291.13" y="58.76">rControls&gt; ▓</text>
 		<text x="2.17" y="74.94">PanelBod<tspan fill="#3858e9">▓</tspan></text>
 		<text x="291.12" y="74.94">y title={ <tspan fill="#3858e9">_</tspan>▓</text>
-		<text x="11.88" y="91.13">█ ( █</text>
+		<text x="2.25" y="91.13">▒█<tspan fill="#3858e9">_</tspan>( █</text>
 		<text x="291.16" y="91.13">'Spacing', ▓</text>
 		<text x="291.12" y="107.31">'vamp' ) }&gt;▓</text>
 		<text x="300.83" y="123.49">&lt;RangeCont▓</text>
-		<text x="570.54" y="123.49">▓rol la█</text>
-		<text x="291.13" y="139.68">bel<tspan fill="#3858e9">=</tspan>{</text>
-		<text x="368.18" y="139.68">( '▓</text>
-		<text x="503.12" y="139.68">▓Tracking', 'vamp</text>
+		<text x="560.9" y="123.49"><tspan fill="#3858e9">▒</tspan>▓rol la█░</text>
+		<text x="291.13" y="139.68">bel<tspan fill="#3858e9">=</tspan>{ __( '▓</text>
+		<text x="493.41" y="139.68">░▓Tracking', 'vamp▒</text>
 		<text x="291.2" y="155.86">' ) } value▓</text>
-		<text x="445.33" y="155.86">▓█={ attributes.tracking</text>
+		<text x="435.62" y="155.86">░▓█={ attributes.tracking░</text>
 		<text x="300.77" y="172.04">} onChange={ ( tracking ) =&gt; setAttribu▓</text>
 		<text x="291.14" y="188.22">tes( { tracking } ) } min={ 0 } max={ 20▓</text>
 		<text x="291.18" y="204.41">&gt; &lt;/PanelBody&gt; &lt;/InspectorControls&gt; &lt;Ric▓</text>
 		<text x="984.71" y="204.41">▓h</text>
 		<text x="291.14" y="220.59">..blockProps } tagName="p" value={ attri▓</text>
-		<text x="965.36" y="220.59">bute</text>
-		<text x="300.77" y="236.77">} onChange={ ( content ) <tspan fill="#3858e9">=</tspan>&gt;▓ setAttribu▓</text>
-		<text x="936.49" y="236.77">tes( {</text>
-		<text x="291.2" y="252.95">) } /&gt; &lt;/&gt; ); }, save(█</text>
+		<text x="955.8" y="220.59">▒bute</text>
+		<text x="281.5" y="236.77">░ } onChange={ ( content ) <tspan fill="#3858e9">=</tspan>&gt;▓ setAttribu▓</text>
+		<text x="926.91" y="236.77">▒tes( {</text>
+		<text x="291.2" y="252.95">) } /&gt; &lt;/&gt; ); }, save(█▒</text>
 		<text x="580.09" y="252.95">{ attribut▓</text>
-		<text x="907.57" y="252.95">es } ) { r</text>
+		<text x="898.01" y="252.95">▒es } ) { r</text>
 		<text x="291.21" y="269.14">▓chText.Content█▓</text>
 		<text x="580.1" y="269.14">{ ...useBl▓</text>
-		<text x="878.69" y="269.14">ockProps.save</text>
-		<text x="310.39" y="285.32">Name<tspan fill="#3858e9">=</tspan>"p█▓</text>
+		<text x="869.12" y="269.14">▒ockProps.save</text>
+		<text x="310.39" y="285.32">Name<tspan fill="#3858e9">=</tspan>"p█▓░</text>
 		<text x="570.45" y="285.32">" value=<tspan fill="#3858e9">{ </tspan>a▓</text>
 		<text x="849.87" y="285.32">█ttributes.conte</text>
 		<text x="570.51" y="301.5">&gt;; }. } ); ▓</text>
-		<text x="820.96" y="301.5">█import <tspan fill="#3858e9">{ </tspan>registerB</text>
-	</g>
-	<g fill="#cfc8b6">
-		<use href="#y" x="202.99" y="-4.21"/>
-		<use href="#y" x="10.35" y="76.71"/>
-		<use href="#an" x="648.49" y="109.07"/>
-		<use href="#an" x="650.29" y="109.07"/>
-		<use href="#an" x="655.69" y="109.07"/>
-		<use href="#an" x="648.49" y="110.87"/>
-		<use href="#an" x="650.29" y="110.87"/>
-		<use href="#ao" x="652.09" y="110.87"/>
-		<use href="#an" x="655.69" y="110.87"/>
-		<use href="#an" x="648.49" y="112.67"/>
-		<use href="#an" x="650.29" y="112.67"/>
-		<use href="#an" x="652.09" y="112.67"/>
-		<use href="#an" x="653.89" y="112.67"/>
-		<use href="#an" x="655.69" y="112.67"/>
-		<use href="#an" x="648.49" y="114.47"/>
-		<use href="#an" x="650.29" y="114.47"/>
-		<use href="#an" x="652.09" y="114.47"/>
-		<use href="#an" x="653.89" y="114.47"/>
-		<use href="#an" x="655.69" y="114.47"/>
-		<use href="#an" x="648.49" y="116.27"/>
-		<use href="#an" x="650.29" y="116.27"/>
-		<use href="#an" x="652.09" y="116.27"/>
-		<use href="#an" x="653.89" y="116.27"/>
-		<use href="#an" x="655.69" y="116.27"/>
-		<use href="#an" x="648.49" y="118.07"/>
-		<use href="#an" x="650.29" y="118.07"/>
-		<use href="#an" x="655.69" y="118.07"/>
-		<use href="#an" x="648.49" y="119.87"/>
-		<use href="#an" x="650.29" y="119.87"/>
-		<use href="#ao" x="652.09" y="119.87"/>
-		<use href="#an" x="655.69" y="119.87"/>
-		<use href="#an" x="648.49" y="121.67"/>
-		<use href="#an" x="650.29" y="121.67"/>
-		<use href="#an" x="652.09" y="121.67"/>
-		<use href="#an" x="653.89" y="121.67"/>
-		<use href="#an" x="655.69" y="121.67"/>
-		<use href="#an" x="648.49" y="123.47"/>
-		<use href="#an" x="650.29" y="123.47"/>
-		<use href="#an" x="652.09" y="123.47"/>
-		<use href="#an" x="653.89" y="123.47"/>
-		<use href="#an" x="655.69" y="123.47"/>
-		<use href="#an" x="494.37" y="125.25"/>
-		<use href="#an" x="496.17" y="125.25"/>
-		<use href="#an" x="497.97" y="125.25"/>
-		<use href="#an" x="499.77" y="125.25"/>
-		<use href="#an" x="501.57" y="125.25"/>
-		<use href="#y" x="674.96" y="125.25"/>
-		<use href="#an" x="648.49" y="125.27"/>
-		<use href="#an" x="650.29" y="125.27"/>
-		<use href="#an" x="652.09" y="125.27"/>
-		<use href="#an" x="653.89" y="125.27"/>
-		<use href="#an" x="655.69" y="125.27"/>
-		<use href="#an" x="494.37" y="127.06"/>
-		<use href="#an" x="499.77" y="127.06"/>
-		<use href="#an" x="501.57" y="127.06"/>
-		<use href="#an" x="648.49" y="127.07"/>
-		<use href="#an" x="650.29" y="127.07"/>
-		<use href="#an" x="652.09" y="127.07"/>
-		<use href="#an" x="653.89" y="127.07"/>
-		<use href="#an" x="655.69" y="127.07"/>
-		<use href="#an" x="494.37" y="128.85"/>
-		<use href="#ao" x="496.17" y="128.85"/>
-		<use href="#an" x="499.77" y="128.85"/>
-		<use href="#an" x="501.57" y="128.85"/>
-		<use href="#an" x="494.37" y="130.66"/>
-		<use href="#an" x="496.17" y="130.66"/>
-		<use href="#an" x="497.97" y="130.66"/>
-		<use href="#an" x="499.77" y="130.66"/>
-		<use href="#an" x="501.57" y="130.66"/>
-		<use href="#an" x="494.37" y="132.46"/>
-		<use href="#an" x="496.17" y="132.46"/>
-		<use href="#an" x="497.97" y="132.46"/>
-		<use href="#an" x="499.77" y="132.46"/>
-		<use href="#an" x="501.57" y="132.46"/>
-		<use href="#an" x="494.37" y="134.25"/>
-		<use href="#an" x="496.17" y="134.25"/>
-		<use href="#an" x="497.97" y="134.25"/>
-		<use href="#an" x="499.77" y="134.25"/>
-		<use href="#an" x="501.57" y="134.25"/>
-		<use href="#an" x="494.37" y="136.06"/>
-		<use href="#an" x="499.77" y="136.06"/>
-		<use href="#an" x="501.57" y="136.06"/>
-		<use href="#an" x="494.37" y="137.85"/>
-		<use href="#ao" x="496.17" y="137.85"/>
-		<use href="#an" x="499.77" y="137.85"/>
-		<use href="#an" x="501.57" y="137.85"/>
-		<use href="#an" x="494.37" y="139.66"/>
-		<use href="#an" x="496.17" y="139.66"/>
-		<use href="#an" x="497.97" y="139.66"/>
-		<use href="#an" x="499.77" y="139.66"/>
-		<use href="#an" x="501.57" y="139.66"/>
-		<use href="#as" x="349.9" y="141.16"/>
-		<use href="#as" x="359.53" y="141.16"/>
-		<use href="#an" x="436.59" y="141.44"/>
-		<use href="#an" x="438.39" y="141.44"/>
-		<use href="#an" x="440.19" y="141.44"/>
-		<use href="#an" x="441.99" y="141.44"/>
-		<use href="#an" x="443.79" y="141.44"/>
-		<use href="#an" x="677.38" y="141.44"/>
-		<use href="#an" x="679.18" y="141.44"/>
-		<use href="#an" x="680.98" y="141.44"/>
-		<use href="#an" x="682.78" y="141.44"/>
-		<use href="#an" x="684.58" y="141.44"/>
-		<use href="#an" x="494.37" y="141.46"/>
-		<use href="#an" x="496.17" y="141.46"/>
-		<use href="#an" x="497.97" y="141.46"/>
-		<use href="#an" x="499.77" y="141.46"/>
-		<use href="#an" x="501.57" y="141.46"/>
-		<use href="#an" x="436.59" y="143.24"/>
-		<use href="#an" x="438.39" y="143.24"/>
-		<use href="#an" x="440.19" y="143.24"/>
-		<use href="#an" x="441.99" y="143.24"/>
-		<use href="#an" x="443.79" y="143.24"/>
-		<use href="#an" x="677.38" y="143.24"/>
-		<use href="#an" x="679.18" y="143.24"/>
-		<use href="#an" x="680.98" y="143.24"/>
-		<use href="#an" x="682.78" y="143.24"/>
-		<use href="#an" x="684.58" y="143.24"/>
-		<use href="#an" x="494.37" y="143.25"/>
-		<use href="#an" x="496.17" y="143.25"/>
-		<use href="#an" x="497.97" y="143.25"/>
-		<use href="#an" x="499.77" y="143.25"/>
-		<use href="#an" x="501.57" y="143.25"/>
-		<use href="#an" x="436.59" y="145.04"/>
-		<use href="#an" x="438.39" y="145.04"/>
-		<use href="#an" x="443.79" y="145.04"/>
-		<use href="#an" x="677.38" y="145.04"/>
-		<use href="#an" x="682.78" y="145.04"/>
-		<use href="#an" x="684.58" y="145.04"/>
-		<use href="#an" x="436.59" y="146.84"/>
-		<use href="#an" x="438.39" y="146.84"/>
-		<use href="#ao" x="440.19" y="146.84"/>
-		<use href="#an" x="443.79" y="146.84"/>
-		<use href="#an" x="677.38" y="146.84"/>
-		<use href="#ao" x="679.18" y="146.84"/>
-		<use href="#an" x="682.78" y="146.84"/>
-		<use href="#an" x="684.58" y="146.84"/>
-		<use href="#an" x="436.59" y="148.64"/>
-		<use href="#an" x="438.39" y="148.64"/>
-		<use href="#an" x="440.19" y="148.64"/>
-		<use href="#an" x="441.99" y="148.64"/>
-		<use href="#an" x="443.79" y="148.64"/>
-		<use href="#an" x="677.38" y="148.64"/>
-		<use href="#an" x="679.18" y="148.64"/>
-		<use href="#an" x="680.98" y="148.64"/>
-		<use href="#an" x="682.78" y="148.64"/>
-		<use href="#an" x="684.58" y="148.64"/>
-		<use href="#an" x="436.59" y="150.44"/>
-		<use href="#an" x="438.39" y="150.44"/>
-		<use href="#an" x="440.19" y="150.44"/>
-		<use href="#an" x="441.99" y="150.44"/>
-		<use href="#an" x="443.79" y="150.44"/>
-		<use href="#an" x="677.38" y="150.44"/>
-		<use href="#an" x="679.18" y="150.44"/>
-		<use href="#an" x="680.98" y="150.44"/>
-		<use href="#an" x="682.78" y="150.44"/>
-		<use href="#an" x="684.58" y="150.44"/>
-		<use href="#an" x="436.59" y="152.24"/>
-		<use href="#an" x="438.39" y="152.24"/>
-		<use href="#an" x="440.19" y="152.24"/>
-		<use href="#an" x="441.99" y="152.24"/>
-		<use href="#an" x="443.79" y="152.24"/>
-		<use href="#an" x="677.38" y="152.24"/>
-		<use href="#an" x="679.18" y="152.24"/>
-		<use href="#an" x="680.98" y="152.24"/>
-		<use href="#an" x="682.78" y="152.24"/>
-		<use href="#an" x="684.58" y="152.24"/>
-		<use href="#an" x="436.59" y="154.04"/>
-		<use href="#an" x="438.39" y="154.04"/>
-		<use href="#an" x="443.79" y="154.04"/>
-		<use href="#an" x="677.38" y="154.04"/>
-		<use href="#an" x="682.78" y="154.04"/>
-		<use href="#an" x="684.58" y="154.04"/>
-		<use href="#an" x="436.59" y="155.84"/>
-		<use href="#an" x="438.39" y="155.84"/>
-		<use href="#ao" x="440.19" y="155.84"/>
-		<use href="#an" x="443.79" y="155.84"/>
-		<use href="#an" x="677.38" y="155.84"/>
-		<use href="#ao" x="679.18" y="155.84"/>
-		<use href="#an" x="682.78" y="155.84"/>
-		<use href="#an" x="684.58" y="155.84"/>
-		<use href="#an" x="436.59" y="157.64"/>
-		<use href="#an" x="438.39" y="157.64"/>
-		<use href="#an" x="440.19" y="157.64"/>
-		<use href="#an" x="441.99" y="157.64"/>
-		<use href="#an" x="443.79" y="157.64"/>
-		<use href="#an" x="677.38" y="157.64"/>
-		<use href="#an" x="679.18" y="157.64"/>
-		<use href="#an" x="680.98" y="157.64"/>
-		<use href="#an" x="682.78" y="157.64"/>
-		<use href="#an" x="684.58" y="157.64"/>
-		<use href="#an" x="436.59" y="159.44"/>
-		<use href="#an" x="438.39" y="159.44"/>
-		<use href="#an" x="440.19" y="159.44"/>
-		<use href="#an" x="441.99" y="159.44"/>
-		<use href="#an" x="443.79" y="159.44"/>
-		<use href="#an" x="677.38" y="159.44"/>
-		<use href="#an" x="679.18" y="159.44"/>
-		<use href="#an" x="680.98" y="159.44"/>
-		<use href="#an" x="682.78" y="159.44"/>
-		<use href="#an" x="684.58" y="159.44"/>
-		<use href="#y" x="963.9" y="206.17"/>
-		<use href="#an" x="282.48" y="222.35"/>
-		<use href="#an" x="284.28" y="222.35"/>
-		<use href="#an" x="286.08" y="222.35"/>
-		<use href="#an" x="287.88" y="222.35"/>
-		<use href="#an" x="289.68" y="222.35"/>
-		<use href="#y" x="935.01" y="222.35"/>
-		<use href="#an" x="282.48" y="224.15"/>
-		<use href="#an" x="284.28" y="224.15"/>
-		<use href="#an" x="289.68" y="224.15"/>
-		<use href="#an" x="282.48" y="225.95"/>
-		<use href="#an" x="284.28" y="225.95"/>
-		<use href="#ao" x="286.08" y="225.95"/>
-		<use href="#an" x="289.68" y="225.95"/>
-		<use href="#an" x="282.48" y="227.75"/>
-		<use href="#an" x="284.28" y="227.75"/>
-		<use href="#an" x="286.08" y="227.75"/>
-		<use href="#an" x="287.88" y="227.75"/>
-		<use href="#an" x="289.68" y="227.75"/>
-		<use href="#an" x="282.48" y="229.55"/>
-		<use href="#an" x="284.28" y="229.55"/>
-		<use href="#an" x="286.08" y="229.55"/>
-		<use href="#an" x="287.88" y="229.55"/>
-		<use href="#an" x="289.68" y="229.55"/>
-		<use href="#an" x="282.48" y="231.35"/>
-		<use href="#an" x="284.28" y="231.35"/>
-		<use href="#an" x="286.08" y="231.35"/>
-		<use href="#an" x="287.88" y="231.35"/>
-		<use href="#an" x="289.68" y="231.35"/>
-		<use href="#an" x="282.48" y="233.15"/>
-		<use href="#an" x="284.28" y="233.15"/>
-		<use href="#an" x="289.68" y="233.15"/>
-		<use href="#an" x="282.48" y="234.95"/>
-		<use href="#an" x="284.28" y="234.95"/>
-		<use href="#ao" x="286.08" y="234.95"/>
-		<use href="#an" x="289.68" y="234.95"/>
-		<use href="#an" x="282.48" y="236.75"/>
-		<use href="#an" x="284.28" y="236.75"/>
-		<use href="#an" x="286.08" y="236.75"/>
-		<use href="#an" x="287.88" y="236.75"/>
-		<use href="#an" x="289.68" y="236.75"/>
-		<use href="#y" x="520.84" y="238.53"/>
-		<use href="#y" x="906.11" y="238.53"/>
-		<use href="#an" x="282.48" y="238.55"/>
-		<use href="#an" x="284.28" y="238.55"/>
-		<use href="#an" x="286.08" y="238.55"/>
-		<use href="#an" x="287.88" y="238.55"/>
-		<use href="#an" x="289.68" y="238.55"/>
-		<use href="#an" x="282.48" y="240.35"/>
-		<use href="#an" x="284.28" y="240.35"/>
-		<use href="#an" x="286.08" y="240.35"/>
-		<use href="#an" x="287.88" y="240.35"/>
-		<use href="#an" x="289.68" y="240.35"/>
-		<use href="#y" x="877.22" y="254.72"/>
-		<use href="#an" x="398.06" y="270.9"/>
-		<use href="#an" x="399.86" y="270.9"/>
-		<use href="#an" x="401.66" y="270.9"/>
-		<use href="#an" x="403.46" y="270.9"/>
-		<use href="#an" x="405.26" y="270.9"/>
-		<use href="#an" x="398.06" y="272.7"/>
-		<use href="#an" x="399.86" y="272.7"/>
-		<use href="#an" x="401.66" y="272.7"/>
-		<use href="#an" x="403.46" y="272.7"/>
-		<use href="#an" x="405.26" y="272.7"/>
-		<use href="#an" x="398.06" y="274.5"/>
-		<use href="#an" x="399.86" y="274.5"/>
-		<use href="#an" x="401.66" y="274.5"/>
-		<use href="#an" x="403.46" y="274.5"/>
-		<use href="#an" x="405.26" y="274.5"/>
-		<use href="#an" x="398.06" y="276.3"/>
-		<use href="#an" x="399.86" y="276.3"/>
-		<use href="#an" x="401.66" y="276.3"/>
-		<use href="#an" x="403.46" y="276.3"/>
-		<use href="#an" x="405.26" y="276.3"/>
-		<use href="#an" x="401.66" y="278.1"/>
-		<use href="#an" x="403.46" y="278.1"/>
-		<use href="#an" x="405.26" y="278.1"/>
-		<use href="#ao" x="398.06" y="279.9"/>
-		<use href="#an" x="401.66" y="279.9"/>
-		<use href="#an" x="403.46" y="279.9"/>
-		<use href="#an" x="405.26" y="279.9"/>
-		<use href="#an" x="398.06" y="281.7"/>
-		<use href="#an" x="399.86" y="281.7"/>
-		<use href="#an" x="401.66" y="281.7"/>
-		<use href="#an" x="403.46" y="281.7"/>
-		<use href="#an" x="405.26" y="281.7"/>
-		<use href="#an" x="398.06" y="283.5"/>
-		<use href="#an" x="399.86" y="283.5"/>
-		<use href="#an" x="401.66" y="283.5"/>
-		<use href="#an" x="403.46" y="283.5"/>
-		<use href="#an" x="405.26" y="283.5"/>
-		<use href="#an" x="398.06" y="285.3"/>
-		<use href="#an" x="399.86" y="285.3"/>
-		<use href="#an" x="401.66" y="285.3"/>
-		<use href="#an" x="403.46" y="285.3"/>
-		<use href="#an" x="405.26" y="285.3"/>
-		<use href="#y" x="819.42" y="287.08"/>
-		<use href="#an" x="401.66" y="287.1"/>
-		<use href="#an" x="403.46" y="287.1"/>
-		<use href="#an" x="405.26" y="287.1"/>
-		<use href="#ao" x="398.06" y="288.9"/>
-		<use href="#an" x="401.66" y="288.9"/>
-		<use href="#an" x="403.46" y="288.9"/>
-		<use href="#an" x="405.26" y="288.9"/>
-	</g>
-	<g fill="#3858e9">
-		<use href="#as" x="22.42" y="92.61"/>
-		<use href="#y" x="569" y="109.07"/>
+		<text x="811.32" y="301.5">▒█import <tspan fill="#3858e9">{ </tspan>registerB</text>
 	</g>
 </svg>
