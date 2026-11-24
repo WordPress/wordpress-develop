@@ -6,12 +6,12 @@
  * @group oembed
  * @group oembed-headers
  * @group xdebug
+ * @requires extension simplexml
  */
 class Tests_oEmbed_HTTP_Headers extends WP_UnitTestCase {
 
 	/**
 	 * @requires function xdebug_get_headers
-	 * @requires extension simplexml
 	 */
 	public function test_rest_pre_serve_request_headers() {
 		$post = self::factory()->post->create_and_get(
