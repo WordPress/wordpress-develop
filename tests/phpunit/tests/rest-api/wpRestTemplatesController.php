@@ -257,6 +257,59 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * Tests that users without edit_theme_options cannot read non-published templates via wp_id query.
+	 *
+	 * @ticket 66783
+	 * @covers WP_REST_Templates_Controller::get_items
+	 * @dataProvider data_non_published_template_statuses_for_collection
+	 *
+	 * @param string $status Post status to test.
+	 */
+	public function test_get_items_editor_cannot_read_non_published_templates_by_wp_id( $status ) {
+		$template_post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template',
+				'post_name'    => 'non_published_template_' . $status,
+				'post_title'   => 'Non Published Template',
+				'post_content' => 'Secret template content',
+				'post_status'  => $status,
+				'tax_input'    => array(
+					'wp_theme' => array(
+						get_stylesheet(),
+					),
+				),
+			)
+		);
+		wp_set_post_terms( $template_post->ID, get_stylesheet(), 'wp_theme' );
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/templates' );
+		$request->set_param( 'wp_id', $template_post->ID );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Editor request should return 200 OK.' );
+		$this->assertSame( array(), $response->get_data(), 'Editor should not receive non-published templates when querying by wp_id.' );
+
+		wp_set_current_user( self::$admin_id );
+		$admin_response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $admin_response->get_status(), 'Admin request should return 200 OK.' );
+		$this->assertCount( 1, $admin_response->get_data(), 'Admin with edit_theme_options should still receive the non-published template.' );
+	}
+
+	/**
+	 * Data provider for non-published statuses queried by get_block_templates() with wp_id.
+	 *
+	 * @return array[]
+	 */
+	public function data_non_published_template_statuses_for_collection() {
+		return array(
+			'draft'      => array( 'draft' ),
+			'auto-draft' => array( 'auto-draft' ),
+		);
+	}
+
+	/**
 	 * @covers WP_REST_Templates_Controller::get_items
 	 */
 	public function test_get_items_no_permission_subscriber() {
@@ -374,6 +427,54 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/default//my_template' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 403 );
+	}
+
+	/**
+	 * Tests that users without edit_theme_options cannot read non-published templates by ID.
+	 *
+	 * @ticket 66783
+	 * @covers WP_REST_Templates_Controller::get_item
+	 * @dataProvider data_non_published_template_statuses_for_item
+	 *
+	 * @param string $status Post status to test.
+	 */
+	public function test_get_item_editor_cannot_read_non_published_templates( $status ) {
+		$slug          = 'non_published_item_' . $status;
+		$template_post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template',
+				'post_name'    => $slug,
+				'post_title'   => 'Non Published Item Template',
+				'post_content' => 'Secret template content',
+				'post_status'  => $status,
+			)
+		);
+		wp_set_post_terms( $template_post->ID, get_stylesheet(), 'wp_theme' );
+
+		$route = '/wp/v2/templates/' . get_stylesheet() . '//' . $slug;
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', $route );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 403 );
+
+		wp_set_current_user( self::$admin_id );
+		$admin_response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $admin_response->get_status(), 'Admin with edit_theme_options should still be able to read the non-published template.' );
+		$this->assertSame( $status, $admin_response->get_data()['status'], 'Admin response should include the non-published template status.' );
+	}
+
+	/**
+	 * Data provider for non-published statuses queried by get_block_template().
+	 *
+	 * @return array[]
+	 */
+	public function data_non_published_template_statuses_for_item() {
+		return array(
+			'trash'      => array( 'trash' ),
+			'draft'      => array( 'draft' ),
+			'auto-draft' => array( 'auto-draft' ),
+		);
 	}
 
 	/**
