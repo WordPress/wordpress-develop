@@ -58,12 +58,10 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 		<# if ( data.attachment && data.attachment.id ) { #>
 			<div class="attachment-media-view">
 				<# if ( data.attachment.sizes ) { #>
-					<style>
-						:root{
-							--site-icon-url: url( '{{ data.attachment.sizes.full ? data.attachment.sizes.full.url : data.attachment.url }}' );
-						}
-					</style>
-					<div class="site-icon-preview customizer">
+					<div
+						class="site-icon-preview customizer"
+						style="--site-icon-url: url( '{{ data.attachment.sizes.full ? data.attachment.sizes.full.url : data.attachment.url }}' );"
+					>
 						<div class="direction-wrap">
 							<img src="{{ data.attachment.sizes.full ? data.attachment.sizes.full.url : data.attachment.url }}" class="app-icon-preview" alt="{{
 								data.attachment.alt ?
@@ -115,13 +113,13 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 							</div>
 						</div>
 					</div>
+					<div class="actions">
+						<# if ( data.canUpload ) { #>
+							<button type="button" class="button remove-button"><?php echo $this->button_labels['remove']; ?></button>
+							<button type="button" class="button upload-button"><?php echo $this->button_labels['change']; ?></button>
+						<# } #>
+					</div>
 				<# } #>
-				<div class="actions">
-					<# if ( data.canUpload ) { #>
-						<button type="button" class="button remove-button"><?php echo $this->button_labels['remove']; ?></button>
-						<button type="button" class="button upload-button"><?php echo $this->button_labels['change']; ?></button>
-					<# } #>
-				</div>
 			</div>
 		<# } else { #>
 			<div class="attachment-media-view">
