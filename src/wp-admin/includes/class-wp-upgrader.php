@@ -809,7 +809,6 @@ class WP_Upgrader {
 	 *     @type int      $unchanged How many files are identical.
 	 * }
 	 *
-	 * @phpstan-return array{}|array{added: list<string>, removed: list<string>, changed: list<string>, unchanged: int}
 	 */
 	public function compare_package_files( $source, $destination ) {
 		$source      = trailingslashit( $source );
