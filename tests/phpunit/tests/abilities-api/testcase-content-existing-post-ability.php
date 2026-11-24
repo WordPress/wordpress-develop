@@ -53,10 +53,10 @@ abstract class WP_Abilities_Content_Existing_Post_UnitTestCase extends WP_Abilit
 				$stored_status = str_replace( 'trash_', '', $status );
 				$post_id       = $factory->post->create(
 					array(
-						'post_author' => self::$user_ids[ $owner ],
-						'post_status' => $stored_status,
-						'post_title'  => "Matrix {$owner} {$status}",
-						'post_date'   => 'future' === $stored_status ? '2099-01-01 00:00:00' : '',
+						'post_author'   => self::$user_ids[ $owner ],
+						'post_status'   => $stored_status,
+						'post_title'    => "Matrix {$owner} {$status}",
+						'post_date_gmt' => 'future' === $stored_status ? str_replace( 'T', ' ', self::FUTURE_GMT ) : '',
 					)
 				);
 				if ( $stored_status !== $status ) {
@@ -415,7 +415,7 @@ abstract class WP_Abilities_Content_Existing_Post_UnitTestCase extends WP_Abilit
 		$this->login_as( 'subscriber' );
 
 		$permission = $this->get_ability_callbacks()['permission_callback'];
-		$input      = $this->build_post_input( self::MISSING_ID, 'post' );
+		$input      = $this->build_post_input( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, 'post' );
 
 		$this->assertTrue( $permission( $input ), 'The permission callback should return true.' );
 		$this->assert_not_found( $this->run_ability( $input ), 'A missing post' );
@@ -515,7 +515,7 @@ abstract class WP_Abilities_Content_Existing_Post_UnitTestCase extends WP_Abilit
 	 * @param string $post The post, as a fixture name.
 	 */
 	public function test_post_of_another_type_is_not_found( string $post ): void {
-		$post_id = self::$post_ids[ $post ] ?? self::MISSING_ID;
+		$post_id = self::$post_ids[ $post ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER;
 
 		$this->login_as( 'administrator' );
 		$this->register_abilities();

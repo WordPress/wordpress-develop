@@ -671,7 +671,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 				array(
 					'type'   => 'post',
 					'title'  => 'x',
-					'author' => self::MISSING_ID,
+					'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 				),
 			),
 			'title that is a list'           => array(
@@ -959,7 +959,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 				'data' => array(
 					'type'   => 'post',
 					'title'  => 'Ghost written',
-					'author' => self::$user_ids[ $author ] ?? self::MISSING_ID,
+					'author' => self::$user_ids[ $author ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 				),
 			)
 		);
@@ -1034,7 +1034,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 				array(
 					'type'   => 'post',
 					'title'  => 'Nobody',
-					'author' => self::MISSING_ID,
+					'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 				),
 				'author',
 				null,
@@ -1143,7 +1143,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$errors = array();
 		foreach ( array(
 			'non-member' => $non_member,
-			'missing'    => self::MISSING_ID,
+			'missing'    => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 		) as $key => $author ) {
 			$result = $this->run_ability(
 				array(
@@ -1208,8 +1208,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 		// The reference is another missing ID, so the `missing post` row is compared with a different input too.
 		$before    = $this->snapshot();
-		$reference = $create( self::MISSING_ID + 1 );
-		$result    = $create( self::$post_ids[ $parent_key ] ?? self::MISSING_ID );
+		$reference = $create( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER + 1 );
+		$result    = $create( self::$post_ids[ $parent_key ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 
 		$this->assert_invalid_attribute( $result, 'parent', 'A parent that cannot be used' );
 		$this->assertWPError( $reference, 'Another missing parent should fail.' );

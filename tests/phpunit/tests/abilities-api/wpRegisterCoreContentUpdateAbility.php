@@ -407,7 +407,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$this->login_as( 'subscriber' );
 		$execute = $this->get_ability_callbacks()['execute_callback'];
 
-		$input         = $this->build_post_input( self::MISSING_ID, 'post' );
+		$input         = $this->build_post_input( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, 'post' );
 		$input['data'] = array(
 			'status' => 'trash',
 			'parent' => 1,
@@ -469,7 +469,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 			'trash'                          => array( array( 'status' => 'trash' ) ),
 			'private without publish_posts'  => array( array( 'status' => 'private' ) ),
 			'slug that sanitizes to nothing' => array( array( 'slug' => '!!!' ) ),
-			'missing author'                 => array( array( 'author' => self::MISSING_ID ) ),
+			'missing author'                 => array( array( 'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) ),
 			'title that is a list'           => array( array( 'title' => array( 'x' ) ) ),
 			'invalid date'                   => array( array( 'date' => array( 'site' => 'not a date' ) ) ),
 			'empty data'                     => array( array() ),
@@ -778,7 +778,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$this->register_abilities();
 
 		$before = $this->snapshot( $post_id );
-		$result = $this->update_post( $post_id, array( 'author' => self::$user_ids[ $author ] ?? self::MISSING_ID ) );
+		$result = $this->update_post( $post_id, array( 'author' => self::$user_ids[ $author ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
 		$this->assertWPError( $result, 'Naming another author should fail.' );
 		$this->assertSame(
@@ -831,7 +831,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 				'post_status' => 'draft',
 			)
 		);
-		$wpdb->update( $wpdb->posts, array( 'post_author' => self::MISSING_ID ), array( 'ID' => $post_id ) );
+		$wpdb->update( $wpdb->posts, array( 'post_author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ), array( 'ID' => $post_id ) );
 		clean_post_cache( $post_id );
 
 		$this->login_as( 'editor' );
@@ -840,7 +840,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$result = $this->update_post(
 			$post_id,
 			array(
-				'author' => self::MISSING_ID,
+				'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 				'title'  => 'Orphan',
 			)
 		);
@@ -848,7 +848,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$post = $this->assert_updated( $result, $post_id );
 
 		$this->assertSame( 'Orphan', $post->post_title, 'The title should be stored.' );
-		$this->assertSame( self::MISSING_ID, (int) $post->post_author, 'The stored author should not change.' );
+		$this->assertSame( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, (int) $post->post_author, 'The stored author should not change.' );
 	}
 
 	/**
@@ -864,7 +864,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$this->register_abilities();
 
 		$before = $this->snapshot( $post_id );
-		$result = $this->update_post( $post_id, array( 'author' => self::MISSING_ID ) );
+		$result = $this->update_post( $post_id, array( 'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
 		$this->assert_invalid_attribute( $result, 'author', 'A missing author' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
@@ -932,8 +932,8 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 
 		// The reference names another missing ID than the missing post row, so no row compares a call with itself.
 		$before    = $this->snapshot( $post_id );
-		$reference = $this->update_post( $post_id, array( 'parent' => self::MISSING_ID + 1 ) );
-		$result    = $this->update_post( $post_id, array( 'parent' => self::$post_ids[ $parent_key ] ?? self::MISSING_ID ) );
+		$reference = $this->update_post( $post_id, array( 'parent' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER + 1 ) );
+		$result    = $this->update_post( $post_id, array( 'parent' => self::$post_ids[ $parent_key ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
 		$this->assertWPError( $reference, 'The reference call with a missing parent should fail.' );
 		$this->assert_invalid_attribute( $result, 'parent', 'A parent that cannot be used' );
@@ -2300,25 +2300,25 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 				'post_author' => self::$user_ids['page_writer'],
 				'post_type'   => 'page',
 				'post_status' => 'draft',
-				'post_parent' => self::MISSING_ID,
+				'post_parent' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 			)
 		);
 
-		$this->assertSame( self::MISSING_ID, get_post( $post_id )->post_parent, 'Precondition: the page should keep the missing parent.' );
-		$this->assertNull( get_post( self::MISSING_ID ), 'Precondition: the parent should not exist.' );
+		$this->assertSame( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, get_post( $post_id )->post_parent, 'Precondition: the page should keep the missing parent.' );
+		$this->assertNull( get_post( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ), 'Precondition: the parent should not exist.' );
 
 		$this->login_as( 'page_writer' );
 		$this->register_abilities();
 
 		$data = array( 'title' => 'Orphan' );
 		if ( $send_parent ) {
-			$data['parent'] = self::MISSING_ID;
+			$data['parent'] = REST_TESTS_IMPOSSIBLY_HIGH_NUMBER;
 		}
 
 		$post = $this->assert_updated( $this->update_post( $post_id, $data ), $post_id );
 
 		$this->assertSame( 'Orphan', $post->post_title, 'The title should be stored.' );
-		$this->assertSame( self::MISSING_ID, $post->post_parent, 'The stored parent should not change.' );
+		$this->assertSame( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, $post->post_parent, 'The stored parent should not change.' );
 	}
 
 	/**

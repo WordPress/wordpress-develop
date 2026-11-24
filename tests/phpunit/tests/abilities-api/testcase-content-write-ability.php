@@ -31,15 +31,6 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	protected const CONTENT_ABILITIES = array( 'core/content-query', 'core/content-create', 'core/content-update', 'core/content-delete' );
 
 	/**
-	 * An ID that no post or user has.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var int
-	 */
-	protected const MISSING_ID = 987654321;
-
-	/**
 	 * A GMT date that stays in the future.
 	 *
 	 * @since 7.3.0
