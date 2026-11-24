@@ -270,13 +270,9 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 			$args
 		);
 
-		/*
-		 * Mimic the behavior of `wp_edit_posts_query()`. The ID is added to the order because
-		 * pages of different parents share a title, and the order of pages with the same
-		 * title is not the same on every database.
-		 */
+		// Mimic the behavior of `wp_edit_posts_query()`:
 		if ( ! isset( $args['orderby'] ) ) {
-			$args['orderby']                = 'menu_order title ID';
+			$args['orderby']                = 'menu_order title';
 			$args['order']                  = 'asc';
 			$args['posts_per_page']         = -1;
 			$args['posts_per_archive_page'] = -1;
