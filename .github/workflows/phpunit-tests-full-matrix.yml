@@ -59,7 +59,7 @@ jobs:
       # Required by the called workflow's recovery job, which is skipped on PR events.
       actions: write
       contents: read
-    uses: ./.github/workflows/phpunit-tests.yml
+    uses: WordPress/wordpress-develop/.github/workflows/phpunit-tests.yml@trunk
     secrets:
       CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
