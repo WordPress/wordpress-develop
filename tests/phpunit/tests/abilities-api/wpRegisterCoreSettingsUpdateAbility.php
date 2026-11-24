@@ -1099,15 +1099,15 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 * @since 7.3.0
 	 */
 	public function test_reports_every_value_the_settings_cannot_use(): void {
-		$this->store_raw( 'posts_per_page', 'ten' );
+		$this->store_raw( 'start_of_week', 'Monday' );
 		$this->become_admin();
 		$before = $this->snapshot();
 
 		$result = $this->update(
 			array(
-				'timezone'       => 'Mars/Olympus',
-				'posts_per_page' => null,
-				'language'       => 'xx_XX',
+				'timezone'      => 'Mars/Olympus',
+				'start_of_week' => null,
+				'language'      => 'xx_XX',
 			)
 		);
 
@@ -1318,8 +1318,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * A null value is refused when the stored value does not match the schema of the setting,
-	 * and nothing is deleted.
+	 * A null value for a setting without a default is refused when the stored value does not
+	 * match the schema of the setting, and nothing is deleted.
 	 *
 	 * @ticket 64616
 	 *
@@ -1329,7 +1329,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 *
 	 * @param string $name   The exposed setting name.
 	 * @param string $option The option name.
-	 * @param mixed  $stored The raw value stored before the call, or null for no row.
+	 * @param mixed  $stored The raw value stored before the call.
 	 */
 	public function test_null_refuses_an_invalid_stored_value( string $name, string $option, $stored ): void {
 		$this->store_raw( $option, $stored );
@@ -1349,19 +1349,19 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 */
 	public static function data_invalid_stored_values(): array {
 		return array(
-			'a word for an integer'                  => array( 'posts_per_page', 'posts_per_page', 'ten' ),
-			'an empty string for an integer'         => array( 'posts_per_page', 'posts_per_page', '' ),
-			'no value for an integer with a default' => array( 'posts_per_page', 'posts_per_page', null ),
-			'another word for an enum'               => array( 'default_ping_status', 'default_ping_status', 'maybe' ),
-			'an empty string for an enum'            => array( 'default_ping_status', 'default_ping_status', '' ),
-			'an empty string for an email address'   => array( 'settings_update_test_email', 'settings_update_test_email_option', '' ),
-			'an array for a string'                  => array( 'title', 'blogname', array( 'A sneaky array!' ) ),
+			'a word for an integer'                => array( 'start_of_week', 'start_of_week', 'Monday' ),
+			'an empty string for an integer'       => array( 'start_of_week', 'start_of_week', '' ),
+			'another word for an enum'             => array( 'default_ping_status', 'default_ping_status', 'maybe' ),
+			'an empty string for an enum'          => array( 'default_ping_status', 'default_ping_status', '' ),
+			'an empty string for an email address' => array( 'settings_update_test_email', 'settings_update_test_email_option', '' ),
+			'an array for a string'                => array( 'title', 'blogname', array( 'A sneaky array!' ) ),
 		);
 	}
 
 	/**
 	 * A null value resets a stored value that matches the schema of the setting, including the
-	 * forms in which a boolean is stored.
+	 * forms in which a boolean is stored, any stored value of a setting with a default, and a
+	 * setting with no stored value.
 	 *
 	 * @ticket 64616
 	 *
@@ -1393,17 +1393,21 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 */
 	public static function data_valid_stored_values(): array {
 		return array(
-			'a numeric string for an integer' => array( 'posts_per_page', 'posts_per_page', '12', '{"posts_per_page":10}' ),
-			'an empty string for a string'    => array( 'title', 'blogname', '', '[]' ),
-			'an empty string for a boolean'   => array( 'use_smilies', 'use_smilies', '', '{"use_smilies":true}' ),
-			'"0" for a boolean'               => array( 'use_smilies', 'use_smilies', '0', '{"use_smilies":true}' ),
-			'"1" for a boolean'               => array( 'use_smilies', 'use_smilies', '1', '{"use_smilies":true}' ),
-			'no value for a boolean'          => array( 'use_smilies', 'use_smilies', null, '{"use_smilies":true}' ),
+			'a numeric string for an integer'         => array( 'posts_per_page', 'posts_per_page', '12', '{"posts_per_page":10}' ),
+			'an empty string for a string'            => array( 'title', 'blogname', '', '[]' ),
+			'an empty string for a boolean'           => array( 'use_smilies', 'use_smilies', '', '{"use_smilies":true}' ),
+			'"0" for a boolean'                       => array( 'use_smilies', 'use_smilies', '0', '{"use_smilies":true}' ),
+			'"1" for a boolean'                       => array( 'use_smilies', 'use_smilies', '1', '{"use_smilies":true}' ),
+			'no value for a boolean'                  => array( 'use_smilies', 'use_smilies', null, '{"use_smilies":true}' ),
+			'a word for an integer with a default'    => array( 'posts_per_page', 'posts_per_page', 'ten', '{"posts_per_page":10}' ),
+			'no value for an integer with a default'  => array( 'posts_per_page', 'posts_per_page', null, '{"posts_per_page":10}' ),
+			'no value for the language'               => array( 'language', 'WPLANG', null, '{"language":""}' ),
+			'no value for a string without a default' => array( 'title', 'blogname', null, '[]' ),
 		);
 	}
 
 	/**
-	 * Repeating a null value works for a setting with a default, which is stored again, and fails
+	 * Repeating a null value stores the default of a setting with one again, and changes nothing
 	 * for a setting without one, which has no stored value left.
 	 *
 	 * @ticket 64616
@@ -1419,7 +1423,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$this->assertSame( array( 'posts_per_page' => 10 ), $this->update( array( 'posts_per_page' => null ) ), 'The second call should store the default again.' );
 
 		$this->assertSame( array(), $this->update( array( 'title' => null ) ), 'The first call should delete the stored value.' );
-		$this->assert_error( $this->update( array( 'title' => null ) ), 'settings_invalid_stored_value', 500 );
+		$this->assertSame( array(), $this->update( array( 'title' => null ) ), 'The second call should change nothing.' );
+		$this->assertArrayNotHasKey( 'blogname', $this->snapshot(), 'The stored value should stay deleted.' );
 	}
 
 	/**
@@ -1450,6 +1455,64 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
+	 * A value equal to the default that get_option() reads is stored when the setting has no
+	 * stored value, also when the setting is exposed with another default or has none.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_values_equal_to_the_read_default
+	 *
+	 * @param array<string, mixed> $args   The setting registration arguments.
+	 * @param mixed                $value  The value to write.
+	 * @param string               $output The expected output value as JSON.
+	 * @param string               $raw    The expected raw stored value.
+	 */
+	public function test_value_equal_to_the_read_default_is_stored( array $args, $value, string $output, string $raw ): void {
+		$option = 'settings_update_test_read_default';
+		register_setting( 'general', $option, $args );
+		$this->register_ability();
+		$this->become_admin();
+
+		$result = $this->update( array( $option => $value ) );
+
+		$this->assertSame( '{"' . $option . '":' . $output . '}', wp_json_encode( $result ), 'The output should show the written value.' );
+		$this->assertSame( $raw, $this->snapshot()[ $option ] ?? null, 'The value should be stored.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: array<string, mixed>, 1: mixed, 2: string, 3: string}> Settings and a value equal to the default get_option() reads.
+	 */
+	public static function data_values_equal_to_the_read_default(): array {
+		return array(
+			'the registered default under another exposed default' => array(
+				array(
+					'type'              => 'string',
+					'default'           => 'Registered',
+					'show_in_abilities' => array(
+						'schema' => array( 'default' => 'Exposed' ),
+					),
+				),
+				'Registered',
+				'"Registered"',
+				'Registered',
+			),
+			'false for a boolean without a default' => array(
+				array(
+					'type'              => 'boolean',
+					'show_in_abilities' => true,
+				),
+				false,
+				'false',
+				'',
+			),
+		);
+	}
+
+	/**
 	 * Nothing is written or deleted when a later setting of the call fails its stored-value check.
 	 *
 	 * @ticket 64616
@@ -1461,8 +1524,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 * @param array<string, mixed> $data The settings to update.
 	 */
 	public function test_nothing_is_written_when_a_later_check_fails( array $data ): void {
-		$this->store_raw( 'use_smilies', '1' );
-		$this->store_raw( 'posts_per_page', 'ten' );
+		$this->store_raw( 'use_smilies', '0' );
+		$this->store_raw( 'start_of_week', 'Monday' );
 		$this->become_admin();
 		$before = $this->snapshot();
 
@@ -1481,14 +1544,20 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		return array(
 			'a value first'    => array(
 				array(
-					'title'          => 'Changed title',
-					'posts_per_page' => null,
+					'title'         => 'Changed title',
+					'start_of_week' => null,
+				),
+			),
+			'a reset first'    => array(
+				array(
+					'use_smilies'   => null,
+					'start_of_week' => null,
 				),
 			),
 			'a deletion first' => array(
 				array(
-					'use_smilies'    => null,
-					'posts_per_page' => null,
+					'description'   => null,
+					'start_of_week' => null,
 				),
 			),
 		);

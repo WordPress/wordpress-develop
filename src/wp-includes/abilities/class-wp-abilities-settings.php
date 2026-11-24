@@ -143,9 +143,9 @@ final class WP_Abilities_Settings {
 	 * Registers nothing when no exposed setting is writable.
 	 *
 	 * The ability is marked destructive because a null value deletes the stored value of a
-	 * setting without a default, see execute_settings_update(). It is not marked idempotent
-	 * because repeating a null value for such a setting can fail: the second call finds no
-	 * stored value left to delete.
+	 * setting without a default, see execute_settings_update(). It is not marked idempotent,
+	 * although repeating a call has no further effect: an ability that is both destructive and
+	 * idempotent runs with the DELETE method, and this ability updates settings.
 	 *
 	 * @since 7.3.0
 	 */
@@ -246,10 +246,11 @@ final class WP_Abilities_Settings {
 
 		/*
 		 * Intentionally strict: every value is checked before the first write, so a refused call
-		 * changes nothing. A null value is refused while the stored value does not match the
-		 * setting's schema. Any other value is refused when the setting cannot use it, instead of
-		 * being saved as sent or silently replaced with the stored value. Every unusable value is
-		 * reported, before an invalid stored value.
+		 * changes nothing. A value is refused when the setting cannot use it, instead of being
+		 * saved as sent or silently replaced with the stored value. A null value for a setting
+		 * without a default is refused while its stored value does not match the setting's schema:
+		 * `core/settings-get` leaves that value out, so the caller cannot see what would be deleted.
+		 * Unusable values are reported first.
 		 */
 		$invalid_params = array();
 		$invalid_stored = null;
@@ -259,8 +260,12 @@ final class WP_Abilities_Settings {
 				if ( null !== $message ) {
 					$invalid_params[ "data[{$exposed_name}]" ] = $message;
 				}
-			} elseif ( null === $invalid_stored && is_wp_error( rest_validate_value_from_schema( $this->get_stored_value( $setting, false ), $setting['schema'] ) ) ) {
-				$invalid_stored = $exposed_name;
+			} elseif ( null === $setting['default'] && null === $invalid_stored ) {
+				// The stored value reads as null when there is none, and then there is nothing to delete.
+				$stored = $this->get_stored_value( $setting, null );
+				if ( null !== $stored && is_wp_error( rest_validate_value_from_schema( $stored, $setting['schema'] ) ) ) {
+					$invalid_stored = $exposed_name;
+				}
 			}
 		}
 
@@ -293,15 +298,19 @@ final class WP_Abilities_Settings {
 		}
 
 		/*
-		 * Intentional: a null value deletes the stored value, and stores the default in its place
-		 * when the setting has one. A registered default only applies in requests that register
-		 * the setting, and Core registers its own settings only in REST and abilities requests, so
-		 * other requests would read a deleted value as false. A setting without a default then has
-		 * no value, and is left out of the output and of `core/settings-get`, until a value is
-		 * written again.
+		 * Intentional: a null value stores the default of a setting that has one, and deletes the
+		 * stored value of a setting without one. A registered default only applies in requests that
+		 * register the setting, and Core registers its own settings only in REST and abilities
+		 * requests, so other requests would read a deleted value as false. A setting without a
+		 * default then has no value, and is left out of the output and of `core/settings-get`,
+		 * until a value is written again.
 		 */
 		foreach ( $named as $exposed_name => $setting ) {
 			$value = $data[ $exposed_name ] ?? $setting['default'];
+			if ( null === $value ) {
+				delete_option( $setting['option'] );
+				continue;
+			}
 
 			/*
 			 * English is stored as an empty string. `en_US` is what the language reads as when
@@ -311,18 +320,10 @@ final class WP_Abilities_Settings {
 				$value = '';
 			}
 
-			if ( null === $data[ $exposed_name ] ) {
-				delete_option( $setting['option'] );
-			}
-
-			if ( null === $value ) {
-				continue;
-			}
-
 			update_option( $setting['option'], $value );
 
-			// update_option() stores nothing when no value is stored and the value matches the default it reads.
-			if ( $value === $setting['default'] && false === get_option( $setting['option'], false ) ) {
+			// update_option() stores nothing when no value is stored and the value matches the default get_option() reads.
+			if ( false === get_option( $setting['option'], false ) && get_option( $setting['option'] ) === $value ) {
 				add_option( $setting['option'], $value );
 			}
 		}
