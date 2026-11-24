@@ -6366,6 +6366,71 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	/**
+	 * Tests that a post that leaves the Trash through an update loses its trash meta,
+	 * and that the comments trashed with it are restored.
+	 *
+	 * @ticket 66809
+	 * @since 7.3.0
+	 *
+	 * @covers WP_REST_Posts_Controller::update_item
+	 */
+	public function test_update_item_restoring_a_trashed_post_should_clear_trash_meta_and_restore_comments() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id    = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		wp_trash_post( $post_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_param( 'status', 'draft' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'The trashed post should be updated.' );
+		$this->assertSame( 'draft', $response->get_data()['status'], 'The post should be a draft.' );
+		$this->assertFalse( metadata_exists( 'post', $post_id, '_wp_trash_meta_status' ), 'The _wp_trash_meta_status meta should be deleted.' );
+		$this->assertFalse( metadata_exists( 'post', $post_id, '_wp_trash_meta_time' ), 'The _wp_trash_meta_time meta should be deleted.' );
+		$this->assertFalse( metadata_exists( 'post', $post_id, '_wp_trash_meta_comments_status' ), 'The _wp_trash_meta_comments_status meta should be deleted.' );
+		$this->assertSame( '1', get_comment( $comment_id )->comment_approved, 'The comment should be approved again.' );
+	}
+
+	/**
+	 * Tests that trashing a post again after it left the Trash through an update
+	 * stores only its latest status.
+	 *
+	 * @ticket 66809
+	 * @since 7.3.0
+	 *
+	 * @covers WP_REST_Posts_Controller::update_item
+	 * @covers WP_REST_Posts_Controller::delete_item
+	 */
+	public function test_delete_item_after_restoring_a_trashed_post_by_update_should_store_one_trash_status() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		$path    = sprintf( '/wp/v2/posts/%d', $post_id );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'DELETE', $path ) );
+		$this->assertSame( 200, $response->get_status(), 'The post should be trashed.' );
+
+		$request = new WP_REST_Request( 'PUT', $path );
+		$request->set_param( 'status', 'publish' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'The trashed post should be updated.' );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'DELETE', $path ) );
+		$this->assertSame( 200, $response->get_status(), 'The post should be trashed again.' );
+
+		$this->assertSame( array( 'publish' ), get_post_meta( $post_id, '_wp_trash_meta_status' ), 'The post should have one _wp_trash_meta_status meta set to its latest status.' );
+		$this->assertCount( 1, get_post_meta( $post_id, '_wp_trash_meta_time' ), 'The post should have only one _wp_trash_meta_time meta set.' );
+	}
+
+	/**
 	 * Internal function used to disable an insert query which
 	 * will trigger a wpdb error for testing purposes.
 	 */

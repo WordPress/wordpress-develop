@@ -1374,6 +1374,83 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a post that leaves the Trash through an update loses its trash meta,
+	 * and that the comments trashed with it are restored.
+	 *
+	 * @ticket 66809
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_various_post_statuses
+	 *
+	 * @param string $post_status The status the trashed post is updated to.
+	 */
+	public function test_updating_a_trashed_post_to_another_status_should_clear_trash_meta_and_restore_comments( $post_status ) {
+		$post_id             = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$approved_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+		$pending_comment_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '0',
+			)
+		);
+
+		wp_trash_post( $post_id );
+
+		$result = wp_update_post(
+			array(
+				'ID'          => $post_id,
+				'post_status' => $post_status,
+			),
+			true
+		);
+
+		$this->assertSame( $post_id, $result, 'The trashed post should be updated.' );
+		$this->assertSame( $post_status, get_post_status( $post_id ), 'The post should have the new status.' );
+		$this->assertFalse( metadata_exists( 'post', $post_id, '_wp_trash_meta_status' ), 'The _wp_trash_meta_status meta should be deleted.' );
+		$this->assertFalse( metadata_exists( 'post', $post_id, '_wp_trash_meta_time' ), 'The _wp_trash_meta_time meta should be deleted.' );
+		$this->assertFalse( metadata_exists( 'post', $post_id, '_wp_trash_meta_comments_status' ), 'The _wp_trash_meta_comments_status meta should be deleted.' );
+		$this->assertSame( '1', get_comment( $approved_comment_id )->comment_approved, 'The approved comment should be approved again.' );
+		$this->assertSame( '0', get_comment( $pending_comment_id )->comment_approved, 'The pending comment should be pending again.' );
+	}
+
+	/**
+	 * Tests that a trashed post that is updated without leaving the Trash keeps its trash meta,
+	 * and that its comments stay trashed.
+	 *
+	 * @ticket 66809
+	 * @since 7.3.0
+	 */
+	public function test_updating_a_trashed_post_without_changing_its_status_should_keep_trash_meta() {
+		$post_id    = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		wp_trash_post( $post_id );
+
+		wp_update_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Updated title',
+			)
+		);
+
+		$this->assertSame( 'trash', get_post_status( $post_id ), 'The post should stay in the Trash.' );
+		$this->assertSame( array( 'publish' ), get_post_meta( $post_id, '_wp_trash_meta_status' ), 'The _wp_trash_meta_status meta should be kept.' );
+		$this->assertTrue( metadata_exists( 'post', $post_id, '_wp_trash_meta_time' ), 'The _wp_trash_meta_time meta should be kept.' );
+		$this->assertTrue( metadata_exists( 'post', $post_id, '_wp_trash_meta_comments_status' ), 'The _wp_trash_meta_comments_status meta should be kept.' );
+		$this->assertSame( 'post-trashed', get_comment( $comment_id )->comment_approved, 'The comment should stay trashed.' );
+	}
+
+	/**
 	 * Data for testing the ability for users to set the post slug.
 	 *
 	 * @return array Array of test arguments.

@@ -126,4 +126,44 @@ class Tests_Post_WpTrashPost extends WP_UnitTestCase {
 
 		$this->assertGreaterThan( 0, did_action( 'trashed_post' ), 'trashed_post action was not called.' );
 	}
+
+	/**
+	 * Tests that trashing a post again after it left the Trash through an update
+	 * stores only its latest status.
+	 *
+	 * @ticket 66809
+	 * @since 7.3.0
+	 */
+	public function test_trash_post_after_restoring_it_by_update_should_store_one_trash_status() {
+		wp_trash_post( $this->post->ID );
+		wp_update_post(
+			array(
+				'ID'          => $this->post->ID,
+				'post_status' => 'publish',
+			)
+		);
+		wp_trash_post( $this->post->ID );
+
+		$this->assertSame( array( 'publish' ), get_post_meta( $this->post->ID, '_wp_trash_meta_status' ), 'Trashed post should have one _wp_trash_meta_status meta set to its latest status.' );
+		$this->assertCount( 1, get_post_meta( $this->post->ID, '_wp_trash_meta_time' ), 'Trashed post should have only one _wp_trash_meta_time meta set.' );
+	}
+
+	/**
+	 * Tests that wp_trash_post() replaces trash meta left on a post that is not in the Trash.
+	 *
+	 * @ticket 66809
+	 * @since 7.3.0
+	 */
+	public function test_trash_post_should_replace_leftover_trash_meta() {
+		add_post_meta( $this->post->ID, '_wp_trash_meta_status', 'pending' );
+		add_post_meta( $this->post->ID, '_wp_trash_meta_time', 1 );
+
+		wp_trash_post( $this->post->ID );
+
+		$trash_time = get_post_meta( $this->post->ID, '_wp_trash_meta_time' );
+
+		$this->assertSame( array( $this->post->post_status ), get_post_meta( $this->post->ID, '_wp_trash_meta_status' ), 'Trashed post should have one _wp_trash_meta_status meta set to previous post status.' );
+		$this->assertCount( 1, $trash_time, 'Trashed post should have only one _wp_trash_meta_time meta set.' );
+		$this->assertNotSame( '1', $trash_time[0], 'Trashed post should have _wp_trash_meta_time meta set to the time it was trashed.' );
+	}
 }
