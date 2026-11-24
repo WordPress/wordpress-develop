@@ -22,8 +22,6 @@ class Tests_Category_GetAllCategoryIds extends WP_UnitTestCase {
 		wp_insert_term( 'test1', 'test_tax_cat' );
 		$cat_ids = get_all_category_ids();
 
-		_unregister_taxonomy( 'test_tax_cat' );
-
 		// Validate length is 1 + created due to uncategorized.
 		$this->assertCount( 3, $cat_ids );
 	}
