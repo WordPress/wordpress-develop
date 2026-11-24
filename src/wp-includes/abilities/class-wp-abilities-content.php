@@ -2730,7 +2730,7 @@ final class WP_Abilities_Content {
 		 */
 		$date = ( $gmt ? $datetime->setTimezone( new DateTimeZone( 'UTC' ) ) : $datetime )->format( 'c' );
 
-		return false !== rest_parse_date( $date ) ? $date : null;
+		return rest_parse_date( $date ) ? $date : null;
 	}
 
 	/**
