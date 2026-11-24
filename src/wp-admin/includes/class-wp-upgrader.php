@@ -718,7 +718,11 @@ class WP_Upgrader {
 				if ( isset( $this->skin->type ) && 'upload' === $this->skin->type ) {
 					$local_source = str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_DIR ), $source );
 
-					$this->package_file_changes = $this->compare_package_files( $local_source, $destination );
+					$file_changes = $this->compare_package_files( $local_source, $destination );
+
+					if ( $file_changes ) {
+						$this->package_file_changes = $file_changes;
+					}
 				}
 
 				$wp_filesystem->delete( $remote_source, true ); // Clear out the source files.
@@ -796,8 +800,8 @@ class WP_Upgrader {
 	 *
 	 * @param string $source      Folder with the unpacked package.
 	 * @param string $destination Folder the package would be installed to.
-	 * @return array {
-	 *     Empty if either folder is missing. Paths are relative to the two folders.
+	 * @return array|false {
+	 *     File changes, or false if either folder is missing. Paths are relative to the two folders.
 	 *
 	 *     @type string[] $added     Files that only exist in the package.
 	 *     @type string[] $removed   Files that only exist in the destination.
@@ -812,7 +816,7 @@ class WP_Upgrader {
 		$destination = trailingslashit( $destination );
 
 		if ( ! is_dir( $source ) || ! is_dir( $destination ) ) {
-			return array();
+			return false;
 		}
 
 		$new_files = $this->list_package_files( $source );
