@@ -14,7 +14,7 @@ declare( strict_types = 1 );
  *
  * Registers `core/media-query`, `core/media-upload`, `core/media-update` and
  * `core/media-delete`, which read and write media attachments. Every ability requires a
- * logged-in user and the `attachment` post type to have `show_in_rest` on. Files are
+ * logged-in user and the `attachment` post type to have `show_in_abilities` on. Files are
  * stored through the regular upload handling, so the type and size checks of an upload
  * apply as for any other upload.
  *
@@ -70,14 +70,6 @@ final class WP_Abilities_Media {
 	private const MEDIA_TYPES = array( 'application', 'audio', 'image', 'text', 'video' );
 
 	/**
-	 * The attributes an upload or an update can write.
-	 *
-	 * @since 7.3.0
-	 * @var list<string>
-	 */
-	private const ATTRIBUTES = array( 'title', 'caption', 'description', 'alt_text', 'slug', 'date', 'author', 'post' );
-
-	/**
 	 * Default field paths returned when the caller does not request a field subset.
 	 *
 	 * @since 7.3.0
@@ -110,7 +102,8 @@ final class WP_Abilities_Media {
 	 * @since 7.3.0
 	 */
 	public function register(): void {
-		$item_schema = $this->get_item_schema();
+		$item_schema   = $this->get_item_schema();
+		$fields_schema = $this->get_fields_input_schema( $item_schema['properties'] );
 
 		wp_register_ability(
 			'core/media-query',
@@ -118,7 +111,7 @@ final class WP_Abilities_Media {
 				'label'               => __( 'Query Media' ),
 				'description'         => __( 'Retrieves a paginated list of the media attachments the current user can read, filtered by any of IDs, slugs, status, media type, MIME type, parent post, and author. Requires an authenticated user. Filters are exact-match only; the ability does not perform full-text search.' ),
 				'category'            => self::CATEGORY,
-				'input_schema'        => $this->get_query_input_schema(),
+				'input_schema'        => $this->get_query_input_schema( $fields_schema ),
 				'output_schema'       => array(
 					'type'                 => 'object',
 					'additionalProperties' => false,
@@ -170,7 +163,7 @@ final class WP_Abilities_Media {
 				'label'               => __( 'Upload Media' ),
 				'description'         => __( 'Stores a file in the media library and returns the new attachment. The file is an image from a URL, or any file the current user may upload as base64 data. Requires an authenticated user who can upload files.' ),
 				'category'            => self::CATEGORY,
-				'input_schema'        => $this->get_upload_input_schema(),
+				'input_schema'        => $this->get_upload_input_schema( $fields_schema ),
 				'output_schema'       => $item_schema,
 				'execute_callback'    => function ( $input = array() ) {
 					return $this->execute_media_upload( $input );
@@ -195,7 +188,7 @@ final class WP_Abilities_Media {
 				'label'               => __( 'Update Media' ),
 				'description'         => __( 'Updates the given attributes of a media attachment and returns it. Attributes that are left out keep their stored values. Requires an authenticated user who can edit the attachment.' ),
 				'category'            => self::CATEGORY,
-				'input_schema'        => $this->get_update_input_schema(),
+				'input_schema'        => $this->get_update_input_schema( $fields_schema ),
 				'output_schema'       => $item_schema,
 				'execute_callback'    => function ( $input = array() ) {
 					return $this->execute_media_update( $input );
@@ -239,6 +232,7 @@ final class WP_Abilities_Media {
 					'properties'           => array(
 						'outcome' => array(
 							'type'        => 'string',
+							'enum'        => array( 'deleted', 'trashed' ),
 							'description' => __( 'What happened to the attachment: `deleted` or `trashed`.' ),
 						),
 					),
@@ -263,7 +257,7 @@ final class WP_Abilities_Media {
 
 	/**
 	 * Checks the conditions every media ability shares: a logged-in user, and the
-	 * `attachment` post type with `show_in_rest` on.
+	 * `attachment` post type with `show_in_abilities` on.
 	 *
 	 * @since 7.3.0
 	 *
@@ -273,7 +267,7 @@ final class WP_Abilities_Media {
 		$post_type_object = get_post_type_object( 'attachment' );
 
 		// Intentionally strict: every media ability requires a logged-in user, the query included.
-		return is_user_logged_in() && $post_type_object instanceof WP_Post_Type && $post_type_object->show_in_rest;
+		return is_user_logged_in() && $post_type_object instanceof WP_Post_Type && $post_type_object->show_in_abilities;
 	}
 
 	/**
@@ -364,10 +358,6 @@ final class WP_Abilities_Media {
 		$post_type_object = get_post_type_object( 'attachment' );
 
 		$statuses = $where['status'] ?? array( 'inherit' );
-		if ( empty( $statuses ) || ! empty( array_diff( $statuses, self::STATUSES ) ) ) {
-			return $this->invalid_filter_error( 'where[status]', __( 'The status filter must list one or more of the statuses inherit, private, and trash.' ) );
-		}
-
 		foreach ( $statuses as $status ) {
 			$can_use_status = 'inherit' === $status
 				|| ( 'private' === $status && current_user_can( $post_type_object->cap->read_private_posts ) )
@@ -397,17 +387,13 @@ final class WP_Abilities_Media {
 		);
 
 		if ( array_key_exists( 'ids', $where ) ) {
-			$ids = array_values( array_unique( array_filter( $where['ids'], static fn( $id ) => $id > 0 ) ) );
-			if ( empty( $ids ) ) {
-				return $this->invalid_filter_error( 'where[ids]', __( 'The ids filter must list one or more attachment IDs.' ) );
-			}
-			$query_args['post__in'] = $ids;
+			$query_args['post__in'] = $where['ids'];
 		}
 
 		if ( array_key_exists( 'slugs', $where ) ) {
 			$slugs = array_values( array_unique( array_filter( array_map( 'sanitize_title', $where['slugs'] ), static fn( $slug ) => '' !== $slug ) ) );
 			if ( empty( $slugs ) ) {
-				return $this->invalid_filter_error( 'where[slugs]', __( 'The slugs filter must list one or more attachment slugs.' ) );
+				return $this->invalid_param_error( 'media_invalid_filter', 'where[slugs]', __( 'The slugs filter must list one or more attachment slugs.' ) );
 			}
 			$query_args['post_name__in'] = $slugs;
 		}
@@ -419,29 +405,19 @@ final class WP_Abilities_Media {
 		 */
 		$allowed_types = array_values( get_allowed_mime_types() );
 		$mime_types    = array();
-		if ( array_key_exists( 'media_type', $where ) ) {
-			if ( empty( $where['media_type'] ) ) {
-				return $this->invalid_filter_error( 'where[media_type]', __( 'The media_type filter must list one or more media types.' ) );
+		foreach ( $where['media_type'] ?? array() as $group ) {
+			$group_types = array_filter( $allowed_types, static fn( $type ) => str_starts_with( $type, $group . '/' ) );
+			if ( empty( $group_types ) ) {
+				return $this->invalid_param_error( 'media_invalid_filter', 'where[media_type]', __( 'The media_type filter must list media types that have allowed MIME types.' ) );
 			}
-			foreach ( $where['media_type'] as $group ) {
-				$group_types = array_filter( $allowed_types, static fn( $type ) => str_starts_with( $type, $group . '/' ) );
-				if ( empty( $group_types ) ) {
-					return $this->invalid_filter_error( 'where[media_type]', __( 'The media_type filter must list media types that have allowed MIME types.' ) );
-				}
-				$mime_types = array_merge( $mime_types, $group_types );
-			}
+			$mime_types = array_merge( $mime_types, $group_types );
 		}
 
-		if ( array_key_exists( 'mime_type', $where ) ) {
-			if ( empty( $where['mime_type'] ) ) {
-				return $this->invalid_filter_error( 'where[mime_type]', __( 'The mime_type filter must list one or more MIME types.' ) );
+		foreach ( $where['mime_type'] ?? array() as $mime_type ) {
+			if ( ! in_array( $mime_type, $allowed_types, true ) ) {
+				return $this->invalid_param_error( 'media_invalid_filter', 'where[mime_type]', __( 'The mime_type filter must list allowed MIME types.' ) );
 			}
-			foreach ( $where['mime_type'] as $mime_type ) {
-				if ( ! in_array( $mime_type, $allowed_types, true ) ) {
-					return $this->invalid_filter_error( 'where[mime_type]', __( 'The mime_type filter must list allowed MIME types.' ) );
-				}
-				$mime_types[] = $mime_type;
-			}
+			$mime_types[] = $mime_type;
 		}
 
 		// With both filters, an attachment matches when it matches either.
@@ -451,45 +427,26 @@ final class WP_Abilities_Media {
 
 		// The parent post is never looked up.
 		if ( array_key_exists( 'post', $where ) ) {
-			if ( $where['post'] < 0 ) {
-				return $this->invalid_filter_error( 'where[post]', __( 'The post filter must be a non-negative integer.' ) );
-			}
 			$query_args['post_parent'] = $where['post'];
 		}
 
 		/*
 		 * Null, int, or false: no author filter, the user ID to query, or a filter that names
-		 * no user, which matches nothing.
+		 * no user, which matches nothing. An `id` is never looked up: it matches the stored
+		 * author ID.
 		 */
-		$author_id = null;
-		if ( array_key_exists( 'author', $where ) ) {
-			$author = $where['author'];
-			if ( ! isset( $author['id'] ) && ! isset( $author['slug'] ) ) {
-				return $this->invalid_filter_error( 'where[author]', __( 'The author filter must be an object with an id or a slug.' ) );
-			}
+		$author    = $where['author'] ?? array();
+		$author_id = $author['id'] ?? null;
 
-			// An `id` is never looked up: it matches the stored author ID.
-			if ( isset( $author['id'] ) ) {
-				$author_id = $author['id'];
-				if ( $author_id < 1 ) {
-					return $this->invalid_filter_error( 'where[author][id]', __( 'The author ID must be a positive integer.' ) );
-				}
-			}
-
-			/*
-			 * A slug that names no user, or a user the current user may not see, or another
-			 * user than `id`, matches nothing. The visibility rule is the one the `author`
-			 * field follows, so the filter cannot confirm a slug the field withholds.
-			 */
-			if ( isset( $author['slug'] ) ) {
-				if ( '' === $author['slug'] ) {
-					return $this->invalid_filter_error( 'where[author][slug]', __( 'The author slug must be a non-empty string.' ) );
-				}
-
-				$user      = get_user_by( 'slug', $author['slug'] );
-				$user      = $user ? $this->get_visible_author( $user->ID ) : null;
-				$author_id = ! $user || ( null !== $author_id && $user->ID !== $author_id ) ? false : $user->ID;
-			}
+		/*
+		 * A slug that names no user, or a user the current user may not see, or another
+		 * user than `id`, matches nothing. The visibility rule is the one the `author`
+		 * field follows, so the filter cannot confirm a slug the field withholds.
+		 */
+		if ( isset( $author['slug'] ) ) {
+			$user      = get_user_by( 'slug', $author['slug'] );
+			$user      = $user ? $this->get_visible_author( $user->ID ) : null;
+			$author_id = ! $user || ( null !== $author_id && $user->ID !== $author_id ) ? false : $user->ID;
 		}
 
 		if ( false === $author_id ) {
@@ -502,11 +459,10 @@ final class WP_Abilities_Media {
 		$pagination       = $input['pagination'] ?? array();
 		$lists_items      = isset( $query_args['post__in'] ) || isset( $query_args['post_name__in'] );
 		$default_per_page = $lists_items ? self::MAX_PER_PAGE : self::DEFAULT_PER_PAGE;
-		$page             = max( 1, $pagination['page'] ?? 1 );
-		$per_page         = $pagination['per_page'] ?? $default_per_page;
+		$page             = $pagination['page'] ?? 1;
 
 		$query_args['paged']          = $page;
-		$query_args['posts_per_page'] = $per_page < 1 ? $default_per_page : min( self::MAX_PER_PAGE, $per_page );
+		$query_args['posts_per_page'] = $pagination['per_page'] ?? $default_per_page;
 
 		$query = new WP_Query( $query_args );
 		$total = $this->get_query_total( $query, $query_args, $page );
@@ -577,17 +533,13 @@ final class WP_Abilities_Media {
 			return $postarr;
 		}
 
-		if ( ! isset( $data['file'] ) ) {
-			return $this->invalid_file_error( 'data[file]', __( 'No data supplied.' ) );
-		}
-
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
 		// The post date does not usually matter for pages, so an upload to one is not backdated.
 		$time   = null;
-		$parent = isset( $postarr['post_parent'] ) ? get_post( $postarr['post_parent'] ) : null;
+		$parent = ! empty( $postarr['post_parent'] ) ? get_post( $postarr['post_parent'] ) : null;
 		if ( $parent instanceof WP_Post && 'page' !== $parent->post_type && substr( $parent->post_date, 0, 4 ) > 0 ) {
 			$time = $parent->post_date;
 		}
@@ -650,9 +602,9 @@ final class WP_Abilities_Media {
 	/**
 	 * Downloads an image from a URL and stores it in the uploads folder.
 	 *
-	 * The name, the extension and the URL are checked before anything is requested. The
-	 * only request is made by download_url(), to the URL that passed wp_http_validate_url(),
-	 * and its response is limited to the maximum upload size plus one byte.
+	 * _wp_download_image_from_url() checks the URL and makes the only request. The
+	 * downloaded file must then pass the size checks and be an image as the file check
+	 * sees it, and the temporary file is removed whatever the outcome.
 	 *
 	 * @since 7.3.0
 	 *
@@ -661,88 +613,23 @@ final class WP_Abilities_Media {
 	 * @return array<string, mixed>|WP_Error The stored file from store_file(), or a WP_Error.
 	 */
 	private function store_from_url( string $url, ?string $time ) {
-		$param   = 'data[file][url]';
-		$invalid = __( 'Invalid URL. Provide a valid, publicly reachable HTTP or HTTPS image URL.' );
-		if ( '' === $url ) {
-			return $this->invalid_file_error( $param, $invalid );
-		}
-
-		// The name is taken from the URL's path as it is, without percent-decoding.
-		$url_path = (string) wp_parse_url( $url, PHP_URL_PATH );
-		$filename = '' === $url_path ? '' : wp_basename( $url_path );
-		if ( '' === $filename ) {
-			return $this->invalid_file_error( $param, __( 'Could not determine a filename from the provided URL.' ) );
-		}
-
-		$only_images = __( 'Only images can be uploaded from a URL.' );
-		$filetype    = wp_check_filetype( $filename );
-		if ( ! $filetype['type'] || ! str_starts_with( $filetype['type'], 'image/' ) ) {
-			return $this->invalid_file_error( $param, $only_images );
-		}
-
-		if ( false === wp_http_validate_url( $url ) ) {
-			return $this->invalid_file_error( $param, $invalid );
-		}
-
-		// Intentionally strict: a site without upload space left is refused before any request.
-		if ( $this->is_space_checked() && get_upload_space_available() < 1 ) {
-			return new WP_Error(
-				'media_quota_exceeded',
-				__( 'You have used your space quota. Please delete files before uploading.' ),
-				array( 'status' => 400 )
-			);
-		}
-
-		/*
-		 * Intentionally strict: a network whose maximum file size is below 1 KB lets no file
-		 * through the size check, so the call is refused before any request.
-		 */
-		if ( $this->is_space_checked() ) {
-			$max_kilobytes = get_site_option( 'fileupload_maxk', 1500 );
-			if ( (int) $max_kilobytes < 1 ) {
-				return $this->invalid_file_error(
-					$param,
-					/* translators: %s: Maximum allowed file size in kilobytes. */
-					sprintf( __( 'This file is too big. Files must be less than %s KB in size.' ), $max_kilobytes )
-				);
-			}
-		}
-
-		/*
-		 * One byte over the maximum is enough to fail the size check below, so an oversized
-		 * file is never written to disk in full. The limit applies to requests for this URL
-		 * only and is removed again whatever the download gives.
-		 */
-		$max_size            = (int) wp_max_upload_size();
-		$limit_response_size = static function ( $args, $request_url ) use ( $url, $max_size ) {
-			if ( $request_url === $url && is_array( $args ) ) {
-				$args['limit_response_size'] = $max_size + 1;
-			}
-
-			return $args;
-		};
-
-		$tmp_file = null;
-		try {
-			if ( $max_size > 0 ) {
-				add_filter( 'http_request_args', $limit_response_size, PHP_INT_MAX, 2 );
-			}
-
-			try {
-				$tmp_file = download_url( $url );
-			} finally {
-				remove_filter( 'http_request_args', $limit_response_size, PHP_INT_MAX );
+		$param    = 'data[file][url]';
+		$download = _wp_download_image_from_url( $url );
+		if ( is_wp_error( $download ) ) {
+			if ( 'invalid_image_url' === $download->get_error_code() ) {
+				return $this->invalid_param_error( 'media_invalid_file', $param, $download->get_error_message() );
 			}
 
 			/*
 			 * Intentionally strict: a failed download gives one fixed error, which holds
 			 * nothing of the remote answer or of the error behind it.
 			 */
-			if ( is_wp_error( $tmp_file ) ) {
-				return new WP_Error( 'media_download_failed', __( 'Download failed.' ), array( 'status' => 500 ) );
-			}
+			return new WP_Error( 'media_download_failed', __( 'Download failed.' ), array( 'status' => 500 ) );
+		}
 
-			$size_error = $this->check_file_size( (int) wp_filesize( $tmp_file ), $max_size, $param );
+		$tmp_file = $download['tmp_name'];
+		try {
+			$size_error = $this->check_file_size( (int) wp_filesize( $tmp_file ), (int) wp_max_upload_size(), $param );
 			if ( $size_error ) {
 				return $size_error;
 			}
@@ -752,15 +639,15 @@ final class WP_Abilities_Media {
 			 * every user, also one who may upload any type. The upload handling below still
 			 * runs its own type check.
 			 */
-			$checked = wp_check_filetype_and_ext( $tmp_file, $filename, get_allowed_mime_types() );
+			$checked = wp_check_filetype_and_ext( $tmp_file, $download['name'], get_allowed_mime_types() );
 			if ( ! $checked['ext'] || ! $checked['type'] || ! str_starts_with( $checked['type'], 'image/' ) ) {
-				return $this->invalid_file_error( $param, $only_images );
+				return $this->invalid_param_error( 'media_invalid_file', $param, __( 'Only images can be uploaded from a URL.' ) );
 			}
 
-			return $this->store_file( $filename, $tmp_file, $time, $param );
+			return $this->store_file( $download['name'], $tmp_file, $time, $param );
 		} finally {
-			// Of the temporary files, only the one download_url() returned is ever removed.
-			if ( is_string( $tmp_file ) && file_exists( $tmp_file ) ) {
+			// Of the temporary files, only the one the download returned is ever removed.
+			if ( file_exists( $tmp_file ) ) {
 				wp_delete_file( $tmp_file );
 			}
 		}
@@ -780,11 +667,11 @@ final class WP_Abilities_Media {
 		$param = 'data[file][base64]';
 		$bytes = base64_decode( $base64, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- The file is sent as base64 data.
 		if ( false === $bytes ) {
-			return $this->invalid_file_error( $param, __( 'The file data is not valid base64.' ) );
+			return $this->invalid_param_error( 'media_invalid_file', $param, __( 'The file data is not valid base64.' ) );
 		}
 
 		if ( '' === $bytes ) {
-			return $this->invalid_file_error( $param, __( 'File is empty. Please upload something more substantial.' ) );
+			return $this->invalid_param_error( 'media_invalid_file', $param, __( 'File is empty. Please upload something more substantial.' ) );
 		}
 
 		$size_error = $this->check_file_size( strlen( $bytes ), (int) wp_max_upload_size(), $param );
@@ -834,13 +721,13 @@ final class WP_Abilities_Media {
 
 			$max_kilobytes = get_site_option( 'fileupload_maxk', 1500 );
 			if ( $size > KB_IN_BYTES * (int) $max_kilobytes ) {
-				return $this->invalid_file_error( $param, sprintf( $too_big, $max_kilobytes ) );
+				return $this->invalid_param_error( 'media_invalid_file', $param, sprintf( $too_big, $max_kilobytes ) );
 			}
 		}
 
 		// Intentionally strict: a file sent as base64 data is held to the maximum upload size too.
 		if ( $max_size > 0 && $size > $max_size ) {
-			return $this->invalid_file_error( $param, sprintf( $too_big, number_format( $max_size / KB_IN_BYTES ) ) );
+			return $this->invalid_param_error( 'media_invalid_file', $param, sprintf( $too_big, number_format( $max_size / KB_IN_BYTES ) ) );
 		}
 
 		return null;
@@ -872,7 +759,7 @@ final class WP_Abilities_Media {
 	 * @param string|null $time       The time the uploads folder is chosen by, or null for now.
 	 * @param string      $type_param The input path a refused file type is reported for.
 	 * @return array<string, mixed>|WP_Error The `file`, `url` and `type` of the stored file, with
-	 *                                       `removable` and `hash` for the cleanup, or a WP_Error.
+	 *                                       `removable` for the cleanup, or a WP_Error.
 	 */
 	private function store_file( string $filename, string $tmp_file, ?string $time, string $type_param ) {
 		/*
@@ -883,20 +770,18 @@ final class WP_Abilities_Media {
 			'path'       => '',
 			'existed'    => true,
 			'taken_over' => true,
-			'hash'       => '',
 		);
 
 		/*
 		 * Records the path the upload handling chose, whether a file was there already,
-		 * whether another callback took over the move, and the bytes that are moved. The
-		 * filtered value is returned unchanged.
+		 * and whether another callback took over the move. The filtered value is returned
+		 * unchanged.
 		 */
 		$record_move = static function ( $move_new_file, $file, $new_file ) use ( &$move ) {
 			$move = array(
 				'path'       => $new_file,
 				'existed'    => file_exists( $new_file ),
 				'taken_over' => null !== $move_new_file,
-				'hash'       => (string) hash_file( 'sha256', $file['tmp_name'] ),
 			);
 
 			return $move_new_file;
@@ -917,14 +802,13 @@ final class WP_Abilities_Media {
 
 		if ( isset( $stored['error'] ) ) {
 			if ( __( 'Sorry, you are not allowed to upload this file type.' ) === $stored['error'] ) {
-				return $this->invalid_file_error( $type_param, $stored['error'] );
+				return $this->invalid_param_error( 'media_invalid_file', $type_param, $stored['error'] );
 			}
 
 			return new WP_Error( 'media_upload_failed', $stored['error'], array( 'status' => 500 ) );
 		}
 
 		$stored['removable'] = ! $move['existed'] && ! $move['taken_over'] && $move['path'] === $stored['file'];
-		$stored['hash']      = $move['hash'];
 
 		return $stored;
 	}
@@ -933,16 +817,16 @@ final class WP_Abilities_Media {
 	 * Removes a stored file after its attachment could not be saved.
 	 *
 	 * The file is removed only when this call created it: the path did not exist when the
-	 * upload handling chose it, it is the path the upload handling returned, it lies inside
-	 * the uploads folder, and it still holds the bytes this call stored. Otherwise, such as
-	 * when a callback swapped the returned path for an existing file, nothing is removed.
+	 * upload handling chose it, it is the path the upload handling returned, and it lies
+	 * inside the uploads folder. Otherwise, such as when a callback swapped the returned
+	 * path for an existing file, nothing is removed.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @param array<string, mixed> $stored The stored file from store_file().
 	 */
 	private function remove_stored_file( array $stored ): void {
-		if ( ! $stored['removable'] || ! is_file( $stored['file'] ) || hash_file( 'sha256', $stored['file'] ) !== $stored['hash'] ) {
+		if ( ! $stored['removable'] || ! is_file( $stored['file'] ) ) {
 			return;
 		}
 
@@ -978,11 +862,7 @@ final class WP_Abilities_Media {
 			);
 		}
 
-		$data = $input['data'] ?? array();
-		if ( empty( array_intersect_key( $data, array_flip( self::ATTRIBUTES ) ) ) ) {
-			return $this->invalid_attribute_error( 'data', __( 'The data must be an object with at least one attribute to write.' ) );
-		}
-
+		$data    = $input['data'] ?? array();
 		$postarr = $this->prepare_attributes( $data, $attachment );
 		if ( is_wp_error( $postarr ) ) {
 			return $postarr;
@@ -1040,7 +920,7 @@ final class WP_Abilities_Media {
 		 * Intentionally strict: the outcome is read from the stored attachment, so a deletion
 		 * that a filter made Core skip is an error, not a reported deletion.
 		 */
-		if ( true === ( $input['permanent'] ?? false ) ) {
+		if ( ! empty( $input['permanent'] ) ) {
 			wp_delete_attachment( $attachment->ID, true );
 
 			return null === get_post( $attachment->ID ) ? array( 'outcome' => 'deleted' ) : $this->delete_failed_error();
@@ -1085,12 +965,8 @@ final class WP_Abilities_Media {
 	 * @return WP_Post|null The attachment, or null when `where.id` names no attachment.
 	 */
 	private function get_requested_attachment( array $input ): ?WP_Post {
-		$id = $input['where']['id'] ?? 0;
-		if ( $id < 1 ) {
-			return null;
-		}
-
-		$post = get_post( $id );
+		$id   = $input['where']['id'] ?? 0;
+		$post = $id > 0 ? get_post( $id ) : null;
 
 		return $post instanceof WP_Post && 'attachment' === $post->post_type ? $post : null;
 	}
@@ -1099,8 +975,9 @@ final class WP_Abilities_Media {
 	 * Checks the sent attributes and builds the attachment fields to save from them.
 	 *
 	 * Shared by the upload and update abilities. The array is built from scratch, one
-	 * attribute at a time, so only the attributes of {@see self::ATTRIBUTES} reach the save,
-	 * each mapped by name. The alt text is saved apart from the attachment and is left out.
+	 * attribute at a time, so only the attributes of {@see self::get_attribute_properties()}
+	 * reach the save, each mapped by name. The alt text is saved apart from the attachment
+	 * and is left out.
 	 * The checks run in the order `author`, `post`, `date`, `slug`, and for each attribute
 	 * the value is checked before any capability. The first failure is returned.
 	 *
@@ -1116,9 +993,6 @@ final class WP_Abilities_Media {
 
 		if ( array_key_exists( 'author', $data ) ) {
 			$author_id = $data['author'];
-			if ( $author_id < 1 ) {
-				return $this->invalid_attribute_error( 'author', __( 'Invalid author ID.' ) );
-			}
 
 			// The stored author sent again changes nothing.
 			if ( ! $attachment || (int) $attachment->post_author !== $author_id ) {
@@ -1136,7 +1010,7 @@ final class WP_Abilities_Media {
 
 					// Intentionally strict: the author must be an existing user who belongs to this site.
 					if ( ! get_userdata( $author_id ) || ( is_multisite() && ! is_user_member_of_blog( $author_id ) ) ) {
-						return $this->invalid_attribute_error( 'author', __( 'Invalid author ID.' ) );
+						return $this->invalid_param_error( 'media_invalid_attribute', 'data[author]', __( 'Invalid author ID.' ) );
 					}
 				}
 
@@ -1146,14 +1020,11 @@ final class WP_Abilities_Media {
 
 		if ( array_key_exists( 'post', $data ) ) {
 			$parent_id = $data['post'];
-			if ( $parent_id < ( $attachment ? 0 : 1 ) ) {
-				return $this->invalid_attribute_error( 'post', __( 'Invalid post ID.' ) );
-			}
 
 			// The stored parent sent again needs no capability, also when that post no longer exists.
 			$is_current = $attachment && (int) $attachment->post_parent === $parent_id;
 
-			// On update, 0 detaches the attachment and needs nothing more.
+			// 0 leaves the attachment unattached, or detaches it, and needs nothing more.
 			if ( 0 !== $parent_id ) {
 				/*
 				 * Checked before the post is looked up, so a missing and a forbidden post give
@@ -1171,7 +1042,7 @@ final class WP_Abilities_Media {
 				}
 
 				if ( in_array( get_post_type( $parent_id ), array( 'revision', 'attachment' ), true ) ) {
-					return $this->invalid_attribute_error( 'post', __( 'Invalid parent type.' ) );
+					return $this->invalid_param_error( 'media_invalid_attribute', 'data[post]', __( 'Invalid parent type.' ) );
 				}
 			}
 
@@ -1181,8 +1052,9 @@ final class WP_Abilities_Media {
 		}
 
 		if ( array_key_exists( 'date', $data ) ) {
-			$date  = $data['date'];
-			$dates = null;
+			$date         = $data['date'];
+			$dates        = null;
+			$is_unchanged = false;
 			if ( isset( $date['site'] ) ) {
 				$dates        = rest_get_date_with_gmt( $date['site'] );
 				$is_unchanged = $attachment && null !== $dates && $attachment->post_date === $dates[0];
@@ -1192,11 +1064,11 @@ final class WP_Abilities_Media {
 			}
 
 			if ( null === $dates ) {
-				return $this->invalid_attribute_error( 'date', __( 'Invalid date.' ) );
+				return $this->invalid_param_error( 'media_invalid_attribute', 'data[date]', __( 'Invalid date.' ) );
 			}
 
 			// On update, a date equal to the stored one counts as not sent.
-			if ( empty( $is_unchanged ) ) {
+			if ( ! $is_unchanged ) {
 				$postarr['post_date']     = $dates[0];
 				$postarr['post_date_gmt'] = $dates[1];
 				if ( $attachment ) {
@@ -1210,7 +1082,7 @@ final class WP_Abilities_Media {
 
 			// Intentionally strict: a slug that sanitizes to nothing is an error.
 			if ( '' === $slug ) {
-				return $this->invalid_attribute_error( 'slug', __( 'The slug must contain at least one character that is valid in a slug.' ) );
+				return $this->invalid_param_error( 'media_invalid_attribute', 'data[slug]', __( 'The slug must contain at least one character that is valid in a slug.' ) );
 			}
 
 			$postarr['post_name'] = $slug;
@@ -1292,7 +1164,7 @@ final class WP_Abilities_Media {
 	 *
 	 * A post is readable when it is published or the current user can read it, when its
 	 * status is public, or when it inherits its status: then from its parent, whose post
-	 * type must have `show_in_rest` on and which must pass this check itself, or, without
+	 * type must have `show_in_abilities` on and which must pass this check itself, or, without
 	 * a parent or with one that no longer exists, as readable.
 	 *
 	 * @since 7.3.0
@@ -1322,7 +1194,7 @@ final class WP_Abilities_Media {
 
 		$parent_type = get_post_type_object( $parent->post_type );
 
-		return $parent_type instanceof WP_Post_Type && $parent_type->show_in_rest && $this->can_read_post( $parent );
+		return $parent_type instanceof WP_Post_Type && $parent_type->show_in_abilities && $this->can_read_post( $parent );
 	}
 
 	/**
@@ -1488,19 +1360,27 @@ final class WP_Abilities_Media {
 				$data['mime_type'] = $post->post_mime_type;
 			}
 
-			$source_url = wp_get_attachment_url( $post->ID );
-			if ( $source_url && rest_is_field_included( 'source_url', $fields ) ) {
-				$data['source_url'] = $source_url;
+			if ( rest_is_field_included( 'source_url', $fields ) ) {
+				$source_url = wp_get_attachment_url( $post->ID );
+				if ( $source_url ) {
+					$data['source_url'] = $source_url;
+				}
 			}
 
-			$original_path = wp_get_original_image_path( $post->ID );
-			$file_path     = $original_path ? $original_path : get_attached_file( $post->ID );
-			if ( $file_path && rest_is_field_included( 'filename', $fields ) ) {
-				$data['filename'] = wp_basename( $file_path );
+			$file_path = '';
+			if ( rest_is_field_included( 'filename', $fields ) || rest_is_field_included( 'filesize', $fields ) ) {
+				$original_path = wp_get_original_image_path( $post->ID );
+				$file_path     = $original_path ? $original_path : get_attached_file( $post->ID );
+				if ( $file_path && rest_is_field_included( 'filename', $fields ) ) {
+					$data['filename'] = wp_basename( $file_path );
+				}
 			}
 
-			$metadata = wp_get_attachment_metadata( $post->ID );
-			$metadata = is_array( $metadata ) ? $metadata : array();
+			$metadata = array();
+			if ( rest_is_field_included( 'filesize', $fields ) || rest_is_field_included( 'media_details', $fields ) ) {
+				$metadata = wp_get_attachment_metadata( $post->ID );
+				$metadata = is_array( $metadata ) ? $metadata : array();
+			}
 			if ( rest_is_field_included( 'filesize', $fields ) ) {
 				if ( isset( $metadata['filesize'] ) && is_numeric( $metadata['filesize'] ) && $metadata['filesize'] > 0 ) {
 					$data['filesize'] = (int) $metadata['filesize'];
@@ -1558,7 +1438,7 @@ final class WP_Abilities_Media {
 						}
 					}
 
-					$full = ! empty( $stored_sizes ) && $full_is_safe && $can_look_up( 'full' ) ? wp_get_attachment_image_src( $post->ID, 'full' ) : false;
+					$full = ! empty( $stored_sizes ) && $can_look_up( 'full' ) ? wp_get_attachment_image_src( $post->ID, 'full' ) : false;
 					if ( $full && '' !== $post->post_mime_type ) {
 						$sizes['full'] = array(
 							'width'      => (int) $full[1],
@@ -1929,6 +1809,7 @@ final class WP_Abilities_Media {
 			),
 			'media_type'    => array(
 				'type'        => 'string',
+				'enum'        => array( 'image', 'file' ),
 				'description' => __( 'The kind of attachment: `image` or `file`.' ),
 			),
 			'mime_type'     => array(
@@ -1946,7 +1827,7 @@ final class WP_Abilities_Media {
 			),
 			'filesize'      => array(
 				'type'        => 'integer',
-				'description' => __( 'The size of the original file in bytes. Left out when it is not known.' ),
+				'description' => __( 'The size of the file in bytes. Left out when it is not known.' ),
 			),
 			'media_details' => array(
 				'type'                 => 'object',
@@ -2045,11 +1926,12 @@ final class WP_Abilities_Media {
 	 *
 	 * @since 7.3.0
 	 *
+	 * @param array<string, mixed> $properties The attachment field definitions.
 	 * @return array<string, mixed> The `fields` JSON Schema.
 	 */
-	private function get_fields_input_schema(): array {
+	private function get_fields_input_schema( array $properties ): array {
 		$paths = array();
-		foreach ( $this->get_item_properties() as $name => $schema ) {
+		foreach ( $properties as $name => $schema ) {
 			$paths[] = $name;
 			foreach ( array_keys( $schema['properties'] ?? array() ) as $sub_field ) {
 				$paths[] = "{$name}.{$sub_field}";
@@ -2076,9 +1958,10 @@ final class WP_Abilities_Media {
 	 *
 	 * @since 7.3.0
 	 *
+	 * @param array<string, mixed> $fields_schema The `fields` JSON Schema.
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
-	private function get_query_input_schema(): array {
+	private function get_query_input_schema( array $fields_schema ): array {
 		return array(
 			'type'                 => 'object',
 			'default'              => array(),
@@ -2166,7 +2049,7 @@ final class WP_Abilities_Media {
 					),
 					'description'          => __( 'Selects the attachments to return. An attachment must match every given filter.' ),
 				),
-				'fields'     => $this->get_fields_input_schema(),
+				'fields'     => $fields_schema,
 				'pagination' => array(
 					'type'                 => 'object',
 					'additionalProperties' => false,
@@ -2199,10 +2082,9 @@ final class WP_Abilities_Media {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param int $min_post The smallest `post` value: 1 on upload, 0 on update.
 	 * @return array<string, mixed> The attribute schemas, keyed by name.
 	 */
-	private function get_attribute_properties( int $min_post ): array {
+	private function get_attribute_properties(): array {
 		return array(
 			'title'       => array(
 				'type'        => 'string',
@@ -2250,10 +2132,8 @@ final class WP_Abilities_Media {
 			),
 			'post'        => array(
 				'type'        => 'integer',
-				'minimum'     => $min_post,
-				'description' => 0 === $min_post
-					? __( 'The ID of the post to attach the attachment to, or 0 to detach it. Requires the capability to edit that post.' )
-					: __( 'The ID of the post to attach the attachment to. Requires the capability to edit that post.' ),
+				'minimum'     => 0,
+				'description' => __( 'The ID of the post to attach the attachment to, or 0 to leave it unattached or detach it. Requires the capability to edit that post.' ),
 			),
 		);
 	}
@@ -2263,9 +2143,10 @@ final class WP_Abilities_Media {
 	 *
 	 * @since 7.3.0
 	 *
+	 * @param array<string, mixed> $fields_schema The `fields` JSON Schema.
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
-	private function get_upload_input_schema(): array {
+	private function get_upload_input_schema( array $fields_schema ): array {
 		$file = array(
 			'file' => array(
 				'anyOf'       => array(
@@ -2312,10 +2193,10 @@ final class WP_Abilities_Media {
 					'type'                 => 'object',
 					'additionalProperties' => false,
 					'required'             => array( 'file' ),
-					'properties'           => array_merge( $file, $this->get_attribute_properties( 1 ) ),
+					'properties'           => array_merge( $file, $this->get_attribute_properties() ),
 					'description'          => __( 'The file and the attributes of the new attachment. Without a title, the title is taken from the image metadata or the file name.' ),
 				),
-				'fields' => $this->get_fields_input_schema(),
+				'fields' => $fields_schema,
 			),
 		);
 	}
@@ -2325,9 +2206,10 @@ final class WP_Abilities_Media {
 	 *
 	 * @since 7.3.0
 	 *
+	 * @param array<string, mixed> $fields_schema The `fields` JSON Schema.
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
-	private function get_update_input_schema(): array {
+	private function get_update_input_schema( array $fields_schema ): array {
 		return array(
 			'type'                 => 'object',
 			'additionalProperties' => false,
@@ -2338,10 +2220,10 @@ final class WP_Abilities_Media {
 					'type'                 => 'object',
 					'additionalProperties' => false,
 					'minProperties'        => 1,
-					'properties'           => $this->get_attribute_properties( 0 ),
+					'properties'           => $this->get_attribute_properties(),
 					'description'          => __( 'The attributes to change. Attributes that are left out keep their stored values.' ),
 				),
-				'fields' => $this->get_fields_input_schema(),
+				'fields' => $fields_schema,
 			),
 		);
 	}
@@ -2371,59 +2253,18 @@ final class WP_Abilities_Media {
 	}
 
 	/**
-	 * Builds the error for a filter that cannot be applied.
+	 * Builds the error for an input value that cannot be applied.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param string $param   The filter's input path, such as `where[ids]`.
+	 * @param string $code    The error code, such as `media_invalid_filter`.
+	 * @param string $param   The input path of the value, such as `where[slugs]`.
 	 * @param string $message The error message.
-	 * @return WP_Error The invalid filter error.
+	 * @return WP_Error The invalid parameter error.
 	 */
-	private function invalid_filter_error( string $param, string $message ): WP_Error {
+	private function invalid_param_error( string $code, string $param, string $message ): WP_Error {
 		return new WP_Error(
-			'media_invalid_filter',
-			$message,
-			array(
-				'status' => 400,
-				'params' => array( $param => $message ),
-			)
-		);
-	}
-
-	/**
-	 * Builds the error for a `data` attribute that cannot be applied.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param string $attribute The attribute name, such as `slug`, or `data` for the whole object.
-	 * @param string $message   The error message.
-	 * @return WP_Error The invalid attribute error.
-	 */
-	private function invalid_attribute_error( string $attribute, string $message ): WP_Error {
-		$param = 'data' === $attribute ? 'data' : "data[{$attribute}]";
-
-		return new WP_Error(
-			'media_invalid_attribute',
-			$message,
-			array(
-				'status' => 400,
-				'params' => array( $param => $message ),
-			)
-		);
-	}
-
-	/**
-	 * Builds the error for a file that cannot be stored.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param string $param   The file's input path, such as `data[file][url]`.
-	 * @param string $message The error message.
-	 * @return WP_Error The invalid file error.
-	 */
-	private function invalid_file_error( string $param, string $message ): WP_Error {
-		return new WP_Error(
-			'media_invalid_file',
+			$code,
 			$message,
 			array(
 				'status' => 400,

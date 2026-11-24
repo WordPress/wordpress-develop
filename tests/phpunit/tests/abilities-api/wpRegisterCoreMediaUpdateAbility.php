@@ -2,7 +2,7 @@
 
 declare( strict_types=1 );
 
-require_once __DIR__ . '/testcase-media-ability.php';
+require_once __DIR__ . '/testcase-media-item-ability.php';
 
 /**
  * Tests for the core/media-update ability.
@@ -11,7 +11,7 @@ require_once __DIR__ . '/testcase-media-ability.php';
  *
  * @group abilities-api
  */
-class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_Media_UnitTestCase {
+class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_Media_Item_UnitTestCase {
 
 	/**
 	 * The name of the ability under test.
@@ -21,6 +21,15 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	 * @var string
 	 */
 	protected const ABILITY = 'core/media-update';
+
+	/**
+	 * The capability the gate checks on the target.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	protected const CAPABILITY = 'edit_post';
 
 	/**
 	 * Creates the shared fixtures.
@@ -103,6 +112,21 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	}
 
 	/**
+	 * Returns an input for the given `where` value.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $where The `where` value.
+	 * @return array<string, mixed> The input.
+	 */
+	protected function build_input( array $where ): array {
+		return array(
+			'where' => $where,
+			'data'  => array( 'title' => 'MDT shared gate' ),
+		);
+	}
+
+	/**
 	 * The ability is registered with its label, category, meta and annotations.
 	 *
 	 * @ticket 66719
@@ -132,7 +156,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 					'type'                 => 'object',
 					'additionalProperties' => false,
 					'minProperties'        => 1,
-					'properties'           => self::attribute_schemas( 0 ),
+					'properties'           => self::attribute_schemas(),
 				),
 				'fields' => self::fields_schema(),
 			),
@@ -140,199 +164,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 
 		$this->assertSame( $this->normalize_schema( $expected_input ), $this->normalize_schema( $ability->get_input_schema() ), 'The input schema should match.' );
 		$this->assertSame( $this->normalize_schema( self::item_schema() ), $this->normalize_schema( $ability->get_output_schema() ), 'The output schema should match.' );
-	}
-
-	/**
-	 * Returns callers with whether the gate lets them update an attachment of the author, or
-	 * their own attachment.
-	 *
-	 * @return array<string, array{role: string, expected: bool, own?: bool}> The cases.
-	 */
-	public static function data_gate_roles(): array {
-		return array(
-			'logged out'                      => array( 'logged_out', false ),
-			'subscriber'                      => array( 'subscriber', false ),
-			'contributor'                     => array( 'contributor', false ),
-			'no caps'                         => array( 'no_caps', false ),
-			'read and upload'                 => array( 'uploader', false ),
-			'read and upload, own attachment' => array( 'uploader', false, true ),
-			'own author'                      => array( 'author', true ),
-			'editor'                          => array( 'editor', true ),
-			'administrator'                   => array( 'administrator', true ),
-		);
-	}
-
-	/**
-	 * The permission callback needs `edit_post` on the target.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_gate_roles
-	 * @since 7.3.0
-	 *
-	 * @param string $role     The role.
-	 * @param bool   $expected Whether the gate passes.
-	 * @param bool   $own      Optional. Whether the target is the caller's own attachment. Default false.
-	 */
-	public function test_permission_callback_needs_edit_post( string $role, bool $expected, bool $own = false ): void {
-		$id = $own ? $this->create_attachment_of( $role ) : self::$post_ids['unattached'];
-
-		$this->login_as( $role );
-		$this->register_abilities();
-
-		$input = array(
-			'where' => array( 'id' => $id ),
-			'data'  => array( 'title' => 'MDT' ),
-		);
-
-		$this->assertSame( $expected, wp_get_ability( self::ABILITY )->check_permissions( $input ), 'The gate should follow edit_post on the target.' );
-	}
-
-	/**
-	 * The permission callback refuses an administrator when the attachment type has
-	 * `show_in_rest` off, and the call is refused with the generic error.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_permission_callback_refuses_when_attachments_are_hidden(): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		get_post_type_object( 'attachment' )->show_in_rest = false;
-
-		$input = $this->update_input( 'unattached', array( 'title' => 'MDT hidden' ) );
-		$this->assertFalse( wp_get_ability( self::ABILITY )->check_permissions( $input ), 'The administrator should be refused.' );
-		$this->assert_refused( $this->run_ability( $input ), 'An update while attachments are hidden' );
-	}
-
-	/**
-	 * A refused caller gets the generic error and nothing changes.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_refused_caller_gets_the_generic_error(): void {
-		$this->login_as( 'contributor' );
-		$this->register_abilities();
-
-		$before = $this->snapshot( self::$post_ids['unattached'] );
-		$this->assert_refused( $this->run_ability( $this->update_input( 'unattached', array( 'title' => 'MDT refused' ) ) ), 'An update by a contributor' );
-		$this->assert_unchanged( $before, 'An update by a contributor' );
-	}
-
-	/**
-	 * The permission callback passes when the ID names no attachment, so that the call
-	 * answers that nothing was found.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_ids_that_name_no_attachment
-	 * @since 7.3.0
-	 *
-	 * @param string $post The post, as a fixture name.
-	 */
-	public function test_id_that_names_no_attachment_is_not_found( string $post ): void {
-		$this->login_as( 'subscriber' );
-		$this->register_abilities();
-
-		$input = $this->update_input( $post, array( 'title' => 'MDT not found' ) );
-
-		$this->assertTrue( wp_get_ability( self::ABILITY )->check_permissions( $input ), 'The gate should pass.' );
-		$this->assert_not_found( $this->run_ability( $input ), 'An update of something that is not an attachment' );
-	}
-
-	/**
-	 * The permission callback returns false for input without a usable ID.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_inputs_without_a_usable_id
-	 * @since 7.3.0
-	 *
-	 * @param mixed $input The input.
-	 */
-	public function test_permission_callback_refuses_input_without_a_usable_id( $input ): void {
-		$this->login_as( 'administrator' );
-		$callbacks = $this->get_ability_callbacks();
-
-		$this->assertFalse( call_user_func( $callbacks['permission_callback'], $input ), 'The gate should refuse input without a usable ID.' );
-	}
-
-	/**
-	 * The permission callback returns false for the ID of an attachment the caller may edit
-	 * followed by letters.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_permission_callback_refuses_an_id_followed_by_letters(): void {
-		$this->login_as( 'administrator' );
-		$callbacks = $this->get_ability_callbacks();
-
-		$input = array(
-			'where' => array( 'id' => self::$post_ids['unattached'] . 'abc' ),
-			'data'  => array( 'title' => 'MDT letters' ),
-		);
-
-		$this->assertFalse( call_user_func( $callbacks['permission_callback'], $input ), 'The gate should refuse an ID followed by letters.' );
-	}
-
-	/**
-	 * The permission callback accepts the ID in any form the integer type accepts.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_accepted_id_forms
-	 * @since 7.3.0
-	 *
-	 * @param string $form The form of the ID.
-	 */
-	public function test_permission_callback_accepts_id_forms( string $form ): void {
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$input = array(
-			'where' => array( 'id' => $this->id_in_form( self::$post_ids['unattached'], $form ) ),
-			'data'  => array( 'title' => 'MDT form' ),
-		);
-
-		$this->assertTrue( wp_get_ability( self::ABILITY )->check_permissions( $input ), 'The gate should accept the ID form.' );
-	}
-
-	/**
-	 * Returns IDs that are missing or below 1.
-	 *
-	 * @return array<string, array{where: array<string, int>}> The `where` values.
-	 */
-	public static function data_unusable_ids(): array {
-		return array(
-			'missing'  => array( array() ),
-			'zero'     => array( array( 'id' => 0 ) ),
-			'negative' => array( array( 'id' => -1 ) ),
-		);
-	}
-
-	/**
-	 * With the gate and the validation skipped, an ID that is missing or below 1 is not found.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_unusable_ids
-	 * @since 7.3.0
-	 *
-	 * @param array<string, int> $where The `where` value.
-	 */
-	public function test_unusable_id_is_not_found( array $where ): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-		$this->skip_input_validation();
-		$this->force_permission();
-
-		$this->assert_not_found(
-			$this->run_ability(
-				array(
-					'where' => $where,
-					'data'  => array( 'title' => 'MDT unusable' ),
-				)
-			),
-			'An update with an unusable ID'
-		);
 	}
 
 	/**
@@ -379,28 +210,11 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	}
 
 	/**
-	 * Returns the callers the gate refuses, with the status they get.
-	 *
-	 * @return array<string, array{role: string, status: int, own: bool}> The cases.
-	 */
-	public static function data_callers_without_edit_post(): array {
-		$cases = array();
-
-		foreach ( self::data_gate_roles() as $name => $row ) {
-			if ( ! $row[1] ) {
-				$cases[ $name ] = array( $row[0], 'logged_out' === $row[0] ? 401 : 403, $row[2] ?? false );
-			}
-		}
-
-		return $cases;
-	}
-
-	/**
 	 * Without `edit_post` the callback refuses the call before any attribute is checked, and
 	 * nothing changes.
 	 *
 	 * @ticket 66719
-	 * @dataProvider data_callers_without_edit_post
+	 * @dataProvider data_callers_without_the_capability
 	 * @since 7.3.0
 	 *
 	 * @param string $role   The role.
@@ -447,7 +261,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	}
 
 	/**
-	 * Data without any attribute is an invalid attribute.
+	 * Data without any attribute is invalid input.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
@@ -455,12 +269,17 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	public function test_data_without_attributes(): void {
 		$this->login_as( 'editor' );
 		$this->register_abilities();
-		$this->skip_input_validation();
 
 		$before = $this->snapshot( self::$post_ids['unattached'] );
 
-		$this->assert_error_with_params( $this->run_ability( $this->update_input( 'unattached', array() ) ), 'media_invalid_attribute', 'data', 'Empty data' );
-		$this->assert_error_with_params( $this->run_ability( $this->update_input( 'unattached', array( 'status' => 'private' ) ) ), 'media_invalid_attribute', 'data', 'Data with only a key outside the attributes' );
+		$empty = $this->run_ability( $this->update_input( 'unattached', array() ) );
+		$this->assertWPError( $empty, 'Empty data should fail.' );
+		$this->assertSame( 'ability_invalid_input', $empty->get_error_code(), 'The schema should reject empty data.' );
+
+		$outside = $this->run_ability( $this->update_input( 'unattached', array( 'status' => 'private' ) ) );
+		$this->assertWPError( $outside, 'Data with only a key outside the attributes should fail.' );
+		$this->assertSame( 'ability_invalid_input', $outside->get_error_code(), 'The schema should reject data with only a key outside the attributes.' );
+
 		$this->assert_unchanged( $before, 'Data without attributes' );
 	}
 
@@ -476,8 +295,8 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 		$this->skip_input_validation();
 
 		$data = array(
-			'author' => 0,
-			'post'   => -1,
+			'author' => self::MISSING_ID,
+			'post'   => self::$post_ids['revision'],
 			'date'   => array(),
 			'slug'   => '!!!',
 		);
@@ -533,18 +352,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 			'An update with the stored author'
 		);
 		$this->assertSame( self::MISSING_ID, (int) get_post_field( 'post_author', self::$post_ids['editor_image'] ), 'The author should stay.' );
-	}
-
-	/**
-	 * Returns authors the author may not set.
-	 *
-	 * @return array<string, array{author: string}> The authors, as fixture names.
-	 */
-	public static function data_other_authors(): array {
-		return array(
-			'another user' => array( 'editor' ),
-			'missing user' => array( 'missing' ),
-		);
 	}
 
 	/**
@@ -680,18 +487,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	}
 
 	/**
-	 * Returns parents of a type that cannot hold attachments.
-	 *
-	 * @return array<string, array{post: string}> The posts, as fixture names.
-	 */
-	public static function data_parents_of_an_invalid_type(): array {
-		return array(
-			'revision'   => array( 'revision' ),
-			'attachment' => array( 'editor_image' ),
-		);
-	}
-
-	/**
 	 * A revision or an attachment cannot be the parent, also when it is the current parent.
 	 *
 	 * @ticket 66719
@@ -716,19 +511,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	}
 
 	/**
-	 * Returns authors below 1.
-	 *
-	 * @return array<string, array{author: int}> The authors.
-	 */
-	public static function data_authors_below_one(): array {
-		return array(
-			'zero'     => array( 0 ),
-			'negative' => array( -1 ),
-		);
-	}
-
-	/**
-	 * An author below 1 is invalid before the capability to set another author is checked.
+	 * An author below 1 is invalid input.
 	 *
 	 * @ticket 66719
 	 * @dataProvider data_authors_below_one
@@ -736,28 +519,16 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	 *
 	 * @param int $author The author.
 	 */
-	public function test_author_below_one_is_invalid_before_the_capability_check( int $author ): void {
+	public function test_author_below_one_is_invalid_input( int $author ): void {
 		$this->login_as( 'author' );
 		$this->register_abilities();
-		$this->skip_input_validation();
 
 		$before = $this->snapshot( self::$post_ids['unattached'] );
 		$result = $this->run_ability( $this->update_input( 'unattached', array( 'author' => $author ) ) );
 
-		$this->assert_error_with_params( $result, 'media_invalid_attribute', 'data[author]', 'An author below 1' );
+		$this->assertWPError( $result, 'An author below 1 should fail.' );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject an author below 1.' );
 		$this->assert_unchanged( $before, 'An author below 1' );
-	}
-
-	/**
-	 * Returns posts of another user of a type that cannot hold attachments.
-	 *
-	 * @return array<string, array{post: string}> The posts, as fixture names.
-	 */
-	public static function data_other_users_parents_of_an_invalid_type(): array {
-		return array(
-			'revision of a post of another user' => array( 'revision' ),
-			'attachment of another user'         => array( 'editor_image' ),
-		);
 	}
 
 	/**
@@ -765,7 +536,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	 * post is, before its type is checked.
 	 *
 	 * @ticket 66719
-	 * @dataProvider data_other_users_parents_of_an_invalid_type
+	 * @dataProvider data_parents_of_an_invalid_type
 	 * @since 7.3.0
 	 *
 	 * @param string $post The post, as a fixture name.
@@ -798,26 +569,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 
 		$this->assert_updated( $this->run_ability( $this->update_input( 'unattached', array( 'post' => self::$post_ids['author_post'] ) ) ), 'unattached', 'An update to a new parent' );
 		$this->assertSame( self::$post_ids['author_post'], get_post( self::$post_ids['unattached'] )->post_parent, 'The new parent should be stored.' );
-	}
-
-	/**
-	 * Returns dates, with the stored local and GMT dates in New York in winter.
-	 *
-	 * @return array<string, array{date: array<string, string>, local: string, gmt: string}> The cases.
-	 */
-	public static function data_dates(): array {
-		return array(
-			'site date' => array( array( 'site' => '2099-01-15T10:00:00' ), '2099-01-15 10:00:00', '2099-01-15 15:00:00' ),
-			'GMT date'  => array( array( 'gmt' => '2099-01-15T15:00:00' ), '2099-01-15 10:00:00', '2099-01-15 15:00:00' ),
-			'both'      => array(
-				array(
-					'site' => '2099-01-15T10:00:00',
-					'gmt'  => '2099-01-20T00:00:00',
-				),
-				'2099-01-15 10:00:00',
-				'2099-01-15 15:00:00',
-			),
-		);
 	}
 
 	/**
@@ -893,17 +644,17 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	}
 
 	/**
-	 * A listener on the update sees the caller as the current user, and a callback on the
-	 * attachment data runs during the update and stays registered.
+	 * The attachment update hook fires for the attachment, and a callback on the attachment
+	 * data runs during the update and stays registered.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
 	 */
-	public function test_update_runs_as_the_caller(): void {
-		$updated_by = array();
+	public function test_update_runs_the_attachment_hooks(): void {
+		$updated    = array();
 		$data_calls = 0;
-		$listener   = static function () use ( &$updated_by ): void {
-			$updated_by[] = get_current_user_id();
+		$listener   = static function ( int $post_id ) use ( &$updated ): void {
+			$updated[] = $post_id;
 		};
 		$callback   = static function ( array $data ) use ( &$data_calls ): array {
 			++$data_calls;
@@ -917,7 +668,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 
 		$this->assert_updated( $this->run_ability( $this->update_input( 'editor_image', array( 'title' => 'MDT caller update' ) ) ), 'editor_image', 'An update by the editor' );
 
-		$this->assertSame( array( self::$user_ids['editor'] ), array_unique( $updated_by ), 'The listener should see the caller as the current user.' );
+		$this->assertSame( array( self::$post_ids['editor_image'] ), array_values( array_unique( $updated ) ), 'The attachment update hook should fire for the attachment only.' );
 		$this->assertGreaterThan( 0, $data_calls, 'The attachment data callback should run during the update.' );
 		$this->assertNotFalse( has_filter( 'wp_insert_attachment_data', $callback ), 'The attachment data callback should stay registered.' );
 	}
@@ -1046,7 +797,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 		$this->assert_updated( $this->run_ability( $this->update_input( 'unattached', array( 'alt_text' => 'MDT listener alt' ) ) ), 'unattached', 'An update of the alt text' );
 
 		$this->assertCount( 1, $seen, 'The listener should run once for the attachment.' );
-		$this->assertSame( 'MDT listener alt', end( $seen ), 'The last call of the listener should see the new alt text.' );
+		$this->assertSame( 'MDT listener alt', $seen[0], 'The call of the listener should see the new alt text.' );
 	}
 
 	/**
@@ -1125,18 +876,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	}
 
 	/**
-	 * Returns save failures with the status of their error.
-	 *
-	 * @return array<string, array{database_error: bool, status: int}> The cases.
-	 */
-	public static function data_save_failures(): array {
-		return array(
-			'empty post'     => array( false, 400 ),
-			'database error' => array( true, 500 ),
-		);
-	}
-
-	/**
 	 * When the save fails nothing changes, the alt text included.
 	 *
 	 * @ticket 66719
@@ -1208,29 +947,16 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	 * @return array<string, array{location: string, key: string, value: mixed}> The cases.
 	 */
 	public static function data_keys_outside_the_allow_list(): array {
-		return array(
-			'data ID'             => array( 'data', 'ID', 1 ),
-			'data import_id'      => array( 'data', 'import_id', 7654321 ),
-			'data status'         => array( 'data', 'status', 'private' ),
-			'data post_status'    => array( 'data', 'post_status', 'private' ),
-			'data post_type'      => array( 'data', 'post_type', 'post' ),
-			'data mime_type'      => array( 'data', 'mime_type', 'text/html' ),
-			'data post_mime_type' => array( 'data', 'post_mime_type', 'text/html' ),
-			'data guid'           => array( 'data', 'guid', 'https://example.org/forged' ),
-			'data password'       => array( 'data', 'password', 'secret' ),
-			'data post_password'  => array( 'data', 'post_password', 'secret' ),
-			'data comment_status' => array( 'data', 'comment_status', 'closed' ),
-			'data ping_status'    => array( 'data', 'ping_status', 'closed' ),
-			'data menu_order'     => array( 'data', 'menu_order', 5 ),
-			'data meta'           => array( 'data', 'meta', array( 'mdt_key' => 'value' ) ),
-			'data meta_input'     => array( 'data', 'meta_input', array( 'mdt_key' => 'value' ) ),
-			'data tax_input'      => array( 'data', 'tax_input', array( 'category' => array( 1 ) ) ),
-			'data post_author'    => array( 'data', 'post_author', 1 ),
-			'data post_parent'    => array( 'data', 'post_parent', 1 ),
-			'data modified'       => array( 'data', 'modified', '2001-01-01T00:00:00' ),
-			'where status'        => array( 'where', 'status', 'inherit' ),
-			'where ID'            => array( 'where', 'ID', 1 ),
-		);
+		$cases = array();
+
+		foreach ( self::data_attribute_keys_outside_the_allow_list() as $name => $row ) {
+			$cases[ "data {$name}" ] = array( 'data', $row[0], $row[1] );
+		}
+
+		$cases['where status'] = array( 'where', 'status', 'inherit' );
+		$cases['where ID']     = array( 'where', 'ID', 1 );
+
+		return $cases;
 	}
 
 	/**
@@ -1340,28 +1066,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	}
 
 	/**
-	 * Returns callers who may edit an attachment of the author, with whether their markup is
-	 * kept. On single site the editor has `unfiltered_html`; on multisite only a super admin
-	 * has it.
-	 *
-	 * @return array<string, array{role: string, kept: bool, super_admin?: bool}> The cases.
-	 */
-	public static function data_markup_roles(): array {
-		if ( is_multisite() ) {
-			return array(
-				'editor'      => array( 'editor', false ),
-				'author'      => array( 'author', false ),
-				'super admin' => array( 'administrator', true, true ),
-			);
-		}
-
-		return array(
-			'editor' => array( 'editor', true ),
-			'author' => array( 'author', false ),
-		);
-	}
-
-	/**
 	 * Markup in the title, caption and description is kept for a caller with
 	 * `unfiltered_html` and filtered for one without it.
 	 *
@@ -1397,27 +1101,11 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 			'An update with markup'
 		);
 
-		if ( $super_admin ) {
-			revoke_super_admin( self::$user_ids[ $role ] );
-		}
-
 		$post = get_post( self::$post_ids['unattached'] );
 
 		foreach ( array( 'post_title', 'post_excerpt', 'post_content' ) as $field ) {
 			$this->assertSame( $kept, str_contains( $post->$field, '<script>' ), $kept ? "The markup in {$field} should be kept." : "The markup in {$field} should be filtered." );
 		}
-	}
-
-	/**
-	 * Returns texts that hold backslashes.
-	 *
-	 * @return array<string, array{text: string}> The texts.
-	 */
-	public static function data_texts_with_backslashes(): array {
-		return array(
-			'single backslashes' => array( 'C:\\mdt\\x' ),
-			'double backslash'   => array( 'a\\\\b' ),
-		);
 	}
 
 	/**
@@ -1431,14 +1119,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 	 * @param string $text The text.
 	 */
 	public function test_backslashes_are_stored_as_sent( string $text ): void {
-		add_filter(
-			'map_meta_cap',
-			static function ( array $caps, string $cap ): array {
-				return 'unfiltered_html' === $cap ? array( 'exist' ) : $caps;
-			},
-			10,
-			2
-		);
+		$this->grant_cap( 'unfiltered_html' );
 
 		$this->login_as( 'editor' );
 		$this->register_abilities();
@@ -1520,7 +1201,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUpdateAbility extends WP_Abilities_
 		$this->register_abilities();
 
 		$result = $this->run_ability( $this->update_input( 'unattached', array( 'author' => $super_admin ) ) );
-		revoke_super_admin( $super_admin );
 
 		$this->assert_updated( $result, 'unattached', 'An update by a super admin outside the site' );
 		$this->assertSame( (string) $super_admin, get_post_field( 'post_author', self::$post_ids['unattached'] ), 'The stored author should be the super admin.' );

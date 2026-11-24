@@ -330,7 +330,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 
 	/**
 	 * The permission callback refuses a logged-out caller, and a call when the attachment type
-	 * has `show_in_rest` off.
+	 * has `show_in_abilities` off.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
@@ -343,8 +343,8 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 		$this->assertFalse( $ability->check_permissions( array() ), 'A logged-out caller should be refused.' );
 
 		$this->login_as( 'administrator' );
-		get_post_type_object( 'attachment' )->show_in_rest = false;
-		$this->assertFalse( $ability->check_permissions( array() ), 'An administrator should be refused when the attachment type has show_in_rest off.' );
+		get_post_type_object( 'attachment' )->show_in_abilities = false;
+		$this->assertFalse( $ability->check_permissions( array() ), 'An administrator should be refused when the attachment type has show_in_abilities off.' );
 	}
 
 	/**
@@ -510,8 +510,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	}
 
 	/**
-	 * A status outside the status set is an invalid filter for every caller, before the
-	 * capabilities are checked.
+	 * A status outside the status set is invalid input for every caller.
 	 *
 	 * @ticket 66719
 	 * @dataProvider data_statuses_outside_the_set
@@ -520,18 +519,18 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	 * @param string       $role   The role.
 	 * @param list<string> $status The status filter.
 	 */
-	public function test_status_outside_the_set_is_an_invalid_filter( string $role, array $status ): void {
+	public function test_status_outside_the_set_is_invalid_input( string $role, array $status ): void {
 		$this->login_as( $role );
 		$this->register_abilities();
-		$this->skip_input_validation();
 
 		$result = $this->run_ability( array( 'where' => array( 'status' => $status ) ) );
 
-		$this->assert_error_with_params( $result, 'media_invalid_filter', 'where[status]', 'A status outside the set' );
+		$this->assertWPError( $result, 'A status outside the set should fail.' );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject a status outside the set.' );
 	}
 
 	/**
-	 * The status filter is checked before any other filter.
+	 * The capability to filter by a status is checked before any other filter.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
@@ -539,7 +538,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	public function test_status_is_checked_before_other_filters(): void {
 		$this->login_as( 'subscriber' );
 		$this->register_abilities();
-		$this->skip_input_validation();
 
 		$forbidden = $this->run_ability(
 			array(
@@ -550,16 +548,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 			)
 		);
 		$this->assert_error( $forbidden, 'media_cannot_filter_by_status', 403, 'A forbidden status next to an invalid MIME type' );
-
-		$invalid = $this->run_ability(
-			array(
-				'where' => array(
-					'status' => array( 'mdt_bogus' ),
-					'ids'    => array(),
-				),
-			)
-		);
-		$this->assert_error_with_params( $invalid, 'media_invalid_filter', 'where[status]', 'A status outside the set next to an empty ID list' );
 	}
 
 	/**
@@ -953,7 +941,8 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	}
 
 	/**
-	 * Items are ordered by date, newest first, then by ID, highest first, also across pages.
+	 * Items are ordered by date, newest first, then by ID, highest first, also across pages
+	 * and when the query holds more than one status.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
@@ -988,19 +977,8 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 
 		$this->assertSame( array_slice( $expected, 0, 2 ), $page_1, 'The first page should hold the first two items.' );
 		$this->assertSame( array_slice( $expected, 2, 2 ), $page_2, 'The second page should hold the next two items.' );
-	}
 
-	/**
-	 * Attachments of the same date are ordered by ID, highest first, also when the query
-	 * holds more than one status.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_same_date_is_ordered_by_id_descending(): void {
 		$this->login_as( 'editor' );
-		$this->register_abilities();
-
 		$ids = $this->query_ids(
 			array(
 				'where' => array(
@@ -1010,11 +988,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 			)
 		);
 
-		$this->assertSame(
-			array( self::$post_ids['order_c'], self::$post_ids['order_b'], self::$post_ids['order_a'], self::$post_ids['order_d'] ),
-			$ids,
-			'Attachments of the same date should be ordered by ID, highest first.'
-		);
+		$this->assertSame( $expected, $ids, 'Attachments of the same date should be ordered by ID, highest first, also with more than one status.' );
 	}
 
 	/**
@@ -1222,14 +1196,12 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 
 		$ids = $this->query_ids( array( 'where' => array( 'ids' => array( $id ) ) ) );
 
-		_unregister_post_status( 'mdt_public_archive' );
-
 		$this->assertSame( array( $id ), $ids, 'An attachment of a parent in a public status should be listed.' );
 	}
 
 	/**
 	 * An attachment of a published post is listed for a caller without any capability only
-	 * while the parent's type has `show_in_rest` on.
+	 * while the parent's type has `show_in_abilities` on.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
@@ -1240,11 +1212,11 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 
 		$input = array( 'where' => array( 'ids' => array( self::$post_ids['attached'] ) ) );
 
-		$this->assertSame( array( self::$post_ids['attached'] ), $this->query_ids( $input ), 'The attachment should be listed while the post type has show_in_rest on.' );
+		$this->assertSame( array( self::$post_ids['attached'] ), $this->query_ids( $input ), 'The attachment should be listed while the post type has show_in_abilities on.' );
 
-		get_post_type_object( 'post' )->show_in_rest = false;
+		get_post_type_object( 'post' )->show_in_abilities = false;
 
-		$this->assertSame( array(), $this->query_ids( $input ), 'The attachment should not be listed while the post type has show_in_rest off.' );
+		$this->assertSame( array(), $this->query_ids( $input ), 'The attachment should not be listed while the post type has show_in_abilities off.' );
 	}
 
 	/**
@@ -1382,18 +1354,47 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	 */
 	public static function data_unusable_filter_values(): array {
 		return array(
-			'empty ID list'         => array( array( 'ids' => array() ), 'where[ids]' ),
-			'ID list of zero'       => array( array( 'ids' => array( 0 ) ), 'where[ids]' ),
-			'empty slug list'       => array( array( 'slugs' => array() ), 'where[slugs]' ),
-			'slug list of nothing'  => array( array( 'slugs' => array( '' ) ), 'where[slugs]' ),
-			'empty status list'     => array( array( 'status' => array() ), 'where[status]' ),
-			'empty media type list' => array( array( 'media_type' => array() ), 'where[media_type]' ),
-			'empty MIME type list'  => array( array( 'mime_type' => array() ), 'where[mime_type]' ),
-			'post below zero'       => array( array( 'post' => -1 ), 'where[post]' ),
-			'empty author'          => array( array( 'author' => array() ), 'where[author]' ),
-			'author ID of zero'     => array( array( 'author' => array( 'id' => 0 ) ), 'where[author][id]' ),
-			'empty author slug'     => array( array( 'author' => array( 'slug' => '' ) ), 'where[author][slug]' ),
+			'empty slug list'      => array( array( 'slugs' => array() ), 'where[slugs]' ),
+			'slug list of nothing' => array( array( 'slugs' => array( '' ) ), 'where[slugs]' ),
 		);
+	}
+
+	/**
+	 * Returns `where` values outside the input schema.
+	 *
+	 * @return array<string, array{where: array<string, mixed>}> The cases.
+	 */
+	public static function data_filter_values_outside_the_schema(): array {
+		return array(
+			'empty ID list'         => array( array( 'ids' => array() ) ),
+			'ID list of zero'       => array( array( 'ids' => array( 0 ) ) ),
+			'empty status list'     => array( array( 'status' => array() ) ),
+			'empty media type list' => array( array( 'media_type' => array() ) ),
+			'empty MIME type list'  => array( array( 'mime_type' => array() ) ),
+			'post below zero'       => array( array( 'post' => -1 ) ),
+			'empty author'          => array( array( 'author' => array() ) ),
+			'author ID of zero'     => array( array( 'author' => array( 'id' => 0 ) ) ),
+			'empty author slug'     => array( array( 'author' => array( 'slug' => '' ) ) ),
+		);
+	}
+
+	/**
+	 * A filter value outside the input schema is invalid input.
+	 *
+	 * @ticket 66719
+	 * @dataProvider data_filter_values_outside_the_schema
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $where The filters.
+	 */
+	public function test_filter_value_outside_the_schema_is_invalid_input( array $where ): void {
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$result = $this->run_ability( array( 'where' => $where ) );
+
+		$this->assertWPError( $result, 'A filter value outside the schema should fail.' );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the filter value.' );
 	}
 
 	/**
@@ -1756,21 +1757,21 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	}
 
 	/**
-	 * A stored sub-size without a file is left out, and the call succeeds without a PHP
-	 * warning or notice.
+	 * A stored sub-size without a file or a height is left out, and the full size is still
+	 * added when it was the only sub-size, without a PHP warning or notice.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
 	 */
-	public function test_sub_size_without_a_file_is_left_out(): void {
-		$id = self::factory()->attachment->create_object(
+	public function test_incomplete_sub_size_is_left_out(): void {
+		$no_file = self::factory()->attachment->create_object(
 			array(
 				'file'           => '2026/01/mdt-meta-no-file.jpg',
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
 		wp_update_attachment_metadata(
-			$id,
+			$no_file,
 			array(
 				'width'  => 640,
 				'height' => 480,
@@ -1790,31 +1791,14 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 				),
 			)
 		);
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$details = $this->query_item( $id, array( 'media_details' ) )['media_details'];
-
-		$this->assertSameSets( array( 'thumbnail', 'full' ), array_keys( (array) $details['sizes'] ), 'The sub-size without a file should be left out.' );
-	}
-
-	/**
-	 * When the only stored sub-size is incomplete, it is left out and the full size is still
-	 * added, without a PHP warning or notice.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_full_size_is_added_when_the_only_sub_size_is_left_out(): void {
-		$id = self::factory()->attachment->create_object(
+		$only_broken = self::factory()->attachment->create_object(
 			array(
 				'file'           => '2026/01/mdt-meta-only-broken.jpg',
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
 		wp_update_attachment_metadata(
-			$id,
+			$only_broken,
 			array(
 				'width'  => 640,
 				'height' => 480,
@@ -1832,9 +1816,11 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 		$this->login_as( 'editor' );
 		$this->register_abilities();
 
-		$details = $this->query_item( $id, array( 'media_details' ) )['media_details'];
+		$no_file_details     = $this->query_item( $no_file, array( 'media_details' ) )['media_details'];
+		$only_broken_details = $this->query_item( $only_broken, array( 'media_details' ) )['media_details'];
 
-		$this->assertSame( array( 'full' ), array_keys( (array) $details['sizes'] ), 'The sizes should hold exactly the full size.' );
+		$this->assertSameSets( array( 'thumbnail', 'full' ), array_keys( (array) $no_file_details['sizes'] ), 'The sub-size without a file should be left out.' );
+		$this->assertSame( array( 'full' ), array_keys( (array) $only_broken_details['sizes'] ), 'The sizes should hold exactly the full size.' );
 	}
 
 	/**
@@ -2219,6 +2205,23 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 			),
 			$subscriber_result['items'][0]['author'] ?? null,
 			'A subscriber should not see the author of a private post only.'
+		);
+	}
+
+	/**
+	 * Returns every role of the matrix tests.
+	 *
+	 * @return array<string, array{role: string}> The roles.
+	 */
+	public static function data_all_roles(): array {
+		return array(
+			'logged out'      => array( 'logged_out' ),
+			'subscriber'      => array( 'subscriber' ),
+			'contributor'     => array( 'contributor' ),
+			'author'          => array( 'author' ),
+			'editor'          => array( 'editor' ),
+			'administrator'   => array( 'administrator' ),
+			'read and upload' => array( 'uploader' ),
 		);
 	}
 }

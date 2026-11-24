@@ -2,7 +2,7 @@
 
 declare( strict_types=1 );
 
-require_once __DIR__ . '/testcase-media-ability.php';
+require_once __DIR__ . '/testcase-media-item-ability.php';
 
 /**
  * Tests for the core/media-delete ability.
@@ -11,7 +11,7 @@ require_once __DIR__ . '/testcase-media-ability.php';
  *
  * @group abilities-api
  */
-class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_Media_UnitTestCase {
+class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_Media_Item_UnitTestCase {
 
 	/**
 	 * The name of the ability under test.
@@ -21,6 +21,15 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 	 * @var string
 	 */
 	protected const ABILITY = 'core/media-delete';
+
+	/**
+	 * The capability the gate checks on the target.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	protected const CAPABILITY = 'delete_post';
 
 	/**
 	 * The message of a call that cannot trash.
@@ -82,6 +91,16 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 	}
 
 	/**
+	 * Returns whether the site can move attachments to the Trash.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return bool Whether attachments can be trashed.
+	 */
+	private static function site_can_trash_attachments(): bool {
+		return EMPTY_TRASH_DAYS >= 1 && MEDIA_TRASH;
+	}
+	/**
 	 * Returns the `permanent` values that ask for the Trash.
 	 *
 	 * @return array<string, array{permanent: bool|null}> The values, null for a missing key.
@@ -90,6 +109,21 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 		return array(
 			'false'   => array( false ),
 			'missing' => array( null ),
+		);
+	}
+
+	/**
+	 * Returns an input for the given `where` value.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $where The `where` value.
+	 * @return array<string, mixed> The input.
+	 */
+	protected function build_input( array $where ): array {
+		return array(
+			'where'     => $where,
+			'permanent' => true,
 		);
 	}
 
@@ -127,207 +161,15 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 			'additionalProperties' => false,
 			'required'             => array( 'outcome' ),
 			'properties'           => array(
-				'outcome' => array( 'type' => 'string' ),
+				'outcome' => array(
+					'type' => 'string',
+					'enum' => array( 'deleted', 'trashed' ),
+				),
 			),
 		);
 
 		$this->assertSame( $this->normalize_schema( $expected_input ), $this->normalize_schema( $ability->get_input_schema() ), 'The input schema should match.' );
 		$this->assertSame( $this->normalize_schema( $expected_output ), $this->normalize_schema( $ability->get_output_schema() ), 'The output schema should match.' );
-	}
-
-	/**
-	 * Returns callers with whether the gate lets them delete an attachment of the author, or
-	 * their own attachment.
-	 *
-	 * @return array<string, array{role: string, expected: bool, own?: bool}> The cases.
-	 */
-	public static function data_gate_roles(): array {
-		return array(
-			'logged out'                      => array( 'logged_out', false ),
-			'subscriber'                      => array( 'subscriber', false ),
-			'contributor'                     => array( 'contributor', false ),
-			'no caps'                         => array( 'no_caps', false ),
-			'read and upload'                 => array( 'uploader', false ),
-			'read and upload, own attachment' => array( 'uploader', false, true ),
-			'own author'                      => array( 'author', true ),
-			'editor'                          => array( 'editor', true ),
-			'administrator'                   => array( 'administrator', true ),
-		);
-	}
-
-	/**
-	 * The permission callback needs `delete_post` on the target.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_gate_roles
-	 * @since 7.3.0
-	 *
-	 * @param string $role     The role.
-	 * @param bool   $expected Whether the gate passes.
-	 * @param bool   $own      Optional. Whether the target is the caller's own attachment. Default false.
-	 */
-	public function test_permission_callback_needs_delete_post( string $role, bool $expected, bool $own = false ): void {
-		$id = $own ? $this->create_attachment_of( $role ) : self::$post_ids['unattached'];
-
-		$this->login_as( $role );
-		$this->register_abilities();
-
-		$input = array(
-			'where'     => array( 'id' => $id ),
-			'permanent' => true,
-		);
-
-		$this->assertSame( $expected, wp_get_ability( self::ABILITY )->check_permissions( $input ), 'The gate should follow delete_post on the target.' );
-	}
-
-	/**
-	 * The permission callback refuses an administrator when the attachment type has
-	 * `show_in_rest` off, and nothing is deleted.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_permission_callback_refuses_when_attachments_are_hidden(): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		get_post_type_object( 'attachment' )->show_in_rest = false;
-
-		$input = $this->delete_input( 'unattached', true );
-		$this->assertFalse( wp_get_ability( self::ABILITY )->check_permissions( $input ), 'The administrator should be refused.' );
-		$this->assert_refused( $this->run_ability( $input ), 'A deletion while attachments are hidden' );
-		$this->assertInstanceOf( WP_Post::class, get_post( self::$post_ids['unattached'] ), 'The attachment should still exist.' );
-	}
-
-	/**
-	 * A refused caller gets the generic error and nothing is deleted.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_refused_caller_gets_the_generic_error(): void {
-		$this->login_as( 'contributor' );
-		$this->register_abilities();
-
-		$this->assert_refused( $this->run_ability( $this->delete_input( 'unattached', true ) ), 'A deletion by a contributor' );
-		$this->assertInstanceOf( WP_Post::class, get_post( self::$post_ids['unattached'] ), 'The attachment should still exist.' );
-	}
-
-	/**
-	 * The permission callback passes when the ID names no attachment, so that the call
-	 * answers that nothing was found, and nothing is deleted.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_ids_that_name_no_attachment
-	 * @since 7.3.0
-	 *
-	 * @param string $post The post, as a fixture name.
-	 */
-	public function test_id_that_names_no_attachment_is_not_found( string $post ): void {
-		$this->login_as( 'subscriber' );
-		$this->register_abilities();
-
-		$input  = $this->delete_input( $post, true );
-		$before = $this->snapshot();
-
-		$this->assertTrue( wp_get_ability( self::ABILITY )->check_permissions( $input ), 'The gate should pass.' );
-		$this->assert_not_found( $this->run_ability( $input ), 'A deletion of something that is not an attachment' );
-		$this->assertSame( $before['posts'], $this->snapshot()['posts'], 'Nothing should be deleted.' );
-	}
-
-	/**
-	 * The permission callback returns false for input without a usable ID.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_inputs_without_a_usable_id
-	 * @since 7.3.0
-	 *
-	 * @param mixed $input The input.
-	 */
-	public function test_permission_callback_refuses_input_without_a_usable_id( $input ): void {
-		$this->login_as( 'administrator' );
-		$callbacks = $this->get_ability_callbacks();
-
-		$this->assertFalse( call_user_func( $callbacks['permission_callback'], $input ), 'The gate should refuse input without a usable ID.' );
-	}
-
-	/**
-	 * The permission callback returns false for the ID of an attachment the caller may delete
-	 * followed by letters.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_permission_callback_refuses_an_id_followed_by_letters(): void {
-		$this->login_as( 'administrator' );
-		$callbacks = $this->get_ability_callbacks();
-
-		$input = array(
-			'where'     => array( 'id' => self::$post_ids['unattached'] . 'abc' ),
-			'permanent' => true,
-		);
-
-		$this->assertFalse( call_user_func( $callbacks['permission_callback'], $input ), 'The gate should refuse an ID followed by letters.' );
-	}
-
-	/**
-	 * The permission callback accepts the ID in any form the integer type accepts.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_accepted_id_forms
-	 * @since 7.3.0
-	 *
-	 * @param string $form The form of the ID.
-	 */
-	public function test_permission_callback_accepts_id_forms( string $form ): void {
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$input = array(
-			'where'     => array( 'id' => $this->id_in_form( self::$post_ids['unattached'], $form ) ),
-			'permanent' => true,
-		);
-
-		$this->assertTrue( wp_get_ability( self::ABILITY )->check_permissions( $input ), 'The gate should accept the ID form.' );
-	}
-
-	/**
-	 * Returns IDs that are missing or below 1.
-	 *
-	 * @return array<string, array{where: array<string, int>}> The `where` values.
-	 */
-	public static function data_unusable_ids(): array {
-		return array(
-			'missing'  => array( array() ),
-			'zero'     => array( array( 'id' => 0 ) ),
-			'negative' => array( array( 'id' => -1 ) ),
-		);
-	}
-
-	/**
-	 * With the gate and the validation skipped, an ID that is missing or below 1 is not found.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_unusable_ids
-	 * @since 7.3.0
-	 *
-	 * @param array<string, int> $where The `where` value.
-	 */
-	public function test_unusable_id_is_not_found( array $where ): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-		$this->skip_input_validation();
-		$this->force_permission();
-
-		$this->assert_not_found(
-			$this->run_ability(
-				array(
-					'where'     => $where,
-					'permanent' => true,
-				)
-			),
-			'A deletion with an unusable ID'
-		);
 	}
 
 	/**
@@ -361,27 +203,10 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 	}
 
 	/**
-	 * Returns the callers the gate refuses, with the status they get.
-	 *
-	 * @return array<string, array{role: string, status: int, own: bool}> The cases.
-	 */
-	public static function data_callers_without_delete_post(): array {
-		$cases = array();
-
-		foreach ( self::data_gate_roles() as $name => $row ) {
-			if ( ! $row[1] ) {
-				$cases[ $name ] = array( $row[0], 'logged_out' === $row[0] ? 401 : 403, $row[2] ?? false );
-			}
-		}
-
-		return $cases;
-	}
-
-	/**
 	 * Without `delete_post` the callback refuses the call and nothing is deleted.
 	 *
 	 * @ticket 66719
-	 * @dataProvider data_callers_without_delete_post
+	 * @dataProvider data_callers_without_the_capability
 	 * @since 7.3.0
 	 *
 	 * @param string $role   The role.
@@ -674,17 +499,17 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 	}
 
 	/**
-	 * A listener on the permanent deletion sees the caller as the current user.
+	 * The attachment deletion hook fires once for the attachment on a permanent deletion.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
 	 */
-	public function test_permanent_deletion_runs_as_the_caller(): void {
-		$deleted_by = array();
+	public function test_permanent_deletion_runs_the_attachment_hook(): void {
+		$deleted = array();
 		add_action(
 			'delete_attachment',
-			static function () use ( &$deleted_by ): void {
-				$deleted_by[] = get_current_user_id();
+			static function ( int $post_id ) use ( &$deleted ): void {
+				$deleted[] = $post_id;
 			}
 		);
 
@@ -692,6 +517,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 		$this->register_abilities();
 
 		$this->assertSame( array( 'outcome' => 'deleted' ), $this->run_ability( $this->delete_input( 'editor_image', true ) ), 'The outcome of the deletion by the editor should be deleted.' );
-		$this->assertSame( array( self::$user_ids['editor'] ), $deleted_by, 'The listener should see the caller as the current user.' );
+		$this->assertSame( array( self::$post_ids['editor_image'] ), $deleted, 'The attachment deletion hook should fire once for the attachment.' );
 	}
 }

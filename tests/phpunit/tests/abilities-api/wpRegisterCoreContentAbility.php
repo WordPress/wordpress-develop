@@ -938,6 +938,26 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Attachments are not exposed by the content ability, although their post type has
+	 * `show_in_abilities` on: the media abilities handle them.
+	 *
+	 * @ticket 66719
+	 * @since 7.3.0
+	 */
+	public function test_does_not_expose_attachments(): void {
+		$this->assertTrue( get_post_type_object( 'attachment' )->show_in_abilities, 'The attachment post type should have show_in_abilities on.' );
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$ability = wp_get_ability( 'core/content-query' );
+		$enum    = $ability->get_input_schema()['properties']['where']['properties']['type']['enum'];
+
+		$this->assertNotContains( 'attachment', $enum, 'The attachment post type should not appear in the post type enum.' );
+		$this->assertFalse( $ability->check_permissions( array( 'where' => array( 'type' => 'attachment' ) ) ), 'A query of attachments should be refused.' );
+	}
+
+	/**
 	 * Returns `show_in_abilities` values other than `true`.
 	 *
 	 * @return array<string, array{value: mixed}> Non-boolean `show_in_abilities` test cases.

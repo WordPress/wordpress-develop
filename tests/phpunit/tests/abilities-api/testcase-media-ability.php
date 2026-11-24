@@ -138,33 +138,6 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	protected static $post_ids = array();
 
 	/**
-	 * The requests the faked HTTP transport received, each with its URL and arguments.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var list<array{url: string, args: array<string, mixed>}>
-	 */
-	protected $requests = array();
-
-	/**
-	 * The files in the temporary folder when the test started.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var list<string>
-	 */
-	private $temp_files_at_start = array();
-
-	/**
-	 * Files in the temporary folder that tear_down() removes should a call leave them.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var list<string>
-	 */
-	protected $temp_files_to_remove = array();
-
-	/**
 	 * Creates the shared users, posts and attachments.
 	 *
 	 * The attachments are rows without files, so no test class leaves a file behind.
@@ -282,12 +255,6 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		$this->requests             = array();
-		$this->temp_files_to_remove = array();
-
-		$temp_files                = glob( get_temp_dir() . '*' );
-		$this->temp_files_at_start = false === $temp_files ? array() : $temp_files;
-
 		$this->unregister_media_abilities();
 
 		if ( ! wp_has_ability_category( 'content' ) ) {
@@ -304,8 +271,8 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Unregisters the media abilities and the category, removes the files a test added or
-	 * left in the temporary folder, and resets the post types.
+	 * Unregisters the media abilities and the category, removes the files a test added to the
+	 * uploads folder, and resets the post types.
 	 *
 	 * @since 7.3.0
 	 */
@@ -322,14 +289,8 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 
 		$this->remove_added_uploads();
 
-		foreach ( $this->temp_files_to_remove as $file ) {
-			if ( file_exists( $file ) ) {
-				unlink( $file );
-			}
-		}
-
 		/*
-		 * A test may turn off `show_in_rest` on the attachment or post type, and the next class's
+		 * A test may turn off `show_in_abilities` on the attachment or post type, and the next class's
 		 * wpSetUpBeforeClass() runs before the next set_up() resets the post types.
 		 */
 		$this->reset_post_types();
@@ -362,27 +323,25 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Registers the media abilities and returns the callbacks of the ability under test.
+	 * Registers the media abilities and returns the permission callback of the ability under
+	 * test.
 	 *
-	 * The callbacks call private methods, so tests that reach a check behind the permission
-	 * callback capture them from the registration arguments.
+	 * The callback calls private methods, so tests that reach the gate without the input
+	 * checks capture it from the registration arguments.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @return array<string, callable> The permission and execute callbacks, keyed by argument name.
+	 * @return callable The permission callback.
 	 */
-	protected function get_ability_callbacks(): array {
-		$ability   = static::ABILITY;
-		$callbacks = array();
+	protected function get_permission_callback(): callable {
+		$ability  = static::ABILITY;
+		$callback = null;
 
 		add_filter(
 			'wp_register_ability_args',
-			static function ( array $args, string $name ) use ( &$callbacks, $ability ): array {
+			static function ( array $args, string $name ) use ( &$callback, $ability ): array {
 				if ( $ability === $name ) {
-					$callbacks = array(
-						'permission_callback' => $args['permission_callback'],
-						'execute_callback'    => $args['execute_callback'],
-					);
+					$callback = $args['permission_callback'];
 				}
 
 				return $args;
@@ -393,9 +352,9 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 
 		$this->register_abilities();
 
-		$this->assertArrayHasKey( 'execute_callback', $callbacks, "The {$ability} ability should be registered with callbacks." );
+		$this->assertIsCallable( $callback, "The {$ability} ability should be registered with a permission callback." );
 
-		return $callbacks;
+		return $callback;
 	}
 
 	/**
@@ -427,27 +386,6 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Creates an attachment row without a file whose author is the shared user with the
-	 * given role or fixture name.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param string $role The role or fixture name.
-	 * @return int The attachment ID.
-	 */
-	protected function create_attachment_of( string $role ): int {
-		return self::factory()->attachment->create_object(
-			array(
-				'file'           => '2026/01/mdt-own-' . $role . '.jpg',
-				'post_author'    => self::$user_ids[ $role ],
-				'post_status'    => 'inherit',
-				'post_mime_type' => 'image/jpeg',
-				'post_title'     => 'Own ' . $role,
-			)
-		);
-	}
-
-	/**
 	 * Makes every input pass schema validation. The input is still converted to the schema
 	 * types.
 	 *
@@ -467,35 +405,20 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Grants `unfiltered_upload` to every user.
+	 * Grants a capability to every user.
 	 *
 	 * @since 7.3.0
+	 *
+	 * @param string $cap The capability.
 	 */
-	protected function grant_unfiltered_upload(): void {
+	protected function grant_cap( string $cap ): void {
 		add_filter(
 			'map_meta_cap',
-			static function ( array $caps, string $cap ): array {
-				return 'unfiltered_upload' === $cap ? array( 'exist' ) : $caps;
+			static function ( array $caps, string $requested ) use ( $cap ): array {
+				return $cap === $requested ? array( 'exist' ) : $caps;
 			},
 			10,
 			2
-		);
-	}
-
-	/**
-	 * Sets the maximum upload size, after Core's own callbacks on the filter.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param int $bytes The maximum size in bytes; 0 means no limit.
-	 */
-	protected function set_max_upload_size( int $bytes ): void {
-		add_filter(
-			'upload_size_limit',
-			static function () use ( $bytes ): int {
-				return $bytes;
-			},
-			20
 		);
 	}
 
@@ -549,32 +472,16 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns the temporary files made for a file name since the test started.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param string $file_name The file name a test sends, with or without its extension.
-	 * @return list<string> The temporary file paths.
-	 */
-	protected function list_temp_files( string $file_name ): array {
-		$base  = preg_replace( '/\.[^.]*$/', '', wp_basename( $file_name ) );
-		$files = glob( get_temp_dir() . $base . '-*' );
-
-		return false === $files ? array() : array_values( array_diff( $files, $this->temp_files_at_start ) );
-	}
-
-	/**
 	 * Takes a snapshot of the stored media: the number of posts per type and status, the
-	 * number of meta rows, the files under the uploads folder, the temporary files of a file
-	 * name and, when a post is given, the row and meta of that post.
+	 * number of meta rows, the files under the uploads folder and, when a post is given, the
+	 * row and meta of that post.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param int|null $post_id   Optional. The post ID. Default null.
-	 * @param string   $file_name Optional. The file name of the call. Default empty.
+	 * @param int|null $post_id Optional. The post ID. Default null.
 	 * @return array<string, mixed> The snapshot.
 	 */
-	protected function snapshot( ?int $post_id = null, string $file_name = '' ): array {
+	protected function snapshot( ?int $post_id = null ): array {
 		global $wpdb;
 
 		$snapshot = array(
@@ -583,112 +490,12 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 			'files' => $this->list_upload_files(),
 		);
 
-		if ( '' !== $file_name ) {
-			$snapshot['temp'] = $this->list_temp_files( $file_name );
-		}
-
 		if ( null !== $post_id ) {
 			$snapshot['post']      = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->posts} WHERE ID = %d", $post_id ), ARRAY_A );
 			$snapshot['post_meta'] = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM {$wpdb->postmeta} WHERE post_id = %d ORDER BY meta_id", $post_id ), ARRAY_A );
 		}
 
 		return $snapshot;
-	}
-
-	/**
-	 * Returns a URL on the site's own host, which the URL check accepts without a lookup.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param string $file_name The file name at the end of the path.
-	 * @return string The URL.
-	 */
-	protected function remote_url( string $file_name ): string {
-		return 'http://' . wp_parse_url( home_url(), PHP_URL_HOST ) . '/mdt-remote/' . $file_name;
-	}
-
-	/**
-	 * Fakes the HTTP transport. Every request is recorded and answered without the network.
-	 *
-	 * Each response is keyed by URL and is a `WP_Error`, or an array with any of `file` (a
-	 * fixture path written to the download), `body` (a string written to the download),
-	 * `code` (default 200), `headers` (default none) and `during` (a callable run while the
-	 * download runs). A request for any other URL gets an empty 200 response.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param array<string, WP_Error|array<string, mixed>> $responses The responses, keyed by URL.
-	 */
-	protected function fake_http( array $responses = array() ): void {
-		add_filter(
-			'pre_http_request',
-			function ( $pre, $args, $url ) use ( $responses ) {
-				$this->requests[] = array(
-					'url'  => $url,
-					'args' => $args,
-				);
-
-				$response = $responses[ $url ] ?? array();
-
-				if ( $response instanceof WP_Error ) {
-					return $response;
-				}
-
-				if ( isset( $response['during'] ) ) {
-					call_user_func( $response['during'] );
-				}
-
-				$body = null;
-				if ( isset( $response['file'] ) ) {
-					$body = file_get_contents( $response['file'] );
-				} elseif ( isset( $response['body'] ) ) {
-					$body = $response['body'];
-				}
-
-				if ( null !== $body && ! empty( $args['stream'] ) && ! empty( $args['filename'] ) ) {
-					if ( ! empty( $args['limit_response_size'] ) ) {
-						$body = substr( $body, 0, (int) $args['limit_response_size'] );
-					}
-
-					file_put_contents( $args['filename'], $body );
-				}
-
-				$code = $response['code'] ?? 200;
-
-				return array(
-					'headers'  => $response['headers'] ?? array(),
-					'body'     => '',
-					'response' => array(
-						'code'    => $code,
-						'message' => get_status_header_desc( $code ),
-					),
-					'cookies'  => array(),
-					'filename' => $args['filename'] ?? null,
-				);
-			},
-			10,
-			3
-		);
-	}
-
-	/**
-	 * Returns the requests the faked transport received for a URL.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param string $url The URL.
-	 * @return list<array<string, mixed>> The arguments of each request.
-	 */
-	protected function requests_for( string $url ): array {
-		$found = array();
-
-		foreach ( $this->requests as $request ) {
-			if ( $url === $request['url'] ) {
-				$found[] = $request['args'];
-			}
-		}
-
-		return $found;
 	}
 
 	/**
@@ -902,7 +709,10 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 				'caption'       => self::output_text_schema(),
 				'description'   => self::output_text_schema(),
 				'alt_text'      => array( 'type' => 'string' ),
-				'media_type'    => array( 'type' => 'string' ),
+				'media_type'    => array(
+					'type' => 'string',
+					'enum' => array( 'image', 'file' ),
+				),
 				'mime_type'     => array( 'type' => 'string' ),
 				'source_url'    => array(
 					'type'   => 'string',
@@ -955,10 +765,9 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param int $post_minimum The minimum of `post`.
 	 * @return array<string, mixed> The schemas, keyed by attribute.
 	 */
-	protected static function attribute_schemas( int $post_minimum ): array {
+	protected static function attribute_schemas(): array {
 		return array(
 			'title'       => array( 'type' => 'string' ),
 			'caption'     => array( 'type' => 'string' ),
@@ -989,7 +798,7 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 			),
 			'post'        => array(
 				'type'    => 'integer',
-				'minimum' => $post_minimum,
+				'minimum' => 0,
 			),
 		);
 	}
@@ -1043,135 +852,134 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns roles without `upload_files`.
+	 * Returns authors the author may not set.
 	 *
-	 * @return array<string, array{role: string}> The roles.
+	 * @return array<string, array{author: string}> The authors, as fixture names.
 	 */
-	public static function data_roles_without_upload_files(): array {
+	public static function data_other_authors(): array {
 		return array(
-			'logged out'  => array( 'logged_out' ),
-			'subscriber'  => array( 'subscriber' ),
-			'contributor' => array( 'contributor' ),
-			'no caps'     => array( 'no_caps' ),
+			'another user' => array( 'editor' ),
+			'missing user' => array( 'missing' ),
 		);
 	}
 
 	/**
-	 * Returns roles with `upload_files`.
+	 * Returns authors below 1.
 	 *
-	 * @return array<string, array{role: string}> The roles.
+	 * @return array<string, array{author: int}> The authors.
 	 */
-	public static function data_roles_with_upload_files(): array {
+	public static function data_authors_below_one(): array {
 		return array(
-			'author'          => array( 'author' ),
-			'editor'          => array( 'editor' ),
-			'administrator'   => array( 'administrator' ),
-			'read and upload' => array( 'uploader' ),
+			'zero'     => array( 0 ),
+			'negative' => array( -1 ),
 		);
 	}
 
 	/**
-	 * Returns every role of the matrix tests.
+	 * Returns dates, with the stored local and GMT dates in New York in winter.
 	 *
-	 * @return array<string, array{role: string}> The roles.
+	 * @return array<string, array{date: array<string, string>, local: string, gmt: string}> The cases.
 	 */
-	public static function data_all_roles(): array {
+	public static function data_dates(): array {
 		return array(
-			'logged out'      => array( 'logged_out' ),
-			'subscriber'      => array( 'subscriber' ),
-			'contributor'     => array( 'contributor' ),
-			'author'          => array( 'author' ),
-			'editor'          => array( 'editor' ),
-			'administrator'   => array( 'administrator' ),
-			'read and upload' => array( 'uploader' ),
+			'site date' => array( array( 'site' => '2099-01-15T10:00:00' ), '2099-01-15 10:00:00', '2099-01-15 15:00:00' ),
+			'GMT date'  => array( array( 'gmt' => '2099-01-15T15:00:00' ), '2099-01-15 10:00:00', '2099-01-15 15:00:00' ),
+			'both'      => array(
+				array(
+					'site' => '2099-01-15T10:00:00',
+					'gmt'  => '2099-01-20T00:00:00',
+				),
+				'2099-01-15 10:00:00',
+				'2099-01-15 15:00:00',
+			),
 		);
 	}
 
 	/**
-	 * Returns posts that are not attachments, and an ID that names nothing.
+	 * Returns save failures with the status of their error.
+	 *
+	 * @return array<string, array{database_error: bool, status: int}> The cases.
+	 */
+	public static function data_save_failures(): array {
+		return array(
+			'empty post'     => array( false, 400 ),
+			'database error' => array( true, 500 ),
+		);
+	}
+
+	/**
+	 * Returns callers who may upload media and edit an attachment of the author, with whether
+	 * their markup is kept. On single site the editor has `unfiltered_html`; on multisite only
+	 * a super admin has it.
+	 *
+	 * @return array<string, array{role: string, kept: bool, super_admin?: bool}> The cases.
+	 */
+	public static function data_markup_roles(): array {
+		if ( is_multisite() ) {
+			return array(
+				'editor'      => array( 'editor', false ),
+				'author'      => array( 'author', false ),
+				'super admin' => array( 'administrator', true, true ),
+			);
+		}
+
+		return array(
+			'editor' => array( 'editor', true ),
+			'author' => array( 'author', false ),
+		);
+	}
+
+	/**
+	 * Returns texts that hold backslashes.
+	 *
+	 * @return array<string, array{text: string}> The texts.
+	 */
+	public static function data_texts_with_backslashes(): array {
+		return array(
+			'single backslashes' => array( 'C:\\mdt\\x' ),
+			'double backslash'   => array( 'a\\\\b' ),
+		);
+	}
+
+	/**
+	 * Returns parents of a type that cannot hold attachments. Both belong to the editor, so
+	 * the author may not edit them.
 	 *
 	 * @return array<string, array{post: string}> The posts, as fixture names.
 	 */
-	public static function data_ids_that_name_no_attachment(): array {
+	public static function data_parents_of_an_invalid_type(): array {
 		return array(
-			'post'     => array( 'post' ),
-			'page'     => array( 'page' ),
-			'revision' => array( 'revision' ),
-			'missing'  => array( 'missing' ),
+			'revision'   => array( 'revision' ),
+			'attachment' => array( 'editor_image' ),
 		);
 	}
 
 	/**
-	 * Returns `where.id` values in forms the integer type accepts, as names for id_in_form().
+	 * Returns keys that are not attributes of an attachment.
 	 *
-	 * @return array<string, array{form: string}> The forms.
+	 * @return array<string, array{key: string, value: mixed}> The keys and values.
 	 */
-	public static function data_accepted_id_forms(): array {
+	public static function data_attribute_keys_outside_the_allow_list(): array {
 		return array(
-			'integer'              => array( 'integer' ),
-			'integer string'       => array( 'string' ),
-			'zero-padded string'   => array( 'padded' ),
-			'float without a part' => array( 'float' ),
+			'ID'             => array( 'ID', 1 ),
+			'import_id'      => array( 'import_id', 7654321 ),
+			'status'         => array( 'status', 'private' ),
+			'post_status'    => array( 'post_status', 'private' ),
+			'post_type'      => array( 'post_type', 'post' ),
+			'mime_type'      => array( 'mime_type', 'text/html' ),
+			'post_mime_type' => array( 'post_mime_type', 'text/html' ),
+			'guid'           => array( 'guid', 'https://example.org/forged' ),
+			'password'       => array( 'password', 'secret' ),
+			'post_password'  => array( 'post_password', 'secret' ),
+			'comment_status' => array( 'comment_status', 'closed' ),
+			'ping_status'    => array( 'ping_status', 'closed' ),
+			'menu_order'     => array( 'menu_order', 5 ),
+			'meta'           => array( 'meta', array( 'mdt_key' => 'value' ) ),
+			'meta_input'     => array( 'meta_input', array( 'mdt_key' => 'value' ) ),
+			'tax_input'      => array( 'tax_input', array( 'category' => array( 1 ) ) ),
+			'post_author'    => array( 'post_author', 1 ),
+			'post_parent'    => array( 'post_parent', 1 ),
+			'modified'       => array( 'modified', '2001-01-01T00:00:00' ),
 		);
-	}
-
-	/**
-	 * Returns an ID in one of the forms of data_accepted_id_forms().
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param int    $id   The ID.
-	 * @param string $form The form.
-	 * @return int|string|float The ID in that form.
-	 */
-	protected function id_in_form( int $id, string $form ) {
-		switch ( $form ) {
-			case 'string':
-				return (string) $id;
-			case 'padded':
-				return '00' . $id;
-			case 'float':
-				return (float) $id;
-			default:
-				return $id;
-		}
-	}
-
-	/**
-	 * Returns `where` values the update and delete gates return false for.
-	 *
-	 * @return array<string, array{input: mixed}> The inputs.
-	 */
-	public static function data_inputs_without_a_usable_id(): array {
-		return array(
-			'no input'                 => array( null ),
-			'no where'                 => array( array() ),
-			'where string'             => array( array( 'where' => 'x' ) ),
-			'no ID'                    => array( array( 'where' => array() ) ),
-			'true'                     => array( array( 'where' => array( 'id' => true ) ) ),
-			'letters'                  => array( array( 'where' => array( 'id' => 'abc' ) ) ),
-			'fraction'                 => array( array( 'where' => array( 'id' => 1.5 ) ) ),
-			'fraction string'          => array( array( 'where' => array( 'id' => '1.5' ) ) ),
-			'list'                     => array( array( 'where' => array( 'id' => array( 1 ) ) ) ),
-			'zero'                     => array( array( 'where' => array( 'id' => 0 ) ) ),
-			'zero string'              => array( array( 'where' => array( 'id' => '0' ) ) ),
-			'zero-padded zero string'  => array( array( 'where' => array( 'id' => '000' ) ) ),
-			'zero float'               => array( array( 'where' => array( 'id' => 0.0 ) ) ),
-			'negative'                 => array( array( 'where' => array( 'id' => -1 ) ) ),
-			'negative float'           => array( array( 'where' => array( 'id' => -1.0 ) ) ),
-			'float above 2 to the 53'  => array( array( 'where' => array( 'id' => 9007199254740994.0 ) ) ),
-			'float in exponent format' => array( array( 'where' => array( 'id' => 1e20 ) ) ),
-		);
-	}
-
-	/**
-	 * Returns whether the site can move attachments to the Trash.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return bool Whether attachments can be trashed.
-	 */
-	protected static function site_can_trash_attachments(): bool {
-		return EMPTY_TRASH_DAYS >= 1 && MEDIA_TRASH;
 	}
 }

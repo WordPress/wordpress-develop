@@ -124,18 +124,18 @@ final class WP_Abilities_Content {
 	private function register_content_query(): void {
 		/*
 		 * Post types must be registered with `show_in_abilities` before the ability is
-		 * registered so they are included in its input schema.
+		 * registered so they are included in its input schema. Attachments are exposed
+		 * through the media abilities instead.
 		 */
-		$post_types = array_values( get_post_types( array( 'show_in_abilities' => true ) ) );
+		$post_types = array_values( array_diff( get_post_types( array( 'show_in_abilities' => true ) ), array( 'attachment' ) ) );
 		if ( empty( $post_types ) ) {
 			return;
 		}
 
 		/*
 		 * Internal statuses (e.g. `inherit`) are excluded here and from the statuses a query
-		 * covers by default, so the posts of post types that rely on them (attachments)
-		 * cannot be queried, not even by ID. Revisit if such a post type is ever exposed via
-		 * `show_in_abilities`.
+		 * covers by default, so the posts of post types that rely on them cannot be queried,
+		 * not even by ID.
 		 */
 		$statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
 
@@ -822,9 +822,10 @@ final class WP_Abilities_Content {
 	 *
 	 * @param mixed $post_type The post type name.
 	 * @return WP_Post_Type|null The post type object, or null when the post type is not exposed.
+	 *                           Attachments are never exposed: the media abilities handle them.
 	 */
 	private function get_exposed_post_type( $post_type ): ?WP_Post_Type {
-		$post_type_object = is_string( $post_type ) ? get_post_type_object( $post_type ) : null;
+		$post_type_object = is_string( $post_type ) && 'attachment' !== $post_type ? get_post_type_object( $post_type ) : null;
 
 		return empty( $post_type_object->show_in_abilities ) ? null : $post_type_object;
 	}

@@ -198,6 +198,39 @@ class Tests_REST_API_WpRestAbilitiesMediaController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Dispatches a request that should be refused and asserts the error and that a target
+	 * attachment still exists.
+	 *
+	 * GET and DELETE requests carry the input in the query string, POST requests in a JSON body.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string               $operation  The operation.
+	 * @param string               $method     The HTTP method.
+	 * @param array<string, mixed> $input      The input, without the target attachment.
+	 * @param string|null          $attachment The target attachment as a fixture name, or null for none.
+	 * @param int                  $status     The expected status.
+	 * @param string               $code       The expected error code.
+	 * @param string               $context    What the request is, for the assertion messages.
+	 */
+	private function assert_refused_request( string $operation, string $method, array $input, ?string $attachment, int $status, string $code, string $context ): void {
+		$in_query_string = 'POST' !== $method;
+		$attachment_id   = null === $attachment ? 0 : self::$attachment_ids[ $attachment ];
+		if ( $attachment_id ) {
+			$input['where'] = array( 'id' => $in_query_string ? (string) $attachment_id : $attachment_id );
+		}
+
+		$response = $in_query_string
+			? $this->dispatch_query( $method, $operation, $input )
+			: $this->dispatch_json( $method, $operation, $input );
+
+		$this->assert_error_response( $response, $status, $code, $context );
+		if ( $attachment_id ) {
+			$this->assertInstanceOf( WP_Post::class, get_post( $attachment_id ), "{$context}: the attachment should still exist." );
+		}
+	}
+
+	/**
 	 * A query runs with GET and the input in the query string.
 	 *
 	 * @ticket 66719
@@ -230,30 +263,6 @@ class Tests_REST_API_WpRestAbilitiesMediaController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A query with POST is refused as a wrong method.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_query_with_post_is_a_wrong_method(): void {
-		wp_set_current_user( self::$user_ids['editor'] );
-
-		$this->assert_error_response( $this->dispatch_json( 'POST', 'query', array() ), 405, 'rest_ability_invalid_method', 'A query with POST' );
-	}
-
-	/**
-	 * A logged-out query is refused as unauthenticated.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_logged_out_query_is_unauthenticated(): void {
-		wp_set_current_user( 0 );
-
-		$this->assert_error_response( $this->dispatch_query( 'GET', 'query', array() ), 401, 'rest_ability_cannot_execute', 'A logged-out query' );
-	}
-
-	/**
 	 * A query with input the schema refuses is a bad request.
 	 *
 	 * @ticket 66719
@@ -265,20 +274,6 @@ class Tests_REST_API_WpRestAbilitiesMediaController extends WP_UnitTestCase {
 		$response = $this->dispatch_query( 'GET', 'query', array( 'where' => array( 'status' => array( 'mdt-bogus' ) ) ) );
 
 		$this->assert_error_response( $response, 400, 'ability_invalid_input', 'A query with an unknown status' );
-	}
-
-	/**
-	 * A status the caller may not filter by is forbidden.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_query_by_a_forbidden_status_is_forbidden(): void {
-		wp_set_current_user( self::$user_ids['subscriber'] );
-
-		$response = $this->dispatch_query( 'GET', 'query', array( 'where' => array( 'status' => array( 'trash' ) ) ) );
-
-		$this->assert_error_response( $response, 403, 'media_cannot_filter_by_status', 'A query of the Trash by a subscriber' );
 	}
 
 	/**
@@ -310,43 +305,6 @@ class Tests_REST_API_WpRestAbilitiesMediaController extends WP_UnitTestCase {
 		$this->assertSame( 'attachment', get_post_type( $data['id'] ), 'The upload should create an attachment.' );
 		$this->assertSame( 'MDT route upload', $data['title']['raw'], 'The title should be the one sent.' );
 		$this->assertSame( 'image/png', $data['mime_type'], 'The MIME type should be the stored one.' );
-	}
-
-	/**
-	 * An upload with GET is refused as a wrong method.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_upload_with_get_is_a_wrong_method(): void {
-		wp_set_current_user( self::$user_ids['author'] );
-
-		$this->assert_error_response( $this->dispatch_query( 'GET', 'upload', array() ), 405, 'rest_ability_invalid_method', 'An upload with GET' );
-	}
-
-	/**
-	 * An upload by a subscriber is forbidden.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_upload_by_a_subscriber_is_forbidden(): void {
-		wp_set_current_user( self::$user_ids['subscriber'] );
-
-		$response = $this->dispatch_json(
-			'POST',
-			'upload',
-			array(
-				'data' => array(
-					'file' => array(
-						'base64'   => base64_encode( file_get_contents( DIR_TESTDATA . '/images/codeispoetry.png' ) ),
-						'filename' => 'mdt-route-forbidden.png',
-					),
-				),
-			)
-		);
-
-		$this->assert_error_response( $response, 403, 'rest_ability_cannot_execute', 'An upload by a subscriber' );
 	}
 
 	/**
@@ -452,46 +410,80 @@ class Tests_REST_API_WpRestAbilitiesMediaController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A deletion with POST is refused as a wrong method.
+	 * Returns requests sent with a method their ability does not accept.
 	 *
-	 * @ticket 66719
-	 * @since 7.3.0
+	 * @return array<string, array{operation: string, method: string, role: string, input: array<string, mixed>, attachment: string|null, context: string}> The cases.
 	 */
-	public function test_deletion_with_post_is_a_wrong_method(): void {
-		wp_set_current_user( self::$user_ids['editor'] );
-
-		$response = $this->dispatch_json(
-			'POST',
-			'delete',
-			array(
-				'where'     => array( 'id' => self::$attachment_ids['delete'] ),
-				'permanent' => true,
-			)
+	public static function data_wrong_methods(): array {
+		return array(
+			'query with POST'    => array( 'query', 'POST', 'editor', array(), null, 'A query with POST' ),
+			'upload with GET'    => array( 'upload', 'GET', 'author', array(), null, 'An upload with GET' ),
+			'deletion with POST' => array( 'delete', 'POST', 'editor', array( 'permanent' => true ), 'delete', 'A deletion with POST' ),
 		);
-
-		$this->assert_error_response( $response, 405, 'rest_ability_invalid_method', 'A deletion with POST' );
-		$this->assertInstanceOf( WP_Post::class, get_post( self::$attachment_ids['delete'] ), 'The attachment should still exist.' );
 	}
 
 	/**
-	 * A logged-out deletion is refused as unauthenticated.
+	 * A request with a method its ability does not accept is refused as a wrong method.
 	 *
 	 * @ticket 66719
+	 * @dataProvider data_wrong_methods
 	 * @since 7.3.0
+	 *
+	 * @param string               $operation  The operation.
+	 * @param string               $method     The HTTP method.
+	 * @param string               $role       The role of the caller.
+	 * @param array<string, mixed> $input      The input, without the target attachment.
+	 * @param string|null          $attachment The target attachment as a fixture name, or null for none.
+	 * @param string               $context    What the request is, for the assertion messages.
 	 */
-	public function test_logged_out_deletion_is_unauthenticated(): void {
-		wp_set_current_user( 0 );
+	public function test_wrong_method_is_refused( string $operation, string $method, string $role, array $input, ?string $attachment, string $context ): void {
+		wp_set_current_user( self::$user_ids[ $role ] );
 
-		$response = $this->dispatch_query(
-			'DELETE',
-			'delete',
-			array(
-				'where'     => array( 'id' => (string) self::$attachment_ids['delete'] ),
-				'permanent' => 'true',
-			)
+		$this->assert_refused_request( $operation, $method, $input, $attachment, 405, 'rest_ability_invalid_method', $context );
+	}
+
+	/**
+	 * Returns requests the caller may not make.
+	 *
+	 * @return array<string, array{operation: string, method: string, role: string|null, input: array<string, mixed>, attachment: string|null, status: int, code: string, context: string}> The cases, a null role for a logged-out caller.
+	 */
+	public static function data_refused_requests(): array {
+		$upload_input = array(
+			'data' => array(
+				'file' => array(
+					'base64'   => base64_encode( file_get_contents( DIR_TESTDATA . '/images/codeispoetry.png' ) ),
+					'filename' => 'mdt-route-forbidden.png',
+				),
+			),
 		);
 
-		$this->assert_error_response( $response, 401, 'rest_ability_cannot_execute', 'A logged-out deletion' );
-		$this->assertInstanceOf( WP_Post::class, get_post( self::$attachment_ids['delete'] ), 'The attachment should still exist.' );
+		return array(
+			'logged-out query'                   => array( 'query', 'GET', null, array(), null, 401, 'rest_ability_cannot_execute', 'A logged-out query' ),
+			'query of the Trash by a subscriber' => array( 'query', 'GET', 'subscriber', array( 'where' => array( 'status' => array( 'trash' ) ) ), null, 403, 'media_cannot_filter_by_status', 'A query of the Trash by a subscriber' ),
+			'upload by a subscriber'             => array( 'upload', 'POST', 'subscriber', $upload_input, null, 403, 'rest_ability_cannot_execute', 'An upload by a subscriber' ),
+			'logged-out deletion'                => array( 'delete', 'DELETE', null, array( 'permanent' => 'true' ), 'delete', 401, 'rest_ability_cannot_execute', 'A logged-out deletion' ),
+		);
+	}
+
+	/**
+	 * A request the caller may not make is refused with its status and error code.
+	 *
+	 * @ticket 66719
+	 * @dataProvider data_refused_requests
+	 * @since 7.3.0
+	 *
+	 * @param string               $operation  The operation.
+	 * @param string               $method     The HTTP method.
+	 * @param string|null          $role       The role of the caller, or null for a logged-out caller.
+	 * @param array<string, mixed> $input      The input, without the target attachment.
+	 * @param string|null          $attachment The target attachment as a fixture name, or null for none.
+	 * @param int                  $status     The expected status.
+	 * @param string               $code       The expected error code.
+	 * @param string               $context    What the request is, for the assertion messages.
+	 */
+	public function test_refused_request_returns_the_error( string $operation, string $method, ?string $role, array $input, ?string $attachment, int $status, string $code, string $context ): void {
+		wp_set_current_user( null === $role ? 0 : self::$user_ids[ $role ] );
+
+		$this->assert_refused_request( $operation, $method, $input, $attachment, $status, $code, $context );
 	}
 }

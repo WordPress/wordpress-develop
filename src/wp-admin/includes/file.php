@@ -1357,6 +1357,88 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 }
 
 /**
+ * Downloads an image from a URL to a temporary file.
+ *
+ * The URL is checked before anything is requested: it must name a file whose extension
+ * maps to an allowed image type, and it must pass wp_http_validate_url(). The only
+ * request is made by download_url(), and its response is limited to the maximum upload
+ * size plus one byte, so an oversized file is never written to disk in full and still
+ * fails a check against wp_max_upload_size().
+ *
+ * The caller checks the size and the content of the downloaded file, and deletes the
+ * temporary file once it is done with it.
+ *
+ * @todo Use this function in WP_REST_Attachments_Controller::upload_from_url() as well.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param string $url The URL of the image.
+ * @return array|WP_Error {
+ *     The downloaded file, or a WP_Error when the URL is refused (`invalid_image_url`)
+ *     or the download fails (the error of download_url()).
+ *
+ *     @type string $name     The file name, taken from the path of the URL as it is.
+ *     @type string $tmp_name The path of the temporary file.
+ * }
+ */
+function _wp_download_image_from_url( $url ) {
+	$invalid_url = __( 'Invalid URL. Provide a valid, publicly reachable HTTP or HTTPS image URL.' );
+	if ( ! is_string( $url ) || '' === $url ) {
+		return new WP_Error( 'invalid_image_url', $invalid_url, array( 'status' => 400 ) );
+	}
+
+	// The name is taken from the URL's path as it is, without percent-decoding.
+	$url_path = (string) wp_parse_url( $url, PHP_URL_PATH );
+	$filename = '' === $url_path ? '' : wp_basename( $url_path );
+	if ( '' === $filename ) {
+		return new WP_Error( 'invalid_image_url', __( 'Could not determine a filename from the provided URL.' ), array( 'status' => 400 ) );
+	}
+
+	$filetype = wp_check_filetype( $filename );
+	if ( ! $filetype['type'] || ! str_starts_with( $filetype['type'], 'image/' ) ) {
+		return new WP_Error( 'invalid_image_url', __( 'Only images can be uploaded from a URL.' ), array( 'status' => 400 ) );
+	}
+
+	if ( false === wp_http_validate_url( $url ) ) {
+		return new WP_Error( 'invalid_image_url', $invalid_url, array( 'status' => 400 ) );
+	}
+
+	/*
+	 * One byte over the maximum is enough to fail a size check, so an oversized file is
+	 * never written to disk in full. The limit applies to requests for this URL only and
+	 * is removed again whatever the download gives.
+	 */
+	$max_size            = (int) wp_max_upload_size();
+	$limit_response_size = static function ( $args, $request_url ) use ( $url, $max_size ) {
+		if ( $request_url === $url && is_array( $args ) ) {
+			$args['limit_response_size'] = $max_size + 1;
+		}
+
+		return $args;
+	};
+
+	if ( $max_size > 0 ) {
+		add_filter( 'http_request_args', $limit_response_size, PHP_INT_MAX, 2 );
+	}
+
+	try {
+		$tmp_file = download_url( $url );
+	} finally {
+		remove_filter( 'http_request_args', $limit_response_size, PHP_INT_MAX );
+	}
+
+	if ( is_wp_error( $tmp_file ) ) {
+		return $tmp_file;
+	}
+
+	return array(
+		'name'     => $filename,
+		'tmp_name' => $tmp_file,
+	);
+}
+
+/**
  * Calculates and compares the MD5 of a file to its expected value.
  *
  * @since 3.7.0
