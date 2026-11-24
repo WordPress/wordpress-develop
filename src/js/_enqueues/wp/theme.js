@@ -1781,8 +1781,9 @@ themes.view.Installer = themes.view.Appearance.extend({
 		$( 'body' ).removeClass( 'filters-applied show-filters' );
 		$( '.drawer-toggle' ).attr( 'aria-expanded', 'false' );
 
-		// Bail if this is already active.
+		// Bail if this is already active, restoring the URL if the filter drawer changed it.
 		if ( $el.hasClass( this.activeClass ) ) {
+			themes.router.navigate( themes.router.baseUrl( themes.router.browsePath + sort ) );
 			return;
 		}
 

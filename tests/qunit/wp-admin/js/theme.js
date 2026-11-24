@@ -135,4 +135,51 @@
 			assert.equal( prevCalled, 0, 'Ctrl+Left does nothing' );
 		} );
 	} );
+	QUnit.module( 'Theme Installer sorting', function( hooks ) {
+		var originalRouter, originalSort, originalClearSearch, navigated, view;
+
+		hooks.beforeEach( function() {
+			navigated = [];
+			originalRouter = _.clone( wp.themes.router );
+			wp.themes.router.browsePath = '?browse=';
+			wp.themes.router.baseUrl = function( url ) {
+				return 'theme-install.php' + url;
+			};
+			wp.themes.router.navigate = function( url ) {
+				navigated.push( url );
+			};
+
+			$( '#qunit-fixture' ).html(
+				'<div class="wrap">' +
+					'<ul class="filter-links"><li><a href="#" class="current" data-sort="favorites">Favorites</a></li></ul>' +
+					'<button class="drawer-toggle" aria-expanded="true"></button>' +
+				'</div>'
+			);
+			$( 'body' ).addClass( 'show-filters' );
+
+			view = Object.create( wp.themes.view.Installer.prototype );
+			originalSort = view.sort;
+			originalClearSearch = view.clearSearch;
+			view.activeClass = 'current';
+			view.sort = function() {};
+			view.clearSearch = function() {};
+		} );
+
+		hooks.afterEach( function() {
+			wp.themes.router = originalRouter;
+			view.sort = originalSort;
+			view.clearSearch = originalClearSearch;
+			$( 'body' ).removeClass( 'show-filters filters-applied' );
+		} );
+
+		QUnit.test( 'Clicking the active tab restores its URL and closes the filter drawer', function( assert ) {
+			var $link = $( '.filter-links a' );
+
+			view.onSort( $.Event( 'click', { target: $link[ 0 ] } ) );
+
+			assert.strictEqual( navigated.length, 1, 'The router is updated once.' );
+			assert.ok( /\?browse=favorites$/.test( navigated[ 0 ] ), 'The URL is restored to the active tab.' );
+			assert.notOk( $( 'body' ).hasClass( 'show-filters' ), 'The filter drawer is closed.' );
+		} );
+	} );
 })( jQuery );
