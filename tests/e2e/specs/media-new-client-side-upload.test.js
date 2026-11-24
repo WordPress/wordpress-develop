@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import { randomUUID } from 'node:crypto';
+
+/**
  * Internal dependencies
  */
 import { test, expect } from '../fixtures';
@@ -164,6 +169,70 @@ test.describe( 'Add New Media File client-side uploads', () => {
 			sizes.thumbnail.source_url
 		);
 		expect( thumbnailResponse.status() ).toBe( 200 );
+	} );
+
+	test( 'creates every image size when two sizes share dimensions', async ( {
+		page,
+		admin,
+		attachments,
+		requestUtils,
+		muPlugin,
+		baseURL,
+	} ) => {
+		// Sizes with the same dimensions are sideloaded as one file, with
+		// their names sent as an array in `image_size`. Other workers share
+		// the site, so only this test's requests see the extra sizes.
+		const trigger = `e2e_${ randomUUID().replaceAll( '-', '' ) }`;
+		await muPlugin.write(
+			'shared-image-sizes.php',
+			`<?php
+			if ( isset( $_COOKIE['${ trigger }'] ) ) {
+				add_action(
+					'after_setup_theme',
+					function () {
+						add_image_size( 'e2e-shared-a', 320, 320, true );
+						add_image_size( 'e2e-shared-b', 320, 320, true );
+					}
+				);
+			}`
+		);
+		await page
+			.context()
+			.addCookies( [ { name: trigger, value: '1', url: baseURL } ] );
+
+		await admin.visitAdminPage( 'media-new.php' );
+
+		await expectCrossOriginIsolated( page );
+
+		const sideloadStatuses = [];
+		page.on( 'response', ( response ) => {
+			if (
+				/\/wp\/v2\/media\/\d+\/sideload/.test(
+					decodeURIComponent( response.url() )
+				)
+			) {
+				sideloadStatuses.push( response.status() );
+			}
+		} );
+
+		const ids = trackUploads( page, attachments );
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await expect( fileInput ).toBeAttached( { timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		await expect( editLinks( page ) ).toBeVisible( { timeout: 60_000 } );
+
+		expect( sideloadStatuses.length ).toBeGreaterThanOrEqual( 1 );
+		expect(
+			sideloadStatuses.filter( ( status ) => status !== 200 )
+		).toEqual( [] );
+
+		const attachment = await requestUtils.rest( {
+			path: `/wp/v2/media/${ ids.at( -1 ) }`,
+		} );
+		expect( Object.keys( attachment.media_details.sizes || {} ) ).toEqual(
+			expect.arrayContaining( [ 'e2e-shared-a', 'e2e-shared-b' ] )
+		);
 	} );
 
 	test( 'warns before leaving while a pipeline upload is in flight', async ( {

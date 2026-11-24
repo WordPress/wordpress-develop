@@ -247,6 +247,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 * @ticket 66762
 	 */
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
@@ -300,6 +301,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertFalse( $settings['disableCustomFontSizes'] );
 		$this->assertFalse( $settings['disableCustomGradients'] );
 		$this->assertFalse( $settings['disableLayoutStyles'] );
+		$this->assertCount( 1, $settings['defaultEditorStyles'] );
+		$this->assertStringContainsString( 'font-size:18px', $settings['defaultEditorStyles'][0]['css'] );
 		$this->assertFalse( $settings['enableCustomLineHeight'] );
 		$this->assertFalse( $settings['enableCustomSpacing'] );
 		$this->assertFalse( $settings['enableCustomUnits'] );
