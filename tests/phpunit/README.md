@@ -35,7 +35,7 @@ node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit -c te
 node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/diff.php tests/phpunit/build/leaks/snapshots.jsonl
 ```
 
-The report lists what each test and class leaves behind, i.e. the state that differs before and after it. It exits with 1 if the run did not finish or ran no test. Each run replaces the snapshots file. Snapshots take time and space, e.g. 421 MB for `Tests_Multisite_Site`: run one class or group per-test, not the whole suite.
+The report lists what each test and class leaves behind, i.e. the state that differs before and after it. Cache entries it drops are left out: a miss reads the source again. It exits with 1 if the run did not finish or ran no test. Each run replaces the snapshots file. Snapshots take time and space, e.g. 421 MB for `Tests_Multisite_Site`: run one class or group per-test, not the whole suite.
 
 To sweep the whole suite, snapshot only the state that outlives the PHP process (database, files, memcached, stale cached options) at class bounds. `diff.php` then lists each class that leaves that state unlike the install:
 
@@ -56,7 +56,7 @@ Environment variables:
 * `WP_TESTS_LEAKS_OUT`: snapshots file, default `tests/phpunit/build/leaks/snapshots.jsonl`.
 * `WP_TESTS_LEAKS_SCOPE`: `class` for the whole-suite sweep.
 
-The `leak-probe` test suite leaks one kind of state per test, to check the listener sees each. `check-probes.php` exits with 1 if the report misses one, or if an isolated child reports state that dies with it; pass it the same `WP_TESTS_LEAKS_SCOPE`, if any, as the run:
+The `leak-probe` test suite leaks one kind of state per test, to check the listener sees each. `check-probes.php` exits with 1 if the report misses one, or lists state it must not, e.g. state that dies with an isolated child. Run it with the same `LOCAL_PHP_MEMCACHED` and `WP_TESTS_LEAKS_SCOPE` as the tests:
 
 ```
 node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --testsuite leak-probe

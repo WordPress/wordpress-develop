@@ -13,11 +13,23 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 
 	const FILE = 'leak-probe.txt';
 
+	const LINK = 'leak-probe-link';
+
+	const DIR = 'leak-probe-dir';
+
+	const LINK_TARGET = 'leak-probe-missing';
+
+	// A term_relationships row no fixture creates: object_id, term_taxonomy_id.
+	const ORPHAN_OBJECT_ID = 999999;
+
 	public static $post_id;
 
 	public static $leaked = 'original';
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// An interrupted run's leftovers would make the file probes fail or go unreported.
+		self::remove_files();
+
 		// Two term_relationships rows sharing object_id: the composite primary key case.
 		$cat_a         = $factory->category->create();
 		$cat_b         = $factory->category->create();
@@ -32,10 +44,37 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 	}
 
 	public static function wpTearDownAfterClass() {
-		foreach ( array( WP_CONTENT_DIR . '/', sys_get_temp_dir() . '/' ) as $dir ) {
-			if ( file_exists( $dir . self::FILE ) ) {
-				unlink( $dir . self::FILE );
+		self::remove_files();
+	}
+
+	private static function remove_files() {
+		$paths = array(
+			WP_CONTENT_DIR . '/' . self::FILE,
+			sys_get_temp_dir() . '/' . self::FILE,
+			WP_CONTENT_DIR . '/' . self::LINK,
+			// A leftover link makes symlink() create its target.
+			WP_CONTENT_DIR . '/' . self::LINK_TARGET,
+		);
+		foreach ( $paths as $path ) {
+			if ( is_link( $path ) || is_file( $path ) ) {
+				unlink( $path );
 			}
+		}
+
+		$dir = WP_CONTENT_DIR . '/' . self::DIR;
+		if ( is_dir( $dir ) && ! is_link( $dir ) ) {
+			rmdir( $dir );
+		}
+	}
+
+	public function tear_down() {
+		parent::tear_down();
+
+		// After the framework's flush, as a test's own tear_down() can, so a persistent cache keeps it.
+		if ( 'test_leaks_cache_after_tear_down' === $this->getName() ) {
+			$this->assertTrue( wp_cache_set( 'after_tear_down', 'leaked', 'leak_probe' ) );
+			// An option only the cache has.
+			$this->assertTrue( wp_cache_set( 'leak_probe_cached_only', 'leaked', 'options' ) );
 		}
 	}
 
@@ -48,6 +87,23 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 		update_option( 'leak_probe_not_autoloaded', 'leaked', false );
 
 		$this->assertSame( 'leaked blogname', get_option( 'blogname' ) );
+	}
+
+	public function test_leaks_cache_after_tear_down() {
+		$this->assertTrue( true );
+	}
+
+	public function test_leaks_composite_key_row() {
+		global $wpdb;
+		$inserted = $wpdb->insert(
+			$wpdb->term_relationships,
+			array(
+				'object_id'        => self::ORPHAN_OBJECT_ID,
+				'term_taxonomy_id' => 1,
+			)
+		);
+		$this->assertSame( 1, $inserted );
+		$this->assertNotFalse( $wpdb->query( 'COMMIT' ) );
 	}
 
 	public function test_leaks_notoptions_cache() {
@@ -155,7 +211,9 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 	public function test_leaks_files() {
 		file_put_contents( WP_CONTENT_DIR . '/' . self::FILE, 'leaked' );
 		file_put_contents( sys_get_temp_dir() . '/' . self::FILE, 'leaked' );
-		$this->assertTrue( true );
+		// Dangling: a link has no target metadata to read.
+		$this->assertTrue( symlink( WP_CONTENT_DIR . '/' . self::LINK_TARGET, WP_CONTENT_DIR . '/' . self::LINK ) );
+		$this->assertTrue( mkdir( WP_CONTENT_DIR . '/' . self::DIR ) );
 	}
 
 	public function test_leaks_schema() {

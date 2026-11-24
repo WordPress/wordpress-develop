@@ -16,6 +16,18 @@ class Tests_Leak_Probe_Class_Fixture extends WP_UnitTestCase {
 		}
 	}
 
+	public static function tear_down_after_class() {
+		parent::tear_down_after_class();
+
+		// After the framework's flush, as a class's own tear_down_after_class() can, so a persistent cache keeps it.
+		wp_cache_set( 'after_class', 'leaked', 'leak_probe' );
+		wp_cache_set( 'leak_probe_class_cached_only', 'leaked', 'options' );
+
+		// PHPUnit restores both after each test, not after class hooks.
+		chdir( sys_get_temp_dir() );
+		ob_start();
+	}
+
 	public function test_fixture_user_exists() {
 		$this->assertInstanceOf( WP_User::class, get_user_by( 'login', self::ADMIN ) );
 	}

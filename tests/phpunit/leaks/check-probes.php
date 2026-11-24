@@ -4,14 +4,16 @@
  *
  * php check-probes.php run.jsonl
  *
- * Set WP_TESTS_LEAKS_SCOPE as for the run. Exits with 1 on a missed leak, in-process state an
- * isolated child reports, or a failed diff.php.
+ * Set LOCAL_PHP_MEMCACHED and WP_TESTS_LEAKS_SCOPE as for the run. Exits with 1 on a missed leak, a key
+ * a probe must not report, or a failed diff.php.
  */
 
 // Report title => patterns that must each match a reported key.
 const PER_TEST = array(
 	'test Tests_Leak_Probe::test_leaks_option_cache'       => array( '/^stale\|runtime\|1\|options\|alloptions\|blogname$/', '/^stale\|runtime\|1\|options\|leak_probe_not_autoloaded$/' ),
-	'test Tests_Leak_Probe::test_leaks_notoptions_cache'   => array( '/^db\|\w+options\|leak_probe_missing$/', '/^stale\|runtime\|1\|options\|notoptions\|leak_probe_missing$/' ),
+	'test Tests_Leak_Probe::test_leaks_cache_after_tear_down' => array( '/^cache\|leak_probe\|(1:)?after_tear_down$/', '/^stale\|runtime\|1\|options\|leak_probe_cached_only$/', '/^cache\|.*leak_probe:after_tear_down$/', '/^mc\|.*leak_probe:after_tear_down$/', '/^stale\|local\|1\|options\|leak_probe_cached_only$/', '/^stale\|memcached\|1\|options\|leak_probe_cached_only$/' ),
+	'test Tests_Leak_Probe::test_leaks_composite_key_row'  => array( '/^db\|\w+term_relationships\|999999,1$/', '/^dbcount\|\w+term_relationships$/' ),
+	'test Tests_Leak_Probe::test_leaks_notoptions_cache'   => array( '/^db\|\w+options\|leak_probe_missing$/', '/^dbcount\|\w+options$/', '/^stale\|runtime\|1\|options\|notoptions\|leak_probe_missing$/' ),
 	'test Tests_Leak_Probe::test_leaks_network_option_cache' => array( '/^stale\|runtime\|1\|site-options\|1:site_admins$/' ),
 	'test Tests_Leak_Probe::test_leaks_cache_global_group' => array( '/^global\|wp_object_cache\|global_groups$/' ),
 	'test Tests_Leak_Probe::test_leaks_function_static_var' => array( '/^fstatic\|leak_probe_counter\(\)\|\$calls$/', '/^fstatic\|Tests_Leak_Probe::method_counter\(\)\|\$calls$/' ),
@@ -24,14 +26,16 @@ const PER_TEST = array(
 	'test Tests_Leak_Probe::test_leaks_closure_swap'       => array( '/^global\|leak_probe_cb$/' ),
 	'test Tests_Leak_Probe::test_leaks_wpdb_and_server'    => array( '/^global\|_SERVER\|LEAK_PROBE$/', '/^global\|wpdb\|show_errors$/' ),
 	'test Tests_Leak_Probe::test_leaks_process_state'      => array( '/^env\|LEAK_PROBE$/', '/^ini\|precision$/', '/^ini\|error_reporting$/', '/^proc\|autoloaders$/', '/^proc\|error_handler$/', '/^proc\|error_reporting$/', '/^proc\|exception_handler$/', '/^proc\|libxml_errors$/', '/^proc\|locale$/', '/^proc\|mb_encoding$/', '/^proc\|timezone$/', '/^proc\|umask$/' ),
-	'test Tests_Leak_Probe::test_leaks_files'              => array( '/^file\|.*\/wp-content\/leak-probe\.txt$/', '/^file\|(?!.*\/wp-content\/).*\/leak-probe\.txt$/' ),
+	'test Tests_Leak_Probe::test_leaks_files'              => array( '/^file\|.*\/wp-content\/leak-probe\.txt$/', '/^file\|(?!.*\/wp-content\/).*\/leak-probe\.txt$/', '/^file\|.*\/wp-content\/leak-probe-link$/', '/^file\|.*\/wp-content\/leak-probe-dir$/' ),
 	'test Tests_Leak_Probe::test_leaks_schema'             => array( '/^schema\|\w+options$/' ),
 	'test Tests_Leak_Probe::test_leaks_temp_table'         => array( '/^temptable\|\w+leak_probe_tmp$/' ),
 	'test Tests_Leak_Probe::test_leaks_in_child (isolated child)' => array( '/^db\|\w+links\|\d+$/' ),
+	'class Tests_Leak_Probe_Class_Fixture'                 => array( '/^proc\|cwd$/', '/^proc\|ob_level$/', '/^cache\|leak_probe\|(1:)?after_class$/', '/^cache\|.*leak_probe:after_class$/', '/^mc\|.*leak_probe:after_class$/' ),
 );
 
 const CLASS_SCOPE = array(
-	'class Tests_Leak_Probe' => array( '/^db\|\w+links\|\d+$/', '/^schema\|\w+options$/' ),
+	'class Tests_Leak_Probe'               => array( '/^db\|\w+links\|\d+$/', '/^schema\|\w+options$/' ),
+	'class Tests_Leak_Probe_Class_Fixture' => array( '/^stale\|runtime\|1\|options\|leak_probe_class_cached_only$/', '/^mc\|.*leak_probe:after_class$/', '/^stale\|memcached\|1\|options\|leak_probe_class_cached_only$/' ),
 );
 
 // Planted in the in-memory object cache, which a persistent cache's tear_down() flush clears.
@@ -40,6 +44,21 @@ const RUNTIME_CACHE_ONLY = array(
 	'/^stale\|runtime\|1\|options\|leak_probe_not_autoloaded$/',
 	'/^stale\|runtime\|1\|options\|notoptions\|leak_probe_missing$/',
 	'/^stale\|runtime\|1\|site-options\|1:site_admins$/',
+	'/^cache\|leak_probe\|(1:)?after_tear_down$/',
+	'/^stale\|runtime\|1\|options\|leak_probe_cached_only$/',
+	'/^cache\|leak_probe\|(1:)?after_class$/',
+	'/^stale\|runtime\|1\|options\|leak_probe_class_cached_only$/',
+);
+
+// Only a persistent cache has these: the drop-in's derived keys, the servers' keys, their stale checks.
+const PERSISTENT_CACHE_ONLY = array(
+	'/^cache\|.*leak_probe:after_tear_down$/',
+	'/^mc\|.*leak_probe:after_tear_down$/',
+	'/^stale\|local\|1\|options\|leak_probe_cached_only$/',
+	'/^stale\|memcached\|1\|options\|leak_probe_cached_only$/',
+	'/^cache\|.*leak_probe:after_class$/',
+	'/^mc\|.*leak_probe:after_class$/',
+	'/^stale\|memcached\|1\|options\|leak_probe_class_cached_only$/',
 );
 
 const MULTISITE_ONLY = array( '/^stale\|runtime\|1\|site-options\|1:site_admins$/' );
@@ -48,6 +67,9 @@ const MULTISITE_ONLY = array( '/^stale\|runtime\|1\|site-options\|1:site_admins$
 const CHILD_AREAS = '/^(db|schema|mc|file|stale\|memcached)\|/';
 
 const CHILD_SUFFIX = ' (isolated child)';
+
+// Report title => pattern no reported key may match: the class plants no cache leak, and its flushes drop the install's entries.
+const UNEXPECTED = array( 'class Tests_Leak_Probe' => '/^(cache|mc)\|/' );
 
 // Report header and changed key lines, see report() in diff.php.
 const HEADER = '/^== (.+) leaves(?:, unlike the install)? \(\d+ changed\)$/';
@@ -112,7 +134,8 @@ $checked = 0;
 $skipped = 0;
 foreach ( $expected as $title => $patterns ) {
 	foreach ( $patterns as $pattern ) {
-		if ( ( ! $multisite && in_array( $pattern, MULTISITE_ONLY, true ) ) || ( ! $runtime_cache && in_array( $pattern, RUNTIME_CACHE_ONLY, true ) ) ) {
+		$other_cache = $runtime_cache ? PERSISTENT_CACHE_ONLY : RUNTIME_CACHE_ONLY;
+		if ( ( ! $multisite && in_array( $pattern, MULTISITE_ONLY, true ) ) || in_array( $pattern, $other_cache, true ) ) {
 			++$skipped;
 			continue;
 		}
@@ -121,6 +144,12 @@ foreach ( $expected as $title => $patterns ) {
 		if ( ! preg_grep( $pattern, $reported[ $title ] ?? array() ) ) {
 			$missed[] = "$title: $pattern";
 		}
+	}
+}
+
+foreach ( UNEXPECTED as $title => $pattern ) {
+	foreach ( preg_grep( $pattern, $reported[ $title ] ?? array() ) as $key ) {
+		$missed[] = "$title: unexpected $key";
 	}
 }
 

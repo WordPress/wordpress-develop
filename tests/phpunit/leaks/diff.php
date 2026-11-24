@@ -13,6 +13,9 @@
 
 const USAGE = "Usage: php diff.php run.jsonl\n       php diff.php a.jsonl b.jsonl ClassName\n";
 
+// A dropped cache entry is a miss, which reads the source again: not a leak, e.g. the test framework's flushes.
+const CACHE_AREAS = '/^(cache|mc)\|/';
+
 // Yields one snapshot at a time: a full run's file can exceed the memory limit. Returns the unreadable line count.
 function load( $file ) {
 	$handle = fopen( $file, 'r' );
@@ -45,6 +48,10 @@ function compare( array $a, array $b ) {
 		$before = $a[ $key ] ?? null;
 		$after  = $b[ $key ] ?? null;
 		if ( $before && $after && $before[0] === $after[0] ) {
+			continue;
+		}
+
+		if ( ! $after && preg_match( CACHE_AREAS, $key ) ) {
 			continue;
 		}
 
