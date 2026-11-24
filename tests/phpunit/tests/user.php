@@ -391,11 +391,11 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @covers WP_User::init
 	 */
-	public function test_init_normalizes_invalid_id_in_data(): void {
+	public function test_init_keeps_id_in_agreement_with_data(): void {
+		// Some plugins create virtual users with negative IDs, so these are preserved.
 		$negative = new WP_User( (object) array( 'ID' => -1 ) );
-		$this->assertSame( 0, $negative->ID, 'Expected a negative ID to be replaced with 0.' );
-		$this->assertSame( 0, $negative->data->ID, 'Expected the data to agree with the ID property.' );
-		$this->assertFalse( $negative->exists(), 'Expected a user with a negative ID not to exist.' );
+		$this->assertSame( -1, $negative->ID, 'Expected a negative ID to be preserved.' );
+		$this->assertSame( -1, $negative->data->ID, 'Expected the data to agree with the ID property.' );
 
 		$missing = new WP_User( (object) array( 'user_login' => 'nobody' ) );
 		$this->assertSame( 0, $missing->ID, 'Expected a missing ID to be 0.' );
