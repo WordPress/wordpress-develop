@@ -390,7 +390,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$this->assertSame( 1, $data['minProperties'], 'The data should name at least one setting.' );
 		$this->assertArrayNotHasKey( 'default', $data, 'The data should have no default.' );
 		$this->assertSameSets(
-			array_diff( array_map( 'strval', array_keys( wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'] ) ), array( 'settings_update_test_readonly' ) ),
+			array_diff( array_map( 'strval', array_keys( wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'] ) ), array( 'settings_update_test_readonly', 'url', 'email' ) ),
 			array_map( 'strval', array_keys( $data['properties'] ) ),
 			'The data should accept exactly the exposed settings that are not read-only.'
 		);
@@ -456,12 +456,12 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	public function test_output_schema_describes_the_writable_settings(): void {
 		$schema   = wp_get_ability( self::ABILITY )->get_output_schema();
 		$expected = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'];
-		unset( $expected['settings_update_test_readonly'] );
+		unset( $expected['settings_update_test_readonly'], $expected['url'], $expected['email'] );
 
 		$this->assertSame( 'object', $schema['type'], 'The output should be an object.' );
 		$this->assertFalse( $schema['additionalProperties'], 'The output should reject other keys.' );
 		$this->assertArrayNotHasKey( 'required', $schema, 'No setting should be required in the output.' );
-		$this->assertSame( $expected, $schema['properties'], 'The output should describe every setting but the read-only one, as core/settings-get does.' );
+		$this->assertSame( $expected, $schema['properties'], 'The output should describe every setting but the read-only ones, as core/settings-get does.' );
 	}
 
 	/**
@@ -829,41 +829,68 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * The site address and the administration email address cannot be written on multisite.
+	 * The site address and the administration email address cannot be updated. On single site
+	 * core/settings-get still reads them, and on multisite they are not exposed.
 	 *
 	 * @ticket 64616
 	 *
 	 * @since 7.3.0
 	 *
-	 * @group ms-required
+	 * @dataProvider data_read_only_core_settings
 	 *
-	 * @dataProvider data_single_site_settings
-	 *
-	 * @param string $name  The setting name.
-	 * @param string $value A valid value.
+	 * @param string      $name  The setting name.
+	 * @param string|null $value A valid value, or null.
 	 */
-	public function test_rejects_url_and_email_on_multisite( string $name, string $value ): void {
+	public function test_url_and_email_cannot_be_updated( string $name, ?string $value ): void {
 		$this->become_admin();
 		$before = $this->snapshot();
 
 		$properties = wp_get_ability( self::ABILITY )->get_input_schema()['properties']['data']['properties'];
 		$result     = $this->update( array( $name => $value ) );
+		$read       = wp_get_ability( 'core/settings-get' )->execute( array() );
 
 		$this->assertArrayNotHasKey( $name, $properties, 'The setting should not be in the input schema.' );
 		$this->assert_error_code( $result, 'ability_invalid_input' );
 		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
+		$this->assertSame( ! is_multisite(), isset( $read[ $name ] ), 'core/settings-get should read the setting on single site only.' );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: string, 1: string}> Setting names and valid values.
+	 * @return array<string, array{0: string, 1: string|null}> Setting names, and valid values or null.
 	 */
-	public static function data_single_site_settings(): array {
+	public static function data_read_only_core_settings(): array {
 		return array(
-			'url'   => array( 'url', 'https://acme.example' ),
-			'email' => array( 'email', 'owner@acme.example' ),
+			'url'            => array( 'url', 'https://acme.example' ),
+			'null for url'   => array( 'url', null ),
+			'email'          => array( 'email', 'owner@acme.example' ),
+			'null for email' => array( 'email', null ),
 		);
+	}
+
+	/**
+	 * The read-only rule holds when the option is exposed under another name.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_read_only_rule_follows_the_option_under_another_name(): void {
+		$name = 'settings_update_test_site_address';
+
+		register_setting(
+			'general',
+			'siteurl',
+			array(
+				'type'              => 'string',
+				'show_in_abilities' => array( 'name' => $name ),
+			)
+		);
+		$this->register_ability();
+
+		$this->assertArrayNotHasKey( $name, wp_get_ability( self::ABILITY )->get_input_schema()['properties']['data']['properties'], 'The option should not be writable under another name.' );
+		$this->assertArrayHasKey( $name, wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'], 'The option should still be read under another name.' );
 	}
 
 	/**
@@ -942,17 +969,15 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	/**
 	 * Data provider.
 	 *
-	 * Every exposed core setting, plus the settings this class registers. A setting that holds the
+	 * Every core setting the ability can update, plus the settings this class registers. A setting that holds the
 	 * ID of a page or a category names the kind of content, and the tests fill in the ID.
 	 *
 	 * @return array<string, array{0: string, 1: string, 2: mixed, 3: string, 4: string, 5: string|null}> Settings with a valid value.
 	 */
 	public static function data_settings(): array {
-		$data = array(
+		return array(
 			'title'                          => array( 'title', 'blogname', 'Acme Robotics', '"Acme Robotics"', 'Acme Robotics', null ),
 			'description'                    => array( 'description', 'blogdescription', 'Robots for everyone', '"Robots for everyone"', 'Robots for everyone', null ),
-			'url'                            => array( 'url', 'siteurl', 'https://acme.example', '"https:\/\/acme.example"', 'https://acme.example', null ),
-			'email'                          => array( 'email', 'admin_email', 'owner@acme.example', '"owner@acme.example"', 'owner@acme.example', null ),
 			'timezone'                       => array( 'timezone', 'timezone_string', 'Europe/Lisbon', '"Europe\/Lisbon"', 'Europe/Lisbon', null ),
 			'date_format'                    => array( 'date_format', 'date_format', 'Y-m-d', '"Y-m-d"', 'Y-m-d', null ),
 			'time_format'                    => array( 'time_format', 'time_format', 'H:i', '"H:i"', 'H:i', null ),
@@ -976,12 +1001,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'a setting with mixed-case name' => array( 'Mixed_Case_Name', 'settings_update_test_mixed_case_option', 'Mixed', '"Mixed"', 'Mixed', null ),
 			'a setting with readonly false'  => array( 'settings_update_test_readonly_false', 'settings_update_test_readonly_false', 'Open', '"Open"', 'Open', null ),
 		);
-
-		if ( is_multisite() ) {
-			unset( $data['url'], $data['email'] );
-		}
-
-		return $data;
 	}
 
 	/**
@@ -1071,7 +1090,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'an unknown timezone'                       => array( 'timezone', 'Mars/Olympus' ),
 			'a UTC offset as the timezone'              => array( 'timezone', 'UTC+2' ),
 			'a language that is not installed'          => array( 'language', 'xx_XX' ),
-			'en_US as the language'                     => array( 'language', 'en_US' ),
 			'an unknown post format'                    => array( 'default_post_format', 'banana' ),
 			'an empty post format'                      => array( 'default_post_format', '' ),
 			'a front page that does not exist'          => array( 'page_on_front', 999999 ),
@@ -1082,6 +1100,33 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'no default category'                       => array( 'default_category', 0 ),
 			'a negative default category'               => array( 'default_category', -1 ),
 		);
+	}
+
+	/**
+	 * Every value the settings cannot use is reported, before an invalid stored value.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_reports_every_value_the_settings_cannot_use(): void {
+		$this->store_raw( 'posts_per_page', 'ten' );
+		$this->become_admin();
+		$before = $this->snapshot();
+
+		$result = $this->update(
+			array(
+				'timezone'       => 'Mars/Olympus',
+				'posts_per_page' => null,
+				'language'       => 'xx_XX',
+			)
+		);
+
+		$this->assert_error_code( $result, 'settings_invalid_value' );
+		$this->assertSame( 'Invalid parameter(s): data[timezone], data[language]', $result->get_error_message(), 'The message should name every refused setting.' );
+		$this->assertSame( 400, $result->get_error_data()['status'], 'The error should be a client error.' );
+		$this->assertSameSets( array( 'data[timezone]', 'data[language]' ), array_keys( $result->get_error_data()['params'] ), 'The error data should name every refused setting.' );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**
@@ -1173,6 +1218,29 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'no page for posts'            => array( 'page_for_posts', 'page_for_posts', '5', 0 ),
 			'no privacy policy page'       => array( 'page_for_privacy_policy', 'wp_page_for_privacy_policy', '5', 0 ),
 		);
+	}
+
+	/**
+	 * The language that core/settings-get reads when none is stored, `en_US`, can be written back,
+	 * and is saved as English.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_en_us_language_is_saved_as_english(): void {
+		$this->store_raw( 'WPLANG', null );
+		$this->become_admin();
+		$read = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( 'language' ) ) );
+		$this->store_raw( 'WPLANG', 'de_DE' );
+		$expected = $this->snapshot();
+
+		$result = $this->update( $read );
+
+		$this->assertSame( array( 'language' => 'en_US' ), $read, 'The language should read as en_US when none is stored.' );
+		$this->assertSame( array( 'language' => '' ), $result, 'en_US should be saved as English.' );
+		$expected['WPLANG'] = '';
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'English should be stored as an empty string.' );
 	}
 
 	/**

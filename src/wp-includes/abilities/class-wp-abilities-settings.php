@@ -46,6 +46,16 @@ final class WP_Abilities_Settings {
 	private const CATEGORY = 'site';
 
 	/**
+	 * Options that `core/settings-update` cannot write, whatever name exposes them.
+	 *
+	 * The site address and the administration email address are changed only from Settings > General.
+	 *
+	 * @since 7.3.0
+	 * @var string[]
+	 */
+	private const READ_ONLY_OPTIONS = array( 'siteurl', 'admin_email' );
+
+	/**
 	 * Settings exposed through the Abilities API, computed once at registration.
 	 *
 	 * @since 7.2.0
@@ -78,8 +88,8 @@ final class WP_Abilities_Settings {
 
 		/*
 		 * Intentional: every exposed setting can be updated, including the settings exposed
-		 * before `core/settings-update` existed. A setting that must stay read-only sets
-		 * `readonly` to true in its schema.
+		 * before `core/settings-update` existed, except the options in READ_ONLY_OPTIONS. A
+		 * setting that must stay read-only sets `readonly` to true in its schema.
 		 *
 		 * Intentionally strict: a setting whose schema is read-only cannot be updated, so naming
 		 * it is refused like any unknown name. Only `readonly` at the top level of the schema
@@ -88,7 +98,7 @@ final class WP_Abilities_Settings {
 		 */
 		$this->writable_settings = array_filter(
 			$this->exposed_settings,
-			static fn( array $setting ): bool => empty( $setting['schema']['readonly'] )
+			static fn( array $setting ): bool => empty( $setting['schema']['readonly'] ) && ! in_array( $setting['option'], self::READ_ONLY_OPTIONS, true )
 		);
 
 		$this->register_settings_get();
@@ -147,7 +157,7 @@ final class WP_Abilities_Settings {
 			'core/settings-update',
 			array(
 				'label'                 => __( 'Update Settings' ),
-				'description'           => __( 'Updates WordPress settings and returns the saved values of the settings named in the call. A null value deletes the stored value of a setting, which then reads as its default when it has one. Read-only settings cannot be updated. Requires an authenticated user who can manage options, and who can also manage privacy options to set the privacy policy page.' ),
+				'description'           => __( 'Updates WordPress settings and returns the saved values of the settings named in the call. A null value deletes the stored value of a setting, which then reads as its default when it has one. Read-only settings, such as the site address and the administration email address, cannot be updated. Requires an authenticated user who can manage options, and who can also manage privacy options to set the privacy policy page.' ),
 				'category'              => self::CATEGORY,
 				'input_schema'          => $this->get_settings_update_input_schema(),
 				'output_schema'         => $this->get_settings_output_schema( $this->writable_settings, __( 'A map of setting name to its value after the update.' ) ),
@@ -237,33 +247,48 @@ final class WP_Abilities_Settings {
 		 * Intentionally strict: every value is checked before the first write, so a refused call
 		 * changes nothing. A null value is refused while the stored value does not match the
 		 * setting's schema. Any other value is refused when the setting cannot use it, instead of
-		 * being saved as sent or silently replaced with the stored value.
+		 * being saved as sent or silently replaced with the stored value. Every unusable value is
+		 * reported, before an invalid stored value.
 		 */
+		$invalid_params = array();
+		$invalid_stored = null;
 		foreach ( $named as $exposed_name => $setting ) {
 			if ( null !== $data[ $exposed_name ] ) {
 				$message = $this->get_invalid_value_message( $setting['option'], $data[ $exposed_name ] );
 				if ( null !== $message ) {
-					// The error data maps the setting's input path to the message, so callers can tell which setting failed.
-					return new WP_Error(
-						'settings_invalid_value',
-						$message,
-						array(
-							'status' => 400,
-							'params' => array( "data[{$exposed_name}]" => $message ),
-						)
-					);
+					$invalid_params[ "data[{$exposed_name}]" ] = $message;
 				}
-				continue;
+			} elseif ( null === $invalid_stored && is_wp_error( rest_validate_value_from_schema( $this->get_stored_value( $setting, false ), $setting['schema'] ) ) ) {
+				$invalid_stored = $exposed_name;
+			}
+		}
+
+		if ( ! empty( $invalid_params ) ) {
+			if ( 1 === count( $invalid_params ) ) {
+				$message = reset( $invalid_params );
+			} else {
+				/* translators: %s: List of invalid parameters. */
+				$message = sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) );
 			}
 
-			if ( is_wp_error( rest_validate_value_from_schema( $this->get_stored_value( $setting, false ), $setting['schema'] ) ) ) {
-				return new WP_Error(
-					'settings_invalid_stored_value',
-					/* translators: %s: Property name. */
-					sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $exposed_name ),
-					array( 'status' => 500 )
-				);
-			}
+			// The error data maps the input path of each refused setting to its message, so callers can tell which settings failed.
+			return new WP_Error(
+				'settings_invalid_value',
+				$message,
+				array(
+					'status' => 400,
+					'params' => $invalid_params,
+				)
+			);
+		}
+
+		if ( null !== $invalid_stored ) {
+			return new WP_Error(
+				'settings_invalid_stored_value',
+				/* translators: %s: Property name. */
+				sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $invalid_stored ),
+				array( 'status' => 500 )
+			);
 		}
 
 		/*
@@ -277,7 +302,17 @@ final class WP_Abilities_Settings {
 				continue;
 			}
 
-			update_option( $setting['option'], $data[ $exposed_name ] );
+			$value = $data[ $exposed_name ];
+
+			/*
+			 * English is stored as an empty string. `en_US` is what the language reads as when
+			 * none is stored, and sanitize_option() would replace it with the stored value.
+			 */
+			if ( 'WPLANG' === $setting['option'] && 'en_US' === $value ) {
+				$value = '';
+			}
+
+			update_option( $setting['option'], $value );
 		}
 
 		return $this->get_setting_values( $named );
@@ -287,8 +322,9 @@ final class WP_Abilities_Settings {
 	 * Checks a value that matches its schema against what the option can use.
 	 *
 	 * The rules belong to the option, whatever name exposes it: a timezone and a language must be
-	 * empty or known to the site, a default post format must be `0` or a post format, a page
-	 * setting must be 0 or the ID of a page, and the default category must be the ID of a category.
+	 * empty or known to the site (`en_US` counts as English for the language), a default post
+	 * format must be `0` or a post format, a page setting must be 0 or the ID of a page, and the
+	 * default category must be the ID of a category.
 	 *
 	 * @since 7.3.0
 	 *
@@ -305,7 +341,7 @@ final class WP_Abilities_Settings {
 				break;
 
 			case 'WPLANG':
-				if ( '' !== $value && ! in_array( $value, get_available_languages(), true ) ) {
+				if ( '' !== $value && 'en_US' !== $value && ! in_array( $value, get_available_languages(), true ) ) {
 					return __( 'The language is not installed.' );
 				}
 				break;
