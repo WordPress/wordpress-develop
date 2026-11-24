@@ -319,7 +319,7 @@ final class WP_Abilities_Media {
 			return $value >= 1 ? $value : null;
 		}
 
-		if ( is_string( $value ) && '' !== $value && ctype_digit( $value ) ) {
+		if ( is_string( $value ) && ctype_digit( $value ) ) {
 			$int = (int) $value;
 
 			return $int >= 1 ? $int : null;
@@ -610,7 +610,7 @@ final class WP_Abilities_Media {
 
 		$tmp_file = $download['tmp_name'];
 		try {
-			$size_error = $this->check_file_size( (int) wp_filesize( $tmp_file ), (int) wp_max_upload_size(), $param );
+			$size_error = $this->check_file_size( wp_filesize( $tmp_file ), $param );
 			if ( $size_error ) {
 				return $size_error;
 			}
@@ -620,7 +620,7 @@ final class WP_Abilities_Media {
 			 * every user, also one who may upload any type. The upload handling below still
 			 * runs its own type check.
 			 */
-			$checked = wp_check_filetype_and_ext( $tmp_file, $download['name'], get_allowed_mime_types() );
+			$checked = wp_check_filetype_and_ext( $tmp_file, $download['name'] );
 			if ( ! $checked['ext'] || ! $checked['type'] || ! str_starts_with( $checked['type'], 'image/' ) ) {
 				return $this->invalid_param_error( 'media_invalid_file', $param, __( 'Only images can be uploaded from a URL.' ) );
 			}
@@ -653,7 +653,7 @@ final class WP_Abilities_Media {
 			return $this->invalid_param_error( 'media_invalid_file', $param, __( 'File is empty. Please upload something more substantial.' ) );
 		}
 
-		$size_error = $this->check_file_size( strlen( $bytes ), (int) wp_max_upload_size(), $param );
+		$size_error = $this->check_file_size( strlen( $bytes ), $param );
 		if ( $size_error ) {
 			return $size_error;
 		}
@@ -676,16 +676,15 @@ final class WP_Abilities_Media {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param int    $size     The file size in bytes.
-	 * @param int    $max_size The maximum upload size in bytes, 0 for no limit.
-	 * @param string $param    The input path of the file, such as `data[file][url]`.
+	 * @param int    $size  The file size in bytes.
+	 * @param string $param The input path of the file, such as `data[file][url]`.
 	 * @return WP_Error|null The error, or null when the size is accepted.
 	 */
-	private function check_file_size( int $size, int $max_size, string $param ): ?WP_Error {
+	private function check_file_size( int $size, string $param ): ?WP_Error {
 		/* translators: %s: Maximum allowed file size in kilobytes. */
 		$too_big = __( 'This file is too big. Files must be less than %s KB in size.' );
 
-		if ( $this->is_space_checked() ) {
+		if ( is_multisite() && ! get_site_option( 'upload_space_check_disabled' ) ) {
 			$space_left = get_upload_space_available();
 			if ( $space_left < $size ) {
 				return new WP_Error(
@@ -703,22 +702,12 @@ final class WP_Abilities_Media {
 		}
 
 		// Intentionally strict: a file sent as base64 data is held to the maximum upload size too.
+		$max_size = (int) wp_max_upload_size();
 		if ( $max_size > 0 && $size > $max_size ) {
 			return $this->invalid_param_error( 'media_invalid_file', $param, sprintf( $too_big, number_format( $max_size / KB_IN_BYTES ) ) );
 		}
 
 		return null;
-	}
-
-	/**
-	 * Checks whether the network checks the upload space of its sites.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return bool Whether the upload space is checked.
-	 */
-	private function is_space_checked(): bool {
-		return is_multisite() && ! get_site_option( 'upload_space_check_disabled' );
 	}
 
 	/**
@@ -1347,9 +1336,9 @@ final class WP_Abilities_Media {
 					$full_is_safe = wp_attachment_is_image( $post->ID ) || $can_look_up( 'full' );
 
 					$sizes = array();
-					foreach ( $stored_sizes as $name => $size ) {
+					foreach ( $full_is_safe ? $stored_sizes : array() as $name => $size ) {
 						$name = (string) $name;
-						if ( ! $full_is_safe || ! $is_complete( $size ) || empty( $size['mime-type'] ) || ! is_string( $size['mime-type'] ) ) {
+						if ( ! $is_complete( $size ) || empty( $size['mime-type'] ) || ! is_string( $size['mime-type'] ) ) {
 							continue;
 						}
 
@@ -1374,7 +1363,7 @@ final class WP_Abilities_Media {
 						);
 					}
 
-					// No sizes is a `stdClass`, so it encodes as an object for every caller.
+					// An empty list of sizes is a `stdClass`, so it encodes as an object for every caller.
 					$details['sizes'] = empty( $sizes ) ? new stdClass() : $sizes;
 				}
 
@@ -1638,16 +1627,18 @@ final class WP_Abilities_Media {
 	}
 
 	/**
-	 * Returns the attachment field definitions, keyed by field name in output order.
+	 * Builds the output schema of a single attachment, shared by all media abilities.
 	 *
-	 * The output schema uses the definitions directly, while the `fields` input lists each
-	 * field, followed by the path of each of its sub-fields, such as `title.rendered`.
+	 * Only `id` is required, because it is always returned. The other fields are optional
+	 * because the `fields` input lets the caller request any subset. The `fields` input
+	 * lists each field, followed by the path of each of its sub-fields, such as
+	 * `title.rendered`.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @return array<string, mixed> The attachment field definitions.
+	 * @return array<string, mixed> The attachment JSON Schema.
 	 */
-	private function get_item_properties(): array {
+	private function get_item_schema(): array {
 		$date_schema = static function ( string $description, string $site, string $gmt ): array {
 			return array(
 				'type'                 => 'object',
@@ -1687,163 +1678,149 @@ final class WP_Abilities_Media {
 		};
 
 		return array(
-			'id'            => array(
-				'type'        => 'integer',
-				'description' => __( 'The attachment ID.' ),
-			),
-			'status'        => array(
-				'type'        => 'string',
-				'description' => __( 'The attachment status.' ),
-			),
-			'date'          => $date_schema(
-				__( 'The upload date.' ),
-				__( "The upload date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
-				__( 'The upload date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' )
-			),
-			'modified'      => $date_schema(
-				__( 'The last modified date.' ),
-				__( "The last modified date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
-				__( 'The last modified date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' )
-			),
-			'slug'          => array(
-				'type'        => 'string',
-				'description' => __( 'The attachment slug.' ),
-			),
-			'link'          => array(
-				'type'        => 'string',
-				'format'      => 'uri',
-				'description' => __( 'The URL of the attachment page.' ),
-			),
-			'title'         => $text_schema(
-				__( 'The attachment title.' ),
-				__( 'The title as stored. Present when the current user can edit the attachment.' ),
-				__( 'The title as it is displayed.' )
-			),
-			'caption'       => $text_schema(
-				__( 'The attachment caption.' ),
-				__( 'The caption as stored. Present when the current user can edit the attachment.' ),
-				__( 'The caption as it is displayed (HTML).' )
-			),
-			'description'   => $text_schema(
-				__( 'The attachment description.' ),
-				__( 'The description as stored. Present when the current user can edit the attachment.' ),
-				__( 'The description as it is displayed (HTML), with the attachment markup in front of it.' )
-			),
-			'alt_text'      => array(
-				'type'        => 'string',
-				'description' => __( 'The alternative text, empty when there is none.' ),
-			),
-			'media_type'    => array(
-				'type'        => 'string',
-				'enum'        => array( 'image', 'file' ),
-				'description' => __( 'The kind of attachment: `image` or `file`.' ),
-			),
-			'mime_type'     => array(
-				'type'        => 'string',
-				'description' => __( 'The MIME type of the file.' ),
-			),
-			'source_url'    => array(
-				'type'        => 'string',
-				'format'      => 'uri',
-				'description' => __( 'The URL of the file. Left out when the attachment has no file.' ),
-			),
-			'filename'      => array(
-				'type'        => 'string',
-				'description' => __( 'The name of the original file. Left out when the attachment has no file.' ),
-			),
-			'filesize'      => array(
-				'type'        => 'integer',
-				'description' => __( 'The size of the file in bytes. Left out when it is not known.' ),
-			),
-			'media_details' => array(
-				'type'                 => 'object',
-				'additionalProperties' => false,
-				'properties'           => array(
-					'width'  => array(
-						'type'        => 'integer',
-						'description' => __( 'The width in pixels, for images and videos.' ),
-					),
-					'height' => array(
-						'type'        => 'integer',
-						'description' => __( 'The height in pixels, for images and videos.' ),
-					),
-					'length' => array(
-						'type'        => 'integer',
-						'description' => __( 'The length in seconds, for audio and video.' ),
-					),
-					'sizes'  => array(
-						'type'                 => 'object',
-						'additionalProperties' => array(
-							'type'                 => 'object',
-							'additionalProperties' => false,
-							'required'             => array( 'width', 'height', 'mime_type', 'source_url' ),
-							'properties'           => array(
-								'width'      => array(
-									'type'        => 'integer',
-									'description' => __( 'The width in pixels.' ),
-								),
-								'height'     => array(
-									'type'        => 'integer',
-									'description' => __( 'The height in pixels.' ),
-								),
-								'mime_type'  => array(
-									'type'        => 'string',
-									'description' => __( 'The MIME type of the size.' ),
-								),
-								'source_url' => array(
-									'type'        => 'string',
-									'format'      => 'uri',
-									'description' => __( 'The URL of the size.' ),
-								),
-							),
-						),
-						'description'          => __( 'The image sizes, keyed by size name, with `full` for the full size when there are sub-sizes. Empty when there are none.' ),
-					),
-				),
-				'description'          => __( 'Details of the file from its stored metadata. Empty when there is no metadata.' ),
-			),
-			'post'          => array(
-				'type'        => 'integer',
-				'description' => __( 'The ID of the post the attachment is attached to, 0 when it is unattached.' ),
-			),
-			'author'        => array(
-				'type'                 => 'object',
-				'additionalProperties' => false,
-				'properties'           => array(
-					'id'   => array(
-						'type'        => 'integer',
-						'description' => __( 'The user ID of the author, as the `author.id` filter takes it.' ),
-					),
-					'name' => array(
-						'type'        => array( 'string', 'null' ),
-						'description' => __( "The author's display name. Null when the author no longer exists or the current user may not see them." ),
-					),
-					'slug' => array(
-						'type'        => array( 'string', 'null' ),
-						'description' => __( "The author's user slug (nicename), as the `author.slug` filter takes it. Null when the author no longer exists or the current user may not see them." ),
-					),
-				),
-				'description'          => __( 'The user who uploaded the attachment.' ),
-			),
-		);
-	}
-
-	/**
-	 * Builds the output schema of a single attachment, shared by all media abilities.
-	 *
-	 * Only `id` is required, because it is always returned. The other fields are optional
-	 * because the `fields` input lets the caller request any subset.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return array<string, mixed> The attachment JSON Schema.
-	 */
-	private function get_item_schema(): array {
-		return array(
 			'type'                 => 'object',
 			'additionalProperties' => false,
 			'required'             => array( 'id' ),
-			'properties'           => $this->get_item_properties(),
+			'properties'           => array(
+				'id'            => array(
+					'type'        => 'integer',
+					'description' => __( 'The attachment ID.' ),
+				),
+				'status'        => array(
+					'type'        => 'string',
+					'description' => __( 'The attachment status.' ),
+				),
+				'date'          => $date_schema(
+					__( 'The upload date.' ),
+					__( "The upload date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
+					__( 'The upload date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' )
+				),
+				'modified'      => $date_schema(
+					__( 'The last modified date.' ),
+					__( "The last modified date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
+					__( 'The last modified date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' )
+				),
+				'slug'          => array(
+					'type'        => 'string',
+					'description' => __( 'The attachment slug.' ),
+				),
+				'link'          => array(
+					'type'        => 'string',
+					'format'      => 'uri',
+					'description' => __( 'The URL of the attachment page.' ),
+				),
+				'title'         => $text_schema(
+					__( 'The attachment title.' ),
+					__( 'The title as stored. Present when the current user can edit the attachment.' ),
+					__( 'The title as it is displayed.' )
+				),
+				'caption'       => $text_schema(
+					__( 'The attachment caption.' ),
+					__( 'The caption as stored. Present when the current user can edit the attachment.' ),
+					__( 'The caption as it is displayed (HTML).' )
+				),
+				'description'   => $text_schema(
+					__( 'The attachment description.' ),
+					__( 'The description as stored. Present when the current user can edit the attachment.' ),
+					__( 'The description as it is displayed (HTML), with the attachment markup in front of it.' )
+				),
+				'alt_text'      => array(
+					'type'        => 'string',
+					'description' => __( 'The alternative text, empty when there is none.' ),
+				),
+				'media_type'    => array(
+					'type'        => 'string',
+					'enum'        => array( 'image', 'file' ),
+					'description' => __( 'The kind of attachment: `image` or `file`.' ),
+				),
+				'mime_type'     => array(
+					'type'        => 'string',
+					'description' => __( 'The MIME type of the file.' ),
+				),
+				'source_url'    => array(
+					'type'        => 'string',
+					'format'      => 'uri',
+					'description' => __( 'The URL of the file. Left out when the attachment has no file.' ),
+				),
+				'filename'      => array(
+					'type'        => 'string',
+					'description' => __( 'The name of the original file. Left out when the attachment has no file.' ),
+				),
+				'filesize'      => array(
+					'type'        => 'integer',
+					'description' => __( 'The size of the file in bytes. Left out when it is not known.' ),
+				),
+				'media_details' => array(
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'properties'           => array(
+						'width'  => array(
+							'type'        => 'integer',
+							'description' => __( 'The width in pixels, for images and videos.' ),
+						),
+						'height' => array(
+							'type'        => 'integer',
+							'description' => __( 'The height in pixels, for images and videos.' ),
+						),
+						'length' => array(
+							'type'        => 'integer',
+							'description' => __( 'The length in seconds, for audio and video.' ),
+						),
+						'sizes'  => array(
+							'type'                 => 'object',
+							'additionalProperties' => array(
+								'type'                 => 'object',
+								'additionalProperties' => false,
+								'required'             => array( 'width', 'height', 'mime_type', 'source_url' ),
+								'properties'           => array(
+									'width'      => array(
+										'type'        => 'integer',
+										'description' => __( 'The width in pixels.' ),
+									),
+									'height'     => array(
+										'type'        => 'integer',
+										'description' => __( 'The height in pixels.' ),
+									),
+									'mime_type'  => array(
+										'type'        => 'string',
+										'description' => __( 'The MIME type of the size.' ),
+									),
+									'source_url' => array(
+										'type'        => 'string',
+										'format'      => 'uri',
+										'description' => __( 'The URL of the size.' ),
+									),
+								),
+							),
+							'description'          => __( 'The image sizes, keyed by size name, with `full` for the full size when there are sub-sizes. Empty when there are none.' ),
+						),
+					),
+					'description'          => __( 'Details of the file from its stored metadata. Empty when there is no metadata.' ),
+				),
+				'post'          => array(
+					'type'        => 'integer',
+					'description' => __( 'The ID of the post the attachment is attached to, 0 when it is unattached.' ),
+				),
+				'author'        => array(
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'properties'           => array(
+						'id'   => array(
+							'type'        => 'integer',
+							'description' => __( 'The user ID of the author, as the `author.id` filter takes it.' ),
+						),
+						'name' => array(
+							'type'        => array( 'string', 'null' ),
+							'description' => __( "The author's display name. Null when the author no longer exists or the current user may not see them." ),
+						),
+						'slug' => array(
+							'type'        => array( 'string', 'null' ),
+							'description' => __( "The author's user slug (nicename), as the `author.slug` filter takes it. Null when the author no longer exists or the current user may not see them." ),
+						),
+					),
+					'description'          => __( 'The user who uploaded the attachment.' ),
+				),
+			),
 		);
 	}
 

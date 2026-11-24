@@ -127,7 +127,7 @@ final class WP_Abilities_Content {
 		 * registered so they are included in its input schema. Attachments are exposed
 		 * through the media abilities instead.
 		 */
-		$post_types = array_values( array_diff( get_post_types( array( 'show_in_abilities' => true ) ), array( 'attachment' ) ) );
+		$post_types = $this->get_exposed_post_types();
 		if ( empty( $post_types ) ) {
 			return;
 		}
@@ -822,12 +822,22 @@ final class WP_Abilities_Content {
 	 *
 	 * @param mixed $post_type The post type name.
 	 * @return WP_Post_Type|null The post type object, or null when the post type is not exposed.
-	 *                           Attachments are never exposed: the media abilities handle them.
 	 */
 	private function get_exposed_post_type( $post_type ): ?WP_Post_Type {
-		$post_type_object = is_string( $post_type ) && 'attachment' !== $post_type ? get_post_type_object( $post_type ) : null;
+		return is_string( $post_type ) && in_array( $post_type, $this->get_exposed_post_types(), true ) ? get_post_type_object( $post_type ) : null;
+	}
 
-		return empty( $post_type_object->show_in_abilities ) ? null : $post_type_object;
+	/**
+	 * Returns the names of the post types exposed through the Abilities API.
+	 *
+	 * Attachments are never exposed: the media abilities handle them.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return list<string> The post type names.
+	 */
+	private function get_exposed_post_types(): array {
+		return array_values( array_diff( get_post_types( array( 'show_in_abilities' => true ) ), array( 'attachment' ) ) );
 	}
 
 	/**
@@ -1363,9 +1373,7 @@ final class WP_Abilities_Content {
 		}
 
 		if ( ! isset( $this->visible_authors[ $user_id ] ) ) {
-			// Attachments are left out, as their status never counts as published.
-			$post_types                        = array_diff( get_post_types( array( 'show_in_abilities' => true ) ), array( 'attachment' ) );
-			$post_types                        = array_values( array_filter( $post_types, 'is_post_type_viewable' ) );
+			$post_types                        = array_values( array_filter( $this->get_exposed_post_types(), 'is_post_type_viewable' ) );
 			$this->visible_authors[ $user_id ] = (int) count_user_posts( $user_id, $post_types ) > 0;
 		}
 
