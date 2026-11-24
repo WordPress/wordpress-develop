@@ -202,4 +202,27 @@ class Tests_Functions_wpApplicationPasswordCreatedNotification extends WP_UnitTe
 
 		$this->assertEmpty( tests_retrieve_phpmailer_instance()->mock_sent );
 	}
+
+	/**
+	 * Tests that the email is built in the recipient's locale, and the locale is restored after.
+	 *
+	 * @ticket 63927
+	 */
+	public function test_email_uses_the_user_locale() {
+		update_user_meta( self::$user->ID, 'locale', 'de_DE' );
+
+		$email_locale = null;
+		add_filter(
+			'wp_application_password_created_email',
+			static function ( $email ) use ( &$email_locale ) {
+				$email_locale = get_locale();
+				return $email;
+			}
+		);
+
+		WP_Application_Passwords::create_new_application_password( self::$user->ID, array( 'name' => 'My App' ) );
+
+		$this->assertSame( 'de_DE', $email_locale, 'The email should be built in the user locale.' );
+		$this->assertFalse( is_locale_switched(), 'The previous locale should be restored after the email is sent.' );
+	}
 }
