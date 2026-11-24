@@ -22,16 +22,11 @@ declare( strict_types = 1 );
  * written post in the same shape as a `core/content-query` item.
  *
  * Unlike the core abilities registered directly in wp_register_core_abilities() as
- * self-contained closures, the content abilities live in a dedicated class because
- * their callbacks and schemas share helpers: the permission and execute callbacks read the
- * post type and the filters through the same code, and the input schema, output schema,
+ * self-contained closures, the four content abilities live in one dedicated class because
+ * their callbacks and schemas share helpers as private methods, such as the read check,
+ * the field projection, and the input parsing: the permission and execute callbacks read
+ * the post type and the filters through the same code, and the input schema, output schema,
  * and field projection are built from the same field definitions.
- *
- * The write abilities are deliberately kept in the same class as `core/content-query`, so
- * that all four share these helpers, such as the read check, the field projection, and the
- * input parsing, as private methods. Splitting them into separate classes would require
- * making the shared helpers public or moving them to another class, and they are not meant
- * to be part of the public API.
  *
  * Only register() is public. The ability callbacks are closures that call private
  * methods, so callers go through the Abilities API, such as
@@ -132,9 +127,7 @@ final class WP_Abilities_Content {
 		$statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
 
 		$this->register_content_query( $post_types, $statuses );
-		$this->register_content_create( $post_types, $statuses );
-		$this->register_content_update( $post_types, $statuses );
-		$this->register_content_delete( $post_types );
+		$this->register_content_write_abilities( $post_types, $statuses );
 	}
 
 	/**
@@ -184,20 +177,18 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Registers the `core/content-create` ability.
+	 * Registers the `core/content-create`, `core/content-update`, and `core/content-delete` abilities.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @param list<string> $post_types Exposed post type names.
 	 * @param list<string> $statuses   Post status slugs that can be set.
 	 */
-	private function register_content_create( array $post_types, array $statuses ): void {
-		wp_register_ability(
-			'core/content-create',
-			array(
+	private function register_content_write_abilities( array $post_types, array $statuses ): void {
+		$abilities = array(
+			'core/content-create' => array(
 				'label'               => __( 'Create Content' ),
 				'description'         => __( 'Creates a post of a post type exposed to abilities and returns it. Requires an authenticated user who can create posts of that type. The post is saved as a draft unless another status is given.' ),
-				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_create_input_schema( $post_types, $statuses ),
 				'output_schema'       => $this->get_content_output_schema(),
 				'execute_callback'    => function ( $input ) {
@@ -206,33 +197,14 @@ final class WP_Abilities_Content {
 				'permission_callback' => function ( $input ): bool {
 					return $this->check_create_permission( $input );
 				},
-				'meta'                => array(
-					'annotations' => array(
-						'readonly'    => false,
-						'destructive' => false,
-						'idempotent'  => false,
-					),
-					'public'      => true,
+				'annotations'         => array(
+					'destructive' => false,
+					'idempotent'  => false,
 				),
-			)
-		);
-	}
-
-	/**
-	 * Registers the `core/content-update` ability.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param list<string> $post_types Exposed post type names.
-	 * @param list<string> $statuses   Post status slugs that can be set.
-	 */
-	private function register_content_update( array $post_types, array $statuses ): void {
-		wp_register_ability(
-			'core/content-update',
-			array(
+			),
+			'core/content-update' => array(
 				'label'               => __( 'Update Content' ),
 				'description'         => __( 'Updates the given attributes of a post of a post type exposed to abilities and returns it. Attributes that are left out keep their stored values. Requires an authenticated user who can edit the post.' ),
-				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_update_input_schema( $post_types, $statuses ),
 				'output_schema'       => $this->get_content_output_schema(),
 				'execute_callback'    => function ( $input ) {
@@ -241,32 +213,14 @@ final class WP_Abilities_Content {
 				'permission_callback' => function ( $input ): bool {
 					return $this->check_post_permission( $input, 'edit_post' );
 				},
-				'meta'                => array(
-					'annotations' => array(
-						'readonly'    => false,
-						'destructive' => false,
-						'idempotent'  => true,
-					),
-					'public'      => true,
+				'annotations'         => array(
+					'destructive' => false,
+					'idempotent'  => true,
 				),
-			)
-		);
-	}
-
-	/**
-	 * Registers the `core/content-delete` ability.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param list<string> $post_types Exposed post type names.
-	 */
-	private function register_content_delete( array $post_types ): void {
-		wp_register_ability(
-			'core/content-delete',
-			array(
+			),
+			'core/content-delete' => array(
 				'label'               => __( 'Delete Content' ),
 				'description'         => __( 'Moves a post of a post type exposed to abilities to the Trash, or deletes it permanently when `permanent` is true. Requires an authenticated user who can delete the post.' ),
-				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_delete_input_schema( $post_types ),
 				'output_schema'       => $this->get_content_delete_output_schema(),
 				'execute_callback'    => function ( $input ) {
@@ -275,16 +229,24 @@ final class WP_Abilities_Content {
 				'permission_callback' => function ( $input ): bool {
 					return $this->check_post_permission( $input, 'delete_post' );
 				},
-				'meta'                => array(
-					'annotations' => array(
-						'readonly'    => false,
-						'destructive' => true,
-						'idempotent'  => true,
-					),
-					'public'      => true,
+				'annotations'         => array(
+					'destructive' => true,
+					'idempotent'  => true,
 				),
-			)
+			),
 		);
+
+		// Every write ability shares the category, the public flag, and the `readonly` annotation.
+		foreach ( $abilities as $name => $args ) {
+			$args['category'] = self::CATEGORY;
+			$args['meta']     = array(
+				'annotations' => array_merge( array( 'readonly' => false ), $args['annotations'] ),
+				'public'      => true,
+			);
+			unset( $args['annotations'] );
+
+			wp_register_ability( $name, $args );
+		}
 	}
 
 	/**
@@ -373,7 +335,7 @@ final class WP_Abilities_Content {
 			return false;
 		}
 
-		$post = $this->get_requested_post( array( 'where' => $where ) );
+		$post = $this->get_requested_post( $where );
 
 		return ! $post || current_user_can( $capability, $post->ID );
 	}
@@ -922,7 +884,7 @@ final class WP_Abilities_Content {
 		// The author visibility memo is per call; see get_visible_author().
 		$this->visible_authors = array();
 
-		$post = $this->get_requested_post( $input );
+		$post = $this->get_requested_post( $input['where'] ?? array() );
 		if ( ! $post ) {
 			return $this->not_found_error();
 		}
@@ -976,7 +938,7 @@ final class WP_Abilities_Content {
 	 * @return array<string, string>|WP_Error The outcome, or a WP_Error on failure.
 	 */
 	private function execute_content_delete( array $input ) {
-		$post = $this->get_requested_post( $input );
+		$post = $this->get_requested_post( $input['where'] ?? array() );
 		if ( ! $post ) {
 			return $this->not_found_error();
 		}
@@ -990,7 +952,7 @@ final class WP_Abilities_Content {
 			);
 		}
 
-		if ( true === ( $input['permanent'] ?? false ) ) {
+		if ( ! empty( $input['permanent'] ) ) {
 			$deleted = wp_delete_post( $post->ID, true );
 
 			return $deleted && null === get_post( $post->ID ) ? array( 'outcome' => 'deleted' ) : $this->delete_failed_error();
@@ -1030,11 +992,10 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param array<mixed> $input The ability input.
+	 * @param array<mixed> $where The `where` input.
 	 * @return WP_Post|null The post, or null when `where` names no post of an exposed type.
 	 */
-	private function get_requested_post( array $input ): ?WP_Post {
-		$where            = $input['where'] ?? array();
+	private function get_requested_post( array $where ): ?WP_Post {
 		$post_type_object = $this->get_exposed_post_type( $where['type'] ?? null );
 		$post_id          = $this->parse_filter_int( $where['id'] ?? null, 1 );
 		if ( ! $post_type_object || null === $post_id ) {
@@ -1129,8 +1090,8 @@ final class WP_Abilities_Content {
 			// A stored page template that no longer exists must not fail an unrelated update.
 			$postarr['page_template'] = null;
 		} else {
-			$postarr['post_type']   = $post_type;
-			$postarr['post_status'] = $final_status;
+			// Without a sent status, the save defaults to `draft`.
+			$postarr['post_type'] = $post_type;
 		}
 
 		return $postarr;
@@ -1181,7 +1142,7 @@ final class WP_Abilities_Content {
 	 * @param array<mixed> $data             The `data` input.
 	 * @param WP_Post_Type $post_type_object The post type of the post being written.
 	 * @param WP_Post|null $post             The stored post on update, or null on create.
-	 * @return string|WP_Error|null The status, null when none is sent, or a WP_Error.
+	 * @return string|WP_Error|null The status, null when none is sent or it is unchanged, or a WP_Error.
 	 */
 	private function prepare_status( array $data, WP_Post_Type $post_type_object, ?WP_Post $post ) {
 		if ( ! array_key_exists( 'status', $data ) ) {
@@ -1202,7 +1163,7 @@ final class WP_Abilities_Content {
 
 		// Keeping the stored status changes nothing.
 		if ( $post && $post->post_status === $status ) {
-			return $status;
+			return null;
 		}
 
 		/*
@@ -1332,7 +1293,7 @@ final class WP_Abilities_Content {
 	 *
 	 * @param array<mixed> $data   The `data` input.
 	 * @param WP_Post|null $post   The stored post on update, or null on create.
-	 * @param string|null  $status The sent status, or null when none is sent.
+	 * @param string|null  $status The status to set, or null when none is sent or it is unchanged.
 	 * @return array<string, mixed>|WP_Error The date fields to save, empty for none, or a WP_Error.
 	 */
 	private function prepare_date( array $data, ?WP_Post $post, ?string $status ) {
