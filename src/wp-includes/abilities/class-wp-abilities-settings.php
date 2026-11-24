@@ -77,6 +77,10 @@ final class WP_Abilities_Settings {
 		}
 
 		/*
+		 * Intentional: every exposed setting can be updated, including the settings exposed
+		 * before `core/settings-update` existed. A setting that must stay read-only sets
+		 * `readonly` to true in its schema.
+		 *
 		 * Intentionally strict: a setting whose schema is read-only cannot be updated, so naming
 		 * it is refused like any unknown name.
 		 */
@@ -126,6 +130,10 @@ final class WP_Abilities_Settings {
 	 *
 	 * Registers nothing when no exposed setting is writable.
 	 *
+	 * The ability is marked destructive because a null value deletes the stored value of a
+	 * setting, see execute_settings_update(). It is not marked idempotent because repeating
+	 * a null value can fail: the second call finds no stored value left to delete.
+	 *
 	 * @since 7.3.0
 	 */
 	private function register_settings_update(): void {
@@ -148,8 +156,8 @@ final class WP_Abilities_Settings {
 				'meta'                  => array(
 					'annotations' => array(
 						'readonly'    => false,
-						'destructive' => false,
-						'idempotent'  => true,
+						'destructive' => true,
+						'idempotent'  => false,
 					),
 					'public'      => true,
 				),
@@ -222,6 +230,11 @@ final class WP_Abilities_Settings {
 			}
 		}
 
+		/*
+		 * Intentional: a null value deletes the stored value, whether or not the setting has a
+		 * default. A setting without a default then has no value, and is left out of the output
+		 * and of `core/settings-get`, until a value is written again.
+		 */
 		foreach ( $named as $exposed_name => $setting ) {
 			if ( null === $data[ $exposed_name ] ) {
 				delete_option( $setting['option'] );

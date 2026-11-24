@@ -365,8 +365,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * The ability is flagged as a non-destructive, idempotent write, with the other meta of
-	 * core/settings-get.
+	 * The ability is flagged as a destructive write that is not idempotent, with the other meta
+	 * of core/settings-get.
 	 *
 	 * @ticket 64616
 	 *
@@ -379,8 +379,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		unset( $meta['annotations'], $get_meta['annotations'] );
 
 		$this->assertFalse( $annotations['readonly'], 'The ability should not be marked read-only.' );
-		$this->assertFalse( $annotations['destructive'], 'The ability should not be marked destructive.' );
-		$this->assertTrue( $annotations['idempotent'], 'The ability should be marked idempotent.' );
+		$this->assertTrue( $annotations['destructive'], 'The ability should be marked destructive, since a null value deletes a stored value.' );
+		$this->assertFalse( $annotations['idempotent'], 'The ability should not be marked idempotent, since repeating a null value can fail.' );
 		$this->assertSame( $get_meta, $meta, 'The other meta should match core/settings-get.' );
 	}
 
