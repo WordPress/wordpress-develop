@@ -350,7 +350,7 @@ class Tests_REST_API_WpRestAbilitiesMediaController extends WP_UnitTestCase {
 			'POST',
 			'update',
 			array(
-				'where' => array( 'id' => 987654321 ),
+				'where' => array( 'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
 				'data'  => array( 'title' => 'MDT missing' ),
 			)
 		);

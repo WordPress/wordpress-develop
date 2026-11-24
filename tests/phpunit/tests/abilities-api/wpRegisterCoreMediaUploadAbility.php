@@ -3,6 +3,7 @@
 declare( strict_types=1 );
 
 require_once __DIR__ . '/testcase-media-ability.php';
+require_once __DIR__ . '/trait-media-attribute-tests.php';
 
 /**
  * Tests for the core/media-upload ability.
@@ -13,6 +14,8 @@ require_once __DIR__ . '/testcase-media-ability.php';
  */
 class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_Media_UnitTestCase {
 
+	use WP_Abilities_Media_Attribute_Tests;
+
 	/**
 	 * The name of the ability under test.
 	 *
@@ -21,6 +24,24 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	 * @var string
 	 */
 	protected const ABILITY = 'core/media-upload';
+
+	/**
+	 * The message of a write as another author.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	protected const OTHER_AUTHOR_MESSAGE = 'Sorry, you are not allowed to create posts as this user.';
+
+	/**
+	 * The message of a write to a parent the caller may not edit.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	protected const ATTACH_MESSAGE = 'Sorry, you are not allowed to upload media to this post.';
 
 	/**
 	 * The message of a file that is too big for a maximum of 2 KB.
@@ -325,7 +346,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	 * @param array<string, mixed> $before  The snapshot before the call.
 	 * @param string               $context What the call was, for the assertion messages.
 	 */
-	private function assert_nothing_changed( array $before, string $context ): void {
+	protected function assert_unchanged( array $before, string $context ): void {
 		$after = $this->snapshot();
 
 		$this->assertSame( $before['posts'], $after['posts'], "{$context}: no post should be added." );
@@ -344,37 +365,69 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	 */
 	private function snapshot_before( string $file_name ): array {
 		$snapshot              = $this->snapshot();
-		$snapshot['temp']      = $this->list_temp_files( $file_name );
 		$snapshot['temp_name'] = $file_name;
 
 		return $snapshot;
 	}
 
 	/**
-	 * Returns roles without `upload_files`.
+	 * Uploads an image as base64 with the given attributes.
 	 *
-	 * @return array<string, array{role: string}> The roles.
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $data   The attributes.
+	 * @param string[]|null        $fields Optional. The fields. Default null.
+	 * @return mixed The ability result.
 	 */
-	public static function data_roles_without_upload_files(): array {
-		return array(
-			'logged out'  => array( 'logged_out' ),
-			'subscriber'  => array( 'subscriber' ),
-			'contributor' => array( 'contributor' ),
-			'no caps'     => array( 'no_caps' ),
-		);
+	protected function write( array $data, ?array $fields = null ) {
+		$input = $this->base64_input( 'images/codeispoetry.png', 'mdt-attributes.png', $data );
+
+		if ( null !== $fields ) {
+			$input['fields'] = $fields;
+		}
+
+		return $this->run_ability( $input );
 	}
 
 	/**
-	 * Returns roles with `upload_files`.
+	 * Asserts that an upload succeeded and returns the ID of the new attachment.
 	 *
-	 * @return array<string, array{role: string}> The roles.
+	 * @since 7.3.0
+	 *
+	 * @param mixed  $result  The ability result.
+	 * @param string $context What the call was, for the assertion messages.
+	 * @return int The attachment ID.
 	 */
-	public static function data_roles_with_upload_files(): array {
+	protected function assert_written( $result, string $context ): int {
+		return $this->assert_uploaded( $result, $context );
+	}
+
+	/**
+	 * Takes a snapshot before an upload of the attributes image.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array<string, mixed> The snapshot.
+	 */
+	protected function snapshot_write(): array {
+		return $this->snapshot_before( 'mdt-attributes.png' );
+	}
+
+	/**
+	 * Returns roles, with whether they have `upload_files`.
+	 *
+	 * @return array<string, array{role: string, expected: bool}> The roles.
+	 */
+	public static function data_gate_roles(): array {
 		return array(
-			'author'          => array( 'author' ),
-			'editor'          => array( 'editor' ),
-			'administrator'   => array( 'administrator' ),
-			'read and upload' => array( 'uploader' ),
+			'logged out'      => array( 'logged_out', false ),
+			'subscriber'      => array( 'subscriber', false ),
+			'contributor'     => array( 'contributor', false ),
+			'no caps'         => array( 'no_caps', false ),
+			'author'          => array( 'author', true ),
+			'editor'          => array( 'editor', true ),
+			'administrator'   => array( 'administrator', true ),
+			'read and upload' => array( 'uploader', true ),
 		);
 	}
 
@@ -389,7 +442,8 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	}
 
 	/**
-	 * The input and output schemas are the published ones.
+	 * The input takes the file, the attributes and the fields, and the output is one
+	 * attachment.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
@@ -397,87 +451,34 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	public function test_schemas(): void {
 		$this->register_abilities();
 		$ability = wp_get_ability( self::ABILITY );
+		$input   = $ability->get_input_schema();
+		$file    = $input['properties']['data']['properties']['file'] ?? array();
 
-		$file = array(
-			'anyOf' => array(
-				array(
-					'type'                 => 'object',
-					'additionalProperties' => false,
-					'required'             => array( 'url' ),
-					'properties'           => array(
-						'url' => array(
-							'type'   => 'string',
-							'format' => 'uri',
-						),
-					),
-				),
-				array(
-					'type'                 => 'object',
-					'additionalProperties' => false,
-					'required'             => array( 'base64', 'filename' ),
-					'properties'           => array(
-						'base64'   => array(
-							'type'      => 'string',
-							'minLength' => 1,
-						),
-						'filename' => array(
-							'type'      => 'string',
-							'minLength' => 1,
-						),
-					),
-				),
-			),
-		);
-
-		$expected_input = array(
-			'type'                 => 'object',
-			'additionalProperties' => false,
-			'required'             => array( 'data' ),
-			'properties'           => array(
-				'data'   => array(
-					'type'                 => 'object',
-					'additionalProperties' => false,
-					'required'             => array( 'file' ),
-					'properties'           => array_merge( array( 'file' => $file ), self::attribute_schemas() ),
-				),
-				'fields' => self::fields_schema(),
-			),
-		);
-
-		$this->assertSame( $this->normalize_schema( $expected_input ), $this->normalize_schema( $ability->get_input_schema() ), 'The input schema should match.' );
-		$this->assertSame( $this->normalize_schema( self::item_schema() ), $this->normalize_schema( $ability->get_output_schema() ), 'The output schema should match.' );
+		$this->assert_object_schema( $input, array( 'data' ), array( 'data', 'fields' ), 'The input schema' );
+		$this->assert_attributes_schema( $input['properties']['data'], array( 'file' ) );
+		$this->assertCount( 2, $file['anyOf'] ?? array(), 'The file should be a URL or base64 content.' );
+		$this->assert_object_schema( $file['anyOf'][0], array( 'url' ), array( 'url' ), 'The URL file schema' );
+		$this->assertSame( 'uri', $file['anyOf'][0]['properties']['url']['format'] ?? null, 'The URL should be a URI.' );
+		$this->assert_object_schema( $file['anyOf'][1], array( 'base64', 'filename' ), array( 'base64', 'filename' ), 'The base64 file schema' );
+		$this->assert_fields_schema( $input['properties']['fields'] );
+		$this->assert_item_schema( $ability->get_output_schema() );
 	}
 
 	/**
-	 * The permission callback passes for a caller with `upload_files`.
+	 * The permission callback follows `upload_files`.
 	 *
 	 * @ticket 66719
-	 * @dataProvider data_roles_with_upload_files
+	 * @dataProvider data_gate_roles
 	 * @since 7.3.0
 	 *
-	 * @param string $role The role.
+	 * @param string $role     The role.
+	 * @param bool   $expected Whether the gate passes.
 	 */
-	public function test_permission_callback_passes_with_upload_files( string $role ): void {
+	public function test_permission_callback_follows_upload_files( string $role, bool $expected ): void {
 		$this->login_as( $role );
 		$this->register_abilities();
 
-		$this->assertTrue( wp_get_ability( self::ABILITY )->check_permissions( $this->url_input( $this->remote_url( 'mdt-gate.jpg' ) ) ), 'A caller with upload_files should pass.' );
-	}
-
-	/**
-	 * The permission callback refuses a caller without `upload_files`.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_roles_without_upload_files
-	 * @since 7.3.0
-	 *
-	 * @param string $role The role.
-	 */
-	public function test_permission_callback_refuses_without_upload_files( string $role ): void {
-		$this->login_as( $role );
-		$this->register_abilities();
-
-		$this->assertFalse( wp_get_ability( self::ABILITY )->check_permissions( $this->url_input( $this->remote_url( 'mdt-gate.jpg' ) ) ), 'A caller without upload_files should be refused.' );
+		$this->assertSame( $expected, wp_get_ability( self::ABILITY )->check_permissions( $this->url_input( $this->remote_url( 'mdt-gate.jpg' ) ) ), 'The gate should follow upload_files.' );
 	}
 
 	/**
@@ -522,8 +523,10 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	public static function data_callers_without_upload_files(): array {
 		$cases = array();
 
-		foreach ( self::data_roles_without_upload_files() as $name => $row ) {
-			$cases[ $name ] = array( $row[0], 'logged_out' === $row[0] ? 401 : 403 );
+		foreach ( self::data_gate_roles() as $name => $row ) {
+			if ( ! $row[1] ) {
+				$cases[ $name ] = array( $row[0], 'logged_out' === $row[0] ? 401 : 403 );
+			}
 		}
 
 		return $cases;
@@ -553,40 +556,21 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 		$this->assert_error( $result, 'media_cannot_upload', $status, 'An upload without upload_files' );
 		$this->assert_error_message( $result, 'Sorry, you are not allowed to upload media on this site.', 'An upload without upload_files' );
 		$this->assertSame( array(), $this->requests, 'No request should be made.' );
-		$this->assert_nothing_changed( $before, 'An upload without upload_files' );
+		$this->assert_unchanged( $before, 'An upload without upload_files' );
 	}
 
 	/**
-	 * The attributes are checked in the order author, post, date, slug, before the file.
+	 * An invalid attribute is reported before the file is requested.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
 	 */
-	public function test_attribute_checks_run_in_order_before_the_file(): void {
+	public function test_attributes_are_checked_before_the_file(): void {
 		$this->login_as( 'editor' );
 		$this->register_abilities();
-		$this->skip_input_validation();
 		$this->fake_http();
 
-		$data = array(
-			'author' => self::MISSING_ID,
-			'post'   => self::$post_ids['revision'],
-			'date'   => array(),
-			'slug'   => '!!!',
-		);
-		$url  = $this->remote_url( 'mdt-order.jpg' );
-
-		$this->assert_error_with_params( $this->run_ability( $this->url_input( $url, $data ) ), 'media_invalid_attribute', 'data[author]', 'Every attribute invalid' );
-
-		unset( $data['author'] );
-		$this->assert_error_with_params( $this->run_ability( $this->url_input( $url, $data ) ), 'media_invalid_attribute', 'data[post]', 'Post, date and slug invalid' );
-
-		unset( $data['post'] );
-		$this->assert_error_with_params( $this->run_ability( $this->url_input( $url, $data ) ), 'media_invalid_attribute', 'data[date]', 'Date and slug invalid' );
-
-		unset( $data['date'] );
-		$this->assert_error_with_params( $this->run_ability( $this->url_input( $url, $data ) ), 'media_invalid_attribute', 'data[slug]', 'Slug invalid' );
-
+		$this->assert_error_with_params( $this->run_ability( $this->url_input( $this->remote_url( 'mdt-order.jpg' ), array( 'slug' => '!!!' ) ) ), 'media_invalid_attribute', 'data[slug]', 'An invalid slug' );
 		$this->assertSame( array(), $this->requests, 'No request should be made while an attribute is invalid.' );
 	}
 
@@ -603,27 +587,8 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$result = $this->run_ability( array( 'data' => array( 'title' => 'MDT no file' ) ) );
 
-		$this->assertWPError( $result, 'A missing file should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject a missing file.' );
-		$this->assert_nothing_changed( $before, 'A missing file' );
-	}
-
-	/**
-	 * The caller's own ID is allowed as the author.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_own_author_id_is_allowed(): void {
-		$this->login_as( 'uploader' );
-		$this->register_abilities();
-
-		$id = $this->assert_uploaded(
-			$this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-own-author.png', array( 'author' => self::$user_ids['uploader'] ) ) ),
-			'An upload as the caller'
-		);
-
-		$this->assertSame( self::$user_ids['uploader'], (int) get_post_field( 'post_author', $id ), 'The caller should be the author.' );
+		$this->assert_invalid_input( $result, 'A missing file' );
+		$this->assert_unchanged( $before, 'A missing file' );
 	}
 
 	/**
@@ -656,206 +621,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 		$this->assertSame( array( $id ), $added, 'The new attachment hook should fire once for the attachment.' );
 		$this->assertGreaterThan( 0, $data_calls, 'The attachment data callback should run during the upload.' );
 		$this->assertNotFalse( has_filter( 'wp_insert_attachment_data', $callback ), 'The attachment data callback should stay registered.' );
-	}
-
-	/**
-	 * Another author needs `edit_others_posts`, checked before the user is looked up.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_other_authors
-	 * @since 7.3.0
-	 *
-	 * @param string $author The author, as a fixture name.
-	 */
-	public function test_other_author_needs_edit_others_posts( string $author ): void {
-		$this->login_as( 'uploader' );
-		$this->register_abilities();
-
-		$before = $this->snapshot_before( 'mdt-other-author.png' );
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-other-author.png', array( 'author' => self::$user_ids[ $author ] ?? self::MISSING_ID ) ) );
-
-		$this->assert_error( $result, 'media_cannot_edit_others', 403, 'An upload as another author' );
-		$this->assert_error_message( $result, 'Sorry, you are not allowed to create posts as this user.', 'An upload as another author' );
-		$this->assert_nothing_changed( $before, 'An upload as another author' );
-	}
-
-	/**
-	 * An author that names no user is an invalid author for a caller who may set authors.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_missing_author_is_invalid(): void {
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-missing-author.png', array( 'author' => self::MISSING_ID ) ) );
-
-		$this->assert_error_with_params( $result, 'media_invalid_attribute', 'data[author]', 'A missing author' );
-		$this->assert_error_message( $result, 'Invalid author ID.', 'A missing author' );
-	}
-
-	/**
-	 * Returns parents the uploader may not attach to.
-	 *
-	 * @return array<string, array{post: string}> The posts, as fixture names.
-	 */
-	public static function data_parents_the_uploader_may_not_use(): array {
-		return array(
-			'post of another user' => array( 'post' ),
-			'missing post'         => array( 'missing' ),
-		);
-	}
-
-	/**
-	 * A parent needs `edit_post` on it, checked before it is looked up.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_parents_the_uploader_may_not_use
-	 * @since 7.3.0
-	 *
-	 * @param string $post The post, as a fixture name.
-	 */
-	public function test_parent_needs_edit_post( string $post ): void {
-		$this->login_as( 'uploader' );
-		$this->register_abilities();
-
-		$before = $this->snapshot_before( 'mdt-forbidden-parent.png' );
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-forbidden-parent.png', array( 'post' => self::$post_ids[ $post ] ?? self::MISSING_ID ) ) );
-
-		$this->assert_error( $result, 'media_cannot_attach', 403, 'An upload to a forbidden parent' );
-		$this->assert_error_message( $result, 'Sorry, you are not allowed to upload media to this post.', 'An upload to a forbidden parent' );
-		$this->assert_nothing_changed( $before, 'An upload to a forbidden parent' );
-	}
-
-	/**
-	 * A revision or an attachment cannot be the parent.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_parents_of_an_invalid_type
-	 * @since 7.3.0
-	 *
-	 * @param string $post The post, as a fixture name.
-	 */
-	public function test_parent_of_an_invalid_type( string $post ): void {
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-invalid-parent.png', array( 'post' => self::$post_ids[ $post ] ) ) );
-
-		$this->assert_error_with_params( $result, 'media_invalid_attribute', 'data[post]', 'A parent of an invalid type' );
-		$this->assert_error_message( $result, 'Invalid parent type.', 'A parent of an invalid type' );
-	}
-
-	/**
-	 * An author below 1 is invalid input.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_authors_below_one
-	 * @since 7.3.0
-	 *
-	 * @param int $author The author.
-	 */
-	public function test_author_below_one_is_invalid_input( int $author ): void {
-		$this->login_as( 'author' );
-		$this->register_abilities();
-
-		$before = $this->snapshot_before( 'mdt-author-below-one.png' );
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-author-below-one.png', array( 'author' => $author ) ) );
-
-		$this->assertWPError( $result, 'An author below 1 should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject an author below 1.' );
-		$this->assert_nothing_changed( $before, 'An author below 1' );
-	}
-
-	/**
-	 * A parent of an invalid type that the caller may not edit is refused as a missing post
-	 * is, before its type is checked.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_parents_of_an_invalid_type
-	 * @since 7.3.0
-	 *
-	 * @param string $post The post, as a fixture name.
-	 */
-	public function test_parent_capability_is_checked_before_the_type( string $post ): void {
-		$this->login_as( 'author' );
-		$this->register_abilities();
-
-		$missing = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-parent-order-missing.png', array( 'post' => self::MISSING_ID ) ) );
-		$result  = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-parent-order.png', array( 'post' => self::$post_ids[ $post ] ) ) );
-
-		$this->assert_error( $missing, 'media_cannot_attach', 403, 'An upload to a missing post' );
-		$this->assert_error( $result, 'media_cannot_attach', 403, 'An upload to a forbidden parent of an invalid type' );
-		$this->assert_error_message( $result, 'Sorry, you are not allowed to upload media to this post.', 'An upload to a forbidden parent of an invalid type' );
-		$this->assertSame( $missing->get_error_message(), $result->get_error_message(), 'The message should be the one of a missing post.' );
-		$this->assertSame( $missing->get_error_data(), $result->get_error_data(), 'The error data should be the one of a missing post.' );
-	}
-
-	/**
-	 * The site date is read in the site's time zone and the GMT date in UTC; the site date
-	 * wins when both are sent.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_dates
-	 * @since 7.3.0
-	 *
-	 * @param array<string, string> $date  The date input.
-	 * @param string                $local The expected stored local date.
-	 * @param string                $gmt   The expected stored GMT date.
-	 */
-	public function test_date( array $date, string $local, string $gmt ): void {
-		update_option( 'timezone_string', 'America/New_York' );
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$id = $this->assert_uploaded( $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-date.png', array( 'date' => $date ) ) ), 'An upload with a date' );
-
-		$this->assertSame( $local, get_post_field( 'post_date', $id ), 'The local date should be stored.' );
-		$this->assertSame( $gmt, get_post_field( 'post_date_gmt', $id ), 'The GMT date should be stored.' );
-	}
-
-	/**
-	 * A date Core cannot parse is an invalid date.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_unparsable_date_is_invalid(): void {
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-		$this->skip_input_validation();
-
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-bad-date.png', array( 'date' => array( 'site' => 'not a date' ) ) ) );
-
-		$this->assert_error_with_params( $result, 'media_invalid_attribute', 'data[date]', 'An unparsable date' );
-	}
-
-	/**
-	 * A slug with nothing left after sanitizing is invalid; a taken slug is made unique.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_slug(): void {
-		self::factory()->post->create( array( 'post_name' => 'mdt-taken-slug' ) );
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$this->assert_error_with_params(
-			$this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-empty-slug.png', array( 'slug' => '!!!' ) ) ),
-			'media_invalid_attribute',
-			'data[slug]',
-			'A slug with nothing left'
-		);
-
-		$id   = $this->assert_uploaded( $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-taken.png', array( 'slug' => 'MDT-Taken-Slug' ) ) ), 'An upload with a taken slug' );
-		$slug = get_post_field( 'post_name', $id );
-
-		$this->assertNotSame( 'mdt-taken-slug', $slug, 'The taken slug should be made unique.' );
-		$this->assertStringStartsWith( 'mdt-taken-slug', $slug, 'The unique slug should start with the sanitized slug.' );
 	}
 
 	/**
@@ -1214,10 +979,9 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	 */
 	public static function data_failed_downloads(): array {
 		return array(
-			'request error'           => array( 'error' ),
-			'request refused, unsafe' => array( 'unsafe' ),
-			'not found'               => array( 'not_found' ),
-			'server error'            => array( 'server_error' ),
+			'request error' => array( 'error' ),
+			'not found'     => array( 'not_found' ),
+			'server error'  => array( 'server_error' ),
 		);
 	}
 
@@ -1234,7 +998,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	public function test_failed_download( string $response ): void {
 		$responses = array(
 			'error'        => new WP_Error( 'http_request_failed', 'MDT secret error' ),
-			'unsafe'       => new WP_Error( 'http_request_failed', 'A valid URL was not provided.' ),
 			'not_found'    => array(
 				'code'    => 404,
 				'body'    => 'MDT secret body',
@@ -1259,7 +1022,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 		$this->assert_error_message( $result, 'Download failed.', 'A failed download' );
 		$this->assertSame( array( 'status' => 500 ), $result->get_error_data(), 'The error data should hold only the status.' );
 		$this->assertStringNotContainsString( 'MDT secret', wp_json_encode( $result->get_error_messages() ), 'No message should hold anything of the answer.' );
-		$this->assert_nothing_changed( $before, 'A failed download' );
+		$this->assert_unchanged( $before, 'A failed download' );
 	}
 
 	/**
@@ -1360,7 +1123,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$this->assert_error_with_params( $result, 'media_invalid_file', 'data[file][url]', 'A downloaded file that is too big' );
 		$this->assert_error_message( $result, self::TOO_BIG_2_KB, 'A downloaded file that is too big' );
-		$this->assert_nothing_changed( $before, 'A downloaded file that is too big' );
+		$this->assert_unchanged( $before, 'A downloaded file that is too big' );
 	}
 
 	/**
@@ -1413,7 +1176,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$this->assert_error_with_params( $result, 'media_invalid_file', 'data[file][url]', 'A download that is not an image' );
 		$this->assert_error_message( $result, self::ONLY_IMAGES, 'A download that is not an image' );
-		$this->assert_nothing_changed( $before, 'A download that is not an image' );
+		$this->assert_unchanged( $before, 'A download that is not an image' );
 	}
 
 	/**
@@ -1449,7 +1212,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$this->assert_error_with_params( $result, 'media_invalid_file', 'data[file][url]', 'A download the file check types as a PDF' );
 		$this->assert_error_message( $result, self::ONLY_IMAGES, 'A download the file check types as a PDF' );
-		$this->assert_nothing_changed( $before, 'A download the file check types as a PDF' );
+		$this->assert_unchanged( $before, 'A download the file check types as a PDF' );
 	}
 
 	/**
@@ -1479,8 +1242,8 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	}
 
 	/**
-	 * A type Core's upload handling refuses for a downloaded file is an invalid file, and
-	 * the file Core's handling gets has an empty type.
+	 * A type Core's upload rule refuses for a downloaded file is an invalid file, reported
+	 * before Core's upload handling gets the file.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
@@ -1524,10 +1287,8 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$this->assert_error_with_params( $result, 'media_invalid_file', 'data[file][url]', 'A type refused by the upload handling' );
 		$this->assert_error_message( $result, self::REFUSED_TYPE, 'A type refused by the upload handling' );
-		$this->assert_nothing_changed( $before, 'A type refused by the upload handling' );
-		$this->assertCount( 1, $files, 'The upload handling should get the file once.' );
-		$this->assertSame( 'mdt-refused-type.jpg', $files[0]['name'], 'The upload handling should get the name from the URL.' );
-		$this->assertSame( '', $files[0]['type'], 'The upload handling should get an empty type.' );
+		$this->assert_unchanged( $before, 'A type refused by the upload handling' );
+		$this->assertSame( array(), $files, 'The upload handling should not get the file.' );
 	}
 
 	/**
@@ -1574,7 +1335,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$this->assert_error( $result, 'media_upload_failed', 500, 'An error of the upload handling' );
 		$this->assert_error_message( $result, 'MDT prefilter failure.', 'An error of the upload handling' );
-		$this->assert_nothing_changed( $before, 'An error of the upload handling' );
+		$this->assert_unchanged( $before, 'An error of the upload handling' );
 	}
 
 	/**
@@ -1681,7 +1442,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$this->assert_error_with_params( $result, 'media_invalid_file', 'data[file][base64]', 'Data that is not valid base64' );
 		$this->assert_error_message( $result, 'The file data is not valid base64.', 'Data that is not valid base64' );
-		$this->assert_nothing_changed( $before, 'Data that is not valid base64' );
+		$this->assert_unchanged( $before, 'Data that is not valid base64' );
 	}
 
 	/**
@@ -1708,7 +1469,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$this->assert_error_with_params( $result, 'media_invalid_file', 'data[file][base64]', 'Data of whitespace only' );
 		$this->assert_error_message( $result, 'File is empty. Please upload something more substantial.', 'Data of whitespace only' );
-		$this->assert_nothing_changed( $before, 'Data of whitespace only' );
+		$this->assert_unchanged( $before, 'Data of whitespace only' );
 	}
 
 	/**
@@ -1727,7 +1488,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$this->assert_error_with_params( $result, 'media_invalid_file', 'data[file][base64]', 'Decoded data that is too big' );
 		$this->assert_error_message( $result, self::TOO_BIG_2_KB, 'Decoded data that is too big' );
-		$this->assert_nothing_changed( $before, 'Decoded data that is too big' );
+		$this->assert_unchanged( $before, 'Decoded data that is too big' );
 	}
 
 	/**
@@ -1804,7 +1565,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$this->assert_error_with_params( $result, 'media_invalid_file', 'data[file][filename]', 'A refused file type' );
 		$this->assert_error_message( $result, self::REFUSED_TYPE, 'A refused file type' );
-		$this->assert_nothing_changed( $before, 'A refused file type' );
+		$this->assert_unchanged( $before, 'A refused file type' );
 	}
 
 	/**
@@ -2102,33 +1863,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	}
 
 	/**
-	 * A key outside the allow-list fails input validation, and nothing is requested or
-	 * written.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_attribute_keys_outside_the_allow_list
-	 * @since 7.3.0
-	 *
-	 * @param string $key   The key.
-	 * @param mixed  $value The value.
-	 */
-	public function test_key_outside_the_allow_list_fails_input_validation( string $key, $value ): void {
-		$url = $this->remote_url( 'mdt-extra-key.jpg' );
-		$this->fake_http( array( $url => array( 'file' => self::fixture( 'images/canola.jpg' ) ) ) );
-
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$before = $this->snapshot_before( 'mdt-extra-key.jpg' );
-		$result = $this->run_ability( $this->url_input( $url, array( $key => $value ) ) );
-
-		$this->assertWPError( $result, 'The call should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the key.' );
-		$this->assertSame( array(), $this->requests, 'No request should be made.' );
-		$this->assertSame( $before, $this->snapshot_before( 'mdt-extra-key.jpg' ), 'Nothing should be written.' );
-	}
-
-	/**
 	 * When the save fails no attachment exists and no temporary file is left.
 	 *
 	 * @ticket 66719
@@ -2201,49 +1935,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 		$this->assertSame( 480, $result['media_details']['height'], 'The height should be the image height.' );
 		$this->assertArrayHasKey( 'thumbnail', (array) $result['media_details']['sizes'], 'The sub-sizes should be generated.' );
 		$this->assertArrayHasKey( 'full', (array) $result['media_details']['sizes'], 'The full size should be listed.' );
-	}
-
-	/**
-	 * A listener after the save sees the alt text.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_listener_after_the_save_sees_the_alt_text(): void {
-		$seen = array();
-		add_action(
-			'wp_after_insert_post',
-			static function ( int $post_id, WP_Post $post ) use ( &$seen ): void {
-				if ( 'attachment' === $post->post_type ) {
-					$seen[] = get_post_meta( $post_id, '_wp_attachment_image_alt', true );
-				}
-			},
-			10,
-			2
-		);
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$this->assert_uploaded( $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-listener.png', array( 'alt_text' => 'MDT listener alt' ) ) ), 'An upload with an alt text' );
-
-		$this->assertCount( 1, $seen, 'The listener should run once for the attachment.' );
-		$this->assertSame( 'MDT listener alt', $seen[0], 'The call of the listener should see the alt text.' );
-	}
-
-	/**
-	 * The alt text is sanitized as a text field.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_alt_text_is_sanitized(): void {
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$id = $this->assert_uploaded( $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-alt-sanitized.png', array( 'alt_text' => "<b>MDT</b>\n alt " ) ) ), 'An upload with markup in the alt text' );
-
-		$this->assertSame( sanitize_text_field( "<b>MDT</b>\n alt " ), get_post_meta( $id, '_wp_attachment_image_alt', true ), 'The alt text should be sanitized as a text field.' );
 	}
 
 	/**
@@ -2320,87 +2011,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 	}
 
 	/**
-	 * Markup in the title, caption and description is kept for a caller with
-	 * `unfiltered_html` and filtered for one without it.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_markup_roles
-	 * @since 7.3.0
-	 *
-	 * @param string $role        The role.
-	 * @param bool   $kept        Whether the markup is kept.
-	 * @param bool   $super_admin Optional. Whether the caller is a super admin. Default false.
-	 */
-	public function test_markup_follows_unfiltered_html( string $role, bool $kept, bool $super_admin = false ): void {
-		if ( $super_admin ) {
-			grant_super_admin( self::$user_ids[ $role ] );
-		}
-
-		$this->login_as( $role );
-		$this->register_abilities();
-
-		$markup = 'MDT <script>alert(1)</script>';
-		$id     = $this->assert_uploaded(
-			$this->run_ability(
-				$this->base64_input(
-					'images/codeispoetry.png',
-					"mdt-markup-{$role}.png",
-					array(
-						'title'       => $markup,
-						'caption'     => $markup,
-						'description' => $markup,
-					)
-				)
-			),
-			'An upload with markup'
-		);
-
-		$post = get_post( $id );
-
-		foreach ( array( 'post_title', 'post_excerpt', 'post_content' ) as $field ) {
-			$this->assertSame( $kept, str_contains( $post->$field, '<script>' ), $kept ? "The markup in {$field} should be kept." : "The markup in {$field} should be filtered." );
-		}
-	}
-
-	/**
-	 * Backslashes in the title, caption, description and alt text are stored as they were
-	 * sent.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_texts_with_backslashes
-	 * @since 7.3.0
-	 *
-	 * @param string $text The text.
-	 */
-	public function test_backslashes_are_stored_as_sent( string $text ): void {
-		$this->grant_cap( 'unfiltered_html' );
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$id = $this->assert_uploaded(
-			$this->run_ability(
-				$this->base64_input(
-					'images/codeispoetry.png',
-					'mdt-backslashes.png',
-					array(
-						'title'       => $text,
-						'caption'     => $text,
-						'description' => $text,
-						'alt_text'    => $text,
-					)
-				)
-			),
-			'An upload with backslashes'
-		);
-
-		$this->assertSame( $text, get_post_field( 'post_title', $id, 'raw' ), 'The title should be stored as sent.' );
-		$this->assertSame( $text, get_post_field( 'post_excerpt', $id, 'raw' ), 'The caption should be stored as sent.' );
-		$this->assertSame( $text, get_post_field( 'post_content', $id, 'raw' ), 'The description should be stored as sent.' );
-		$this->assertSame( $text, get_post_meta( $id, '_wp_attachment_image_alt', true ), 'The alt text should be stored as sent.' );
-	}
-
-	/**
 	 * On multisite a site without space left is refused on the URL path once the file is
 	 * downloaded, also for a super admin, and the temporary file is removed.
 	 *
@@ -2425,7 +2035,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$this->assert_error( $result, 'media_quota_exceeded', 400, 'An upload to a site without space' );
 		$this->assertCount( 1, $this->requests_for( $url ), 'The file should be downloaded once.' );
-		$this->assert_nothing_changed( $before, 'An upload to a site without space' );
+		$this->assert_unchanged( $before, 'An upload to a site without space' );
 	}
 
 	/**
@@ -2456,7 +2066,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 		$result = $this->run_ability( 'url' === $path ? $this->url_input( $url ) : $this->base64_input( 'images/canola.jpg', $name ) );
 
 		$this->assert_error( $result, 'media_quota_exceeded', 400, 'A file larger than the space left' );
-		$this->assert_nothing_changed( $before, 'A file larger than the space left' );
+		$this->assert_unchanged( $before, 'A file larger than the space left' );
 	}
 
 	/**
@@ -2490,7 +2100,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 
 		$this->assert_error_with_params( $result, 'media_invalid_file', 'url' === $path ? 'data[file][url]' : 'data[file][base64]', 'A file above the network maximum' );
 		$this->assert_error_message( $result, self::TOO_BIG_2_KB, 'A file above the network maximum' );
-		$this->assert_nothing_changed( $before, 'A file above the network maximum' );
+		$this->assert_unchanged( $before, 'A file above the network maximum' );
 	}
 
 	/**
@@ -2519,7 +2129,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 		$this->assert_error_with_params( $result, 'media_invalid_file', 'data[file][url]', 'A URL upload with a network maximum of 0' );
 		$this->assert_error_message( $result, 'This file is too big. Files must be less than 0 KB in size.', 'A URL upload with a network maximum of 0' );
 		$this->assertCount( 1, $this->requests_for( $url ), 'The file should be downloaded once.' );
-		$this->assert_nothing_changed( $before, 'A URL upload with a network maximum of 0' );
+		$this->assert_unchanged( $before, 'A URL upload with a network maximum of 0' );
 	}
 
 	/**
@@ -2588,48 +2198,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaUploadAbility extends WP_Abilities_
 		$requests = $this->requests_for( $url );
 		$this->assertCount( 1, $requests, 'The URL should be requested once.' );
 		$this->assertNull( $requests[0]['limit_response_size'], 'The request should have no limit.' );
-	}
-
-	/**
-	 * On multisite an author who is not a member of the site is an invalid author.
-	 *
-	 * @ticket 66719
-	 * @group ms-required
-	 * @since 7.3.0
-	 */
-	public function test_author_of_another_site_is_invalid(): void {
-		$outsider = self::factory()->user->create();
-		remove_user_from_blog( $outsider, get_current_blog_id() );
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-outsider.png', array( 'author' => $outsider ) ) );
-
-		$this->assert_error_with_params( $result, 'media_invalid_attribute', 'data[author]', 'An author of another site' );
-		$this->assert_error_message( $result, 'Invalid author ID.', 'An author of another site' );
-	}
-
-	/**
-	 * On multisite a super admin who is not a member of the site may send their own ID as
-	 * the author.
-	 *
-	 * @ticket 66719
-	 * @group ms-required
-	 * @since 7.3.0
-	 */
-	public function test_super_admin_outside_the_site_may_send_the_own_id(): void {
-		$super_admin = self::factory()->user->create();
-		remove_user_from_blog( $super_admin, get_current_blog_id() );
-		grant_super_admin( $super_admin );
-
-		wp_set_current_user( $super_admin );
-		$this->register_abilities();
-
-		$result = $this->run_ability( $this->base64_input( 'images/codeispoetry.png', 'mdt-super-admin-author.png', array( 'author' => $super_admin ) ) );
-
-		$id = $this->assert_uploaded( $result, 'An upload by a super admin outside the site' );
-		$this->assertSame( (string) $super_admin, get_post_field( 'post_author', $id ), 'The stored author should be the super admin.' );
 	}
 
 	/**

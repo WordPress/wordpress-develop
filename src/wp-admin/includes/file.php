@@ -1389,8 +1389,7 @@ function _wp_download_image_from_url( $url ) {
 	}
 
 	// The name is taken from the URL's path as it is, without percent-decoding.
-	$url_path = (string) wp_parse_url( $url, PHP_URL_PATH );
-	$filename = '' === $url_path ? '' : wp_basename( $url_path );
+	$filename = wp_basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
 	if ( '' === $filename ) {
 		return new WP_Error( 'invalid_image_url', __( 'Could not determine a filename from the provided URL.' ), array( 'status' => 400 ) );
 	}
@@ -1411,7 +1410,7 @@ function _wp_download_image_from_url( $url ) {
 	 */
 	$max_size            = (int) wp_max_upload_size();
 	$limit_response_size = static function ( $args, $request_url ) use ( $url, $max_size ) {
-		if ( $request_url === $url && is_array( $args ) ) {
+		if ( $request_url === $url ) {
 			$args['limit_response_size'] = $max_size + 1;
 		}
 

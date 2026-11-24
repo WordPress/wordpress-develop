@@ -399,16 +399,10 @@ final class WP_Abilities_Media {
 		}
 
 		/*
-		 * A MIME type must be a full type without wildcards, so it is matched exactly. A
-		 * media type group, such as `image`, matches every type of that group.
+		 * A MIME type is a full type without wildcards, so it is matched exactly. A media
+		 * type group, such as `image`, matches every type of that group. With both filters,
+		 * an attachment matches when it matches either.
 		 */
-		foreach ( $where['mime_type'] ?? array() as $mime_type ) {
-			if ( ! preg_match( '#^[-.a-z0-9]+/[-.+a-z0-9]+$#i', $mime_type ) ) {
-				return $this->invalid_param_error( 'media_invalid_filter', 'where[mime_type]', __( 'The mime_type filter must list full MIME types, such as image/jpeg.' ) );
-			}
-		}
-
-		// With both filters, an attachment matches when it matches either.
 		$mime_types = array_merge( $where['media_type'] ?? array(), $where['mime_type'] ?? array() );
 		if ( ! empty( $mime_types ) ) {
 			$query_args['post_mime_type'] = array_values( array_unique( $mime_types ) );
@@ -634,9 +628,7 @@ final class WP_Abilities_Media {
 			return $this->store_file( $download['name'], $tmp_file, $time, $param );
 		} finally {
 			// Of the temporary files, only the one the download returned is ever removed.
-			if ( file_exists( $tmp_file ) ) {
-				wp_delete_file( $tmp_file );
-			}
+			wp_delete_file( $tmp_file );
 		}
 	}
 
@@ -675,9 +667,7 @@ final class WP_Abilities_Media {
 
 			return $this->store_file( $filename, $tmp_file, $time, 'data[file][filename]' );
 		} finally {
-			if ( file_exists( $tmp_file ) ) {
-				wp_delete_file( $tmp_file );
-			}
+			wp_delete_file( $tmp_file );
 		}
 	}
 
@@ -736,7 +726,8 @@ final class WP_Abilities_Media {
 	 *
 	 * The upload handling decides, for the current user, whether the file may be stored,
 	 * from its name and its content. It is given no type, so the type always comes from
-	 * that check.
+	 * that check. The same type rule is checked first, so that a refused type is reported
+	 * as invalid input and any other failure of the upload handling as a server error.
 	 *
 	 * @since 7.3.0
 	 *
@@ -747,6 +738,11 @@ final class WP_Abilities_Media {
 	 * @return array<string, mixed>|WP_Error The `file`, `url` and `type` of the stored file, or a WP_Error.
 	 */
 	private function store_file( string $filename, string $tmp_file, ?string $time, string $type_param ) {
+		$checked = wp_check_filetype_and_ext( $tmp_file, $filename );
+		if ( ( ! $checked['ext'] || ! $checked['type'] ) && ! current_user_can( 'unfiltered_upload' ) ) {
+			return $this->invalid_param_error( 'media_invalid_file', $type_param, __( 'Sorry, you are not allowed to upload this file type.' ) );
+		}
+
 		$upload = array(
 			'name'     => $filename,
 			'tmp_name' => $tmp_file,
@@ -755,10 +751,6 @@ final class WP_Abilities_Media {
 
 		$stored = wp_handle_sideload( $upload, array( 'test_form' => false ), $time );
 		if ( isset( $stored['error'] ) ) {
-			if ( __( 'Sorry, you are not allowed to upload this file type.' ) === $stored['error'] ) {
-				return $this->invalid_param_error( 'media_invalid_file', $type_param, $stored['error'] );
-			}
-
 			return new WP_Error( 'media_upload_failed', $stored['error'], array( 'status' => 500 ) );
 		}
 
@@ -888,8 +880,8 @@ final class WP_Abilities_Media {
 	/**
 	 * Returns the attachment that `where.id` names.
 	 *
-	 * The ID is read once, and that same integer is used for the lookup, the capability
-	 * checks, and the write.
+	 * The ID is read once from the prepared input, and the execute callback uses the
+	 * returned attachment's ID for its capability check and the write.
 	 *
 	 * @since 7.3.0
 	 *
@@ -1201,7 +1193,9 @@ final class WP_Abilities_Media {
 		}
 
 		if ( ! isset( $this->visible_authors[ $user_id ] ) ) {
-			$post_types                        = array_values( array_filter( get_post_types( array( 'show_in_abilities' => true ), 'names' ), 'is_post_type_viewable' ) );
+			// Attachments are left out, as their status never counts as published.
+			$post_types                        = array_diff( get_post_types( array( 'show_in_abilities' => true ) ), array( 'attachment' ) );
+			$post_types                        = array_values( array_filter( $post_types, 'is_post_type_viewable' ) );
 			$this->visible_authors[ $user_id ] = (int) count_user_posts( $user_id, $post_types ) > 0;
 		}
 
@@ -1380,7 +1374,7 @@ final class WP_Abilities_Media {
 						);
 					}
 
-					// An object without keys is an stdClass, so it encodes as an object for every caller.
+					// No sizes is a `stdClass`, so it encodes as an object for every caller.
 					$details['sizes'] = empty( $sizes ) ? new stdClass() : $sizes;
 				}
 
@@ -1950,8 +1944,8 @@ final class WP_Abilities_Media {
 							'uniqueItems' => true,
 							'minItems'    => 1,
 							'items'       => array(
-								'type'      => 'string',
-								'minLength' => 1,
+								'type'    => 'string',
+								'pattern' => '^[-.a-zA-Z0-9]+/[-.+a-zA-Z0-9]+$',
 							),
 							'description' => __( 'Filter by one or more exact MIME types, such as `image/jpeg`. Wildcards are not supported. With `media_type`, an attachment matches when it matches either filter.' ),
 						),

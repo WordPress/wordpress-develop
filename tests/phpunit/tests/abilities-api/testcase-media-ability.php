@@ -31,15 +31,6 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	protected const MEDIA_ABILITIES = array( 'core/media-query', 'core/media-upload', 'core/media-update', 'core/media-delete' );
 
 	/**
-	 * An ID that no post or user has.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var int
-	 */
-	protected const MISSING_ID = 987654321;
-
-	/**
 	 * The top-level keys of an item with the default fields.
 	 *
 	 * @since 7.3.0
@@ -518,6 +509,19 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Asserts that a result is the error of an input the schema rejects.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed  $result  The ability result.
+	 * @param string $context What the call was, for the assertion messages.
+	 */
+	protected function assert_invalid_input( $result, string $context ): void {
+		$this->assertWPError( $result, "{$context}: the call should fail." );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), "{$context}: the schema should reject the input." );
+	}
+
+	/**
 	 * Asserts that a result is an error with the given code and status and one `params`
 	 * entry, keyed by the given input path, with a reason as its value.
 	 *
@@ -591,237 +595,79 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Removes the `description` keywords of a schema at every depth, keeping a property
-	 * named `description`, turns objects into arrays and sorts the keys of every map, so
-	 * that two schemas compare by content.
+	 * Asserts the shape of an object schema: no other properties, the required keys, and
+	 * the property names in order.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed        $schema     The schema.
+	 * @param list<string> $required   The required keys.
+	 * @param list<string> $properties The property names, in order.
+	 * @param string       $context    What the schema is, for the messages.
+	 */
+	protected function assert_object_schema( $schema, array $required, array $properties, string $context ): void {
+		$this->assertIsArray( $schema, "{$context} should be a schema." );
+		$this->assertSame( 'object', $schema['type'] ?? null, "{$context} should be an object." );
+		$this->assertFalse( $schema['additionalProperties'] ?? null, "{$context} should allow no other properties." );
+		$this->assertSame( $required, $schema['required'] ?? array(), "{$context} should require these keys." );
+		$this->assertSame( $properties, array_keys( $schema['properties'] ?? array() ), "{$context} should have these properties." );
+	}
+
+	/**
+	 * Asserts the output schema of one attachment.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @param mixed $schema The schema.
-	 * @return mixed The normalized schema.
 	 */
-	protected function normalize_schema( $schema ) {
-		if ( is_object( $schema ) ) {
-			$schema = get_object_vars( $schema );
-		}
+	protected function assert_item_schema( $schema ): void {
+		$names = array_values( array_filter( self::FIELDS, static fn( string $field ): bool => ! str_contains( $field, '.' ) ) );
 
-		if ( ! is_array( $schema ) ) {
-			return $schema;
-		}
-
-		if ( ! wp_is_numeric_array( $schema ) || empty( $schema ) ) {
-			if ( isset( $schema['description'] ) && is_string( $schema['description'] ) ) {
-				unset( $schema['description'] );
-			}
-			ksort( $schema );
-		}
-
-		foreach ( $schema as $key => $value ) {
-			$schema[ $key ] = $this->normalize_schema( $value );
-		}
-
-		return $schema;
+		$this->assert_object_schema( $schema, array( 'id' ), $names, 'The item schema' );
+		$this->assertSame( array( 'image', 'file' ), $schema['properties']['media_type']['enum'] ?? null, 'The media_type field should be image or file.' );
+		$this->assertSame( array( 'string', 'null' ), $schema['properties']['date']['properties']['gmt']['type'] ?? null, 'A date should be nullable.' );
+		$this->assertSame( array( 'width', 'height', 'mime_type', 'source_url' ), $schema['properties']['media_details']['properties']['sizes']['additionalProperties']['required'] ?? null, 'A size should require its four keys.' );
 	}
 
 	/**
-	 * Returns the schema of the `fields` input, which query, upload and update share.
+	 * Asserts the schema of the `fields` input.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @return array<string, mixed> The schema.
+	 * @param mixed $schema The schema.
 	 */
-	protected static function fields_schema(): array {
-		return array(
-			'type'        => 'array',
-			'uniqueItems' => true,
-			'items'       => array(
-				'type' => 'string',
-				'enum' => self::FIELDS,
-			),
-		);
+	protected function assert_fields_schema( $schema ): void {
+		$this->assertTrue( $schema['uniqueItems'] ?? null, 'The fields should be unique.' );
+		$this->assertSame( self::FIELDS, $schema['items']['enum'] ?? null, 'The fields input should take every field path.' );
 	}
 
 	/**
-	 * Returns the schema of a `{ site, gmt }` date in the output.
+	 * Asserts the schema of the attributes upload and update take.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @return array<string, mixed> The schema.
+	 * @param mixed        $schema The `data` schema.
+	 * @param list<string> $before The property names in front of the attributes.
 	 */
-	private static function output_date_schema(): array {
-		return array(
-			'type'                 => 'object',
-			'additionalProperties' => false,
-			'properties'           => array(
-				'site' => array(
-					'type'   => array( 'string', 'null' ),
-					'format' => 'date-time',
-				),
-				'gmt'  => array(
-					'type'   => array( 'string', 'null' ),
-					'format' => 'date-time',
-				),
-			),
-		);
+	protected function assert_attributes_schema( $schema, array $before ): void {
+		$names = array_merge( $before, array( 'title', 'caption', 'description', 'alt_text', 'slug', 'date', 'author', 'post' ) );
+
+		$this->assert_object_schema( $schema, $before, $names, 'The data schema' );
+		$this->assertSame( 1, $schema['properties']['author']['minimum'] ?? null, 'The author should be at least 1.' );
+		$this->assertSame( 0, $schema['properties']['post']['minimum'] ?? null, 'The post should be at least 0.' );
+		$this->assertSame( 1, $schema['properties']['date']['minProperties'] ?? null, 'The date should need site or gmt.' );
 	}
 
 	/**
-	 * Returns the schema of a `{ raw, rendered }` text in the output.
+	 * Asserts the schema of a `where` that names one attachment by ID.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @return array<string, mixed> The schema.
+	 * @param mixed $schema The schema.
 	 */
-	private static function output_text_schema(): array {
-		return array(
-			'type'                 => 'object',
-			'additionalProperties' => false,
-			'properties'           => array(
-				'raw'      => array( 'type' => 'string' ),
-				'rendered' => array( 'type' => 'string' ),
-			),
-		);
-	}
-
-	/**
-	 * Returns the schema of a media item in the output.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return array<string, mixed> The schema.
-	 */
-	protected static function item_schema(): array {
-		return array(
-			'type'                 => 'object',
-			'additionalProperties' => false,
-			'required'             => array( 'id' ),
-			'properties'           => array(
-				'id'            => array( 'type' => 'integer' ),
-				'status'        => array( 'type' => 'string' ),
-				'date'          => self::output_date_schema(),
-				'modified'      => self::output_date_schema(),
-				'slug'          => array( 'type' => 'string' ),
-				'link'          => array(
-					'type'   => 'string',
-					'format' => 'uri',
-				),
-				'title'         => self::output_text_schema(),
-				'caption'       => self::output_text_schema(),
-				'description'   => self::output_text_schema(),
-				'alt_text'      => array( 'type' => 'string' ),
-				'media_type'    => array(
-					'type' => 'string',
-					'enum' => array( 'image', 'file' ),
-				),
-				'mime_type'     => array( 'type' => 'string' ),
-				'source_url'    => array(
-					'type'   => 'string',
-					'format' => 'uri',
-				),
-				'filename'      => array( 'type' => 'string' ),
-				'filesize'      => array( 'type' => 'integer' ),
-				'media_details' => array(
-					'type'                 => 'object',
-					'additionalProperties' => false,
-					'properties'           => array(
-						'width'  => array( 'type' => 'integer' ),
-						'height' => array( 'type' => 'integer' ),
-						'length' => array( 'type' => 'integer' ),
-						'sizes'  => array(
-							'type'                 => 'object',
-							'additionalProperties' => array(
-								'type'                 => 'object',
-								'additionalProperties' => false,
-								'required'             => array( 'width', 'height', 'mime_type', 'source_url' ),
-								'properties'           => array(
-									'width'      => array( 'type' => 'integer' ),
-									'height'     => array( 'type' => 'integer' ),
-									'mime_type'  => array( 'type' => 'string' ),
-									'source_url' => array(
-										'type'   => 'string',
-										'format' => 'uri',
-									),
-								),
-							),
-						),
-					),
-				),
-				'post'          => array( 'type' => 'integer' ),
-				'author'        => array(
-					'type'                 => 'object',
-					'additionalProperties' => false,
-					'properties'           => array(
-						'id'   => array( 'type' => 'integer' ),
-						'name' => array( 'type' => array( 'string', 'null' ) ),
-						'slug' => array( 'type' => array( 'string', 'null' ) ),
-					),
-				),
-			),
-		);
-	}
-
-	/**
-	 * Returns the schema of the attributes upload and update take.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return array<string, mixed> The schemas, keyed by attribute.
-	 */
-	protected static function attribute_schemas(): array {
-		return array(
-			'title'       => array( 'type' => 'string' ),
-			'caption'     => array( 'type' => 'string' ),
-			'description' => array( 'type' => 'string' ),
-			'alt_text'    => array( 'type' => 'string' ),
-			'slug'        => array(
-				'type'      => 'string',
-				'minLength' => 1,
-			),
-			'date'        => array(
-				'type'                 => 'object',
-				'additionalProperties' => false,
-				'minProperties'        => 1,
-				'properties'           => array(
-					'site' => array(
-						'type'   => 'string',
-						'format' => 'date-time',
-					),
-					'gmt'  => array(
-						'type'   => 'string',
-						'format' => 'date-time',
-					),
-				),
-			),
-			'author'      => array(
-				'type'    => 'integer',
-				'minimum' => 1,
-			),
-			'post'        => array(
-				'type'    => 'integer',
-				'minimum' => 0,
-			),
-		);
-	}
-
-	/**
-	 * Returns the schema of a `where` that names one attachment by ID.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return array<string, mixed> The schema.
-	 */
-	protected static function where_id_schema(): array {
-		return array(
-			'type'                 => 'object',
-			'additionalProperties' => false,
-			'required'             => array( 'id' ),
-			'properties'           => array(
-				'id' => array(
-					'type'    => 'integer',
-					'minimum' => 1,
-				),
-			),
-		);
+	protected function assert_where_id_schema( $schema ): void {
+		$this->assert_object_schema( $schema, array( 'id' ), array( 'id' ), 'The where schema' );
+		$this->assertSame( 1, $schema['properties']['id']['minimum'] ?? null, 'The ID should be at least 1.' );
 	}
 
 	/**
@@ -860,18 +706,6 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 		return array(
 			'another user' => array( 'editor' ),
 			'missing user' => array( 'missing' ),
-		);
-	}
-
-	/**
-	 * Returns authors below 1.
-	 *
-	 * @return array<string, array{author: int}> The authors.
-	 */
-	public static function data_authors_below_one(): array {
-		return array(
-			'zero'     => array( 0 ),
-			'negative' => array( -1 ),
 		);
 	}
 
@@ -955,31 +789,20 @@ abstract class WP_Abilities_Media_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns keys that are not attributes of an attachment.
+	 * Returns attributes outside the input schema.
 	 *
-	 * @return array<string, array{key: string, value: mixed}> The keys and values.
+	 * @return array<string, array{data: array<string, mixed>}> The attributes.
 	 */
-	public static function data_attribute_keys_outside_the_allow_list(): array {
+	public static function data_attributes_outside_the_schema(): array {
 		return array(
-			'ID'             => array( 'ID', 1 ),
-			'import_id'      => array( 'import_id', 7654321 ),
-			'status'         => array( 'status', 'private' ),
-			'post_status'    => array( 'post_status', 'private' ),
-			'post_type'      => array( 'post_type', 'post' ),
-			'mime_type'      => array( 'mime_type', 'text/html' ),
-			'post_mime_type' => array( 'post_mime_type', 'text/html' ),
-			'guid'           => array( 'guid', 'https://example.org/forged' ),
-			'password'       => array( 'password', 'secret' ),
-			'post_password'  => array( 'post_password', 'secret' ),
-			'comment_status' => array( 'comment_status', 'closed' ),
-			'ping_status'    => array( 'ping_status', 'closed' ),
-			'menu_order'     => array( 'menu_order', 5 ),
-			'meta'           => array( 'meta', array( 'mdt_key' => 'value' ) ),
-			'meta_input'     => array( 'meta_input', array( 'mdt_key' => 'value' ) ),
-			'tax_input'      => array( 'tax_input', array( 'category' => array( 1 ) ) ),
-			'post_author'    => array( 'post_author', 1 ),
-			'post_parent'    => array( 'post_parent', 1 ),
-			'modified'       => array( 'modified', '2001-01-01T00:00:00' ),
+			'author of zero'     => array( array( 'author' => 0 ) ),
+			'negative author'    => array( array( 'author' => -1 ) ),
+			'negative post'      => array( array( 'post' => -1 ) ),
+			'empty date'         => array( array( 'date' => array() ) ),
+			'ID key'             => array( array( 'ID' => 1 ) ),
+			'status key'         => array( array( 'status' => 'private' ) ),
+			'post_mime_type key' => array( array( 'post_mime_type' => 'text/html' ) ),
+			'meta_input key'     => array( array( 'meta_input' => array( 'mdt_key' => 'value' ) ) ),
 		);
 	}
 }

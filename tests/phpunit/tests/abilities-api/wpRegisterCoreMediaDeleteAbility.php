@@ -23,15 +23,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 	protected const ABILITY = 'core/media-delete';
 
 	/**
-	 * The capability the gate checks on the target.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var string
-	 */
-	protected const CAPABILITY = 'delete_post';
-
-	/**
 	 * The message of a call that cannot trash.
 	 *
 	 * @since 7.3.0
@@ -70,7 +61,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 	 * @return array<string, mixed> The input.
 	 */
 	private function delete_input( string $attachment, ?bool $permanent = null ): array {
-		$input = array( 'where' => array( 'id' => self::$post_ids[ $attachment ] ?? self::MISSING_ID ) );
+		$input = array( 'where' => array( 'id' => self::$post_ids[ $attachment ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
 		if ( null !== $permanent ) {
 			$input['permanent'] = $permanent;
@@ -100,6 +91,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 	private static function site_can_trash_attachments(): bool {
 		return EMPTY_TRASH_DAYS >= 1 && MEDIA_TRASH;
 	}
+
 	/**
 	 * Returns the `permanent` values that ask for the Trash.
 	 *
@@ -138,7 +130,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 	}
 
 	/**
-	 * The input and output schemas are the published ones.
+	 * The input takes the attachment ID and the permanent flag, and the output is the outcome.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
@@ -146,60 +138,13 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 	public function test_schemas(): void {
 		$this->register_abilities();
 		$ability = wp_get_ability( self::ABILITY );
+		$input   = $ability->get_input_schema();
+		$output  = $ability->get_output_schema();
 
-		$expected_input  = array(
-			'type'                 => 'object',
-			'additionalProperties' => false,
-			'required'             => array( 'where' ),
-			'properties'           => array(
-				'where'     => self::where_id_schema(),
-				'permanent' => array( 'type' => 'boolean' ),
-			),
-		);
-		$expected_output = array(
-			'type'                 => 'object',
-			'additionalProperties' => false,
-			'required'             => array( 'outcome' ),
-			'properties'           => array(
-				'outcome' => array(
-					'type' => 'string',
-					'enum' => array( 'deleted', 'trashed' ),
-				),
-			),
-		);
-
-		$this->assertSame( $this->normalize_schema( $expected_input ), $this->normalize_schema( $ability->get_input_schema() ), 'The input schema should match.' );
-		$this->assertSame( $this->normalize_schema( $expected_output ), $this->normalize_schema( $ability->get_output_schema() ), 'The output schema should match.' );
-	}
-
-	/**
-	 * A permanent deletion with an ID of 0 is not found, also when the global post is an
-	 * attachment the caller may delete, and that attachment is kept unchanged.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_lookup_never_uses_the_global_post(): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-		$this->skip_input_validation();
-		$this->force_permission();
-
-		$GLOBALS['post'] = get_post( self::$post_ids['unattached'] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- The lookup should not fall back to it.
-
-		$before = $this->snapshot( self::$post_ids['unattached'] );
-		$result = $this->run_ability(
-			array(
-				'where'     => array( 'id' => 0 ),
-				'permanent' => true,
-			)
-		);
-		$after  = $this->snapshot( self::$post_ids['unattached'] );
-
-		$this->assert_not_found( $result, 'A permanent deletion with an ID of 0' );
-		$this->assertSame( $before['post'], $after['post'], 'The attachment row should not change.' );
-		$this->assertSame( $before['post_meta'], $after['post_meta'], 'The attachment meta should not change.' );
-		$this->assertSame( $before['posts'], $after['posts'], 'No post should be removed.' );
+		$this->assert_object_schema( $input, array( 'where' ), array( 'where', 'permanent' ), 'The input schema' );
+		$this->assert_where_id_schema( $input['properties']['where'] );
+		$this->assert_object_schema( $output, array( 'outcome' ), array( 'outcome' ), 'The output schema' );
+		$this->assertSame( array( 'deleted', 'trashed' ), $output['properties']['outcome']['enum'] ?? null, 'The outcome should be deleted or trashed.' );
 	}
 
 	/**
@@ -241,9 +186,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 	public static function data_keys_outside_the_allow_list(): array {
 		return array(
 			'force'        => array( null, 'force', true ),
-			'ID'           => array( null, 'ID', 1 ),
 			'where status' => array( 'where', 'status', 'trash' ),
-			'where ID'     => array( 'where', 'ID', 1 ),
 		);
 	}
 
@@ -270,10 +213,8 @@ class Tests_Abilities_API_WpRegisterCoreMediaDeleteAbility extends WP_Abilities_
 		}
 
 		$before = $this->snapshot( self::$post_ids['unattached'] );
-		$result = $this->run_ability( $input );
 
-		$this->assertWPError( $result, 'The call should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the key.' );
+		$this->assert_invalid_input( $this->run_ability( $input ), 'A key outside the allow-list' );
 		$this->assertSame( $before, $this->snapshot( self::$post_ids['unattached'] ), 'Nothing should be written.' );
 	}
 

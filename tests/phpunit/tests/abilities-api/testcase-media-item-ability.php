@@ -15,15 +15,6 @@ require_once __DIR__ . '/testcase-media-ability.php';
 abstract class WP_Abilities_Media_Item_UnitTestCase extends WP_Abilities_Media_UnitTestCase {
 
 	/**
-	 * The capability the gate checks on the target, set by each test class.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @var string
-	 */
-	protected const CAPABILITY = '';
-
-	/**
 	 * Returns an input of the ability under test for the given `where` value.
 	 *
 	 * @since 7.3.0
@@ -186,8 +177,7 @@ abstract class WP_Abilities_Media_Item_UnitTestCase extends WP_Abilities_Media_U
 		$this->login_as( $role );
 		$this->register_abilities();
 
-		$capability = static::CAPABILITY;
-		$this->assertSame( $expected, wp_get_ability( static::ABILITY )->check_permissions( $this->build_input( array( 'id' => $id ) ) ), "The gate should follow {$capability} on the target." );
+		$this->assertSame( $expected, wp_get_ability( static::ABILITY )->check_permissions( $this->build_input( array( 'id' => $id ) ) ), 'The gate should follow the capability on the target.' );
 	}
 
 	/**
@@ -241,7 +231,7 @@ abstract class WP_Abilities_Media_Item_UnitTestCase extends WP_Abilities_Media_U
 		$this->login_as( 'subscriber' );
 		$this->register_abilities();
 
-		$input  = $this->build_input( array( 'id' => self::$post_ids[ $post ] ?? self::MISSING_ID ) );
+		$input  = $this->build_input( array( 'id' => self::$post_ids[ $post ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 		$before = $this->snapshot();
 
 		$this->assertTrue( wp_get_ability( static::ABILITY )->check_permissions( $input ), 'The gate should pass.' );
@@ -313,7 +303,9 @@ abstract class WP_Abilities_Media_Item_UnitTestCase extends WP_Abilities_Media_U
 	}
 
 	/**
-	 * With the gate and the validation skipped, an ID that is missing or below 1 is not found.
+	 * With the gate and the validation skipped, an ID that is missing or below 1 is not found,
+	 * also when the global post is an attachment the caller may change, and that attachment
+	 * does not change.
 	 *
 	 * @ticket 66719
 	 * @dataProvider data_unusable_ids
@@ -327,6 +319,11 @@ abstract class WP_Abilities_Media_Item_UnitTestCase extends WP_Abilities_Media_U
 		$this->skip_input_validation();
 		$this->force_permission();
 
+		$GLOBALS['post'] = get_post( self::$post_ids['unattached'] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- The lookup should not fall back to it.
+
+		$before = $this->snapshot( self::$post_ids['unattached'] );
+
 		$this->assert_not_found( $this->run_ability( $this->build_input( $where ) ), 'A call with an unusable ID' );
+		$this->assertSame( $before, $this->snapshot( self::$post_ids['unattached'] ), 'The global post should not change.' );
 	}
 }

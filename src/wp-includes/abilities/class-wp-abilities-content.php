@@ -1363,7 +1363,9 @@ final class WP_Abilities_Content {
 		}
 
 		if ( ! isset( $this->visible_authors[ $user_id ] ) ) {
-			$post_types                        = array_values( array_filter( get_post_types( array( 'show_in_abilities' => true ), 'names' ), 'is_post_type_viewable' ) );
+			// Attachments are left out, as their status never counts as published.
+			$post_types                        = array_diff( get_post_types( array( 'show_in_abilities' => true ) ), array( 'attachment' ) );
+			$post_types                        = array_values( array_filter( $post_types, 'is_post_type_viewable' ) );
 			$this->visible_authors[ $user_id ] = (int) count_user_posts( $user_id, $post_types ) > 0;
 		}
 

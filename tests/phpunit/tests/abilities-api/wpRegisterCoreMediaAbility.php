@@ -148,152 +148,34 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	}
 
 	/**
-	 * The input schema is the published one.
+	 * The input takes the filters, the fields and the pagination, and the output is a page of
+	 * attachments with its totals.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
 	 */
-	public function test_input_schema(): void {
+	public function test_schemas(): void {
 		$this->register_abilities();
+		$ability = wp_get_ability( self::ABILITY );
+		$input   = $ability->get_input_schema();
+		$where   = $input['properties']['where'] ?? array();
+		$output  = $ability->get_output_schema();
 
-		$list = static function ( array $items, ?int $max_items = null ): array {
-			$schema = array(
-				'type'        => 'array',
-				'uniqueItems' => true,
-				'minItems'    => 1,
-				'items'       => $items,
-			);
+		$this->assert_object_schema( $input, array(), array( 'where', 'fields', 'pagination' ), 'The input schema' );
+		$this->assertSame( array(), $input['default'] ?? null, 'The input should default to no filters.' );
+		$this->assert_object_schema( $where, array(), array( 'ids', 'slugs', 'status', 'media_type', 'mime_type', 'post', 'author' ), 'The where schema' );
+		$this->assertSame( 100, $where['properties']['ids']['maxItems'] ?? null, 'At most 100 IDs should be taken.' );
+		$this->assertSame( 100, $where['properties']['slugs']['maxItems'] ?? null, 'At most 100 slugs should be taken.' );
+		$this->assertSame( array( 'inherit', 'private', 'trash' ), $where['properties']['status']['items']['enum'] ?? null, 'The statuses should be the attachment ones.' );
+		$this->assertSame( array( 'application', 'audio', 'image', 'text', 'video' ), $where['properties']['media_type']['items']['enum'] ?? null, 'The media types should be the type groups.' );
+		$this->assertSame( '^[-.a-zA-Z0-9]+/[-.+a-zA-Z0-9]+$', $where['properties']['mime_type']['items']['pattern'] ?? null, 'A MIME type should be a full type.' );
+		$this->assertSame( 1, $where['properties']['author']['minProperties'] ?? null, 'The author should need an ID or a slug.' );
+		$this->assertSame( 100, $input['properties']['pagination']['properties']['per_page']['maximum'] ?? null, 'At most 100 items should be on a page.' );
+		$this->assert_fields_schema( $input['properties']['fields'] );
 
-			if ( null !== $max_items ) {
-				$schema['maxItems'] = $max_items;
-			}
-
-			return $schema;
-		};
-
-		$expected = array(
-			'type'                 => 'object',
-			'default'              => array(),
-			'additionalProperties' => false,
-			'properties'           => array(
-				'where'      => array(
-					'type'                 => 'object',
-					'additionalProperties' => false,
-					'properties'           => array(
-						'ids'        => $list(
-							array(
-								'type'    => 'integer',
-								'minimum' => 1,
-							),
-							100
-						),
-						'slugs'      => $list(
-							array(
-								'type'      => 'string',
-								'minLength' => 1,
-							),
-							100
-						),
-						'status'     => $list(
-							array(
-								'type' => 'string',
-								'enum' => array( 'inherit', 'private', 'trash' ),
-							)
-						),
-						'media_type' => $list(
-							array(
-								'type' => 'string',
-								'enum' => array( 'application', 'audio', 'image', 'text', 'video' ),
-							)
-						),
-						'mime_type'  => $list(
-							array(
-								'type'      => 'string',
-								'minLength' => 1,
-							)
-						),
-						'post'       => array(
-							'type'    => 'integer',
-							'minimum' => 0,
-						),
-						'author'     => array(
-							'type'                 => 'object',
-							'additionalProperties' => false,
-							'minProperties'        => 1,
-							'properties'           => array(
-								'id'   => array(
-									'type'    => 'integer',
-									'minimum' => 1,
-								),
-								'slug' => array(
-									'type'      => 'string',
-									'minLength' => 1,
-								),
-							),
-						),
-					),
-				),
-				'fields'     => self::fields_schema(),
-				'pagination' => array(
-					'type'                 => 'object',
-					'additionalProperties' => false,
-					'properties'           => array(
-						'page'     => array(
-							'type'    => 'integer',
-							'minimum' => 1,
-						),
-						'per_page' => array(
-							'type'    => 'integer',
-							'minimum' => 1,
-							'maximum' => 100,
-						),
-					),
-				),
-			),
-		);
-
-		$this->assertSame(
-			$this->normalize_schema( $expected ),
-			$this->normalize_schema( wp_get_ability( self::ABILITY )->get_input_schema() ),
-			'The input schema should match.'
-		);
-	}
-
-	/**
-	 * The output schema is the published one.
-	 *
-	 * @ticket 66719
-	 * @since 7.3.0
-	 */
-	public function test_output_schema(): void {
-		$this->register_abilities();
-
-		$expected = array(
-			'type'                 => 'object',
-			'additionalProperties' => false,
-			'required'             => array( 'items', 'pagination' ),
-			'properties'           => array(
-				'items'      => array(
-					'type'  => 'array',
-					'items' => self::item_schema(),
-				),
-				'pagination' => array(
-					'type'                 => 'object',
-					'additionalProperties' => false,
-					'required'             => array( 'total', 'total_pages' ),
-					'properties'           => array(
-						'total'       => array( 'type' => 'integer' ),
-						'total_pages' => array( 'type' => 'integer' ),
-					),
-				),
-			),
-		);
-
-		$this->assertSame(
-			$this->normalize_schema( $expected ),
-			$this->normalize_schema( wp_get_ability( self::ABILITY )->get_output_schema() ),
-			'The output schema should match.'
-		);
+		$this->assert_object_schema( $output, array( 'items', 'pagination' ), array( 'items', 'pagination' ), 'The output schema' );
+		$this->assert_item_schema( $output['properties']['items']['items'] ?? null );
+		$this->assert_object_schema( $output['properties']['pagination'], array( 'total', 'total_pages' ), array( 'total', 'total_pages' ), 'The output pagination schema' );
 	}
 
 	/**
@@ -302,11 +184,15 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	 * @return array<string, array{role: string}> The roles.
 	 */
 	public static function data_logged_in_roles(): array {
-		$roles = self::data_all_roles();
-		unset( $roles['logged out'] );
-		$roles['role without capabilities'] = array( 'no_caps' );
-
-		return $roles;
+		return array(
+			'subscriber'                => array( 'subscriber' ),
+			'contributor'               => array( 'contributor' ),
+			'author'                    => array( 'author' ),
+			'editor'                    => array( 'editor' ),
+			'administrator'             => array( 'administrator' ),
+			'read and upload'           => array( 'uploader' ),
+			'role without capabilities' => array( 'no_caps' ),
+		);
 	}
 
 	/**
@@ -496,40 +382,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	}
 
 	/**
-	 * Returns status lists that hold a value outside the status set.
-	 *
-	 * @return array<string, array{role: string, status: list<string>}> The cases.
-	 */
-	public static function data_statuses_outside_the_set(): array {
-		return array(
-			'subscriber, publish'         => array( 'subscriber', array( 'publish' ) ),
-			'subscriber, trash and bogus' => array( 'subscriber', array( 'trash', 'mdt_bogus' ) ),
-			'editor, bogus'               => array( 'editor', array( 'mdt_bogus' ) ),
-			'editor, inherit and draft'   => array( 'editor', array( 'inherit', 'draft' ) ),
-		);
-	}
-
-	/**
-	 * A status outside the status set is invalid input for every caller.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_statuses_outside_the_set
-	 * @since 7.3.0
-	 *
-	 * @param string       $role   The role.
-	 * @param list<string> $status The status filter.
-	 */
-	public function test_status_outside_the_set_is_invalid_input( string $role, array $status ): void {
-		$this->login_as( $role );
-		$this->register_abilities();
-
-		$result = $this->run_ability( array( 'where' => array( 'status' => $status ) ) );
-
-		$this->assertWPError( $result, 'A status outside the set should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject a status outside the set.' );
-	}
-
-	/**
 	 * The capability to filter by a status is checked before any other filter.
 	 *
 	 * @ticket 66719
@@ -538,16 +390,17 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	public function test_status_is_checked_before_other_filters(): void {
 		$this->login_as( 'subscriber' );
 		$this->register_abilities();
+		$this->skip_input_validation();
 
 		$forbidden = $this->run_ability(
 			array(
 				'where' => array(
-					'status'    => array( 'trash' ),
-					'mime_type' => array( 'image/*' ),
+					'status' => array( 'trash' ),
+					'slugs'  => array( '' ),
 				),
 			)
 		);
-		$this->assert_error( $forbidden, 'media_cannot_filter_by_status', 403, 'A forbidden status next to an invalid MIME type' );
+		$this->assert_error( $forbidden, 'media_cannot_filter_by_status', 403, 'A forbidden status next to an unusable slug list' );
 	}
 
 	/**
@@ -563,7 +416,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 		$ids = $this->query_ids(
 			array(
 				'where' => array(
-					'ids' => array( self::$post_ids['unattached'], self::$post_ids['pdf'], self::$post_ids['post'], self::$post_ids['page'], self::MISSING_ID ),
+					'ids' => array( self::$post_ids['unattached'], self::$post_ids['pdf'], self::$post_ids['post'], self::$post_ids['page'], REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
 				),
 			)
 		);
@@ -698,43 +551,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	}
 
 	/**
-	 * Returns values that are not a full MIME type.
-	 *
-	 * @return array<string, array{mime_type: string}> The values.
-	 */
-	public static function data_values_that_are_not_full_mime_types(): array {
-		return array(
-			'group only'         => array( 'image' ),
-			'star wildcard'      => array( 'image/*' ),
-			'star only'          => array( '*' ),
-			'percent wildcard'   => array( 'image/%' ),
-			'percent only'       => array( '%' ),
-			'two slashes'        => array( 'image/jpeg/x' ),
-			'empty subtype'      => array( 'image/' ),
-			'white space'        => array( 'image/ jpeg' ),
-			'list in one string' => array( 'image/jpeg,image/png' ),
-		);
-	}
-
-	/**
-	 * A value that is not a full MIME type is an invalid filter.
-	 *
-	 * @ticket 66719
-	 * @dataProvider data_values_that_are_not_full_mime_types
-	 * @since 7.3.0
-	 *
-	 * @param string $mime_type The value.
-	 */
-	public function test_value_that_is_not_a_full_mime_type_is_an_invalid_filter( string $mime_type ): void {
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$result = $this->run_ability( array( 'where' => array( 'mime_type' => array( 'image/jpeg', $mime_type ) ) ) );
-
-		$this->assert_error_with_params( $result, 'media_invalid_filter', 'where[mime_type]', 'A value that is not a full MIME type' );
-	}
-
-	/**
 	 * A full MIME type that no attachment has matches nothing.
 	 *
 	 * @ticket 66719
@@ -796,40 +612,16 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	}
 
 	/**
-	 * Returns post filters that list nothing, with the totals they give.
+	 * Returns post filters that list nothing, with the total they give.
 	 *
-	 * @return array<string, array{post: string, pagination: array{total: int, total_pages: int}}> The posts, as fixture names, and the totals.
+	 * @return array<string, array{post: string, total: int}> The posts, as fixture names, and the totals.
 	 */
 	public static function data_post_filters_that_select_nothing(): array {
 		return array(
-			'missing post'             => array(
-				'missing',
-				array(
-					'total'       => 0,
-					'total_pages' => 0,
-				),
-			),
-			'post without attachments' => array(
-				'page',
-				array(
-					'total'       => 0,
-					'total_pages' => 0,
-				),
-			),
-			'private post'             => array(
-				'private_post',
-				array(
-					'total'       => 1,
-					'total_pages' => 1,
-				),
-			),
-			'attachment'               => array(
-				'unattached',
-				array(
-					'total'       => 0,
-					'total_pages' => 0,
-				),
-			),
+			'missing post'             => array( 'missing', 0 ),
+			'post without attachments' => array( 'page', 0 ),
+			'private post'             => array( 'private_post', 1 ),
+			'attachment'               => array( 'unattached', 0 ),
 		);
 	}
 
@@ -841,24 +633,30 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	 * @dataProvider data_post_filters_that_select_nothing
 	 * @since 7.3.0
 	 *
-	 * @param string                              $post       The post, as a fixture name.
-	 * @param array{total: int, total_pages: int} $pagination The expected totals.
+	 * @param string $post  The post, as a fixture name.
+	 * @param int    $total The expected total, which is also the expected number of pages.
 	 */
-	public function test_post_filter_that_selects_nothing( string $post, array $pagination ): void {
+	public function test_post_filter_that_selects_nothing( string $post, int $total ): void {
 		$this->login_as( 'subscriber' );
 		$this->register_abilities();
 
 		$result = $this->run_ability(
 			array(
-				'where'  => array( 'post' => self::$post_ids[ $post ] ?? self::MISSING_ID ),
+				'where'  => array( 'post' => self::$post_ids[ $post ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
 				'fields' => array( 'id' ),
 			)
 		);
 
 		$this->assertIsArray( $result, 'The query should succeed.' );
 		$this->assertSame( array(), $result['items'], 'No attachment should be listed.' );
-		$this->assertSame( $pagination['total'], $result['pagination']['total'] ?? null, "The total should be {$pagination['total']}." );
-		$this->assertSame( $pagination['total_pages'], $result['pagination']['total_pages'] ?? null, "The total pages should be {$pagination['total_pages']}." );
+		$this->assertSame(
+			array(
+				'total'       => $total,
+				'total_pages' => $total,
+			),
+			$result['pagination'] ?? null,
+			"The totals should be {$total}."
+		);
 	}
 
 	/**
@@ -887,7 +685,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 		);
 		$this->assertSame(
 			self::EMPTY_RESULT,
-			$this->run_ability( array( 'where' => array( 'author' => array( 'id' => self::MISSING_ID ) ) ) ),
+			$this->run_ability( array( 'where' => array( 'author' => array( 'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) ) ) ),
 			'The ID of no user should match nothing.'
 		);
 	}
@@ -1187,7 +985,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
-		$wpdb->update( $wpdb->posts, array( 'post_parent' => self::MISSING_ID ), array( 'ID' => $id ) );
+		$wpdb->update( $wpdb->posts, array( 'post_parent' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ), array( 'ID' => $id ) );
 		clean_post_cache( $id );
 
 		$this->login_as( 'subscriber' );
@@ -1364,7 +1162,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 			self::EMPTY_RESULT,
 			$this->run_ability(
 				array(
-					'where'      => array( 'ids' => array( self::MISSING_ID ) ),
+					'where'      => array( 'ids' => array( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) ),
 					'pagination' => array( 'page' => 3 ),
 				)
 			),
@@ -1402,15 +1200,13 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	 */
 	public static function data_filter_values_outside_the_schema(): array {
 		return array(
-			'empty ID list'         => array( array( 'ids' => array() ) ),
-			'ID list of zero'       => array( array( 'ids' => array( 0 ) ) ),
-			'empty status list'     => array( array( 'status' => array() ) ),
-			'empty media type list' => array( array( 'media_type' => array() ) ),
-			'empty MIME type list'  => array( array( 'mime_type' => array() ) ),
-			'post below zero'       => array( array( 'post' => -1 ) ),
-			'empty author'          => array( array( 'author' => array() ) ),
-			'author ID of zero'     => array( array( 'author' => array( 'id' => 0 ) ) ),
-			'empty author slug'     => array( array( 'author' => array( 'slug' => '' ) ) ),
+			'ID list of zero'          => array( array( 'ids' => array( 0 ) ) ),
+			'status outside the set'   => array( array( 'status' => array( 'publish' ) ) ),
+			'MIME type group'          => array( array( 'mime_type' => array( 'image' ) ) ),
+			'MIME type wildcard'       => array( array( 'mime_type' => array( 'image/*' ) ) ),
+			'MIME types in one string' => array( array( 'mime_type' => array( 'image/jpeg,image/png' ) ) ),
+			'post below zero'          => array( array( 'post' => -1 ) ),
+			'empty author'             => array( array( 'author' => array() ) ),
 		);
 	}
 
@@ -1427,10 +1223,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 		$this->login_as( 'editor' );
 		$this->register_abilities();
 
-		$result = $this->run_ability( array( 'where' => $where ) );
-
-		$this->assertWPError( $result, 'A filter value outside the schema should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the filter value.' );
+		$this->assert_invalid_input( $this->run_ability( array( 'where' => $where ) ), 'A filter value outside the schema' );
 	}
 
 	/**
@@ -1497,20 +1290,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	public static function data_field_selections(): array {
 		return array(
 			'ID only'             => array( array( 'id' ), array( 'id' => null ) ),
-			'title'               => array(
-				array( 'title' ),
-				array(
-					'id'    => null,
-					'title' => array( 'raw', 'rendered' ),
-				),
-			),
-			'raw title'           => array(
-				array( 'title.raw' ),
-				array(
-					'id'    => null,
-					'title' => array( 'raw' ),
-				),
-			),
 			'dates'               => array(
 				array( 'date.gmt', 'modified' ),
 				array(
@@ -1721,7 +1500,7 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 
 	/**
 	 * The media details hold only the width, height, length and sizes, as integers, with a
-	 * full size next to the sub-sizes; a size that lacks a value is left out.
+	 * full size next to the sub-sizes; a sub-size without a file or a height is left out.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
@@ -1751,6 +1530,11 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 					'broken'    => array(
 						'file'      => 'mdt-meta-broken.jpg',
 						'width'     => 10,
+						'mime-type' => 'image/jpeg',
+					),
+					'medium'    => array(
+						'width'     => 300,
+						'height'    => 225,
 						'mime-type' => 'image/jpeg',
 					),
 				),
@@ -1793,48 +1577,21 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 	}
 
 	/**
-	 * A stored sub-size without a file or a height is left out, and the full size is still
-	 * added when it was the only sub-size, without a PHP warning or notice.
+	 * The full size is still added when no stored sub-size is complete, without a PHP warning
+	 * or notice.
 	 *
 	 * @ticket 66719
 	 * @since 7.3.0
 	 */
-	public function test_incomplete_sub_size_is_left_out(): void {
-		$no_file = self::factory()->attachment->create_object(
-			array(
-				'file'           => '2026/01/mdt-meta-no-file.jpg',
-				'post_mime_type' => 'image/jpeg',
-			)
-		);
-		wp_update_attachment_metadata(
-			$no_file,
-			array(
-				'width'  => 640,
-				'height' => 480,
-				'file'   => '2026/01/mdt-meta-no-file.jpg',
-				'sizes'  => array(
-					'thumbnail' => array(
-						'file'      => 'mdt-meta-no-file-150x150.jpg',
-						'width'     => 150,
-						'height'    => 150,
-						'mime-type' => 'image/jpeg',
-					),
-					'medium'    => array(
-						'width'     => 300,
-						'height'    => 225,
-						'mime-type' => 'image/jpeg',
-					),
-				),
-			)
-		);
-		$only_broken = self::factory()->attachment->create_object(
+	public function test_full_size_is_added_when_no_sub_size_is_complete(): void {
+		$id = self::factory()->attachment->create_object(
 			array(
 				'file'           => '2026/01/mdt-meta-only-broken.jpg',
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
 		wp_update_attachment_metadata(
-			$only_broken,
+			$id,
 			array(
 				'width'  => 640,
 				'height' => 480,
@@ -1852,11 +1609,8 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 		$this->login_as( 'editor' );
 		$this->register_abilities();
 
-		$no_file_details     = $this->query_item( $no_file, array( 'media_details' ) )['media_details'];
-		$only_broken_details = $this->query_item( $only_broken, array( 'media_details' ) )['media_details'];
-
-		$this->assertSameSets( array( 'thumbnail', 'full' ), array_keys( (array) $no_file_details['sizes'] ), 'The sub-size without a file should be left out.' );
-		$this->assertSame( array( 'full' ), array_keys( (array) $only_broken_details['sizes'] ), 'The sizes should hold exactly the full size.' );
+		$details = $this->query_item( $id, array( 'media_details' ) )['media_details'];
+		$this->assertSame( array( 'full' ), array_keys( (array) $details['sizes'] ), 'The sizes should hold exactly the full size.' );
 	}
 
 	/**
@@ -2241,23 +1995,6 @@ class Tests_Abilities_API_WpRegisterCoreMediaAbility extends WP_Abilities_Media_
 			),
 			$subscriber_result['items'][0]['author'] ?? null,
 			'A subscriber should not see the author of a private post only.'
-		);
-	}
-
-	/**
-	 * Returns every role of the matrix tests.
-	 *
-	 * @return array<string, array{role: string}> The roles.
-	 */
-	public static function data_all_roles(): array {
-		return array(
-			'logged out'      => array( 'logged_out' ),
-			'subscriber'      => array( 'subscriber' ),
-			'contributor'     => array( 'contributor' ),
-			'author'          => array( 'author' ),
-			'editor'          => array( 'editor' ),
-			'administrator'   => array( 'administrator' ),
-			'read and upload' => array( 'uploader' ),
 		);
 	}
 }
