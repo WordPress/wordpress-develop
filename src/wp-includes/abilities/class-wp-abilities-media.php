@@ -1268,6 +1268,12 @@ final class WP_Abilities_Media {
 			if ( rest_is_field_included( 'alt_text', $fields ) ) {
 				$data['alt_text'] = (string) get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
 			}
+			/*
+			 * The output `media_type` is `image` or `file`, while the `media_type` filter takes
+			 * the part of the MIME type before the slash, such as `audio`. The REST API reports
+			 * and filters attachments the same way. As the check is by file extension, some
+			 * attachments that the `image` filter matches, such as SVG files, report `file`.
+			 */
 			if ( rest_is_field_included( 'media_type', $fields ) ) {
 				$data['media_type'] = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
 			}
@@ -1731,7 +1737,7 @@ final class WP_Abilities_Media {
 				'media_type'    => array(
 					'type'        => 'string',
 					'enum'        => array( 'image', 'file' ),
-					'description' => __( 'The kind of attachment: `image` or `file`.' ),
+					'description' => __( 'The kind of attachment: `image` for a JPEG, GIF, PNG, WebP, AVIF or HEIC image, `file` for any other attachment, including audio and video. These values differ from the `media_type` filter; `mime_type` gives the exact type.' ),
 				),
 				'mime_type'     => array(
 					'type'        => 'string',
@@ -1914,7 +1920,7 @@ final class WP_Abilities_Media {
 								'type' => 'string',
 								'enum' => self::MEDIA_TYPES,
 							),
-							'description' => __( 'Filter by one or more media types, the part of the MIME type before the slash.' ),
+							'description' => __( 'Filter by one or more media types, the part of the MIME type before the slash. These values differ from the `media_type` output, which is only `image` or `file`; compare them with the start of `mime_type` instead.' ),
 						),
 						'mime_type'  => array(
 							'type'        => 'array',
