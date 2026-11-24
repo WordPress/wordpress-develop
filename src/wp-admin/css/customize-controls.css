@@ -1207,6 +1207,8 @@ p.customize-section-description {
 	margin: 0 0 6px;
 	padding: 9px 14px;
 	overflow: hidden;
+	/* Notifications span the panel's full width, so they are bands rather than boxes. */
+	border-radius: 0;
 }
 
 #customize-controls .customize-control-notifications-container .notice.is-dismissible {
@@ -1269,6 +1271,8 @@ p.customize-section-description {
 #customize-controls .panel-meta > .customize-control-notifications-container .notice,
 #customize-controls .customize-section-title > .customize-control-notifications-container .notice {
 	padding: 9px 14px;
+	/* Stacked flush against the panel's edges and each other, so no corners. */
+	border-radius: 0;
 }
 
 #customize-controls #customize-notifications-area .notice.is-dismissible,
@@ -1296,7 +1300,8 @@ p.customize-section-description {
 #customize-controls .notice.notification-overlay,
 #customize-controls #customize-notifications-area .notice.notification-overlay {
 	margin: 0;
-	border-left: 0; /* @todo Appropriate styles could be added for notice-error, notice-warning, notice-success, etc */
+	border: 0; /* @todo Appropriate styles could be added for notice-error, notice-warning, notice-success, etc */
+	border-radius: 0;
 }
 
 #customize-controls .customize-control-notifications-container.has-overlay-notifications {
