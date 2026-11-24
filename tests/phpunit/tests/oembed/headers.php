@@ -6,6 +6,7 @@
  * @group oembed
  * @group oembed-headers
  * @group xdebug
+ * @requires extension simplexml
  */
 class Tests_oEmbed_HTTP_Headers extends WP_UnitTestCase {
 
