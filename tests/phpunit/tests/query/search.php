@@ -74,6 +74,91 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that ordering by relevance produces valid SQL when there are no title terms to order by.
+	 *
+	 * @ticket 66805
+	 *
+	 * @covers WP_Query::get_posts
+	 * @covers WP_Query::parse_search_order
+	 *
+	 * @dataProvider data_orderby_relevance_without_search_orderby_title
+	 *
+	 * @param array    $query_args Additional query arguments.
+	 * @param string[] $expected   Titles of the posts that are expected to be found.
+	 */
+	public function test_orderby_relevance_without_search_orderby_title( $query_args, $expected ) {
+		global $wpdb;
+
+		self::factory()->post->create(
+			array(
+				'post_title' => 'foo',
+				'post_type'  => $this->post_type,
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_title' => 'bar',
+				'post_type'  => $this->post_type,
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_title' => 'baz',
+				'post_type'  => $this->post_type,
+			)
+		);
+
+		$suppress = $wpdb->suppress_errors( true );
+		$query    = new WP_Query(
+			array_merge(
+				array(
+					'post_type'     => $this->post_type,
+					'orderby'       => 'relevance',
+					'fields'        => 'ids',
+					'no_found_rows' => true,
+				),
+				$query_args
+			)
+		);
+		$wpdb->suppress_errors( $suppress );
+
+		$this->assertSame( '', $wpdb->last_error, 'The query should not produce a database error.' );
+		$this->assertSameSets( $expected, array_map( 'get_the_title', $query->posts ), 'The query should return the expected posts.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_orderby_relevance_without_search_orderby_title() {
+		return array(
+			'single excluded term' => array(
+				'query_args' => array( 's' => '-foo' ),
+				'expected'   => array( 'bar', 'baz' ),
+			),
+			'all terms excluded'   => array(
+				'query_args' => array( 's' => '-foo -bar' ),
+				'expected'   => array( 'baz' ),
+			),
+			'exact single term'    => array(
+				'query_args' => array(
+					's'     => 'baz',
+					'exact' => true,
+				),
+				'expected'   => array( 'baz' ),
+			),
+			'exact multiple terms' => array(
+				'query_args' => array(
+					's'     => 'foo bar',
+					'exact' => true,
+				),
+				'expected'   => array(),
+			),
+		);
+	}
+
+	/**
 	 * @ticket 38099
 	 */
 	public function test_disable_search_exclusion_prefix() {
