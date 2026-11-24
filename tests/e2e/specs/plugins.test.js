@@ -3,8 +3,22 @@
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
+/**
+ * Internal dependencies
+ */
+import { PLUGINS, UPGRADER } from '../utils/locks';
+
 const plugin = 'e2e-test-plugin/e2e-test-plugin';
 const pluginName = 'E2E Test Plugin';
+
+function pluginRow( page ) {
+	return page.getByRole( 'row' ).filter( {
+		has: page.getByRole( 'checkbox', {
+			name: `Select ${ pluginName }`,
+			exact: true,
+		} ),
+	} );
+}
 
 async function uploadPlugin( admin, page, version ) {
 	await admin.visitAdminPage( 'plugin-install.php' );
@@ -40,7 +54,7 @@ async function deletePlugin( requestUtils ) {
 	} );
 }
 
-test.describe( 'Plugin management', () => {
+test.describe( 'Plugin management', { lock: [ PLUGINS, UPGRADER ] }, () => {
 	test.beforeEach( async ( { requestUtils } ) => {
 		// The fixture slug requires an environment not shared with another test run.
 		// An interrupted run can leave the fixture plugin installed.
@@ -65,7 +79,7 @@ test.describe( 'Plugin management', () => {
 			page.getByText( 'Plugin installed successfully.', { exact: true } )
 		).toBeVisible();
 		await admin.visitAdminPage( 'plugins.php' );
-		const row = page.locator( `tr[data-plugin="${ plugin }.php"]` );
+		const row = pluginRow( page );
 		await expect( row ).toContainText( 'Version 1.0' );
 		await row
 			.getByRole( 'link', {
@@ -134,9 +148,7 @@ test.describe( 'Plugin management', () => {
 			page.getByText( 'Plugin updated successfully.', { exact: true } )
 		).toBeVisible();
 		await admin.visitAdminPage( 'plugins.php' );
-		await expect(
-			page.locator( `tr[data-plugin="${ plugin }.php"]` )
-		).toContainText( 'Version 2.0' );
+		await expect( pluginRow( page ) ).toContainText( 'Version 2.0' );
 		expect(
 			(
 				await requestUtils.rest( {
@@ -156,7 +168,7 @@ test.describe( 'Plugin management', () => {
 			page.getByText( 'Plugin installed successfully.', { exact: true } )
 		).toBeVisible();
 		await admin.visitAdminPage( 'plugins.php' );
-		const row = page.locator( `tr[data-plugin="${ plugin }.php"]` );
+		const row = pluginRow( page );
 		await Promise.all( [
 			page.waitForEvent( 'dialog' ).then( async ( dialog ) => {
 				expect( dialog.type() ).toBe( 'confirm' );
@@ -169,9 +181,11 @@ test.describe( 'Plugin management', () => {
 				} )
 				.click(),
 		] );
-		await expect( page.locator( '.plugin-deleted-tr' ) ).toContainText(
-			`${ pluginName } was successfully deleted.`
-		);
+		await expect(
+			page.getByRole( 'row' ).filter( {
+				hasText: `${ pluginName } was successfully deleted.`,
+			} )
+		).toBeVisible();
 		await page.reload();
 		await expect( row ).toHaveCount( 0 );
 		const plugins = await requestUtils.rest( { path: '/wp/v2/plugins' } );

@@ -70,7 +70,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '266101a88e5b01402a65'
+		'version' => '8b0f7a343850c82c7285'
 	),
 	'block-library/navigation/view.js' => array(
 		'dependencies' => array(
@@ -186,7 +186,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '04ffd899cc5a916d423b'
+		'version' => '66721f834e0354c60439'
 	),
 	'connectors/index.js' => array(
 		'dependencies' => array(
@@ -254,7 +254,7 @@
 			'wp-primitives',
 			'wp-private-apis'
 		),
-		'version' => 'fc39ba4261c0c13a18da'
+		'version' => '6ee0c90ba79f0665129a'
 	),
 	'core-actions/wp_template_part.js' => array(
 		'dependencies' => array(
@@ -294,7 +294,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '8142ba79ee314b710d49'
+		'version' => '1c6e0a53a90f773f7bcf'
 	),
 	'core-fields/page.js' => array(
 		'dependencies' => array(
@@ -331,6 +331,7 @@
 			'wp-data',
 			'wp-date',
 			'wp-element',
+			'wp-hooks',
 			'wp-html-entities',
 			'wp-i18n',
 			'wp-media-utils',
@@ -348,7 +349,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '4cd207094499f2aadd5e'
+		'version' => '2aa2fe44937a04cb98c7'
 	),
 	'core-fields/root_site.js' => array(
 		'dependencies' => array(
@@ -378,7 +379,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'af18ca9f1b26fff9332e'
+		'version' => 'd680682bcf1ba8335f47'
 	),
 	'core-fields/wp_template.js' => array(
 		'dependencies' => array(
@@ -402,7 +403,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'bf8df7ca6881ab8dd611'
+		'version' => 'ccae0569036d0091beaf'
 	),
 	'core-fields/wp_template_part.js' => array(
 		'dependencies' => array(
@@ -426,7 +427,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'a34d992fd0259b5747ba'
+		'version' => 'dfc10f4161f895f0cd08'
 	),
 	'dashboard-init/index.js' => array(
 		'dependencies' => array(
@@ -459,13 +460,13 @@
 				'import' => 'static'
 			)
 		),
-		'version' => 'cef91e6c10beba154e91'
+		'version' => '478dda8abb4953f812c4'
 	),
 	'interactivity/index.js' => array(
 		'dependencies' => array(
 			
 		),
-		'version' => '3456f38555c5c7dd7097'
+		'version' => 'b2185b9b3c06dcd1869d'
 	),
 	'interactivity-router/full-page.js' => array(
 		'dependencies' => array(
@@ -493,7 +494,7 @@
 				'import' => 'static'
 			)
 		),
-		'version' => '5bc3c8d4423e84ed0f71'
+		'version' => 'c0110eac0afb41d3f204'
 	),
 	'latex-to-mathml/index.js' => array(
 		'dependencies' => array(
@@ -613,6 +614,6 @@
 				'import' => 'dynamic'
 			)
 		),
-		'version' => '66528f7c29fe6ef9b7fc'
+		'version' => '5c1018436ffde73ed4a7'
 	)
 );

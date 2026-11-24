@@ -261,6 +261,8 @@ EXPECTED;
 	 * @ticket 29636
 	 */
 	public function test_paginate_links_query_args() {
+		$this->set_permalink_structure( '' );
+
 		add_filter( 'get_pagenum_link', array( $this, 'add_query_arg' ) );
 		$links = paginate_links(
 			array(
@@ -299,6 +301,8 @@ EXPECTED;
 	 * @ticket 30831
 	 */
 	public function test_paginate_links_with_custom_query_args() {
+		$this->set_permalink_structure( '' );
+
 		add_filter( 'get_pagenum_link', array( $this, 'add_query_arg' ) );
 		$links = paginate_links(
 			array(
@@ -412,7 +416,6 @@ EXPECTED;
 	 */
 	public function test_permalinks_with_trailing_slash_produce_links_with_trailing_slashes(): void {
 		update_option( 'posts_per_page', 2 );
-		$this->set_permalink_structure( '/%postname%/' );
 
 		$this->go_to( '/category/categorized/page/2/' );
 
@@ -502,7 +505,6 @@ EXPECTED;
 	 */
 	public function test_permalinks_with_trailing_slash_do_not_modify_query_strings( string $query_string ): void {
 		update_option( 'posts_per_page', 2 );
-		$this->set_permalink_structure( '/%postname%/' );
 
 		$this->go_to( "/page/2/?{$query_string}" );
 

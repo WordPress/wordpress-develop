@@ -68,16 +68,7 @@ class Tests_Readme extends WP_UnitTestCase {
 			}
 		}
 
-		/*
-		 * Per https://www.mysql.com/support/, Oracle actively supports MySQL releases for 5 years from GA release.
-		 *
-		 * The currently recommended MySQL 8.0 branch moved from active support to extended support on 2023-04-19.
-		 * As WordPress core may not be fully compatible with MySQL 8.1 at this time, the "supported" period here
-		 * is increased to 8 years to include extended support.
-		 *
-		 * TODO: Reduce this back to 5 years once MySQL 8.1 compatibility is achieved.
-		 */
-		$mysql_eol    = gmdate( 'Y-m-d', strtotime( $eol_date . ' +8 years' ) );
+		$mysql_eol    = gmdate( 'Y-m-d', strtotime( $eol_date ) );
 		$current_date = gmdate( 'Y-m-d' );
 
 		$this->assertLessThan( $mysql_eol, $current_date, "readme.html's Recommended MySQL version is too old. Remember to update the WordPress.org Requirements page, too." );
