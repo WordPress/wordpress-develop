@@ -5690,6 +5690,42 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A stored date at the Unix epoch is returned: a timestamp of zero is a date, not a
+	 * date that could not be parsed.
+	 *
+	 * @ticket 00000
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_date_fields
+	 *
+	 * @param string $field  The field path to request, such as `date.site`.
+	 * @param string $column The cached post column to set to the Unix epoch.
+	 */
+	public function test_date_at_the_unix_epoch_is_returned( string $field, string $column ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$this->replace_cached_post_date_columns( $post_id, array( $column => '1970-01-01 00:00:00' ) );
+
+		list( $object, $key ) = explode( '.', $field );
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( $post_id ),
+				),
+				'fields' => array( 'id', $field ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'A date at the Unix epoch should pass output validation.' );
+		$this->assertSame( '1970-01-01T00:00:00+00:00', $result['items'][0][ $object ][ $key ] ?? null, 'A date at the Unix epoch should be returned.' );
+	}
+
+	/**
 	 * Returns `where.author` values that are not an object holding an ID or a slug: values
 	 * that are not objects, empty values, and objects with an unknown property.
 	 *
