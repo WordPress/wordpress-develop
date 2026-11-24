@@ -352,7 +352,8 @@ final class WP_Abilities_Content {
 	 * Permission callback for the `core/content-update` and `core/content-delete` abilities.
 	 *
 	 * Requires a logged-in user, a `where.type` that is exposed to abilities, and the given
-	 * capability on the post that `where` names. A post that does not exist is let through,
+	 * capability on the post that `where` names. When `where` names no post of that type,
+	 * such as a missing ID or the ID of a post of another type, the request is let through
 	 * so that the execute callback can report it as not found. The execute callbacks check
 	 * the capability again and make every other decision.
 	 *
@@ -943,6 +944,15 @@ final class WP_Abilities_Content {
 		if ( empty( array_intersect_key( $data, $this->get_content_write_properties( array() ) ) ) ) {
 			return $this->invalid_attribute_error( 'data', __( 'The data must be an object with at least one attribute to write.' ) );
 		}
+
+		/*
+		 * Known issue: a `data.status` sent for a post in the Trash moves it out of the Trash
+		 * through a regular save, not through wp_untrash_post(). The `_wp_trash_meta_status`
+		 * and `_wp_trash_meta_time` meta and the comments trashed with the post are left
+		 * behind. The REST API posts endpoint has the same issue when an update sends a
+		 * status for a trashed post. The cause is in the save path, so the fix belongs there,
+		 * where it covers every caller of wp_update_post().
+		 */
 
 		// get_requested_post() only returns posts of an exposed post type.
 		$postarr = $this->prepare_post_data( $data, get_post_type_object( $post->post_type ), $post );
