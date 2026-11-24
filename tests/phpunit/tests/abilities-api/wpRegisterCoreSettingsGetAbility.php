@@ -550,16 +550,11 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_Abilities_
 			)
 		);
 
-		try {
-			$this->register_ability();
-			$this->become_admin();
+		$this->register_ability();
+		$this->become_admin();
 
-			$ability_result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $option ) ) );
-			$rest_result    = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/settings' ) )->get_data();
-		} finally {
-			unregister_setting( 'general', $option );
-			$this->register_ability();
-		}
+		$ability_result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $option ) ) );
+		$rest_result    = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/settings' ) )->get_data();
 
 		$this->assertSame( 'from-rest-schema', $rest_result[ $option ] ?? null, 'The settings endpoint should read the REST API schema default.' );
 		$this->assertSame( $rest_result[ $option ] ?? null, $ability_result[ $option ] ?? null, 'The ability should read the same default as the settings endpoint.' );

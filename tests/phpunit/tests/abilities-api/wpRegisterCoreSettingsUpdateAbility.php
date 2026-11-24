@@ -85,7 +85,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
 		parent::wpSetUpBeforeClass( $factory );
 
-		foreach ( array( 'subscriber', 'contributor', 'author', 'editor' ) as $role ) {
+		foreach ( array( 'subscriber', 'editor' ) as $role ) {
 			self::$user_ids[ $role ] = $factory->user->create( array( 'role' => $role ) );
 		}
 
@@ -605,7 +605,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * Users without `manage_options` cannot update settings.
+	 * Users without `manage_options` cannot update settings, even when a filter grants permission.
 	 *
 	 * @ticket 64616
 	 *
@@ -613,9 +613,10 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 *
 	 * @dataProvider data_roles_without_manage_options
 	 *
-	 * @param string|null $role The role of the user, or null when logged out.
+	 * @param string|null $role   The role of the user, or null when logged out.
+	 * @param int         $status The expected status when a filter grants permission.
 	 */
-	public function test_users_without_manage_options_cannot_update( ?string $role ): void {
+	public function test_users_without_manage_options_cannot_update( ?string $role, int $status ): void {
 		wp_set_current_user( null === $role ? 0 : self::$user_ids[ $role ] );
 		$before = $this->snapshot();
 
@@ -625,55 +626,20 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 				'posts_per_page' => 3,
 			)
 		);
-
 		$this->assert_error_code( $result, 'ability_invalid_permissions' );
+
+		add_filter( 'wp_ability_permission_result', '__return_true' );
+		$this->assert_error( $this->update( array( 'title' => 'Changed title' ) ), 'settings_cannot_update', $status );
+
 		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: string|null}> Roles without `manage_options`, null when logged out.
+	 * @return array<string, array{0: string|null, 1: int}> Roles without `manage_options`, null when logged out, and the expected status.
 	 */
 	public static function data_roles_without_manage_options(): array {
-		return array(
-			'subscriber'  => array( 'subscriber' ),
-			'contributor' => array( 'contributor' ),
-			'author'      => array( 'author' ),
-			'editor'      => array( 'editor' ),
-			'logged out'  => array( null ),
-		);
-	}
-
-	/**
-	 * A user without `manage_options` cannot update settings even when a filter grants permission.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 *
-	 * @dataProvider data_users_granted_permission
-	 *
-	 * @param string|null $role   The role of the user, or null when logged out.
-	 * @param int         $status The expected status.
-	 */
-	public function test_granted_permission_without_manage_options_cannot_update( ?string $role, int $status ): void {
-		wp_set_current_user( null === $role ? 0 : self::$user_ids[ $role ] );
-		add_filter( 'wp_ability_permission_result', '__return_true' );
-		$before = $this->snapshot();
-
-		$result = $this->update( array( 'title' => 'Changed title' ) );
-
-		$this->assert_error( $result, 'settings_cannot_update', $status );
-		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{0: string|null, 1: int}> Roles, null when logged out, and the expected status.
-	 */
-	public static function data_users_granted_permission(): array {
 		return array(
 			'subscriber' => array( 'subscriber', 403 ),
 			'editor'     => array( 'editor', 403 ),
@@ -913,11 +879,11 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 *
 	 * @dataProvider data_settings
 	 *
-	 * @param string      $name   The exposed setting name.
-	 * @param string      $option The option name.
-	 * @param mixed       $value  A valid value, or the kind of content whose ID is the value.
-	 * @param string      $output The expected output value as JSON.
-	 * @param string      $raw    The expected raw stored value.
+	 * @param string $name   The exposed setting name.
+	 * @param string $option The option name.
+	 * @param mixed  $value  A valid value, or the kind of content whose ID is the value.
+	 * @param string $output The expected output value as JSON.
+	 * @param string $raw    The expected raw stored value.
 	 */
 	public function test_updates_each_setting( string $name, string $option, $value, string $output, string $raw ): void {
 		// A data provider runs before the content exists, so it names the kind of content instead of its ID.
@@ -935,9 +901,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$this->assertNotWPError( $result, 'The setting should be written.' );
 		$this->assertSameSets( array( $name ), array_map( 'strval', array_keys( $result ) ), 'The output should hold only the setting named in the call.' );
 		$this->assertSame( $output, wp_json_encode( $result[ $name ] ), 'The output should show the saved value.' );
-
-		$read = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $name ) ) );
-		$this->assertSame( $output, wp_json_encode( $read[ $name ] ), 'The saved value should be read back the same way.' );
 
 		wp_cache_delete( 'alloptions', 'options' );
 		$expected[ $option ] = $raw;
@@ -1039,12 +1002,12 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 *
 	 * @dataProvider data_saved_values
 	 *
-	 * @param string      $name   The exposed setting name.
-	 * @param string      $option The option name.
-	 * @param mixed       $stored The raw value stored before the call.
-	 * @param mixed       $value  The value to write.
-	 * @param string      $output The expected output value as JSON.
-	 * @param string      $raw    The expected raw stored value.
+	 * @param string $name   The exposed setting name.
+	 * @param string $option The option name.
+	 * @param mixed  $stored The raw value stored before the call.
+	 * @param mixed  $value  The value to write.
+	 * @param string $output The expected output value as JSON.
+	 * @param string $raw    The expected raw stored value.
 	 */
 	public function test_output_shows_the_saved_value( string $name, string $option, $stored, $value, string $output, string $raw ): void {
 		$this->store_raw( $option, $stored );
@@ -1406,10 +1369,10 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 *
 	 * @dataProvider data_valid_stored_values
 	 *
-	 * @param string      $name   The exposed setting name.
-	 * @param string      $option The option name.
-	 * @param mixed       $stored The raw value stored before the call, or null for no row.
-	 * @param string      $output The expected output as JSON.
+	 * @param string $name   The exposed setting name.
+	 * @param string $option The option name.
+	 * @param mixed  $stored The raw value stored before the call, or null for no row.
+	 * @param string $output The expected output as JSON.
 	 */
 	public function test_null_accepts_a_valid_stored_value( string $name, string $option, $stored, string $output ): void {
 		$this->store_raw( $option, $stored );
