@@ -84,4 +84,60 @@ class Tests_WP_SendHeaders extends WP_UnitTestCase {
 		$this->assertFalse( $password_status_with_password );
 		$this->assertArrayHasKey( 'Cache-Control', $headers_with_password );
 	}
+
+	/**
+	 * @ticket 66791
+	 */
+	public function test_feed_etag_changes_when_wordpress_version_changes() {
+		global $wp_version;
+
+		$original_wp_version        = $wp_version;
+		$original_if_none_match     = $_SERVER['HTTP_IF_NONE_MATCH'] ?? null;
+		$original_if_modified_since = $_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? null;
+		$captured_headers           = array();
+
+		$headers_filter = static function ( $headers ) use ( &$captured_headers ) {
+			$captured_headers = $headers;
+			return $headers;
+		};
+
+		add_filter( 'wp_headers', $headers_filter );
+
+		// Keep the feed's last modified date fixed while simulating a Core update.
+		self::factory()->post->create(
+			array(
+				'post_date' => '2024-01-01 00:00:00',
+			)
+		);
+
+		unset( $_SERVER['HTTP_IF_NONE_MATCH'], $_SERVER['HTTP_IF_MODIFIED_SINCE'] );
+
+		try {
+			$wp_version = '7.1.3';
+			$this->go_to( '/?feed=rss2' );
+			$headers_before_update = $captured_headers;
+
+			$wp_version = '7.1.4';
+			$this->go_to( '/?feed=rss2' );
+			$headers_after_update = $captured_headers;
+		} finally {
+			remove_filter( 'wp_headers', $headers_filter );
+			$wp_version = $original_wp_version;
+
+			if ( null === $original_if_none_match ) {
+				unset( $_SERVER['HTTP_IF_NONE_MATCH'] );
+			} else {
+				$_SERVER['HTTP_IF_NONE_MATCH'] = $original_if_none_match;
+			}
+
+			if ( null === $original_if_modified_since ) {
+				unset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] );
+			} else {
+				$_SERVER['HTTP_IF_MODIFIED_SINCE'] = $original_if_modified_since;
+			}
+		}
+
+		$this->assertNotSame( $headers_before_update['ETag'], $headers_after_update['ETag'] );
+		$this->assertSame( $headers_before_update['Last-Modified'], $headers_after_update['Last-Modified'] );
+	}
 }
