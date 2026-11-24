@@ -41,6 +41,15 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	const RUN_ROUTE = '/wp-abilities/v1/abilities/core/content-query/run';
 
 	/**
+	 * An ID that no post has.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var int
+	 */
+	private const MISSING_ID = 987654321;
+
+	/**
 	 * Sets up users and registers the core abilities.
 	 *
 	 * @since 7.2.0
@@ -843,7 +852,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 				array(
 					'where' => array(
 						'type' => 'post',
-						'id'   => 987654321,
+						'id'   => self::MISSING_ID,
 					),
 					'data'  => array( 'title' => 'Missing' ),
 				)

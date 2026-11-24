@@ -23,13 +23,26 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	protected const ABILITY = 'core/content-create';
 
 	/**
-	 * A date that stays in the future.
+	 * The label of the ability under test.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @var string
 	 */
-	private const FUTURE_GMT = '2099-06-01T12:00:00';
+	protected const LABEL = 'Create Content';
+
+	/**
+	 * The annotations of the ability under test.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var array<string, bool>
+	 */
+	protected const ANNOTATIONS = array(
+		'readonly'    => false,
+		'destructive' => false,
+		'idempotent'  => false,
+	);
 
 	/**
 	 * Creates shared users and posts.
@@ -39,55 +52,47 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 * @param WP_UnitTest_Factory $factory The unit test factory.
 	 */
 	public static function wpSetUpBeforeClass( $factory ): void {
-		self::$user_ids = array(
-			'administrator' => $factory->user->create( array( 'role' => 'administrator' ) ),
-			'editor'        => $factory->user->create( array( 'role' => 'editor' ) ),
-			'author'        => $factory->user->create( array( 'role' => 'author' ) ),
-			'contributor'   => $factory->user->create( array( 'role' => 'contributor' ) ),
-			'subscriber'    => $factory->user->create( array( 'role' => 'subscriber' ) ),
-			'page_writer'   => $factory->user->create( array( 'role' => 'subscriber' ) ),
-			'publisher'     => $factory->user->create( array( 'role' => 'contributor' ) ),
-		);
+		foreach ( self::ROLES as $role ) {
+			self::$user_ids[ $role ] = $factory->user->create( array( 'role' => $role ) );
+		}
 
 		// A user who may create pages but not read the drafts of other users.
+		self::$user_ids['page_writer'] = $factory->user->create( array( 'role' => 'subscriber' ) );
 		get_userdata( self::$user_ids['page_writer'] )->add_cap( 'edit_pages' );
 
 		// A user who may publish posts but not edit published posts.
+		self::$user_ids['publisher'] = $factory->user->create( array( 'role' => 'contributor' ) );
 		get_userdata( self::$user_ids['publisher'] )->add_cap( 'publish_posts' );
 
-		self::$post_ids = array(
-			'published_post'    => $factory->post->create(
-				array(
-					'post_author' => self::$user_ids['administrator'],
-					'post_status' => 'publish',
-					'post_name'   => 'shared-slug',
-				)
-			),
-			'published_page'    => $factory->post->create(
-				array(
-					'post_author' => self::$user_ids['administrator'],
-					'post_type'   => 'page',
-					'post_status' => 'publish',
-				)
-			),
-			'other_parent_page' => $factory->post->create(
-				array(
-					'post_author' => self::$user_ids['administrator'],
-					'post_type'   => 'page',
-					'post_status' => 'publish',
-				)
-			),
-			'editor_draft_page' => $factory->post->create(
-				array(
-					'post_author' => self::$user_ids['editor'],
-					'post_type'   => 'page',
-					'post_status' => 'draft',
-				)
-			),
+		self::$post_ids['published_post'] = $factory->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_status' => 'publish',
+				'post_name'   => 'shared-slug',
+			)
 		);
 
-		// Read through its `child` slug by data_draft_page_slugs_by_parent(), not by its key.
-		self::$post_ids['child_page'] = $factory->post->create(
+		foreach ( array( 'published_page', 'other_parent_page', 'trashed_page' ) as $key ) {
+			self::$post_ids[ $key ] = $factory->post->create(
+				array(
+					'post_author' => self::$user_ids['administrator'],
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+				)
+			);
+		}
+		wp_trash_post( self::$post_ids['trashed_page'] );
+
+		self::$post_ids['editor_draft_page'] = $factory->post->create(
+			array(
+				'post_author' => self::$user_ids['editor'],
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+			)
+		);
+
+		// A child page whose `child` slug data_draft_page_slugs_by_parent() reads.
+		$factory->post->create(
 			array(
 				'post_author' => self::$user_ids['administrator'],
 				'post_type'   => 'page',
@@ -96,16 +101,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 				'post_name'   => 'child',
 			)
 		);
-
-		// A page of the administrator in the Trash.
-		self::$post_ids['trashed_page'] = $factory->post->create(
-			array(
-				'post_author' => self::$user_ids['administrator'],
-				'post_type'   => 'page',
-				'post_status' => 'publish',
-			)
-		);
-		wp_trash_post( self::$post_ids['trashed_page'] );
 
 		$revisioned_id = $factory->post->create(
 			array(
@@ -131,13 +126,16 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 *
 	 * @param mixed  $result  The ability result.
 	 * @param string $context Optional. What the call was, for the assertion messages. Default 'The create call'.
-	 * @return WP_Post|null The post with the returned ID, or null when there is none.
+	 * @return WP_Post The post with the returned ID.
 	 */
-	private function get_created_post( $result, string $context = 'The create call' ): ?WP_Post {
+	private function get_created_post( $result, string $context = 'The create call' ): WP_Post {
 		$this->assertIsArray( $result, "{$context} should succeed." );
 		$this->assertArrayHasKey( 'id', $result, "{$context} should return the created post with its ID." );
 
-		return get_post( $result['id'] );
+		$post = get_post( $result['id'] );
+		$this->assertInstanceOf( WP_Post::class, $post, "{$context} should return the ID of a stored post." );
+
+		return $post;
 	}
 
 	/**
@@ -157,28 +155,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 				'supports'          => $supports,
 			)
 		);
-	}
-
-	/**
-	 * The ability is registered in the content category with its label and annotations.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_registers_the_ability(): void {
-		$this->register_abilities();
-
-		$ability = wp_get_ability( self::ABILITY );
-
-		$this->assertInstanceOf( WP_Ability::class, $ability, 'The core/content-create ability should be registered.' );
-		$this->assertSame( 'Create Content', $ability->get_label(), 'The ability should have its label.' );
-		$this->assertSame( 'content', $ability->get_category(), 'The ability should use the content category.' );
-		$this->assertTrue( $ability->get_meta_item( 'public', false ), 'The ability should be marked public.' );
-
-		$annotations = $ability->get_meta_item( 'annotations', array() );
-		$this->assertFalse( $annotations['readonly'], 'The ability should not be marked read-only.' );
-		$this->assertFalse( $annotations['destructive'], 'The ability should not be marked destructive.' );
-		$this->assertFalse( $annotations['idempotent'], 'The ability should not be marked idempotent.' );
 	}
 
 	/**
@@ -272,7 +248,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 */
 	public function test_schema_enums_list_the_exposed_post_types_and_registered_statuses(): void {
 		$this->register_exposed_post_type( 'cw_book', array( 'title' ) );
-		register_post_type( 'cw_hidden', array( 'public' => true ) );
+		register_post_type( 'cw_unexposed', array( 'public' => true ) );
 		register_post_status(
 			'cw_archived',
 			array(
@@ -512,14 +488,24 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			'contributor, publish'     => array( 'contributor', 'publish', 'content_cannot_publish', $publish_message ),
 			'contributor, future'      => array( 'contributor', 'future', 'content_cannot_publish', $publish_message ),
 			'contributor, private'     => array( 'contributor', 'private', 'content_cannot_publish', $private_message ),
+			// A custom status that makes a post visible needs `publish_posts`, and the refusal uses the general message.
+			'author, cw_public'        => array( 'author', 'cw_public', 'cw_public', null ),
+			'author, cw_private'       => array( 'author', 'cw_private', 'cw_private', null ),
+			'author, cw_viewable'      => array( 'author', 'cw_viewable', 'cw_viewable', null ),
+			'contributor, cw_public'   => array( 'contributor', 'cw_public', 'content_cannot_publish', $publish_message ),
+			'contributor, cw_private'  => array( 'contributor', 'cw_private', 'content_cannot_publish', $publish_message ),
+			'contributor, cw_viewable' => array( 'contributor', 'cw_viewable', 'content_cannot_publish', $publish_message ),
+			// A custom status that is neither public, private nor publicly viewable needs nothing beyond `create_posts`.
+			'contributor, cw_hidden'   => array( 'contributor', 'cw_hidden', 'cw_hidden', null ),
 		);
 	}
 
 	/**
 	 * Each role may create posts in the statuses it may set, as their own author.
 	 *
-	 * `future`, `publish` and `private` need `publish_posts`. A scheduled post is sent with a
-	 * date in the future.
+	 * `future`, `publish`, `private` and custom statuses that make a post visible need
+	 * `publish_posts`. A scheduled post is sent with a date in the future, and a draft or a
+	 * pending post sent without a date has a floating date.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_create_by_role_and_status
@@ -531,6 +517,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 * @param string|null $message  The error message, or null on success.
 	 */
 	public function test_create_by_role_and_status( string $role, ?string $status, string $expected, ?string $message ): void {
+		$this->register_custom_statuses();
+
 		$this->login_as( $role );
 		$this->register_abilities();
 
@@ -566,6 +554,9 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$this->assertSame( $expected, $post->post_status, 'The post should be stored in the expected status.' );
 		$this->assertSame( self::$user_ids[ $role ], (int) $post->post_author, 'The current user should be the author.' );
 		$this->assertSame( 'post', $post->post_type, 'The post should have the requested type.' );
+		if ( in_array( $expected, array( 'draft', 'pending' ), true ) ) {
+			$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt, 'A draft or a pending post sent without a date should have no GMT date.' );
+		}
 	}
 
 	/**
@@ -626,7 +617,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			'unexposed type' => array(
 				array(
 					'data' => array(
-						'type'  => 'cw_hidden',
+						'type'  => 'cw_unexposed',
 						'title' => 'x',
 					),
 				),
@@ -644,7 +635,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 * @param array<string, mixed> $input The input.
 	 */
 	public function test_direct_call_without_an_exposed_type_is_not_found( array $input ): void {
-		register_post_type( 'cw_hidden', array( 'public' => true ) );
+		register_post_type( 'cw_unexposed', array( 'public' => true ) );
 
 		$this->login_as( 'administrator' );
 		$execute = $this->get_ability_callbacks()['execute_callback'];
@@ -663,45 +654,45 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 */
 	public static function data_invalid_data(): array {
 		return array(
-			'parent on a post'     => array(
+			'parent on a post'               => array(
 				array(
 					'type'   => 'post',
 					'parent' => 1,
 				),
 			),
-			'unregistered status'  => array(
+			'unregistered status'            => array(
 				array(
 					'type'   => 'post',
 					'status' => 'cw_unregistered',
 				),
 			),
-			'publish'              => array(
+			'publish'                        => array(
 				array(
 					'type'   => 'post',
 					'status' => 'publish',
 				),
 			),
-			'empty slug'           => array(
+			'slug that sanitizes to nothing' => array(
 				array(
 					'type'  => 'post',
 					'title' => 'x',
 					'slug'  => '!!!',
 				),
 			),
-			'missing author'       => array(
+			'missing author'                 => array(
 				array(
 					'type'   => 'post',
 					'title'  => 'x',
 					'author' => self::MISSING_ID,
 				),
 			),
-			'title that is a list' => array(
+			'title that is a list'           => array(
 				array(
 					'type'  => 'post',
 					'title' => array( 'x' ),
 				),
 			),
-			'invalid date'         => array(
+			'invalid date'                   => array(
 				array(
 					'type'  => 'post',
 					'title' => 'x',
@@ -734,89 +725,103 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Returns keys that are not part of the input, each with a value.
+	 * Returns `data` values that the input schema rejects: keys outside the allow-list, statuses
+	 * that can never be set and values of the wrong type.
 	 *
-	 * @return array<string, array{0: string, 1: mixed}> The keys and values.
+	 * @return array<string, array{0: array<string, mixed>}> The data.
 	 */
-	public static function data_keys_outside_the_allow_list(): array {
-		return array(
-			'ID'                => array( 'ID', 1 ),
-			'post_type'         => array( 'post_type', 'page' ),
-			'post_password'     => array( 'post_password', 'secret' ),
-			'meta_input'        => array( 'meta_input', array( 'cw_key' => 'value' ) ),
-			'tax_input'         => array( 'tax_input', array( 'category' => array( 1 ) ) ),
-			'comment_status'    => array( 'comment_status', 'closed' ),
-			'post_author'       => array( 'post_author', 1 ),
-			'import_id'         => array( 'import_id', 7654321 ),
-			'guid'              => array( 'guid', 'https://example.org/forged' ),
-			'page_template'     => array( 'page_template', 'cw-template.php' ),
-			'modified'          => array( 'modified', '2001-01-01T00:00:00' ),
-			'post_modified'     => array( 'post_modified', '2001-01-01 00:00:00' ),
-			'post_modified_gmt' => array( 'post_modified_gmt', '2001-01-01 00:00:00' ),
-			'sticky'            => array( 'sticky', true ),
-			'tags_input'        => array( 'tags_input', array( 'cw-tag' ) ),
-			'post_category'     => array( 'post_category', array( 2 ) ),
-			'menu_order'        => array( 'menu_order', 5 ),
-			'post_mime_type'    => array( 'post_mime_type', 'image/jpeg' ),
-		);
-	}
+	public static function data_data_that_fails_input_validation(): array {
+		$cases = array();
 
-	/**
-	 * A key outside the allow-list fails input validation.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_keys_outside_the_allow_list
-	 * @since 7.3.0
-	 *
-	 * @param string $key   The key.
-	 * @param mixed  $value The value.
-	 */
-	public function test_key_outside_the_allow_list_fails_input_validation( string $key, $value ): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$before = $this->snapshot();
-		$result = $this->run_ability(
-			array(
-				'data' => array(
+		foreach ( array(
+			'ID'                => 1,
+			'post_type'         => 'page',
+			'post_password'     => 'secret',
+			'meta_input'        => array( 'cw_key' => 'value' ),
+			'tax_input'         => array( 'category' => array( 1 ) ),
+			'comment_status'    => 'closed',
+			'post_author'       => 1,
+			'import_id'         => 7654321,
+			'guid'              => 'https://example.org/forged',
+			'page_template'     => 'cw-template.php',
+			'modified'          => '2001-01-01T00:00:00',
+			'post_modified'     => '2001-01-01 00:00:00',
+			'post_modified_gmt' => '2001-01-01 00:00:00',
+			'sticky'            => true,
+			'tags_input'        => array( 'cw-tag' ),
+			'post_category'     => array( 2 ),
+			'menu_order'        => 5,
+			'post_mime_type'    => 'image/jpeg',
+		) as $key => $value ) {
+			$cases[ "key outside the allow-list: {$key}" ] = array(
+				array(
 					'type'  => 'post',
-					'title' => 'Extra key',
+					'title' => 'Invalid',
 					$key    => $value,
 				),
-			)
-		);
+			);
+		}
 
-		$this->assertWPError( $result, 'The call should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the key.' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
+		foreach ( self::data_statuses_that_can_never_be_set() as $label => list( $status ) ) {
+			$cases[ "status that can never be set: {$label}" ] = array(
+				array(
+					'type'   => 'post',
+					'title'  => 'Invalid',
+					'status' => $status,
+				),
+			);
+		}
+
+		foreach ( array(
+			'title that is a number'         => array( 'post', 'title', 123 ),
+			'title that is a list'           => array( 'post', 'title', array( 'x' ) ),
+			'title that is null'             => array( 'post', 'title', null ),
+			'content that is a boolean'      => array( 'post', 'content', true ),
+			'excerpt that is a number'       => array( 'post', 'excerpt', 5 ),
+			'status that is a number'        => array( 'post', 'status', 1 ),
+			'slug that is a list'            => array( 'post', 'slug', array( 'slug' ) ),
+			'date that is a string'          => array( 'post', 'date', '2016-12-12T14:00:00' ),
+			'date with a number'             => array( 'post', 'date', array( 'site' => 123 ) ),
+			'date that cannot be parsed'     => array( 'post', 'date', array( 'site' => 'not a date' ) ),
+			'GMT date that cannot be parsed' => array( 'post', 'date', array( 'gmt' => 'not a date' ) ),
+			'date that is not a date-time'   => array( 'post', 'date', array( 'site' => '2010-60-01T02:00:00Z' ) ),
+			'author that is text'            => array( 'post', 'author', 'abc' ),
+			'author 0'                       => array( 'post', 'author', 0 ),
+			'author that is a fraction'      => array( 'post', 'author', 1.5 ),
+			'parent that is negative'        => array( 'page', 'parent', -1 ),
+			'parent that is text'            => array( 'page', 'parent', 'abc' ),
+		) as $label => list( $type, $attribute, $value ) ) {
+			$data = array( 'type' => $type );
+			if ( 'title' !== $attribute ) {
+				$data['title'] = 'Invalid';
+			}
+			$data[ $attribute ] = $value;
+
+			$cases[ "value of the wrong type: {$label}" ] = array( $data );
+		}
+
+		return $cases;
 	}
 
 	/**
-	 * An internal or unregistered status fails input validation.
+	 * A key outside the allow-list, a status that can never be set and a value of the wrong type
+	 * fail input validation.
 	 *
 	 * @ticket 66706
-	 * @dataProvider data_statuses_that_can_never_be_set
+	 * @dataProvider data_data_that_fails_input_validation
 	 * @since 7.3.0
 	 *
-	 * @param string $status The status.
+	 * @param array<string, mixed> $data The data.
 	 */
-	public function test_status_that_can_never_be_set_fails_input_validation( string $status ): void {
+	public function test_data_fails_input_validation( array $data ): void {
 		$this->login_as( 'administrator' );
 		$this->register_abilities();
 
 		$before = $this->snapshot();
-		$result = $this->run_ability(
-			array(
-				'data' => array(
-					'type'   => 'post',
-					'title'  => 'Status',
-					'status' => $status,
-				),
-			)
-		);
+		$result = $this->run_ability( array( 'data' => $data ) );
 
 		$this->assertWPError( $result, 'The call should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the status.' );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the data.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -881,96 +886,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 		$this->assert_invalid_attribute( $result, 'status', 'A status that is no longer registered' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Returns custom statuses that make a post visible.
-	 *
-	 * @return array<string, array{0: string}> The statuses.
-	 */
-	public static function data_custom_statuses_that_make_a_post_visible(): array {
-		return array(
-			'public'            => array( 'cw_public' ),
-			'private'           => array( 'cw_private' ),
-			'publicly viewable' => array( 'cw_viewable' ),
-		);
-	}
-
-	/**
-	 * A custom status that makes a post visible needs `publish_posts`, and the refusal uses the
-	 * general message, also for a custom private status.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_custom_statuses_that_make_a_post_visible
-	 * @since 7.3.0
-	 *
-	 * @param string $status The status.
-	 */
-	public function test_custom_visible_status_needs_publish_posts( string $status ): void {
-		$this->register_custom_statuses();
-
-		$this->login_as( 'contributor' );
-		$this->register_abilities();
-
-		$before = $this->snapshot();
-		$result = $this->run_ability(
-			array(
-				'data' => array(
-					'type'   => 'post',
-					'title'  => 'Custom status',
-					'status' => $status,
-				),
-			)
-		);
-
-		$this->assert_error( $result, 'content_cannot_publish', 403, 'A custom visible status without publish_posts' );
-		$this->assertSame( 'Sorry, you are not allowed to publish posts in this post type.', $result->get_error_message(), 'A custom status, also a private one, should get the general message.' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Returns custom statuses and a role that may set them: the role and the status.
-	 *
-	 * @return array<string, array{0: string, 1: string}> The cases.
-	 */
-	public static function data_custom_statuses_a_role_may_set(): array {
-		return array(
-			'public with publish_posts'            => array( 'author', 'cw_public' ),
-			'private with publish_posts'           => array( 'author', 'cw_private' ),
-			'publicly viewable with publish_posts' => array( 'author', 'cw_viewable' ),
-			'hidden without publish_posts'         => array( 'contributor', 'cw_protected' ),
-		);
-	}
-
-	/**
-	 * A user with `publish_posts` may set a custom status that makes a post visible, and a custom
-	 * status that is neither public, private nor publicly viewable needs nothing beyond
-	 * `create_posts`.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_custom_statuses_a_role_may_set
-	 * @since 7.3.0
-	 *
-	 * @param string $role   The role to create as.
-	 * @param string $status The status.
-	 */
-	public function test_custom_status_is_set_by_a_role_that_may_set_it( string $role, string $status ): void {
-		$this->register_custom_statuses();
-
-		$this->login_as( $role );
-		$this->register_abilities();
-
-		$result = $this->run_ability(
-			array(
-				'data' => array(
-					'type'   => 'post',
-					'title'  => 'Custom status',
-					'status' => $status,
-				),
-			)
-		);
-
-		$this->assertSame( $status, $this->get_created_post( $result )->post_status, 'The custom status should be stored.' );
 	}
 
 	/**
@@ -1245,6 +1160,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$result    = $create( self::$post_ids[ $parent_key ] ?? self::MISSING_ID );
 
 		$this->assert_invalid_attribute( $result, 'parent', 'A parent that cannot be used' );
+		$this->assertWPError( $reference, 'Another missing parent should fail.' );
 		$this->assertSame( $reference->get_error_data(), $result->get_error_data(), 'The error data, with its reason, should be the same as for another missing parent.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
@@ -1350,62 +1266,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		if ( null !== $message ) {
 			$this->assertSame( $message, $result->get_error_message(), 'The message should give the reason.' );
 		}
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Returns attribute values of the wrong type: the post type, the attribute and the value.
-	 *
-	 * @return array<string, array{0: string, 1: string, 2: mixed}> The cases.
-	 */
-	public static function data_values_of_the_wrong_type(): array {
-		return array(
-			'title that is a number'         => array( 'post', 'title', 123 ),
-			'title that is a list'           => array( 'post', 'title', array( 'x' ) ),
-			'title that is null'             => array( 'post', 'title', null ),
-			'content that is a boolean'      => array( 'post', 'content', true ),
-			'excerpt that is a number'       => array( 'post', 'excerpt', 5 ),
-			'status that is a number'        => array( 'post', 'status', 1 ),
-			'slug that is a list'            => array( 'post', 'slug', array( 'slug' ) ),
-			'date that is a string'          => array( 'post', 'date', '2016-12-12T14:00:00' ),
-			'date with a number'             => array( 'post', 'date', array( 'site' => 123 ) ),
-			'date that cannot be parsed'     => array( 'post', 'date', array( 'site' => 'not a date' ) ),
-			'GMT date that cannot be parsed' => array( 'post', 'date', array( 'gmt' => 'not a date' ) ),
-			'date that is not a date-time'   => array( 'post', 'date', array( 'site' => '2010-60-01T02:00:00Z' ) ),
-			'author that is text'            => array( 'post', 'author', 'abc' ),
-			'author 0'                       => array( 'post', 'author', 0 ),
-			'author that is a fraction'      => array( 'post', 'author', 1.5 ),
-			'parent that is negative'        => array( 'page', 'parent', -1 ),
-			'parent that is text'            => array( 'page', 'parent', 'abc' ),
-		);
-	}
-
-	/**
-	 * A value of the wrong type fails input validation.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_values_of_the_wrong_type
-	 * @since 7.3.0
-	 *
-	 * @param string $type      The post type.
-	 * @param string $attribute The attribute.
-	 * @param mixed  $value     The value.
-	 */
-	public function test_value_of_the_wrong_type_fails_input_validation( string $type, string $attribute, $value ): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$data = array( 'type' => $type );
-		if ( 'title' !== $attribute ) {
-			$data['title'] = 'Wrong type';
-		}
-		$data[ $attribute ] = $value;
-
-		$before = $this->snapshot();
-		$result = $this->run_ability( array( 'data' => $data ) );
-
-		$this->assertWPError( $result, 'The call should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the value.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -1713,8 +1573,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 * @dataProvider data_draft_page_slugs_by_parent
 	 * @since 7.3.0
 	 *
-	 * @param string $parent_key   The parent, as a fixture name.
-	 * @param string $expected The stored slug.
+	 * @param string $parent_key The parent, as a fixture name.
+	 * @param string $expected   The stored slug.
 	 */
 	public function test_draft_page_slug_is_unique_among_its_siblings( string $parent_key, string $expected ): void {
 		$this->login_as( 'administrator' );
@@ -1788,48 +1648,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$this->assertSame( 'draft', $post->post_status, 'The post should be a draft.' );
 		$this->assertSame( $local, $post->post_date, 'The local date should be stored.' );
 		$this->assertSame( $gmt, $post->post_date_gmt, 'The GMT date should be stored.' );
-	}
-
-	/**
-	 * Returns posts created without a date: the role, the requested status or null to send none,
-	 * and the stored status.
-	 *
-	 * @return array<string, array{0: string, 1: string|null, 2: string}> The cases.
-	 */
-	public static function data_posts_without_a_date(): array {
-		return array(
-			'draft of an administrator'     => array( 'administrator', null, 'draft' ),
-			'pending post of a contributor' => array( 'contributor', 'pending', 'pending' ),
-		);
-	}
-
-	/**
-	 * A draft or a pending post created without a date has a floating date.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_posts_without_a_date
-	 * @since 7.3.0
-	 *
-	 * @param string      $role     The role to create as.
-	 * @param string|null $status   The requested status, or null to send none.
-	 * @param string      $expected The stored status.
-	 */
-	public function test_post_without_a_date_floats( string $role, ?string $status, string $expected ): void {
-		$this->login_as( $role );
-		$this->register_abilities();
-
-		$data = array(
-			'type'  => 'post',
-			'title' => 'Floating',
-		);
-		if ( null !== $status ) {
-			$data['status'] = $status;
-		}
-
-		$post = $this->get_created_post( $this->run_ability( array( 'data' => $data ) ) );
-
-		$this->assertSame( $expected, $post->post_status, 'The post should be stored in the expected status.' );
-		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt, 'The post should have no GMT date.' );
 	}
 
 	/**

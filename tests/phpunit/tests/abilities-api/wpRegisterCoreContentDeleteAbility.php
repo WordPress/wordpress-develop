@@ -2,7 +2,7 @@
 
 declare( strict_types=1 );
 
-require_once __DIR__ . '/testcase-content-write-ability.php';
+require_once __DIR__ . '/testcase-content-existing-post-ability.php';
 
 /**
  * Tests for the core/content-delete ability shipped with the Abilities API.
@@ -11,7 +11,7 @@ require_once __DIR__ . '/testcase-content-write-ability.php';
  *
  * @group abilities-api
  */
-class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilities_Content_Write_UnitTestCase {
+class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilities_Content_Existing_Post_UnitTestCase {
 
 	/**
 	 * The name of the ability under test.
@@ -23,6 +23,37 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	protected const ABILITY = 'core/content-delete';
 
 	/**
+	 * The label of the ability under test.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	protected const LABEL = 'Delete Content';
+
+	/**
+	 * The annotations of the ability under test.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var array<string, bool>
+	 */
+	protected const ANNOTATIONS = array(
+		'readonly'    => false,
+		'destructive' => true,
+		'idempotent'  => true,
+	);
+
+	/**
+	 * The input that the shared tests send next to `where`.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var array<string, mixed>
+	 */
+	protected const OTHER_INPUT = array( 'permanent' => true );
+
+	/**
 	 * Creates shared users and posts.
 	 *
 	 * @since 7.3.0
@@ -31,16 +62,6 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	 */
 	public static function wpSetUpBeforeClass( $factory ): void {
 		self::create_shared_fixtures( $factory );
-
-		foreach ( array( 'front_page', 'posts_page', 'privacy_page' ) as $page ) {
-			self::$post_ids[ $page ] = $factory->post->create(
-				array(
-					'post_author' => self::$user_ids['administrator'],
-					'post_type'   => 'page',
-					'post_status' => 'publish',
-				)
-			);
-		}
 	}
 
 	/**
@@ -74,7 +95,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	 * @param mixed  $result  The ability result.
 	 * @param string $context What the call was, for the assertion messages.
 	 */
-	private function assert_cannot_delete( $result, string $context ): void {
+	protected function assert_cannot_write( $result, string $context ): void {
 		$this->assert_error( $result, 'content_cannot_delete', 403, $context );
 		$this->assertSame( 'Sorry, you are not allowed to delete this post.', $result->get_error_message(), "{$context}: the message should be the delete message." );
 	}
@@ -114,28 +135,6 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
-	 * The ability is registered in the content category with its label and annotations.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_registers_the_ability(): void {
-		$this->register_abilities();
-
-		$ability = wp_get_ability( self::ABILITY );
-
-		$this->assertInstanceOf( WP_Ability::class, $ability, 'The core/content-delete ability should be registered.' );
-		$this->assertSame( 'Delete Content', $ability->get_label(), 'The ability should have its label.' );
-		$this->assertSame( 'content', $ability->get_category(), 'The ability should use the content category.' );
-		$this->assertTrue( $ability->get_meta_item( 'public', false ), 'The ability should be marked public.' );
-
-		$annotations = $ability->get_meta_item( 'annotations', array() );
-		$this->assertFalse( $annotations['readonly'], 'The ability should not be marked read-only.' );
-		$this->assertTrue( $annotations['destructive'], 'The ability should be marked destructive.' );
-		$this->assertTrue( $annotations['idempotent'], 'The ability should be marked idempotent.' );
-	}
-
-	/**
 	 * The input schema takes `where`, with the post type and ID, and `permanent`.
 	 *
 	 * @ticket 66706
@@ -157,8 +156,6 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$update_where = wp_get_ability( 'core/content-update' )->get_input_schema()['properties']['where'];
 
 		$this->assertSame( $this->strip_descriptions( $update_where ), $this->strip_descriptions( $schema['properties']['where'] ), 'The where should be the same as on update.' );
-		$this->assertSame( array( 'type', 'id' ), $schema['properties']['where']['required'], 'The where should require the type and the ID.' );
-		$this->assertSame( 1, $schema['properties']['where']['properties']['id']['minimum'], 'The ID should be at least 1.' );
 	}
 
 	/**
@@ -198,421 +195,13 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Trashing a post that is already in the Trash is the already-trashed error.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_rejects_trashing_a_trashed_post(): void {
-		$post_id = self::$post_ids['admin_post'];
-
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$input = $this->delete_input( $post_id );
-
-		$this->assert_trashed( $this->run_ability( $input ), $post_id, 'The first call' );
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->run_ability( $input );
-
-		$this->assertWPError( $result, 'Trashing the post again should fail.' );
-		$this->assertSame(
-			array(
-				'code'    => 'content_already_trashed',
-				'message' => 'The post has already been trashed.',
-				'data'    => array( 'status' => 410 ),
-			),
-			array(
-				'code'    => $result->get_error_code(),
-				'message' => $result->get_error_message(),
-				'data'    => $result->get_error_data(),
-			),
-			'The error should be the already-trashed error.'
-		);
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * A logged-out user is refused before the ability runs.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_permission_callback_refuses_a_logged_out_user(): void {
-		$post_id = self::$post_ids['admin_post'];
-
-		$this->register_abilities();
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->run_ability( $this->delete_input( $post_id, true ) );
-
-		$this->assert_refused( $result, 'A logged-out user' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Returns inputs for which the permission callback returns false, even for an administrator.
-	 *
-	 * @return array<string, array{0: mixed}> The inputs.
-	 */
-	public static function data_inputs_refused_by_the_permission_callback(): array {
-		return array(
-			'no input'               => array( null ),
-			'no where'               => array( array( 'permanent' => true ) ),
-			'where that is a string' => array( array( 'where' => 'post' ) ),
-			'type that is a number'  => array(
-				array(
-					'where' => array(
-						'type' => 1,
-						'id'   => 1,
-					),
-				),
-			),
-			'unexposed type'         => array(
-				array(
-					'where' => array(
-						'type' => 'revision',
-						'id'   => 1,
-					),
-				),
-			),
-		);
-	}
-
-	/**
-	 * The permission callback returns false for a post the user cannot delete, in every form the
-	 * post can be named in input that was not prepared.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_unprepared_where_forms
-	 * @since 7.3.0
-	 *
-	 * @param string $id_type   The type to send the ID as.
-	 * @param bool   $as_object Whether to send `where` as an object.
-	 */
-	public function test_permission_callback_returns_false_for_a_post_the_user_cannot_delete( string $id_type, bool $as_object ): void {
-		$this->login_as( 'contributor' );
-
-		$permission = $this->get_ability_callbacks()['permission_callback'];
-		$where      = $this->build_unprepared_where( self::$post_ids['admin_post'], $id_type, $as_object );
-
-		$this->assertFalse( $permission( array( 'where' => $where ) ), 'The permission callback should return false.' );
-	}
-
-	/**
-	 * The permission callback returns true for a post the user can delete.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_permission_callback_returns_true_for_a_post_the_user_can_delete(): void {
-		$this->login_as( 'author' );
-
-		$permission = $this->get_ability_callbacks()['permission_callback'];
-
-		$this->assertTrue( $permission( $this->delete_input( self::$post_ids['author:draft'] ) ), 'The permission callback should return true.' );
-	}
-
-	/**
-	 * The permission callback lets a post that does not exist through, also for a user who may
-	 * delete nothing.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_permission_callback_lets_a_missing_post_through(): void {
-		$this->login_as( 'subscriber' );
-
-		$permission = $this->get_ability_callbacks()['permission_callback'];
-
-		$this->assertTrue(
-			$permission(
-				array(
-					'where' => array(
-						'type' => 'post',
-						'id'   => self::MISSING_ID,
-					),
-				)
-			),
-			'The permission callback should return true.'
-		);
-	}
-
-	/**
-	 * A permission result that a filter turned into a grant does not skip the capability check
-	 * on the post.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_granted_permission_result_does_not_skip_the_capability_check(): void {
-		$post_id = self::$post_ids['admin_post'];
-
-		$this->login_as( 'contributor' );
-		$this->register_abilities();
-		add_filter( 'wp_ability_permission_result', '__return_true' );
-
-		$before    = $this->snapshot( $post_id );
-		$trash     = $this->run_ability( $this->delete_input( $post_id ) );
-		$permanent = $this->run_ability( $this->delete_input( $post_id, true ) );
-
-		$this->assert_cannot_delete( $trash, 'A trash granted by a filter' );
-		$this->assert_cannot_delete( $permanent, 'A permanent delete granted by a filter' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * An ID that is not a whole number of at least 1 fails input validation.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_ids_that_are_not_whole_numbers_of_at_least_1
-	 * @since 7.3.0
-	 *
-	 * @param mixed $id The ID.
-	 */
-	public function test_id_that_is_not_a_whole_number_fails_input_validation( $id ): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$before = $this->snapshot( self::$post_ids['admin_post'] );
-		$result = $this->run_ability(
-			array(
-				'where'     => array(
-					'type' => 'post',
-					'id'   => $id,
-				),
-				'permanent' => true,
-			)
-		);
-
-		$this->assertWPError( $result, 'The call should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the ID.' );
-		$this->assertSame( $before, $this->snapshot( self::$post_ids['admin_post'] ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * A revision, an autosave, an attachment, a post of another exposed or non-exposed type and a
-	 * missing post are not found as a `post`, even by an administrator and even for a permanent
-	 * delete.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_posts_that_are_not_posts
-	 * @since 7.3.0
-	 *
-	 * @param string $post The post, as a fixture name.
-	 */
-	public function test_post_of_another_type_is_not_found( string $post ): void {
-		$post_id = self::$post_ids[ $post ] ?? self::MISSING_ID;
-
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->run_ability(
-			array(
-				'where'     => array(
-					'type' => 'post',
-					'id'   => $post_id,
-				),
-				'permanent' => true,
-			)
-		);
-
-		$this->assert_not_found( $result, 'A post that is not a post' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Called directly, a post of a type that is not exposed is not found, whatever its ID.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_direct_call_for_a_type_that_is_not_exposed_is_not_found(): void {
-		register_post_type( 'cw_hidden', array( 'public' => true ) );
-		$post_id = self::factory()->post->create( array( 'post_type' => 'cw_hidden' ) );
-
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$before = $this->snapshot( $post_id );
-		$result = $execute( $this->delete_input( $post_id, true ) );
-
-		$this->assert_not_found( $result, 'A direct call for a type that is not exposed' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * A post type whose `show_in_abilities` is turned off after registration cannot be deleted.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_type_no_longer_exposed_cannot_be_deleted(): void {
-		$post_id = self::$post_ids['admin_post'];
-
-		$this->login_as( 'administrator' );
-		$callbacks = $this->get_ability_callbacks();
-
-		get_post_type_object( 'post' )->show_in_abilities = false;
-
-		$input  = $this->delete_input( $post_id, true );
-		$before = $this->snapshot( $post_id );
-		$result = $this->run_ability( $input );
-
-		$this->assert_refused( $result, 'A regular call for a type that is no longer exposed' );
-		$this->assert_not_found( $callbacks['execute_callback']( $input ), 'A direct call for a type that is no longer exposed' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Returns direct-call inputs with a malformed `where`.
-	 *
-	 * @return array<string, array{0: array<string, mixed>}> The inputs.
-	 */
-	public static function data_direct_inputs_with_a_malformed_where(): array {
-		return array(
-			'no where' => array( array( 'permanent' => true ) ),
-			'no type'  => array( array( 'where' => array( 'id' => 1 ) ) ),
-			'no ID'    => array( array( 'where' => array( 'type' => 'post' ) ) ),
-		);
-	}
-
-	/**
-	 * Called directly, a malformed `where` is the not-found error.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_direct_inputs_with_a_malformed_where
-	 * @since 7.3.0
-	 *
-	 * @param array<string, mixed> $input The input.
-	 */
-	public function test_direct_call_with_a_malformed_where_is_not_found( array $input ): void {
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$before = $this->snapshot( self::$post_ids['admin_post'] );
-
-		$this->assert_not_found( $execute( $input ), 'A direct call with a malformed where' );
-		$this->assertSame( $before, $this->snapshot( self::$post_ids['admin_post'] ), 'Nothing should be deleted for a malformed where.' );
-	}
-
-	/**
-	 * The lookup comes before the capability: a user who may delete nothing gets the not-found
-	 * error for a missing post, and is refused for an existing post.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_lookup_comes_before_the_capability(): void {
-		$this->login_as( 'subscriber' );
-		$this->register_abilities();
-
-		$before   = $this->snapshot( self::$post_ids['admin_post'] );
-		$missing  = $this->run_ability(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'id'   => self::MISSING_ID,
-				),
-			)
-		);
-		$existing = $this->run_ability( $this->delete_input( self::$post_ids['admin_post'] ) );
-
-		$this->assert_not_found( $missing, 'A missing post' );
-		$this->assert_refused( $existing, 'An existing post the user may not delete' );
-		$this->assertSame( $before, $this->snapshot( self::$post_ids['admin_post'] ), 'The refused post should still exist, unchanged.' );
-	}
-
-	/**
-	 * Returns whether each role may delete each matrix post.
-	 *
-	 * @return array<string, array{0: string, 1: string, 2: string, 3: bool}> The cases.
-	 */
-	public static function data_delete_matrix(): array {
-		return array(
-			'administrator, own, draft'           => array( 'administrator', 'administrator', 'draft', true ),
-			'administrator, own, pending'         => array( 'administrator', 'administrator', 'pending', true ),
-			'administrator, own, publish'         => array( 'administrator', 'administrator', 'publish', true ),
-			'administrator, own, future'          => array( 'administrator', 'administrator', 'future', true ),
-			'administrator, own, private'         => array( 'administrator', 'administrator', 'private', true ),
-			'administrator, own, trash_draft'     => array( 'administrator', 'administrator', 'trash_draft', true ),
-			'administrator, own, trash_publish'   => array( 'administrator', 'administrator', 'trash_publish', true ),
-			'administrator, other, draft'         => array( 'administrator', 'other', 'draft', true ),
-			'administrator, other, pending'       => array( 'administrator', 'other', 'pending', true ),
-			'administrator, other, publish'       => array( 'administrator', 'other', 'publish', true ),
-			'administrator, other, future'        => array( 'administrator', 'other', 'future', true ),
-			'administrator, other, private'       => array( 'administrator', 'other', 'private', true ),
-			'administrator, other, trash_draft'   => array( 'administrator', 'other', 'trash_draft', true ),
-			'administrator, other, trash_publish' => array( 'administrator', 'other', 'trash_publish', true ),
-			'editor, own, draft'                  => array( 'editor', 'editor', 'draft', true ),
-			'editor, own, pending'                => array( 'editor', 'editor', 'pending', true ),
-			'editor, own, publish'                => array( 'editor', 'editor', 'publish', true ),
-			'editor, own, future'                 => array( 'editor', 'editor', 'future', true ),
-			'editor, own, private'                => array( 'editor', 'editor', 'private', true ),
-			'editor, own, trash_draft'            => array( 'editor', 'editor', 'trash_draft', true ),
-			'editor, own, trash_publish'          => array( 'editor', 'editor', 'trash_publish', true ),
-			'editor, other, draft'                => array( 'editor', 'other', 'draft', true ),
-			'editor, other, pending'              => array( 'editor', 'other', 'pending', true ),
-			'editor, other, publish'              => array( 'editor', 'other', 'publish', true ),
-			'editor, other, future'               => array( 'editor', 'other', 'future', true ),
-			'editor, other, private'              => array( 'editor', 'other', 'private', true ),
-			'editor, other, trash_draft'          => array( 'editor', 'other', 'trash_draft', true ),
-			'editor, other, trash_publish'        => array( 'editor', 'other', 'trash_publish', true ),
-			'author, own, draft'                  => array( 'author', 'author', 'draft', true ),
-			'author, own, pending'                => array( 'author', 'author', 'pending', true ),
-			'author, own, publish'                => array( 'author', 'author', 'publish', true ),
-			'author, own, future'                 => array( 'author', 'author', 'future', true ),
-			'author, own, private'                => array( 'author', 'author', 'private', true ),
-			'author, own, trash_draft'            => array( 'author', 'author', 'trash_draft', true ),
-			'author, own, trash_publish'          => array( 'author', 'author', 'trash_publish', true ),
-			'author, other, draft'                => array( 'author', 'other', 'draft', false ),
-			'author, other, pending'              => array( 'author', 'other', 'pending', false ),
-			'author, other, publish'              => array( 'author', 'other', 'publish', false ),
-			'author, other, future'               => array( 'author', 'other', 'future', false ),
-			'author, other, private'              => array( 'author', 'other', 'private', false ),
-			'author, other, trash_draft'          => array( 'author', 'other', 'trash_draft', false ),
-			'author, other, trash_publish'        => array( 'author', 'other', 'trash_publish', false ),
-			'contributor, own, draft'             => array( 'contributor', 'contributor', 'draft', true ),
-			'contributor, own, pending'           => array( 'contributor', 'contributor', 'pending', true ),
-			'contributor, own, publish'           => array( 'contributor', 'contributor', 'publish', false ),
-			'contributor, own, future'            => array( 'contributor', 'contributor', 'future', false ),
-			'contributor, own, private'           => array( 'contributor', 'contributor', 'private', true ),
-			'contributor, own, trash_draft'       => array( 'contributor', 'contributor', 'trash_draft', true ),
-			'contributor, own, trash_publish'     => array( 'contributor', 'contributor', 'trash_publish', false ),
-			'contributor, other, draft'           => array( 'contributor', 'other', 'draft', false ),
-			'contributor, other, pending'         => array( 'contributor', 'other', 'pending', false ),
-			'contributor, other, publish'         => array( 'contributor', 'other', 'publish', false ),
-			'contributor, other, future'          => array( 'contributor', 'other', 'future', false ),
-			'contributor, other, private'         => array( 'contributor', 'other', 'private', false ),
-			'contributor, other, trash_draft'     => array( 'contributor', 'other', 'trash_draft', false ),
-			'contributor, other, trash_publish'   => array( 'contributor', 'other', 'trash_publish', false ),
-			'subscriber, own, draft'              => array( 'subscriber', 'subscriber', 'draft', false ),
-			'subscriber, own, pending'            => array( 'subscriber', 'subscriber', 'pending', false ),
-			'subscriber, own, publish'            => array( 'subscriber', 'subscriber', 'publish', false ),
-			'subscriber, own, future'             => array( 'subscriber', 'subscriber', 'future', false ),
-			'subscriber, own, private'            => array( 'subscriber', 'subscriber', 'private', false ),
-			'subscriber, own, trash_draft'        => array( 'subscriber', 'subscriber', 'trash_draft', false ),
-			'subscriber, own, trash_publish'      => array( 'subscriber', 'subscriber', 'trash_publish', false ),
-			'subscriber, other, draft'            => array( 'subscriber', 'other', 'draft', false ),
-			'subscriber, other, pending'          => array( 'subscriber', 'other', 'pending', false ),
-			'subscriber, other, publish'          => array( 'subscriber', 'other', 'publish', false ),
-			'subscriber, other, future'           => array( 'subscriber', 'other', 'future', false ),
-			'subscriber, other, private'          => array( 'subscriber', 'other', 'private', false ),
-			'subscriber, other, trash_draft'      => array( 'subscriber', 'other', 'trash_draft', false ),
-			'subscriber, other, trash_publish'    => array( 'subscriber', 'other', 'trash_publish', false ),
-		);
-	}
-
-	/**
-	 * Returns the cases of the delete matrix, plus one that sends `permanent` set to false.
+	 * Returns the cases of the capability matrix, plus one that sends `permanent` set to false.
 	 *
 	 * @return array<string, array{0: string, 1: string, 2: string, 3: bool, 4?: bool}> The cases.
 	 */
 	public static function data_trash_matrix(): array {
 		return array_merge(
-			self::data_delete_matrix(),
+			self::data_capability_matrix(),
 			array(
 				'administrator, own, publish, permanent false' => array( 'administrator', 'administrator', 'publish', true, false ),
 			)
@@ -650,6 +239,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 
 		if ( $may_delete ) {
 			$this->assert_error( $result, 'content_already_trashed', 410, 'Trashing a trashed post the role may delete' );
+			$this->assertSame( 'The post has already been trashed.', $result->get_error_message(), 'The message should be the already-trashed message.' );
 		} else {
 			$this->assert_refused( $result, 'Trashing a post the role may not delete' );
 		}
@@ -661,7 +251,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	 * is refused for the others, whatever their status.
 	 *
 	 * @ticket 66706
-	 * @dataProvider data_delete_matrix
+	 * @dataProvider data_capability_matrix
 	 * @since 7.3.0
 	 *
 	 * @param string $role       The role to delete as.
@@ -714,31 +304,6 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'A post without Trash support should be left as it was.' );
 
 		$this->assert_deleted( $this->run_ability( $this->delete_input( $post_id, true ) ), $post_id, 'Deleting a post without Trash support permanently' );
-	}
-
-	/**
-	 * Returns the special pages of the site.
-	 *
-	 * @return array<string, array{0: string}> The pages, as fixture names.
-	 */
-	public static function data_special_pages(): array {
-		return array(
-			'front page'          => array( 'front_page' ),
-			'posts page'          => array( 'posts_page' ),
-			'privacy policy page' => array( 'privacy_page' ),
-		);
-	}
-
-	/**
-	 * Sets the special pages of the site.
-	 *
-	 * @since 7.3.0
-	 */
-	private function set_special_pages(): void {
-		update_option( 'show_on_front', 'page' );
-		update_option( 'page_on_front', self::$post_ids['front_page'] );
-		update_option( 'page_for_posts', self::$post_ids['posts_page'] );
-		update_option( 'wp_page_for_privacy_policy', self::$post_ids['privacy_page'] );
 	}
 
 	/**
@@ -814,33 +379,18 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Returns the special pages of the site and whether a site administrator may trash them on
-	 * multisite.
-	 *
-	 * @return array<string, array{0: string, 1: bool}> The cases.
-	 */
-	public static function data_special_pages_for_a_site_administrator(): array {
-		return array(
-			'front page'          => array( 'front_page', true ),
-			'posts page'          => array( 'posts_page', true ),
-			'privacy policy page' => array( 'privacy_page', false ),
-		);
-	}
-
-	/**
 	 * On multisite, a site administrator may trash the front page and the posts page, but not
 	 * the privacy policy page.
 	 *
 	 * @group ms-required
 	 *
 	 * @ticket 66706
-	 * @dataProvider data_special_pages_for_a_site_administrator
+	 * @dataProvider data_special_pages
 	 * @since 7.3.0
 	 *
-	 * @param string $page    The page, as a fixture name.
-	 * @param bool   $allowed Whether the site administrator may trash it.
+	 * @param string $page The page, as a fixture name.
 	 */
-	public function test_site_administrator_trashes_special_pages_on_multisite( string $page, bool $allowed ): void {
+	public function test_site_administrator_trashes_special_pages_on_multisite( string $page ): void {
 		$this->set_special_pages();
 		$post_id = self::$post_ids[ $page ];
 
@@ -850,7 +400,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->run_ability( $this->delete_input( $post_id ) );
 
-		if ( $allowed ) {
+		if ( 'privacy_page' !== $page ) {
 			$this->assert_trashed( $result, $post_id, 'A site administrator trashing a special page' );
 			return;
 		}
@@ -886,14 +436,14 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	/**
 	 * Returns values for the pre-trash and pre-delete filters that stop the operation.
 	 *
-	 * @return array<string, array{0: bool, 1: string, 2: mixed}> The cases.
+	 * @return array<string, array{0: bool, 1: mixed}> The cases.
 	 */
 	public static function data_operations_that_are_stopped(): array {
 		return array(
-			'trash, false'                    => array( false, 'pre_trash_post', false ),
-			'trash, truthy without trashing'  => array( false, 'pre_trash_post', true ),
-			'delete, false'                   => array( true, 'pre_delete_post', false ),
-			'delete, truthy without deleting' => array( true, 'pre_delete_post', true ),
+			'trash, false'                    => array( false, false ),
+			'trash, truthy without trashing'  => array( false, true ),
+			'delete, false'                   => array( true, false ),
+			'delete, truthy without deleting' => array( true, true ),
 		);
 	}
 
@@ -905,15 +455,14 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	 * @dataProvider data_operations_that_are_stopped
 	 * @since 7.3.0
 	 *
-	 * @param bool   $permanent Whether the delete is permanent.
-	 * @param string $filter    The filter that stops the operation.
-	 * @param mixed  $value     The value the filter returns.
+	 * @param bool  $permanent Whether the delete is permanent.
+	 * @param mixed $value     The value that the pre-trash or pre-delete filter returns.
 	 */
-	public function test_operation_that_does_not_act_is_an_error( bool $permanent, string $filter, $value ): void {
+	public function test_operation_that_does_not_act_is_an_error( bool $permanent, $value ): void {
 		$post_id = self::$post_ids['admin_post'];
 
 		add_filter(
-			$filter,
+			$permanent ? 'pre_delete_post' : 'pre_trash_post',
 			static function () use ( $value ) {
 				return $value;
 			}
@@ -974,28 +523,5 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 		$this->assertWPError( $result, 'The call should fail.' );
 		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the key.' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * The current user is checked at each call, also on the same instance.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_each_call_checks_the_current_user(): void {
-		$own_id   = self::$post_ids['author:draft'];
-		$other_id = self::$post_ids['author:pending'];
-		$execute  = $this->get_ability_callbacks()['execute_callback'];
-
-		$this->login_as( 'author' );
-		$first = $execute( $this->delete_input( $own_id ) );
-
-		$this->login_as( 'contributor' );
-		$before = $this->snapshot( $other_id );
-		$second = $execute( $this->delete_input( $other_id ) );
-
-		$this->assert_trashed( $first, $own_id, 'The first call as the author' );
-		$this->assert_cannot_delete( $second, 'The second call as a contributor' );
-		$this->assertSame( $before, $this->snapshot( $other_id ), 'The second call should write nothing.' );
 	}
 }

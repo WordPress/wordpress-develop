@@ -3577,8 +3577,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns the filters that name a trashed post in a query without a status, and roles that
-	 * can edit that post.
+	 * Returns how a query without a status names a trashed post, by ID, by slug or not at all,
+	 * and a role that can edit that post.
 	 *
 	 * @return array<string, array{filter: string|null, role: string}> Query test cases.
 	 */
@@ -3620,7 +3620,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @param string      $role   The role to query as.
 	 */
 	public function test_query_without_a_status_does_not_cover_trashed_posts( ?string $filter, string $role ): void {
-		$post_id = $this->create_trashed_post( 'author' );
+		$post_id = $this->create_trashed_post();
 
 		$this->login_as( $role );
 		$this->register_ability();
@@ -6832,17 +6832,16 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Creates a post in the Trash.
+	 * Creates a post of the shared author in the Trash.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param string $author The author, as a role or fixture name.
 	 * @return int The post ID.
 	 */
-	private function create_trashed_post( string $author ): int {
+	private function create_trashed_post(): int {
 		$post_id = self::factory()->post->create(
 			array(
-				'post_author' => self::$user_ids[ $author ],
+				'post_author' => self::$user_ids['author'],
 				'post_status' => 'publish',
 			)
 		);
@@ -6884,7 +6883,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @param string $role The role to query as.
 	 */
 	public function test_trash_requested_by_name_returns_trashed_posts( string $role ): void {
-		$post_id = $this->create_trashed_post( 'author' );
+		$post_id = $this->create_trashed_post();
 
 		$this->login_as( $role );
 		$this->register_ability();
@@ -6908,7 +6907,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @since 7.3.0
 	 */
 	public function test_trash_can_be_requested_next_to_another_status(): void {
-		$post_id = $this->create_trashed_post( 'author' );
+		$post_id = $this->create_trashed_post();
 
 		$this->login_as( 'editor' );
 		$this->register_ability();
@@ -6978,7 +6977,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'post_status' => 'draft',
 			)
 		);
-		$other_id = $this->create_trashed_post( 'author' );
+		$other_id = $this->create_trashed_post();
 		wp_trash_post( $own_id );
 
 		$this->login_as( $role );

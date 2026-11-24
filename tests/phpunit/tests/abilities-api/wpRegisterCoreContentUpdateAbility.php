@@ -2,7 +2,7 @@
 
 declare( strict_types=1 );
 
-require_once __DIR__ . '/testcase-content-write-ability.php';
+require_once __DIR__ . '/testcase-content-existing-post-ability.php';
 
 /**
  * Tests for the core/content-update ability shipped with the Abilities API.
@@ -11,7 +11,7 @@ require_once __DIR__ . '/testcase-content-write-ability.php';
  *
  * @group abilities-api
  */
-class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilities_Content_Write_UnitTestCase {
+class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilities_Content_Existing_Post_UnitTestCase {
 
 	/**
 	 * The name of the ability under test.
@@ -21,6 +21,37 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 * @var string
 	 */
 	protected const ABILITY = 'core/content-update';
+
+	/**
+	 * The label of the ability under test.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	protected const LABEL = 'Update Content';
+
+	/**
+	 * The annotations of the ability under test.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var array<string, bool>
+	 */
+	protected const ANNOTATIONS = array(
+		'readonly'    => false,
+		'destructive' => false,
+		'idempotent'  => true,
+	);
+
+	/**
+	 * The input that the shared tests send next to `where`.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var array<string, mixed>
+	 */
+	protected const OTHER_INPUT = array( 'data' => array( 'title' => 'x' ) );
 
 	/**
 	 * Creates shared users and posts.
@@ -143,6 +174,19 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
+	 * Asserts that a result is the 403 edit error.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed  $result  The ability result.
+	 * @param string $context What the call was, for the assertion messages.
+	 */
+	protected function assert_cannot_write( $result, string $context ): void {
+		$this->assert_error( $result, 'content_cannot_edit', 403, $context );
+		$this->assertSame( 'Sorry, you are not allowed to edit this post.', $result->get_error_message(), "{$context}: the message should be the edit message." );
+	}
+
+	/**
 	 * Creates a draft with a floating date, stored in the site's timezone with no GMT date.
 	 *
 	 * @since 7.3.0
@@ -175,28 +219,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	private function assert_is_now( string $gmt, string $context ): void {
 		$this->assertEqualsWithDelta( time(), strtotime( $gmt . ' UTC' ), 60, "{$context} should be the current time." );
-	}
-
-	/**
-	 * The ability is registered in the content category with its label and annotations.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_registers_the_ability(): void {
-		$this->register_abilities();
-
-		$ability = wp_get_ability( self::ABILITY );
-
-		$this->assertInstanceOf( WP_Ability::class, $ability, 'The core/content-update ability should be registered.' );
-		$this->assertSame( 'Update Content', $ability->get_label(), 'The ability should have its label.' );
-		$this->assertSame( 'content', $ability->get_category(), 'The ability should use the content category.' );
-		$this->assertTrue( $ability->get_meta_item( 'public', false ), 'The ability should be marked public.' );
-
-		$annotations = $ability->get_meta_item( 'annotations', array() );
-		$this->assertFalse( $annotations['readonly'], 'The ability should not be marked read-only.' );
-		$this->assertFalse( $annotations['destructive'], 'The ability should not be marked destructive.' );
-		$this->assertTrue( $annotations['idempotent'], 'The ability should be marked idempotent.' );
 	}
 
 	/**
@@ -362,317 +384,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A permission result that a filter turned into a grant does not skip the capability check
-	 * on the post.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_granted_permission_result_does_not_skip_the_capability_check(): void {
-		$post_id = self::$post_ids['admin_post'];
-
-		$this->login_as( 'contributor' );
-		$this->register_abilities();
-		add_filter( 'wp_ability_permission_result', '__return_true' );
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->update_post( $post_id, array( 'title' => 'Granted by a filter' ) );
-
-		$this->assert_error( $result, 'content_cannot_edit', 403, 'An update granted by a filter' );
-		$this->assertSame( 'Sorry, you are not allowed to edit this post.', $result->get_error_message(), 'The message should be the edit message.' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * A logged-out user is refused before the ability runs.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_permission_callback_refuses_a_logged_out_user(): void {
-		$post_id = self::$post_ids['admin_post'];
-
-		$this->register_abilities();
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->update_post( $post_id, array( 'title' => 'Refused' ) );
-
-		$this->assert_refused( $result, 'A logged-out user' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Returns inputs for which the permission callback returns false, even for an administrator.
-	 *
-	 * @return array<string, array{0: mixed}> The inputs.
-	 */
-	public static function data_inputs_refused_by_the_permission_callback(): array {
-		return array(
-			'no input'               => array( null ),
-			'no where'               => array( array( 'data' => array( 'title' => 'x' ) ) ),
-			'where that is a string' => array(
-				array(
-					'where' => 'post',
-					'data'  => array( 'title' => 'x' ),
-				),
-			),
-			'type that is a list'    => array(
-				array(
-					'where' => array(
-						'type' => array( 'post' ),
-						'id'   => 1,
-					),
-					'data'  => array( 'title' => 'x' ),
-				),
-			),
-			'unexposed type'         => array(
-				array(
-					'where' => array(
-						'type' => 'attachment',
-						'id'   => 1,
-					),
-					'data'  => array( 'title' => 'x' ),
-				),
-			),
-		);
-	}
-
-	/**
-	 * The permission callback returns false for a post the user cannot edit, in every form the
-	 * post can be named in input that was not prepared.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_unprepared_where_forms
-	 * @since 7.3.0
-	 *
-	 * @param string $id_type   The type to send the ID as.
-	 * @param bool   $as_object Whether to send `where` as an object.
-	 */
-	public function test_permission_callback_returns_false_for_a_post_the_user_cannot_edit( string $id_type, bool $as_object ): void {
-		$this->login_as( 'contributor' );
-
-		$permission = $this->get_ability_callbacks()['permission_callback'];
-
-		$this->assertFalse(
-			$permission(
-				array(
-					'where' => $this->build_unprepared_where( self::$post_ids['admin_post'], $id_type, $as_object ),
-					'data'  => array( 'title' => 'x' ),
-				)
-			),
-			'The permission callback should return false.'
-		);
-	}
-
-	/**
-	 * The permission callback returns true for a post the user can edit.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_permission_callback_returns_true_for_a_post_the_user_can_edit(): void {
-		$this->login_as( 'author' );
-
-		$permission = $this->get_ability_callbacks()['permission_callback'];
-
-		$this->assertTrue(
-			$permission(
-				array(
-					'where' => array(
-						'type' => 'post',
-						'id'   => self::$post_ids['author:draft'],
-					),
-					'data'  => array( 'title' => 'x' ),
-				)
-			),
-			'The permission callback should return true.'
-		);
-	}
-
-	/**
-	 * The permission callback lets a post that does not exist through, so that the call returns
-	 * the not-found error, also for a user who may edit nothing.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_permission_callback_lets_a_missing_post_through(): void {
-		$this->login_as( 'subscriber' );
-
-		$permission = $this->get_ability_callbacks()['permission_callback'];
-		$input      = array(
-			'where' => array(
-				'type' => 'post',
-				'id'   => self::MISSING_ID,
-			),
-			'data'  => array( 'title' => 'x' ),
-		);
-
-		$this->assertTrue( $permission( $input ), 'The permission callback should return true.' );
-		$this->assert_not_found( $this->run_ability( $input ), 'A missing post' );
-	}
-
-	/**
-	 * An ID that is not a whole number of at least 1 fails input validation.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_ids_that_are_not_whole_numbers_of_at_least_1
-	 * @since 7.3.0
-	 *
-	 * @param mixed $id The ID.
-	 */
-	public function test_id_that_is_not_a_whole_number_fails_input_validation( $id ): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$before = $this->snapshot( self::$post_ids['admin_post'] );
-		$result = $this->run_ability(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'id'   => $id,
-				),
-				'data'  => array( 'title' => 'Invalid ID' ),
-			)
-		);
-
-		$this->assertWPError( $result, 'The call should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the ID.' );
-		$this->assertSame( $before, $this->snapshot( self::$post_ids['admin_post'] ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * A revision, an autosave, an attachment, a post of another exposed or non-exposed type and a
-	 * missing post are not found as a `post`, even by an administrator.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_posts_that_are_not_posts
-	 * @since 7.3.0
-	 *
-	 * @param string $post The post, as a fixture name.
-	 */
-	public function test_post_of_another_type_is_not_found( string $post ): void {
-		$post_id = self::$post_ids[ $post ] ?? self::MISSING_ID;
-
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->run_ability(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'id'   => $post_id,
-				),
-				'data'  => array( 'title' => 'Wrong type' ),
-			)
-		);
-
-		$this->assert_not_found( $result, 'A post that is not a post' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Called directly, a post of a type that is not exposed is not found, whatever its ID.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_direct_call_for_a_type_that_is_not_exposed_is_not_found(): void {
-		register_post_type( 'cw_hidden', array( 'public' => true ) );
-		$post_id = self::factory()->post->create( array( 'post_type' => 'cw_hidden' ) );
-
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$before = $this->snapshot( $post_id );
-		$result = $execute(
-			array(
-				'where' => array(
-					'type' => 'cw_hidden',
-					'id'   => $post_id,
-				),
-				'data'  => array( 'title' => 'Hidden' ),
-			)
-		);
-
-		$this->assert_not_found( $result, 'A direct call for a type that is not exposed' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * A post type whose `show_in_abilities` is turned off after registration cannot be updated.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_type_no_longer_exposed_cannot_be_updated(): void {
-		$post_id = self::$post_ids['admin_post'];
-
-		$this->login_as( 'administrator' );
-		$callbacks = $this->get_ability_callbacks();
-
-		get_post_type_object( 'post' )->show_in_abilities = false;
-
-		$input = array(
-			'where' => array(
-				'type' => 'post',
-				'id'   => $post_id,
-			),
-			'data'  => array( 'title' => 'Hidden' ),
-		);
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->run_ability( $input );
-
-		$this->assert_refused( $result, 'A regular call for a type that is no longer exposed' );
-		$this->assert_not_found( $callbacks['execute_callback']( $input ), 'A direct call for a type that is no longer exposed' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Returns direct-call inputs with a malformed `where`.
-	 *
-	 * @return array<string, array{0: array<string, mixed>}> The inputs.
-	 */
-	public static function data_direct_inputs_with_a_malformed_where(): array {
-		return array(
-			'no where' => array( array( 'data' => array( 'title' => 'x' ) ) ),
-			'no type'  => array(
-				array(
-					'where' => array( 'id' => 1 ),
-					'data'  => array( 'title' => 'x' ),
-				),
-			),
-			'no ID'    => array(
-				array(
-					'where' => array( 'type' => 'post' ),
-					'data'  => array( 'title' => 'x' ),
-				),
-			),
-		);
-	}
-
-	/**
-	 * Called directly, a malformed `where` is the not-found error.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_direct_inputs_with_a_malformed_where
-	 * @since 7.3.0
-	 *
-	 * @param array<string, mixed> $input The input.
-	 */
-	public function test_direct_call_with_a_malformed_where_is_not_found( array $input ): void {
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$before = $this->snapshot( self::$post_ids['administrator:draft'] );
-
-		$this->assert_not_found( $execute( $input ), 'A direct call with a malformed where' );
-		$this->assertSame( $before, $this->snapshot( self::$post_ids['administrator:draft'] ), 'Nothing should be written for a malformed where.' );
-	}
-
-	/**
 	 * The lookup comes before everything else: a missing post with invalid data is not found.
 	 *
 	 * @ticket 66706
@@ -702,91 +413,11 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Returns whether each role may edit each matrix post.
-	 *
-	 * @return array<string, array{0: string, 1: string, 2: string, 3: bool}> The cases.
-	 */
-	public static function data_update_matrix(): array {
-		return array(
-			'administrator, own, draft'           => array( 'administrator', 'administrator', 'draft', true ),
-			'administrator, own, pending'         => array( 'administrator', 'administrator', 'pending', true ),
-			'administrator, own, publish'         => array( 'administrator', 'administrator', 'publish', true ),
-			'administrator, own, future'          => array( 'administrator', 'administrator', 'future', true ),
-			'administrator, own, private'         => array( 'administrator', 'administrator', 'private', true ),
-			'administrator, own, trash_draft'     => array( 'administrator', 'administrator', 'trash_draft', true ),
-			'administrator, own, trash_publish'   => array( 'administrator', 'administrator', 'trash_publish', true ),
-			'administrator, other, draft'         => array( 'administrator', 'other', 'draft', true ),
-			'administrator, other, pending'       => array( 'administrator', 'other', 'pending', true ),
-			'administrator, other, publish'       => array( 'administrator', 'other', 'publish', true ),
-			'administrator, other, future'        => array( 'administrator', 'other', 'future', true ),
-			'administrator, other, private'       => array( 'administrator', 'other', 'private', true ),
-			'administrator, other, trash_draft'   => array( 'administrator', 'other', 'trash_draft', true ),
-			'administrator, other, trash_publish' => array( 'administrator', 'other', 'trash_publish', true ),
-			'editor, own, draft'                  => array( 'editor', 'editor', 'draft', true ),
-			'editor, own, pending'                => array( 'editor', 'editor', 'pending', true ),
-			'editor, own, publish'                => array( 'editor', 'editor', 'publish', true ),
-			'editor, own, future'                 => array( 'editor', 'editor', 'future', true ),
-			'editor, own, private'                => array( 'editor', 'editor', 'private', true ),
-			'editor, own, trash_draft'            => array( 'editor', 'editor', 'trash_draft', true ),
-			'editor, own, trash_publish'          => array( 'editor', 'editor', 'trash_publish', true ),
-			'editor, other, draft'                => array( 'editor', 'other', 'draft', true ),
-			'editor, other, pending'              => array( 'editor', 'other', 'pending', true ),
-			'editor, other, publish'              => array( 'editor', 'other', 'publish', true ),
-			'editor, other, future'               => array( 'editor', 'other', 'future', true ),
-			'editor, other, private'              => array( 'editor', 'other', 'private', true ),
-			'editor, other, trash_draft'          => array( 'editor', 'other', 'trash_draft', true ),
-			'editor, other, trash_publish'        => array( 'editor', 'other', 'trash_publish', true ),
-			'author, own, draft'                  => array( 'author', 'author', 'draft', true ),
-			'author, own, pending'                => array( 'author', 'author', 'pending', true ),
-			'author, own, publish'                => array( 'author', 'author', 'publish', true ),
-			'author, own, future'                 => array( 'author', 'author', 'future', true ),
-			'author, own, private'                => array( 'author', 'author', 'private', true ),
-			'author, own, trash_draft'            => array( 'author', 'author', 'trash_draft', true ),
-			'author, own, trash_publish'          => array( 'author', 'author', 'trash_publish', true ),
-			'author, other, draft'                => array( 'author', 'other', 'draft', false ),
-			'author, other, pending'              => array( 'author', 'other', 'pending', false ),
-			'author, other, publish'              => array( 'author', 'other', 'publish', false ),
-			'author, other, future'               => array( 'author', 'other', 'future', false ),
-			'author, other, private'              => array( 'author', 'other', 'private', false ),
-			'author, other, trash_draft'          => array( 'author', 'other', 'trash_draft', false ),
-			'author, other, trash_publish'        => array( 'author', 'other', 'trash_publish', false ),
-			'contributor, own, draft'             => array( 'contributor', 'contributor', 'draft', true ),
-			'contributor, own, pending'           => array( 'contributor', 'contributor', 'pending', true ),
-			'contributor, own, publish'           => array( 'contributor', 'contributor', 'publish', false ),
-			'contributor, own, future'            => array( 'contributor', 'contributor', 'future', false ),
-			'contributor, own, private'           => array( 'contributor', 'contributor', 'private', true ),
-			'contributor, own, trash_draft'       => array( 'contributor', 'contributor', 'trash_draft', true ),
-			'contributor, own, trash_publish'     => array( 'contributor', 'contributor', 'trash_publish', false ),
-			'contributor, other, draft'           => array( 'contributor', 'other', 'draft', false ),
-			'contributor, other, pending'         => array( 'contributor', 'other', 'pending', false ),
-			'contributor, other, publish'         => array( 'contributor', 'other', 'publish', false ),
-			'contributor, other, future'          => array( 'contributor', 'other', 'future', false ),
-			'contributor, other, private'         => array( 'contributor', 'other', 'private', false ),
-			'contributor, other, trash_draft'     => array( 'contributor', 'other', 'trash_draft', false ),
-			'contributor, other, trash_publish'   => array( 'contributor', 'other', 'trash_publish', false ),
-			'subscriber, own, draft'              => array( 'subscriber', 'subscriber', 'draft', false ),
-			'subscriber, own, pending'            => array( 'subscriber', 'subscriber', 'pending', false ),
-			'subscriber, own, publish'            => array( 'subscriber', 'subscriber', 'publish', false ),
-			'subscriber, own, future'             => array( 'subscriber', 'subscriber', 'future', false ),
-			'subscriber, own, private'            => array( 'subscriber', 'subscriber', 'private', false ),
-			'subscriber, own, trash_draft'        => array( 'subscriber', 'subscriber', 'trash_draft', false ),
-			'subscriber, own, trash_publish'      => array( 'subscriber', 'subscriber', 'trash_publish', false ),
-			'subscriber, other, draft'            => array( 'subscriber', 'other', 'draft', false ),
-			'subscriber, other, pending'          => array( 'subscriber', 'other', 'pending', false ),
-			'subscriber, other, publish'          => array( 'subscriber', 'other', 'publish', false ),
-			'subscriber, other, future'           => array( 'subscriber', 'other', 'future', false ),
-			'subscriber, other, private'          => array( 'subscriber', 'other', 'private', false ),
-			'subscriber, other, trash_draft'      => array( 'subscriber', 'other', 'trash_draft', false ),
-			'subscriber, other, trash_publish'    => array( 'subscriber', 'other', 'trash_publish', false ),
-		);
-	}
-
-	/**
 	 * Each role may update the posts it may edit, in any status, and is refused for the others,
 	 * whatever their status.
 	 *
 	 * @ticket 66706
-	 * @dataProvider data_update_matrix
+	 * @dataProvider data_capability_matrix
 	 * @since 7.3.0
 	 *
 	 * @param string $role    The role to update as.
@@ -825,14 +456,14 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	public static function data_invalid_data(): array {
 		return array(
-			'parent on a post'     => array( array( 'parent' => 1 ) ),
-			'trash'                => array( array( 'status' => 'trash' ) ),
-			'publish'              => array( array( 'status' => 'publish' ) ),
-			'empty slug'           => array( array( 'slug' => '!!!' ) ),
-			'missing author'       => array( array( 'author' => self::MISSING_ID ) ),
-			'title that is a list' => array( array( 'title' => array( 'x' ) ) ),
-			'invalid date'         => array( array( 'date' => array( 'site' => 'not a date' ) ) ),
-			'empty data'           => array( array() ),
+			'parent on a post'               => array( array( 'parent' => 1 ) ),
+			'trash'                          => array( array( 'status' => 'trash' ) ),
+			'private without publish_posts'  => array( array( 'status' => 'private' ) ),
+			'slug that sanitizes to nothing' => array( array( 'slug' => '!!!' ) ),
+			'missing author'                 => array( array( 'author' => self::MISSING_ID ) ),
+			'title that is a list'           => array( array( 'title' => array( 'x' ) ) ),
+			'invalid date'                   => array( array( 'date' => array( 'site' => 'not a date' ) ) ),
+			'empty data'                     => array( array() ),
 		);
 	}
 
@@ -992,7 +623,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 * Returns status changes that a contributor, and an author denied `publish_posts`, may not
 	 * make on their own draft.
 	 *
-	 * @return array<string, array{0: string, 1: string, 2: string}> The cases.
+	 * @return array<string, array{0: string, 1: string, 2: string, 3?: string}> The cases.
 	 */
 	public static function data_status_changes_without_publish_posts(): array {
 		$publish_message = 'Sorry, you are not allowed to publish posts in this post type.';
@@ -1005,22 +636,25 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 			'publish by an author denied publish_posts' => array( 'restricted_author', 'publish', $publish_message ),
 			'future by an author denied publish_posts'  => array( 'restricted_author', 'future', $publish_message ),
 			'private by an author denied publish_posts' => array( 'restricted_author', 'private', $private_message ),
+			'publish from the Trash by a contributor'   => array( 'contributor', 'publish', $publish_message, 'trash_draft' ),
 		);
 	}
 
 	/**
-	 * A status that makes a post visible needs `publish_posts`.
+	 * A status that makes a post visible needs `publish_posts`, also to move a post out of the
+	 * Trash.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_status_changes_without_publish_posts
 	 * @since 7.3.0
 	 *
-	 * @param string $role    The role or fixture name of the user, who owns the draft.
+	 * @param string $role    The role or fixture name of the user, who owns the post.
 	 * @param string $status  The status.
 	 * @param string $message The error message.
+	 * @param string $stored  Optional. The matrix status of the post. Default 'draft'.
 	 */
-	public function test_status_that_makes_a_post_visible_needs_publish_posts( string $role, string $status, string $message ): void {
-		$post_id = self::$post_ids[ "{$role}:draft" ];
+	public function test_status_that_makes_a_post_visible_needs_publish_posts( string $role, string $status, string $message, string $stored = 'draft' ): void {
+		$post_id = self::$post_ids[ "{$role}:{$stored}" ];
 
 		$this->login_as( $role );
 		$this->register_abilities();
@@ -1029,7 +663,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 
 		$data = array( 'status' => $status );
 		if ( 'future' === $status ) {
-			$data['date'] = array( 'gmt' => '2099-06-01T12:00:00' );
+			$data['date'] = array( 'gmt' => self::FUTURE_GMT );
 		}
 
 		$before = $this->snapshot( $post_id );
@@ -1084,7 +718,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 			$post_id,
 			array(
 				'status' => 'future',
-				'date'   => array( 'gmt' => '2099-06-01T12:00:00' ),
+				'date'   => array( 'gmt' => self::FUTURE_GMT ),
 			),
 			array( 'status', 'date' )
 		);
@@ -1144,7 +778,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	public static function data_statuses_reported_as_stored(): array {
 		return array(
-			'publish with a future date' => array( 'publish', '2099-06-01T12:00:00', 'future' ),
+			'publish with a future date' => array( 'publish', self::FUTURE_GMT, 'future' ),
 			'future with a past date'    => array( 'future', '2016-12-12T19:00:00', 'publish' ),
 		);
 	}
@@ -1177,45 +811,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 
 		$this->assertSame( $expected, $this->assert_updated( $result, $post_id )->post_status, 'The post should be stored in the expected status.' );
 		$this->assertSame( $expected, $result['status'], 'The output should report the stored status.' );
-	}
-
-	/**
-	 * A post in the Trash is updated like any other post and stays in the Trash.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_updates_a_post_in_the_trash(): void {
-		$post_id = self::$post_ids['editor:trash_publish'];
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$result = $this->update_post( $post_id, array( 'title' => 'Trashed and edited' ), array( 'status' ) );
-		$post   = $this->assert_updated( $result, $post_id );
-
-		$this->assertSame( 'Trashed and edited', $post->post_title, 'The title should be stored.' );
-		$this->assertSame( 'trash', $post->post_status, 'The post should stay in the Trash.' );
-		$this->assertSame( 'trash', $result['status'], 'The trash status should be returned.' );
-	}
-
-	/**
-	 * Moving a post out of the Trash passes the status gate like any status change.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_publishing_a_post_from_the_trash_needs_publish_posts(): void {
-		$post_id = self::$post_ids['contributor:trash_draft'];
-
-		$this->login_as( 'contributor' );
-		$this->register_abilities();
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->update_post( $post_id, array( 'status' => 'publish' ) );
-
-		$this->assert_error( $result, 'content_cannot_publish', 403, 'Publishing a post from the Trash without publish_posts' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
 	/**
@@ -1392,6 +987,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$reference = $this->update_post( $post_id, array( 'parent' => self::MISSING_ID + 1 ) );
 		$result    = $this->update_post( $post_id, array( 'parent' => self::$post_ids[ $parent_key ] ?? self::MISSING_ID ) );
 
+		$this->assertWPError( $reference, 'The reference call with a missing parent should fail.' );
 		$this->assert_invalid_attribute( $result, 'parent', 'A parent that cannot be used' );
 		$this->assertSame( $reference->get_error_data(), $result->get_error_data(), 'The error data, with its reason, should be the same as for a missing parent.' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
@@ -2212,44 +1808,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * The current user is checked at each call, also on the same instance.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_each_call_checks_the_current_user(): void {
-		$post_id = self::$post_ids['author:draft'];
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$this->login_as( 'author' );
-		$first = $execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'id'   => $post_id,
-				),
-				'data'  => array( 'title' => 'First' ),
-			)
-		);
-
-		$this->login_as( 'contributor' );
-		$before = $this->snapshot( $post_id );
-		$second = $execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'id'   => $post_id,
-				),
-				'data'  => array( 'title' => 'Second' ),
-			)
-		);
-
-		$this->assertSame( 'First', $this->assert_updated( $first, $post_id )->post_title, 'The first call should update the post.' );
-		$this->assert_error( $second, 'content_cannot_edit', 403, 'The second call as a contributor' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'The second call should write nothing.' );
-	}
-
-	/**
 	 * The author visibility is checked again at each call.
 	 *
 	 * @ticket 66706
@@ -2431,27 +1989,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Creates a published post of the administrator and moves it to the Trash.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return int The post ID.
-	 */
-	private function create_trashed_post(): int {
-		$post_id = self::factory()->post->create(
-			array(
-				'post_author' => self::$user_ids['administrator'],
-				'post_status' => 'publish',
-			)
-		);
-		wp_trash_post( $post_id );
-
-		$this->assertSame( 'trash', get_post_status( $post_id ), 'Precondition: the post should be in the Trash.' );
-
-		return $post_id;
-	}
-
-	/**
 	 * Returns internal statuses that a post can be stored in.
 	 *
 	 * @return array<string, array{0: string}> The statuses.
@@ -2475,7 +2012,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	public function test_direct_call_rejects_an_internal_status_the_post_already_has( string $status ): void {
 		if ( 'trash' === $status ) {
-			$post_id = $this->create_trashed_post();
+			$post_id = self::$post_ids['administrator:trash_publish'];
 		} else {
 			$post_id = self::factory()->post->create(
 				array(
@@ -2583,6 +2120,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$result = $execute( $input );
 
 		$this->assert_error( $result, 'content_invalid_attribute', 400, 'A direct call without usable data' );
+		$this->assertSame( array( 'data' => 'The data must be an object with at least one attribute to write.' ), $result->get_error_data()['params'] ?? array(), 'The params should hold only the data path, with the reason.' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
@@ -2675,8 +2213,8 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		return array(
 			'published post, date ahead'                => array( 'publish', false, $ahead, 'future' ),
 			'published post, date ahead, stored status' => array( 'publish', true, $ahead, 'future' ),
-			'published post, date in the past'          => array( 'publish', false, $past, 'publish' ),
-			'scheduled post, date in the past'          => array( 'future', false, $past, 'publish' ),
+			'published post, past date'                 => array( 'publish', false, $past, 'publish' ),
+			'scheduled post, past date'                 => array( 'future', false, $past, 'publish' ),
 			'scheduled post, past date, stored status'  => array( 'future', true, $past, 'publish' ),
 			'scheduled post, another date ahead'        => array( 'future', false, $ahead, 'future' ),
 		);
@@ -2725,8 +2263,8 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	public static function data_named_status_changes_on_a_published_or_scheduled_post(): array {
 		return array(
-			'published post to future, date ahead'        => array( 'publish', 'future', '2099-01-15T12:00:00' ),
-			'scheduled post to publish, date in the past' => array( 'future', 'publish', '2021-06-01T12:00:00' ),
+			'published post to future, date ahead' => array( 'publish', 'future', '2099-01-15T12:00:00' ),
+			'scheduled post to publish, past date' => array( 'future', 'publish', '2021-06-01T12:00:00' ),
 		);
 	}
 
@@ -2833,62 +2371,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 
 		$this->assert_error( $publish, 'content_cannot_publish', 403, 'Publishing the granted post' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written for the refused publish.' );
-
-		$this->assertTrue( wp_has_ability( 'core/content-delete' ), 'The core/content-delete ability should be registered.' );
-
-		$delete = wp_get_ability( 'core/content-delete' )->execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'id'   => $post_id,
-				),
-			)
-		);
-
-		$this->assert_refused( $delete, 'Deleting the granted post' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written for the refused delete.' );
-	}
-
-	/**
-	 * Sets the front page, the posts page and the privacy policy page of the site, and returns
-	 * their IDs.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @return array<string, int> The page IDs, keyed by fixture name.
-	 */
-	private function set_special_pages(): array {
-		$pages = array();
-		foreach ( array( 'front_page', 'posts_page', 'privacy_page' ) as $page ) {
-			$pages[ $page ] = self::factory()->post->create(
-				array(
-					'post_author' => self::$user_ids['administrator'],
-					'post_type'   => 'page',
-					'post_status' => 'publish',
-				)
-			);
-		}
-
-		update_option( 'show_on_front', 'page' );
-		update_option( 'page_on_front', $pages['front_page'] );
-		update_option( 'page_for_posts', $pages['posts_page'] );
-		update_option( 'wp_page_for_privacy_policy', $pages['privacy_page'] );
-
-		return $pages;
-	}
-
-	/**
-	 * Returns the special pages, and whether an editor may update them.
-	 *
-	 * @return array<string, array{0: string, 1: bool}> The pages, as fixture names, and whether
-	 *                                                  the update is allowed.
-	 */
-	public static function data_special_pages(): array {
-		return array(
-			'front page'          => array( 'front_page', true ),
-			'posts page'          => array( 'posts_page', true ),
-			'privacy policy page' => array( 'privacy_page', false ),
-		);
 	}
 
 	/**
@@ -2899,11 +2381,11 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 * @dataProvider data_special_pages
 	 * @since 7.3.0
 	 *
-	 * @param string $page    The page, as a fixture name.
-	 * @param bool   $allowed Whether the update is allowed.
+	 * @param string $page The page, as a fixture name.
 	 */
-	public function test_editor_may_update_a_special_page_other_than_the_privacy_policy_page( string $page, bool $allowed ): void {
-		$post_id = $this->set_special_pages()[ $page ];
+	public function test_editor_may_update_a_special_page_other_than_the_privacy_policy_page( string $page ): void {
+		$this->set_special_pages();
+		$post_id = self::$post_ids[ $page ];
 
 		$this->login_as( 'editor' );
 		$this->register_abilities();
@@ -2911,7 +2393,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->update_post( $post_id, array( 'title' => 'Special page' ) );
 
-		if ( ! $allowed ) {
+		if ( 'privacy_page' === $page ) {
 			$this->assert_refused( $result, 'An editor updating the privacy policy page' );
 			$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 			return;
@@ -3093,9 +2575,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$this->assert_updated( $result, $post_id );
 		$this->assertTrue( current_user_can( 'read_post', $post_id ), 'The user should still be able to read the post.' );
 
-		ksort( $result );
-
-		$this->assertSame(
+		$this->assertSameSetsWithIndex(
 			array(
 				'id'     => $post_id,
 				'status' => 'draft',

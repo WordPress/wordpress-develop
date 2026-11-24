@@ -40,6 +40,33 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	protected const MISSING_ID = 987654321;
 
 	/**
+	 * A GMT date that stays in the future.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	protected const FUTURE_GMT = '2099-06-01T12:00:00';
+
+	/**
+	 * The label of the ability under test, set by each test class.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	protected const LABEL = '';
+
+	/**
+	 * The annotations of the ability under test, set by each test class.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var array<string, bool>
+	 */
+	protected const ANNOTATIONS = array();
+
+	/**
 	 * The roles of the matrix tests.
 	 *
 	 * @since 7.3.0
@@ -87,8 +114,8 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 
 	/**
 	 * Creates the users and posts shared by the tests that write an existing post: a user per
-	 * role and an `other` editor, one post per owner and matrix status, and the posts that
-	 * data_posts_that_are_not_posts() names.
+	 * role and an `other` editor, one post per owner and matrix status, the posts that
+	 * data_posts_that_are_not_posts() names, and the pages that data_special_pages() names.
 	 *
 	 * @since 7.3.0
 	 *
@@ -128,13 +155,16 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 			)
 		);
 
-		self::$post_ids['admin_page'] = $factory->post->create(
-			array(
-				'post_author' => self::$user_ids['administrator'],
-				'post_type'   => 'page',
-				'post_status' => 'publish',
-			)
-		);
+		// A plain page, and the pages that set_special_pages() makes special.
+		foreach ( array( 'admin_page', 'front_page', 'posts_page', 'privacy_page' ) as $page ) {
+			self::$post_ids[ $page ] = $factory->post->create(
+				array(
+					'post_author' => self::$user_ids['administrator'],
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+				)
+			);
+		}
 
 		self::$post_ids['attachment'] = $factory->attachment->create_object(
 			'image.jpg',
@@ -334,17 +364,9 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 			)
 		);
 		register_post_status(
-			'cw_protected',
-			array(
-				'label'     => 'Protected',
-				'protected' => true,
-			)
-		);
-		register_post_status(
 			'cw_hidden',
 			array(
 				'label'     => 'Hidden',
-				'public'    => false,
 				'protected' => true,
 			)
 		);
@@ -579,6 +601,24 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 			'list'               => array( array( 1 ) ),
 			'empty string'       => array( '' ),
 		);
+	}
+
+	/**
+	 * The ability is registered in the content category with its label and annotations.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_registers_the_ability(): void {
+		$this->register_abilities();
+
+		$ability = wp_get_ability( static::ABILITY );
+
+		$this->assertInstanceOf( WP_Ability::class, $ability, 'The ability should be registered.' );
+		$this->assertSame( static::LABEL, $ability->get_label(), 'The ability should have its label.' );
+		$this->assertSame( 'content', $ability->get_category(), 'The ability should use the content category.' );
+		$this->assertTrue( $ability->get_meta_item( 'public', false ), 'The ability should be marked public.' );
+		$this->assertSameSetsWithIndex( static::ANNOTATIONS, $ability->get_meta_item( 'annotations', array() ), 'The ability should have its annotations.' );
 	}
 
 	/**
