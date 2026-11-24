@@ -325,6 +325,10 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 									'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
 									'type'        => array( 'boolean', 'null' ),
 								),
+								'open_world'  => array(
+									'description' => __( 'Whether the ability may interact with public or open-ended entities.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
 							),
 							'additionalProperties' => true,
 						),
@@ -398,6 +402,10 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 							),
 							'idempotent'  => array(
 								'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+							'open_world'  => array(
+								'description' => __( 'Whether the ability may interact with public or open-ended entities.' ),
 								'type'        => array( 'boolean', 'null' ),
 							),
 						),

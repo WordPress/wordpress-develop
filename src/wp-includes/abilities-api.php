@@ -341,6 +341,8 @@ declare( strict_types = 1 );
  *                                          If false, the ability performs only additive updates.
  *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
  *                                          will have no additional effect on its environment.
+ *             @type bool|null $open_world  Optional. If true, the ability may interact with public or open-ended entities.
+ *                                          If false, the ability stays within a bounded environment. If null, it is not declared.
  *         }
  *         @type bool                     $public       Optional. Whether the ability is meant to be available to
  *                                                      clients such as the REST API, MCP, or AI agents. Seeds

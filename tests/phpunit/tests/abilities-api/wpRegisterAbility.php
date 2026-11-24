@@ -185,6 +185,7 @@ class Tests_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			self::$test_ability_args['meta']['annotations'],
 			array(
 				'idempotent' => null,
+				'open_world' => null,
 			)
 		);
 		$expected_meta        = array_merge(

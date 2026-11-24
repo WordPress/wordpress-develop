@@ -110,6 +110,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				self::$test_ability_properties['meta']['annotations'],
 				array(
 					'idempotent' => null,
+					'open_world' => null,
 				)
 			),
 			$ability->get_meta_item( 'annotations' )
@@ -132,6 +133,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				'readonly'    => null,
 				'destructive' => null,
 				'idempotent'  => null,
+				'open_world'  => null,
 			),
 			$ability->get_meta_item( 'annotations' )
 		);
@@ -147,6 +149,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			'readonly'    => true,
 			'destructive' => false,
 			'idempotent'  => false,
+			'open_world'  => true,
 		);
 		$args        = array_merge(
 			self::$test_ability_properties,
@@ -160,6 +163,40 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 
 		$this->assertSame( $annotations, $ability->get_meta_item( 'annotations' ) );
+	}
+
+	/**
+	 * Tests that the `open_world` annotation preserves explicit values and stays unspecified otherwise.
+	 *
+	 * @ticket 66799
+	 *
+	 * @dataProvider data_open_world_annotation
+	 *
+	 * @param array     $annotations Annotations passed at registration.
+	 * @param bool|null $expected    Expected `open_world` value.
+	 */
+	public function test_open_world_annotation( array $annotations, $expected ) {
+		$args                 = self::$test_ability_properties;
+		$args['meta']         = array( 'annotations' => $annotations );
+		$ability              = new WP_Ability( self::$test_ability_name, $args );
+		$resolved_annotations = $ability->get_meta_item( 'annotations' );
+
+		$this->assertArrayHasKey( 'open_world', $resolved_annotations, 'The annotation should always be present.' );
+		$this->assertSame( $expected, $resolved_annotations['open_world'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: array, 1: bool|null}>
+	 */
+	public function data_open_world_annotation(): array {
+		return array(
+			'explicit true'  => array( array( 'open_world' => true ), true ),
+			'explicit false' => array( array( 'open_world' => false ), false ),
+			'explicit null'  => array( array( 'open_world' => null ), null ),
+			'omitted'        => array( array( 'readonly' => true ), null ),
+		);
 	}
 
 	/**
