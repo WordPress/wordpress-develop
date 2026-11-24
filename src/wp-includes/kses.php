@@ -1938,29 +1938,68 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 						}
 
 						if ( $is_special_atomic_element ) {
-							if ( 'TITLE' === $token_name || 'TEXTAREA' === $token_name ) {
-								/*
-								 * RCDATA nodes can be safely escaped, but this must be
-								 * done after enqueuing the update to avoid double-escaping.
-								 */
-								$tag_maker->set_modifiable_text( $text );
-								$tag_maker->lexical_updates['modifiable text']->text = strtr(
-									$tag_maker->lexical_updates['modifiable text']->text,
-									array(
-										"\x00" => "\u{FFFD}",
-										"\r"   => '&#xD;',
-									)
-								);
-							} elseif ( ! self::contains_a_block_delimiter( $text ) ) {
-								// Other nodes not containing a block delimiter are safe.
-								$tag_maker->set_modifiable_text( $text );
-							} else {
-								/*
-								 * But RAWTEXT and SCRIPT cannot be generally escaped, so reject
-								 * updates which would include something that could be misparsed
-								 * as a block comment delimiter.
-								 */
-								$tag_maker->set_modifiable_text( '' );
+							switch ( $token_name ) {
+								case 'IFRAME':
+									/*
+									 * IFRAME contents are ignored, so there is no reason to allow
+									 * them from untrusted inputs.
+									 */
+									$tag_maker->set_modifiable_text( '' );
+									break;
+
+								case 'TEXTAREA':
+								case 'TITLE':
+									/*
+									 * RCDATA nodes can be safely escaped, but this must be
+									 * done after enqueuing the update to avoid double-escaping.
+									 */
+									$tag_maker->set_modifiable_text( $text );
+									$tag_maker->lexical_updates['modifiable text']->text = strtr(
+										$tag_maker->lexical_updates['modifiable text']->text,
+										array(
+											"\x00" => "\u{FFFD}",
+											"\r"   => '&#xD;',
+										)
+									);
+									break;
+
+								case 'NOEMBED':
+								case 'NOFRAMES':
+								case 'XMP':
+									/*
+									 * These elements are obsolete and their contents are not
+									 * unescaped; therefore make a visual change to prevent
+									 * downstream parsers from interpreting content as markup.
+									 * The alternative is rejecting the elements entirely, which
+									 * is the default behavior unless they are specifically allowed.
+									 *
+									 * Replacing angle brackets with U+27E8 and U+27E9 is a practical
+									 * content degradation that will mostly preserve the contents
+									 * perceptually while retaining as much as is safely possible.
+									 */
+									$text = strtr(
+										$text,
+										array(
+											'<' => '⟨',
+											'>' => '⟩',
+										)
+									);
+									$tag_maker->set_modifiable_text( $text );
+									break;
+
+								default:
+									if ( self::contains_a_block_delimiter( $text ) ) {
+										/*
+										 * Reject special atomic elements whose contents contain the syntax
+										 * for a block comment delimiter to prevent accidental parses. There
+										 * is no reliable way to escape their content, so rejecting it is a
+										 * more fitting approach for untrusted inputs.
+										 */
+										$tag_maker->set_modifiable_text( '' );
+									} else {
+										// Otherwise consider the contents safe to pass through.
+										$tag_maker->set_modifiable_text( $text );
+									}
 							}
 						}
 
