@@ -10598,7 +10598,8 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to comments of specific parent IDs.",
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "type": "integer",
+                                "minimum": 0
                             },
                             "required": false
                         },
@@ -10722,12 +10723,14 @@ mockedApiResponse.Schema = {
                             "default": 0,
                             "description": "The ID for the parent of the comment.",
                             "type": "integer",
+                            "minimum": 0,
                             "required": false
                         },
                         "post": {
                             "default": 0,
                             "description": "The ID of the associated post object.",
                             "type": "integer",
+                            "minimum": 0,
                             "required": false
                         },
                         "status": {
@@ -10870,11 +10873,13 @@ mockedApiResponse.Schema = {
                         "parent": {
                             "description": "The ID for the parent of the comment.",
                             "type": "integer",
+                            "minimum": 0,
                             "required": false
                         },
                         "post": {
                             "description": "The ID of the associated post object.",
                             "type": "integer",
+                            "minimum": 0,
                             "required": false
                         },
                         "status": {

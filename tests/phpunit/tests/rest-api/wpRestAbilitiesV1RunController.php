@@ -2193,12 +2193,12 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	public function test_input_is_prepared_once_before_permission_check( ?array $input ): void {
 		$calls = new stdClass();
 
-		$calls->validate = 0;
+		$calls->normalize = 0;
 		add_filter(
-			'wp_ability_validate_input',
-			static function ( $is_valid ) use ( $calls ) {
-				++$calls->validate;
-				return $is_valid;
+			'wp_ability_normalize_input',
+			static function ( $value ) use ( $calls ) {
+				++$calls->normalize;
+				return $value;
 			}
 		);
 
@@ -2216,7 +2216,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 					),
 				),
 				'permission_callback' => static function ( $value ) use ( $calls ) {
-					$calls->permission ??= array( $value, $calls->validate );
+					$calls->permission ??= array( $value, $calls->normalize );
 					return true;
 				},
 				'execute_callback'    => static function ( $value ) {
