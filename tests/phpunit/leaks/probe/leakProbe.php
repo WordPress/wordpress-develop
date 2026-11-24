@@ -224,6 +224,13 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 		$this->assertTrue( true );
 	}
 
+	// rules.php drops leak_probe_filtered_*, then keeps leak_probe_filtered_kept.
+	public function test_leaks_filtered_globals() {
+		$GLOBALS['leak_probe_filtered_dropped'] = 'leaked';
+		$GLOBALS['leak_probe_filtered_kept']    = 'leaked';
+		$this->assertTrue( true );
+	}
+
 	public function test_leaks_closure_swap() {
 		$GLOBALS['leak_probe_cb'] = function () {
 			return 'original';

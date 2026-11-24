@@ -11,6 +11,8 @@
  *                                         before any class ran, already differs.
  */
 
+const CHANGES_FOUND = 2;
+
 const USAGE = "Usage: php diff.php run.jsonl\n       php diff.php a.jsonl b.jsonl ClassName\n";
 
 // A dropped cache entry is a miss, which reads the source again: not a leak, e.g. the test framework's flushes.
@@ -67,12 +69,15 @@ function preview( $entry ) {
 	return $entry ? preg_replace( '/\s*\n\s*/', ' ', $entry[1] ) : '(absent)';
 }
 
+// Returns whether it reported anything.
 function report( $title, array $lines ) {
 	if ( ! $lines ) {
-		return;
+		return false;
 	}
 
 	echo "== $title (" . count( $lines ) . " changed)\n" . implode( "\n", $lines ) . "\n\n";
+
+	return true;
 }
 
 // The first class_start and the class ID's.
@@ -105,8 +110,7 @@ if ( 4 === $argc ) {
 	}
 
 	$lines = compare( array_diff_key( $a, $noise ), array_diff_key( $b, $noise ) );
-	report( "{$argv[3]} class_start: {$argv[1]} -> {$argv[2]}, " . count( $noise ) . ' run noise keys ignored', $lines );
-	exit( 0 );
+	exit( report( "{$argv[3]} class_start: {$argv[1]} -> {$argv[2]}, " . count( $noise ) . ' run noise keys ignored', $lines ) ? CHANGES_FOUND : 0 );
 }
 
 if ( 2 !== $argc ) {
@@ -118,10 +122,11 @@ $snaps   = load( $argv[1] );
 $count   = 0;
 $orphans = 0;
 $open    = array();
+$changes = false;
 foreach ( $snaps as $snap ) {
 	++$count;
 	if ( 'class_leaks' === $snap['point'] ) {
-		report( "class {$snap['id']} leaves, unlike the install", compare( $snap['installed'], $snap['state'] ) );
+		$changes = report( "class {$snap['id']} leaves, unlike the install", compare( $snap['installed'], $snap['state'] ) ) || $changes;
 		continue;
 	}
 
@@ -138,8 +143,8 @@ foreach ( $snaps as $snap ) {
 		continue;
 	}
 
-	$where = empty( $snap['child'] ) ? '' : ' (isolated child)';
-	report( "$kind {$snap['id']}$where leaves", compare( $open[ $slot ], $snap['state'] ) );
+	$where   = empty( $snap['child'] ) ? '' : ' (isolated child)';
+	$changes = report( "$kind {$snap['id']}$where leaves", compare( $open[ $slot ], $snap['state'] ) ) || $changes;
 	unset( $open[ $slot ] );
 }
 
@@ -149,3 +154,5 @@ if ( ! $count || $unreadable || $orphans || $open ) {
 	fwrite( STDERR, "Incomplete run: $count snapshots, $unreadable unreadable lines, " . count( $open ) . " starts with no end, $orphans ends with no start.\n" );
 	exit( 1 );
 }
+
+exit( $changes ? CHANGES_FOUND : 0 );

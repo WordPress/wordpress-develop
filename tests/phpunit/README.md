@@ -35,9 +35,9 @@ node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit -c te
 node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/diff.php tests/phpunit/build/leaks/snapshots.jsonl
 ```
 
-The report lists what each test and class leaves behind, i.e. the state that differs before and after it. Cache entries it drops are left out: a miss reads the source again. It exits with 1 if the run did not finish or ran no test. Each run replaces the snapshots file. Snapshots take time and space, e.g. 421 MB for `Tests_Multisite_Site`: run one class or group per-test, not the whole suite.
+The report lists what each test and class leaves behind, i.e. the state that differs before and after it. Cache entries it drops are left out: a miss reads the source again. It exits with 2 if it reports anything, 1 if the run did not finish or ran no test, else 0. Each run replaces the snapshots file. Snapshots take time and space, e.g. 421 MB for `Tests_Multisite_Site`: run one class or group per-test, not the whole suite.
 
-To sweep the whole suite, snapshot only the state that outlives the PHP process (database, files, memcached, stale cached options) at class bounds. `diff.php` then lists each class that leaves that state unlike the install:
+To sweep the whole suite, use the `class` scope: it snapshots at class bounds only, by default only the state that outlives the PHP process (database, files, memcached, stale cached options). `diff.php` then lists each class that leaves that state unlike the install:
 
 ```
 node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_SCOPE=class php ./vendor/bin/phpunit -c tests/phpunit/leaks/multisite.xml
@@ -51,12 +51,24 @@ node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_OUT=/var/www
 node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/diff.php tests/phpunit/build/leaks/alone.jsonl tests/phpunit/build/leaks/sequence.jsonl Tests_Class_Name
 ```
 
-Environment variables:
+`tests/phpunit/leaks/rules.php` sets what is snapshotted: per scope, a list of patterns over the snapshot keys (`area|key`, e.g. `static|WP_Theme_JSON_Resolver::*`; `!` negates, the last match wins), and per test file, rules adding or dropping patterns, each saying why. A file no pattern keeps, e.g. one rule `!*`, is not snapshotted. The listener checks the file before any test runs, and stops on an unknown area, a rule missing its reason, or a path matching no file.
 
+The leak configurations pass the listener its settings: `rules`, the rules file from the repo root, and `scope`, `test` or `class`. Environment variables win over them when set:
+
+* `WP_TESTS_LEAKS_RULES`: rules file.
+* `WP_TESTS_LEAKS_SCOPE`: `test` or `class`.
+* `WP_TESTS_LEAKS_AREAS`: comma-separated patterns replacing the scope's defaults in the rules file; its per-file rules still apply. Takes shorthands: `all`, `persistent`, `db`, `cache`, `globals`, `statics`, `runtime`, `files`, e.g. `statics,globals` or `cache,!stale`.
 * `WP_TESTS_LEAKS_OUT`: snapshots file, default `tests/phpunit/build/leaks/snapshots.jsonl`.
-* `WP_TESTS_LEAKS_SCOPE`: `class` for the whole-suite sweep.
 
-The `leak-probe` test suite leaks one kind of state per test, to check the listener sees each. `check-probes.php` exits with 1 if the report misses one, or lists state it must not, e.g. state that dies with an isolated child. It reads the run's setup (multisite, PHP version, persistent object cache, scope) from the snapshots file:
+To check the test classes a branch adds or changes:
+
+```
+classes=$(git diff --name-only --diff-filter=AM trunk...HEAD -- 'tests/phpunit/tests/*.php' | xargs grep -ho '^class [A-Za-z0-9_]*' | cut -d' ' -f2 | paste -sd'|' -)
+node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --filter "/^($classes)::/"
+node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/diff.php tests/phpunit/build/leaks/snapshots.jsonl
+```
+
+The `leak-probe` test suite leaks one kind of state per test, to check the listener sees each, and that the probe rules in `rules.php` drop and skip what they say. `check-probes.php` exits with 1 if the report misses one, or lists state it must not, e.g. state that dies with an isolated child. It reads the run's setup (multisite, PHP version, persistent object cache, scope) from the snapshots file:
 
 ```
 node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --testsuite leak-probe

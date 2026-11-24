@@ -45,6 +45,16 @@
 	</groups>
 	<listeners>
 		<listener class="WP_PHPUnit_Default_Group_Filter" />
-		<listener class="WP_PHPUnit_Leak_Listener" />
+		<!-- Env vars win when set: WP_TESTS_LEAKS_RULES, WP_TESTS_LEAKS_SCOPE. -->
+		<listener class="WP_PHPUnit_Leak_Listener">
+			<arguments>
+				<array>
+					<!-- What to snapshot, from the repo root. -->
+					<element key="rules"><string>tests/phpunit/leaks/rules.php</string></element>
+					<!-- test: each test and class; class: class bounds, against the install. -->
+					<element key="scope"><string>test</string></element>
+				</array>
+			</arguments>
+		</listener>
 	</listeners>
 </phpunit>

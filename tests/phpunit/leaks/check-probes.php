@@ -35,6 +35,7 @@ const PER_TEST = array(
 	'test Tests_Leak_Probe::test_leaks_deep_global_change' => array( '/^global\|leak_probe_deep\|l1$/' ),
 	'test Tests_Leak_Probe::test_leaks_big_array_key'      => array( '/^global\|leak_probe_big\|2500$/' ),
 	'test Tests_Leak_Probe::test_leaks_type_only_change'   => array( '/^global\|leak_probe_int$/' ),
+	'test Tests_Leak_Probe::test_leaks_filtered_globals'   => array( '/^global\|leak_probe_filtered_kept$/' ),
 	'test Tests_Leak_Probe::test_leaks_closure_swap'       => array( '/^global\|leak_probe_cb$/' ),
 	'test Tests_Leak_Probe::test_leaks_wpdb_and_server'    => array( '/^global\|_SERVER\|LEAK_PROBE$/', '/^global\|wpdb\|show_errors$/' ),
 	'test Tests_Leak_Probe::test_leaks_process_state'      => array( '/^env\|LEAK_PROBE$/', '/^ini\|precision$/', '/^ini\|error_reporting$/', '/^proc\|autoloaders$/', '/^proc\|error_handler$/', '/^proc\|error_reporting$/', '/^proc\|exception_handler$/', '/^proc\|libxml_errors$/', '/^proc\|locale$/', '/^proc\|mb_encoding$/', '/^proc\|timezone$/', '/^proc\|umask$/' ),
@@ -47,7 +48,8 @@ const PER_TEST = array(
 );
 
 const CLASS_SCOPE = array(
-	'class Tests_Leak_Probe'               => array( '/^db\|\w+links\|\d+$/', '/^schema\|\w+options$/', OTHER_SITE_ROW ),
+	// The global: rules.php adds it to the class scope's areas for the file.
+	'class Tests_Leak_Probe'               => array( '/^db\|\w+links\|\d+$/', '/^schema\|\w+options$/', OTHER_SITE_ROW, '/^global\|leak_probe_filtered_kept$/' ),
 	'class Tests_Leak_Probe_Class_Fixture' => array( '/^stale\|runtime\|1\|options\|leak_probe_class_cached_only$/', '/^mc\|.*leak_probe:after_class$/', '/^stale\|memcached\|1\|options\|leak_probe_class_cached_only$/' ),
 );
 
@@ -95,10 +97,20 @@ const CHILD_SUFFIX = ' (isolated child)';
 
 // Report title => pattern no reported key may match: the class plants no cache leak, and its flushes drop the install's entries.
 const UNEXPECTED = array(
-	'class Tests_Leak_Probe' => '/^(cache|mc)\|/',
+	'class Tests_Leak_Probe'                             => '/^(cache|mc)\|/',
 	// Gone with the connection the test replaced.
 	'test Tests_Leak_Probe::test_reconnect_drops_temp_table' => '/^temptable\|\w+leak_probe_gone$/',
+	// Dropped by a rules.php pattern.
+	'test Tests_Leak_Probe::test_leaks_filtered_globals' => '/^global\|leak_probe_filtered_dropped$/',
 );
+
+// rules.php skips its file: no snapshot line names it, and no report blames its leak on another.
+const SKIPPED_CLASS = 'Tests_Leak_Probe_Skipped';
+
+const SKIPPED_LEAK = '/leak_probe_skipped/';
+
+// diff.php exits with 2 when it reports a leak, as every probe run must.
+const DIFF_LEAKS = 2;
 
 // Report header and changed key lines, see report() in diff.php.
 const HEADER = '/^== (.+) leaves(?:, unlike the install)? \(\d+ changed\)$/';
@@ -126,14 +138,34 @@ function setup( $file ) {
 	return $snap['setup'];
 }
 
+// Whether any snapshot line's id starts with the class name.
+function snapshotted( $file, $class_name ) {
+	$handle = fopen( $file, 'r' );
+	if ( false === $handle ) {
+		fwrite( STDERR, "Cannot read $file\n" );
+		exit( 1 );
+	}
+
+	$needle = '"id":"' . $class_name;
+	$found  = false;
+	$line   = fgets( $handle );
+	while ( false !== $line && ! $found ) {
+		$found = false !== strpos( $line, $needle );
+		$line  = fgets( $handle );
+	}
+	fclose( $handle );
+
+	return $found;
+}
+
 if ( 2 !== $argc ) {
 	fwrite( STDERR, "Usage: php check-probes.php run.jsonl\n" );
 	exit( 1 );
 }
 
 exec( escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/diff.php' ) . ' ' . escapeshellarg( $argv[1] ), $output, $code );
-if ( 0 !== $code ) {
-	fwrite( STDERR, "diff.php failed with $code.\n" );
+if ( DIFF_LEAKS !== $code ) {
+	fwrite( STDERR, "diff.php exited with $code, not " . DIFF_LEAKS . ".\n" );
 	exit( 1 );
 }
 
@@ -197,6 +229,20 @@ foreach ( $reported as $title => $keys ) {
 	foreach ( preg_grep( CHILD_AREAS, $keys, PREG_GREP_INVERT ) as $key ) {
 		$missed[] = "$title: unexpected $key";
 	}
+}
+
+foreach ( $reported as $title => $keys ) {
+	if ( false !== strpos( $title, SKIPPED_CLASS ) ) {
+		$missed[] = "$title: reported, but rules.php skips its file";
+	}
+
+	foreach ( preg_grep( SKIPPED_LEAK, $keys ) as $key ) {
+		$missed[] = "$title: unexpected $key";
+	}
+}
+
+if ( snapshotted( $argv[1], SKIPPED_CLASS ) ) {
+	$missed[] = SKIPPED_CLASS . ': snapshotted, but rules.php skips its file';
 }
 
 if ( $missed ) {

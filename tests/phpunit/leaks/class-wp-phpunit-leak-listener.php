@@ -11,10 +11,13 @@
  * Each snapshot is a flat map "area|key" => [hash, preview], appended as one JSON line
  * to WP_TESTS_LEAKS_OUT. diff.php compares snapshots.
  *
- * WP_TESTS_LEAKS_SCOPE=class sweeps a whole suite cheaply: persistent areas only, at class
- * bounds only, and writes one "class_leaks" line per class that changes them and leaves
- * them unlike the install. That is what the next class, and every isolated child, inherits.
+ * Scope "class" sweeps a whole suite cheaply: snapshots at class bounds only, and one
+ * "class_leaks" line per class that changes state and leaves it unlike the install.
  * A leak is reported once, by the first class leaving it; later ones start with it.
+ *
+ * Settings: the listener's <arguments> "rules" and "scope", or the WP_TESTS_LEAKS_RULES and
+ * WP_TESTS_LEAKS_SCOPE env vars, which win when set. The rules file picks the keys snapshotted
+ * per scope and test file, see rules.php. WP_TESTS_LEAKS_AREAS replaces its scope's defaults.
  *
  * Areas:
  *   db|table|pk           row, keyed by a unique key (e.g. option_name) or the primary key
@@ -61,6 +64,44 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	private const SCOPE_CLASS = 'class';
 
+	private const SCOPE_TEST = 'test';
+
+	private const SETTINGS = array( 'rules', 'scope' );
+
+	private const RULES = 'tests/phpunit/leaks/rules.php';
+
+	private const RULE_KEYS = array( 'why', 'paths', 'areas' );
+
+	// Snapshot method => the areas it reads.
+	private const COLLECTORS = array(
+		'db'          => array( 'db', 'dbcount', 'autoinc', 'schema', 'temptable' ),
+		'cache'       => array( 'cache', 'stale' ),
+		'memcached'   => array( 'mc', 'stale' ),
+		'globals'     => array( 'global' ),
+		'statics'     => array( 'static' ),
+		'static_vars' => array( 'fstatic' ),
+		'constants'   => array( 'const' ),
+		'process'     => array( 'ini', 'env', 'proc' ),
+		'files'       => array( 'file' ),
+	);
+
+	// Pattern shorthands, e.g. WP_TESTS_LEAKS_AREAS=statics,globals.
+	private const ALIASES = array(
+		'all'        => array( '*|*' ),
+		'persistent' => array( 'db|*', 'schema|*', 'mc|*', 'file|*', 'stale|*' ),
+		'db'         => array( 'db|*', 'dbcount|*', 'autoinc|*', 'schema|*', 'temptable|*' ),
+		'cache'      => array( 'cache|*', 'mc|*', 'stale|*' ),
+		'globals'    => array( 'global|*' ),
+		'statics'    => array( 'static|*', 'fstatic|*' ),
+		'runtime'    => array( 'const|*', 'ini|*', 'env|*', 'proc|*' ),
+		'files'      => array( 'file|*' ),
+	);
+
+	// Where rule paths are searched for, from the repo root; not fixtures or output.
+	private const TESTS_DIR = 'tests/phpunit';
+
+	private const SKIP_DIRS = array( 'data', 'build' );
+
 	private const JSON_FLAGS = JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR;
 
 	// SHOW CREATE TABLE has the live counter; information_schema caches it.
@@ -74,19 +115,25 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	private const ENV_TEST = 'WP_TESTS_LEAKS_TEST';
 
-	/*
-	 * Areas the next class inherits. Not row counts, they repeat the db rows, nor AUTO_INCREMENT
-	 * counters, which nearly every class's fixtures bump, nor temporary tables: a child's own
-	 * connection can't see them.
-	 */
-	private const PERSISTENT = '/^(db|schema|mc|file|stale)\|/';
-
 	// Those an isolated child leaves its parent and later runs: not the in-process caches' stale|runtime and stale|local.
 	private const OUTLIVES_PROCESS = '/^(db|schema|mc|file|stale\|memcached)\|/';
+
+	private const CHILD_AREAS = array( 'db', 'schema', 'mc', 'file', 'stale' );
 
 	private $out;
 
 	private $scope;
+
+	private $rules_file;
+
+	// The scope's default patterns, each [negated, glob, whole area].
+	private $patterns = array();
+
+	// Each [path globs, patterns].
+	private $file_rules = array();
+
+	// Test file => plan, see plan().
+	private $plans = array();
 
 	private $child = false;
 
@@ -113,38 +160,275 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	// DB rows read by the stale checks, reset per snapshot.
 	private $rows = array();
 
-	public function __construct() {
+	/**
+	 * @param array $settings The listener's <arguments>: "rules" (path from the repo root) and "scope" ("test" or "class").
+	 */
+	public function __construct( array $settings = array() ) {
+		$unknown = array_diff( array_keys( $settings ), self::SETTINGS );
+		if ( $unknown ) {
+			$this->fail( 'Unknown settings: ' . implode( ', ', $unknown ) . '.' );
+		}
+
 		// Set and truncated by bootstrap.php.
 		$this->out   = getenv( 'WP_TESTS_LEAKS_OUT' );
-		$this->scope = getenv( 'WP_TESTS_LEAKS_SCOPE' );
+		$this->scope = $this->setting( 'SCOPE', $settings['scope'] ?? self::SCOPE_TEST );
 
-		if ( $this->scope && self::SCOPE_CLASS !== $this->scope ) {
-			$this->fail( 'WP_TESTS_LEAKS_SCOPE must be "' . self::SCOPE_CLASS . '" or unset.' );
+		if ( ! in_array( $this->scope, array( self::SCOPE_TEST, self::SCOPE_CLASS ), true ) ) {
+			$this->fail( 'The scope must be "' . self::SCOPE_TEST . '" or "' . self::SCOPE_CLASS . "\", not \"$this->scope\"." );
 		}
+
+		$this->rules_file = $this->absolute( $this->setting( 'RULES', $settings['rules'] ?? self::RULES ) );
+		$this->load_rules();
+
+		// An isolated child inherits the environment, not the listener's arguments.
+		putenv( self::ENV_PREFIX . "SCOPE=$this->scope" );
+		putenv( self::ENV_PREFIX . "RULES=$this->rules_file" );
 
 		// Last, so it sees the CREATE TEMPORARY TABLE rewritten by the test case's own filter.
 		add_filter( 'query', array( $this, 'track_temp_tables' ), PHP_INT_MAX );
+	}
+
+	// The env var if set and not empty, else the default.
+	private function setting( $name, $fallback ) {
+		$value = getenv( self::ENV_PREFIX . $name );
+
+		return false === $value || '' === $value ? $fallback : $value;
+	}
+
+	private function absolute( $path ) {
+		return str_starts_with( $path, '/' ) ? $path : $this->root() . "/$path";
+	}
+
+	private function root() {
+		return dirname( __DIR__, 3 );
+	}
+
+	private function load_rules() {
+		if ( ! is_file( $this->rules_file ) ) {
+			$this->fail( "No rules file at $this->rules_file." );
+		}
+
+		$rules  = require $this->rules_file;
+		$source = $this->rules_file;
+		if ( ! is_array( $rules ) || ! isset( $rules['areas'][ $this->scope ] ) || array_diff( array_keys( $rules ), array( 'areas', 'files' ) ) ) {
+			$this->fail( "$source must return an array with 'areas' per scope and, optionally, 'files'." );
+		}
+
+		$env            = $this->setting( 'AREAS', '' );
+		$this->patterns = '' === $env
+			? $this->patterns( $rules['areas'][ $this->scope ], "$source areas $this->scope" )
+			: $this->patterns( explode( ',', $env ), self::ENV_PREFIX . 'AREAS' );
+
+		foreach ( $rules['files'] ?? array() as $i => $rule ) {
+			$where = "$source files $i";
+			if ( ! is_array( $rule ) || array_diff( array_keys( $rule ), self::RULE_KEYS ) || array_diff( self::RULE_KEYS, array_keys( $rule ) ) ) {
+				$this->fail( "$where: needs exactly 'why', 'paths' and 'areas'." );
+			}
+
+			if ( ! is_string( $rule['why'] ) || '' === trim( $rule['why'] ) ) {
+				$this->fail( "$where: 'why' must say why the rule exists." );
+			}
+
+			if ( ! is_array( $rule['paths'] ) || ! $rule['paths'] || array_filter( $rule['paths'], 'is_string' ) !== $rule['paths'] ) {
+				$this->fail( "$where: 'paths' must be a list of globs." );
+			}
+
+			$this->file_rules[] = array( $rule['paths'], $this->patterns( $rule['areas'], $where ) );
+		}
+	}
+
+	// Entries to [negated, glob, whole area]: aliases expanded, a bare area name as "area|*".
+	private function patterns( $entries, $where ) {
+		if ( ! is_array( $entries ) || ! $entries ) {
+			$this->fail( "$where: needs a list of patterns." );
+		}
+
+		$patterns = array();
+		foreach ( $entries as $entry ) {
+			$entry = is_string( $entry ) ? trim( $entry ) : '';
+			if ( '' === $entry || '!' === $entry ) {
+				$this->fail( "$where: empty or non-string pattern." );
+			}
+
+			$negated = '!' === $entry[0];
+			$name    = $negated ? substr( $entry, 1 ) : $entry;
+			$globs   = self::ALIASES[ $name ] ?? array( str_contains( $name, '|' ) ? $name : "$name|*" );
+
+			foreach ( $globs as $glob ) {
+				list( $area, $key ) = explode( '|', $glob, 2 );
+				if ( ! $this->areas_matching( $area ) ) {
+					$this->fail( "$where: \"$entry\" matches no area: " . implode( ', ', $this->areas() ) . '.' );
+				}
+
+				$patterns[] = array( $negated, $glob, '*' === $key );
+			}
+		}
+
+		return $patterns;
+	}
+
+	private function areas() {
+		return array_values( array_unique( array_merge( ...array_values( self::COLLECTORS ) ) ) );
+	}
+
+	private function areas_matching( $glob ) {
+		return array_filter(
+			$this->areas(),
+			static function ( $area ) use ( $glob ) {
+				return fnmatch( $glob, $area, FNM_NOESCAPE );
+			}
+		);
+	}
+
+	// A rule whose paths match no test file was left behind by a rename or removal.
+	private function check_paths() {
+		$files = array();
+		$dir   = new RecursiveDirectoryIterator( $this->root() . '/' . self::TESTS_DIR, FilesystemIterator::SKIP_DOTS );
+		$skip  = new RecursiveCallbackFilterIterator(
+			$dir,
+			static function ( $file ) {
+				return ! $file->isDir() || ! in_array( $file->getFilename(), self::SKIP_DIRS, true );
+			}
+		);
+		foreach ( new RecursiveIteratorIterator( $skip ) as $path => $file ) {
+			$files[] = $this->relative( $path );
+		}
+
+		foreach ( $this->file_rules as $i => $rule ) {
+			foreach ( $rule[0] as $glob ) {
+				$matched = array_filter(
+					$files,
+					function ( $file ) use ( $glob ) {
+						return $this->globbed( array( $glob ), $file );
+					}
+				);
+				if ( ! $matched ) {
+					$this->fail( "$this->rules_file files $i: \"$glob\" matches no file under " . self::TESTS_DIR . '.' );
+				}
+			}
+		}
+	}
+
+	private function relative( $path ) {
+		return substr( $path, strlen( $this->root() ) + 1 );
+	}
+
+	/*
+	 * The test file's patterns, the defaults then each matching rule's, as area => true to keep
+	 * all its keys, or its patterns, last first. Areas no pattern keeps are left out.
+	 */
+	private function plan( $class_name ) {
+		$file = class_exists( $class_name, false ) ? (string) ( new ReflectionClass( $class_name ) )->getFileName() : '';
+		if ( isset( $this->plans[ $file ] ) ) {
+			return $this->plans[ $file ];
+		}
+
+		$patterns = $this->patterns;
+		foreach ( $this->file_rules as $rule ) {
+			if ( '' !== $file && $this->globbed( $rule[0], $this->relative( $file ) ) ) {
+				$patterns = array_merge( $patterns, $rule[1] );
+			}
+		}
+
+		$this->plans[ $file ] = $this->plan_for( $patterns );
+
+		return $this->plans[ $file ];
+	}
+
+	private function globbed( array $globs, $path ) {
+		foreach ( $globs as $glob ) {
+			if ( fnmatch( $glob, $path, FNM_NOESCAPE ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function plan_for( array $patterns ) {
+		$plan = array();
+		foreach ( $this->areas() as $area ) {
+			$last = array();
+			foreach ( array_reverse( $patterns ) as $pattern ) {
+				if ( ! fnmatch( strstr( $pattern[1], '|', true ), $area, FNM_NOESCAPE ) ) {
+					continue;
+				}
+
+				$last[] = $pattern;
+
+				// Earlier patterns can't change a key it matches.
+				if ( $pattern[2] ) {
+					break;
+				}
+			}
+
+			if ( ! in_array( false, array_column( $last, 0 ), true ) ) {
+				continue;
+			}
+
+			$plan[ $area ] = 1 === count( $last ) && $last[0][2] ? true : $last;
+		}
+
+		return $plan;
+	}
+
+	// The class scope's install snapshot: every key any test file's plan keeps.
+	private function union_plan() {
+		$patterns = $this->patterns;
+		foreach ( $this->file_rules as $rule ) {
+			foreach ( $rule[1] as $pattern ) {
+				if ( ! $pattern[0] ) {
+					$patterns[] = $pattern;
+				}
+			}
+		}
+
+		return $this->plan_for( $patterns );
+	}
+
+	private function filter( array $state, array $plan ) {
+		$kept = array();
+		foreach ( $state as $key => $entry ) {
+			$area = $plan[ strstr( $key, '|', true ) ] ?? null;
+			if ( true === $area || ( $area && $this->kept( $key, $area ) ) ) {
+				$kept[ $key ] = $entry;
+			}
+		}
+
+		return $kept;
+	}
+
+	// The last pattern matching the key decides.
+	private function kept( $key, array $patterns ) {
+		foreach ( $patterns as $pattern ) {
+			if ( fnmatch( $pattern[1], $key, FNM_NOESCAPE ) ) {
+				return ! $pattern[0];
+			}
+		}
+
+		return false;
 	}
 
 	/**
 	 * Snapshots this process-isolated child process, from now to its shutdown.
 	 */
 	public function watch_child() {
-		if ( self::SCOPE_CLASS === $this->scope ) {
+		$id   = getenv( self::ENV_TEST );
+		$plan = array_intersect_key( $this->plan( (string) strstr( $id, '::', true ) ), array_flip( self::CHILD_AREAS ) );
+		if ( self::SCOPE_CLASS === $this->scope || ! $plan ) {
 			return;
 		}
 
 		$this->child = true;
-		$id          = getenv( self::ENV_TEST );
 
-		$this->write( 'test_start', $id );
+		$this->write( 'test_start', $id, $plan );
 		register_shutdown_function(
-			function () use ( $id ) {
+			function () use ( $id, $plan ) {
 				global $wpdb;
 
 				// A child that died mid-test left its transaction open: the snapshot's COMMIT would keep it.
 				$wpdb->query( 'ROLLBACK' );
-				$this->write( 'test_end', $id );
+				$this->write( 'test_end', $id, $plan );
 			}
 		);
 	}
@@ -166,20 +450,32 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	public function start_test_suite( $suite ) {
 		// Marks the run's start and end so diff.php sees a cut run. The start holds the setup check-probes.php reads.
 		if ( 0 === $this->open_suites++ ) {
+			$this->check_paths();
 			$this->mark( 'run_start', array( 'setup' => $this->setup() ) );
 		}
 
-		if ( ! class_exists( $suite->getName(), false ) ) {
+		$class_name = $suite->getName();
+		if ( ! class_exists( $class_name, false ) ) {
+			return;
+		}
+
+		$plan = $this->plan( $class_name );
+		if ( ! $plan ) {
 			return;
 		}
 
 		if ( self::SCOPE_CLASS !== $this->scope ) {
-			$this->write( 'class_start', $suite->getName() );
+			$this->write( 'class_start', $class_name, $plan );
 			return;
 		}
 
-		$this->class_start = $this->state();
-		$this->installed   = $this->installed ?? $this->class_start;
+		if ( null === $this->installed ) {
+			$this->installed   = $this->state( $this->union_plan() );
+			$this->class_start = $this->filter( $this->installed, $plan );
+			return;
+		}
+
+		$this->class_start = $this->state( $plan );
 	}
 
 	public function end_test_suite( $suite ) {
@@ -193,29 +489,35 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	}
 
 	private function end_class( $class_name ) {
-		if ( self::SCOPE_CLASS !== $this->scope ) {
-			$this->write( 'class_end', $class_name );
+		$plan = $this->plan( $class_name );
+		if ( ! $plan ) {
 			return;
 		}
 
-		$this->write_class_leaks( $class_name );
+		if ( self::SCOPE_CLASS !== $this->scope ) {
+			$this->write( 'class_end', $class_name, $plan );
+			return;
+		}
+
+		$this->write_class_leaks( $class_name, $plan );
 	}
 
 	public function start_test( $test ) {
-		if ( self::SCOPE_CLASS === $this->scope ) {
-			return;
-		}
-
 		$name = $this->name( $test );
-		$this->write( 'test_start', $name );
 
 		// An isolated child inherits the environment.
 		putenv( self::ENV_TEST . '=' . $name );
+
+		$plan = $this->plan( get_class( $test ) );
+		if ( self::SCOPE_CLASS !== $this->scope && $plan ) {
+			$this->write( 'test_start', $name, $plan );
+		}
 	}
 
 	public function end_test( $test, $time ) {
-		if ( self::SCOPE_CLASS !== $this->scope ) {
-			$this->write( 'test_end', $this->name( $test ) );
+		$plan = $this->plan( get_class( $test ) );
+		if ( self::SCOPE_CLASS !== $this->scope && $plan ) {
+			$this->write( 'test_end', $this->name( $test ), $plan );
 		}
 	}
 
@@ -223,20 +525,22 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		return $test instanceof PHPUnit\Framework\TestCase ? get_class( $test ) . '::' . $test->getName() : get_class( $test );
 	}
 
-	private function write( $point, $id, ?array $state = null, array $extra = array() ) {
-		$this->append(
-			array(
-				'pid'   => getmypid(),
-				'child' => $this->child,
-				'point' => $point,
-				'id'    => $id,
-				'state' => $state ?? $this->state(),
-			) + $extra
+	private function write( $point, $id, array $plan ) {
+		$this->append( $this->line( $point, $id, $this->state( $plan ) ) );
+	}
+
+	private function line( $point, $id, array $state ) {
+		return array(
+			'pid'   => getmypid(),
+			'child' => $this->child,
+			'point' => $point,
+			'id'    => $id,
+			'state' => $state,
 		);
 	}
 
 	private function mark( $point, array $extra = array() ) {
-		$this->write( $point, '', array(), $extra );
+		$this->append( $this->line( $point, '', array() ) + $extra );
 	}
 
 	private function setup() {
@@ -253,9 +557,9 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	 * ["admin"] at install, ["superadmin"] at class start, [] at class end. The line
 	 * holds the install values as "installed" and the class end ones as "state".
 	 */
-	private function write_class_leaks( $class_name ) {
+	private function write_class_leaks( $class_name, array $plan ) {
 		$start = $this->class_start;
-		$end   = $this->state();
+		$end   = $this->state( $plan );
 
 		$this->class_start = null;
 
@@ -290,8 +594,8 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		);
 	}
 
-	// The snapshot for the scope.
-	private function state() {
+	// The keys the plan keeps, see plan().
+	private function state( array $plan ) {
 		global $wpdb;
 
 		/*
@@ -305,42 +609,27 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 		$this->rows = array();
 
+		// The stale checks in cache() and memcached() read it too: a dropped table would fail their reads.
+		if ( array_intersect_key( $plan, array_flip( array_merge( self::COLLECTORS['db'], self::COLLECTORS['cache'], self::COLLECTORS['memcached'] ) ) ) ) {
+			$this->list_tables();
+		}
+
+		$state = array();
+		foreach ( self::COLLECTORS as $method => $areas ) {
+			if ( array_intersect_key( $plan, array_flip( $areas ) ) ) {
+				$state = array_merge( $state, $this->$method() );
+			}
+		}
+
+		$state = $this->filter( $state, $plan );
 		if ( $this->child ) {
-			$state = $this->persistent( self::OUTLIVES_PROCESS );
-		} elseif ( self::SCOPE_CLASS === $this->scope ) {
-			$state = $this->persistent( self::PERSISTENT );
-		} else {
-			$state = $this->everything();
+			$state = array_intersect_key( $state, array_flip( preg_grep( self::OUTLIVES_PROCESS, array_keys( $state ) ) ) );
 		}
 
 		// Ends the snapshot's read view: its metadata locks would block e.g. a child's DDL.
 		$wpdb->query( 'COMMIT' );
 
 		return $state;
-	}
-
-	private function persistent( $areas ) {
-		return array_filter(
-			array_merge( $this->db(), $this->cache(), $this->memcached(), $this->files() ),
-			static function ( $key ) use ( $areas ) {
-				return preg_match( $areas, $key );
-			},
-			ARRAY_FILTER_USE_KEY
-		);
-	}
-
-	private function everything() {
-		return array_merge(
-			$this->db(),
-			$this->cache(),
-			$this->memcached(),
-			$this->globals(),
-			$this->statics(),
-			$this->static_vars(),
-			$this->constants(),
-			$this->process(),
-			$this->files()
-		);
 	}
 
 	private function append( array $line ) {
@@ -355,10 +644,8 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	}
 
 	// phpcs:disable WordPress.DB.PreparedSQL -- Table and column names come from SHOW TABLES and SHOW COLUMNS.
-	private function db() {
+	private function list_tables() {
 		global $wpdb;
-
-		$state = array();
 
 		/*
 		 * Tests leave autocommit off, so a SELECT a test ran after tear_down()'s ROLLBACK left
@@ -372,10 +659,15 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		$tables = $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $like ) );
 		$this->check_query( 'the tables' );
 
-		// Read before cache() in persistent() and everything().
 		$this->tables = array_flip( $tables );
+	}
 
-		foreach ( $tables as $table ) {
+	private function db() {
+		global $wpdb;
+
+		$state = array();
+
+		foreach ( array_keys( $this->tables ) as $table ) {
 			$create = (string) $wpdb->get_var( "SHOW CREATE TABLE `$table`", 1 );
 			$this->check_query( $table );
 			$schema = preg_replace( self::AUTO_INCREMENT, '', $create );
