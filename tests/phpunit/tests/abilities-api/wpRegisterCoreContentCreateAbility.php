@@ -3,6 +3,7 @@
 declare( strict_types=1 );
 
 require_once __DIR__ . '/testcase-content-write-ability.php';
+require_once __DIR__ . '/trait-content-data-write-tests.php';
 
 /**
  * Tests for the core/content-create ability shipped with the Abilities API.
@@ -12,6 +13,8 @@ require_once __DIR__ . '/testcase-content-write-ability.php';
  * @group abilities-api
  */
 class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilities_Content_Write_UnitTestCase {
+
+	use WP_Abilities_Content_Data_Write_Tests;
 
 	/**
 	 * The name of the ability under test.
@@ -131,11 +134,56 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	private function get_created_post( $result, string $context = 'The create call' ): WP_Post {
 		$this->assertIsArray( $result, "{$context} should succeed." );
 		$this->assertArrayHasKey( 'id', $result, "{$context} should return the created post with its ID." );
+		$this->assertIsInt( $result['id'], "{$context} should return the ID as an integer." );
 
 		$post = get_post( $result['id'] );
 		$this->assertInstanceOf( WP_Post::class, $post, "{$context} should return the ID of a stored post." );
 
 		return $post;
+	}
+
+	/**
+	 * Returns null: the shared tests create a post.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $role The role, as a fixture name.
+	 * @return null No post ID.
+	 */
+	protected function data_write_post_id( string $role ): ?int {
+		return null;
+	}
+
+	/**
+	 * Builds the input that creates a post of type `post` with the given data.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int|null             $post_id Unused: the call creates a post.
+	 * @param array<string, mixed> $data    The data, without the type.
+	 * @param list<string>|null    $fields  Optional. The fields, or null for the default. Default null.
+	 * @return array<string, mixed> The input.
+	 */
+	protected function data_write_input( ?int $post_id, array $data, ?array $fields = null ): array {
+		$input = array( 'data' => array_merge( array( 'type' => 'post' ), $data ) );
+		if ( null !== $fields ) {
+			$input['fields'] = $fields;
+		}
+
+		return $input;
+	}
+
+	/**
+	 * Returns the post a create call returned.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed    $result  The ability result.
+	 * @param int|null $post_id Unused: the call created a post.
+	 * @return WP_Post The created post.
+	 */
+	protected function assert_data_written( $result, ?int $post_id ): WP_Post {
+		return $this->get_created_post( $result );
 	}
 
 	/**
@@ -289,7 +337,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$post = $this->get_created_post( $result );
 
 		$this->assertSameSets( array( 'id', 'type', 'status', 'date', 'slug', 'title' ), array_keys( $result ), 'The default fields should be returned.' );
-		$this->assertSame( $post->ID, $result['id'], 'The ID should be the ID of the new post.' );
 		$this->assertSame( 'post', $result['type'], 'The type should be post.' );
 		$this->assertSame( 'draft', $result['status'], 'The post should be a draft.' );
 		$this->assertSameSets( array( 'site', 'gmt' ), array_keys( $result['date'] ), 'The date should be given in site time and GMT.' );
@@ -337,7 +384,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$post = $this->get_created_post( $result );
 
 		$this->assertSameSets( array( 'id', 'status', 'link', 'title', 'content', 'parent' ), array_keys( $result ), 'The chosen fields should be returned.' );
-		$this->assertSame( $post->ID, $result['id'], 'The ID should be the ID of the new page.' );
 		$this->assertSame( 'publish', $result['status'], 'The page should be published.' );
 		$this->assertSame( home_url( '/products/pricing/' ), $result['link'], 'The link should include the parent.' );
 		$this->assertSame( array( 'rendered' => 'Pricing' ), $result['title'], 'The title should be returned rendered.' );
@@ -814,53 +860,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Returns attribute values that a direct call cannot use: the attribute and the value.
-	 *
-	 * @return array<string, array{0: string, 1: mixed}> The cases.
-	 */
-	public static function data_values_a_direct_call_cannot_use(): array {
-		$cases = array();
-		foreach ( self::data_statuses_that_can_never_be_set() as $label => list( $status ) ) {
-			$cases[ "status: {$label}" ] = array( 'status', $status );
-		}
-		foreach ( self::data_dates_without_a_usable_value() as $label => list( $date ) ) {
-			$cases[ "date: {$label}" ] = array( 'date', $date );
-		}
-
-		return $cases;
-	}
-
-	/**
-	 * Called directly, an internal or unregistered status, an empty date and a date that cannot be
-	 * parsed are invalid attributes.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_values_a_direct_call_cannot_use
-	 * @since 7.3.0
-	 *
-	 * @param string $attribute The attribute.
-	 * @param mixed  $value     The value.
-	 */
-	public function test_direct_call_rejects_a_value_it_cannot_use( string $attribute, $value ): void {
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$before = $this->snapshot();
-		$result = $execute(
-			array(
-				'data' => array(
-					'type'     => 'post',
-					'title'    => 'Unusable value',
-					$attribute => $value,
-				),
-			)
-		);
-
-		$this->assert_invalid_attribute( $result, $attribute, "A direct call with a {$attribute} it cannot use" );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
 	 * A status that is no longer registered when the call runs is an invalid status.
 	 *
 	 * @ticket 66706
@@ -891,52 +890,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			)
 		);
 
-		$this->assert_invalid_attribute( $result, 'status', 'A status that is no longer registered' );
+		$this->assert_invalid_attribute( $result, 'status', 'A status that is no longer registered', 'The status must be a registered post status that is not internal.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Returns dates that change the stored status of a new post: the requested status, the
-	 * requested GMT date and the stored status.
-	 *
-	 * @return array<string, array{0: string, 1: string, 2: string}> The cases.
-	 */
-	public static function data_statuses_reported_as_stored(): array {
-		return array(
-			'publish with a future date' => array( 'publish', self::FUTURE_GMT, 'future' ),
-			'future with a past date'    => array( 'future', '2016-12-12T19:00:00', 'publish' ),
-		);
-	}
-
-	/**
-	 * The regular save rules decide the stored status, and the output reports it.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_statuses_reported_as_stored
-	 * @since 7.3.0
-	 *
-	 * @param string $status   The requested status.
-	 * @param string $gmt      The requested GMT date.
-	 * @param string $expected The stored status.
-	 */
-	public function test_output_reports_the_stored_status( string $status, string $gmt, string $expected ): void {
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$result = $this->run_ability(
-			array(
-				'data'   => array(
-					'type'   => 'post',
-					'title'  => 'Scheduled',
-					'status' => $status,
-					'date'   => array( 'gmt' => $gmt ),
-				),
-				'fields' => array( 'status' ),
-			)
-		);
-
-		$this->assertSame( $expected, $this->get_created_post( $result )->post_status, 'The post should be stored in the expected status.' );
-		$this->assertSame( $expected, $result['status'], 'The output should report the stored status.' );
 	}
 
 	/**
@@ -1023,9 +978,9 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 	/**
 	 * Returns attributes that are invalid for the user or after sanitization: the role, the data,
-	 * the invalid attribute and the expected error message or null.
+	 * the invalid attribute and the expected error message.
 	 *
-	 * @return array<string, array{0: string, 1: array<string, mixed>, 2: string, 3: string|null}> The cases.
+	 * @return array<string, array{0: string, 1: array<string, mixed>, 2: string, 3: string}> The cases.
 	 */
 	public static function data_invalid_attributes(): array {
 		return array(
@@ -1037,7 +992,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 					'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 				),
 				'author',
-				null,
+				'The author must be an existing user of this site.',
 			),
 			'slug that sanitizes to nothing'               => array(
 				'administrator',
@@ -1047,7 +1002,21 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 					'slug'  => '!!!',
 				),
 				'slug',
-				null,
+				'The slug must contain characters that are valid in a slug.',
+			),
+			// Intentionally strict: dates that name different times are an error instead of one of them winning.
+			'site and GMT dates that name different times' => array(
+				'administrator',
+				array(
+					'type'  => 'post',
+					'title' => 'Two dates',
+					'date'  => array(
+						'site' => '2016-12-12T14:00:00',
+						'gmt'  => '2001-01-01T00:00:00',
+					),
+				),
+				'date',
+				'The `site` and `gmt` dates must name the same time.',
 			),
 			// Intentionally strict: the save would drop the slug, so it is an error instead of being dropped without notice.
 			'slug of a pending post without publish_posts' => array(
@@ -1065,8 +1034,9 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A missing author named by a user with `edit_others_posts`, a slug that sanitizes to nothing
-	 * and the slug of a pending post set by a user who may not publish posts are invalid attributes.
+	 * A missing author named by a user with `edit_others_posts`, a slug that sanitizes to nothing,
+	 * site and GMT dates that name different times and the slug of a pending post set by a user
+	 * who may not publish posts are invalid attributes.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_invalid_attributes
@@ -1075,19 +1045,16 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 * @param string               $role      The role to create as.
 	 * @param array<string, mixed> $data      The data.
 	 * @param string               $attribute The invalid attribute.
-	 * @param string|null          $message   The expected error message, or null to check only that there is one.
+	 * @param string               $message   The expected error message.
 	 */
-	public function test_invalid_attribute_is_rejected( string $role, array $data, string $attribute, ?string $message ): void {
+	public function test_invalid_attribute_is_rejected( string $role, array $data, string $attribute, string $message ): void {
 		$this->login_as( $role );
 		$this->register_abilities();
 
 		$before = $this->snapshot();
 		$result = $this->run_ability( array( 'data' => $data ) );
 
-		$this->assert_invalid_attribute( $result, $attribute, "An invalid {$attribute}" );
-		if ( null !== $message ) {
-			$this->assertSame( $message, $result->get_error_message(), 'The message should give the reason.' );
-		}
+		$this->assert_invalid_attribute( $result, $attribute, "An invalid {$attribute}", $message );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -1119,7 +1086,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			)
 		);
 
-		$this->assert_invalid_attribute( $result, 'author', 'An author who is not a member of the site' );
+		$this->assert_invalid_attribute( $result, 'author', 'An author who is not a member of the site', 'The author must be an existing user of this site.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -1318,10 +1285,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$before = $this->snapshot();
 		$result = $this->run_ability( array( 'data' => $data ) );
 
-		$this->assert_invalid_attribute( $result, $attribute, 'An unsupported attribute' );
-		if ( null !== $message ) {
-			$this->assertSame( $message, $result->get_error_message(), 'The message should give the reason.' );
-		}
+		$this->assert_invalid_attribute( $result, $attribute, 'An unsupported attribute', $message );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -1349,33 +1313,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 		$this->assertSame( '', $post->post_title, 'The empty title should be stored.' );
 		$this->assertSame( 'Only content.', $post->post_content, 'The content should be stored.' );
-	}
-
-	/**
-	 * A save error keeps its own code and message, with status 400 when the post is empty.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_empty_post_is_the_save_error(): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$before = $this->snapshot();
-		$result = $this->run_ability(
-			array(
-				'data' => array(
-					'type'    => 'post',
-					'title'   => '',
-					'content' => '',
-					'excerpt' => '',
-				),
-			)
-		);
-
-		$this->assert_error( $result, 'empty_content', 400, 'An empty post' );
-		$this->assertSame( 'Content, title, and excerpt are empty.', $result->get_error_message(), 'The message should be the message of the save error.' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**
@@ -1608,10 +1545,18 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			'GMT without offset'  => array( array( 'gmt' => '2016-12-12T19:00:00' ), '2016-12-12 14:00:00', '2016-12-12 19:00:00' ),
 			'site with an offset' => array( array( 'site' => '2016-12-12T18:00:00-01:00' ), '2016-12-12 14:00:00', '2016-12-12 19:00:00' ),
 			'GMT with an offset'  => array( array( 'gmt' => '2016-12-12T18:00:00-01:00' ), '2016-12-12 14:00:00', '2016-12-12 19:00:00' ),
-			'both, the site wins' => array(
+			'both, the same time' => array(
 				array(
 					'site' => '2016-12-12T14:00:00',
-					'gmt'  => '2001-01-01T00:00:00',
+					'gmt'  => '2016-12-12T19:00:00',
+				),
+				'2016-12-12 14:00:00',
+				'2016-12-12 19:00:00',
+			),
+			'both, with offsets'  => array(
+				array(
+					'site' => '2016-12-12T18:00:00-01:00',
+					'gmt'  => '2016-12-12T20:00:00+01:00',
 				),
 				'2016-12-12 14:00:00',
 				'2016-12-12 19:00:00',
@@ -1821,40 +1766,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		wp_set_current_user( $super_admin );
 
 		$this->assert_markup_is_stored_unchanged();
-	}
-
-	/**
-	 * Quotes, backslashes and non-ASCII text survive a round trip unchanged.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_quotes_backslashes_and_non_ascii_text_survive_a_round_trip(): void {
-		$text = 'He said "it\'s done" \\ C:\\path\\to\\file \\\\server – café, naïve, 日本語, emoji ✓';
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$result = $this->run_ability(
-			array(
-				'data'   => array(
-					'type'    => 'post',
-					'title'   => $text,
-					'content' => $text,
-					'excerpt' => $text,
-				),
-				'fields' => array( 'title.raw', 'content.raw', 'excerpt.raw' ),
-			)
-		);
-
-		$post = $this->get_created_post( $result );
-
-		$this->assertSame( $text, $post->post_title, 'The stored title should be unchanged.' );
-		$this->assertSame( $text, $post->post_content, 'The stored content should be unchanged.' );
-		$this->assertSame( $text, $post->post_excerpt, 'The stored excerpt should be unchanged.' );
-		$this->assertSame( $text, $result['title']['raw'], 'The returned title should be unchanged.' );
-		$this->assertSame( $text, $result['content']['raw'], 'The returned content should be unchanged.' );
-		$this->assertSame( $text, $result['excerpt']['raw'], 'The returned excerpt should be unchanged.' );
 	}
 
 	/**

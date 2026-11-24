@@ -545,70 +545,44 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Delete runs with DELETE and the input in the query string, where the ID is a string.
+	 * Returns `permanent` values as they arrive in a query string, or null when it is not sent,
+	 * and the outcome.
 	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_delete_runs_with_delete_and_the_input_in_the_query_string(): void {
-		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
-
-		$response = $this->server->dispatch(
-			$this->write_request(
-				'DELETE',
-				'core/content-delete',
-				array(
-					'where' => array(
-						'type' => 'post',
-						'id'   => (string) $post_id,
-					),
-				)
-			)
-		);
-
-		$this->assertSame( 200, $response->get_status(), 'The delete request should succeed.' );
-		$this->assertSame( array( 'outcome' => 'trashed' ), $response->get_data(), 'The post should be reported as trashed.' );
-		$this->assertSame( 'trash', get_post_status( $post_id ), 'The post should be in the Trash.' );
-	}
-
-	/**
-	 * Returns `permanent` values as they arrive in a query string, and the outcome.
-	 *
-	 * @return array<string, array{0: string, 1: string}> The cases.
+	 * @return array<string, array{0: string|null, 1: string}> The cases.
 	 */
 	public static function data_permanent_query_string_values(): array {
 		return array(
-			'true'  => array( 'true', 'deleted' ),
-			'false' => array( 'false', 'trashed' ),
+			'not sent' => array( null, 'trashed' ),
+			'true'     => array( 'true', 'deleted' ),
+			'false'    => array( 'false', 'trashed' ),
 		);
 	}
 
 	/**
-	 * `permanent` in the query string is read as a boolean.
+	 * Delete runs with DELETE and the input in the query string, where the ID is a string and
+	 * `permanent` is read as a boolean.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_permanent_query_string_values
 	 * @since 7.3.0
 	 *
-	 * @param string $permanent The value in the query string.
-	 * @param string $outcome   The expected outcome.
+	 * @param string|null $permanent The value in the query string, or null when it is not sent.
+	 * @param string      $outcome   The expected outcome.
 	 */
-	public function test_delete_reads_permanent_from_the_query_string( string $permanent, string $outcome ): void {
+	public function test_delete_reads_permanent_from_the_query_string( ?string $permanent, string $outcome ): void {
 		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
-		$response = $this->server->dispatch(
-			$this->write_request(
-				'DELETE',
-				'core/content-delete',
-				array(
-					'where'     => array(
-						'type' => 'post',
-						'id'   => (string) $post_id,
-					),
-					'permanent' => $permanent,
-				)
-			)
+		$input = array(
+			'where' => array(
+				'type' => 'post',
+				'id'   => (string) $post_id,
+			),
 		);
+		if ( null !== $permanent ) {
+			$input['permanent'] = $permanent;
+		}
+
+		$response = $this->server->dispatch( $this->write_request( 'DELETE', 'core/content-delete', $input ) );
 
 		$this->assertSame( 200, $response->get_status(), 'The delete request should succeed.' );
 		$this->assertSame( array( 'outcome' => $outcome ), $response->get_data(), 'The outcome should follow the permanent value.' );
@@ -623,27 +597,13 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns `permanent` values in a query string that are not booleans.
-	 *
-	 * @return array<string, array{0: string}> The values.
-	 */
-	public static function data_permanent_query_string_values_that_are_not_booleans(): array {
-		return array(
-			'yes' => array( 'yes' ),
-		);
-	}
-
-	/**
 	 * A `permanent` value in the query string that is not a boolean fails input validation, and
 	 * the post is unchanged.
 	 *
 	 * @ticket 66706
-	 * @dataProvider data_permanent_query_string_values_that_are_not_booleans
 	 * @since 7.3.0
-	 *
-	 * @param string $permanent The value in the query string.
 	 */
-	public function test_delete_with_a_permanent_value_that_is_not_a_boolean_returns_400( string $permanent ): void {
+	public function test_delete_with_a_permanent_value_that_is_not_a_boolean_returns_400(): void {
 		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$before   = $this->snapshot( $post_id );
@@ -656,7 +616,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 						'type' => 'post',
 						'id'   => (string) $post_id,
 					),
-					'permanent' => $permanent,
+					'permanent' => 'yes',
 				)
 			)
 		);

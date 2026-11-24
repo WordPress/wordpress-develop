@@ -3597,6 +3597,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'filter' => 'slugs',
 				'role'   => 'administrator',
 			),
+			'slugs, editor'        => array(
+				'filter' => 'slugs',
+				'role'   => 'editor',
+			),
 		);
 	}
 
@@ -6912,8 +6916,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public static function data_roles_that_edit_only_their_own_trashed_posts(): array {
 		return array(
-			'author'      => array( 'role' => 'author_secondary' ),
-			'contributor' => array( 'role' => 'contributor' ),
+			'secondary author' => array( 'role' => 'author_secondary' ),
+			'contributor'      => array( 'role' => 'contributor' ),
 		);
 	}
 

@@ -150,6 +150,22 @@ abstract class WP_Abilities_Content_Existing_Post_UnitTestCase extends WP_Abilit
 	}
 
 	/**
+	 * Builds the `where` that names a post by its type and ID.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int         $post_id The post ID.
+	 * @param string|null $type    Optional. The post type, or null for the type of the post. Default null.
+	 * @return array{type: string|false, id: int} The `where`.
+	 */
+	protected function build_where( int $post_id, ?string $type = null ): array {
+		return array(
+			'type' => $type ?? get_post_type( $post_id ),
+			'id'   => $post_id,
+		);
+	}
+
+	/**
 	 * Builds the input that names a post by its type and ID.
 	 *
 	 * @since 7.3.0
@@ -159,12 +175,7 @@ abstract class WP_Abilities_Content_Existing_Post_UnitTestCase extends WP_Abilit
 	 * @return array<string, mixed> The input.
 	 */
 	protected function build_post_input( int $post_id, ?string $type = null ): array {
-		return $this->build_input(
-			array(
-				'type' => $type ?? get_post_type( $post_id ),
-				'id'   => $post_id,
-			)
-		);
+		return $this->build_input( $this->build_where( $post_id, $type ) );
 	}
 
 	/**

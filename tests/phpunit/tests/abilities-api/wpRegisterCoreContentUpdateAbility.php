@@ -3,6 +3,7 @@
 declare( strict_types=1 );
 
 require_once __DIR__ . '/testcase-content-existing-post-ability.php';
+require_once __DIR__ . '/trait-content-data-write-tests.php';
 
 /**
  * Tests for the core/content-update ability shipped with the Abilities API.
@@ -12,6 +13,8 @@ require_once __DIR__ . '/testcase-content-existing-post-ability.php';
  * @group abilities-api
  */
 class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilities_Content_Existing_Post_UnitTestCase {
+
+	use WP_Abilities_Content_Data_Write_Tests;
 
 	/**
 	 * The name of the ability under test.
@@ -142,10 +145,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	private function update_input( int $post_id, array $data, ?array $fields = null ): array {
 		$input = array(
-			'where' => array(
-				'type' => get_post_type( $post_id ),
-				'id'   => $post_id,
-			),
+			'where' => $this->build_where( $post_id ),
 			'data'  => $data,
 		);
 		if ( null !== $fields ) {
@@ -162,7 +162,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 *
 	 * @param int                  $post_id The post ID.
 	 * @param array<string, mixed> $data    The data.
-	 * @param list<string>|null    $fields  The fields, or null for the default.
+	 * @param list<string>|null    $fields  Optional. The fields, or null for the default. Default null.
 	 * @return mixed The ability result.
 	 */
 	private function update_post( int $post_id, array $data, ?array $fields = null ) {
@@ -185,6 +185,45 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		clean_post_cache( $post_id );
 
 		return get_post( $post_id );
+	}
+
+	/**
+	 * Returns the draft of the role, which the shared tests update.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $role The role, as a fixture name.
+	 * @return int The post ID.
+	 */
+	protected function data_write_post_id( string $role ): ?int {
+		return self::$post_ids[ "{$role}:draft" ];
+	}
+
+	/**
+	 * Builds the input that updates a post with the given data.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int|null             $post_id The post ID.
+	 * @param array<string, mixed> $data    The data.
+	 * @param list<string>|null    $fields  Optional. The fields, or null for the default. Default null.
+	 * @return array<string, mixed> The input.
+	 */
+	protected function data_write_input( ?int $post_id, array $data, ?array $fields = null ): array {
+		return $this->update_input( (int) $post_id, $data, $fields );
+	}
+
+	/**
+	 * Asserts that a result is the post item of a successful update and returns the stored post.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed    $result  The ability result.
+	 * @param int|null $post_id The ID of the updated post.
+	 * @return WP_Post The stored post.
+	 */
+	protected function assert_data_written( $result, ?int $post_id ): WP_Post {
+		return $this->assert_updated( $result, (int) $post_id );
 	}
 
 	/**
@@ -545,29 +584,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Called directly, an internal or unregistered status is an invalid status for a post that
-	 * is not stored in it.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_statuses_that_can_never_be_set
-	 * @since 7.3.0
-	 *
-	 * @param string $status The status.
-	 */
-	public function test_direct_call_rejects_a_status_that_can_never_be_set( string $status ): void {
-		$post_id = self::$post_ids['administrator:publish'];
-
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$before = $this->snapshot( $post_id );
-		$result = $execute( $this->update_input( $post_id, array( 'status' => $status ) ) );
-
-		$this->assert_invalid_attribute( $result, 'status', 'A direct call with a status that can never be set' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
 	 * Returns status changes that a contributor, and an author denied `publish_posts`, may not
 	 * make on their own draft.
 	 *
@@ -674,7 +690,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$post = $this->assert_updated( $result, $post_id );
 
 		$this->assertSame( 'future', $post->post_status, 'The post should be scheduled.' );
-		$this->assertSame( '2099-06-01 12:00:00', $post->post_date_gmt, 'The post should be scheduled for the sent date.' );
+		$this->assertSame( str_replace( 'T', ' ', self::FUTURE_GMT ), $post->post_date_gmt, 'The post should be scheduled for the sent date.' );
 		$this->assertSame( 'future', $result['status'], 'The scheduled status should be returned.' );
 	}
 
@@ -717,48 +733,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 
 		$this->assertSame( $status, $this->assert_updated( $result, $post_id )->post_status, 'The post should be stored in the sent status.' );
 		$this->assertSame( $status, $result['status'], 'The new status should be returned.' );
-	}
-
-	/**
-	 * Returns dates that change the stored status of a post.
-	 *
-	 * @return array<string, array{0: string, 1: string, 2: string}> The cases.
-	 */
-	public static function data_statuses_reported_as_stored(): array {
-		return array(
-			'publish with a future date' => array( 'publish', self::FUTURE_GMT, 'future' ),
-			'future with a past date'    => array( 'future', '2016-12-12T19:00:00', 'publish' ),
-		);
-	}
-
-	/**
-	 * The regular save rules decide the stored status, and the output reports it.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_statuses_reported_as_stored
-	 * @since 7.3.0
-	 *
-	 * @param string $status   The requested status.
-	 * @param string $gmt      The requested GMT date.
-	 * @param string $expected The stored status.
-	 */
-	public function test_output_reports_the_stored_status( string $status, string $gmt, string $expected ): void {
-		$post_id = self::$post_ids['editor:draft'];
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$result = $this->update_post(
-			$post_id,
-			array(
-				'status' => $status,
-				'date'   => array( 'gmt' => $gmt ),
-			),
-			array( 'status' )
-		);
-
-		$this->assertSame( $expected, $this->assert_updated( $result, $post_id )->post_status, 'The post should be stored in the expected status.' );
-		$this->assertSame( $expected, $result['status'], 'The output should report the stored status.' );
 	}
 
 	/**
@@ -852,21 +826,63 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A user with `edit_others_posts` who names a missing user gets the invalid author error.
+	 * Returns attributes that are invalid for the user or after sanitization: the role, the data,
+	 * the invalid attribute and the expected error message. The post is the draft of the role.
+	 *
+	 * @return array<string, array{0: string, 1: array<string, mixed>, 2: string, 3: string}> The cases.
+	 */
+	public static function data_invalid_attributes(): array {
+		return array(
+			'missing author named with edit_others_posts'  => array(
+				'editor',
+				array( 'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
+				'author',
+				'The author must be an existing user of this site.',
+			),
+			'slug that sanitizes to nothing'               => array(
+				'administrator',
+				array( 'slug' => '!!!' ),
+				'slug',
+				'The slug must contain characters that are valid in a slug.',
+			),
+			// Intentionally strict: dates that name different times are an error instead of one of them winning.
+			'site and GMT dates that name different times' => array(
+				'editor',
+				array(
+					'date' => array(
+						'site' => '2017-01-01T10:00:00',
+						'gmt'  => '2001-01-01T00:00:00',
+					),
+				),
+				'date',
+				'The `site` and `gmt` dates must name the same time.',
+			),
+		);
+	}
+
+	/**
+	 * A missing author named by a user with `edit_others_posts`, a slug that sanitizes to nothing
+	 * and site and GMT dates that name different times are invalid attributes.
 	 *
 	 * @ticket 66706
+	 * @dataProvider data_invalid_attributes
 	 * @since 7.3.0
+	 *
+	 * @param string               $role      The role to update as.
+	 * @param array<string, mixed> $data      The `data` input.
+	 * @param string               $attribute The invalid attribute.
+	 * @param string               $message   The expected error message.
 	 */
-	public function test_naming_a_missing_author_with_edit_others_posts_is_an_invalid_author(): void {
-		$post_id = self::$post_ids['editor:draft'];
+	public function test_invalid_attribute_is_rejected( string $role, array $data, string $attribute, string $message ): void {
+		$post_id = self::$post_ids[ "{$role}:draft" ];
 
-		$this->login_as( 'editor' );
+		$this->login_as( $role );
 		$this->register_abilities();
 
 		$before = $this->snapshot( $post_id );
-		$result = $this->update_post( $post_id, array( 'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
+		$result = $this->update_post( $post_id, $data );
 
-		$this->assert_invalid_attribute( $result, 'author', 'A missing author' );
+		$this->assert_invalid_attribute( $result, $attribute, "An invalid {$attribute}", $message );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
@@ -890,7 +906,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->update_post( $post_id, array( 'author' => $non_member ) );
 
-		$this->assert_invalid_attribute( $result, 'author', 'An author who is not a member of the site' );
+		$this->assert_invalid_attribute( $result, 'author', 'An author who is not a member of the site', 'The author must be an existing user of this site.' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
@@ -912,8 +928,8 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A missing parent, a parent of another type, a parent the user may not read and a parent
-	 * that would make a loop give one identical error.
+	 * A missing parent, a parent of another type, a parent the user may not read, a revision and a
+	 * parent that would make a loop give one identical error.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_parents_that_cannot_be_used
@@ -1108,25 +1124,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A slug that sanitizes to nothing is an invalid slug.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_slug_that_sanitizes_to_nothing_is_rejected(): void {
-		$post_id = self::$post_ids['administrator:draft'];
-
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->update_post( $post_id, array( 'slug' => '!!!' ) );
-
-		$this->assert_invalid_attribute( $result, 'slug', 'A slug that sanitizes to nothing' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
 	 * Returns updates that send a slug for a post that is, or becomes, pending.
 	 *
 	 * @return array<string, array{0: string, 1: array<string, string>}> The posts, as fixture names, and the data.
@@ -1166,8 +1163,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->update_post( $post_id, $data );
 
-		$this->assert_invalid_attribute( $result, 'slug', 'A slug on a pending post without publish_posts' );
-		$this->assertSame( 'The slug of a pending post can only be set by a user who can publish the post.', $result->get_error_message(), 'The message should say who may set the slug.' );
+		$this->assert_invalid_attribute( $result, 'slug', 'A slug on a pending post without publish_posts', 'The slug of a pending post can only be set by a user who can publish the post.' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written for a slug that cannot be stored.' );
 	}
 
@@ -1385,10 +1381,10 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 			'site'                => array( array( 'site' => '2017-01-01T10:00:00' ) ),
 			'gmt'                 => array( array( 'gmt' => '2017-01-01T15:00:00' ) ),
 			'site with an offset' => array( array( 'site' => '2017-01-01T16:00:00+01:00' ) ),
-			'both, the site wins' => array(
+			'both, the same time' => array(
 				array(
 					'site' => '2017-01-01T10:00:00',
-					'gmt'  => '2001-01-01T00:00:00',
+					'gmt'  => '2017-01-01T15:00:00',
 				),
 			),
 		);
@@ -1607,39 +1603,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Quotes, backslashes and non-ASCII text survive a round trip unchanged.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_quotes_backslashes_and_non_ascii_text_survive_a_round_trip(): void {
-		$text    = 'He said "it\'s done" \\ C:\\path\\to\\file \\\\server – café, naïve, 日本語, emoji ✓';
-		$post_id = self::$post_ids['editor:draft'];
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$result = $this->update_post(
-			$post_id,
-			array(
-				'title'   => $text,
-				'content' => $text,
-				'excerpt' => $text,
-			),
-			array( 'title.raw', 'content.raw', 'excerpt.raw' )
-		);
-
-		$post = $this->assert_updated( $result, $post_id );
-
-		$this->assertSame( $text, $post->post_title, 'The stored title should be unchanged.' );
-		$this->assertSame( $text, $post->post_content, 'The stored content should be unchanged.' );
-		$this->assertSame( $text, $post->post_excerpt, 'The stored excerpt should be unchanged.' );
-		$this->assertSame( $text, $result['title']['raw'], 'The returned title should be unchanged.' );
-		$this->assertSame( $text, $result['content']['raw'], 'The returned content should be unchanged.' );
-		$this->assertSame( $text, $result['excerpt']['raw'], 'The returned excerpt should be unchanged.' );
-	}
-
-	/**
 	 * Raw fields are left out when the writer can no longer edit the post after the write.
 	 *
 	 * The user may publish posts but not edit published posts.
@@ -1720,14 +1683,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$this->assertFalse( current_user_can( 'list_users' ), 'Precondition: the editor should not be able to list users.' );
 
 		$execute = $this->get_ability_callbacks()['execute_callback'];
-		$input   = array(
-			'where'  => array(
-				'type' => 'post',
-				'id'   => $post_id,
-			),
-			'data'   => array( 'title' => 'Visibility' ),
-			'fields' => array( 'author' ),
-		);
+		$input   = $this->update_input( $post_id, array( 'title' => 'Visibility' ), array( 'author' ) );
 
 		$hidden = $execute( $input );
 
@@ -1755,33 +1711,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A save error keeps its own code and message, with status 400 when the post is empty.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_empty_post_is_the_save_error(): void {
-		$post_id = self::$post_ids['administrator:draft'];
-
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->update_post(
-			$post_id,
-			array(
-				'title'   => '',
-				'content' => '',
-				'excerpt' => '',
-			)
-		);
-
-		$this->assert_error( $result, 'empty_content', 400, 'An empty post' );
-		$this->assertSame( 'Content, title, and excerpt are empty.', $result->get_error_message(), 'The message should be the message of the save error.' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
 	 * A database error during the save keeps its own code and message, with status 500.
 	 *
 	 * @ticket 66706
@@ -1805,9 +1734,11 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 			}
 		);
 
-		$result = $this->update_post( $post_id, array( 'title' => 'Database error' ) );
-
-		$wpdb->suppress_errors( $suppress );
+		try {
+			$result = $this->update_post( $post_id, array( 'title' => 'Database error' ) );
+		} finally {
+			$wpdb->suppress_errors( $suppress );
+		}
 
 		$this->assert_error( $result, 'db_update_error', 500, 'A database error' );
 		$this->assertSame( 'Could not update post in the database.', $result->get_error_message(), 'The message should be the message of the save error.' );
@@ -1926,70 +1857,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $execute( $this->update_input( $post_id, array( 'status' => $status ) ) );
 
-		$this->assert_invalid_attribute( $result, 'status', 'A direct call with the internal status the post already has' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Called directly, an empty date or a date that cannot be parsed is an invalid attribute.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_dates_without_a_usable_value
-	 * @since 7.3.0
-	 *
-	 * @param array<string, string> $date The date.
-	 */
-	public function test_direct_call_rejects_a_date_without_a_usable_value( array $date ): void {
-		$post_id = self::$post_ids['administrator:draft'];
-
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$before = $this->snapshot( $post_id );
-		$result = $execute( $this->update_input( $post_id, array( 'date' => $date ) ) );
-
-		$this->assert_invalid_attribute( $result, 'date', 'A direct call with a date without a usable value' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Returns direct-call inputs without `data` to write.
-	 *
-	 * @return array<string, array{0: array<string, mixed>}> The inputs, without `where`.
-	 */
-	public static function data_inputs_without_usable_data(): array {
-		return array(
-			'data missing' => array( array() ),
-			'empty data'   => array( array( 'data' => array() ) ),
-		);
-	}
-
-	/**
-	 * Called directly by a user who may edit the post, an update without `data` to write is an
-	 * invalid attribute and writes nothing.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_inputs_without_usable_data
-	 * @since 7.3.0
-	 *
-	 * @param array<string, mixed> $input The input, without `where`.
-	 */
-	public function test_direct_call_without_usable_data_is_an_invalid_attribute( array $input ): void {
-		$post_id = self::$post_ids['administrator:draft'];
-
-		$this->login_as( 'administrator' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$input['where'] = array(
-			'type' => 'post',
-			'id'   => $post_id,
-		);
-
-		$before = $this->snapshot( $post_id );
-		$result = $execute( $input );
-
-		$this->assert_error( $result, 'content_invalid_attribute', 400, 'A direct call without usable data' );
-		$this->assertSame( array( 'data' => 'The data must be an object with at least one attribute to write.' ), $result->get_error_data()['params'] ?? array(), 'The params should hold only the data path, with the reason.' );
+		$this->assert_invalid_attribute( $result, 'status', 'A direct call with the internal status the post already has', 'The status must be a registered post status that is not internal.' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 

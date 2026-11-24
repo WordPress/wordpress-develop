@@ -328,15 +328,21 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param mixed  $result    The ability result.
-	 * @param string $attribute The attribute name.
-	 * @param string $context   What the call was, for the assertion messages.
+	 * @param mixed       $result    The ability result.
+	 * @param string      $attribute The attribute name.
+	 * @param string      $context   What the call was, for the assertion messages.
+	 * @param string|null $expected  Optional. The expected message. Default null, which only
+	 *                               requires a message.
 	 */
-	protected function assert_invalid_attribute( $result, string $attribute, string $context ): void {
+	protected function assert_invalid_attribute( $result, string $attribute, string $context, ?string $expected = null ): void {
 		$this->assert_error( $result, 'content_invalid_attribute', 400, $context );
 
 		$message = $result->get_error_message();
-		$this->assertNotSame( '', $message, "{$context}: the message should give the reason." );
+		if ( null === $expected ) {
+			$this->assertNotSame( '', $message, "{$context}: the message should give the reason." );
+		} else {
+			$this->assertSame( $expected, $message, "{$context}: the message should give the reason." );
+		}
 		$this->assertSame( array( "data[{$attribute}]" => $message ), $result->get_error_data()['params'] ?? array(), "{$context}: the params should hold only the input path of the attribute, with the reason." );
 	}
 
@@ -401,19 +407,6 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 		return array(
 			'existing user' => array( 'editor' ),
 			'missing user'  => array( 'missing' ),
-		);
-	}
-
-	/**
-	 * Returns date values without a usable value for a direct call.
-	 *
-	 * @return array<string, array{0: array<string, string>}> The dates.
-	 */
-	public static function data_dates_without_a_usable_value(): array {
-		return array(
-			'empty date'                      => array( array() ),
-			'site date that cannot be parsed' => array( array( 'site' => 'not a date' ) ),
-			'GMT date that cannot be parsed'  => array( array( 'gmt' => 'not a date' ) ),
 		);
 	}
 

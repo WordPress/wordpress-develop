@@ -308,7 +308,8 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param mixed $input The unprepared ability input.
+	 * @param mixed $input The ability input, which is not prepared when
+	 *                     WP_Ability::check_permissions() is called directly.
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
 	private function check_create_permission( $input ): bool {
@@ -333,7 +334,8 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param mixed  $input      The unprepared ability input.
+	 * @param mixed  $input      The ability input, which is not prepared when
+	 *                           WP_Ability::check_permissions() is called directly.
 	 * @param string $capability The capability required on the post: `edit_post` or `delete_post`.
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
@@ -855,9 +857,6 @@ final class WP_Abilities_Content {
 	 * @return array<string, mixed>|WP_Error The created post, or a WP_Error on failure.
 	 */
 	private function execute_content_create( array $input ) {
-		// The author visibility memo is per call; see get_visible_author().
-		$this->visible_authors = array();
-
 		$data             = $input['data'] ?? array();
 		$post_type_object = $this->get_exposed_post_type( $data['type'] ?? null );
 		if ( ! $post_type_object ) {
@@ -893,9 +892,6 @@ final class WP_Abilities_Content {
 	 * @return array<string, mixed>|WP_Error The updated post, or a WP_Error on failure.
 	 */
 	private function execute_content_update( array $input ) {
-		// The author visibility memo is per call; see get_visible_author().
-		$this->visible_authors = array();
-
 		$post = $this->get_requested_post( $input['where'] ?? array() );
 		if ( ! $post ) {
 			return $this->not_found_error();
@@ -911,15 +907,6 @@ final class WP_Abilities_Content {
 		}
 
 		/*
-		 * A `data` that sends no attribute that can be written has nothing to apply, so it is
-		 * rejected instead of saving the post unchanged.
-		 */
-		$data = $input['data'] ?? array();
-		if ( empty( $data ) ) {
-			return $this->invalid_attribute_error( 'data', __( 'The data must be an object with at least one attribute to write.' ) );
-		}
-
-		/*
 		 * Known issue: a `data.status` sent for a post in the Trash moves it out of the Trash
 		 * through a regular save, not through wp_untrash_post(). The `_wp_trash_meta_status`
 		 * and `_wp_trash_meta_time` meta and the comments trashed with the post are left
@@ -930,7 +917,7 @@ final class WP_Abilities_Content {
 		 */
 
 		// get_requested_post() only returns posts of an exposed post type.
-		$postarr = $this->prepare_post_data( $data, get_post_type_object( $post->post_type ), $post );
+		$postarr = $this->prepare_post_data( $input['data'], get_post_type_object( $post->post_type ), $post );
 		if ( is_wp_error( $postarr ) ) {
 			return $postarr;
 		}
@@ -1261,7 +1248,6 @@ final class WP_Abilities_Content {
 			return null;
 		}
 
-		$reason    = __( 'The parent must be 0, or a readable post of the same post type that is neither the post itself nor one of its descendants.' );
 		$parent_id = $data['parent'];
 
 		// Keeping the stored parent changes nothing.
@@ -1272,6 +1258,8 @@ final class WP_Abilities_Content {
 		if ( 0 === $parent_id ) {
 			return 0;
 		}
+
+		$reason = __( 'The parent must be 0, or a readable post of the same post type that is neither the post itself nor one of its descendants.' );
 
 		/*
 		 * Intentionally strict: a parent must be readable, of the same type and free of
@@ -1292,9 +1280,10 @@ final class WP_Abilities_Content {
 	/**
 	 * Checks the sent `date` and returns the date fields to save.
 	 *
-	 * `site` wins when both `site` and `gmt` are sent. On update, a sent date that equals the
-	 * stored one counts as not sent, so a draft with a floating date keeps floating, unless
-	 * the call moves it to a status whose dates do not float with a date that is still ahead.
+	 * When both `site` and `gmt` are sent, they must name the same time. On update, a sent date
+	 * that equals the stored one counts as not sent, so a draft with a floating date keeps
+	 * floating, unless the call moves it to a status whose dates do not float with a date that
+	 * is still ahead.
 	 *
 	 * @since 7.3.0
 	 *
@@ -1308,11 +1297,16 @@ final class WP_Abilities_Content {
 			return array();
 		}
 
-		$date  = $data['date'];
-		$dates = isset( $date['site'] ) ? rest_get_date_with_gmt( $date['site'] ) : rest_get_date_with_gmt( $date['gmt'] ?? '', true );
-		if ( null === $dates ) {
-			return $this->invalid_attribute_error( 'data[date]', __( 'The date must be an object with a valid `site` or `gmt` date.' ) );
+		$date = $data['date'];
+		$site = isset( $date['site'] ) ? rest_get_date_with_gmt( $date['site'] ) : null;
+		$gmt  = isset( $date['gmt'] ) ? rest_get_date_with_gmt( $date['gmt'], true ) : null;
+
+		// Intentionally strict: `site` and `gmt` that name different times are an error.
+		if ( $site && $gmt && $site[1] !== $gmt[1] ) {
+			return $this->invalid_attribute_error( 'data[date]', __( 'The `site` and `gmt` dates must name the same time.' ) );
 		}
+
+		$dates = $site ?? $gmt;
 
 		$fields = array(
 			'post_date'     => $dates[0],
@@ -1416,6 +1410,9 @@ final class WP_Abilities_Content {
 	 *                                       may not read it, or a WP_Error on failure.
 	 */
 	private function persist_post( array $postarr, array $fields ) {
+		// The author visibility memo is per call; see get_visible_author().
+		$this->visible_authors = array();
+
 		$postarr = wp_slash( $postarr );
 		$post_id = isset( $postarr['ID'] ) ? wp_update_post( $postarr, true ) : wp_insert_post( $postarr, true );
 
@@ -2078,7 +2075,7 @@ final class WP_Abilities_Content {
 						'description' => __( 'The publication date, in ISO 8601 format. Read as GMT unless it has a UTC offset.' ),
 					),
 				),
-				'description'          => __( 'The publication date. When both `site` and `gmt` are given, `site` is used.' ),
+				'description'          => __( 'The publication date. When both `site` and `gmt` are given, they must name the same time.' ),
 			),
 			'author'  => array(
 				'type'        => 'integer',

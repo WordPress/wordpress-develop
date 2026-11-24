@@ -74,12 +74,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	 * @return array<string, mixed> The input.
 	 */
 	private function delete_input( int $post_id, ?bool $permanent = null ): array {
-		$input = array(
-			'where' => array(
-				'type' => get_post_type( $post_id ),
-				'id'   => $post_id,
-			),
-		);
+		$input = array( 'where' => $this->build_where( $post_id ) );
 		if ( null !== $permanent ) {
 			$input['permanent'] = $permanent;
 		}
