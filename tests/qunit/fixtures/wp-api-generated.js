@@ -11230,6 +11230,8 @@ mockedApiResponse.Schema = {
                             "title": "",
                             "description": "A day number of the week that the week should start on.",
                             "type": "integer",
+                            "minimum": 0,
+                            "maximum": 6,
                             "required": false
                         },
                         "language": {
@@ -11266,6 +11268,10 @@ mockedApiResponse.Schema = {
                             "title": "Show on front",
                             "description": "What to show on the front page",
                             "type": "string",
+                            "enum": [
+                                "posts",
+                                "page"
+                            ],
                             "required": false
                         },
                         "page_on_front": {

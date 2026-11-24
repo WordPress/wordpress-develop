@@ -716,6 +716,77 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
+	/**
+	 * A value outside the ones a setting accepts is refused, and the setting keeps its value.
+	 *
+	 * @ticket TICKET_NUMBER
+	 *
+	 * @dataProvider data_update_item_with_value_outside_schema
+	 *
+	 * @param string $setting The name of the setting, which is also the name of its option.
+	 * @param mixed  $value   The value to send.
+	 */
+	public function test_update_item_with_value_outside_schema( $setting, $value ) {
+		$stored = get_option( $setting );
+
+		wp_set_current_user( self::$administrator );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( $setting, $value );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertSame( $stored, get_option( $setting ), 'The setting should keep its stored value.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: mixed}>
+	 */
+	public function data_update_item_with_value_outside_schema() {
+		return array(
+			'show_on_front that is not posts or page' => array( 'show_on_front', 'banana' ),
+			'empty show_on_front'                     => array( 'show_on_front', '' ),
+			'start_of_week below Sunday'              => array( 'start_of_week', -1 ),
+			'start_of_week above Saturday'            => array( 'start_of_week', 7 ),
+		);
+	}
+
+	/**
+	 * The values a setting accepts are saved.
+	 *
+	 * @ticket TICKET_NUMBER
+	 *
+	 * @dataProvider data_update_item_with_value_inside_schema
+	 *
+	 * @param string $setting The name of the setting.
+	 * @param mixed  $value   The value to send.
+	 */
+	public function test_update_item_with_value_inside_schema( $setting, $value ) {
+		wp_set_current_user( self::$administrator );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( $setting, $value );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'The update should succeed.' );
+		$this->assertSame( $value, $data[ $setting ], 'The response should have the new value.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: mixed}>
+	 */
+	public function data_update_item_with_value_inside_schema() {
+		return array(
+			'show_on_front set to page'  => array( 'show_on_front', 'page' ),
+			'show_on_front set to posts' => array( 'show_on_front', 'posts' ),
+			'start_of_week on Sunday'    => array( 'start_of_week', 0 ),
+			'start_of_week on Saturday'  => array( 'start_of_week', 6 ),
+		);
+	}
+
 	public function test_update_item_with_invalid_stored_value_in_options() {
 		wp_set_current_user( self::$administrator );
 
