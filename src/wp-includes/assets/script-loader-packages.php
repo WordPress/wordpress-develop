@@ -670,7 +670,7 @@
 			'wp-url',
 			'wp-warning'
 		),
-		'version' => 'd91937a9b82062da49eb'
+		'version' => '5ef0448131de57454ed0'
 	),
 	'notices.js' => array(
 		'dependencies' => array(
