@@ -141,6 +141,8 @@ abstract class WP_Abilities_Settings_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * The class setup has already registered them through wp_register_core_abilities(), so
 	 * the existing copies are unregistered first.
+	 *
+	 * @since 7.3.0
 	 */
 	protected function register_ability(): void {
 		foreach ( array( 'core/settings-get', 'core/settings-update' ) as $name ) {
@@ -152,10 +154,13 @@ abstract class WP_Abilities_Settings_UnitTestCase extends WP_UnitTestCase {
 		global $wp_current_filter;
 		$wp_current_filter[] = 'wp_abilities_api_init'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Faking the action context to register within it.
 		( new WP_Abilities_Settings() )->register();
+		array_pop( $wp_current_filter );
 	}
 
 	/**
 	 * Logs in as an administrator so abilities gated behind `manage_options` can run.
+	 *
+	 * @since 7.3.0
 	 */
 	protected function become_admin(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );

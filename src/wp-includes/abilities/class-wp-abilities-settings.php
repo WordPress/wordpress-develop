@@ -48,7 +48,8 @@ final class WP_Abilities_Settings {
 	/**
 	 * Options that `core/settings-update` cannot write, whatever name exposes them.
 	 *
-	 * The site address and the administration email address are changed only from Settings > General.
+	 * The site address and the administration email address are left to Settings > General, which
+	 * confirms a new administration email address before it is used.
 	 *
 	 * @since 7.3.0
 	 * @var string[]
@@ -61,7 +62,7 @@ final class WP_Abilities_Settings {
 	 * @since 7.2.0
 	 * @var array<string, array{option: string, group: string, default: mixed, schema: array<string, mixed>}>
 	 */
-	private array $exposed_settings = array();
+	private $exposed_settings = array();
 
 	/**
 	 * Exposed settings that `core/settings-update` can write, computed once at registration.
@@ -69,7 +70,7 @@ final class WP_Abilities_Settings {
 	 * @since 7.3.0
 	 * @var array<string, array{option: string, group: string, default: mixed, schema: array<string, mixed>}>
 	 */
-	private array $writable_settings = array();
+	private $writable_settings = array();
 
 	/**
 	 * Registers all settings abilities.
@@ -251,22 +252,41 @@ final class WP_Abilities_Settings {
 		 * without a default is refused while its stored value does not match the setting's schema:
 		 * `core/settings-get` leaves that value out, so the caller cannot see what would be deleted.
 		 * Unusable values are reported first.
+		 *
+		 * Intentional: a null value stores the default of a setting that has one, and deletes the
+		 * stored value of a setting without one. A registered default only applies in requests that
+		 * register the setting, and Core registers its own settings only in REST and abilities
+		 * requests, so other requests would read a deleted value as false. A setting without a
+		 * default then has no value, and is left out of the output and of `core/settings-get`,
+		 * until a value is written again.
 		 */
 		$invalid_params = array();
 		$invalid_stored = null;
 		foreach ( $named as $exposed_name => $setting ) {
+			$value = $data[ $exposed_name ] ?? $setting['default'];
+
+			/*
+			 * English is stored as an empty string. `en_US` is what the language reads as when
+			 * none is stored, and sanitize_option() would replace it with the stored value.
+			 */
+			if ( 'WPLANG' === $setting['option'] && 'en_US' === $value ) {
+				$value = '';
+			}
+
 			if ( null !== $data[ $exposed_name ] ) {
-				$message = $this->get_invalid_value_message( $setting['option'], $data[ $exposed_name ] );
+				$message = $this->get_invalid_value_message( $setting['option'], $value );
 				if ( null !== $message ) {
 					$invalid_params[ "data[{$exposed_name}]" ] = $message;
 				}
-			} elseif ( null === $setting['default'] && null === $invalid_stored ) {
+			} elseif ( null === $value && null === $invalid_stored ) {
 				// The stored value reads as null when there is none, and then there is nothing to delete.
-				$stored = $this->get_stored_value( $setting, null );
+				$stored = get_option( $setting['option'], null );
 				if ( null !== $stored && is_wp_error( rest_validate_value_from_schema( $stored, $setting['schema'] ) ) ) {
 					$invalid_stored = $exposed_name;
 				}
 			}
+
+			$data[ $exposed_name ] = $value;
 		}
 
 		if ( ! empty( $invalid_params ) ) {
@@ -297,27 +317,11 @@ final class WP_Abilities_Settings {
 			);
 		}
 
-		/*
-		 * Intentional: a null value stores the default of a setting that has one, and deletes the
-		 * stored value of a setting without one. A registered default only applies in requests that
-		 * register the setting, and Core registers its own settings only in REST and abilities
-		 * requests, so other requests would read a deleted value as false. A setting without a
-		 * default then has no value, and is left out of the output and of `core/settings-get`,
-		 * until a value is written again.
-		 */
 		foreach ( $named as $exposed_name => $setting ) {
-			$value = $data[ $exposed_name ] ?? $setting['default'];
+			$value = $data[ $exposed_name ];
 			if ( null === $value ) {
 				delete_option( $setting['option'] );
 				continue;
-			}
-
-			/*
-			 * English is stored as an empty string. `en_US` is what the language reads as when
-			 * none is stored, and sanitize_option() would replace it with the stored value.
-			 */
-			if ( 'WPLANG' === $setting['option'] && 'en_US' === $value ) {
-				$value = '';
 			}
 
 			update_option( $setting['option'], $value );
@@ -335,9 +339,8 @@ final class WP_Abilities_Settings {
 	 * Checks a value that matches its schema against what the option can use.
 	 *
 	 * The rules belong to the option, whatever name exposes it: a timezone and a language must be
-	 * empty or known to the site (`en_US` counts as English for the language), a default post
-	 * format must be `0` or a post format, a page setting must be 0 or the ID of a page, and the
-	 * default category must be the ID of a category.
+	 * empty or known to the site, a default post format must be `0` or a post format, a page
+	 * setting must be 0 or the ID of a page, and the default category must be the ID of a category.
 	 *
 	 * @since 7.3.0
 	 *
@@ -354,7 +357,7 @@ final class WP_Abilities_Settings {
 				break;
 
 			case 'WPLANG':
-				if ( '' !== $value && 'en_US' !== $value && ! in_array( $value, get_available_languages(), true ) ) {
+				if ( '' !== $value && ! in_array( $value, get_available_languages(), true ) ) {
 					return __( 'The language is not installed.' );
 				}
 				break;
@@ -368,7 +371,7 @@ final class WP_Abilities_Settings {
 			case 'page_on_front':
 			case 'page_for_posts':
 			case 'wp_page_for_privacy_policy':
-				if ( 0 !== $value && ( ! is_int( $value ) || $value < 0 || 'page' !== get_post_type( $value ) ) ) {
+				if ( 0 !== $value && ( ! is_int( $value ) || 'page' !== get_post_type( $value ) ) ) {
 					return __( 'Invalid page ID.' );
 				}
 				break;
@@ -402,9 +405,14 @@ final class WP_Abilities_Settings {
 			 * default, or leave it out when it has none: get_option() would return false, which a
 			 * boolean schema accepts as a value and an array schema reads as an empty list.
 			 */
-			$value = $this->get_stored_value( $setting, $setting['default'] );
+			$value = get_option( $setting['option'], $setting['default'] );
 			if ( null === $value ) {
 				continue;
+			}
+
+			// WordPress stores false as '', which the boolean schema rejects.
+			if ( '' === $value && 'boolean' === $setting['schema']['type'] ) {
+				$value = false;
 			}
 
 			/*
@@ -425,26 +433,6 @@ final class WP_Abilities_Settings {
 		}
 
 		return $result;
-	}
-
-	/**
-	 * Reads the stored value of an exposed setting.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param array{option: string, group: string, default: mixed, schema: array<string, mixed>} $setting       The exposed setting.
-	 * @param mixed                                                                                $default_value The value to return when the option does not exist.
-	 * @return mixed The stored value, or the default value.
-	 */
-	private function get_stored_value( array $setting, $default_value ) {
-		$value = get_option( $setting['option'], $default_value );
-
-		// WordPress stores false as '', which the boolean schema rejects.
-		if ( '' === $value && 'boolean' === $setting['schema']['type'] ) {
-			return false;
-		}
-
-		return $value;
 	}
 
 	/**

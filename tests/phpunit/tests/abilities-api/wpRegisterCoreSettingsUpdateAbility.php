@@ -34,7 +34,15 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		'Mixed_Case_Name',
 		'settings_update_test_readonly',
 		'settings_update_test_readonly_false',
+		'settings_update_test_boolean',
 	);
+
+	/**
+	 * Exposed names that core/settings-get reads but this ability cannot write.
+	 *
+	 * @var string[]
+	 */
+	const READ_ONLY_NAMES = array( 'settings_update_test_readonly', 'url', 'email' );
 
 	/**
 	 * Options that hold the ID of a page or a category.
@@ -69,14 +77,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	private static $fixture_ids = array();
 
 	/**
-	 * Number of calls of the sanitize callback of the test setting.
-	 *
-	 * @var int
-	 */
-	private static $sanitize_calls = 0;
-
-	/**
-	 * Creates a user for each role without `manage_options`, and the content the ID settings point to.
+	 * Creates a subscriber and an editor, who cannot manage options, and the content the ID settings point to.
 	 *
 	 * @since 7.3.0
 	 *
@@ -192,19 +193,14 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 				),
 			)
 		);
-	}
-
-	/**
-	 * Sanitize callback of a test setting: counts its calls and upper-cases the value.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param mixed $value The value to sanitize.
-	 * @return string The upper-cased value.
-	 */
-	public static function sanitize_test_value( $value ): string {
-		++self::$sanitize_calls;
-		return strtoupper( (string) $value );
+		register_setting(
+			'general',
+			'settings_update_test_boolean',
+			array(
+				'type'              => 'boolean',
+				'show_in_abilities' => true,
+			)
+		);
 	}
 
 	/**
@@ -365,7 +361,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		$this->assertFalse( $annotations['readonly'], 'The ability should not be marked read-only.' );
 		$this->assertTrue( $annotations['destructive'], 'The ability should be marked destructive, since a null value deletes the stored value of a setting without a default.' );
-		$this->assertFalse( $annotations['idempotent'], 'The ability should not be marked idempotent, since repeating a null value can fail.' );
+		$this->assertFalse( $annotations['idempotent'], 'The ability should not be marked idempotent, since a destructive and idempotent ability runs with the DELETE method.' );
 		$this->assertSame( $get_meta, $meta, 'The other meta should match core/settings-get.' );
 	}
 
@@ -401,7 +397,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$this->assertSame( 1, $data['minProperties'], 'The data should name at least one setting.' );
 		$this->assertArrayNotHasKey( 'default', $data, 'The data should have no default.' );
 		$this->assertSameSets(
-			array_diff( array_map( 'strval', array_keys( wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'] ) ), array( 'settings_update_test_readonly', 'url', 'email' ) ),
+			array_diff( array_map( 'strval', array_keys( wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'] ) ), self::READ_ONLY_NAMES ),
 			array_map( 'strval', array_keys( $data['properties'] ) ),
 			'The data should accept exactly the exposed settings that are not read-only.'
 		);
@@ -466,8 +462,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 */
 	public function test_output_schema_describes_the_writable_settings(): void {
 		$schema   = wp_get_ability( self::ABILITY )->get_output_schema();
-		$expected = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'];
-		unset( $expected['settings_update_test_readonly'], $expected['url'], $expected['email'] );
+		$expected = array_diff_key( wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'], array_flip( self::READ_ONLY_NAMES ) );
 
 		$this->assertSame( 'object', $schema['type'], 'The output should be an object.' );
 		$this->assertFalse( $schema['additionalProperties'], 'The output should reject other keys.' );
@@ -657,9 +652,9 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 *
 	 * @dataProvider data_privacy_policy_page_values
 	 *
-	 * @param int|null $value The privacy policy page to set, or null to reset it.
+	 * @param string|null $kind The kind of content whose ID is the privacy policy page, or null to reset it.
 	 */
-	public function test_privacy_policy_page_refused_without_capability( ?int $value ): void {
+	public function test_privacy_policy_page_refused_without_capability( ?string $kind ): void {
 		// On multisite, a site administrator lacks the capability even without the filter.
 		$this->become_admin();
 		$this->deny_privacy_capability();
@@ -668,7 +663,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$result = $this->update(
 			array(
 				'title'                   => 'Changed title',
-				'page_for_privacy_policy' => $value,
+				'page_for_privacy_policy' => null === $kind ? null : self::$fixture_ids[ $kind ],
 			)
 		);
 
@@ -679,11 +674,11 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: int|null}> Privacy policy page values.
+	 * @return array<string, array{0: string|null}> Kinds of content whose ID is the privacy policy page, or null.
 	 */
 	public static function data_privacy_policy_page_values(): array {
 		return array(
-			'a page ID' => array( 5 ),
+			'a page ID' => array( 'page' ),
 			'null'      => array( null ),
 		);
 	}
@@ -709,7 +704,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$this->deny_privacy_capability();
 		$before = $this->snapshot();
 
-		$result = $this->update( array( 'settings_update_test_privacy_page' => 5 ) );
+		$result = $this->update( array( 'settings_update_test_privacy_page' => self::$fixture_ids['page'] ) );
 
 		$this->assert_error( $result, 'settings_cannot_manage_privacy_options', 403 );
 		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
@@ -902,10 +897,10 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$this->assertSameSets( array( $name ), array_map( 'strval', array_keys( $result ) ), 'The output should hold only the setting named in the call.' );
 		$this->assertSame( $output, wp_json_encode( $result[ $name ] ), 'The output should show the saved value.' );
 
-		wp_cache_delete( 'alloptions', 'options' );
 		$expected[ $option ] = $raw;
 		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the option of the named setting should change.' );
 
+		wp_cache_delete( 'alloptions', 'options' );
 		$read = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $name ) ) );
 		$this->assertSame( $output, wp_json_encode( $read[ $name ] ), 'The saved value should be read back the same way from the database.' );
 	}
@@ -1294,6 +1289,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 */
 	public function test_sanitize_callback_runs_inside_the_save(): void {
 		$option = 'settings_update_test_sanitized';
+		$calls  = 0;
 
 		register_setting(
 			'general',
@@ -1301,25 +1297,28 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			array(
 				'type'              => 'string',
 				'show_in_abilities' => true,
-				'sanitize_callback' => array( self::class, 'sanitize_test_value' ),
+				'sanitize_callback' => static function ( $value ) use ( &$calls ): string {
+					++$calls;
+					return strtoupper( (string) $value );
+				},
 			)
 		);
 		$this->register_ability();
 		$this->store_raw( $option, 'seed' );
 		$this->become_admin();
-		self::$sanitize_calls = 0;
 
 		$result = $this->update( array( $option => 'abc' ) );
 		$after  = $this->snapshot();
 
 		$this->assertSame( array( $option => 'ABC' ), $result, 'The output should show the sanitized value.' );
-		$this->assertSame( 1, self::$sanitize_calls, 'The sanitize callback should run once.' );
+		$this->assertSame( 1, $calls, 'The sanitize callback should run once.' );
 		$this->assertSame( 'ABC', $after[ $option ], 'The sanitized value should be stored.' );
 	}
 
 	/**
 	 * A null value for a setting without a default is refused when the stored value does not
-	 * match the schema of the setting, and nothing is deleted.
+	 * match the schema of the setting, and nothing is deleted. A boolean stored as false is an
+	 * empty string, which the boolean schema rejects.
 	 *
 	 * @ticket 64616
 	 *
@@ -1355,6 +1354,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'an empty string for an enum'          => array( 'default_ping_status', 'default_ping_status', '' ),
 			'an empty string for an email address' => array( 'settings_update_test_email', 'settings_update_test_email_option', '' ),
 			'an array for a string'                => array( 'title', 'blogname', array( 'A sneaky array!' ) ),
+			'false for a boolean'                  => array( 'settings_update_test_boolean', 'settings_update_test_boolean', '' ),
 		);
 	}
 
@@ -1403,6 +1403,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'no value for an integer with a default'  => array( 'posts_per_page', 'posts_per_page', null, '{"posts_per_page":10}' ),
 			'no value for the language'               => array( 'language', 'WPLANG', null, '{"language":""}' ),
 			'no value for a string without a default' => array( 'title', 'blogname', null, '[]' ),
+			'"0" for a boolean without a default'     => array( 'settings_update_test_boolean', 'settings_update_test_boolean', '0', '[]' ),
+			'"1" for a boolean without a default'     => array( 'settings_update_test_boolean', 'settings_update_test_boolean', '1', '[]' ),
 		);
 	}
 
