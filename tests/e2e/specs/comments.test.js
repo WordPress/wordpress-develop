@@ -90,7 +90,7 @@ test.describe( 'Front-end comments', () => {
 				status: 'approved',
 			} );
 
-		await admin.visitAdminPage( '/edit-comments.php' );
+		await admin.visitAdminPage( '/edit-comments.php', `p=${ post.id }` );
 		const row = commentRow( page, commentId );
 		await expect( row ).toBeVisible();
 		await expect(
