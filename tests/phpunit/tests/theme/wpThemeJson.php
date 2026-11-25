@@ -3285,6 +3285,71 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a block that opts out with `transform.fitContent` keeps its
+	 * width when rotated in Global Styles.
+	 *
+	 * @ticket XXXXX
+	 */
+	public function test_get_stylesheet_keeps_the_width_of_a_block_that_opts_out_of_fitting() {
+		register_block_type(
+			'test/keep-width',
+			array(
+				'api_version' => 3,
+				'supports'    => array(
+					'transform' => array(
+						'rotate'     => true,
+						'fitContent' => false,
+					),
+				),
+			)
+		);
+		register_block_style(
+			'test/keep-width',
+			array(
+				'name'  => 'tilted',
+				'label' => 'Tilted',
+			)
+		);
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'test/keep-width' => array(
+							'transform'  => array( 'rotate' => '4deg' ),
+							'@mobile'    => array(
+								'transform' => array( 'rotate' => '2deg' ),
+							),
+							'variations' => array(
+								'tilted' => array(
+									'transform' => array( 'rotate' => '-4deg' ),
+								),
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$css = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			null,
+			array(
+				'skip_root_layout_styles'        => true,
+				'include_block_style_variations' => true,
+			)
+		);
+		unregister_block_style( 'test/keep-width', 'tilted' );
+		unregister_block_type( 'test/keep-width' );
+
+		$this->assertStringContainsString( ':root :where(.wp-block-test-keep-width){rotate: 4deg;}', $css );
+		$this->assertStringContainsString( ':root :where(.wp-block-test-keep-width.is-style-tilted){rotate: -4deg;}', $css );
+		$this->assertStringContainsString( '@media (width <= 480px){:root :where(.wp-block-test-keep-width){rotate: 2deg;}}', $css );
+		$this->assertStringNotContainsString( 'fit-content', $css );
+	}
+
+	/**
 	 * Tests that a block or block style variation rotated in Global Styles fits
 	 * its content, unless it sets a width.
 	 *

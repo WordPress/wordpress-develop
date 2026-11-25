@@ -2786,13 +2786,19 @@ class WP_Theme_JSON {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param string $selector     Block or block style variation selector.
-	 * @param array  $declarations The node's declarations.
-	 * @param array  $nodes        Nodes whose `dimensions.width` takes precedence.
+	 * @param string      $selector     Block or block style variation selector.
+	 * @param array       $declarations The node's declarations.
+	 * @param array       $nodes        Nodes whose `dimensions.width` takes precedence.
+	 * @param string|null $block_name   Block name, whose `transform.fitContent` support can opt out.
 	 * @return string The ruleset, or an empty string.
 	 */
-	protected static function get_rotation_fit_content_ruleset( $selector, $declarations, $nodes ) {
+	protected static function get_rotation_fit_content_ruleset( $selector, $declarations, $nodes, $block_name ) {
 		if ( ! in_array( 'rotate', array_column( $declarations, 'name' ), true ) ) {
+			return '';
+		}
+
+		$block_type = $block_name ? WP_Block_Type_Registry::get_instance()->get_registered( $block_name ) : null;
+		if ( $block_type && ! block_has_support( $block_type, array( 'transform', 'fitContent' ), true ) ) {
 			return '';
 		}
 
@@ -4260,7 +4266,8 @@ class WP_Theme_JSON {
 				$style_variation_fit_content_rules[ $style_variation['selector'] ] = static::get_rotation_fit_content_ruleset(
 					$style_variation['selector'],
 					$style_variation_declarations[ $style_variation['selector'] ],
-					array( $style_variation_source, $variation_block_node )
+					array( $style_variation_source, $variation_block_node ),
+					$block_metadata['path'][2] ?? null
 				);
 
 				// Process pseudo-selectors for this variation (e.g., :hover, :focus)
@@ -4341,7 +4348,8 @@ class WP_Theme_JSON {
 						$base_ruleset             .= static::get_rotation_fit_content_ruleset(
 							$style_variation['selector'],
 							$breakpoint_declarations,
-							array( $style_variation_source[ $breakpoint ], $style_variation_source, $variation_block_node )
+							array( $style_variation_source[ $breakpoint ], $style_variation_source, $variation_block_node ),
+							$block_metadata['path'][2] ?? null
 						);
 						$variation_responsive_css .= $breakpoint_media . '{' . $base_ruleset . '}';
 					}
@@ -4588,7 +4596,8 @@ class WP_Theme_JSON {
 				array(
 					_wp_array_get( $this->theme_json, $block_metadata['path'], array() ),
 					_wp_array_get( $this->theme_json, array_slice( $block_metadata['path'], 0, 3 ), array() ),
-				)
+				),
+				$block_metadata['path'][2]
 			);
 		}
 
