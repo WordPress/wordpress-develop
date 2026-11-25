@@ -324,6 +324,7 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 
 	if ( $options ) {
 		$user_language_old = get_user_locale();
+		$site_language_old = get_locale();
 
 		foreach ( $options as $option ) {
 			if ( $unregistered ) {
@@ -357,6 +358,11 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 		 * used as a fallback in get_user_locale().
 		 */
 		unset( $GLOBALS['locale'] );
+
+		if ( 'general' === $option_page ) {
+			wp_update_date_time_formats_on_locale_change( $site_language_old, get_locale() );
+		}
+
 		$user_language_new = get_user_locale();
 		if ( $user_language_old !== $user_language_new ) {
 			load_default_textdomain( $user_language_new );

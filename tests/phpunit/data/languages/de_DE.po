@@ -61,3 +61,13 @@ msgstr "[%s] Export personenbezogener Daten"
 #: wp-includes/class-wp-phpmailer.php:71
 msgid "You must provide at least one recipient email address."
 msgstr "Du musst mindestens eine Empfänger-E-Mail-Adresse angeben."
+
+#. translators: Default date format, see https://www.php.net/manual/datetime.format.php
+#: wp-admin/includes/schema.php:436
+msgid "F j, Y"
+msgstr "j. F Y"
+
+#. translators: Default time format, see https://www.php.net/manual/datetime.format.php
+#: wp-admin/includes/schema.php:438
+msgid "g:i a"
+msgstr "G:i"
