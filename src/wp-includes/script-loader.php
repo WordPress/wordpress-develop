@@ -3635,7 +3635,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  *
  * @since 6.1.0
  *
- * @param array<string, bool> $options {
+ * @param array $options {
  *     Optional. An array of options to pass to wp_style_engine_get_stylesheet_from_context().
  *     Default empty array.
  *
@@ -3646,6 +3646,14 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  * }
  */
 function wp_enqueue_stored_styles( $options = array() ) {
+	if ( '' === $options ) {
+		// Handle being called as an action callback.
+		$options = array(
+			'optimize' => false,
+			'prettify' => false,
+		);
+	}
+
 	// Note: Styles printed at wp_footer for classic themes may still end up in the head due to wp_load_classic_theme_block_styles_on_demand().
 	$is_block_theme   = wp_is_block_theme();
 	$is_classic_theme = ! $is_block_theme;
