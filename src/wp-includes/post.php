@@ -4736,6 +4736,7 @@ function wp_get_post_terms( $post_id = 0, $taxonomy = 'post_tag', $args = array(
  *     include?: int[],
  *     exclude?: int[],
  *     suppress_filters?: bool,
+ *     fields?: ''|'all',
  *     ...
  * } $args
  * @phpstan-param 'OBJECT'|'ARRAY_A' $output
@@ -4766,7 +4767,7 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 		'suppress_filters' => true,
 	);
 
-	/** @var array{ numberposts: int, category: int|string, include: int[], exclude: int[], suppress_filters: bool, fields: null, ... } $parsed_args */
+	/** @var array{ numberposts: int, category: int|string, include: int[], exclude: int[], suppress_filters: bool, fields?: ''|'all', ... } $parsed_args */
 	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$results = get_posts( $parsed_args );
