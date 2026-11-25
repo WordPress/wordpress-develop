@@ -911,6 +911,19 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 38243
+	 */
+	public function test_wp_insert_term_with_invalid_utf8_name_should_not_create_blank_term() {
+		$count_before = wp_count_terms( array( 'taxonomy' => 'post_tag' ) );
+
+		$term = wp_insert_term( urldecode( '360%BF' ), 'post_tag' );
+
+		$this->assertWPError( $term );
+		$this->assertSame( 'invalid_term_name', $term->get_error_code() );
+		$this->assertSame( $count_before, wp_count_terms( array( 'taxonomy' => 'post_tag' ) ) );
+	}
+
+	/**
 	 * @ticket 31270
 	 */
 	public function test_wp_insert_term_root_level_term_with_same_name_as_child_should_get_clean_slug() {
