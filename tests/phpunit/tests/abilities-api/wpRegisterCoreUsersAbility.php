@@ -2024,6 +2024,83 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Private profile fields are returned only to the user and to callers who can edit the user.
+	 *
+	 * The first and last name, nickname, locale, login, email, registration date and roles of a public
+	 * author must not reach a caller who cannot edit that author, while the public
+	 * profile fields (name, description, URL, link and slug) stay available to everyone.
+	 *
+	 * @ticket 66549
+	 *
+	 * @dataProvider data_callers_for_private_field_visibility
+	 *
+	 * @param string $caller       Fixture key of the current user.
+	 * @param bool   $sees_private Whether the caller receives the private fields.
+	 */
+	public function test_private_fields_are_only_returned_to_the_user_and_to_callers_who_can_edit_them( string $caller, bool $sees_private ): void {
+		$author_id = self::$fixture_ids['public_author'];
+
+		wp_update_user(
+			array(
+				'ID'          => $author_id,
+				'description' => 'A public biography.',
+				'user_url'    => 'https://example.org/author',
+				'first_name'  => 'Private',
+				'last_name'   => 'Person',
+				'nickname'    => 'hidden-nickname',
+				'locale'      => 'de_DE',
+			)
+		);
+
+		$public_fields  = array( 'id', 'name', 'description', 'url', 'link', 'slug' );
+		$private_fields = array( 'username', 'email', 'first_name', 'last_name', 'nickname', 'locale', 'registered', 'roles' );
+
+		wp_set_current_user( self::$fixture_ids[ $caller ] );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'where'  => array( 'ids' => array( $author_id ) ),
+				'fields' => array_merge( $public_fields, $private_fields ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'A public author should be readable by ID.' );
+		$this->assertCount( 1, $result['items'], 'The lookup should return the public author.' );
+
+		$item = $result['items'][0];
+
+		$this->assertSame( 'A public biography.', $item['description'], 'The description is public.' );
+		$this->assertSame( 'https://example.org/author', $item['url'], 'The URL is public.' );
+
+		if ( $sees_private ) {
+			$this->assertSameSets( array_merge( $public_fields, $private_fields ), array_keys( $item ), 'The caller should receive every requested field.' );
+			$this->assertSame( 'Private', $item['first_name'], 'The first name should be returned.' );
+			$this->assertSame( 'Person', $item['last_name'], 'The last name should be returned.' );
+			$this->assertSame( 'hidden-nickname', $item['nickname'], 'The nickname should be returned.' );
+			$this->assertSame( 'de_DE', $item['locale'], 'The locale should be returned.' );
+			return;
+		}
+
+		$this->assertSameSets( $public_fields, array_keys( $item ), 'A caller who cannot edit the author should receive only the public fields.' );
+	}
+
+	/**
+	 * Data provider for the private field visibility check.
+	 *
+	 * @return array<string, array{0: string, 1: bool}>
+	 */
+	public static function data_callers_for_private_field_visibility(): array {
+		return array(
+			'the user themselves' => array( 'public_author', true ),
+			'an administrator'    => array( 'administrator', true ),
+			'an editor'           => array( 'editor', false ),
+			'a contributor'       => array( 'contributor', false ),
+			'a subscriber'        => array( 'subscriber', false ),
+		);
+	}
+
+	/**
 	 * A fully redacted field request still returns the user's ID.
 	 *
 	 * The `id` field is always included, matching the REST users controller
