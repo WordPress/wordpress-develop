@@ -64,6 +64,8 @@ class Tests_General_WpHeartbeatSettings extends WP_UnitTestCase {
 	 *
 	 * Admin screens define `ajaxurl` themselves.
 	 *
+	 * @ticket 66757
+	 *
 	 * @dataProvider data_wp_heartbeat_settings_admin
 	 *
 	 * @param bool $logged_in Whether a user is logged in.
