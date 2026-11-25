@@ -11,7 +11,7 @@
  * @covers ::wp_get_development_mode
  * @covers ::wp_is_development_mode
  */
-class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
+class Tests_WP_Get_Development_Mode extends WP_UnitTestCase {
 
 	public function tear_down() {
 		unset( $GLOBALS['_wp_tests_development_mode'] );

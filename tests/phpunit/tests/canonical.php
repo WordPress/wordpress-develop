@@ -43,15 +43,6 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
-	 * Tears down the test fixture.
-	 */
-	public function tear_down() {
-		unregister_post_type( 'wp_tests_private' );
-
-		parent::tear_down();
-	}
-
-	/**
 	 * Register custom post type for tests.
 	 *
 	 * Register non publicly queryable post type with public set to true.
@@ -692,11 +683,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			$parent_post_id = 0;
 		}
 
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-
-		$attachment_id   = $this->_make_attachment( $upload, $parent_post_id );
+		$attachment_id   = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg', $parent_post_id );
 		$attachment_url  = wp_get_attachment_url( $attachment_id );
 		$attachment_page = get_permalink( $attachment_id );
 

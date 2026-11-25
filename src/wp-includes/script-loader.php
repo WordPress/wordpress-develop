@@ -678,8 +678,11 @@ function wp_default_packages( $scripts ) {
  *
  * @param string $type The type of suffix to retrieve.
  * @return string The script suffix.
+ *
+ * @phpstan-return ''|'.min'
  */
 function wp_scripts_get_suffix( $type = '' ) {
+	/** @var array{ suffix: ''|'.min', dev_suffix: ''|'.min' }|null $suffixes */
 	static $suffixes;
 
 	if ( null === $suffixes ) {
@@ -948,7 +951,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'jquery-ui-widget', false, array( 'jquery-ui-core' ), '1.14.2', 1 );
 
 	// Deprecated, not used in core, most functionality is included in jQuery 1.3.
-	$scripts->add( 'jquery-form', "/wp-includes/js/jquery/jquery.form$suffix.js", array( 'jquery' ), '4.3.0', 1 );
+	$scripts->add( 'jquery-form', "/wp-includes/js/jquery/jquery.form$suffix.js", array( 'jquery' ), '4.4.0', 1 );
 
 	// jQuery plugins.
 	$scripts->add( 'jquery-color', '/wp-includes/js/jquery/jquery.color.min.js', array( 'jquery' ), '3.0.0', 1 );

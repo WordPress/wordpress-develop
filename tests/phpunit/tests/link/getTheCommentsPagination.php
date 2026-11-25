@@ -51,6 +51,9 @@ class Tests_Link_GetTheCommentsPagination extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_the_comments_pagination_returns_markup() {
+		$this->set_permalink_structure( '' );
+		$this->go_to( get_permalink( self::$post_id ) );
+
 		global $wp_query;
 
 		$wp_query->max_num_comment_pages = 3;

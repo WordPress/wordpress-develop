@@ -37,6 +37,9 @@ class Tests_Link_GetCommentsPagenumLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_comments_pagenum_link_plain_permalinks_oldest_comments() {
+		$this->set_permalink_structure( '' );
+		$this->go_to( get_permalink( self::$post_id ) );
+
 		update_option( 'default_comments_page', 'oldest' );
 
 		// Page 1 should not have cpage query arg.
@@ -56,8 +59,6 @@ class Tests_Link_GetCommentsPagenumLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_comments_pagenum_link_pretty_permalinks_oldest_comments() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-		$this->go_to( get_permalink( self::$post_id ) );
 		update_option( 'default_comments_page', 'oldest' );
 
 		// Page 1 should not have comment-page slug.
@@ -77,6 +78,9 @@ class Tests_Link_GetCommentsPagenumLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_comments_pagenum_link_plain_permalinks_newest_comments() {
+		$this->set_permalink_structure( '' );
+		$this->go_to( get_permalink( self::$post_id ) );
+
 		update_option( 'default_comments_page', 'newest' );
 
 		// When requesting the newest page (pagenum == max_page), no page parameter should be added.
@@ -96,8 +100,6 @@ class Tests_Link_GetCommentsPagenumLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_comments_pagenum_link_pretty_permalinks_newest_comments() {
-		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-		$this->go_to( get_permalink( self::$post_id ) );
 		update_option( 'default_comments_page', 'newest' );
 
 		// When requesting the newest page (pagenum == max_page), no page parameter should be added.

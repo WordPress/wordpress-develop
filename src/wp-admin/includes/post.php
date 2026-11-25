@@ -1163,7 +1163,7 @@ function update_meta( $meta_id, $meta_key, $meta_value ) {
  * @access private
  *
  * @param int|WP_Post $post Post ID or post object.
- * @return void|int|WP_Error Void if nothing fixed. 0 or WP_Error on update failure. The post ID on update success.
+ * @return void|int Void if nothing fixed. 0 on update failure. The post ID on update success.
  */
 function _fix_attachment_links( $post ) {
 	$post    = get_post( $post, ARRAY_A );
@@ -1220,6 +1220,8 @@ function _fix_attachment_links( $post ) {
  *
  * @param string $type The post_type you want the statuses for. Default 'post'.
  * @return string[] An array of all the statuses for the supplied post type.
+ *
+ * @phpstan-return list<string>
  */
 function get_available_post_statuses( $type = 'post' ) {
 	$statuses = wp_count_posts( $type );
@@ -2364,9 +2366,7 @@ function get_block_editor_server_block_settings() {
 				continue;
 			}
 
-			if ( ! isset( $blocks[ $block_name ] ) ) {
-				$blocks[ $block_name ] = array();
-			}
+			$blocks[ $block_name ] ??= array();
 
 			$blocks[ $block_name ][ $key ] = $block_type->{ $field };
 		}

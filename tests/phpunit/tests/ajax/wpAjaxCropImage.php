@@ -4,8 +4,6 @@
  * Admin Ajax functions to be tested.
  */
 require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
-require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 
 /**
  * Class for testing ajax crop image functionality.
@@ -146,19 +144,7 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 	private function make_attachment( $with_metadata = true ) {
 		$uniq_id = uniqid( 'crop-image-ajax-action-test-' );
 
-		$test_file        = DIR_TESTDATA . '/images/test-image.jpg';
-		$upload_directory = wp_upload_dir();
-		$uploaded_file    = $upload_directory['path'] . '/' . $uniq_id . '.jpg';
-		$filesystem       = new WP_Filesystem_Direct( true );
-		$filesystem->copy( $test_file, $uploaded_file );
-
-		$attachment_data = array(
-			'file' => $uploaded_file,
-			'type' => 'image/jpg',
-			'url'  => 'http://localhost/foo.jpg',
-		);
-
-		$attachment_id = $this->_make_attachment( $attachment_data );
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
 		$post_data     = array(
 			'ID'           => $attachment_id,
 			'post_title'   => $with_metadata ? 'Title ' . $uniq_id : '',
@@ -167,7 +153,7 @@ class Tests_Ajax_WpAjaxCropImage extends WP_Ajax_UnitTestCase {
 			'post_excerpt' => $with_metadata ? 'Caption ' . $uniq_id : '',
 		);
 
-		// Update the post because _make_attachment method doesn't support these arguments.
+		// Update the post because create_upload_object() doesn't support these arguments.
 		wp_update_post( $post_data );
 
 		if ( $with_metadata ) {

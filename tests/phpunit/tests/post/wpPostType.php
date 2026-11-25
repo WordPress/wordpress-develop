@@ -106,8 +106,6 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	}
 
 	public function test_does_not_add_query_var_if_not_public() {
-		$this->set_permalink_structure( '/%postname%' );
-
 		/* @var WP $wp */
 		global $wp;
 
@@ -125,8 +123,6 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	}
 
 	public function test_adds_query_var_if_public() {
-		$this->set_permalink_structure( '/%postname%' );
-
 		/* @var WP $wp */
 		global $wp;
 
@@ -151,8 +147,6 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	}
 
 	public function test_adds_rewrite_rules() {
-		$this->set_permalink_structure( '/%postname%' );
-
 		/* @var WP_Rewrite $wp_rewrite */
 		global $wp_rewrite;
 
