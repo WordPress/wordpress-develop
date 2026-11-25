@@ -1384,6 +1384,93 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		}
 
 		/**
+		 * Moves past the NOSCRIPT element whose opening tag is the current token, if
+		 * a browser would end it in the same place whether scripting is enabled or not.
+		 *
+		 * With scripting enabled, a browser reads the contents of a NOSCRIPT element as
+		 * plain text up to the first `</noscript` followed by whitespace, `/` or `>`.
+		 * With scripting disabled, as in the Tag Processor, it parses them as HTML, and
+		 * the NOSCRIPT closing tag is ignored while an element such as P or DIV is still
+		 * open inside it. The two readings are only taken to agree when:
+		 *
+		 *  - no token parsed as HTML reaches past that first `</noscript`;
+		 *  - every element opened inside is closed, in order, before it;
+		 *  - no NOSCRIPT, PLAINTEXT, SVG or MATH element opens before it;
+		 *  - a NOSCRIPT closing tag starts right there; and
+		 *  - the contents hold no block delimiters.
+		 *
+		 * When they agree, the processor is left on the closing tag, so that nothing
+		 * from the element reaches the output. Otherwise, the processor may have moved
+		 * forward and the rest of the document should not be used.
+		 *
+		 * @since 7.2.0
+		 * @access private
+		 *
+		 * @param string[] $special_atomic_elements Elements whose contents the Tag Processor
+		 *                                          returns with the opening tag, without a
+		 *                                          separate closing tag token.
+		 * @return bool Whether the processor moved past the NOSCRIPT element.
+		 */
+		private function skip_noscript_element( array $special_atomic_elements ): bool {
+			$opener = $this->get_span();
+			if ( null === $opener ) {
+				return false;
+			}
+
+			$contents_start = $opener->start + $opener->length;
+			if ( 1 !== preg_match( '~</noscript[ \t\n\f\r/>]~i', $this->html, $matches, PREG_OFFSET_CAPTURE, $contents_start ) ) {
+				return false;
+			}
+
+			$raw_end       = $matches[0][1];
+			$open_elements = array();
+			while ( $this->next_token() ) {
+				$span = $this->get_span();
+				if ( null === $span ) {
+					return false;
+				}
+
+				$token_name = $this->get_token_name();
+				if ( $raw_end === $span->start ) {
+					return (
+						'NOSCRIPT' === $token_name &&
+						$this->is_tag_closer() &&
+						empty( $open_elements ) &&
+						! self::contains_a_block_delimiter( substr( $this->html, $contents_start, $raw_end - $contents_start ) )
+					);
+				}
+
+				if ( $span->start + $span->length > $raw_end || 'NOSCRIPT' === $token_name ) {
+					return false;
+				}
+
+				if ( '#tag' !== $this->get_token_type() ) {
+					continue;
+				}
+
+				if ( $this->is_tag_closer() ) {
+					if ( array_pop( $open_elements ) !== $token_name ) {
+						return false;
+					}
+					continue;
+				}
+
+				if ( in_array( $token_name, array( 'PLAINTEXT', 'SVG', 'MATH' ), true ) ) {
+					return false;
+				}
+
+				if (
+					! WP_HTML_Processor::is_void( $token_name ) &&
+					! in_array( $token_name, $special_atomic_elements, true )
+				) {
+					$open_elements[] = $token_name;
+				}
+			}
+
+			return false;
+		}
+
+		/**
 		 * Returns a sanitized copy of the input HTML.
 		 *
 		 * @since 7.2.0
@@ -1430,9 +1517,17 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				 * based on whether the scripting flag is enabled in a browser.
 				 * Rely on trusted inputs for producing the appropriate NOSCRIPT
 				 * content, and prevent untrusted inputs from generating it.
+				 *
+				 * Remove the element and its contents when both parsing modes
+				 * agree on where it ends, so that the content after it is kept.
+				 * Otherwise, stop, as the rest of the document is ambiguous.
 				 */
 				if ( 'NOSCRIPT' === $token_name && ! $is_closer ) {
-					break;
+					if ( 'html' !== $namespace || ! $this->skip_noscript_element( $special_atomic_elements ) ) {
+						break;
+					}
+
+					continue;
 				}
 
 				/*
