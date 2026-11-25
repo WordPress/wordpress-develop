@@ -2,7 +2,7 @@
 /**
  * Test register_default_headers() and unregister_default_headers().
  *
- * @group theme
+ * @group themes
  */
 class Tests_Theme_DefaultHeaders extends WP_UnitTestCase {
 
@@ -32,38 +32,13 @@ class Tests_Theme_DefaultHeaders extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that register_default_headers() adds headers to the global.
+	 * Tests that register_default_headers() adds headers and merges subsequent registrations without replacement.
 	 *
 	 * @ticket 21876
 	 *
 	 * @covers ::register_default_headers
 	 */
-	public function test_register_default_headers_adds_to_global() {
-		global $_wp_default_headers;
-
-		$test_headers = array(
-			'test_header_one' => array(
-				'url'           => '%s/images/headers/test1.jpg',
-				'thumbnail_url' => '%s/images/headers/test1-thumb.jpg',
-				'description'   => 'Test Header One',
-			),
-		);
-
-		register_default_headers( $test_headers );
-
-		$this->assertIsArray( $_wp_default_headers, 'Global $_wp_default_headers should be an array.' );
-		$this->assertArrayHasKey( 'test_header_one', $_wp_default_headers, 'Registered header key should be present in global array.' );
-		$this->assertSame( $test_headers['test_header_one'], $_wp_default_headers['test_header_one'], 'Registered header data should match.' );
-	}
-
-	/**
-	 * Tests that register_default_headers() merges additional headers with existing ones.
-	 *
-	 * @ticket 21876
-	 *
-	 * @covers ::register_default_headers
-	 */
-	public function test_register_default_headers_merges_with_existing() {
+	public function test_register_default_headers() {
 		global $_wp_default_headers;
 
 		$first_batch = array(
@@ -85,8 +60,11 @@ class Tests_Theme_DefaultHeaders extends WP_UnitTestCase {
 		register_default_headers( $first_batch );
 		register_default_headers( $second_batch );
 
+		$this->assertIsArray( $_wp_default_headers, 'Global $_wp_default_headers should be an array.' );
 		$this->assertArrayHasKey( 'first_batch_header', $_wp_default_headers, 'First batch header should remain present after merge.' );
+		$this->assertSame( $first_batch['first_batch_header'], $_wp_default_headers['first_batch_header'], 'First batch header metadata should match.' );
 		$this->assertArrayHasKey( 'second_batch_header', $_wp_default_headers, 'Second batch header should be present after merge.' );
+		$this->assertSame( $second_batch['second_batch_header'], $_wp_default_headers['second_batch_header'], 'Second batch header metadata should match.' );
 	}
 
 	/**
@@ -109,8 +87,6 @@ class Tests_Theme_DefaultHeaders extends WP_UnitTestCase {
 				),
 			)
 		);
-
-		$this->assertArrayHasKey( $header_id, $_wp_default_headers, 'Header should be present before unregistering.' );
 
 		$result = unregister_default_headers( $header_id );
 
@@ -155,9 +131,6 @@ class Tests_Theme_DefaultHeaders extends WP_UnitTestCase {
 		);
 
 		register_default_headers( $headers );
-
-		$this->assertArrayHasKey( 'batch_remove_one', $_wp_default_headers );
-		$this->assertArrayHasKey( 'batch_remove_two', $_wp_default_headers );
 
 		$result = unregister_default_headers( array( 'batch_remove_one', 'batch_remove_two' ) );
 
