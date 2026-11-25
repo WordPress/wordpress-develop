@@ -102,6 +102,8 @@ const UNEXPECTED = array(
 	'test Tests_Leak_Probe::test_reconnect_drops_temp_table' => '/^temptable\|\w+leak_probe_gone$/',
 	// Its start is the previous test's end, reused: a wrong one reports other constants.
 	'test Tests_Leak_Probe::test_leaks_constant'         => '/^const\|(?!LEAK_PROBE_CONSTANT$)/',
+	// The previous probe's, which this test's set_up() flush drops.
+	'test Tests_Leak_Probe::test_leaks_cache_after_tear_down' => '/^stale\|runtime\|1\|options\|(alloptions\|blogname|leak_probe_not_autoloaded)$/',
 	// Dropped by a rules.php pattern.
 	'test Tests_Leak_Probe::test_leaks_filtered_globals' => '/^global\|leak_probe_filtered_dropped$/',
 );
