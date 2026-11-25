@@ -2,7 +2,7 @@
 /**
  * Test get_theme_root_uri().
  *
- * @group theme
+ * @group themes
  *
  * @covers ::get_theme_root_uri
  */
@@ -30,14 +30,13 @@ class Tests_Theme_GetThemeRootUri extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wp_theme_directories;
 		$wp_theme_directories = $this->old_wp_theme_directories;
-		remove_all_filters( 'theme_root_uri' );
 		parent::tear_down();
 	}
 
 	/**
 	 * Tests that get_theme_root_uri() defaults to content_url( 'themes' ) when called without arguments.
 	 *
-	 * @ticket 17597
+	 * @ticket 66823
 	 */
 	public function test_get_theme_root_uri_default() {
 		$expected = content_url( 'themes' );
@@ -49,7 +48,7 @@ class Tests_Theme_GetThemeRootUri extends WP_UnitTestCase {
 	/**
 	 * Tests that get_theme_root_uri() handles relative theme roots.
 	 *
-	 * @ticket 17597
+	 * @ticket 66823
 	 */
 	public function test_get_theme_root_uri_with_relative_root() {
 		$expected = content_url( 'custom-themes' );
@@ -62,6 +61,7 @@ class Tests_Theme_GetThemeRootUri extends WP_UnitTestCase {
 	 * Tests that get_theme_root_uri() resolves absolute theme root within WP_CONTENT_DIR.
 	 *
 	 * @ticket 17597
+	 * @ticket 66823
 	 */
 	public function test_get_theme_root_uri_with_wp_content_dir_path() {
 		global $wp_theme_directories;
@@ -80,6 +80,7 @@ class Tests_Theme_GetThemeRootUri extends WP_UnitTestCase {
 	 * Tests that get_theme_root_uri() resolves absolute theme root within ABSPATH.
 	 *
 	 * @ticket 17597
+	 * @ticket 66823
 	 */
 	public function test_get_theme_root_uri_with_abspath() {
 		global $wp_theme_directories;
@@ -95,20 +96,24 @@ class Tests_Theme_GetThemeRootUri extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that theme_root_uri filter modifies the returned URI.
+	 * Tests that the theme_root_uri filter receives the requested stylesheet and its return value is used.
 	 *
-	 * @ticket 17597
+	 * @ticket 66823
 	 */
-	public function test_theme_root_uri_filter() {
+	public function test_theme_root_uri_filter_receives_requested_stylesheet() {
 		add_filter(
 			'theme_root_uri',
 			static function ( $theme_root_uri, $siteurl, $stylesheet_or_template ) {
-				return 'https://cdn.example.com/themes';
+				return 'https://cdn.example.com/' . $stylesheet_or_template;
 			},
 			10,
 			3
 		);
 
-		$this->assertSame( 'https://cdn.example.com/themes', get_theme_root_uri(), 'Filter should modify returned theme root URI.' );
+		$this->assertSame(
+			'https://cdn.example.com/my-theme',
+			get_theme_root_uri( 'my-theme', 'custom-themes' ),
+			'The filter should receive the requested stylesheet, and its return value should be used.'
+		);
 	}
 }
