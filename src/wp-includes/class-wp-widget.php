@@ -16,8 +16,6 @@
  *
  * @since 2.8.0
  * @since 4.4.0 Moved to its own file from wp-includes/widgets.php
- *
- * @phpstan-template T of array = array<string, mixed>
  */
 #[AllowDynamicProperties]
 class WP_Widget {
@@ -108,9 +106,9 @@ class WP_Widget {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param array $args     Display arguments including 'before_title', 'after_title',
-	 *                        'before_widget', and 'after_widget'.
-	 * @param array $instance The settings for the particular instance of the widget.
+	 * @param array                $args     Display arguments including 'before_title', 'after_title',
+	 *                                       'before_widget', and 'after_widget'.
+	 * @param array<string, mixed> $instance The settings for the particular instance of the widget.
 	 *
 	 * @phpstan-param array{
 	 *     name?: string,
@@ -127,7 +125,6 @@ class WP_Widget {
 	 *     widget_id?: string,
 	 *     widget_name?: string,
 	 * } $args
-	 * @phpstan-param T $instance
 	 */
 	public function widget( $args, $instance ) {
 		die( 'function WP_Widget::widget() must be overridden in a subclass.' );
@@ -142,14 +139,10 @@ class WP_Widget {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param array $new_instance New settings for this instance as input by the user via
-	 *                            WP_Widget::form().
-	 * @param array $old_instance Old settings for this instance.
-	 * @return array Settings to save or bool false to cancel saving.
-	 *
-	 * @phpstan-param array<string, mixed> $new_instance
-	 * @phpstan-param T|array{} $old_instance
-	 * @phpstan-return array<string, mixed>|false
+	 * @param array<string, mixed> $new_instance New settings for this instance as input by the user via
+	 *                                           WP_Widget::form().
+	 * @param array<string, mixed> $old_instance Old settings for this instance.
+	 * @return array<string, mixed>|false Settings to save or bool false to cancel saving.
 	 */
 	public function update( $new_instance, $old_instance ) {
 		return $new_instance;
@@ -160,11 +153,9 @@ class WP_Widget {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param array $instance The settings for the particular instance of the widget.
+	 * @param array<string, mixed> $instance The settings for the particular instance of the widget.
 	 * @return string|void Default return is 'noform'. A subclass which echoes its own
 	 *                     form returns nothing.
-	 *
-	 * @phpstan-param T|array{} $instance
 	 */
 	public function form( $instance ) {
 		echo '<p class="no-options-widget">' . __( 'There are no options for this widget.' ) . '</p>';
