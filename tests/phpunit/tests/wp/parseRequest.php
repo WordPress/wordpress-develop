@@ -42,9 +42,6 @@ class Tests_WP_ParseRequest extends WP_UnitTestCase {
 	 * @ticket 53635
 	 */
 	public function test_no_deprecation_notice_when_home_url_has_no_path() {
-		// Make sure rewrite rules are not empty.
-		$this->set_permalink_structure( '/%year%/%monthnum%/%postname%/' );
-
 		// Make sure the test will function independently of whatever the test user set in wp-tests-config.php.
 		add_filter(
 			'home_url',

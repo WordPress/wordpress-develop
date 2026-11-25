@@ -56,7 +56,7 @@ class Tests_Cron_getCronArray extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_cron_array_output_validation() {
+	public static function data_get_cron_array_output_validation() {
 		return array(
 			'stdClass'    => array(
 				'input'    => new stdClass(),

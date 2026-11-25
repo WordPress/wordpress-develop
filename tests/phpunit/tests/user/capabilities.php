@@ -102,7 +102,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		return $meta_value;
 	}
 
-	private function _getSingleSitePrimitiveCaps() {
+	private static function _getSingleSitePrimitiveCaps() {
 		return array(
 
 			'unfiltered_html'         => array( 'administrator', 'editor' ),
@@ -183,7 +183,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	private function _getMultiSitePrimitiveCaps() {
+	private static function _getMultiSitePrimitiveCaps() {
 		return array(
 
 			'unfiltered_html'         => array(),
@@ -265,7 +265,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	private function _getSingleSiteMetaCaps() {
+	private static function _getSingleSiteMetaCaps() {
 		return array(
 			'create_sites'                => array(),
 			'delete_sites'                => array(),
@@ -304,7 +304,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	private function _getMultiSiteMetaCaps() {
+	private static function _getMultiSiteMetaCaps() {
 		return array(
 			'create_sites'                => array(),
 			'delete_sites'                => array(),
@@ -343,9 +343,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	public function dataAllCapsAndRoles() {
+	public static function dataAllCapsAndRoles() {
 		$data = array();
-		$caps = $this->getAllCapsAndRoles();
+		$caps = self::getAllCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
 			foreach ( $caps as $cap => $roles ) {
@@ -368,7 +368,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *     @type string $role The role to test for.
 	 * }
 	 */
-	public function data_single_site_roles_to_check() {
+	public static function data_single_site_roles_to_check() {
 		return array(
 			array( 'anonymous' ),
 			array( 'administrator' ),
@@ -379,23 +379,23 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	protected function getAllCapsAndRoles() {
-		return $this->getPrimitiveCapsAndRoles() + $this->getMetaCapsAndRoles();
+	protected static function getAllCapsAndRoles() {
+		return self::getPrimitiveCapsAndRoles() + self::getMetaCapsAndRoles();
 	}
 
-	protected function getPrimitiveCapsAndRoles() {
+	protected static function getPrimitiveCapsAndRoles() {
 		if ( is_multisite() ) {
-			return $this->_getMultiSitePrimitiveCaps();
+			return self::_getMultiSitePrimitiveCaps();
 		} else {
-			return $this->_getSingleSitePrimitiveCaps();
+			return self::_getSingleSitePrimitiveCaps();
 		}
 	}
 
-	protected function getMetaCapsAndRoles() {
+	protected static function getMetaCapsAndRoles() {
 		if ( is_multisite() ) {
-			return $this->_getMultiSiteMetaCaps();
+			return self::_getMultiSiteMetaCaps();
 		} else {
-			return $this->_getSingleSiteMetaCaps();
+			return self::_getSingleSiteMetaCaps();
 		}
 	}
 
@@ -403,14 +403,14 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * Test the tests.
 	 */
 	public function test_single_and_multisite_cap_tests_match() {
-		$single_primitive = array_keys( $this->_getSingleSitePrimitiveCaps() );
-		$multi_primitive  = array_keys( $this->_getMultiSitePrimitiveCaps() );
+		$single_primitive = array_keys( self::_getSingleSitePrimitiveCaps() );
+		$multi_primitive  = array_keys( self::_getMultiSitePrimitiveCaps() );
 		sort( $single_primitive );
 		sort( $multi_primitive );
 		$this->assertSame( $single_primitive, $multi_primitive );
 
-		$single_meta = array_keys( $this->_getSingleSiteMetaCaps() );
-		$multi_meta  = array_keys( $this->_getMultiSiteMetaCaps() );
+		$single_meta = array_keys( self::_getSingleSiteMetaCaps() );
+		$multi_meta  = array_keys( self::_getMultiSiteMetaCaps() );
 		sort( $single_meta );
 		sort( $multi_meta );
 		$this->assertSame( $single_meta, $multi_meta );
@@ -420,7 +420,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * Test the tests.
 	 */
 	public function test_all_caps_of_users_are_being_tested() {
-		$caps = $this->getPrimitiveCapsAndRoles();
+		$caps = self::getPrimitiveCapsAndRoles();
 
 		// `manage_links` is a special case.
 		$this->assertSame( '0', get_option( 'link_manager_enabled' ) );
@@ -459,7 +459,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @group capTestTests
 	 */
-	public function testPrimitiveCapsTestsAreCorrect() {
+	public function test_primitive_caps_tests_are_correct() {
 		$actual   = $this->getPrimitiveCapsAndRoles();
 		$admin    = get_role( 'administrator' );
 		$expected = $admin->capabilities;
@@ -500,7 +500,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @group capTestTests
 	 */
-	public function testMetaCapsTestsAreCorrect() {
+	public function test_meta_caps_tests_are_correct() {
 		$actual = $this->getMetaCapsAndRoles();
 		$file   = file_get_contents( ABSPATH . WPINC . '/capabilities.php' );
 
@@ -810,9 +810,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSame( $can_edit_others_post, $user_can_edit );
 	}
 
-	public function data_user_with_role_can_edit_own_post() {
+	public static function data_user_with_role_can_edit_own_post() {
 		$data = array();
-		$caps = $this->getPrimitiveCapsAndRoles();
+		$caps = self::getPrimitiveCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
 			$data[] = array(
@@ -824,9 +824,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		return $data;
 	}
 
-	public function data_user_with_role_can_edit_others_posts() {
+	public static function data_user_with_role_can_edit_others_posts() {
 		$data = array();
-		$caps = $this->getPrimitiveCapsAndRoles();
+		$caps = self::getPrimitiveCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
 			$data[] = array(
@@ -1298,7 +1298,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$something = get_post_type_object( 'something' );
 		$this->assertSame( 'draw_somethings', $something->cap->edit_posts );
 		$this->assertSame( 'create_somethings', $something->cap->create_posts );
-		_unregister_post_type( 'something' );
 
 		// Test meta authorization callbacks.
 		if ( function_exists( 'register_meta' ) ) {
@@ -1357,7 +1356,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSame( 'publish' === $status, $contributor->has_cap( 'read_post', $post ) );
 	}
 
-	public function data_authorless_post() {
+	public static function data_authorless_post() {
 		return array( array( 'draft' ), array( 'private' ), array( 'publish' ) );
 	}
 
@@ -1389,7 +1388,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertTrue( $contributor->has_cap( $cap->create_posts ) );
 		$this->assertFalse( $subscriber->has_cap( $cap->create_posts ) );
 
-		_unregister_post_type( 'foobar' );
+		unregister_post_type( 'foobar' );
 
 		// Primitive capability 'edit_foobars' is not assigned to any users.
 		register_post_type( 'foobar', array( 'capability_type' => array( 'foobar', 'foobars' ) ) );
@@ -1414,8 +1413,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( $subscriber->has_cap( $cap->create_posts ) );
 
 		$admin->remove_cap( 'edit_foobars' );
-
-		_unregister_post_type( 'foobar' );
 
 		$cap = get_post_type_object( 'attachment' )->cap;
 		$this->assertSame( 'upload_files', $cap->create_posts );
@@ -1562,7 +1559,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
-	public function dataTaxonomies() {
+	public static function dataTaxonomies() {
 		return array(
 			array(
 				'post_tag',
@@ -1994,7 +1991,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	public function test_require_edit_others_posts_if_post_type_doesnt_exist() {
 		register_post_type( 'existed' );
 		$post_id = self::factory()->post->create( array( 'post_type' => 'existed' ) );
-		_unregister_post_type( 'existed' );
+		unregister_post_type( 'existed' );
 
 		$subscriber_id = self::$users['subscriber']->ID;
 		$editor_id     = self::$users['editor']->ID;
@@ -2080,8 +2077,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertTrue( user_can( $editor->ID, 'edit_post', $author_post->ID ) );
 		$this->assertFalse( user_can( $author->ID, 'edit_post', $author_post->ID ) );
 		$this->assertFalse( user_can( $contributor->ID, 'edit_post', $author_post->ID ) );
-
-		_unregister_post_type( 'page_capability' );
 	}
 
 	public function test_non_logged_in_users_have_no_capabilities() {
@@ -2432,7 +2427,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_block_caps() {
+	public static function data_block_caps() {
 		$post_caps = array(
 			'edit_block',
 			'read_block',

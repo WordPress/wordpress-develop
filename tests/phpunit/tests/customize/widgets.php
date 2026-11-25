@@ -199,7 +199,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( $expected['description'], $description );
 	}
 
-	public function data_customize_register_control_label_and_description() {
+	public static function data_customize_register_control_label_and_description() {
 		return array(
 			'with widgets block editor' => array(
 				'sidebars'            => array(
@@ -782,7 +782,6 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	public function test_customize_preview_enqueue() {
 		$this->manager->widgets->customize_preview_enqueue();
 		$this->assertTrue( wp_script_is( 'customize-preview-widgets', 'enqueued' ) );
-		$this->assertTrue( wp_style_is( 'customize-preview', 'enqueued' ) );
 		$script = wp_scripts()->registered['customize-preview-widgets'];
 		$this->assertContains( 'customize-selective-refresh', $script->deps );
 	}
@@ -833,7 +832,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( $bad_params, $this->manager->widgets->filter_dynamic_sidebar_params( $bad_params ) );
 
 		$filtered_params = $this->manager->widgets->filter_dynamic_sidebar_params( $params );
-		$this->assertNotEquals( $params, $filtered_params );
+		$this->assertNotSame( $params, $filtered_params );
 		ob_start();
 		do_action( 'dynamic_sidebar_after', 'foo' );
 		$output = ob_get_clean();

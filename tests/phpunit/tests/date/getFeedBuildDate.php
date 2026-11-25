@@ -178,7 +178,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public function data_cold_post_query_fields(): array {
+	public static function data_cold_post_query_fields(): array {
 		return array(
 			'IDs'     => array( 'ids' ),
 			'partial' => array( 'id=>parent' ),
