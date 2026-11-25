@@ -12789,7 +12789,7 @@ mockedApiResponse.Schema = {
                                             ]
                                         },
                                         "open_world": {
-                                            "description": "Whether the ability may interact with public or open-ended entities.",
+                                            "description": "Whether the ability may interact with systems outside of the site, such as remote HTTP services or email recipients.",
                                             "type": [
                                                 "boolean",
                                                 "null"

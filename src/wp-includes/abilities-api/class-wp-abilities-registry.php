@@ -42,6 +42,7 @@ final class WP_Abilities_Registry {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `public` meta argument.
 	 * @since 7.2.0 Added the `required_capabilities` argument.
+	 * @since 7.3.0 Added the `open_world` annotation.
 	 *
 	 * @see wp_register_ability()
 	 *
@@ -76,8 +77,9 @@ final class WP_Abilities_Registry {
 	 *                                          If false, the ability performs only additive updates.
 	 *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
 	 *                                          will have no additional effect on its environment.
-	 *             @type bool|null $open_world  Optional. If true, the ability may interact with public or open-ended entities.
-	 *                                          If false, the ability stays within a bounded environment. If null, it is not declared.
+	 *             @type bool|null $open_world  Optional. If true, the ability may interact with systems outside of the site,
+	 *                                          such as remote HTTP services or email recipients. If false, the ability
+	 *                                          only interacts with the site itself.
 	 *         }
 	 *         @type bool                     $public       Optional. Whether the ability is meant to be available
 	 *                                                      to clients such as the REST API, MCP, or AI agents.
@@ -120,6 +122,7 @@ final class WP_Abilities_Registry {
 		 * @since 6.9.0
 		 * @since 7.1.0 Added the `public` meta argument.
 		 * @since 7.2.0 Added the `required_capabilities` argument.
+		 * @since 7.3.0 Added the `open_world` annotation.
 		 *
 		 * @param array<string, mixed> $args {
 		 *     An associative array of arguments for the ability.
