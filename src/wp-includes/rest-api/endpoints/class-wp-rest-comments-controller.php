@@ -2149,7 +2149,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$query_params['context']['default'] = 'view';
 
 		$query_params['after'] = array(
-			'description' => __( 'Limit response to comments published after a given ISO8601 compliant date.' ),
+			'description' => __( 'Limit response to comments published after a given ISO 8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
@@ -2178,7 +2178,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 
 		$query_params['before'] = array(
-			'description' => __( 'Limit response to comments published before a given ISO8601 compliant date.' ),
+			'description' => __( 'Limit response to comments published before a given ISO 8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);

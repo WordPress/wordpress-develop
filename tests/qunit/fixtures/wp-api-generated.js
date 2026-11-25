@@ -307,13 +307,13 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "after": {
-                            "description": "Limit response to posts published after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_after": {
-                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -337,13 +337,13 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "before": {
-                            "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_before": {
-                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -1694,13 +1694,13 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "after": {
-                            "description": "Limit response to posts published after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_after": {
-                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -1724,13 +1724,13 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "before": {
-                            "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_before": {
-                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -2808,13 +2808,13 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "after": {
-                            "description": "Limit response to posts published after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_after": {
-                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -2838,13 +2838,13 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "before": {
-                            "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_before": {
-                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -3839,25 +3839,25 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "after": {
-                            "description": "Limit response to posts published after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_after": {
-                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "before": {
-                            "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_before": {
-                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -4658,13 +4658,13 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "after": {
-                            "description": "Limit response to posts published after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_after": {
-                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -4688,13 +4688,13 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "before": {
-                            "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_before": {
-                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -7312,25 +7312,25 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "after": {
-                            "description": "Limit response to posts published after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_after": {
-                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "before": {
-                            "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts published before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
                         },
                         "modified_before": {
-                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
+                            "description": "Limit response to posts modified before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -10511,7 +10511,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "after": {
-                            "description": "Limit response to comments published after a given ISO8601 compliant date.",
+                            "description": "Limit response to comments published after a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -10540,7 +10540,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "before": {
-                            "description": "Limit response to comments published before a given ISO8601 compliant date.",
+                            "description": "Limit response to comments published before a given ISO 8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false

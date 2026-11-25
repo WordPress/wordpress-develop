@@ -3025,13 +3025,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$query_params['context']['default'] = 'view';
 
 		$query_params['after'] = array(
-			'description' => __( 'Limit response to posts published after a given ISO8601 compliant date.' ),
+			'description' => __( 'Limit response to posts published after a given ISO 8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
 
 		$query_params['modified_after'] = array(
-			'description' => __( 'Limit response to posts modified after a given ISO8601 compliant date.' ),
+			'description' => __( 'Limit response to posts modified after a given ISO 8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
@@ -3056,13 +3056,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$query_params['before'] = array(
-			'description' => __( 'Limit response to posts published before a given ISO8601 compliant date.' ),
+			'description' => __( 'Limit response to posts published before a given ISO 8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
 
 		$query_params['modified_before'] = array(
-			'description' => __( 'Limit response to posts modified before a given ISO8601 compliant date.' ),
+			'description' => __( 'Limit response to posts modified before a given ISO 8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
