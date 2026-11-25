@@ -190,18 +190,23 @@ parameters:
 			count: 1
 			path: src/wp-includes/capabilities.php
 		-
-			# A `break` or `exit` that ends a `switch` case after a call that never returns. Without it, the case reads
-			# as falling through to the next one, which PHPCS reports as an error for all but the `editpost` case in
-			# post.php. That one would appear to fall through into the `trash` case.
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: src/wp-admin/includes/ajax-actions.php
-		-
+			# An `exit` that ends a `switch` case after `redirect_post()`, which never returns. Without it, the case
+			# reads as falling through to the next one. PHPCS reports that as an error for the `post` case, and the
+			# `editpost` case would appear to fall through into the `trash` case.
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
 			count: 2
 			path: src/wp-admin/post.php
+		-
+			# The `break` after `wp_send_json_success()` in `wp_ajax_image_editor()`. Without it, PHPCS reports the
+			# `switch` case as falling through to the next one.
+			#
+			# The `wp_die( 0 )` after `ajax_response()` in `wp_ajax_fetch_list()`. The `wp_list_table_class_name` filter
+			# can replace the list table with a plugin class whose `ajax_response()` returns, and this ends the request.
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 2
+			path: src/wp-admin/includes/ajax-actions.php
 		-
 			# The `die()` after `wp_nonce_ays()` in `check_admin_referer()` stops a request with an invalid nonce even
 			# if a custom `wp_die()` handler returns.

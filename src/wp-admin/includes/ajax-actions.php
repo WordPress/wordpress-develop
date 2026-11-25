@@ -94,6 +94,8 @@ function wp_ajax_fetch_list() {
 	}
 
 	$wp_list_table->ajax_response();
+
+	wp_die( 0 );
 }
 
 /**
