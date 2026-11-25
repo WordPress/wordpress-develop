@@ -830,6 +830,13 @@ function wp_exif_datetime( $str, $timezone = null ) {
 		return false;
 	}
 
+	// Reject relative or partial dates such as 'now' or '14:30:00'.
+	$parsed = date_parse( $str );
+
+	if ( false === $parsed['year'] || false === $parsed['month'] || false === $parsed['day'] || isset( $parsed['relative'] ) ) {
+		return false;
+	}
+
 	return $datetime;
 }
 
@@ -1080,10 +1087,9 @@ function wp_read_image_metadata( $file ) {
 		if ( empty( $meta['created_timestamp'] ) && ! empty( $exif['DateTimeDigitized'] ) ) {
 			// Default to UTC, matching the previous wp_exif_date2ts() based timestamp.
 			$timezone = 'UTC';
-			if ( ! empty( $exif['OffsetTimeDigitized'] ) ) {
-				$timezone = $exif['OffsetTimeDigitized'];
-			} elseif ( ! empty( $exif['UndefinedTag:0x9012'] ) ) {
-				$timezone = $exif['UndefinedTag:0x9012'];
+			$offset   = ! empty( $exif['OffsetTimeDigitized'] ) ? $exif['OffsetTimeDigitized'] : ( $exif['UndefinedTag:0x9012'] ?? '' );
+			if ( is_string( $offset ) && preg_match( '/^[+-](?:[01]\d|2[0-3]):[0-5]\d$/', trim( $offset ) ) ) {
+				$timezone = trim( $offset );
 			}
 
 			$datetime = wp_exif_datetime( $exif['DateTimeDigitized'], $timezone );
