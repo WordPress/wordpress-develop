@@ -472,13 +472,13 @@ ul#adminmenu > li.current > a.current::after {
 }
 
 #collapse-button {
-	display: block;
+	display: flex;
+	align-items: center;
 	width: 100%;
-	height: 34px;
+	min-height: 34px;
 	margin: 0;
 	border: none;
 	padding: 0;
-	position: relative;
 	overflow: visible;
 	background: none;
 	color: #c3c4c7;
@@ -498,21 +498,14 @@ ul#adminmenu > li.current > a.current::after {
 	outline-offset: -1px;
 }
 
-#collapse-button .collapse-button-icon,
 #collapse-button .collapse-button-label {
-	/* absolutely positioned to avoid 1px shift in IE when button is pressed */
-	display: block;
-	position: absolute;
-	top: 0;
-	left: 0;
-}
-
-#collapse-button .collapse-button-label {
-	top: 8px;
-	padding: 0 0 0 36px;
+	padding: 8px 0;
+	line-height: 1.3;
+	text-align: left;
 }
 
 #collapse-button .collapse-button-icon {
+	flex-shrink: 0;
 	width: 36px;
 	height: 34px;
 	display: flex;
