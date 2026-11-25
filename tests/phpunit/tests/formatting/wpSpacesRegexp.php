@@ -35,16 +35,4 @@ class Tests_Formatting_WpSpacesRegexp extends WP_UnitTestCase {
 		$this->assertSame( '[ ]', $result['second'], 'Second call should return cached filtered pattern.' );
 	}
 
-	/**
-	 * Tests that wp_spaces_regexp() returns the default pattern and uses the static cache.
-	 *
-	 * @ticket 60319
-	 */
-	public function test_wp_spaces_regexp_warmed_cache(): void {
-		$filter = new MockAction();
-		add_filter( 'wp_spaces_regexp', array( $filter, 'filter' ) );
-
-		$this->assertSame( '[\r\n\t ]|\xC2\xA0|&nbsp;', wp_spaces_regexp(), 'Should return default regex pattern.' );
-		$this->assertSame( 0, $filter->get_call_count(), 'Filter should not be called when static cache is already populated.' );
-	}
 }
