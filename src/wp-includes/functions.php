@@ -258,6 +258,11 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 	}
 
 	$datetime = date_create( '@' . $timestamp );
+
+	if ( false === $datetime ) {
+		return false;
+	}
+
 	$datetime->setTimezone( $timezone );
 
 	if ( empty( $wp_locale->month ) || empty( $wp_locale->weekday ) ) {
@@ -269,7 +274,7 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 		$new_format    = '';
 		$format_length = strlen( $format );
 		$month         = $wp_locale->get_month( $datetime->format( 'm' ) );
-		$weekday       = $wp_locale->get_weekday( $datetime->format( 'w' ) );
+		$weekday       = $wp_locale->get_weekday( (int) $datetime->format( 'w' ) );
 
 		for ( $i = 0; $i < $format_length; $i++ ) {
 			switch ( $format[ $i ] ) {
@@ -1036,6 +1041,8 @@ function wp_get_http_headers( $url, $deprecated = false ) {
  * @global string $previousday The day of the previous post in the loop.
  *
  * @return int 1 when new day, 0 if not a new day.
+ *
+ * @phpstan-return 0|1
  */
 function is_new_day() {
 	global $currentday, $previousday;
@@ -4520,6 +4527,7 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  *                     greater than 0. Default 512.
  * @return string|false The JSON encoded string, or false if it cannot be encoded.
  *
+ * @phpstan-param positive-int $depth
  * @phpstan-return non-empty-string|false
  */
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
@@ -6298,6 +6306,8 @@ function _doing_it_wrong( $function_name, $message, $version ) {
  *                              before passing to this function to avoid being stripped {@see wp_kses()}.
  * @param int    $error_level   Optional. The designated error type for this error.
  *                              Only works with E_USER family of constants. Default E_USER_NOTICE.
+ *
+ * @phpstan-param E_USER_ERROR|E_USER_WARNING|E_USER_NOTICE|E_USER_DEPRECATED $error_level
  */
 function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTICE ) {
 	/**
@@ -6734,6 +6744,8 @@ function is_main_network( $network_id = null ) {
  * @since 4.3.0
  *
  * @return int The ID of the main network.
+ *
+ * @phpstan-return non-negative-int
  */
 function get_main_network_id() {
 	if ( ! is_multisite() ) {
@@ -6763,6 +6775,8 @@ function get_main_network_id() {
 	 * @since 4.3.0
 	 *
 	 * @param int $main_network_id The ID of the main network.
+	 *
+	 * @phpstan-param non-negative-int $main_network_id
 	 */
 	return (int) apply_filters( 'get_main_network_id', $main_network_id );
 }
@@ -7245,6 +7259,8 @@ function __return_false() { // phpcs:ignore WordPress.NamingConventions.ValidFun
  * @since 3.0.0
  *
  * @return int 0.
+ *
+ * @phpstan-return 0
  */
 function __return_zero() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return 0;
@@ -7258,6 +7274,8 @@ function __return_zero() { // phpcs:ignore WordPress.NamingConventions.ValidFunc
  * @since 3.0.0
  *
  * @return array Empty array.
+ *
+ * @phpstan-return array{}
  */
 function __return_empty_array() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return array();
@@ -7286,6 +7304,8 @@ function __return_null() { // phpcs:ignore WordPress.NamingConventions.ValidFunc
  * @see __return_null()
  *
  * @return string Empty string.
+ *
+ * @phpstan-return ''
  */
 function __return_empty_string() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return '';
@@ -8374,6 +8394,7 @@ function wp_unique_prefixed_id( $prefix = '' ) {
  * @param string $prefix Optional. A prefix to prepend to the generated ID. Default empty string.
  * @return string The generated unique ID for the array.
  *
+ * @phpstan-param non-empty-array $data
  * @phpstan-return ( $prefix is lowercase-string ? lowercase-string&non-falsy-string : non-falsy-string )
  */
 function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
@@ -9636,6 +9657,8 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 		return;
 	}
 
+	$switched_locale = switch_to_user_locale( $user->ID );
+
 	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, ADMIN_EMAIL, SITENAME, SITEURL, EMAIL: those are placeholders. */
 	$application_password_create_text = __(
 		'Hi ###USERNAME###,
@@ -9719,4 +9742,8 @@ All at ###SITENAME###
 		$email['message'],
 		$email['headers']
 	);
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 }
