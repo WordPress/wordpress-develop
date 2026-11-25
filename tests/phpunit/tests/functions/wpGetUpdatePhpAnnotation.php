@@ -14,7 +14,7 @@ class Tests_functions_wpGetUpdatePhpAnnotation extends WP_UnitTestCase {
 	 * @ticket 59699
 	 */
 	public function test_wp_get_update_php_annotation() {
-		$this->assertEquals( '', wp_get_update_php_annotation() );
+		$this->assertSame( '', wp_get_update_php_annotation() );
 	}
 
 	/**

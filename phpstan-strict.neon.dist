@@ -1,0 +1,91 @@
+# PHPStan configuration holding selected parts of WordPress Core to a stricter rule level.
+#
+# phpstan.neon.dist analyzes the whole codebase at a lower rule level. This analyzes only the paths listed under
+# `paths!` below, at the `level` set below, so that code which already meets that stricter level, mostly code added in
+# recent releases, keeps meeting it. `composer phpstan` runs both analyses.
+#
+# The rest of core is scanned rather than analyzed, so that what the strict paths use is known. A scanned file is read
+# with the same WordPress-specific parser node visitors as an analyzed one (see the redefinition of
+# `currentPhpVersionSimpleParser` in tests/phpstan/base.neon), so a function outside the strict paths has the same
+# types here, such as the array shapes from hash notation, as in the analysis of the whole codebase.
+#
+# To override this configuration, create a phpstan-strict.neon which includes this file, in the same way as
+# phpstan.neon overrides phpstan.neon.dist.
+#
+# https://phpstan.org/config-reference
+
+includes:
+	# Everything phpstan.neon.dist enforces: the base configuration, the strict rules, the errors ignored as not
+	# actionable, and its baselines. An error that both analyses report is baselined once, by phpstan.neon.dist. The
+	# entries for files this does not analyze are not reported as unmatched, since PHPStan only reports an entry when
+	# what it ignores is within the analysis.
+	- phpstan.neon.dist
+
+	# Preexisting errors at this level in the strict paths, beyond those baselined by phpstan.neon.dist. They are
+	# organized and regenerated the same way, by `composer phpstan:baselines`, and included the same way, through the
+	# loader in their directory.
+	- tests/phpstan/baselines-strict/loader.php
+
+parameters:
+	# The level is set explicitly rather than as `max`, so that a PHPStan update that adds a level does not raise it.
+	# https://phpstan.org/user-guide/rule-levels
+	level: 10
+
+	# The two analyses share the cache of what PHPStan reads from each file, since both read every file the same way,
+	# but each needs its own result cache. Its metadata includes the rule level and the paths analyzed, so a shared one
+	# would be discarded by every run of the other analysis.
+	resultCachePath: %tmpDir%/resultCache-strict.php
+
+	# The paths held to this rule level, replacing those analyzed by phpstan.neon.dist. A directory covers every file
+	# below it.
+	#
+	# Before adding a path, fix the errors this analysis reports in it, or baseline those that cannot be fixed yet.
+	paths!:
+		- src/wp-admin/includes/class-wp-filesystem-base.php
+		- src/wp-admin/includes/class-wp-filesystem-direct.php
+		- src/wp-admin/includes/class-wp-filesystem-ssh2.php
+		- src/wp-includes/abilities-api
+		- src/wp-includes/abilities-api.php
+		- src/wp-includes/ai-client
+		- src/wp-includes/ai-client.php
+		- src/wp-includes/class-wp-block-styles-registry.php
+		- src/wp-includes/class-wp-block-template.php
+		- src/wp-includes/class-wp-comment.php
+		- src/wp-includes/class-wp-connector-registry.php
+		- src/wp-includes/class-wp-error.php
+		- src/wp-includes/class-wp-post.php
+		- src/wp-includes/class-wp-url-pattern-prefixer.php
+		- src/wp-includes/html-api/class-wp-html-attribute-token.php
+		- src/wp-includes/html-api/class-wp-html-decoder.php
+		- src/wp-includes/html-api/class-wp-html-doctype-info.php
+		- src/wp-includes/html-api/class-wp-html-processor-state.php
+		- src/wp-includes/html-api/class-wp-html-span.php
+		- src/wp-includes/html-api/class-wp-html-stack-event.php
+		- src/wp-includes/html-api/class-wp-html-text-replacement.php
+		- src/wp-includes/html-api/class-wp-html-token.php
+		- src/wp-includes/html-api/class-wp-html-unsupported-exception.php
+		- src/wp-includes/l10n/class-wp-translations.php
+		- src/wp-includes/sitemaps.php
+		- src/wp-includes/speculative-loading.php
+		- src/wp-includes/style-engine
+		- tests/phpstan
+
+	# The code outside the strict paths that they can use. The bundled themes are left out, since nothing in core uses
+	# them. The files in the root are scanned for the constants they define, such as WPINC in wp-settings.php.
+	scanDirectories:
+		- src/wp-admin
+		- src/wp-includes
+	scanFiles:
+		- src/index.php
+		- src/wp-activate.php
+		- src/wp-blog-header.php
+		- src/wp-comments-post.php
+		- src/wp-cron.php
+		- src/wp-links-opml.php
+		- src/wp-load.php
+		- src/wp-login.php
+		- src/wp-mail.php
+		- src/wp-settings.php
+		- src/wp-signup.php
+		- src/wp-trackback.php
+		- src/xmlrpc.php

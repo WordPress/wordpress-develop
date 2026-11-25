@@ -41,6 +41,13 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	private $orig_theme_features;
 
+	/**
+	 * Theme features registered with register_theme_feature() before the test ran.
+	 *
+	 * @var array
+	 */
+	private $orig_registered_theme_features;
+
 	public function set_up() {
 		global $wp_theme_directories;
 
@@ -50,6 +57,8 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->orig_theme_dir      = $wp_theme_directories;
 		$wp_theme_directories      = array( WP_CONTENT_DIR . '/themes', realpath( DIR_TESTDATA . '/themedir1' ) );
 		$this->orig_theme_features = $GLOBALS['_wp_theme_features'];
+
+		$this->orig_registered_theme_features = $GLOBALS['_wp_registered_theme_features'];
 
 		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -69,7 +78,8 @@ class Tests_Theme extends WP_UnitTestCase {
 			parent::tear_down();
 		} finally {
 			// Restore after the parent removes HTML5 theme support.
-			$GLOBALS['_wp_theme_features'] = $this->orig_theme_features;
+			$GLOBALS['_wp_theme_features']            = $this->orig_theme_features;
+			$GLOBALS['_wp_registered_theme_features'] = $this->orig_registered_theme_features;
 		}
 	}
 
@@ -828,6 +838,20 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( 'additionalProperties', $actual );
 		$this->assertFalse( $actual['additionalProperties'] );
+	}
+
+	/**
+	 * Tests that get_registered_theme_features() falls back to an empty array when the registry is not an array.
+	 *
+	 * @ticket 49406
+	 *
+	 * @covers ::get_registered_theme_features
+	 */
+	public function test_get_registered_theme_features_fallback() {
+		global $_wp_registered_theme_features;
+		$_wp_registered_theme_features = null;
+
+		$this->assertSame( array(), get_registered_theme_features() );
 	}
 
 	/**

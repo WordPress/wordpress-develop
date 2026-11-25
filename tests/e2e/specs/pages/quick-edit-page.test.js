@@ -1,50 +1,35 @@
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../../fixtures';
+import { postRow } from '../../utils/admin';
 
 test.describe( 'Quick Edit page', () => {
-	let pageIds;
-
-	test.beforeEach( () => {
-		pageIds = [];
-	} );
-
-	test.afterEach( async ( { requestUtils } ) => {
-		for ( const pageId of pageIds.reverse() ) {
-			await requestUtils.rest( {
-				method: 'DELETE',
-				path: `/wp/v2/pages/${ pageId }`,
-				params: { force: true },
-			} );
-		}
-	} );
-
 	test( 'saves a page parent using Quick Edit', async ( {
 		page,
 		admin,
-		requestUtils,
+		postFactory,
 	} ) => {
-		const parentPage = await requestUtils.createPage( {
-			title: 'Quick Edit parent',
+		const parentPage = await postFactory.createPage( {
+			title: postFactory.uniqueTitle( 'Quick Edit parent' ),
 			status: 'publish',
 		} );
-		pageIds.push( parentPage.id );
-		const createdPage = await requestUtils.createPage( {
-			title: 'Quick Edit page',
+		const title = postFactory.uniqueTitle( 'Quick Edit page' );
+		const createdPage = await postFactory.createPage( {
+			title,
 			status: 'publish',
 		} );
 		const pageId = createdPage.id;
-		pageIds.push( pageId );
 
-		await admin.visitAdminPage( 'edit.php?post_type=page' );
-		const row = page.locator( `#post-${ pageId }` );
-		await row
-			.getByRole( 'link', { name: 'Quick Edit page', exact: true } )
-			.hover();
+		await admin.visitAdminPage(
+			'edit.php',
+			`post_type=page&s=${ encodeURIComponent( title ) }`
+		);
+		const row = postRow( page, pageId );
+		await row.getByRole( 'link', { name: title, exact: true } ).hover();
 		await row
 			.getByRole( 'button', {
-				name: 'Quick edit “Quick Edit page” inline',
+				name: `Quick edit “${ title }” inline`,
 				exact: true,
 			} )
 			.click();
@@ -65,12 +50,10 @@ test.describe( 'Quick Edit page', () => {
 		await expect( editRow ).toBeHidden();
 
 		await page.reload();
-		await row
-			.getByRole( 'link', { name: 'Quick Edit page', exact: true } )
-			.hover();
+		await row.getByRole( 'link', { name: title, exact: true } ).hover();
 		await row
 			.getByRole( 'button', {
-				name: 'Quick edit “Quick Edit page” inline',
+				name: `Quick edit “${ title }” inline`,
 				exact: true,
 			} )
 			.click();
