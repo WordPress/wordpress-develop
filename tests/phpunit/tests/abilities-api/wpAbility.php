@@ -2362,7 +2362,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	public static function data_input_coercion(): array {
 		return array_intersect_key(
 			self::data_input_is_coerced(),
-			array_flip( array( 'integer number', 'stdClass object input', 'default', 'text-field format' ) )
+			array_flip( array( 'integer number', 'stdClass object input', 'default', 'text-field format', 'top-level string unchanged' ) )
 		);
 	}
 
@@ -2420,14 +2420,18 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $ability->execute( $input ) );
 		$this->assertSame( $input, $seen['invoked'] );
-		$this->assertSame( empty( $schema ) ? array() : array( $normalized ), $seen['validation'], 'Validate the normalized input exactly once.' );
+		$expected_validation = array( $normalized );
+		if ( $expected !== $normalized ) {
+			$expected_validation[] = $expected;
+		}
+		$this->assertSame( $expected_validation, $seen['validation'], 'Validate normalized input, then sanitized input only when it changes.' );
 		$this->assertSame( $expected, $seen['permission'] );
 		$this->assertSame( $expected, $seen['before'] );
 		$this->assertSame( $expected, $seen['execute'] );
 	}
 
 	/**
-	 * Provides top-level and nested collisions introduced by sanitization.
+	 * Provides input that sanitization rejects or makes invalid.
 	 *
 	 * @return array
 	 */
@@ -2449,16 +2453,43 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			'ids'  => '1,01',
 		);
 
+		$text = array(
+			'type'       => 'object',
+			'properties' => array(
+				'title' => array(
+					'type'      => 'string',
+					'format'    => 'text-field',
+					'minLength' => 1,
+				),
+			),
+		);
+
 		return array(
-			'top-level array' => array( $unique, array( '1', '01' ), 'input' ),
-			'nested object'   => array( $object, $input, 'input[ids]' ),
-			'object in list'  => array(
+			'top-level array'                => array( $unique, array( '1', '01' ), 'input has duplicate items.' ),
+			'nested object'                  => array( $object, $input, 'input[ids] has duplicate items.' ),
+			'object in list'                 => array(
 				array(
 					'type'  => 'array',
 					'items' => $object,
 				),
 				array( $input ),
-				'input[0][ids]',
+				'input[0][ids] has duplicate items.',
+			),
+			'whitespace below minLength'     => array( $text, array( 'title' => '   ' ), 'input[title] must be at least 1 character long.' ),
+			'markup below minLength'         => array( $text, array( 'title' => '<b></b>' ), 'input[title] must be at least 1 character long.' ),
+			// An out-of-range numeric string is cast to `PHP_INT_MAX`, which is not a multiple of 10.
+			'integer cast breaks multipleOf' => array(
+				array(
+					'type'       => 'object',
+					'properties' => array(
+						'count' => array(
+							'type'       => 'integer',
+							'multipleOf' => 10,
+						),
+					),
+				),
+				array( 'count' => '1e19' ),
+				'input[count] must be a multiple of 10.',
 			),
 		);
 	}
@@ -2469,11 +2500,11 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 * @ticket 66383
 	 * @dataProvider data_input_sanitization_errors
 	 *
-	 * @param array  $schema Input schema.
-	 * @param mixed  $input  Input accepted by validation but rejected by sanitization.
-	 * @param string $path   Path of the duplicate items in the error message.
+	 * @param array  $schema  Input schema.
+	 * @param mixed  $input   Input accepted by validation but rejected by sanitization.
+	 * @param string $message Expected error message fragment.
 	 */
-	public function test_input_sanitization_errors( array $schema, $input, string $path ): void {
+	public function test_input_sanitization_errors( array $schema, $input, string $message ): void {
 		$args                 = self::$test_ability_properties;
 		$args['input_schema'] = $schema;
 		$unexpected_callback  = function () {
@@ -2491,8 +2522,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$error = $ability->prepare_input( $input );
 		$this->assertWPError( $error );
 		$this->assertSame( 'ability_invalid_input', $error->get_error_code() );
-		$this->assertStringContainsString( $path . ' has duplicate items.', $error->get_error_message() );
-		// Keep assertEquals() because the objects are intentionally compared by value.
+		$this->assertStringContainsString( $message, $error->get_error_message() );
 		$this->assertEquals( $error, $ability->execute( $input ), 'Execution should propagate the sanitization error.' );
 	}
 
@@ -2549,6 +2579,30 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		);
 		remove_filter( 'wp_ability_validate_input', '__return_true' );
 		$this->assertSame( array( array( 'count' => 10 ) ), $seen );
+	}
+
+	/**
+	 * Validation filters can reject the sanitized value before callbacks receive it.
+	 *
+	 * @ticket 66665
+	 */
+	public function test_validation_filter_can_reject_sanitized_input(): void {
+		$args                 = self::$test_ability_properties;
+		$args['input_schema'] = array( 'type' => 'integer' );
+		$ability              = new WP_Ability( self::$test_ability_name, $args );
+		$error                = new WP_Error( 'sanitized_input_rejected' );
+		$seen                 = array();
+		$validate             = static function ( $valid, $input ) use ( &$seen, $error ) {
+			$seen[] = $input;
+			return is_int( $input ) ? $error : $valid;
+		};
+
+		add_filter( 'wp_ability_validate_input', $validate, 10, 2 );
+		$result = $ability->execute( '2' );
+		remove_filter( 'wp_ability_validate_input', $validate );
+
+		$this->assertSame( array( '2', 2 ), $seen, 'The filter should receive both raw and sanitized input.' );
+		$this->assertSame( $error, $result, 'Execution should propagate the filter rejection unchanged.' );
 	}
 
 	/**

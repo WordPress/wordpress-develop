@@ -17,6 +17,11 @@ on:
         description: 'The version of WordPress to update to. Use "latest" to update to the latest version, "develop" to update to the current branch, or provide a specific version number to update to.'
         type: 'string'
         default: 'latest'
+      new-version-artifact:
+        description: 'Optional. The name of an artifact that holds the wordpress.zip of new-version. When set, the upgrade installs from it instead of downloading.'
+        required: false
+        type: 'string'
+        default: ''
       php:
         description: 'The version of PHP to use. Expected format: X.Y.'
         required: true
@@ -137,8 +142,29 @@ jobs:
         run: |
           wp core update develop.zip
 
+      - name: Download the WordPress ${{ inputs.new-version }} artifact
+        if: ${{ inputs.new-version != 'develop' && inputs.new-version-artifact != '' }}
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ inputs.new-version-artifact }}
+
+      # With a zip, WP-CLI does not stop a downgrade, and the minor update can already be past the target.
+      # `sort -V` orders 7.2 before 7.2-RC2, so compare the way WordPress does.
+      - name: Upgrade to WordPress ${{ inputs.new-version }} from the artifact
+        if: ${{ inputs.new-version != 'develop' && inputs.new-version-artifact != '' }}
+        run: |
+          current=$(wp core version)
+          if ! CURRENT="$current" php -r 'exit( version_compare( getenv( "CURRENT" ), getenv( "WP_VERSION" ), "<" ) ? 0 : 1 );'; then
+            echo "WordPress ${current} is not older than ${WP_VERSION}, so there is nothing to upgrade."
+            exit 0
+          fi
+
+          wp core update wordpress.zip --version="$WP_VERSION"
+        env:
+          WP_VERSION: ${{ inputs.new-version }}
+
       - name: Upgrade to WordPress ${{ inputs.new-version }}
-        if: ${{ inputs.new-version != 'develop' }}
+        if: ${{ inputs.new-version != 'develop' && inputs.new-version-artifact == '' }}
         run: |
           wp core update ${{ 'latest' != inputs.new-version && '--version="${WP_VERSION}"' || '' }}
         env:

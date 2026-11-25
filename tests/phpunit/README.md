@@ -6,6 +6,10 @@ For more information, please review the relevant Core Handbook pages:
 - [PHP: PHPUnit](https://make.wordpress.org/core/handbook/testing/automated-testing/phpunit/)
 - [Writing PHP Tests](https://make.wordpress.org/core/handbook/testing/automated-testing/writing-phpunit-tests/)
 
+## Run on a host that prohibits loopback listening
+
+Set `WP_TESTS_SKIP_HTTP_LOOPBACK=1` in the PHPUnit process environment if the host prohibits listening on a local TCP port. When PHP cannot reserve a port, PHPUnit skips only the HTTP transport tests that need the local fixture server. If PHP reserves a port, the tests run normally and server startup errors still fail.
+
 ## Run the full matrix on a pull request
 
 Add the `Full PHPUnit Matrix` label to a pull request in `WordPress/wordpress-develop` to run the same PHP and database combinations as the weekly scheduled run. The label-triggered workflow uses the same path filters as normal PHPUnit runs.
