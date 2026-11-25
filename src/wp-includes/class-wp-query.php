@@ -3288,7 +3288,6 @@ class WP_Query {
 
 				if ( $cached_results ) {
 					$cache_found = true;
-					/** @var int[] */
 					$post_ids = array_map( 'intval', $cached_results['posts'] );
 
 					$this->post_count    = count( $post_ids );
