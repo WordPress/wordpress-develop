@@ -12787,6 +12787,13 @@ mockedApiResponse.Schema = {
                                                 "boolean",
                                                 "null"
                                             ]
+                                        },
+                                        "open_world": {
+                                            "description": "Whether the ability may interact with public or open-ended entities.",
+                                            "type": [
+                                                "boolean",
+                                                "null"
+                                            ]
                                         }
                                     },
                                     "additionalProperties": true
