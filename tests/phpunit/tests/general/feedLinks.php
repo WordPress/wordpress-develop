@@ -38,7 +38,7 @@ class Tests_General_FeedLinks extends WP_UnitTestCase {
 		$separator = _x( '&raquo;', 'feed link' );
 		$name      = get_bloginfo( 'name' );
 
-		$posts_link = sprintf(
+		$posts_link    = sprintf(
 			'<link rel="alternate" type="%s" title="%s" href="%s" />',
 			feed_content_type(),
 			esc_attr( sprintf( '%1$s %2$s Feed', $name, $separator ) ),
