@@ -151,6 +151,11 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		if ( ! $socket ) {
 			self::remove_file_stream_fixture_dir( $fixture_dir );
+			if ( '1' === getenv( 'WP_TESTS_SKIP_HTTP_LOOPBACK' ) ) {
+				self::$file_stream_fixture_skip_reason = 'Loopback listening is restricted on this test host.';
+				return;
+			}
+
 			self::$file_stream_fixture_fail_reason = sprintf(
 				'Could not reserve a local TCP port for the HTTP stream fixture server (%d: %s).',
 				(int) $errno,
