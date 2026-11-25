@@ -1402,12 +1402,12 @@ function get_the_term_list( $post_id, $taxonomy, $before = '', $sep = '', $after
  * @param string|array $args {
  *     Array of optional arguments.
  *
- *     @type string $format    Use term names or slugs for display. Accepts 'name' or 'slug'.
- *                             Default 'name'.
- *     @type string $separator Separator for between the terms. Default '/'.
- *     @type bool   $link      Whether to format as a link. Default true.
- *     @type bool   $inclusive Include the term to get the parents for. Default true.
- *     @type bool   $reverse   Whether to reverse the hierarchical order of the Terms on output. Default true
+ *     @type string $format        Use term names or slugs for display. Accepts 'name' or 'slug'.
+ *                                 Default 'name'.
+ *     @type string $separator     Separator for between the terms. Default '/'.
+ *     @type bool   $link          Whether to format as a link. Default true.
+ *     @type bool   $inclusive     Include the term to get the parents for. Default true.
+ *     @type bool   $parents_first Whether to reverse the hierarchical order of the Terms on output. Default true
  * }
  * @return string|WP_Error A list of term parents on success, WP_Error or empty string on failure.
  */
@@ -1426,16 +1426,16 @@ function get_term_parents_list( $term_id, $taxonomy, $args = array() ) {
 	$term_id = $term->term_id;
 
 	$defaults = array(
-		'format'    => 'name',
-		'separator' => '/',
-		'link'      => true,
-		'inclusive' => true,
-		'reverse'   => true,
+		'format'        => 'name',
+		'separator'     => '/',
+		'link'          => true,
+		'inclusive'     => true,
+		'parents_first' => true,
 	);
 
 	$args = wp_parse_args( $args, $defaults );
 
-	foreach ( array( 'link', 'inclusive', 'reverse' ) as $bool ) {
+	foreach ( array( 'link', 'inclusive', 'parents_first' ) as $bool ) {
 		$args[ $bool ] = wp_validate_boolean( $args[ $bool ] );
 	}
 
@@ -1445,7 +1445,7 @@ function get_term_parents_list( $term_id, $taxonomy, $args = array() ) {
 		array_unshift( $parents, $term_id );
 	}
 
-	if ( $args['reverse'] ) {
+	if ( $args['parents_first'] ) {
 		$parents = array_reverse( $parents );
 	}
 

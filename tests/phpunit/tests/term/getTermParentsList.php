@@ -119,25 +119,25 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 	/**
 	 * @ticket 53319
 	 */
-	public function test_reverse_true_should_match_default_order() {
+	public function test_parents_first_true_should_match_default_order() {
 		$args = array( 'link' => false );
 
 		$expected = get_term_parents_list( self::$c2->term_id, 'wptests_tax', $args );
-		$found    = get_term_parents_list( self::$c2->term_id, 'wptests_tax', $args + array( 'reverse' => true ) );
+		$found    = get_term_parents_list( self::$c2->term_id, 'wptests_tax', $args + array( 'parents_first' => true ) );
 		$this->assertSame( $expected, $found );
 	}
 
 	/**
 	 * @ticket 53319
 	 */
-	public function test_reverse_false() {
+	public function test_parents_first_false() {
 		$expected = self::$c2->name . '/' . self::$c1->name . '/';
 		$found    = get_term_parents_list(
 			self::$c2->term_id,
 			'wptests_tax',
 			array(
-				'link'    => false,
-				'reverse' => false,
+				'link'          => false,
+				'parents_first' => false,
 			)
 		);
 		$this->assertSame( $expected, $found );
@@ -146,7 +146,7 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 	/**
 	 * @ticket 53319
 	 */
-	public function test_reverse_false_should_go_from_nearest_to_distant_ancestor() {
+	public function test_parents_first_false_should_go_from_nearest_to_distant_ancestor() {
 		$c3 = self::factory()->term->create_and_get(
 			array(
 				'taxonomy' => 'wptests_tax',
@@ -159,8 +159,8 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 			$c3->term_id,
 			'wptests_tax',
 			array(
-				'link'    => false,
-				'reverse' => false,
+				'link'          => false,
+				'parents_first' => false,
 			)
 		);
 		$this->assertSame( $expected, $found );
@@ -169,16 +169,16 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 	/**
 	 * @ticket 53319
 	 */
-	public function test_reverse_false_with_links() {
+	public function test_parents_first_false_with_links() {
 		$expected = '<a href="' . get_term_link( self::$c2->term_id ) . '">' . self::$c2->name . '</a>/<a href="' . get_term_link( self::$c1->term_id ) . '">' . self::$c1->name . '</a>/';
-		$found    = get_term_parents_list( self::$c2->term_id, 'wptests_tax', array( 'reverse' => false ) );
+		$found    = get_term_parents_list( self::$c2->term_id, 'wptests_tax', array( 'parents_first' => false ) );
 		$this->assertSame( $expected, $found );
 	}
 
 	/**
 	 * @ticket 53319
 	 */
-	public function test_reverse_false_with_inclusive_false() {
+	public function test_parents_first_false_with_inclusive_false() {
 		$c3 = self::factory()->term->create_and_get(
 			array(
 				'taxonomy' => 'wptests_tax',
@@ -191,9 +191,9 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 			$c3->term_id,
 			'wptests_tax',
 			array(
-				'link'      => false,
-				'inclusive' => false,
-				'reverse'   => false,
+				'link'          => false,
+				'inclusive'     => false,
+				'parents_first' => false,
 			)
 		);
 		$this->assertSame( $expected, $found );
@@ -202,14 +202,14 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 	/**
 	 * @ticket 53319
 	 */
-	public function test_reverse_false_term_without_parents() {
+	public function test_parents_first_false_term_without_parents() {
 		$expected = self::$c1->name . '/';
 		$found    = get_term_parents_list(
 			self::$c1->term_id,
 			'wptests_tax',
 			array(
-				'link'    => false,
-				'reverse' => false,
+				'link'          => false,
+				'parents_first' => false,
 			)
 		);
 		$this->assertSame( $expected, $found );
@@ -218,17 +218,17 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 	/**
 	 * @ticket 53319
 	 *
-	 * @dataProvider data_reverse_should_be_validated_as_boolean
+	 * @dataProvider data_parents_first_should_be_validated_as_boolean
 	 *
 	 * @param string $value         Query string value for the 'reverse' argument.
 	 * @param bool   $parents_first Whether the parent term is expected first.
 	 */
-	public function test_reverse_should_be_validated_as_boolean( $value, $parents_first ) {
+	public function test_parents_first_should_be_validated_as_boolean( $value, $parents_first ) {
 		$expected = $parents_first
 			? self::$c1->name . '/' . self::$c2->name . '/'
 			: self::$c2->name . '/' . self::$c1->name . '/';
 
-		$found = get_term_parents_list( self::$c2->term_id, 'wptests_tax', 'link=false&reverse=' . $value );
+		$found = get_term_parents_list( self::$c2->term_id, 'wptests_tax', 'link=false&parents_first=' . $value );
 		$this->assertSame( $expected, $found );
 	}
 
@@ -237,7 +237,7 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_reverse_should_be_validated_as_boolean() {
+	public static function data_parents_first_should_be_validated_as_boolean() {
 		return array(
 			'string true'  => array( 'true', true ),
 			'string 1'     => array( '1', true ),
