@@ -8,7 +8,7 @@
  * php diff.php alone.jsonl seq.jsonl ID   State the class ID inherits: its class_start
  *                                         in run A vs run B, minus run noise (timestamps,
  *                                         env, install rows): keys both first class_starts,
- *                                         before any class ran, hold with different values.
+ *                                         before any snapshotted class ran, hold with different values.
  *                                         A key only one holds is its first class's rules.
  */
 
@@ -32,7 +32,7 @@ function load( $file ) {
 	$line       = fgets( $handle );
 	while ( false !== $line ) {
 		$snap = json_decode( $line, true );
-		if ( isset( $snap['pid'], $snap['point'], $snap['id'], $snap['state'] ) ) {
+		if ( isset( $snap['point'], $snap['id'], $snap['state'] ) ) {
 			yield $snap;
 		} else {
 			++$unreadable;
@@ -106,7 +106,7 @@ if ( 4 === $argc ) {
 
 	// Its own start would be all noise: nothing to report.
 	if ( $argv[3] === $first_id ) {
-		fwrite( STDERR, "{$argv[3]} is the first class in {$argv[2]}: nothing ran before it.\n" );
+		fwrite( STDERR, "{$argv[3]} is the first class in {$argv[2]}: no snapshotted class ran before it.\n" );
 		exit( 1 );
 	}
 

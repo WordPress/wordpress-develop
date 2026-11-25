@@ -51,6 +51,7 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 
 		$GLOBALS['leak_probe_big']  = range( 0, 2999 );
 		$GLOBALS['leak_probe_int']  = 1;
+		$GLOBALS['leak_probe_gone'] = 'original';
 		$GLOBALS['leak_probe_cb']   = function () {
 			return 'original';
 		};
@@ -217,6 +218,11 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 	public function test_leaks_big_array_key() {
 		$GLOBALS['leak_probe_big'][2500] = 'leaked';
 		$this->assertTrue( true );
+	}
+
+	public function test_leaks_removed_global() {
+		unset( $GLOBALS['leak_probe_gone'] );
+		$this->assertArrayNotHasKey( 'leak_probe_gone', $GLOBALS );
 	}
 
 	public function test_leaks_type_only_change() {

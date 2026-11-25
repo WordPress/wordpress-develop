@@ -135,8 +135,8 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	private $class_start = null;
 
-	// The class of the last test_end, until the next test starts or the class ends.
-	private $ended = null;
+	// Whether the last snapshot was a test_end: the next test_start reuses it.
+	private $ended = false;
 
 	private $columns = array();
 
@@ -153,8 +153,11 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	// Suites started and not ended: the run starts at the first and ends with it.
 	private $open_suites = 0;
 
-	// Whether any class's plan kept an area: else diff.php would read the run as clean.
+	// Whether any snapshot kept a key: else diff.php would read the run as clean.
 	private $snapshotted = false;
+
+	// Key globs that kept a key, see unmatched().
+	private $matched = array();
 
 	// DB rows read by the stale checks, reset per snapshot.
 	private $rows = array();
@@ -397,6 +400,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	private function kept( $key, array $patterns ) {
 		foreach ( $patterns as $pattern ) {
 			if ( fnmatch( $pattern[1], $key, FNM_NOESCAPE ) ) {
+				$this->matched[ $pattern[1] ] = true;
 				return ! $pattern[0];
 			}
 		}
@@ -440,8 +444,6 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			return;
 		}
 
-		$this->snapshotted = true;
-
 		if ( self::SCOPE_CLASS !== $this->scope ) {
 			$this->write( 'class_start', $class_name, $plan );
 			return;
@@ -459,18 +461,38 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			return;
 		}
 
+		foreach ( $this->unmatched() as $glob ) {
+			fwrite( STDERR, "\"$glob\" kept no key: a typo, or nothing it names existed.\n" );
+		}
+
 		// With no run_end, diff.php reports the run as incomplete.
 		if ( ! $this->snapshotted ) {
-			fwrite( STDERR, "No test file's patterns keep an area: nothing was snapshotted.\n" );
+			fwrite( STDERR, "No snapshot kept a key: nothing was snapshotted.\n" );
 			return;
 		}
 
 		$this->mark( 'run_end' );
 	}
 
+	// Positive key globs of the plans used that kept no key all run.
+	private function unmatched() {
+		$globs = array();
+		foreach ( $this->plans as $plan ) {
+			foreach ( array_filter( $plan, 'is_array' ) as $patterns ) {
+				foreach ( $patterns as $pattern ) {
+					if ( ! $pattern[0] && ! $pattern[2] && ! isset( $this->matched[ $pattern[1] ] ) ) {
+						$globs[ $pattern[1] ] = true;
+					}
+				}
+			}
+		}
+
+		return array_keys( $globs );
+	}
+
 	private function end_class( $class_name ) {
-		// PHPUnit's --repeat runs the class again.
-		$this->ended = null;
+		// Class hooks run before the next test, this class's again with --repeat.
+		$this->ended = false;
 
 		$plan = $this->plan( $class_name );
 		if ( ! $plan ) {
@@ -487,11 +509,10 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	public function start_test( $test ) {
 		$name        = $this->name( $test );
-		$class       = get_class( $test );
-		$reuse       = $class === $this->ended;
-		$this->ended = null;
+		$reuse       = $this->ended;
+		$this->ended = false;
 
-		$plan = $this->plan( $class );
+		$plan = $this->plan( get_class( $test ) );
 		if ( self::SCOPE_CLASS === $this->scope || ! $plan ) {
 			return;
 		}
@@ -508,7 +529,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		$plan = $this->plan( get_class( $test ) );
 		if ( self::SCOPE_CLASS !== $this->scope && $plan ) {
 			$this->write( 'test_end', $this->name( $test ), $plan );
-			$this->ended = get_class( $test );
+			$this->ended = true;
 		}
 	}
 
@@ -522,7 +543,6 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	private function line( $point, $id, array $state ) {
 		return array(
-			'pid'   => getmypid(),
 			'point' => $point,
 			'id'    => $id,
 			'state' => $state,
@@ -603,7 +623,8 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			}
 		}
 
-		$state = $this->filter( $state, $plan );
+		$state             = $this->filter( $state, $plan );
+		$this->snapshotted = $this->snapshotted || $state;
 
 		// Ends the snapshot's read view: its metadata locks would block e.g. a child's DDL.
 		$wpdb->query( 'COMMIT' );

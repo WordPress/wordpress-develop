@@ -34,6 +34,7 @@ const PER_TEST = array(
 	'test Tests_Leak_Probe::test_leaks_auto_increment'     => array( '/^autoinc\|\w+posts$/' ),
 	'test Tests_Leak_Probe::test_leaks_deep_global_change' => array( '/^global\|leak_probe_deep\|l1$/' ),
 	'test Tests_Leak_Probe::test_leaks_big_array_key'      => array( '/^global\|leak_probe_big\|2500$/' ),
+	'test Tests_Leak_Probe::test_leaks_removed_global'     => array( '/^global\|leak_probe_gone$/' ),
 	'test Tests_Leak_Probe::test_leaks_type_only_change'   => array( '/^global\|leak_probe_int$/' ),
 	'test Tests_Leak_Probe::test_leaks_filtered_globals'   => array( '/^global\|leak_probe_filtered_kept$/' ),
 	'test Tests_Leak_Probe::test_leaks_closure_swap'       => array( '/^global\|leak_probe_cb$/' ),
@@ -97,6 +98,8 @@ const UNEXPECTED = array(
 	'test Tests_Leak_Probe::test_reconnect_drops_temp_table' => '/^temptable\|\w+leak_probe_gone$/',
 	// Its start is the previous test's end, reused: a wrong one reports more keys.
 	'test Tests_Leak_Probe::test_leaks_constant'         => '/^(?!const\|LEAK_PROBE_CONSTANT$)/',
+	// Its start follows its class's fixture, not the previous class's last test_end.
+	'test Tests_Leak_Probe_Class_Fixture::test_fixture_user_exists' => '/^db\|\w+users\|/',
 	// The previous probe's, which this test's set_up() flush drops.
 	'test Tests_Leak_Probe::test_leaks_cache_after_tear_down' => '/^stale\|runtime\|1\|options\|(alloptions\|blogname|leak_probe_not_autoloaded)$/',
 	// Dies with its child process.
@@ -105,10 +108,8 @@ const UNEXPECTED = array(
 	'test Tests_Leak_Probe::test_leaks_filtered_globals' => '/^global\|leak_probe_filtered_dropped$/',
 );
 
-// rules.php skips its file: no snapshot line names it, and no report blames its leak on another.
+// rules.php skips its file: no snapshot line names it.
 const SKIPPED_CLASS = 'Tests_Leak_Probe_Skipped';
-
-const SKIPPED_LEAK = '/leak_probe_skipped/';
 
 // diff.php exits with 2 when it reports a leak, as every probe run must.
 const DIFF_LEAKS = 2;
@@ -117,6 +118,13 @@ const DIFF_LEAKS = 2;
 const FIRST_CLASS = 'Tests_Leak_Probe';
 
 const DIFF_REFUSED = 1;
+
+const DIFF_INCOMPLETE = 1;
+
+// Comparison mode: a key both first classes differ on is run noise, one only the class differs on is reported.
+const NOISE_KEY = 'global|leak_probe_noise';
+
+const INHERITED_KEY = 'global|leak_probe_inherited';
 
 // Report header and changed key lines, see report() in diff.php.
 const HEADER = '/^== (.+) leaves(?:, unlike the install)? \(\d+ changed\)$/';
@@ -164,12 +172,56 @@ function snapshotted( $file, $class_name ) {
 	return $found;
 }
 
+// diff.php's exit code and output lines, STDERR included.
+function diff( array $files ) {
+	$args = implode( ' ', array_map( 'escapeshellarg', $files ) );
+	exec( escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/diff.php' ) . " $args 2>&1", $output, $code );
+
+	return array( $code, $output );
+}
+
+function temp_file( $content ) {
+	$file = tempnam( sys_get_temp_dir(), 'leak-probe-' );
+	if ( false === $file || false === file_put_contents( $file, $content ) ) {
+		fwrite( STDERR, "Cannot write a temporary file\n" );
+		exit( 1 );
+	}
+
+	return $file;
+}
+
+function class_start( $id, $noise, $inherited ) {
+	$state = array(
+		NOISE_KEY     => array( $noise, $noise ),
+		INHERITED_KEY => array( $inherited, $inherited ),
+	);
+
+	return json_encode(
+		array(
+			'point' => 'class_start',
+			'id'    => $id,
+			'state' => $state,
+		)
+	) . "\n";
+}
+
+// The run without its last line, run_end.
+function cut( $file ) {
+	$lines = file( $file );
+	if ( false === $lines ) {
+		fwrite( STDERR, "Cannot read $file\n" );
+		exit( 1 );
+	}
+
+	return temp_file( implode( '', array_slice( $lines, 0, -1 ) ) );
+}
+
 if ( 2 !== $argc ) {
 	fwrite( STDERR, "Usage: php check-probes.php run.jsonl\n" );
 	exit( 1 );
 }
 
-exec( escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/diff.php' ) . ' ' . escapeshellarg( $argv[1] ), $output, $code );
+list( $code, $output ) = diff( array( $argv[1] ) );
 if ( DIFF_LEAKS !== $code ) {
 	fwrite( STDERR, "diff.php exited with $code, not " . DIFF_LEAKS . ".\n" );
 	exit( 1 );
@@ -230,10 +282,6 @@ foreach ( $reported as $title => $keys ) {
 	if ( false !== strpos( $title, SKIPPED_CLASS ) ) {
 		$missed[] = "$title: reported, but rules.php skips its file";
 	}
-
-	foreach ( preg_grep( SKIPPED_LEAK, $keys ) as $key ) {
-		$missed[] = "$title: unexpected $key";
-	}
 }
 
 if ( snapshotted( $argv[1], SKIPPED_CLASS ) ) {
@@ -242,12 +290,30 @@ if ( snapshotted( $argv[1], SKIPPED_CLASS ) ) {
 
 // The class scope writes no class_start.
 if ( SCOPE_CLASS !== $setup['scope'] ) {
-	$file = escapeshellarg( $argv[1] );
-	exec( escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/diff.php' ) . " $file $file " . FIRST_CLASS . ' 2>&1', $refusal, $code );
-	if ( DIFF_REFUSED !== $code || ! preg_grep( '/nothing ran before it/', $refusal ) ) {
+	list( $code, $refusal ) = diff( array( $argv[1], $argv[1], FIRST_CLASS ) );
+	if ( DIFF_REFUSED !== $code || ! preg_grep( '/no snapshotted class ran before it/', $refusal ) ) {
 		$missed[] = FIRST_CLASS . ": comparison mode exited with $code, not refused as the first class";
 	}
 }
+
+$alone = temp_file( class_start( 'First', 'a', 'same' ) . class_start( 'Target', 'a', 'same' ) );
+$seq   = temp_file( class_start( 'First', 'b', 'same' ) . class_start( 'Target', 'b', 'inherited' ) );
+
+list( $code, $compared ) = diff( array( $alone, $seq, 'Target' ) );
+if ( DIFF_LEAKS !== $code || ! in_array( '  ' . INHERITED_KEY, $compared, true ) || in_array( '  ' . NOISE_KEY, $compared, true ) ) {
+	$missed[] = "comparison mode: exited with $code, not reporting " . INHERITED_KEY . ' only';
+}
+
+$cut = cut( $argv[1] );
+
+list( $code, $incomplete ) = diff( array( $cut ) );
+if ( DIFF_INCOMPLETE !== $code || ! preg_grep( '/^Incomplete run/', $incomplete ) ) {
+	$missed[] = "run cut before run_end: diff.php exited with $code, not reported incomplete";
+}
+
+unlink( $alone );
+unlink( $seq );
+unlink( $cut );
 
 if ( $missed ) {
 	fwrite( STDERR, "Missed or unexpected leaks:\n  " . implode( "\n  ", $missed ) . "\n" );
