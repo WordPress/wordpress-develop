@@ -99,7 +99,8 @@ final class WP_Abilities_Settings {
 		 */
 		$this->writable_settings = array_filter(
 			$this->exposed_settings,
-			static fn( array $setting ): bool => empty( $setting['schema']['readonly'] ) && ! in_array( $setting['option'], self::READ_ONLY_OPTIONS, true )
+			static fn( array $setting ): bool => empty( $setting['schema']['readonly'] )
+				&& ! in_array( $setting['option'], self::READ_ONLY_OPTIONS, true )
 		);
 
 		$this->register_settings_get();
@@ -249,9 +250,9 @@ final class WP_Abilities_Settings {
 		 * Intentionally strict: every value is checked before the first write, so a refused call
 		 * changes nothing. A value is refused when the setting cannot use it, instead of being
 		 * saved as sent or silently replaced with the stored value. A null value for a setting
-		 * without a default is refused while its stored value does not match the setting's schema:
-		 * `core/settings-get` leaves that value out, so the caller cannot see what would be deleted.
-		 * Unusable values are reported first.
+		 * without a default is refused while it has a stored value that `core/settings-get` leaves
+		 * out, because the value does not match the setting's schema: the caller cannot see what
+		 * would be deleted. Unusable values are reported first.
 		 *
 		 * Intentional: a null value stores the default of a setting that has one, and deletes the
 		 * stored value of a setting without one. A registered default only applies in requests that
@@ -261,7 +262,7 @@ final class WP_Abilities_Settings {
 		 * until a value is written again.
 		 */
 		$invalid_params = array();
-		$invalid_stored = null;
+		$invalid_stored = array();
 		foreach ( $named as $exposed_name => $setting ) {
 			$value = $data[ $exposed_name ] ?? $setting['default'];
 
@@ -278,43 +279,28 @@ final class WP_Abilities_Settings {
 				if ( null !== $message ) {
 					$invalid_params[ "data[{$exposed_name}]" ] = $message;
 				}
-			} elseif ( null === $value && null === $invalid_stored ) {
+			} elseif (
+				null === $value
 				// The stored value reads as null when there is none, and then there is nothing to delete.
-				$stored = get_option( $setting['option'], null );
-				if ( null !== $stored && is_wp_error( rest_validate_value_from_schema( $stored, $setting['schema'] ) ) ) {
-					$invalid_stored = $exposed_name;
-				}
+				&& null !== get_option( $setting['option'], null )
+				&& array() === $this->get_setting_values( array( $exposed_name => $setting ) )
+			) {
+				$invalid_stored[ "data[{$exposed_name}]" ] = sprintf(
+					/* translators: %s: Property name. */
+					__( 'The %s property has an invalid stored value, and cannot be updated to null.' ),
+					$exposed_name
+				);
 			}
 
 			$data[ $exposed_name ] = $value;
 		}
 
 		if ( ! empty( $invalid_params ) ) {
-			if ( 1 === count( $invalid_params ) ) {
-				$message = reset( $invalid_params );
-			} else {
-				/* translators: %s: List of invalid parameters. */
-				$message = sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) );
-			}
-
-			// The error data maps the input path of each refused setting to its message, so callers can tell which settings failed.
-			return new WP_Error(
-				'settings_invalid_value',
-				$message,
-				array(
-					'status' => 400,
-					'params' => $invalid_params,
-				)
-			);
+			return $this->get_refused_settings_error( 'settings_invalid_value', $invalid_params, 400 );
 		}
 
-		if ( null !== $invalid_stored ) {
-			return new WP_Error(
-				'settings_invalid_stored_value',
-				/* translators: %s: Property name. */
-				sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $invalid_stored ),
-				array( 'status' => 500 )
-			);
+		if ( ! empty( $invalid_stored ) ) {
+			return $this->get_refused_settings_error( 'settings_invalid_stored_value', $invalid_stored, 500 );
 		}
 
 		foreach ( $named as $exposed_name => $setting ) {
@@ -336,11 +322,44 @@ final class WP_Abilities_Settings {
 	}
 
 	/**
+	 * Builds the error for the settings a `core/settings-update` call refuses.
+	 *
+	 * The message is the message of the refused setting, or names every refused setting when
+	 * there are several. The error data maps the input path of each refused setting to its
+	 * message, so callers can tell which settings failed.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string                $code   The error code.
+	 * @param array<string, string> $params Messages keyed by the input path of each refused setting.
+	 * @param int                   $status The HTTP status code.
+	 * @return WP_Error The error.
+	 */
+	private function get_refused_settings_error( string $code, array $params, int $status ): WP_Error {
+		if ( 1 === count( $params ) ) {
+			$message = reset( $params );
+		} else {
+			/* translators: %s: List of invalid parameters. */
+			$message = sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $params ) ) );
+		}
+
+		return new WP_Error(
+			$code,
+			$message,
+			array(
+				'status' => $status,
+				'params' => $params,
+			)
+		);
+	}
+
+	/**
 	 * Checks a value that matches its schema against what the option can use.
 	 *
 	 * The rules belong to the option, whatever name exposes it: a timezone and a language must be
 	 * empty or known to the site, a default post format must be `0` or a post format, a page
-	 * setting must be 0 or the ID of a page, and the default category must be the ID of a category.
+	 * setting must be 0 or the ID of a page that is not in the trash or an auto-draft, and the
+	 * default category must be the ID of a category.
 	 *
 	 * @since 7.3.0
 	 *
@@ -371,7 +390,15 @@ final class WP_Abilities_Settings {
 			case 'page_on_front':
 			case 'page_for_posts':
 			case 'wp_page_for_privacy_policy':
-				if ( 0 !== $value && ( ! is_int( $value ) || 'page' !== get_post_type( $value ) ) ) {
+				// The Settings screens never offer a page that is in the trash or an auto-draft.
+				if (
+					0 !== $value
+					&& (
+						! is_int( $value )
+						|| 'page' !== get_post_type( $value )
+						|| in_array( get_post_status( $value ), array( 'trash', 'auto-draft' ), true )
+					)
+				) {
 					return __( 'Invalid page ID.' );
 				}
 				break;

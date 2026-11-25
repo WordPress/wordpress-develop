@@ -316,11 +316,23 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 * @param string $name   The exposed setting name.
 	 */
 	private function assert_invalid_value_error( $result, string $name ): void {
-		$this->assert_error_code( $result, 'settings_invalid_value' );
+		$this->assert_refused_setting_error( $result, 'settings_invalid_value', 400, $name );
+	}
+
+	/**
+	 * Asserts that a result is an error that refuses one setting, and names it.
+	 *
+	 * @param mixed  $result The result of the ability.
+	 * @param string $code   The expected error code.
+	 * @param int    $status The expected status.
+	 * @param string $name   The exposed setting name.
+	 */
+	private function assert_refused_setting_error( $result, string $code, int $status, string $name ): void {
+		$this->assert_error_code( $result, $code );
 		$this->assertNotSame( '', $result->get_error_message(), "The error for {$name} should have a message." );
 		$this->assertSame(
 			array(
-				'status' => 400,
+				'status' => $status,
 				'params' => array( "data[{$name}]" => $result->get_error_message() ),
 			),
 			$result->get_error_data(),
@@ -373,7 +385,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 * @since 7.3.0
 	 */
 	public function test_requires_manage_options(): void {
-		$this->assertSame( array( 'manage_options' ), wp_get_ability( self::ABILITY )->get_required_capabilities() );
+		$this->assertSame( array( 'manage_options' ), wp_get_ability( self::ABILITY )->get_required_capabilities(), 'The ability should require the manage_options capability.' );
 	}
 
 	/**
@@ -483,7 +495,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$wp_registered_settings = array();
 		$this->register_ability();
 
-		$this->assertFalse( wp_has_ability( self::ABILITY ) );
+		$this->assertFalse( wp_has_ability( self::ABILITY ), 'The update ability should not be registered when no setting is exposed.' );
 	}
 
 	/**
@@ -1133,6 +1145,78 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
+	 * A page in the trash or an auto-draft is refused for each page setting, and the other
+	 * settings of the call are not written either.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_unusable_page_statuses
+	 *
+	 * @param string $name   The exposed setting name.
+	 * @param string $status The status of the page.
+	 */
+	public function test_refuses_a_page_in_the_trash_or_an_auto_draft( string $name, string $status ): void {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => $status,
+			)
+		);
+		$this->become_admin_for( $name );
+		$before = $this->snapshot();
+
+		$result = $this->update(
+			array(
+				'title' => 'Changed title',
+				$name   => $page_id,
+			)
+		);
+
+		$this->assert_invalid_value_error( $result, $name );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}> Page setting names and page statuses that cannot be used.
+	 */
+	public static function data_unusable_page_statuses(): array {
+		return array(
+			'a front page in the trash'          => array( 'page_on_front', 'trash' ),
+			'an auto-draft front page'           => array( 'page_on_front', 'auto-draft' ),
+			'a page for posts in the trash'      => array( 'page_for_posts', 'trash' ),
+			'an auto-draft page for posts'       => array( 'page_for_posts', 'auto-draft' ),
+			'a privacy policy page in the trash' => array( 'page_for_privacy_policy', 'trash' ),
+			'an auto-draft privacy policy page'  => array( 'page_for_privacy_policy', 'auto-draft' ),
+		);
+	}
+
+	/**
+	 * A draft page can be the privacy policy page, as Settings > Privacy offers drafts.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_accepts_a_draft_privacy_policy_page(): void {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+			)
+		);
+		$this->become_admin_for( 'page_for_privacy_policy' );
+
+		$result = $this->update( array( 'page_for_privacy_policy' => $page_id ) );
+
+		$this->assertSame( array( 'page_for_privacy_policy' => $page_id ), $result, 'The output should show the saved page.' );
+		$this->assertSame( (string) $page_id, $this->snapshot()['wp_page_for_privacy_policy'], 'The draft page should be stored.' );
+	}
+
+	/**
 	 * The value rules hold when the option is exposed under another name.
 	 *
 	 * @ticket 64616
@@ -1317,8 +1401,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 	/**
 	 * A null value for a setting without a default is refused when the stored value does not
-	 * match the schema of the setting, and nothing is deleted. A boolean stored as false is an
-	 * empty string, which the boolean schema rejects.
+	 * match the schema of the setting, and nothing is deleted. The error names the setting.
 	 *
 	 * @ticket 64616
 	 *
@@ -1337,7 +1420,34 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		$result = $this->update( array( $name => null ) );
 
-		$this->assert_error( $result, 'settings_invalid_stored_value', 500 );
+		$this->assert_refused_setting_error( $result, 'settings_invalid_stored_value', 500, $name );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be deleted.' );
+	}
+
+	/**
+	 * Every setting whose stored value a null value cannot delete is reported.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_reports_every_invalid_stored_value(): void {
+		$this->store_raw( 'start_of_week', 'Monday' );
+		$this->store_raw( 'default_ping_status', 'maybe' );
+		$this->become_admin();
+		$before = $this->snapshot();
+
+		$result = $this->update(
+			array(
+				'start_of_week'       => null,
+				'default_ping_status' => null,
+			)
+		);
+
+		$this->assert_error_code( $result, 'settings_invalid_stored_value' );
+		$this->assertSame( 'Invalid parameter(s): data[start_of_week], data[default_ping_status]', $result->get_error_message(), 'The message should name every refused setting.' );
+		$this->assertSame( 500, $result->get_error_data()['status'], 'The error should be a server error.' );
+		$this->assertSameSets( array( 'data[start_of_week]', 'data[default_ping_status]' ), array_keys( $result->get_error_data()['params'] ), 'The error data should name every refused setting.' );
 		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be deleted.' );
 	}
 
@@ -1354,7 +1464,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'an empty string for an enum'          => array( 'default_ping_status', 'default_ping_status', '' ),
 			'an empty string for an email address' => array( 'settings_update_test_email', 'settings_update_test_email_option', '' ),
 			'an array for a string'                => array( 'title', 'blogname', array( 'A sneaky array!' ) ),
-			'false for a boolean'                  => array( 'settings_update_test_boolean', 'settings_update_test_boolean', '' ),
 		);
 	}
 
@@ -1403,6 +1512,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'no value for an integer with a default'  => array( 'posts_per_page', 'posts_per_page', null, '{"posts_per_page":10}' ),
 			'no value for the language'               => array( 'language', 'WPLANG', null, '{"language":""}' ),
 			'no value for a string without a default' => array( 'title', 'blogname', null, '[]' ),
+			'false for a boolean without a default'   => array( 'settings_update_test_boolean', 'settings_update_test_boolean', '', '[]' ),
 			'"0" for a boolean without a default'     => array( 'settings_update_test_boolean', 'settings_update_test_boolean', '0', '[]' ),
 			'"1" for a boolean without a default'     => array( 'settings_update_test_boolean', 'settings_update_test_boolean', '1', '[]' ),
 		);
