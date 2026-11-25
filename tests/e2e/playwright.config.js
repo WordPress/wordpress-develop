@@ -19,9 +19,7 @@ const SERIAL_SPECS = [
 	'install.test.js',
 	'maintenance-mode.test.js',
 	'gutenberg-plugin.test.js',
-	'themes.test.js',
-	// This deletes all posts, including other workers' content.
-	'empty-trash.test.js',
+	'theme-activation.test.js',
 ];
 
 const config = defineConfig( {
@@ -29,6 +27,7 @@ const config = defineConfig( {
 	globalSetup: require.resolve( './config/global-setup.js' ),
 	workers: '50%',
 	retries: process.env.CI ? 1 : 0,
+	reporter: process.env.CI ? [ [ 'github' ], [ 'list' ] ] : [ [ 'list' ] ],
 	webServer: {
 		...baseConfig.webServer,
 		command: 'npm run env:start',
