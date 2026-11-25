@@ -1910,11 +1910,6 @@ class Tests_Functions extends WP_UnitTestCase {
 		$file     = DIR_TESTDATA . '/fonts/OpenSans-Regular.ttf';
 		$filename = 'OpenSans-Regular.ttf';
 
-		$detected_type = finfo_file( finfo_open( FILEINFO_MIME_TYPE ), $file );
-		if ( ! in_array( $detected_type, array( 'font/ttf', 'font/sfnt' ), true ) ) {
-			$this->markTestSkipped( "This version of libmagic detects TrueType fonts as {$detected_type}." );
-		}
-
 		$filter = static function ( $mimes ) use ( $mime_type ) {
 			$mimes['ttf'] = $mime_type;
 			return $mimes;

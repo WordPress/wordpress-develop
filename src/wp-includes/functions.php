@@ -258,6 +258,11 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 	}
 
 	$datetime = date_create( '@' . $timestamp );
+
+	if ( false === $datetime ) {
+		return false;
+	}
+
 	$datetime->setTimezone( $timezone );
 
 	if ( empty( $wp_locale->month ) || empty( $wp_locale->weekday ) ) {
@@ -269,7 +274,7 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 		$new_format    = '';
 		$format_length = strlen( $format );
 		$month         = $wp_locale->get_month( $datetime->format( 'm' ) );
-		$weekday       = $wp_locale->get_weekday( $datetime->format( 'w' ) );
+		$weekday       = $wp_locale->get_weekday( (int) $datetime->format( 'w' ) );
 
 		for ( $i = 0; $i < $format_length; $i++ ) {
 			switch ( $format[ $i ] ) {
@@ -2572,7 +2577,7 @@ function _wp_upload_dir( $time = null ) {
 			 *
 			 * Rather than UPLOADS, we actually use BLOGUPLOADDIR if it is set, as it is absolute.
 			 * (And it will be set, see ms_upload_constants().) Otherwise, UPLOADS can be used, as
-			 * as it is relative to ABSPATH. For the final piece: when UPLOADS is used with ms-files
+			 * it is relative to ABSPATH. For the final piece: when UPLOADS is used with ms-files
 			 * rewriting in multisite, the resulting URL is /files. (#WP22702 for background.)
 			 */
 
@@ -9636,6 +9641,8 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 		return;
 	}
 
+	$switched_locale = switch_to_user_locale( $user->ID );
+
 	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, ADMIN_EMAIL, SITENAME, SITEURL, EMAIL: those are placeholders. */
 	$application_password_create_text = __(
 		'Hi ###USERNAME###,
@@ -9719,4 +9726,8 @@ All at ###SITENAME###
 		$email['message'],
 		$email['headers']
 	);
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 }

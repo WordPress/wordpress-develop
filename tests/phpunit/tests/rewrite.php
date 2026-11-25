@@ -188,8 +188,6 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 		$id = self::factory()->post->create( array( 'post_type' => $post_type ) );
 		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
-
-		_unregister_post_type( $post_type );
 	}
 
 	public function test_url_to_postid_hierarchical() {
@@ -395,8 +393,6 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$url = add_query_arg( 'foo', '1', home_url() );
 
 		$this->go_to( $url );
-
-		_unregister_post_type( 'foo' );
 
 		$this->assertSame( array(), $GLOBALS['wp']->query_vars );
 	}

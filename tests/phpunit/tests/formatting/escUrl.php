@@ -4,6 +4,7 @@
  * @group formatting
  *
  * @covers ::esc_url
+ * @covers ::esc_url_raw
  */
 class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 
@@ -310,5 +311,16 @@ EOT;
 		// IPv6 with square brackets in the query? Why not.
 		$this->assertSame( '//[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( '//[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
 		$this->assertSame( 'http://[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( 'http://[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
+	}
+
+	/**
+	 * Tests that esc_url_raw() preserves raw ampersands and accepts custom protocols.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_esc_url_raw() {
+		$url = 'custom://example.com/?one=1&two=2';
+
+		$this->assertSame( $url, esc_url_raw( $url, array( 'custom' ) ) );
 	}
 }

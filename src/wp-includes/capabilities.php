@@ -767,7 +767,6 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'manage_network_plugins':
 		case 'manage_network_themes':
 		case 'manage_network_options':
-		case 'manage_network_secrets':
 		case 'upgrade_network':
 			$caps[] = $cap;
 			break;
@@ -1366,7 +1365,7 @@ return;
 
 // Dummy gettext calls to get strings in the catalog.
 /* translators: User role for administrators. */
-_x( 'Administrator', 'User role' );
+_x( 'Administrator', 'User role' ); // @phpstan-ignore deadCode.unreachable (Placed after the return so that the strings are added to the POT file without running.)
 /* translators: User role for editors. */
 _x( 'Editor', 'User role' );
 /* translators: User role for authors. */
