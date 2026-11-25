@@ -1375,7 +1375,7 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 	 *                   2 if the nonce is valid and generated between 12-24 hours ago.
 	 *                   False if the nonce is invalid. Only possible when `$action` is -1,
 	 *                   as the function otherwise exits rather than returning false.
-	 * @phpstan-return ( $action is -1 ? int|false : int )
+	 * @phpstan-return ( $action is -1 ? 1|2|false : 1|2 )
 	 */
 	function check_admin_referer( $action = -1, $query_arg = '_wpnonce' ) {
 		if ( -1 === $action ) {
@@ -1399,7 +1399,7 @@ if ( ! function_exists( 'check_admin_referer' ) ) :
 
 		if ( ! $result && ! ( -1 === $action && str_starts_with( $referer, $adminurl ) ) ) {
 			wp_nonce_ays( $action );
-			die();
+			die(); // @phpstan-ignore deadCode.unreachable (Stops a request with an invalid nonce even if a custom wp_die() handler returns.)
 		}
 
 		return $result;
@@ -1422,7 +1422,7 @@ if ( ! function_exists( 'check_ajax_referer' ) ) :
 	 *                   2 if the nonce is valid and generated between 12-24 hours ago.
 	 *                   False if the nonce is invalid. Only possible when `$stop` is false,
 	 *                   as the function otherwise exits rather than returning false.
-	 * @phpstan-return ( $stop is true ? int : int|false )
+	 * @phpstan-return ( $stop is true ? 1|2 : 1|2|false )
 	 */
 	function check_ajax_referer( $action = -1, $query_arg = false, $stop = true ) {
 		if ( -1 === $action ) {
@@ -1841,17 +1841,30 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		$blogname        = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 		$comment_content = wp_specialchars_decode( $comment->comment_content );
 
+		/*
+		 * Line breaks in the comment author fields would end the header or line they
+		 * are placed in, letting the comment author add email headers or lines of their own.
+		 */
+		$isolate_header_value = static function ( $value ): string {
+			$is_stringy = is_string( $value ) || ( is_object( $value ) && method_exists( $value, '__toString' ) );
+			$value      = $is_stringy ? (string) $value : '';
+			return trim( (string) preg_replace( '/[\r\n]+/', ' ', $value ) );
+		};
+		$comment_author       = $isolate_header_value( $comment->comment_author );
+		$comment_author_email = $isolate_header_value( $comment->comment_author_email );
+		$comment_author_url   = $isolate_header_value( $comment->comment_author_url );
+
 		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );
 
-		if ( '' === $comment->comment_author ) {
+		if ( '' === $comment_author ) {
 			$from = "From: \"$blogname\" <$wp_email>";
-			if ( '' !== $comment->comment_author_email ) {
-				$reply_to = "Reply-To: $comment->comment_author_email";
+			if ( is_email( $comment_author_email ) ) {
+				$reply_to = "Reply-To: $comment_author_email";
 			}
 		} else {
-			$from = "From: \"$comment->comment_author\" <$wp_email>";
-			if ( '' !== $comment->comment_author_email ) {
-				$reply_to = "Reply-To: \"$comment->comment_author_email\" <$comment->comment_author_email>";
+			$from = "From: \"$comment_author\" <$wp_email>";
+			if ( is_email( $comment_author_email ) ) {
+				$reply_to = "Reply-To: \"$comment_author_email\" <$comment_author_email>";
 			}
 		}
 
@@ -1886,9 +1899,9 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					/* translators: %s: Post title. */
 					$notify_message = sprintf( __( 'New trackback on your post "%s"' ), $post->post_title ) . "\r\n";
 					/* translators: 1: Trackback/pingback website name, 2: Website IP address, 3: Website hostname. */
-					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 					/* translators: %s: Trackback/pingback/comment author URL. */
-					$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+					$notify_message .= sprintf( __( 'URL: %s' ), $comment_author_url ) . "\r\n";
 					/* translators: %s: Comment text. */
 					$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 					$notify_message .= __( 'You can see all trackbacks on this post here:' ) . "\r\n";
@@ -1900,9 +1913,9 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					/* translators: %s: Post title. */
 					$notify_message = sprintf( __( 'New pingback on your post "%s"' ), $post->post_title ) . "\r\n";
 					/* translators: 1: Trackback/pingback website name, 2: Website IP address, 3: Website hostname. */
-					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 					/* translators: %s: Trackback/pingback/comment author URL. */
-					$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+					$notify_message .= sprintf( __( 'URL: %s' ), $comment_author_url ) . "\r\n";
 					/* translators: %s: Comment text. */
 					$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 					$notify_message .= __( 'You can see all pingbacks on this post here:' ) . "\r\n";
@@ -1914,11 +1927,14 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					/* translators: %s: Post title. */
 					$notify_message = sprintf( __( 'New note on your post "%s"' ), $post->post_title ) . "\r\n";
 					/* translators: 1: Note author's name, 2: Note author's IP address, 3: Note author's hostname. */
-					$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+					$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 					/* translators: %s: Note author email. */
-					$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
-					/* translators: %s: Note text. */
-					$notify_message .= sprintf( __( 'Note: %s' ), "\r\n" . ( empty( $comment_content ) ? __( 'resolved/reopened' ) : $comment_content ) ) . "\r\n\r\n";
+					$notify_message .= sprintf( __( 'Email: %s' ), $comment_author_email ) . "\r\n";
+					$notify_message .= sprintf(
+						/* translators: %s: Note text. */
+						__( 'Note: %s' ),
+						"\r\n" . ( empty( $comment_content ) ? __( 'resolved/reopened' ) : $comment_content )
+					) . "\r\n\r\n";
 					$notify_message .= __( 'You can see all notes on this post here:' ) . "\r\n";
 					/* translators: Note notification email subject. 1: Site title, 2: Post title. */
 					$subject = sprintf( __( '[%1$s] Note: "%2$s"' ), $blogname, $post->post_title );
@@ -1928,11 +1944,11 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					/* translators: %s: Post title. */
 					$notify_message = sprintf( __( 'New comment on your post "%s"' ), $post->post_title ) . "\r\n";
 					/* translators: 1: Comment author's name, 2: Comment author's IP address, 3: Comment author's hostname. */
-					$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+					$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 					/* translators: %s: Comment author email. */
-					$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
+					$notify_message .= sprintf( __( 'Email: %s' ), $comment_author_email ) . "\r\n";
 					/* translators: %s: Trackback/pingback/comment author URL. */
-					$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+					$notify_message .= sprintf( __( 'URL: %s' ), $comment_author_url ) . "\r\n";
 
 					if ( $comment->comment_parent && user_can( $post->post_author, 'edit_comment', $comment->comment_parent ) ) {
 						/* translators: Comment moderation. %s: Parent comment edit URL. */
@@ -2056,6 +2072,19 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		$blogname        = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 		$comment_content = wp_specialchars_decode( $comment->comment_content );
 
+		/*
+		 * Line breaks in the comment author fields would end the header or line they
+		 * are placed in, letting the comment author add email headers or lines of their own.
+		 */
+		$isolate_header_value = static function ( $value ): string {
+			$is_stringy = is_string( $value ) || ( is_object( $value ) && method_exists( $value, '__toString' ) );
+			$value      = $is_stringy ? (string) $value : '';
+			return trim( (string) preg_replace( '/[\r\n]+/', ' ', $value ) );
+		};
+		$comment_author       = $isolate_header_value( $comment->comment_author );
+		$comment_author_email = $isolate_header_value( $comment->comment_author_email );
+		$comment_author_url   = $isolate_header_value( $comment->comment_author_url );
+
 		$message_headers = '';
 
 		/**
@@ -2093,9 +2122,9 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 					$notify_message  = sprintf( __( 'A new trackback on the post "%s" is waiting for your approval' ), $post->post_title ) . "\r\n";
 					$notify_message .= get_permalink( $comment->comment_post_ID ) . "\r\n\r\n";
 					/* translators: 1: Trackback/pingback website name, 2: Website IP address, 3: Website hostname. */
-					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 					/* translators: %s: Trackback/pingback/comment author URL. */
-					$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+					$notify_message .= sprintf( __( 'URL: %s' ), $comment_author_url ) . "\r\n";
 					/* translators: %s: Trackback excerpt text. */
 					$notify_message .= sprintf( __( 'Trackback excerpt: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 					break;
@@ -2105,9 +2134,9 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 					$notify_message  = sprintf( __( 'A new pingback on the post "%s" is waiting for your approval' ), $post->post_title ) . "\r\n";
 					$notify_message .= get_permalink( $comment->comment_post_ID ) . "\r\n\r\n";
 					/* translators: 1: Trackback/pingback website name, 2: Website IP address, 3: Website hostname. */
-					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 					/* translators: %s: Trackback/pingback/comment author URL. */
-					$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+					$notify_message .= sprintf( __( 'URL: %s' ), $comment_author_url ) . "\r\n";
 					/* translators: %s: Pingback excerpt text. */
 					$notify_message .= sprintf( __( 'Pingback excerpt: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 					break;
@@ -2117,11 +2146,11 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 					$notify_message  = sprintf( __( 'A new comment on the post "%s" is waiting for your approval' ), $post->post_title ) . "\r\n";
 					$notify_message .= get_permalink( $comment->comment_post_ID ) . "\r\n\r\n";
 					/* translators: 1: Comment author's name, 2: Comment author's IP address, 3: Comment author's hostname. */
-					$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+					$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 					/* translators: %s: Comment author email. */
-					$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
+					$notify_message .= sprintf( __( 'Email: %s' ), $comment_author_email ) . "\r\n";
 					/* translators: %s: Trackback/pingback/comment author URL. */
-					$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+					$notify_message .= sprintf( __( 'URL: %s' ), $comment_author_url ) . "\r\n";
 
 					if ( $comment->comment_parent ) {
 						/* translators: Comment moderation. %s: Parent comment edit URL. */
@@ -2477,6 +2506,8 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 	 * @return int|false 1 if the nonce is valid and generated between 0-12 hours ago,
 	 *                   2 if the nonce is valid and generated between 12-24 hours ago.
 	 *                   False if the nonce is invalid.
+	 *
+	 * @phpstan-return 1|2|false
 	 */
 	function wp_verify_nonce( $nonce, $action = -1 ) {
 		$nonce = (string) $nonce;
