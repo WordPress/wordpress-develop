@@ -108,3 +108,40 @@ test( 'bulk trashes only the selected posts', async ( {
 	} );
 	expect( control.status ).toBe( 'publish' );
 } );
+
+test( 'Restore trash post', async ( {
+	page,
+	admin,
+	postFactory,
+	requestUtils,
+} ) => {
+	const title = postFactory.uniqueTitle( 'Restore trash' );
+	const post = await postFactory.create( { title, status: 'publish' } );
+	await requestUtils.rest( {
+		method: 'DELETE',
+		path: `/wp/v2/posts/${ post.id }`,
+	} );
+
+	await admin.visitAdminPage(
+		'edit.php',
+		new URLSearchParams( { post_status: 'trash', s: title } ).toString()
+	);
+	const row = postRow( page, post.id );
+	await row.getByRole( 'cell' ).filter( { hasText: title } ).hover();
+	await row
+		.getByRole( 'link', {
+			name: `Restore “${ title }” from the Trash`,
+			exact: true,
+		} )
+		.click();
+
+	await expect( adminNotice( page ) ).toContainText(
+		'1 post restored from the Trash.'
+	);
+	await expect( row ).toHaveCount( 0 );
+	const restoredPost = await requestUtils.rest( {
+		path: `/wp/v2/posts/${ post.id }`,
+		params: { context: 'edit' },
+	} );
+	expect( restoredPost.status ).toBe( 'draft' );
+} );
