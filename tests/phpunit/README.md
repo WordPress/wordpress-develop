@@ -51,7 +51,7 @@ node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_OUT=/var/www
 node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/diff.php tests/phpunit/build/leaks/alone.jsonl tests/phpunit/build/leaks/sequence.jsonl Tests_Class_Name
 ```
 
-For example, before [r65746](https://core.trac.wordpress.org/changeset/65746), two `Tests_Post_TheTitleAttribute` tests passed alone and failed after `Tests_Post_wpGetPostAutosave`: post titles were saved without kses. A sweep over the hook that should have filtered them names one class, instead of hundreds of global differences:
+For example, before [r65746](https://core.trac.wordpress.org/changeset/65746), two `Tests_Post_TheTitleAttribute` tests passed alone and failed after `Tests_Post_wpGetPostAutosave`: post titles were saved without kses. On a checkout before it, a sweep over the hook that should have filtered them names one class, instead of hundreds of global differences:
 
 ```
 node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_SCOPE=class -e WP_TESTS_LEAKS_AREAS=global/wp_filter/title_save_pre php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --order-by=reverse --filter 'Tests_Post_wpGetPostAutosave|Tests_Post_TheTitleAttribute'
@@ -65,7 +65,7 @@ The leak configurations pass the listener its settings: `rules`, the rules file 
 
 * `WP_TESTS_LEAKS_RULES`: rules file.
 * `WP_TESTS_LEAKS_SCOPE`: `test` or `class`.
-* `WP_TESTS_LEAKS_AREAS`: comma-separated patterns replacing the scope's defaults in the rules file; its per-file rules still apply. The run lists on STDERR each pattern that kept no key, e.g. a typo. Takes shorthands: `all`, `persistent`, `database`, `caches`, `globals`, `statics`, `runtime`, `files`, e.g. `statics,globals` or `caches,!stale`.
+* `WP_TESTS_LEAKS_AREAS`: comma-separated patterns replacing the scope's defaults in the rules file; its per-file rules still apply. A pattern that kept no key all run, e.g. a typo, is listed on STDERR, and the run reads as incomplete. Takes shorthands: `all`, `persistent`, `database`, `caches`, `globals`, `statics`, `runtime`, `files`, e.g. `statics,globals` or `caches,!stale`.
 * `WP_TESTS_LEAKS_OUT`: snapshots file, default `tests/phpunit/build/leaks/snapshots.jsonl`.
 
 To check the test classes a branch adds or changes:

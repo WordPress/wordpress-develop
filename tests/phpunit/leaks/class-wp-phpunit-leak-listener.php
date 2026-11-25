@@ -104,7 +104,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	private const SKIP_DIRS = array( 'data', 'build' );
 
-	private const JSON_FLAGS = JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR;
+	private const JSON_FLAGS = JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_UNESCAPED_SLASHES;
 
 	// SHOW CREATE TABLE has the live counter; information_schema caches it.
 	private const AUTO_INCREMENT = '/ AUTO_INCREMENT=(\d+)/';
@@ -153,7 +153,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	// Suites started and not ended: the run starts at the first and ends with it.
 	private $open_suites = 0;
 
-	// Whether any snapshot kept a key: else diff.php would read the run as clean.
+	// Whether any class's plan kept an area: else diff.php would read the run as clean.
 	private $snapshotted = false;
 
 	// Key globs that kept a key, see unmatched().
@@ -444,6 +444,8 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			return;
 		}
 
+		$this->snapshotted = true;
+
 		if ( self::SCOPE_CLASS !== $this->scope ) {
 			$this->write( 'class_start', $class_name, $plan );
 			return;
@@ -461,13 +463,18 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			return;
 		}
 
-		foreach ( $this->unmatched() as $glob ) {
+		// With no run_end, diff.php reports the run as incomplete.
+		if ( ! $this->snapshotted ) {
+			fwrite( STDERR, "No test file's patterns keep an area: nothing was snapshotted.\n" );
+			return;
+		}
+
+		$unmatched = $this->unmatched();
+		foreach ( $unmatched as $glob ) {
 			fwrite( STDERR, "\"$glob\" kept no key: a typo, or nothing it names existed.\n" );
 		}
 
-		// With no run_end, diff.php reports the run as incomplete.
-		if ( ! $this->snapshotted ) {
-			fwrite( STDERR, "No snapshot kept a key: nothing was snapshotted.\n" );
+		if ( $unmatched ) {
 			return;
 		}
 
@@ -623,8 +630,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			}
 		}
 
-		$state             = $this->filter( $state, $plan );
-		$this->snapshotted = $this->snapshotted || $state;
+		$state = $this->filter( $state, $plan );
 
 		// Ends the snapshot's read view: its metadata locks would block e.g. a child's DDL.
 		$wpdb->query( 'COMMIT' );
