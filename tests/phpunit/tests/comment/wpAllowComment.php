@@ -199,11 +199,11 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 		$comments_table = $wpdb->comments;
 		$test_table     = $wpdb->prefix . 'comments_46947_' . $charset; // A unique name per character set avoids stale cached column metadata.
 
-		$wpdb->query( "CREATE TEMPORARY TABLE `$test_table` LIKE `$comments_table`" );
-		$wpdb->query( "ALTER TABLE `$test_table` CONVERT TO CHARACTER SET $charset COLLATE $collation" );
+		$wpdb->query( "CREATE TEMPORARY TABLE `$test_table` LIKE `$comments_table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and character set names come from the test itself.
+		$wpdb->query( "ALTER TABLE `$test_table` CONVERT TO CHARACTER SET $charset COLLATE $collation" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and character set names come from the test itself.
 
 		if ( $wpdb->last_error ) {
-			$wpdb->query( "DROP TEMPORARY TABLE IF EXISTS `$test_table`" );
+			$wpdb->query( "DROP TEMPORARY TABLE IF EXISTS `$test_table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and character set names come from the test itself.
 			$this->markTestSkipped( "The $collation collation is not available." );
 		}
 
@@ -213,7 +213,7 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 			return $callback();
 		} finally {
 			$wpdb->comments = $comments_table;
-			$wpdb->query( "DROP TEMPORARY TABLE IF EXISTS `$test_table`" );
+			$wpdb->query( "DROP TEMPORARY TABLE IF EXISTS `$test_table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and character set names come from the test itself.
 		}
 	}
 
