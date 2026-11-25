@@ -62,9 +62,6 @@ class WpGetUpdatePhpUrlTest extends WP_UnitTestCase {
 
 		$url = wp_get_update_php_url();
 
-		// Clean up.
-		putenv( 'WP_UPDATE_PHP_URL' );
-
 		$this->assertSame( $custom_url, $url );
 	}
 
@@ -127,7 +124,7 @@ class WpGetUpdatePhpUrlTest extends WP_UnitTestCase {
 	 *     empty_value: string,
 	 * }>
 	 */
-	public function data_wp_get_update_php_url_empty_fallbacks(): array {
+	public static function data_wp_get_update_php_url_empty_fallbacks(): array {
 		return array(
 			'empty string' => array( '' ),
 			'null'         => array( null ),
