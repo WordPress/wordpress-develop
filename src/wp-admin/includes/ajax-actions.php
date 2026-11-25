@@ -2686,6 +2686,8 @@ function wp_ajax_upload_attachment() {
  * Handles image editing via AJAX.
  *
  * @since 3.1.0
+ *
+ * @return never
  */
 function wp_ajax_image_editor() {
 	$attachment_id = (int) $_POST['postid'];
