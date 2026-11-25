@@ -776,8 +776,7 @@ final class WP_Style_Engine {
 				) {
 					$value = static::get_css_var_value( $value, $individual_property_definition['css_vars'] );
 
-					// Skip a preset that does not match one of the CSS var patterns.
-					if ( '' === $value ) {
+					if ( ! static::is_valid_style_value( $value ) ) {
 						continue;
 					}
 				}
