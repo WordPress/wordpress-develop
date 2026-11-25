@@ -57,7 +57,7 @@ The leak configurations pass the listener its settings: `rules`, the rules file 
 
 * `WP_TESTS_LEAKS_RULES`: rules file.
 * `WP_TESTS_LEAKS_SCOPE`: `test` or `class`.
-* `WP_TESTS_LEAKS_AREAS`: comma-separated patterns replacing the scope's defaults in the rules file; its per-file rules still apply. Takes shorthands: `all`, `persistent`, `db`, `cache`, `globals`, `statics`, `runtime`, `files`, e.g. `statics,globals` or `cache,!stale`.
+* `WP_TESTS_LEAKS_AREAS`: comma-separated patterns replacing the scope's defaults in the rules file; its per-file rules still apply. Takes shorthands: `all`, `persistent`, `database`, `caches`, `globals`, `statics`, `runtime`, `files`, e.g. `statics,globals` or `caches,!stale`.
 * `WP_TESTS_LEAKS_OUT`: snapshots file, default `tests/phpunit/build/leaks/snapshots.jsonl`.
 
 To check the test classes a branch adds or changes:

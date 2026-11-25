@@ -91,8 +91,8 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	private const ALIASES = array(
 		'all'        => array( '*|*' ),
 		'persistent' => array( 'db|*', 'schema|*', 'mc|*', 'file|*', 'stale|*' ),
-		'db'         => array( 'db|*', 'dbcount|*', 'autoinc|*', 'schema|*', 'temptable|*' ),
-		'cache'      => array( 'cache|*', 'mc|*', 'stale|*' ),
+		'database'   => array( 'db|*', 'dbcount|*', 'autoinc|*', 'schema|*', 'temptable|*' ),
+		'caches'     => array( 'cache|*', 'mc|*', 'stale|*' ),
 		'globals'    => array( 'global|*' ),
 		'statics'    => array( 'static|*', 'fstatic|*' ),
 		'runtime'    => array( 'const|*', 'ini|*', 'env|*', 'proc|*' ),
