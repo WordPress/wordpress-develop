@@ -79,6 +79,8 @@ function wp_ajax_nopriv_heartbeat() {
  * Handles fetching a list table via AJAX.
  *
  * @since 3.1.0
+ *
+ * @return never
  */
 function wp_ajax_fetch_list() {
 	$list_class = $_GET['list_args']['class'];
