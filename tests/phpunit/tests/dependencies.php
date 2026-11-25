@@ -244,4 +244,88 @@ class Tests_Dependencies extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $result, "Expected MD hash: $expected for $hash_source_string, but got: $result." );
 	}
+
+	/**
+	 * Tests that a handle depending on itself does not recurse infinitely.
+	 *
+	 * @ticket 46089
+	 *
+	 * @covers WP_Dependencies::all_deps
+	 */
+	public function test_all_deps_handles_self_dependency() {
+		$dependencies = new WP_Dependencies();
+		$dependencies->add( 'one', '', array( 'one' ) );
+
+		$this->assertTrue( $dependencies->all_deps( 'one' ) );
+		$this->assertSame( array( 'one' ), $dependencies->to_do );
+	}
+
+	/**
+	 * Tests that two handles depending on each other do not recurse infinitely.
+	 *
+	 * @ticket 46089
+	 *
+	 * @covers WP_Dependencies::all_deps
+	 */
+	public function test_all_deps_handles_circular_dependency() {
+		$dependencies = new WP_Dependencies();
+		$dependencies->add( 'one', '', array( 'two' ) );
+		$dependencies->add( 'two', '', array( 'one' ) );
+
+		$this->assertTrue( $dependencies->all_deps( 'one' ) );
+		$this->assertSame( array( 'two', 'one' ), $dependencies->to_do );
+	}
+
+	/**
+	 * Tests that a circular dependency spanning several handles does not recurse infinitely.
+	 *
+	 * @ticket 46089
+	 *
+	 * @covers WP_Dependencies::all_deps
+	 */
+	public function test_all_deps_handles_indirect_circular_dependency() {
+		$dependencies = new WP_Dependencies();
+		$dependencies->add( 'one', '', array( 'two' ) );
+		$dependencies->add( 'two', '', array( 'three' ) );
+		$dependencies->add( 'three', '', array( 'one' ) );
+
+		$this->assertTrue( $dependencies->all_deps( 'one' ) );
+		$this->assertSame( array( 'three', 'two', 'one' ), $dependencies->to_do );
+	}
+
+	/**
+	 * Tests that a dependency shared by several handles is still resolved once.
+	 *
+	 * @ticket 46089
+	 *
+	 * @covers WP_Dependencies::all_deps
+	 */
+	public function test_all_deps_still_resolves_shared_dependencies() {
+		$dependencies = new WP_Dependencies();
+		$dependencies->add( 'one', '', array( 'two', 'three' ) );
+		$dependencies->add( 'two', '', array( 'three' ) );
+		$dependencies->add( 'three', '' );
+
+		$this->assertTrue( $dependencies->all_deps( 'one' ) );
+		$this->assertSame( array( 'three', 'two', 'one' ), $dependencies->to_do );
+	}
+
+	/**
+	 * Tests that a circular dependency with a missing dependency terminates without queueing the handle.
+	 *
+	 * @ticket 46089
+	 *
+	 * @covers WP_Dependencies::all_deps
+	 */
+	public function test_all_deps_circular_dependency_with_missing_dependency_fails() {
+		$this->setExpectedIncorrectUsage( 'WP_Dependencies::add' );
+
+		$dependencies = new WP_Dependencies();
+		$dependencies->add( 'one', '', array( 'two' ) );
+		$dependencies->add( 'two', '', array( 'one', 'missing' ) );
+
+		$dependencies->all_deps( 'one' );
+
+		$this->assertSame( array(), $dependencies->to_do );
+	}
 }
