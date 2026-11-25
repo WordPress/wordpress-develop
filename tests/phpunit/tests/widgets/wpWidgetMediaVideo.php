@@ -241,7 +241,7 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 		ob_start();
 		$widget->render_media(
 			array(
-				'attachment_id' => 777,
+				'attachment_id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 			)
 		);
 		$output = ob_get_clean();
