@@ -3290,7 +3290,7 @@ function wp_unique_term_slug( $slug, $term ) {
 	$parent_suffix = '';
 	if ( $needs_suffix && is_taxonomy_hierarchical( $term->taxonomy ) && ! empty( $term->parent ) ) {
 		$the_parent = $term->parent;
-		while ( ! empty( $the_parent ) ) {
+		do {
 			$parent_term = get_term( $the_parent, $term->taxonomy );
 			if ( is_wp_error( $parent_term ) || empty( $parent_term ) ) {
 				break;
@@ -3300,11 +3300,8 @@ function wp_unique_term_slug( $slug, $term ) {
 				break;
 			}
 
-			if ( empty( $parent_term->parent ) ) {
-				break;
-			}
 			$the_parent = $parent_term->parent;
-		}
+		} while ( ! empty( $the_parent ) );
 	}
 
 	// If we didn't get a unique slug, try appending a number to make it unique.
