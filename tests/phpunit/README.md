@@ -26,7 +26,7 @@ Look for `PHPUnit Tests (full matrix)` in GitHub Actions and the PHPUnit checks 
 
 A test or test class that changes shared state and does not restore it can make later tests pass or fail depending on the order they run in. `tests/phpunit/leaks/` holds an opt-in PHPUnit listener that snapshots state between tests and classes, and a script that reports what changed.
 
-It snapshots database rows, schema and `AUTO_INCREMENT` counters, temporary tables, the object cache (including the keys on memcached servers), cached options that disagree with the database, globals, static properties and variables, constants, ini settings, environment variables, other process state such as the error handler, and files under `wp-content` and the temporary directory. A process-isolated test's child process is snapshotted too, if the test has `@preserveGlobalState disabled` as core's do: only the state that outlives it (database, files, memcached, stale memcached options). It needs PHPUnit 9 or earlier: PHPUnit 10 removed test listeners.
+It snapshots database rows, schema and `AUTO_INCREMENT` counters, temporary tables, the object cache (including the keys on memcached servers), cached options that disagree with the database, globals, static properties and variables, constants, ini settings, environment variables, other process state such as the error handler, and files under `wp-content` and the temporary directory. A process-isolated test's in-process state dies with its child process: its report shows what the child leaves in the database, files and memcached. It needs PHPUnit 9 or earlier: PHPUnit 10 removed test listeners.
 
 Run the tests with the leak configuration (`tests/phpunit/leaks/multisite.xml` for multisite), then compare the snapshots:
 

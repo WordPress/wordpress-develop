@@ -43,7 +43,7 @@ const PER_TEST = array(
 	'test Tests_Leak_Probe::test_leaks_schema'             => array( '/^schema\|\w+options$/' ),
 	'test Tests_Leak_Probe::test_leaks_temp_table'         => array( '/^temptable\|\w+leak_probe_tmp$/' ),
 	'test Tests_Leak_Probe::test_leaks_permanent_table'    => array( '/^schema\|\w+leak_probe_permanent$/', '/^dbcount\|\w+leak_probe_permanent$/' ),
-	'test Tests_Leak_Probe::test_leaks_in_child (isolated child)' => array( '/^db\|\w+links\|\d+$/' ),
+	'test Tests_Leak_Probe::test_leaks_in_child'           => array( '/^db\|\w+links\|\d+$/' ),
 	'class Tests_Leak_Probe_Class_Fixture'                 => array( '/^proc\|cwd$/', '/^proc\|ob_level$/', '/^cache\|leak_probe\|(1:)?after_class$/', '/^cache\|.*leak_probe:after_class$/', '/^mc\|.*leak_probe:after_class$/' ),
 );
 
@@ -90,11 +90,6 @@ const MULTISITE_ONLY = array(
 	'/^stale\|memcached\|(?!1\|)\d+\|options\|leak_probe_cached_only$/',
 );
 
-// An isolated child's report holds only these, see OUTLIVES_PROCESS in the listener.
-const CHILD_AREAS = '/^(db|schema|mc|file|stale\|memcached)\|/';
-
-const CHILD_SUFFIX = ' (isolated child)';
-
 // Report title => pattern no reported key may match: the class plants no cache leak, and its flushes drop the install's entries.
 const UNEXPECTED = array(
 	'class Tests_Leak_Probe'                             => '/^(cache|mc)\|/',
@@ -104,6 +99,8 @@ const UNEXPECTED = array(
 	'test Tests_Leak_Probe::test_leaks_constant'         => '/^const\|(?!LEAK_PROBE_CONSTANT$)/',
 	// The previous probe's, which this test's set_up() flush drops.
 	'test Tests_Leak_Probe::test_leaks_cache_after_tear_down' => '/^stale\|runtime\|1\|options\|(alloptions\|blogname|leak_probe_not_autoloaded)$/',
+	// Dies with its child process.
+	'test Tests_Leak_Probe::test_leaks_in_child'         => '/^const\|LEAK_PROBE_CHILD_CONSTANT$/',
 	// Dropped by a rules.php pattern.
 	'test Tests_Leak_Probe::test_leaks_filtered_globals' => '/^global\|leak_probe_filtered_dropped$/',
 );
@@ -220,17 +217,6 @@ foreach ( $expected as $title => $patterns ) {
 
 foreach ( $unexpected as $title => $pattern ) {
 	foreach ( preg_grep( $pattern, $reported[ $title ] ?? array() ) as $key ) {
-		$missed[] = "$title: unexpected $key";
-	}
-}
-
-foreach ( $reported as $title => $keys ) {
-	// No str_ends_with() before PHP 8.
-	if ( substr( $title, -strlen( CHILD_SUFFIX ) ) !== CHILD_SUFFIX ) {
-		continue;
-	}
-
-	foreach ( preg_grep( CHILD_AREAS, $keys, PREG_GREP_INVERT ) as $key ) {
 		$missed[] = "$title: unexpected $key";
 	}
 }

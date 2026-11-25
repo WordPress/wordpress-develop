@@ -303,7 +303,7 @@ class Tests_Leak_Probe extends WP_UnitTestCase {
 		// In-process state, which dies with the child: must not be reported.
 		define( 'LEAK_PROBE_CHILD_CONSTANT', 'leaked' );
 
-		// Committed to a table no class cleanup resets, so the parent sees it too.
+		// Committed to a table no class cleanup resets, so the parent sees it.
 		global $wpdb;
 		$inserted = $wpdb->insert(
 			$wpdb->links,

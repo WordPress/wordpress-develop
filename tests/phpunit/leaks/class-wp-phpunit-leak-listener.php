@@ -7,8 +7,6 @@
  *   test_end (after tearDown), class_end (after tearDownAfterClass).
  * A test_start right after its class's previous test_end holds no state and "reuse": true,
  * as nothing runs between them.
- * In a process-isolated test's child process, test_start and test_end wrap the whole
- * child, class hooks included, and snapshot only the areas that outlive it.
  *
  * Each snapshot is a flat map "area|key" => [hash, preview], appended as one JSON line
  * to WP_TESTS_LEAKS_OUT. diff.php compares snapshots.
@@ -114,18 +112,8 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	// The result file PHPUnit 9 hands an isolated child, see TestCase::run().
 	private const PHPUNIT_TEMP_PREFIX = 'phpunit_';
 
-	// The listener's own environment: its settings, and the test name handed to an isolated child.
+	// The listener's own environment: its settings.
 	private const ENV_PREFIX = 'WP_TESTS_LEAKS_';
-
-	private const ENV_TEST = 'WP_TESTS_LEAKS_TEST';
-
-	// The child loads the test file after the bootstrap, where it plans.
-	private const ENV_FILE = 'WP_TESTS_LEAKS_FILE';
-
-	// Those an isolated child leaves its parent and later runs: not the in-process caches' stale|runtime and stale|local.
-	private const OUTLIVES_PROCESS = '/^(db|schema|mc|file|stale\|memcached)\|/';
-
-	private const CHILD_AREAS = array( 'db', 'schema', 'mc', 'file', 'stale' );
 
 	private $out;
 
@@ -141,8 +129,6 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	// Test file => plan, see plan().
 	private $plans = array();
-
-	private $child = false;
 
 	// WP_TESTS_LEAKS_SCOPE=class: the state at the run start and at the running class start.
 	private $installed = null;
@@ -192,10 +178,6 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 		$this->rules_file = $this->absolute( $this->setting( 'RULES', $settings['rules'] ?? self::RULES ) );
 		$this->load_rules();
-
-		// An isolated child inherits the environment, not the listener's arguments.
-		putenv( self::ENV_PREFIX . "SCOPE=$this->scope" );
-		putenv( self::ENV_PREFIX . "RULES=$this->rules_file" );
 
 		// Last, so it sees the CREATE TEMPORARY TABLE rewritten by the test case's own filter.
 		add_filter( 'query', array( $this, 'track_temp_tables' ), PHP_INT_MAX );
@@ -425,30 +407,6 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		return false;
 	}
 
-	/**
-	 * Snapshots this process-isolated child process, from now to its shutdown.
-	 */
-	public function watch_child() {
-		$id   = getenv( self::ENV_TEST );
-		$plan = array_intersect_key( $this->file_plan( (string) getenv( self::ENV_FILE ) ), array_flip( self::CHILD_AREAS ) );
-		if ( self::SCOPE_CLASS === $this->scope || ! $plan ) {
-			return;
-		}
-
-		$this->child = true;
-
-		$this->write( 'test_start', $id, $plan );
-		register_shutdown_function(
-			function () use ( $id, $plan ) {
-				global $wpdb;
-
-				// A child that died mid-test left its transaction open: the snapshot's COMMIT would keep it.
-				$wpdb->query( 'ROLLBACK' );
-				$this->write( 'test_end', $id, $plan );
-			}
-		);
-	}
-
 	public function track_temp_tables( $query ) {
 		$this->sync_connection();
 
@@ -528,12 +486,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	}
 
 	public function start_test( $test ) {
-		$name = $this->name( $test );
-
-		// An isolated child inherits the environment.
-		putenv( self::ENV_TEST . '=' . $name );
-		putenv( self::ENV_FILE . '=' . ( new ReflectionClass( $test ) )->getFileName() );
-
+		$name        = $this->name( $test );
 		$class       = get_class( $test );
 		$reuse       = $class === $this->ended;
 		$this->ended = null;
@@ -570,7 +523,6 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	private function line( $point, $id, array $state ) {
 		return array(
 			'pid'   => getmypid(),
-			'child' => $this->child,
 			'point' => $point,
 			'id'    => $id,
 			'state' => $state,
@@ -652,9 +604,6 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		}
 
 		$state = $this->filter( $state, $plan );
-		if ( $this->child ) {
-			$state = array_intersect_key( $state, array_flip( preg_grep( self::OUTLIVES_PROCESS, array_keys( $state ) ) ) );
-		}
 
 		// Ends the snapshot's read view: its metadata locks would block e.g. a child's DDL.
 		$wpdb->query( 'COMMIT' );

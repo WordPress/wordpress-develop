@@ -42,8 +42,3 @@ unset( $leaks_out, $leaks_cwd );
 
 require dirname( __DIR__ ) . '/includes/bootstrap.php';
 require_once __DIR__ . '/class-wp-phpunit-leak-listener.php';
-
-// A process-isolated test's child process loads this bootstrap but no listeners.
-if ( isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] ) ) {
-	( new WP_PHPUnit_Leak_Listener() )->watch_child();
-}

@@ -151,7 +151,7 @@ foreach ( $snaps as $snap ) {
 		continue;
 	}
 
-	if ( 'test' === $kind && empty( $snap['child'] ) ) {
+	if ( 'test' === $kind ) {
 		$ended[ $snap['pid'] ] = $snap['state'];
 	}
 
@@ -160,8 +160,7 @@ foreach ( $snaps as $snap ) {
 		continue;
 	}
 
-	$where   = empty( $snap['child'] ) ? '' : ' (isolated child)';
-	$changes = report( "$kind {$snap['id']}$where leaves", compare( $open[ $slot ], $snap['state'] ) ) || $changes;
+	$changes = report( "$kind {$snap['id']} leaves", compare( $open[ $slot ], $snap['state'] ) ) || $changes;
 	unset( $open[ $slot ] );
 }
 

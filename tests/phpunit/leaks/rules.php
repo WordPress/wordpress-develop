@@ -57,7 +57,6 @@ return array(
 			'why'   => 'Leak probe: a file no pattern keeps is not snapshotted, see check-probes.php.',
 			'paths' => array(
 				'tests/phpunit/leaks/probe/leakProbeSkipped.php',
-				'tests/phpunit/leaks/probe/leakProbeChildSkipped.php',
 			),
 			'areas' => array(
 				'!*',
