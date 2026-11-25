@@ -21,9 +21,11 @@
  * format.
  *
  * Fields are registered on the `wp_entity_fields_api_init` action, and only
- * there, with wp_register_entity_fields(), wp_update_entity_fields(), and
- * wp_unregister_entity_fields(): register(), update(), and unregister() refuse
- * to run while the action is not firing.
+ * there, with wp_register_entity_fields(), wp_update_entity_fields(),
+ * wp_unregister_entity_fields(), and wp_register_entity_field_collection():
+ * register(), update(), unregister(), and register_collection() refuse to run
+ * unless the registry itself is firing the action, on the first read of its
+ * fields. Firing the action by other means does not allow them to run.
  *
  * The registry is filled lazily: the first time its fields are read, it
  * fires the `wp_entity_fields_api_init` action, on which the default fields of every
