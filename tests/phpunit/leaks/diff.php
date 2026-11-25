@@ -81,7 +81,7 @@ function report( $title, array $lines ) {
 	return true;
 }
 
-// The first class_start and the class ID's.
+// The first class_start's state and id, and the class ID's state.
 function class_starts( $file, $id ) {
 	$first = null;
 	foreach ( load( $file ) as $snap ) {
@@ -89,9 +89,9 @@ function class_starts( $file, $id ) {
 			continue;
 		}
 
-		$first = $first ?? $snap['state'];
+		$first = $first ?? $snap;
 		if ( $snap['id'] === $id ) {
-			return array( $first, $snap['state'] );
+			return array( $first['state'], $first['id'], $snap['state'] );
 		}
 	}
 
@@ -100,8 +100,14 @@ function class_starts( $file, $id ) {
 }
 
 if ( 4 === $argc ) {
-	list( $first_a, $a ) = class_starts( $argv[1], $argv[3] );
-	list( $first_b, $b ) = class_starts( $argv[2], $argv[3] );
+	list( $first_a, , $a )          = class_starts( $argv[1], $argv[3] );
+	list( $first_b, $first_id, $b ) = class_starts( $argv[2], $argv[3] );
+
+	// Its own start would be all noise: nothing to report.
+	if ( $argv[3] === $first_id ) {
+		fwrite( STDERR, "{$argv[3]} is the first class in {$argv[2]}: nothing ran before it.\n" );
+		exit( 1 );
+	}
 
 	$noise = array();
 	foreach ( array_intersect_key( $first_a, $first_b ) as $key => $value ) {
