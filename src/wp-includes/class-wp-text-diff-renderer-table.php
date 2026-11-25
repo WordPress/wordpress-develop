@@ -81,7 +81,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @since 7.3.0
 	 * @var int
 	 */
-	protected $_max_changed_line_pairs = 100000;
+	protected $_max_changed_line_pairs = 250000;
 
 	/**
 	 * Maximum total number of old and new lines to match in a changed block.

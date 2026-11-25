@@ -3405,7 +3405,7 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 	 *                                              lines. Default 5000.
 	 *     @type int    $max_changed_line_pairs     A changed block with more old-by-new line
 	 *                                              pairs than this shows removed lines, then
-	 *                                              added lines. Default 100000.
+	 *                                              added lines. Default 250000.
 	 * }
 	 * @return string Empty string if strings are equivalent or HTML with differences.
 	 */
