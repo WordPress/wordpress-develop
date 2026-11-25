@@ -10,6 +10,21 @@
  */
 class Tests_General_WpAdminCss extends WP_UnitTestCase {
 
+	private ?WP_Styles $original_wp_styles = null;
+
+	public function set_up() {
+		parent::set_up();
+
+		$this->original_wp_styles = $GLOBALS['wp_styles'] ?? null;
+		$GLOBALS['wp_styles']     = null;
+	}
+
+	public function tear_down() {
+		$GLOBALS['wp_styles'] = $this->original_wp_styles;
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that an unregistered file echoes a stylesheet link.
 	 *
