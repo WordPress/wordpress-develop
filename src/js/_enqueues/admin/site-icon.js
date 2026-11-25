@@ -22,6 +22,7 @@
 	 * Calculate image selection options based on the attachment dimensions.
 	 *
 	 * @since 6.5.0
+	 * @since 7.3.0 Added the `controller` parameter, to let square images skip cropping.
 	 *
 	 * @param {Object} attachment The attachment object representing the image.
 	 * @param {Object} controller The cropper controller.
@@ -140,8 +141,8 @@
 				size === attachment.attributes.width
 			) {
 				/*
-				 * The image doesn't need cropping, but it still goes through the crop
-				 * request so that the site icon and its additional sizes are created.
+				 * Since 7.3.0, an image that doesn't need cropping still goes through
+				 * the crop request, so that the site icon and its additional sizes are created.
 				 */
 				wp.ajax
 					.post( 'crop-image', {
