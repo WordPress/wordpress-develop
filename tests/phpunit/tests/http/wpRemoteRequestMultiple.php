@@ -321,6 +321,82 @@ class Tests_HTTP_wpRemoteRequestMultiple extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37459
+	 *
+	 * @covers WP_HTTP_Requests_Hooks::dispatch
+	 */
+	public function test_should_fire_the_requests_before_request_hook_for_each_batched_request() {
+		$this->allow_requests_rejected_before_sending();
+
+		$urls = array();
+
+		add_action(
+			'requests-requests.before_request',
+			static function ( &$url ) use ( &$urls ) {
+				$urls[] = $url;
+				// Rewrite the URL so that the Requests library rejects it before anything is sent.
+				$url = str_replace( 'https://', 'ftp://', $url );
+			}
+		);
+
+		$responses = wp_remote_request_multiple(
+			array(
+				'first'  => 'https://example.org/first',
+				'second' => 'https://example.org/second',
+			)
+		);
+
+		$this->assertSame( array( 'https://example.org/first', 'https://example.org/second' ), $urls, 'The hook should fire once for each request.' );
+
+		foreach ( $responses as $response ) {
+			$this->assertWPError( $response );
+			$this->assertSame( 'Only HTTP(S) requests are handled.', $response->get_error_message() );
+		}
+	}
+
+	/**
+	 * @ticket 37459
+	 */
+	public function test_should_not_send_the_requests_again_when_the_batch_fails() {
+		$this->skip_without_curl();
+		$this->allow_requests_rejected_before_sending();
+
+		$count = 0;
+
+		add_action(
+			'http_api_curl',
+			static function () use ( &$count ) {
+				++$count;
+			}
+		);
+		// Make the batch fail before the transfers start, so that nothing leaves the process.
+		add_action(
+			'requests-curl.before_multi_exec',
+			static function () {
+				throw new WpOrg\Requests\Exception( 'Batch failed.', 'test' );
+			}
+		);
+
+		$responses = wp_remote_request_multiple(
+			array(
+				'first'  => 'https://example.org/first',
+				'second' => array(
+					'url'  => 'https://example.org/second',
+					'args' => array( 'method' => 'POST' ),
+				),
+			)
+		);
+
+		$this->assertSame( 2, $count, 'Each request should only be prepared for sending once.' );
+
+		foreach ( $responses as $response ) {
+			$this->assertWPError( $response );
+			$this->assertSame( 'http_request_failed', $response->get_error_code() );
+			$this->assertSame( 'Batch failed.', $response->get_error_message() );
+		}
+	}
+
+	/**
+	 * @ticket 37459
 	 * @group external-http
 	 */
 	public function test_should_send_the_other_requests_when_one_cannot_be_batched() {

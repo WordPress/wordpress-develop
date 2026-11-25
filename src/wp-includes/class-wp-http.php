@@ -298,42 +298,61 @@ class WP_Http {
 			$concurrency = max( 1, $concurrency );
 
 			foreach ( array_chunk( $pending, $concurrency, true ) as $batch ) {
+				$results        = array();
 				$batch_requests = array();
-
-				foreach ( $batch as $id => $prepared ) {
-					$batch_requests[ $id ] = array(
-						'url'     => $prepared['url'],
-						'headers' => $prepared['headers'],
-						'data'    => $prepared['data'],
-						'type'    => $prepared['type'],
-						'options' => $prepared['options'],
-					);
-				}
 
 				// Avoid issues where mbstring.func_overload is enabled.
 				mbstring_binary_safe_encoding();
 
 				try {
-					/** @var array<\WpOrg\Requests\Response|\WpOrg\Requests\Exception> $results */
-					$results = WpOrg\Requests\Requests::request_multiple( $batch_requests );
-				} catch ( Exception $e ) {
-					/*
-					 * The batch could not be sent at all, for example because the Requests
-					 * library rejected one of the URLs while building it. Send its requests
-					 * one by one instead, so that each of them gets its own response or error.
-					 */
-					$results = array();
+					foreach ( $batch as $id => $prepared ) {
+						$request_url     = $prepared['url'];
+						$request_headers = $prepared['headers'];
+						$request_data    = $prepared['data'];
+						$request_type    = $prepared['type'];
+						$request_options = $prepared['options'];
 
-					foreach ( $batch_requests as $id => $request ) {
-						try {
-							$results[ $id ] = WpOrg\Requests\Requests::request(
-								$request['url'],
-								$request['headers'],
-								$request['data'],
-								$request['type'],
-								$request['options']
-							);
-						} catch ( WpOrg\Requests\Exception $e ) {
+						/*
+						 * Requests::request() fires this hook for a single request, but
+						 * Requests::request_multiple() does not, so fire it here to treat
+						 * the requests of a batch like requests sent on their own.
+						 */
+						$request_options['hooks']->dispatch(
+							'requests.before_request',
+							array( &$request_url, &$request_headers, &$request_data, &$request_type, &$request_options )
+						);
+
+						/*
+						 * Requests::request_multiple() throws for the whole batch if one of its URLs
+						 * is not an HTTP(S) URL. Reject such a request on its own instead, with the
+						 * same error that Requests::request() would throw for it.
+						 */
+						if ( ! preg_match( '/^http(s)?:\/\//i', $request_url ) ) {
+							$results[ $id ] = new WpOrg\Requests\Exception( 'Only HTTP(S) requests are handled.', 'nonhttp', $request_url );
+							continue;
+						}
+
+						$batch_requests[ $id ] = array(
+							'url'     => $request_url,
+							'headers' => $request_headers,
+							'data'    => $request_data,
+							'type'    => $request_type,
+							'options' => $request_options,
+						);
+					}
+
+					if ( ! empty( $batch_requests ) ) {
+						/** @var array<\WpOrg\Requests\Response|\WpOrg\Requests\Exception> $batch_results */
+						$batch_results = WpOrg\Requests\Requests::request_multiple( $batch_requests );
+						$results       = $batch_results + $results;
+					}
+				} catch ( WpOrg\Requests\Exception $e ) {
+					/*
+					 * The batch failed as a whole. Its requests may already have been sent,
+					 * so do not send them again: report the error for each of them instead.
+					 */
+					foreach ( $batch as $id => $prepared ) {
+						if ( ! isset( $results[ $id ] ) ) {
 							$results[ $id ] = $e;
 						}
 					}
