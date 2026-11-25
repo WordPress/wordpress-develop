@@ -94,7 +94,7 @@ jobs:
         env:
           NEW_VERSION: ${{ inputs.new-version && inputs.new-version || 'latest' }}
           # The versions each job below starts from. See the comment on the job for why those versions are tested.
-          RECENT_RELEASES: '7.0 7.1'                   # upgrade-tests-recent-releases
+          RECENT_RELEASES: '7.0 7.1 7.2-RC3'           # upgrade-tests-recent-releases
           WP_6X: '6.0 6.3 6.4 6.5'                     # upgrade-tests-wp-6x-mysql
           WP_5X_PHP_7X: '5.0 5.1 5.3 5.4 5.5 5.6 5.9'  # upgrade-tests-wp-5x-php-7x-mysql
           WP_5X_PHP_8X: '5.3 5.4 5.5 5.6 5.9'          # upgrade-tests-wp-5x-php-8x-mysql
