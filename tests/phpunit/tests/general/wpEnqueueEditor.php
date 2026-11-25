@@ -16,17 +16,28 @@ class Tests_General_WpEnqueueEditor extends WP_UnitTestCase {
 	 * @ticket 66757
 	 */
 	public function test_wp_enqueue_editor_enqueues_default_assets() {
-		wp_enqueue_editor();
+		$old_wp_scripts = $GLOBALS['wp_scripts'] ?? null;
+		$old_wp_styles  = $GLOBALS['wp_styles'] ?? null;
 
-		$this->assertTrue( wp_script_is( 'editor', 'enqueued' ) );
-		$this->assertTrue( wp_style_is( 'editor-buttons', 'enqueued' ) );
-		$this->assertSame(
-			45,
-			has_action( 'wp_print_footer_scripts', array( '_WP_Editors', 'print_default_editor_scripts' ) )
-		);
-		$this->assertSame(
-			1,
-			has_action( 'wp_print_footer_scripts', array( '_WP_Editors', 'force_uncompressed_tinymce' ) )
-		);
+		try {
+			$GLOBALS['wp_scripts'] = new WP_Scripts();
+			$GLOBALS['wp_styles']  = new WP_Styles();
+
+			wp_enqueue_editor();
+
+			$this->assertTrue( wp_script_is( 'editor', 'enqueued' ) );
+			$this->assertTrue( wp_style_is( 'editor-buttons', 'enqueued' ) );
+			$this->assertSame(
+				45,
+				has_action( 'wp_print_footer_scripts', array( '_WP_Editors', 'print_default_editor_scripts' ) )
+			);
+			$this->assertSame(
+				1,
+				has_action( 'wp_print_footer_scripts', array( '_WP_Editors', 'force_uncompressed_tinymce' ) )
+			);
+		} finally {
+			$GLOBALS['wp_scripts'] = $old_wp_scripts;
+			$GLOBALS['wp_styles']  = $old_wp_styles;
+		}
 	}
 }
