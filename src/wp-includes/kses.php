@@ -31,7 +31,7 @@
  */
 
 /**
- * Specifies the default allowable HTML tags.
+ * Whether to use custom allowed HTML tags from the KSES globals.
  *
  * Using `CUSTOM_TAGS` is not recommended and should be considered deprecated. The
  * {@see 'wp_kses_allowed_html'} filter is more powerful and supplies context.
