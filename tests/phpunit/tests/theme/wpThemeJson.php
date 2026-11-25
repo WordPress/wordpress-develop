@@ -3285,21 +3285,18 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a block that opts out with `transform.fitContent` keeps its
-	 * width when rotated in Global Styles.
+	 * Tests that a block that does not opt in with `transform.fitContent` keeps
+	 * its width when rotated in Global Styles.
 	 *
 	 * @ticket XXXXX
 	 */
-	public function test_get_stylesheet_keeps_the_width_of_a_block_that_opts_out_of_fitting() {
+	public function test_get_stylesheet_keeps_the_width_of_a_block_that_does_not_opt_in_to_fitting() {
 		register_block_type(
 			'test/keep-width',
 			array(
 				'api_version' => 3,
 				'supports'    => array(
-					'transform' => array(
-						'rotate'     => true,
-						'fitContent' => false,
-					),
+					'transform' => array( 'rotate' => true ),
 				),
 			)
 		);
@@ -3350,14 +3347,33 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a block or block style variation rotated in Global Styles fits
-	 * its content, unless it sets a width.
+	 * Registers a block that fits its content when rotated.
+	 */
+	private function register_fit_content_block() {
+		register_block_type(
+			'test/fit-content',
+			array(
+				'api_version' => 3,
+				'supports'    => array(
+					'transform' => array(
+						'rotate'     => true,
+						'fitContent' => true,
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Tests that a block that opts in with `transform.fitContent`, or its block
+	 * style variation, fits its content when rotated in Global Styles.
 	 *
 	 * @ticket XXXXX
 	 */
 	public function test_get_stylesheet_fits_rotated_blocks_to_their_content() {
+		$this->register_fit_content_block();
 		register_block_style(
-			array( 'core/group', 'core/heading', 'core/paragraph' ),
+			'test/fit-content',
 			array(
 				'name'  => 'tilted',
 				'label' => 'Tilted',
@@ -3368,7 +3384,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 				'styles'  => array(
 					'blocks' => array(
-						'core/group'     => array(
+						'test/fit-content' => array(
 							'transform'  => array( 'rotate' => '15deg' ),
 							'@mobile'    => array(
 								'transform' => array( 'rotate' => '5deg' ),
@@ -3379,22 +3395,60 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								),
 							),
 						),
-						'core/heading'   => array(
+						'core/group'       => array(
+							'transform' => array( 'rotate' => '15deg' ),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$css = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			null,
+			array(
+				'skip_root_layout_styles'        => true,
+				'include_block_style_variations' => true,
+			)
+		);
+		unregister_block_style( 'test/fit-content', 'tilted' );
+		unregister_block_type( 'test/fit-content' );
+
+		$fit_content = ':not(.alignwide):not(.alignfull):not(.is-layout-flex > *):not(.is-layout-grid > *)){width: fit-content;}';
+		$this->assertStringContainsString( ':root :where(.wp-block-test-fit-content){rotate: 15deg;}:root :where(.wp-block-test-fit-content' . $fit_content, $css );
+		$this->assertStringContainsString( '@media (width <= 480px){:root :where(.wp-block-test-fit-content){rotate: 5deg;}:root :where(.wp-block-test-fit-content' . $fit_content . '}', $css );
+		$this->assertStringContainsString( ':root :where(.wp-block-test-fit-content.is-style-tilted){rotate: -5deg;}:root :where(.wp-block-test-fit-content.is-style-tilted' . $fit_content, $css );
+		$this->assertStringContainsString( ':root :where(.wp-block-group){rotate: 15deg;}', $css );
+		$this->assertStringNotContainsString( '.wp-block-group:not', $css );
+	}
+
+	/**
+	 * Tests that a rotated block that sets a width keeps it, and so does its
+	 * block style variation.
+	 *
+	 * @ticket XXXXX
+	 */
+	public function test_get_stylesheet_leaves_a_rotated_block_to_its_width() {
+		$this->register_fit_content_block();
+		register_block_style(
+			'test/fit-content',
+			array(
+				'name'  => 'tilted',
+				'label' => 'Tilted',
+			)
+		);
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'test/fit-content' => array(
 							'dimensions' => array( 'width' => '20rem' ),
 							'transform'  => array( 'rotate' => '15deg' ),
 							'variations' => array(
 								'tilted' => array(
 									'transform' => array( 'rotate' => '-5deg' ),
-								),
-							),
-						),
-						'core/paragraph' => array(
-							'variations' => array(
-								'tilted' => array(
-									'transform' => array( 'rotate' => '-5deg' ),
-									'@mobile'   => array(
-										'transform' => array( 'rotate' => '5deg' ),
-									),
 								),
 							),
 						),
@@ -3412,17 +3466,61 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'include_block_style_variations' => true,
 			)
 		);
-		unregister_block_style( 'core/group', 'tilted' );
-		unregister_block_style( 'core/heading', 'tilted' );
-		unregister_block_style( 'core/paragraph', 'tilted' );
+		unregister_block_style( 'test/fit-content', 'tilted' );
+		unregister_block_type( 'test/fit-content' );
 
-		$fit_content = ':not(.alignwide):not(.alignfull):not(.is-layout-flex > *):not(.is-layout-grid > *)){width: fit-content;}';
-		$this->assertStringContainsString( ':root :where(.wp-block-group){rotate: 15deg;}:root :where(.wp-block-group' . $fit_content, $css );
-		$this->assertStringContainsString( '@media (width <= 480px){:root :where(.wp-block-group){rotate: 5deg;}:root :where(.wp-block-group' . $fit_content . '}', $css );
-		$this->assertStringContainsString( ':root :where(.wp-block-group.is-style-tilted){rotate: -5deg;}:root :where(.wp-block-group.is-style-tilted' . $fit_content, $css );
-		$this->assertStringContainsString( '@media (width <= 480px){:root :where(p.is-style-tilted){rotate: 5deg;}:root :where(p.is-style-tilted' . $fit_content . '}', $css );
-		$this->assertStringNotContainsString( 'wp-block-heading:not(.alignwide)', $css );
-		$this->assertStringNotContainsString( '.wp-block-heading.is-style-tilted:not', $css );
+		$this->assertStringContainsString( ':root :where(.wp-block-test-fit-content.is-style-tilted){rotate: -5deg;}', $css );
+		$this->assertStringNotContainsString( 'fit-content;', $css );
+	}
+
+	/**
+	 * Tests that a zero rotation does not fit the block to its content.
+	 *
+	 * @ticket XXXXX
+	 *
+	 * @dataProvider data_get_stylesheet_does_not_fit_a_zero_rotation
+	 *
+	 * @covers ::wp_is_zero_rotation
+	 *
+	 * @param string $rotate Rotation value.
+	 */
+	public function test_get_stylesheet_does_not_fit_a_zero_rotation( $rotate ) {
+		$this->register_fit_content_block();
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'test/fit-content' => array(
+							'transform' => array( 'rotate' => $rotate ),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$css = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+		unregister_block_type( 'test/fit-content' );
+
+		$this->assertStringContainsString( ':root :where(.wp-block-test-fit-content){rotate: ' . $rotate . ';}', $css );
+		$this->assertStringNotContainsString( 'fit-content;', $css );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_stylesheet_does_not_fit_a_zero_rotation() {
+		return array(
+			'unitless zero'       => array( '0' ),
+			'zero degrees'        => array( '0deg' ),
+			'negative zero'       => array( '-0deg' ),
+			'signed zero radians' => array( '+0.0rad' ),
+			'zero gradians'       => array( '.0grad' ),
+			'zero turns'          => array( '0TURN' ),
+		);
 	}
 
 	/**
