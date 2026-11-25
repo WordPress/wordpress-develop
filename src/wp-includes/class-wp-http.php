@@ -30,13 +30,13 @@ if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
  *
  * @since 2.7.0
  *
- * @phpstan-type Response array{
- *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string|string[]>,
+ * @phpstan-type HTTP_Response array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
  *     body: string,
- *     response: array{ code: int|false, message: string|false },
+ *     response: array{code: int|false, message: string|false},
  *     cookies: WP_Http_Cookie[],
  *     filename?: string|null,
- *     http_response: WP_HTTP_Requests_Response|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
  * }
  * @phpstan-type Prepared_Request array{
  *     url: string,
@@ -183,7 +183,8 @@ class WP_Http {
 	 *     @type string|null                                            $filename      Optional. Filename of the response.
 	 *     @type WP_HTTP_Requests_Response|null                         $http_response Response object.
 	 * }
-	 * @phpstan-return Response|WP_Error
+	 *
+	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	public function request( $url, $args = array() ) {
 		if ( ! is_array( $args ) ) {
@@ -249,7 +250,7 @@ class WP_Http {
 	 * @return array Responses keyed like $requests. Each is a response array, or a WP_Error
 	 *               on failure. See {@see WP_Http::request()} for the response format.
 	 * @phpstan-param array<string|array{ url?: string, args?: string|mixed[] }> $requests
-	 * @phpstan-return array<Response|WP_Error>
+	 * @phpstan-return array<HTTP_Response|WP_Error>
 	 */
 	public function request_multiple( array $requests, array $options = array() ): array {
 		$responses = array();
@@ -297,42 +298,61 @@ class WP_Http {
 			$concurrency = max( 1, $concurrency );
 
 			foreach ( array_chunk( $pending, $concurrency, true ) as $batch ) {
+				$results        = array();
 				$batch_requests = array();
-
-				foreach ( $batch as $id => $prepared ) {
-					$batch_requests[ $id ] = array(
-						'url'     => $prepared['url'],
-						'headers' => $prepared['headers'],
-						'data'    => $prepared['data'],
-						'type'    => $prepared['type'],
-						'options' => $prepared['options'],
-					);
-				}
 
 				// Avoid issues where mbstring.func_overload is enabled.
 				mbstring_binary_safe_encoding();
 
 				try {
-					/** @var array<\WpOrg\Requests\Response|\WpOrg\Requests\Exception> $results */
-					$results = WpOrg\Requests\Requests::request_multiple( $batch_requests );
-				} catch ( Exception $e ) {
-					/*
-					 * The batch could not be sent at all, for example because the Requests
-					 * library rejected one of the URLs while building it. Send its requests
-					 * one by one instead, so that each of them gets its own response or error.
-					 */
-					$results = array();
+					foreach ( $batch as $id => $prepared ) {
+						$request_url     = $prepared['url'];
+						$request_headers = $prepared['headers'];
+						$request_data    = $prepared['data'];
+						$request_type    = $prepared['type'];
+						$request_options = $prepared['options'];
 
-					foreach ( $batch_requests as $id => $request ) {
-						try {
-							$results[ $id ] = WpOrg\Requests\Requests::request(
-								$request['url'],
-								$request['headers'],
-								$request['data'],
-								$request['type'],
-								$request['options']
-							);
-						} catch ( WpOrg\Requests\Exception $e ) {
+						/*
+						 * Requests::request() fires this hook for a single request, but
+						 * Requests::request_multiple() does not, so fire it here to treat
+						 * the requests of a batch like requests sent on their own.
+						 */
+						$request_options['hooks']->dispatch(
+							'requests.before_request',
+							array( &$request_url, &$request_headers, &$request_data, &$request_type, &$request_options )
+						);
+
+						/*
+						 * Requests::request_multiple() throws for the whole batch if one of its URLs
+						 * is not an HTTP(S) URL. Reject such a request on its own instead, with the
+						 * same error that Requests::request() would throw for it.
+						 */
+						if ( ! preg_match( '/^http(s)?:\/\//i', $request_url ) ) {
+							$results[ $id ] = new WpOrg\Requests\Exception( 'Only HTTP(S) requests are handled.', 'nonhttp', $request_url );
+							continue;
+						}
+
+						$batch_requests[ $id ] = array(
+							'url'     => $request_url,
+							'headers' => $request_headers,
+							'data'    => $request_data,
+							'type'    => $request_type,
+							'options' => $request_options,
+						);
+					}
+
+					if ( ! empty( $batch_requests ) ) {
+						/** @var array<\WpOrg\Requests\Response|\WpOrg\Requests\Exception> $batch_results */
+						$batch_results = WpOrg\Requests\Requests::request_multiple( $batch_requests );
+						$results       = $batch_results + $results;
+					}
+				} catch ( WpOrg\Requests\Exception $e ) {
+					/*
+					 * The batch failed as a whole. Its requests may already have been sent,
+					 * so do not send them again: report the error for each of them instead.
+					 */
+					foreach ( $batch as $id => $prepared ) {
+						if ( ! isset( $results[ $id ] ) ) {
 							$results[ $id ] = $e;
 						}
 					}
@@ -386,7 +406,7 @@ class WP_Http {
 	 *     @type array|WP_Error $response Optional. The response returned by the 'pre_http_request' filter.
 	 * }
 	 * @phpstan-param mixed[] $args
-	 * @phpstan-return Prepared_Request|array{ response: Response|WP_Error }|WP_Error
+	 * @phpstan-return Prepared_Request|array{ response: HTTP_Response|WP_Error }|WP_Error
 	 */
 	protected function prepare_request( $url, array $args = array() ) {
 		$defaults = array(
@@ -492,7 +512,7 @@ class WP_Http {
 		 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
 		 * @param array                $parsed_args HTTP request arguments.
 		 * @param string               $url         The request URL.
-		 * @phpstan-param false|Response|WP_Error $response
+		 * @phpstan-param false|HTTP_Response|WP_Error $response
 		 */
 		$pre = apply_filters( 'pre_http_request', false, $parsed_args, $url );
 
@@ -654,7 +674,7 @@ class WP_Http {
 	 *                                                                                 returned by {@see WP_Http::prepare_request()}.
 	 * @param string                                                      $url         The request URL.
 	 * @return array|WP_Error The response array, or a WP_Error on failure. See {@see WP_Http::request()}.
-	 * @phpstan-return Response|WP_Error
+	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	protected function finalize_response( $response, array $parsed_args, string $url ) {
 		if ( $response instanceof WpOrg\Requests\Exception ) {
@@ -889,6 +909,8 @@ class WP_Http {
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+	 *
+	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	public function post( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'POST' );
@@ -907,6 +929,8 @@ class WP_Http {
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+	 *
+	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	public function get( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'GET' );
@@ -925,6 +949,8 @@ class WP_Http {
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+	 *
+	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	public function head( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'HEAD' );
