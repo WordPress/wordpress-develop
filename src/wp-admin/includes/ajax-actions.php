@@ -2804,6 +2804,8 @@ function wp_ajax_get_post_thumbnail_html() {
  * @since 4.0.0
  *
  * @see set_post_thumbnail()
+ *
+ * @return never
  */
 function wp_ajax_set_attachment_thumbnail() {
 	if ( empty( $_POST['urls'] ) || ! is_array( $_POST['urls'] ) ) {
