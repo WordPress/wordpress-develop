@@ -1224,6 +1224,164 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		}
 
 		/**
+		 * Returns a representation of the given substring of input HTML text content where the
+		 * character references are normalized and unescaped syntax characters are escaped.
+		 *
+		 * @param 'data'|'attribute' $context Apply decoding rules pertaining to the appropriate context.
+		 * @param string             $html    Raw HTML document containing the referenced text content.
+		 * @param int                $start   The text span starts here.
+		 * @param int                $length  The text span extends this many bytes.
+		 * @return string Normalized text node content.
+		 */
+		private function normalize_text( string $context, string $html, int $start, int $length ): string {
+			$output     = '';
+			$ref_length = 0;
+			$at         = $start;
+			$was_at     = $start;
+			$end        = $start + $length;
+
+			while ( $at < $end ) {
+				$next_at = $at + strcspn( $html, '&', $at, $end - $at );
+				if ( $next_at >= $end ) {
+					break;
+				}
+
+				$decoded = WP_HTML_Decoder::read_character_reference( $context, $html, $next_at, $ref_length );
+
+				/**
+				 * Decoding past the end of the text span might return a different decode than
+				 * one which decodes a truncated string.
+				 *
+				 * In the cases of a failure to decode, the length of seven bytes comes from the
+				 * fact that the longest matchable named character references containing no
+				 * semicolons are seven ASCII bytes long. It’s exactly these situations within
+				 * attributes where the following character might impact what’s decoded; this is
+				 * what {@see WP_HTML_Decoder::read_character_reference()} might see since it
+				 * a doesn’t allow specifying a final offset at which to stop searching.
+				 *
+				 * Therefore, if a match failed within that distance from the end inside an HTML
+				 * attribute’s value, then it is best to cut off the trailing part of the input
+				 * and normalize that separately.
+				 *
+				 * Example:
+				 *
+				 *     '&middot=' is rejected when the length is seven because the following '='
+				 *                is not unambiguous. However, that '=' was not part of the span
+				 *                of text to decode.
+				 *
+				 *     '&middot' on the other hand, has no ambiguous follower, and will thus be
+				 *               decoded in attribute value contexts.
+				 */
+				$remaining_length = $start + $length - $next_at;
+				if (
+					$end < strlen( $html ) &&
+					(
+						( null !== $decoded && $ref_length > $remaining_length ) ||
+						( null === $decoded && 'attribute' === $context && $remaining_length <= 7 )
+					)
+				) {
+					$output .= substr( $html, $was_at, $next_at - $was_at );
+					$output .= $this->normalize_text( $context, substr( $html, $next_at, $remaining_length ), 0, $remaining_length );
+					$was_at  = $end;
+					break;
+				}
+
+				/*
+				 * Failure to decode implies that there’s an unescaped AMPERSAND character; escape it.
+				 */
+				if ( null === $decoded ) {
+					$output .= substr( $html, $was_at, $next_at - $was_at );
+					$output .= '&amp;';
+					$at      = $next_at + 1;
+					$was_at  = $at;
+					continue;
+				}
+
+				$has_semicolon = ';' === $html[ $next_at + $ref_length - 1 ];
+
+				if ( '#' === $html[ $next_at + 1 ] ) {
+					/*
+					 * Given that the character decoded at least partially, there are
+					 * certain guarantees on the syntax forms here. The only exceptions
+					 * are where the decoder returns U+FFFD because the digits failed
+					 * to represent a valid code point.
+					 */
+					$digits_end     = $next_at + $ref_length - ( $has_semicolon ? 1 : 0 );
+					$hex_sigil      = $html[ $next_at + 2 ];
+					$is_hex         = 'x' === $hex_sigil || 'X' === $hex_sigil;
+					$digits_at      = $next_at + ( $is_hex ? 3 : 2 );
+					$zero_count     = strspn( $html, '0', $digits_at, $digits_end - $digits_at );
+					$non_zero_start = $digits_at + $zero_count;
+					$digit_count    = $digits_end - $non_zero_start;
+					$has_no_lowers  = strcspn( $html, 'abcdef', $digits_at + $zero_count, $digit_count ) === $digit_count;
+
+					/*
+					 * Only an actual numeric character reference indicating U+FFFD should be retained;
+					 * other malformed sequences should actually receive the U+FFFD in the output.
+					 */
+					if (
+						"\u{FFFD}" === $decoded &&
+						( 0 === $digit_count || 0 !== substr_compare( $html, $is_hex ? 'FFFD' : '65533', $digits_at + $zero_count, $digit_count, true ) )
+					) {
+						$output .= substr( $html, $was_at, $next_at - $was_at );
+						$output .= "\u{FFFD}";
+						$at      = $next_at + $ref_length;
+						$was_at  = $at;
+						continue;
+					}
+
+					// Fully-normalized numeric character references may be passed through.
+					if ( 0 === $zero_count && $has_semicolon && ( ! $is_hex || ( 'x' === $hex_sigil && $has_no_lowers ) ) ) {
+						$at = $next_at + $ref_length;
+						continue;
+					}
+
+					// Otherwise rebuild them.
+					$sigil   = $is_hex ? 'x' : '';
+					$digits  = strtoupper( substr( $html, $digits_at + $zero_count, $digit_count ) );
+					$output .= substr( $html, $was_at, $next_at - $was_at );
+					$output .= "&#{$sigil}{$digits};";
+					$at      = $next_at + $ref_length;
+					$was_at  = $at;
+					continue;
+				}
+
+				// Semicolon-terminated named character references may pass through.
+				if ( $has_semicolon ) {
+					$at = $next_at + $ref_length;
+					continue;
+				}
+
+				// Otherwise add the missing semicolon.
+				$output .= substr( $html, $was_at, $next_at + $ref_length - $was_at );
+				$output .= ';';
+				$at      = $next_at + $ref_length;
+				$was_at  = $at;
+			}
+
+			if ( $start === $was_at ) {
+				$output = substr( $html, $start, $length );
+			} elseif ( $was_at < $end ) {
+				$output .= substr( $html, $was_at, $end - $was_at );
+			}
+
+			return strtr(
+				$output,
+				'attribute' === $context
+					? array(
+						'<' => '&lt;',
+						'>' => '&gt;',
+						'"' => '&quot;',
+						"'" => '&apos;',
+					)
+					: array(
+						'<' => '&lt;',
+						'>' => '&gt;',
+					)
+			);
+		}
+
+		/**
 		 * Indicates if the currently-matched token, given the parsed context, would require more
 		 * complicated parsing rules to proceed without risking escape from foreign content.
 		 *
@@ -1394,6 +1552,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		public function sanitize() {
 			$template_depth            = 0;
 			$output                    = '';
+			$input_special_newline_at  = PHP_INT_MIN;
 			$special_newline_at        = PHP_INT_MIN;
 			$foreign_content_starts_at = PHP_INT_MAX;
 			$open_blocks               = array();
@@ -1424,6 +1583,10 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				$namespace  = $this->get_namespace();
 				$is_closer  = $this->is_tag_closer();
 				$here       = $this->get_span();
+
+				if ( ! $is_closer && 'html' === $namespace && ( 'PRE' === $token_name || 'LISTING' === $token_name ) ) {
+					$input_special_newline_at = $here->start + $here->length;
+				}
 
 				/*
 				 * Prevent allowing NOSCRIPT elements whose parsing rules change
@@ -1486,22 +1649,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					( ! $is_closer && $is_in_svg_html_integration_point )
 				);
 
-				/*
-				 * While content inside integration points is generally not allowed here,
-				 * character data inside the MathML text elements _is_ allowed. This is
-				 * because the rules only change slightly: NULL bytes are removed instead
-				 * of being replaced with the Unicode replacement character U+FFFD; and
-				 * active formats are reconstructed. The format reconstruction doesn’t
-				 * occur here but a browser will still do so; this sanitizer is generally
-				 * unaware of nesting structure.
-				 */
-				if ( $is_in_text_integration_point && '#text' === $token_type ) {
-					$this->change_parsing_namespace( 'html' );
-					$text = $this->get_modifiable_text();
-					$this->change_parsing_namespace( $namespace );
-				} else {
-					$text = $this->get_modifiable_text();
-				}
+				$text = ( '#text' !== $token_type ) ? $this->get_modifiable_text() : '';
 
 				/*
 				 * Enter the foreign content and change the parsing namespace
@@ -1576,42 +1724,43 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							break;
 						}
 
-						$needs_special_newline = (
-							strlen( $output ) === $special_newline_at &&
-							1 === strspn( $text, "\n\r", 0, 1 )
-						);
+						$text = self::normalize_text( 'data', $this->html, $here->start, $here->length );
+						$text = str_replace( array( "\r\n", "\r" ), "\n", $text );
 
-						$raw_text = $text;
-						if ( $this->set_bookmark( 'text' ) ) {
-							$span     = $this->bookmarks['text'];
-							$raw_text = substr( $this->html, $span->start, $span->length );
-							$this->release_bookmark( 'text' );
+						/*
+						 * A PRE or LISTING element consumes a leading newline even if stripped from the
+						 * output, so detect and remove one, remembering the original leading newline.
+						 */
+						$special_newline = "\n";
+						if ( $here->start === $input_special_newline_at ) {
+							$starting_char  = $text[0] ?? '';
+							$newline_length = 1;
+							if ( '&' === $starting_char ) {
+								$starting_char = WP_HTML_Decoder::read_character_reference( 'data', $text, 0, $newline_length );
+							}
 
-							$raw_text = str_replace( array( "\r\n", "\r" ), "\n", $raw_text );
-							$raw_text = ( 'html' === $namespace || $is_in_text_integration_point )
-								? str_replace( "\x00", '', $raw_text )
-								: str_replace( "\x00", "\u{FFFD}", $raw_text );
-
-							// Match get_modifiable_text()'s leading newline removal after <pre>/<listing>/<textarea>.
-							if ( strlen( $output ) === $special_newline_at ) {
-								if ( "\n" === ( $raw_text[0] ?? '' ) ) {
-									$raw_text = substr( $raw_text, 1 );
-								} elseif ( '&' === ( $raw_text[0] ?? '' ) ) {
-									$nl_length = 0;
-									if ( "\n" === WP_HTML_Decoder::read_character_reference( 'data', $raw_text, 0, $nl_length ) ) {
-										$raw_text = substr( $raw_text, $nl_length );
-									}
-								}
+							if ( "\n" === $starting_char ) {
+								$special_newline = substr( $text, 0, $newline_length );
+								$text            = substr( $text, $newline_length );
 							}
 						}
 
-						$text = $this->escape_text_preserving_character_references( $raw_text );
+						$text = ( 'html' === $namespace || $is_in_text_integration_point )
+							? str_replace( "\x00", '', $text )
+							: str_replace( "\x00", "\u{FFFD}", $text );
 
-						if ( $needs_special_newline ) {
-							$output .= "\n{$text}";
-						} else {
-							$output .= $text;
+						if ( strlen( $output ) === $special_newline_at && strlen( $text ) > 0 ) {
+							$starting_char = $text[0];
+							if ( '&' === $starting_char ) {
+								$starting_char = WP_HTML_Decoder::read_character_reference( 'data', $text );
+							}
+
+							if ( 1 === strspn( $starting_char, "\r\n", 0, 1 ) ) {
+								$output .= $special_newline;
+							}
 						}
+
+						$output .= $text;
 						break;
 
 					/*
@@ -2060,48 +2209,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			}
 
 			return $sanitized;
-		}
-
-		/**
-		 * Escapes unsafe characters in a raw HTML text node while preserving
-		 * existing valid HTML character references as written.
-		 *
-		 * @param string $text Raw preprocessed HTML text node content.
-		 * @return string Escaped text node content.
-		 */
-		private function escape_text_preserving_character_references( string $text ): string {
-			$result       = '';
-			$at           = 0;
-			$end          = strlen( $text );
-			$token_length = 0;
-			$replacements = array(
-				"\r" => '&#xD;',
-				'<'  => '&lt;',
-				'>'  => '&gt;',
-			);
-
-			while ( $at < $end ) {
-				$next_amp = strpos( $text, '&', $at );
-				if ( false === $next_amp ) {
-					$result .= strtr( substr( $text, $at ), $replacements );
-					break;
-				}
-
-				if ( $next_amp > $at ) {
-					$result .= strtr( substr( $text, $at, $next_amp - $at ), $replacements );
-				}
-
-				$decoded = WP_HTML_Decoder::read_character_reference( 'data', $text, $next_amp, $token_length );
-				if ( isset( $decoded ) ) {
-					$result .= substr( $text, $next_amp, $token_length );
-					$at      = $next_amp + $token_length;
-				} else {
-					$result .= '&amp;';
-					$at      = $next_amp + 1;
-				}
-			}
-
-			return $result;
 		}
 	};
 

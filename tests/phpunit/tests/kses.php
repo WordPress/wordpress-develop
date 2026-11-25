@@ -153,6 +153,10 @@ class Tests_Kses extends WP_UnitTestCase {
 			array(
 				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
 			),
+			array(
+				"<pre>\n\nHello</pre>",
+				array( 'pre' => array() ),
+			),
 		);
 	}
 
@@ -3038,13 +3042,9 @@ HTML;
 	 * @param array|null $allowed_html Optional. Allowed HTML configuration. Default `wp_kses_post()`.
 	 */
 	public function test_wp_kses_preserves_escaped_character_references( string $input, string $expected, ?array $allowed_html = null ): void {
-		$actual = null === $allowed_html
-			? wp_kses_post( $input )
-			: wp_kses( $input, $allowed_html );
-
 		$this->assertSame(
 			$expected,
-			$actual,
+			wp_kses( $input, $allowed_html ?? 'post' ),
 			'Escaped character references in text nodes should remain escaped.'
 		);
 	}
@@ -3056,42 +3056,74 @@ HTML;
 	 */
 	public static function data_wp_kses_preserves_escaped_character_references(): array {
 		return array(
-			'code block with decimal entity'       => array(
+			'code block with decimal entity'               => array(
 				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
 				'<pre class="wp-block-code"><code>&#91;audio src="https://example.com/a.mp3"]</code></pre>',
 			),
-			'code block with hexadecimal entity'   => array(
+			'code block with hexadecimal entity'           => array(
 				'<pre class="wp-block-code"><code>&#x5b;audio src="https://example.com/a.mp3"]</code></pre>',
-				'<pre class="wp-block-code"><code>&#x5b;audio src="https://example.com/a.mp3"]</code></pre>',
+				'<pre class="wp-block-code"><code>&#x5B;audio src="https://example.com/a.mp3"]</code></pre>',
 			),
-			'code block with named entity'         => array(
+			'code block with named entity'                 => array(
 				'<pre class="wp-block-code"><code>&lbrack;audio src="https://example.com/a.mp3"]</code></pre>',
 				'<pre class="wp-block-code"><code>&lbrack;audio src="https://example.com/a.mp3"]</code></pre>',
 			),
-			'leading zeros and missing semicolon'  => array(
+			'leading zeros and missing semicolon'          => array(
 				'<code>&#0091;gallery]</code> and <p>&#91gallery]</p>',
-				'<code>&#0091;gallery]</code> and <p>&#91gallery]</p>',
+				'<code>&#91;gallery]</code> and <p>&#91;gallery]</p>',
 			),
-			'literal brackets remain unescaped'    => array(
+			'literal brackets remain unescaped'            => array(
 				'<code>[gallery]</code> and <p>[gallery]</p>',
 				'<code>[gallery]</code> and <p>[gallery]</p>',
 			),
-			'disallowed code element keeps entity' => array(
+			'disallowed code element keeps entity'         => array(
 				'<code>&#91;gallery]</code>',
 				'&#91;gallery]',
 				array( 'p' => array() ),
 			),
-			'existing entities remain untouched'   => array(
+			'existing entities remain untouched'           => array(
 				'<p>&lt;tag&gt; &amp; &nbsp;&mdash;&#60;</p>',
 				'<p>&lt;tag&gt; &amp; &nbsp;&mdash;&#60;</p>',
 			),
-			'stray ampersand and angle brackets'   => array(
+			'stray ampersand and angle brackets'           => array(
 				'<p>AT&T & 1 < 2 > 0</p>',
 				'<p>AT&amp;T &amp; 1 &lt; 2 &gt; 0</p>',
 			),
-			'pre leading newline preserved'        => array(
+			'pre leading newline preserved'                => array(
 				"<pre>\n\nHello</pre>",
 				"<pre>\n\nHello</pre>",
+			),
+			'pre leading escaped newline preserved'        => array(
+				"<pre>&NewLine;\nHello</pre>",
+				"<pre>&NewLine;\nHello</pre>",
+			),
+			'pre leading escaped newline preserved after skipped tags' => array(
+				"<pre><img>&NewLine;\nHello</pre>",
+				"<pre>\n&NewLine;\nHello</pre>",
+				array( 'pre' => true ),
+			),
+			'newline normalization after skipped tags'     => array(
+				"<p>A\r<drop></drop>\nB</p>",
+				"<p>A\n\nB</p>",
+				array( 'p' => true ),
+			),
+			'character references do not merge after skipped tags' => array(
+				'<p>&not<drop></drop>in;</p>',
+				'<p>&not;in;</p>',
+			),
+			'stripped pre consumes a leading LF reference' => array(
+				'<pre>&NewLine;Hello</pre>',
+				'Hello',
+				array(),
+			),
+			'leading NUL precedes LF in a stripped pre'    => array(
+				"<pre>\x00\nHello</pre>",
+				"\nHello",
+				array(),
+			),
+			'pre pads a referenced CR'                     => array(
+				'<pre>&#13;Hello</pre>',
+				"<pre>\n&#13;Hello</pre>",
 			),
 		);
 	}
