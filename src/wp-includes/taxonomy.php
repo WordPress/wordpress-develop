@@ -3271,6 +3271,8 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
  * @param string $slug The string that will be tried for a unique slug.
  * @param object $term The term object that the `$slug` will belong to.
  * @return string Will return a true unique slug.
+ *
+ * @phpstan-param object{ taxonomy: string, parent?: int, term_id?: int } $term
  */
 function wp_unique_term_slug( $slug, $term ) {
 	global $wpdb;
