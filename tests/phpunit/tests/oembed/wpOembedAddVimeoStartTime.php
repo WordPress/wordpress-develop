@@ -75,6 +75,10 @@ class Tests_oEmbed_wpOembedAddVimeoStartTime extends WP_UnitTestCase {
 			'zero timecode'          => array( self::VIMEO_PROVIDER, 'https://vimeo.com/81400335#t=0' ),
 			'invalid timecode'       => array( self::VIMEO_PROVIDER, 'https://vimeo.com/81400335#t=abc' ),
 			'negative timecode'      => array( self::VIMEO_PROVIDER, 'https://vimeo.com/81400335#t=-10' ),
+			'bare number after hour' => array( self::VIMEO_PROVIDER, 'https://vimeo.com/81400335#t=1h2' ),
+			'bare number after min'  => array( self::VIMEO_PROVIDER, 'https://vimeo.com/81400335#t=1m2' ),
+			'decimal seconds'        => array( self::VIMEO_PROVIDER, 'https://vimeo.com/81400335#t=62.5' ),
+			'colon format'           => array( self::VIMEO_PROVIDER, 'https://vimeo.com/81400335#t=1:02' ),
 			'array timecode'         => array( self::VIMEO_PROVIDER, 'https://vimeo.com/81400335#t[]=10' ),
 			'start_time already set' => array( self::VIMEO_PROVIDER . '&start_time=5', 'https://vimeo.com/81400335#t=10' ),
 			'other provider'         => array( 'https://www.youtube.com/oembed?url=x', 'https://vimeo.com/81400335#t=10' ),
@@ -102,7 +106,26 @@ class Tests_oEmbed_wpOembedAddVimeoStartTime extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the start time Vimeo adds to the player URL survives into the embed HTML.
+	 *
+	 * @ticket 66643
+	 *
+	 * @covers WP_oEmbed::get_html
+	 */
+	public function test_get_html_contains_start_time() {
+		add_filter( 'pre_http_request', array( $this, 'capture_request' ), 10, 3 );
+
+		$html = _wp_oembed_get_object()->get_html( 'https://vimeo.com/81400335#t=1m2s' );
+
+		$this->assertIsString( $html, 'No embed HTML was returned.' );
+		$this->assertStringContainsString( 'src="https://player.vimeo.com/video/81400335#t=62"', $html );
+	}
+
+	/**
 	 * Captures the provider URL and short-circuits the HTTP request.
+	 *
+	 * Like the Vimeo oEmbed endpoint, the fake response adds `#t=<start_time>`
+	 * to the player URL only when the `start_time` argument is passed.
 	 *
 	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request.
 	 * @param array                $parsed_args HTTP request arguments.
@@ -112,9 +135,23 @@ class Tests_oEmbed_wpOembedAddVimeoStartTime extends WP_UnitTestCase {
 	public function capture_request( $response, $parsed_args, $url ) {
 		$this->requested_url = $url;
 
+		$query = array();
+		wp_parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $query );
+
+		$player_url = 'https://player.vimeo.com/video/81400335';
+		if ( isset( $query['start_time'] ) ) {
+			$player_url .= '#t=' . $query['start_time'];
+		}
+
 		return array(
 			'headers'  => array(),
-			'body'     => '{"type":"video","version":"1.0","html":"<iframe></iframe>"}',
+			'body'     => wp_json_encode(
+				array(
+					'type'    => 'video',
+					'version' => '1.0',
+					'html'    => '<iframe src="' . $player_url . '" width="500" height="281" title="Vimeo video"></iframe>',
+				)
+			),
 			'response' => array(
 				'code'    => 200,
 				'message' => 'OK',

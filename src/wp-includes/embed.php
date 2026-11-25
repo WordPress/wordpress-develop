@@ -1330,8 +1330,11 @@ function wp_oembed_add_vimeo_start_time( $provider, $url ) {
 		return $provider;
 	}
 
-	// Accepts `62`, `62s`, `1m2s`, `1h2m3s` and similar.
-	if ( ! preg_match( '/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/i', trim( $fragment_args['t'] ), $matches ) ) {
+	/*
+	 * Accepts a plain number of seconds (`62`), or units (`62s`, `1m2s`, `1h2m3s`).
+	 * A number without a unit is only accepted on its own, so `1h2` is rejected.
+	 */
+	if ( ! preg_match( '/^(?:(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?|(\d+))$/i', trim( $fragment_args['t'] ), $matches ) ) {
 		return $provider;
 	}
 
@@ -1344,6 +1347,9 @@ function wp_oembed_add_vimeo_start_time( $provider, $url ) {
 	}
 	if ( ! empty( $matches[3] ) ) {
 		$start_time += (int) $matches[3];
+	}
+	if ( ! empty( $matches[4] ) ) {
+		$start_time += (int) $matches[4];
 	}
 
 	if ( $start_time <= 0 ) {
