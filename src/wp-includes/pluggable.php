@@ -3093,9 +3093,13 @@ if ( ! function_exists( 'wp_rand' ) ) :
 		 */
 		if ( strlen( $rnd_value ) < 8 ) {
 			if ( defined( 'WP_SETUP_CONFIG' ) ) {
+				/** @var string $seed */
 				static $seed = '';
 			} else {
 				$seed = get_transient( 'random_seed' );
+				if ( ! is_string( $seed ) ) {
+					$seed = '';
+				}
 			}
 			$rnd_value  = md5( uniqid( microtime() . mt_rand(), true ) . $seed );
 			$rnd_value .= sha1( $rnd_value );
