@@ -2781,6 +2781,39 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Returns a ruleset that fits a rotated block to its content, like the
+	 * `.has-rotation` rule in the block library common styles.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $selector     Block or block style variation selector.
+	 * @param array  $declarations The node's declarations.
+	 * @param array  $nodes        Nodes whose `dimensions.width` takes precedence.
+	 * @return string The ruleset, or an empty string.
+	 */
+	protected static function get_rotation_fit_content_ruleset( $selector, $declarations, $nodes ) {
+		if ( ! in_array( 'rotate', array_column( $declarations, 'name' ), true ) ) {
+			return '';
+		}
+
+		foreach ( $nodes as $node ) {
+			if ( isset( $node['dimensions']['width'] ) ) {
+				return '';
+			}
+		}
+
+		return static::to_ruleset(
+			':root :where(' . static::append_to_selector( $selector, ':not(.alignwide):not(.alignfull)' ) . ')',
+			array(
+				array(
+					'name'  => 'width',
+					'value' => 'fit-content',
+				),
+			)
+		);
+	}
+
+	/**
 	 * Given a selector and a declaration list,
 	 * creates the corresponding ruleset.
 	 *
@@ -4194,9 +4227,15 @@ class WP_Theme_JSON {
 		$style_variation_responsive_css        = array();
 		$style_variation_responsive_pseudo_css = array();
 		$style_variation_layout_metadata       = array();
+		$style_variation_fit_content_rules     = array();
 		if ( ! $media_query && ! empty( $block_metadata['variations'] ) ) {
+			// A block pseudo node lists the variations too, so read the block's resting styles.
+			$variation_block_node = _wp_array_get( $this->theme_json, array_slice( $block_metadata['path'], 0, 3 ), array() );
+
 			foreach ( $block_metadata['variations'] as $style_variation ) {
 				$style_variation_node = _wp_array_get( $this->theme_json, $style_variation['path'], array() );
+				// Feature selector extraction strips the nodes it reads, so keep the theme.json data.
+				$style_variation_source = $style_variation_node;
 
 				// Generate any feature/subfeature style declarations for the current style variation.
 				$variation_declarations = static::get_feature_declarations_for_node( $block_metadata, $style_variation_node );
@@ -4217,6 +4256,12 @@ class WP_Theme_JSON {
 
 				// Compute declarations for remaining styles not covered by feature level selectors.
 				$style_variation_declarations[ $style_variation['selector'] ] = static::compute_style_properties( $style_variation_node, $settings, null, $this->theme_json );
+
+				$style_variation_fit_content_rules[ $style_variation['selector'] ] = static::get_rotation_fit_content_ruleset(
+					$style_variation['selector'],
+					$style_variation_declarations[ $style_variation['selector'] ],
+					array( $style_variation_source, $variation_block_node )
+				);
 
 				// Process pseudo-selectors for this variation (e.g., :hover, :focus)
 				if ( isset( $block_metadata['name'] ) ) {
@@ -4293,6 +4338,11 @@ class WP_Theme_JSON {
 					);
 					if ( ! empty( $breakpoint_declarations ) ) {
 						$base_ruleset              = static::to_ruleset( ':root :where(' . $style_variation['selector'] . ')', $breakpoint_declarations );
+						$base_ruleset             .= static::get_rotation_fit_content_ruleset(
+							$style_variation['selector'],
+							$breakpoint_declarations,
+							array( $style_variation_source[ $breakpoint ], $style_variation_source, $variation_block_node )
+						);
 						$variation_responsive_css .= $breakpoint_media . '{' . $base_ruleset . '}';
 					}
 
@@ -4525,6 +4575,23 @@ class WP_Theme_JSON {
 		}
 		$block_rules .= static::to_ruleset( $general_selector, $declarations );
 
+		// Block pseudo nodes, like `:hover`, end their path with the pseudo selector.
+		$node_path_end = end( $block_metadata['path'] );
+		if (
+			'blocks' === ( $block_metadata['path'][1] ?? null ) &&
+			! $is_processing_element &&
+			! str_starts_with( $node_path_end, ':' )
+		) {
+			$block_rules .= static::get_rotation_fit_content_ruleset(
+				$selector,
+				$declarations,
+				array(
+					_wp_array_get( $this->theme_json, $block_metadata['path'], array() ),
+					_wp_array_get( $this->theme_json, array_slice( $block_metadata['path'], 0, 3 ), array() ),
+				)
+			);
+		}
+
 		// 3. Generate and append the rules that use the duotone selector.
 		if ( isset( $block_metadata['duotone'] ) && ! empty( $declarations_duotone ) ) {
 			$block_rules .= static::to_ruleset( $block_metadata['duotone'], $declarations_duotone );
@@ -4546,6 +4613,9 @@ class WP_Theme_JSON {
 		// 6. Generate and append the style variation rulesets.
 		foreach ( $style_variation_declarations as $style_variation_selector => $individual_style_variation_declarations ) {
 			$block_rules .= static::to_ruleset( ":root :where($style_variation_selector)", $individual_style_variation_declarations );
+			if ( isset( $style_variation_fit_content_rules[ $style_variation_selector ] ) ) {
+				$block_rules .= $style_variation_fit_content_rules[ $style_variation_selector ];
+			}
 			if ( isset( $style_variation_layout_metadata[ $style_variation_selector ] ) ) {
 				$variation_data = $style_variation_layout_metadata[ $style_variation_selector ];
 				$block_rules   .= $this->get_layout_styles( $variation_data['metadata'], array( 'node' => $variation_data['node'] ) );
