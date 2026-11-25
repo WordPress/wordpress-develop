@@ -95,8 +95,8 @@ const UNEXPECTED = array(
 	'class Tests_Leak_Probe'                             => '/^(cache|mc)\|/',
 	// Gone with the connection the test replaced.
 	'test Tests_Leak_Probe::test_reconnect_drops_temp_table' => '/^temptable\|\w+leak_probe_gone$/',
-	// Its start is the previous test's end, reused: a wrong one reports other constants.
-	'test Tests_Leak_Probe::test_leaks_constant'         => '/^const\|(?!LEAK_PROBE_CONSTANT$)/',
+	// Its start is the previous test's end, reused: a wrong one reports more keys.
+	'test Tests_Leak_Probe::test_leaks_constant'         => '/^(?!const\|LEAK_PROBE_CONSTANT$)/',
 	// The previous probe's, which this test's set_up() flush drops.
 	'test Tests_Leak_Probe::test_leaks_cache_after_tear_down' => '/^stale\|runtime\|1\|options\|(alloptions\|blogname|leak_probe_not_autoloaded)$/',
 	// Dies with its child process.
@@ -112,6 +112,11 @@ const SKIPPED_LEAK = '/leak_probe_skipped/';
 
 // diff.php exits with 2 when it reports a leak, as every probe run must.
 const DIFF_LEAKS = 2;
+
+// Comparison mode refuses the run's first class: nothing ran before it.
+const FIRST_CLASS = 'Tests_Leak_Probe';
+
+const DIFF_REFUSED = 1;
 
 // Report header and changed key lines, see report() in diff.php.
 const HEADER = '/^== (.+) leaves(?:, unlike the install)? \(\d+ changed\)$/';
@@ -233,6 +238,15 @@ foreach ( $reported as $title => $keys ) {
 
 if ( snapshotted( $argv[1], SKIPPED_CLASS ) ) {
 	$missed[] = SKIPPED_CLASS . ': snapshotted, but rules.php skips its file';
+}
+
+// The class scope writes no class_start.
+if ( SCOPE_CLASS !== $setup['scope'] ) {
+	$file = escapeshellarg( $argv[1] );
+	exec( escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __DIR__ . '/diff.php' ) . " $file $file " . FIRST_CLASS . ' 2>&1', $refusal, $code );
+	if ( DIFF_REFUSED !== $code || ! preg_grep( '/nothing ran before it/', $refusal ) ) {
+		$missed[] = FIRST_CLASS . ": comparison mode exited with $code, not refused as the first class";
+	}
 }
 
 if ( $missed ) {

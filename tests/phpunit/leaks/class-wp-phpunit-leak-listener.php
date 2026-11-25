@@ -135,7 +135,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	private $class_start = null;
 
-	// The class of the last test_end, until the next test starts.
+	// The class of the last test_end, until the next test starts or the class ends.
 	private $ended = null;
 
 	private $columns = array();
@@ -313,10 +313,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	 * all its keys, or its patterns, last first. Areas no pattern keeps are left out.
 	 */
 	private function plan( $class_name ) {
-		return $this->file_plan( class_exists( $class_name, false ) ? (string) ( new ReflectionClass( $class_name ) )->getFileName() : '' );
-	}
-
-	private function file_plan( $file ) {
+		$file = class_exists( $class_name, false ) ? (string) ( new ReflectionClass( $class_name ) )->getFileName() : '';
 		if ( isset( $this->plans[ $file ] ) ) {
 			return $this->plans[ $file ];
 		}
@@ -472,6 +469,9 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	}
 
 	private function end_class( $class_name ) {
+		// PHPUnit's --repeat runs the class again.
+		$this->ended = null;
+
 		$plan = $this->plan( $class_name );
 		if ( ! $plan ) {
 			return;

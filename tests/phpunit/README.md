@@ -43,7 +43,7 @@ To sweep the whole suite, use the `class` scope: it snapshots at class bounds on
 node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_SCOPE=class php ./vendor/bin/phpunit -c tests/phpunit/leaks/multisite.xml
 ```
 
-To find out why a class only fails after others, run it alone and in sequence, each with its own `WP_TESTS_LEAKS_OUT` and without `WP_TESTS_LEAKS_SCOPE`, then compare the state it starts with. Keys that differ between the two runs before any class ran, e.g. timestamps, are run noise and left out. Both runs are read only up to its `class_start`, so they need not finish. In the sequence run another class must run before it: `--filter` keeps file order, so use `--order-by=reverse` when the earlier class's file sorts after its:
+To find out why a class only fails after others, run it alone and in sequence, each with its own `WP_TESTS_LEAKS_OUT` and without `WP_TESTS_LEAKS_SCOPE`, then compare the state it starts with. Keys that differ between the two runs before any class ran, e.g. timestamps, are run noise and left out. Both runs are read only up to its `class_start`, so they need not finish. In the sequence run another class must run before it, else `diff.php` exits with 1: `--filter` keeps file order, so use `--order-by=reverse` when the earlier class's file sorts after its:
 
 ```
 node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_OUT=/var/www/tests/phpunit/build/leaks/alone.jsonl php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --filter Tests_Class_Name
