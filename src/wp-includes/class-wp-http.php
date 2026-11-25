@@ -38,13 +38,54 @@ if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
  *     filename?: string|null,
  *     http_response?: WP_HTTP_Requests_Response|null,
  * }
+ * @phpstan-type HTTP_Request_Args array{
+ *     method?: string,
+ *     timeout?: float|int,
+ *     redirection?: int,
+ *     httpversion?: string,
+ *     'user-agent'?: string,
+ *     reject_unsafe_urls?: bool,
+ *     blocking?: bool,
+ *     headers?: string|mixed[]|null,
+ *     cookies?: mixed[],
+ *     body?: string|mixed[]|null,
+ *     compress?: bool,
+ *     decompress?: bool,
+ *     sslverify?: bool,
+ *     sslcertificates?: string,
+ *     stream?: bool,
+ *     filename?: string|null,
+ *     limit_response_size?: int|null,
+ *     ...
+ * }
+ * @phpstan-type Parsed_HTTP_Request_Args array{
+ *     method: string,
+ *     timeout: float|int,
+ *     redirection: int,
+ *     httpversion: string,
+ *     'user-agent': string,
+ *     reject_unsafe_urls: bool,
+ *     blocking: bool,
+ *     headers: string|mixed[]|null,
+ *     cookies: mixed[],
+ *     body: string|mixed[]|null,
+ *     compress: bool,
+ *     decompress: bool,
+ *     sslverify: bool,
+ *     sslcertificates: string,
+ *     stream: bool,
+ *     filename: string|null,
+ *     limit_response_size: int|null,
+ *     _redirection: int,
+ *     ...
+ * }
  * @phpstan-type Prepared_Request array{
  *     url: string,
  *     headers: mixed[],
  *     data: mixed,
  *     type: mixed,
  *     options: array<string, mixed>,
- *     args: mixed[],
+ *     args: Parsed_HTTP_Request_Args,
  * }
  */
 #[AllowDynamicProperties]
@@ -184,6 +225,7 @@ class WP_Http {
 	 *     @type WP_HTTP_Requests_Response|null                         $http_response Response object.
 	 * }
 	 *
+	 * @phpstan-param string|HTTP_Request_Args $args
 	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	public function request( $url, $args = array() ) {
@@ -245,11 +287,11 @@ class WP_Http {
 	 * @param array $options {
 	 *     Optional. Options that apply to the batch of requests.
 	 *
-	 *     @type int $concurrency Maximum number of requests to send at once. Default 6.
+	 *     @type int $concurrency Maximum number of requests to send at once. Default 6. Minimum 1.
 	 * }
 	 * @return array Responses keyed like $requests. Each is a response array, or a WP_Error
 	 *               on failure. See {@see WP_Http::request()} for the response format.
-	 * @phpstan-param array<string|array{ url?: string, args?: string|mixed[] }> $requests
+	 * @phpstan-param array<string|array{ url?: string, args?: string|HTTP_Request_Args }> $requests
 	 * @phpstan-return array<HTTP_Response|WP_Error>
 	 */
 	public function request_multiple( array $requests, array $options = array() ): array {
@@ -284,15 +326,17 @@ class WP_Http {
 		}
 
 		if ( ! empty( $pending ) ) {
-			$concurrency = (int) ( $options['concurrency'] ?? 6 );
+			$concurrency = max( 1, (int) ( $options['concurrency'] ?? 6 ) );
 
 			/**
 			 * Filters the maximum number of HTTP requests that WP_Http::request_multiple() sends at once.
 			 *
 			 * @since 7.3.0
 			 *
-			 * @param int   $concurrency Maximum number of requests to send at once. Default 6.
+			 * @param int   $concurrency Maximum number of requests to send at once. Default 6. Minimum 1.
 			 * @param array $requests    The requests to send. See WP_Http::request_multiple().
+			 * @phpstan-param positive-int $concurrency
+			 * @phpstan-param array<string|array{ url?: string, args?: string|HTTP_Request_Args }> $requests
 			 */
 			$concurrency = (int) apply_filters( 'http_request_multiple_concurrency', $concurrency, $requests );
 			$concurrency = max( 1, $concurrency );
@@ -405,7 +449,7 @@ class WP_Http {
 	 *     @type array          $args     The parsed request arguments, after the 'http_request_args' filter.
 	 *     @type array|WP_Error $response Optional. The response returned by the 'pre_http_request' filter.
 	 * }
-	 * @phpstan-param mixed[] $args
+	 * @phpstan-param HTTP_Request_Args $args
 	 * @phpstan-return Prepared_Request|array{ response: HTTP_Response|WP_Error }|WP_Error
 	 */
 	protected function prepare_request( $url, array $args = array() ) {
@@ -674,6 +718,7 @@ class WP_Http {
 	 *                                                                                 returned by {@see WP_Http::prepare_request()}.
 	 * @param string                                                      $url         The request URL.
 	 * @return array|WP_Error The response array, or a WP_Error on failure. See {@see WP_Http::request()}.
+	 * @phpstan-param Parsed_HTTP_Request_Args $parsed_args
 	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	protected function finalize_response( $response, array $parsed_args, string $url ) {

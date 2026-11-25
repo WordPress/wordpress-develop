@@ -197,7 +197,14 @@ function wp_safe_remote_head( $url, $args = array() ) {
  * }
  * @return array Responses keyed like $requests. Each is a response array, or a WP_Error on failure.
  * @phpstan-param array<string|array{ url?: string, args?: string|mixed[] }> $requests
- * @phpstan-return array<array<string, mixed>|WP_Error>
+ * @phpstan-return array<array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
+ *     body: string,
+ *     response: array{code: int|false, message: string|false},
+ *     cookies: WP_Http_Cookie[],
+ *     filename?: string|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
+ * }|WP_Error>
  */
 function wp_safe_remote_request_multiple( array $requests, array $options = array() ): array {
 	foreach ( $requests as $id => $request ) {
@@ -372,7 +379,14 @@ function wp_remote_head( $url, $args = array() ) {
  * }
  * @return array Responses keyed like $requests. Each is a response array, or a WP_Error on failure.
  * @phpstan-param array<string|array{ url?: string, args?: string|mixed[] }> $requests
- * @phpstan-return array<array<string, mixed>|WP_Error>
+ * @phpstan-return array<array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
+ *     body: string,
+ *     response: array{code: int|false, message: string|false},
+ *     cookies: WP_Http_Cookie[],
+ *     filename?: string|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
+ * }|WP_Error>
  */
 function wp_remote_request_multiple( array $requests, array $options = array() ): array {
 	$http = _wp_http_get_object();
