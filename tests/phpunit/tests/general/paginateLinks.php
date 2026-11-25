@@ -565,4 +565,37 @@ EXPECTED;
 			'multi query vars' => array( 'foo=bar&pen=pencil' ),
 		);
 	}
+
+	/**
+	 * Tests that paginate_links() returns null when there are fewer than two pages.
+	 *
+	 * @ticket 66757
+	 *
+	 * @dataProvider data_total_less_than_two
+	 *
+	 * @param int|string $total Total pages passed to paginate_links().
+	 */
+	public function test_paginate_links_returns_null_when_total_less_than_two( $total ) {
+		$this->assertNull(
+			paginate_links(
+				array(
+					'total' => $total,
+				)
+			)
+		);
+	}
+
+	/**
+	 * Data provider for test_paginate_links_returns_null_when_total_less_than_two().
+	 *
+	 * @return array[]
+	 */
+	public static function data_total_less_than_two() {
+		return array(
+			'zero'        => array( 0 ),
+			'one'         => array( 1 ),
+			'string zero' => array( '0' ),
+			'string one'  => array( '1' ),
+		);
+	}
 }
