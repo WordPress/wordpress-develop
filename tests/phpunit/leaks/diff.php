@@ -124,6 +124,7 @@ $count   = 0;
 $orphans = 0;
 $open    = array();
 $changes = false;
+$ended   = array();
 foreach ( $snaps as $snap ) {
 	++$count;
 	if ( 'class_leaks' === $snap['point'] ) {
@@ -134,9 +135,17 @@ foreach ( $snaps as $snap ) {
 	list( $kind, $edge ) = explode( '_', $snap['point'] );
 	$slot                = $snap['pid'] . '|' . $kind . '|' . $snap['id'];
 
+	// A reused start is the pid's last test_end; with none, its end is an orphan.
 	if ( 'start' === $edge ) {
-		$open[ $slot ] = $snap['state'];
+		$state = empty( $snap['reuse'] ) ? $snap['state'] : ( $ended[ $snap['pid'] ] ?? null );
+		if ( null !== $state ) {
+			$open[ $slot ] = $state;
+		}
 		continue;
+	}
+
+	if ( 'test' === $kind && empty( $snap['child'] ) ) {
+		$ended[ $snap['pid'] ] = $snap['state'];
 	}
 
 	if ( ! isset( $open[ $slot ] ) ) {

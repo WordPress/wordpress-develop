@@ -5,6 +5,8 @@
  * Snapshots WordPress and PHP process state at:
  *   class_start (before setUpBeforeClass), test_start (before setUp),
  *   test_end (after tearDown), class_end (after tearDownAfterClass).
+ * A test_start right after its class's previous test_end holds no state and "reuse": true,
+ * as nothing runs between them.
  * In a process-isolated test's child process, test_start and test_end wrap the whole
  * child, class hooks included, and snapshot only the areas that outlive it.
  *
@@ -146,6 +148,9 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	private $installed = null;
 
 	private $class_start = null;
+
+	// The class of the last test_end, until the next test starts.
+	private $ended = null;
 
 	private $columns = array();
 
@@ -529,16 +534,28 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		putenv( self::ENV_TEST . '=' . $name );
 		putenv( self::ENV_FILE . '=' . ( new ReflectionClass( $test ) )->getFileName() );
 
-		$plan = $this->plan( get_class( $test ) );
-		if ( self::SCOPE_CLASS !== $this->scope && $plan ) {
-			$this->write( 'test_start', $name, $plan );
+		$class       = get_class( $test );
+		$reuse       = $class === $this->ended;
+		$this->ended = null;
+
+		$plan = $this->plan( $class );
+		if ( self::SCOPE_CLASS === $this->scope || ! $plan ) {
+			return;
 		}
+
+		if ( $reuse ) {
+			$this->append( $this->line( 'test_start', $name, array() ) + array( 'reuse' => true ) );
+			return;
+		}
+
+		$this->write( 'test_start', $name, $plan );
 	}
 
 	public function end_test( $test, $time ) {
 		$plan = $this->plan( get_class( $test ) );
 		if ( self::SCOPE_CLASS !== $this->scope && $plan ) {
 			$this->write( 'test_end', $this->name( $test ), $plan );
+			$this->ended = get_class( $test );
 		}
 	}
 

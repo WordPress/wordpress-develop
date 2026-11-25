@@ -100,6 +100,8 @@ const UNEXPECTED = array(
 	'class Tests_Leak_Probe'                             => '/^(cache|mc)\|/',
 	// Gone with the connection the test replaced.
 	'test Tests_Leak_Probe::test_reconnect_drops_temp_table' => '/^temptable\|\w+leak_probe_gone$/',
+	// Its start is the previous test's end, reused: a wrong one reports other constants.
+	'test Tests_Leak_Probe::test_leaks_constant'         => '/^const\|(?!LEAK_PROBE_CONSTANT$)/',
 	// Dropped by a rules.php pattern.
 	'test Tests_Leak_Probe::test_leaks_filtered_globals' => '/^global\|leak_probe_filtered_dropped$/',
 );

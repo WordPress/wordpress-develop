@@ -35,7 +35,7 @@ node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit -c te
 node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/diff.php tests/phpunit/build/leaks/snapshots.jsonl
 ```
 
-The report lists what each test and class leaves behind, i.e. the state that differs before and after it. Cache entries it drops are left out: a miss reads the source again. It exits with 2 if it reports anything, 1 if the run did not finish, ran no test or snapshotted none, else 0. Each run replaces the snapshots file. Snapshots take time and space, e.g. 421 MB for `Tests_Multisite_Site`: run one class or group per-test, not the whole suite.
+The report lists what each test and class leaves behind, i.e. the state that differs before and after it. Cache entries it drops are left out: a miss reads the source again. It exits with 2 if it reports anything, 1 if the run did not finish, ran no test or snapshotted none, else 0. Each run replaces the snapshots file. Snapshots take time and space, e.g. 156 MB for `Tests_Multisite_Site`: run one class or group per-test, not the whole suite.
 
 To sweep the whole suite, use the `class` scope: it snapshots at class bounds only, by default only the state that outlives the PHP process (database, files, memcached, stale cached options). `diff.php` then lists each class that leaves that state unlike the install:
 
