@@ -162,6 +162,25 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Sets the public and private profile fields of the public author.
+	 *
+	 * The values are rolled back with the test transaction.
+	 */
+	private function set_public_author_profile_fields(): void {
+		wp_update_user(
+			array(
+				'ID'          => self::$fixture_ids['public_author'],
+				'description' => 'A public biography.',
+				'user_url'    => 'https://example.org/author',
+				'first_name'  => 'Private',
+				'last_name'   => 'Person',
+				'nickname'    => 'hidden-nickname',
+				'locale'      => 'de_DE',
+			)
+		);
+	}
+
+	/**
 	 * Registers the core/users-query ability inside a faked init action.
 	 *
 	 * @since 7.2.0
@@ -540,25 +559,32 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * filter at all.
 	 *
 	 * @ticket 64657
+	 * @ticket 66549
 	 */
 	public function test_visible_current_user_reads_their_own_sensitive_fields(): void {
+		$this->set_public_author_profile_fields();
 		wp_set_current_user( self::$fixture_ids['public_author'] );
 		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
+		$fields  = array( 'id', 'email', 'username', 'first_name', 'last_name', 'nickname', 'locale', 'registered', 'roles' );
 
 		$result = $ability->execute(
 			array(
 				'where'  => array( 'ids' => array( self::$fixture_ids['public_author'] ) ),
-				'fields' => array( 'id', 'email', 'username', 'roles' ),
+				'fields' => $fields,
 			)
 		);
 
 		$this->assertIsArray( $result, 'A user should be able to read themselves by ID.' );
-		$this->assertSameSets( array( 'id', 'email', 'username', 'roles' ), array_keys( $result['items'][0] ), 'The current user should receive only the requested fields.' );
+		$this->assertSameSets( $fields, array_keys( $result['items'][0] ), 'The current user should receive only the requested fields.' );
 		$this->assertSame( self::$fixture_ids['public_author'], $result['items'][0]['id'], 'The ID lookup should return the current user.' );
 		$this->assertSame( 'core-users-ability-author@example.com', $result['items'][0]['email'], 'The current user should receive their own email.' );
 		$this->assertSame( 'core_users_ability_author', $result['items'][0]['username'], 'The current user should receive their own username.' );
+		$this->assertSame( 'Private', $result['items'][0]['first_name'], 'The current user should receive their own first name.' );
+		$this->assertSame( 'Person', $result['items'][0]['last_name'], 'The current user should receive their own last name.' );
+		$this->assertSame( 'hidden-nickname', $result['items'][0]['nickname'], 'The current user should receive their own nickname.' );
+		$this->assertSame( 'de_DE', $result['items'][0]['locale'], 'The current user should receive their own locale.' );
 		$this->assertContains( 'author', $result['items'][0]['roles'], 'The current user should receive their own roles.' );
 
 		$result = $ability->execute( array( 'where' => array( 'email' => 'core-users-ability-author@example.com' ) ) );
@@ -1865,6 +1891,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * Field visibility for another public author matches the current user's role.
 	 *
 	 * @ticket 64657
+	 * @ticket 66549
 	 *
 	 * @dataProvider data_roles_for_another_public_author_field_visibility
 	 *
@@ -1873,23 +1900,32 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @param bool   $can_view_roles     Whether the role can view another user's roles.
 	 */
 	public function test_roles_have_expected_field_visibility_for_another_public_author( string $role, bool $can_view_sensitive, bool $can_view_roles ): void {
+		$this->set_public_author_profile_fields();
 		wp_set_current_user( self::$fixture_ids[ $role ] );
 		$this->register_ability();
+
+		$sensitive_fields = array( 'username', 'email', 'first_name', 'last_name', 'nickname', 'locale', 'registered' );
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
 				'where'  => array( 'ids' => array( self::$fixture_ids['public_author'] ) ),
-				'fields' => array( 'id', 'email', 'roles' ),
+				'fields' => array_merge( array( 'id', 'description', 'url', 'roles' ), $sensitive_fields ),
 			)
 		);
 
 		$this->assertIsArray( $result, sprintf( 'The %s role should be able to execute a public-author lookup.', $role ) );
 		$this->assertSame( self::$fixture_ids['public_author'], $result['items'][0]['id'], sprintf( 'The %s role should receive the requested public author.', $role ) );
-		$this->assertSame( $can_view_sensitive, array_key_exists( 'email', $result['items'][0] ), sprintf( 'The %s role email visibility should match expectations.', $role ) );
+		$this->assertSame( 'A public biography.', $result['items'][0]['description'], sprintf( 'The %s role should receive the public description.', $role ) );
+		$this->assertSame( 'https://example.org/author', $result['items'][0]['url'], sprintf( 'The %s role should receive the public URL.', $role ) );
+		foreach ( $sensitive_fields as $field ) {
+			$this->assertSame( $can_view_sensitive, array_key_exists( $field, $result['items'][0] ), sprintf( 'The %1$s role %2$s visibility should match expectations.', $role, $field ) );
+		}
 		$this->assertSame( $can_view_roles, array_key_exists( 'roles', $result['items'][0] ), sprintf( 'The %s role roles visibility should match expectations.', $role ) );
 
 		if ( $can_view_sensitive ) {
 			$this->assertSame( 'core-users-ability-author@example.com', $result['items'][0]['email'], sprintf( 'The %s role should receive the public author email when allowed.', $role ) );
+			$this->assertSame( 'Private', $result['items'][0]['first_name'], sprintf( 'The %s role should receive the public author first name when allowed.', $role ) );
+			$this->assertSame( 'hidden-nickname', $result['items'][0]['nickname'], sprintf( 'The %s role should receive the public author nickname when allowed.', $role ) );
 		}
 
 		if ( ! $can_view_roles ) {
@@ -2021,83 +2057,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $result, 'A public-author lookup should return an array.' );
 		$this->assertSame( array( 'id' ), array_keys( $result['items'][0] ), 'Restricted requested fields should be omitted instead of failing the request.' );
 		$this->assertSame( self::$fixture_ids['public_author'], $result['items'][0]['id'], 'The public-author lookup should still return unrestricted fields.' );
-	}
-
-	/**
-	 * Private profile fields are returned only to the user and to callers who can edit the user.
-	 *
-	 * The first and last name, nickname, locale, login, email, registration date and roles of a public
-	 * author must not reach a caller who cannot edit that author, while the public
-	 * profile fields (name, description, URL, link and slug) stay available to everyone.
-	 *
-	 * @ticket 66549
-	 *
-	 * @dataProvider data_callers_for_private_field_visibility
-	 *
-	 * @param string $caller       Fixture key of the current user.
-	 * @param bool   $sees_private Whether the caller receives the private fields.
-	 */
-	public function test_private_fields_are_only_returned_to_the_user_and_to_callers_who_can_edit_them( string $caller, bool $sees_private ): void {
-		$author_id = self::$fixture_ids['public_author'];
-
-		wp_update_user(
-			array(
-				'ID'          => $author_id,
-				'description' => 'A public biography.',
-				'user_url'    => 'https://example.org/author',
-				'first_name'  => 'Private',
-				'last_name'   => 'Person',
-				'nickname'    => 'hidden-nickname',
-				'locale'      => 'de_DE',
-			)
-		);
-
-		$public_fields  = array( 'id', 'name', 'description', 'url', 'link', 'slug' );
-		$private_fields = array( 'username', 'email', 'first_name', 'last_name', 'nickname', 'locale', 'registered', 'roles' );
-
-		wp_set_current_user( self::$fixture_ids[ $caller ] );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/users-query' )->execute(
-			array(
-				'where'  => array( 'ids' => array( $author_id ) ),
-				'fields' => array_merge( $public_fields, $private_fields ),
-			)
-		);
-
-		$this->assertIsArray( $result, 'A public author should be readable by ID.' );
-		$this->assertCount( 1, $result['items'], 'The lookup should return the public author.' );
-
-		$item = $result['items'][0];
-
-		$this->assertSame( 'A public biography.', $item['description'], 'The description is public.' );
-		$this->assertSame( 'https://example.org/author', $item['url'], 'The URL is public.' );
-
-		if ( $sees_private ) {
-			$this->assertSameSets( array_merge( $public_fields, $private_fields ), array_keys( $item ), 'The caller should receive every requested field.' );
-			$this->assertSame( 'Private', $item['first_name'], 'The first name should be returned.' );
-			$this->assertSame( 'Person', $item['last_name'], 'The last name should be returned.' );
-			$this->assertSame( 'hidden-nickname', $item['nickname'], 'The nickname should be returned.' );
-			$this->assertSame( 'de_DE', $item['locale'], 'The locale should be returned.' );
-			return;
-		}
-
-		$this->assertSameSets( $public_fields, array_keys( $item ), 'A caller who cannot edit the author should receive only the public fields.' );
-	}
-
-	/**
-	 * Data provider for the private field visibility check.
-	 *
-	 * @return array<string, array{0: string, 1: bool}>
-	 */
-	public static function data_callers_for_private_field_visibility(): array {
-		return array(
-			'the user themselves' => array( 'public_author', true ),
-			'an administrator'    => array( 'administrator', true ),
-			'an editor'           => array( 'editor', false ),
-			'a contributor'       => array( 'contributor', false ),
-			'a subscriber'        => array( 'subscriber', false ),
-		);
 	}
 
 	/**
