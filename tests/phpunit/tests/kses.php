@@ -3031,21 +3031,22 @@ HTML;
 	}
 
 	/**
-	 * Tests that escaped HTML character references in text nodes remain escaped.
+	 * Tests character reference handling in text nodes and attribute values.
 	 *
 	 * @ticket 66673
 	 *
 	 * @dataProvider data_wp_kses_preserves_escaped_character_references
 	 *
-	 * @param string     $input        HTML to sanitize.
-	 * @param string     $expected     Expected sanitized HTML.
-	 * @param array|null $allowed_html Optional. Allowed HTML configuration. Default `wp_kses_post()`.
+	 * @param string     $input             HTML to sanitize.
+	 * @param string     $expected          Expected sanitized HTML.
+	 * @param array|null $allowed_html      Optional. Allowed HTML configuration. Defaults to the post context.
+	 * @param string[]   $allowed_protocols Optional. Allowed URL protocols. Empty uses wp_allowed_protocols().
 	 */
-	public function test_wp_kses_preserves_escaped_character_references( string $input, string $expected, ?array $allowed_html = null ): void {
+	public function test_wp_kses_preserves_escaped_character_references( string $input, string $expected, ?array $allowed_html = null, array $allowed_protocols = array() ): void {
 		$this->assertSame(
 			$expected,
-			wp_kses( $input, $allowed_html ?? 'post' ),
-			'Escaped character references in text nodes should remain escaped.'
+			wp_kses( $input, $allowed_html ?? 'post', $allowed_protocols ),
+			'Should have preserved original text escaping where possible.'
 		);
 	}
 
@@ -3124,6 +3125,14 @@ HTML;
 			'pre pads a referenced CR'                     => array(
 				'<pre>&#13;Hello</pre>',
 				"<pre>\n&#13;Hello</pre>",
+			),
+			'quoted attribute with whitespace around the equals sign' => array(
+				"<p title \t=  '&#65;'>x</p>",
+				'<p title="&#65;">x</p>',
+			),
+			'unquoted attribute ending in a quote'         => array(
+				'<p title=one"&#65;two">x</p>',
+				'<p title="one&quot;Atwo&quot;">x</p>',
 			),
 		);
 	}

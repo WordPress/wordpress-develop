@@ -1184,46 +1184,6 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		}
 
 		/**
-		 * Sets the value of a given HTML attribute, adjusting URL attributes
-		 * to ensure compatibility with legacy {@see wp_kses()} behavior.
-		 *
-		 * @since 7.2.0
-		 * @access private
-		 *
-		 * @param string      $name  Name of HTML attribute to set.
-		 * @param string|true $value Value to set; `true` for boolean attribute.
-		 * @return bool Whether the attribute was set.
-		 */
-		public function set_attribute( $name, $value ): bool {
-			$lower_name = strtolower( $name );
-			$is_url_ish = in_array( $lower_name, $this->uri_attributes, true );
-
-			if ( ! $is_url_ish || ! is_string( $value ) ) {
-				return parent::set_attribute( $name, $value );
-			}
-
-			$escaped = strtr(
-				$value,
-				array(
-					'<' => '&lt;',
-					'>' => '&gt;',
-					'&' => '&amp;',
-					'"' => '&quot;',
-					"'" => '&apos;',
-				)
-			);
-
-			// Set a benign placeholder to replace below.
-			if ( ! parent::set_attribute( $name, true ) ) {
-				return false;
-			}
-
-			$this->lexical_updates[ $lower_name ]->text = " {$lower_name}=\"{$escaped}\"";
-
-			return true;
-		}
-
-		/**
 		 * Returns a representation of the given substring of input HTML text content where the
 		 * character references are normalized and unescaped syntax characters are escaped.
 		 *
@@ -2037,8 +1997,9 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 									continue;
 								}
 
-								$raw_value = $this->get_attribute( $name );
-								$value     = is_string( $raw_value ) ? $raw_value : '';
+								$raw_value   = $this->get_attribute( $name );
+								$value       = is_string( $raw_value ) ? $raw_value : '';
+								$given_value = $value;
 
 								// Process the style attribute through CSS sanitization.
 								if ( 'style' === $name ) {
@@ -2073,13 +2034,66 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 									}
 								}
 
-								$did_set = ( true === $raw_value && '' === $value )
-									? $tag_maker->set_attribute( $name, true )
-									: $tag_maker->set_attribute( $name, $value );
-
-								if ( $did_set ) {
-									unset( $required_attributes[ $name ] );
+								// All updates are enqueued as boolean placeholders.
+								if ( ! $tag_maker->set_attribute( $name, true ) ) {
+									continue;
 								}
+
+								$should_remain_true = true === $raw_value && '' === $value;
+
+								if ( ! $should_remain_true ) {
+									$lower_name = strtolower( $name );
+									$escaped    = null;
+
+									/*
+									 * If the value did not change through sanitization, then preserve
+									 * as much of the original escaping as possible.
+									 *
+									 * Fetch the original value by modifying it from the input string,
+									 * reading the span, and then erasing the update.
+									 */
+									if (
+										is_string( $raw_value ) &&
+										$given_value === $value &&
+										$this->set_attribute( $lower_name, true )
+									) {
+										$original              = $this->lexical_updates[ $lower_name ];
+										$original_at           = $original->start;
+										$original_end          = $original->start + $original->length;
+										unset( $this->lexical_updates[ $lower_name ] );
+
+										// Assignment follows the first `=` not at the beginning of the attribute name.
+										$equals_at = $original_at + 1 + strcspn( $this->html, '=', $original_at + 1, $original->length - 1 );
+										if ( $equals_at < $original_end && 1 === strspn( $this->html, '"\'', $original_end - 1, 1 ) ) {
+											// This might be a quoted attribute; find the opening quote.
+											$quoting_at = $equals_at + 1 + strspn( $this->html, " \t\f\r\n", $equals_at + 1, $original_end - $equals_at - 1 );
+											if ( $this->html[ $original_end - 1 ] === $this->html[ $quoting_at ] ) {
+												$escaped = $this->normalize_text( 'attribute', $this->html, $quoting_at + 1, $original_end - $quoting_at - 2 );
+												$escaped = str_replace( "\r\n", "\n", $escaped );
+												$escaped = str_replace( "\r", "\n", $escaped );
+												$escaped = str_replace( "\x00", "\u{FFFD}", $escaped );
+											}
+										}
+									}
+
+									if ( ! isset( $escaped ) ) {
+										$escaped = strtr(
+											$value,
+											array(
+												"\r" => '&#xD;',
+												'<'  => '&lt;',
+												'&'  => '&amp;',
+												'>'  => '&gt;',
+												'"'  => '&quot;',
+												"'"  => '&apos;',
+											)
+										);
+									}
+
+									$tag_maker->lexical_updates[ $lower_name ]->text = " {$lower_name}=\"{$escaped}\"";
+								}
+
+								unset( $required_attributes[ $name ] );
 							}
 						}
 
