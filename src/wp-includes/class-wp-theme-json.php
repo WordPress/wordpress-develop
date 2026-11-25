@@ -2782,7 +2782,8 @@ class WP_Theme_JSON {
 
 	/**
 	 * Returns a ruleset that fits a rotated block to its content, like the
-	 * `.has-rotation` rule in the block library common styles.
+	 * `.has-rotation` rule in the block library common styles. Flex and grid
+	 * children keep their layout's size.
 	 *
 	 * @since 7.3.0
 	 *
@@ -2809,7 +2810,7 @@ class WP_Theme_JSON {
 		}
 
 		return static::to_ruleset(
-			':root :where(' . static::append_to_selector( $selector, ':not(.alignwide):not(.alignfull)' ) . ')',
+			':root :where(' . static::append_to_selector( $selector, ':not(.alignwide):not(.alignfull):not(.is-layout-flex > *):not(.is-layout-grid > *)' ) . ')',
 			array(
 				array(
 					'name'  => 'width',
