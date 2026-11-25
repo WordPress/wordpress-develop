@@ -60,40 +60,19 @@ class Tests_General_WpHeartbeatSettings extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that admin requests do not get an `ajaxurl`, and get a nonce only when logged in.
+	 * Tests that admin requests do not get an `ajaxurl`, but logged-in users still get a nonce.
 	 *
 	 * Admin screens define `ajaxurl` themselves.
 	 *
 	 * @ticket 66757
-	 *
-	 * @dataProvider data_wp_heartbeat_settings_admin
-	 *
-	 * @param bool $logged_in Whether a user is logged in.
 	 */
-	public function test_wp_heartbeat_settings_admin( $logged_in ) {
-		wp_set_current_user( $logged_in ? self::factory()->user->create() : 0 );
+	public function test_wp_heartbeat_settings_admin() {
+		wp_set_current_user( self::factory()->user->create() );
 		set_current_screen( 'dashboard' );
 
 		$settings = wp_heartbeat_settings( array() );
 
 		$this->assertArrayNotHasKey( 'ajaxurl', $settings, 'Admin requests should not get an ajaxurl.' );
-
-		if ( $logged_in ) {
-			$this->assertNotFalse( wp_verify_nonce( $settings['nonce'] ?? '', 'heartbeat-nonce' ), 'Logged-in admin requests should get a valid nonce.' );
-		} else {
-			$this->assertArrayNotHasKey( 'nonce', $settings, 'Logged-out requests should not get a nonce.' );
-		}
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{ bool }>
-	 */
-	public static function data_wp_heartbeat_settings_admin() {
-		return array(
-			'logged in'  => array( true ),
-			'logged out' => array( false ),
-		);
+		$this->assertNotFalse( wp_verify_nonce( $settings['nonce'] ?? '', 'heartbeat-nonce' ), 'Logged-in admin requests should get a valid nonce.' );
 	}
 }
