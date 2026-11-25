@@ -8,7 +8,7 @@
  * A test_start right after its class's previous test_end holds no state and "reuse": true,
  * as nothing runs between them.
  *
- * Each snapshot is a flat map "area|key" => [hash, preview], appended as one JSON line
+ * Each snapshot is a flat map "area/key" => [hash, preview], appended as one JSON line
  * to WP_TESTS_LEAKS_OUT. diff.php compares snapshots.
  *
  * Scope "class" sweeps a whole suite cheaply: snapshots at class bounds only, and one
@@ -20,22 +20,22 @@
  * per scope and test file, see rules.php. WP_TESTS_LEAKS_AREAS replaces its scope's defaults.
  *
  * Areas:
- *   db|table|pk           row, keyed by a unique key (e.g. option_name) or the primary key
- *   dbcount|table         row count
- *   autoinc|table         AUTO_INCREMENT counter (ROLLBACK does not reset it)
- *   schema|table          SHOW CREATE TABLE without the AUTO_INCREMENT clause
- *   temptable|name        temporary tables created through $wpdb and not dropped
- *   cache|group|key       in-memory object cache (drop-in: cache|derived key)
- *   mc|key                keys on the memcached servers
- *   stale|source|blog|group|key[|option]
+ *   db/table/pk           row, keyed by a unique key (e.g. option_name) or the primary key
+ *   dbcount/table         row count
+ *   autoinc/table         AUTO_INCREMENT counter (ROLLBACK does not reset it)
+ *   schema/table          SHOW CREATE TABLE without the AUTO_INCREMENT clause
+ *   temptable/name        temporary tables created through $wpdb and not dropped
+ *   cache/group/key       in-memory object cache (drop-in: cache/derived key)
+ *   mc/key                keys on the memcached servers
+ *   stale/source/blog/group/key[/option]
  *                         cached option/network option disagreeing with the DB
- *   global|name[|key]     globals, arrays one level deeper; $wpdb minus query noise,
+ *   global/name[/key]     globals, arrays one level deeper; $wpdb minus query noise,
  *                         $wp_object_cache minus its entries and counters
- *   static|Class::$prop   class static properties
- *   fstatic|fn()|$var     static variables of functions and methods
- *   const|NAME            user-defined constants
- *   ini|name, env|NAME, proc|what   ini settings, environment, process state
- *   file|path             files under wp-content and the temp dir top level
+ *   static/Class::$prop   class static properties
+ *   fstatic/fn()/$var     static variables of functions and methods
+ *   const/NAME            user-defined constants
+ *   ini/name, env/NAME, proc/what   ini settings, environment, process state
+ *   file/path             files under wp-content and the temp dir top level
  */
 class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
@@ -89,14 +89,14 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	// Pattern shorthands, e.g. WP_TESTS_LEAKS_AREAS=statics,globals.
 	private const ALIASES = array(
-		'all'        => array( '*|*' ),
-		'persistent' => array( 'db|*', 'schema|*', 'mc|*', 'file|*', 'stale|*' ),
-		'database'   => array( 'db|*', 'dbcount|*', 'autoinc|*', 'schema|*', 'temptable|*' ),
-		'caches'     => array( 'cache|*', 'mc|*', 'stale|*' ),
-		'globals'    => array( 'global|*' ),
-		'statics'    => array( 'static|*', 'fstatic|*' ),
-		'runtime'    => array( 'const|*', 'ini|*', 'env|*', 'proc|*' ),
-		'files'      => array( 'file|*' ),
+		'all'        => array( '*/*' ),
+		'persistent' => array( 'db/*', 'schema/*', 'mc/*', 'file/*', 'stale/*' ),
+		'database'   => array( 'db/*', 'dbcount/*', 'autoinc/*', 'schema/*', 'temptable/*' ),
+		'caches'     => array( 'cache/*', 'mc/*', 'stale/*' ),
+		'globals'    => array( 'global/*' ),
+		'statics'    => array( 'static/*', 'fstatic/*' ),
+		'runtime'    => array( 'const/*', 'ini/*', 'env/*', 'proc/*' ),
+		'files'      => array( 'file/*' ),
 	);
 
 	// Where rule paths are searched for, from the repo root; not fixtures or output.
@@ -235,7 +235,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		}
 	}
 
-	// Entries to [negated, glob, whole area]: aliases expanded, a bare area name as "area|*".
+	// Entries to [negated, glob, whole area]: aliases expanded, a bare area name as "area/*".
 	private function patterns( $entries, $where ) {
 		if ( ! is_array( $entries ) || ! $entries ) {
 			$this->fail( "$where: needs a list of patterns." );
@@ -250,10 +250,10 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 			$negated = '!' === $entry[0];
 			$name    = $negated ? substr( $entry, 1 ) : $entry;
-			$globs   = self::ALIASES[ $name ] ?? array( str_contains( $name, '|' ) ? $name : "$name|*" );
+			$globs   = self::ALIASES[ $name ] ?? array( str_contains( $name, '/' ) ? $name : "$name/*" );
 
 			foreach ( $globs as $glob ) {
-				list( $area, $key ) = explode( '|', $glob, 2 );
+				list( $area, $key ) = explode( '/', $glob, 2 );
 				if ( ! $this->areas_matching( $area ) ) {
 					$this->fail( "$where: \"$entry\" matches no area: " . implode( ', ', $this->areas() ) . '.' );
 				}
@@ -348,7 +348,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		foreach ( $this->areas() as $area ) {
 			$last = array();
 			foreach ( array_reverse( $patterns ) as $pattern ) {
-				if ( ! fnmatch( strstr( $pattern[1], '|', true ), $area, FNM_NOESCAPE ) ) {
+				if ( ! fnmatch( strstr( $pattern[1], '/', true ), $area, FNM_NOESCAPE ) ) {
 					continue;
 				}
 
@@ -387,7 +387,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 	private function filter( array $state, array $plan ) {
 		$kept = array();
 		foreach ( $state as $key => $entry ) {
-			$area = $plan[ strstr( $key, '|', true ) ] ?? null;
+			$area = $plan[ strstr( $key, '/', true ) ] ?? null;
 			if ( true === $area || ( $area && $this->kept( $key, $area ) ) ) {
 				$kept[ $key ] = $entry;
 			}
@@ -672,9 +672,9 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			$this->check_query( $table );
 			$schema = preg_replace( self::AUTO_INCREMENT, '', $create );
 
-			$state[ "schema|$table" ] = $this->text( $schema );
+			$state[ "schema/$table" ] = $this->text( $schema );
 			if ( preg_match( self::AUTO_INCREMENT, $create, $m ) ) {
-				$state[ "autoinc|$table" ] = $this->text( $m[1] );
+				$state[ "autoinc/$table" ] = $this->text( $m[1] );
 			}
 
 			// Keyed by the schema, so a test's DDL refreshes them.
@@ -714,18 +714,18 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			$this->check_query( $table );
 
 			foreach ( (array) $rows as $row ) {
-				$key = "db|$table|" . str_replace( "\x1f", ',', $row[0] );
+				$key = "db/$table/" . str_replace( "\x1f", ',', $row[0] );
 				for ( $n = 2; isset( $state[ $key ] ); $n++ ) {
 					$key = preg_replace( '/#\d+$/', '', $key ) . "#$n";
 				}
 				$state[ $key ] = array( md5( $row[1] ), substr( $row[1], 0, self::PREVIEW_LENGTH ) );
 			}
-			$state[ "dbcount|$table" ] = $this->text( (string) count( (array) $rows ) );
+			$state[ "dbcount/$table" ] = $this->text( (string) count( (array) $rows ) );
 		}
 
 		$this->sync_connection();
 		foreach ( array_keys( $this->temp_tables ) as $name ) {
-			$state[ "temptable|$name" ] = $this->text( 'exists' );
+			$state[ "temptable/$name" ] = $this->text( 'exists' );
 		}
 
 		return $state;
@@ -777,7 +777,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 		if ( isset( $wp_object_cache->m ) ) {
 			foreach ( (array) $cache as $derived => $value ) {
-				$state[ "cache|$derived" ] = $this->entry( $value );
+				$state[ "cache/$derived" ] = $this->entry( $value );
 				$state                    += $this->stale_derived( 'local', $derived, $value );
 			}
 
@@ -788,7 +788,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 		foreach ( (array) $cache as $group => $entries ) {
 			foreach ( (array) $entries as $id => $value ) {
-				$state[ "cache|$group|$id" ] = $this->entry( $value );
+				$state[ "cache/$group/$id" ] = $this->entry( $value );
 
 				// Multisite prefixes non-global keys with "<blog id>:".
 				$blog = 1;
@@ -858,7 +858,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 			}
 
 			foreach ( (array) $values as $key => $value ) {
-				$state[ "mc|$key" ] = $this->entry( $value );
+				$state[ "mc/$key" ] = $this->entry( $value );
 				$state             += $this->stale_derived( 'memcached', $key, $value );
 			}
 		}
@@ -884,7 +884,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 	// Cached options and network options that disagree with their DB rows, e.g. after a ROLLBACK.
 	private function stale( $source, $blog, $group, $key, $value ) {
-		$label = "stale|$source|$blog|$group|$key";
+		$label = "stale/$source/$blog/$group/$key";
 
 		if ( 'options' === $group ) {
 			$rows = $this->option_rows( $blog );
@@ -905,7 +905,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		if ( 'alloptions' === $name && is_array( $value ) ) {
 			foreach ( $value as $option => $cached ) {
 				if ( ! $this->same( $rows[ $option ] ?? null, $cached ) ) {
-					$out[ "$label|$option" ] = $this->mismatch( $cached, $rows[ $option ] ?? null );
+					$out[ "$label/$option" ] = $this->mismatch( $cached, $rows[ $option ] ?? null );
 				}
 			}
 			return $out;
@@ -914,7 +914,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		if ( 'notoptions' === $name && is_array( $value ) ) {
 			foreach ( array_keys( $value ) as $option ) {
 				if ( isset( $rows[ $option ] ) ) {
-					$out[ "$label|$option" ] = $this->mismatch( '(cached as missing)', $rows[ $option ] );
+					$out[ "$label/$option" ] = $this->mismatch( '(cached as missing)', $rows[ $option ] );
 				}
 			}
 			return $out;
@@ -1001,13 +1001,13 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 				foreach ( $value as $key => $item ) {
 					// The listener's own settings in $_ENV and $_SERVER.
 					if ( ! str_starts_with( (string) $key, self::ENV_PREFIX ) ) {
-						$state[ "global|$name|$key" ] = $this->entry( $item );
+						$state[ "global/$name/$key" ] = $this->entry( $item );
 					}
 				}
 				continue;
 			}
 
-			$state[ "global|$name" ] = $this->entry( $value );
+			$state[ "global/$name" ] = $this->entry( $value );
 		}
 
 		return $state;
@@ -1038,7 +1038,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 					continue;
 				}
 
-				$state[ "static|$class_name::\${$prop->getName()}" ] = $this->entry( $this->read( $prop ) );
+				$state[ "static/$class_name::\${$prop->getName()}" ] = $this->entry( $this->read( $prop ) );
 			}
 		}
 
@@ -1077,7 +1077,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 		foreach ( $functions as $label => $ref ) {
 			foreach ( $ref->getStaticVariables() as $var => $value ) {
-				$state[ "fstatic|$label|\$$var" ] = $this->entry( $value );
+				$state[ "fstatic/$label/\$$var" ] = $this->entry( $value );
 			}
 		}
 
@@ -1088,7 +1088,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		$state = array();
 
 		foreach ( get_defined_constants( true )['user'] ?? array() as $name => $value ) {
-			$state[ "const|$name" ] = $this->entry( $value );
+			$state[ "const/$name" ] = $this->entry( $value );
 		}
 
 		return $state;
@@ -1099,12 +1099,12 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		$state = array();
 
 		foreach ( ini_get_all( null, false ) as $name => $value ) {
-			$state[ "ini|$name" ] = $this->text( (string) $value );
+			$state[ "ini/$name" ] = $this->text( (string) $value );
 		}
 
 		foreach ( getenv() as $name => $value ) {
 			if ( ! str_starts_with( $name, self::ENV_PREFIX ) ) {
-				$state[ "env|$name" ] = $this->text( (string) $value );
+				$state[ "env/$name" ] = $this->text( (string) $value );
 			}
 		}
 
@@ -1129,7 +1129,7 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 		);
 
 		foreach ( $process as $what => $value ) {
-			$state[ "proc|$what" ] = $this->entry( $value );
+			$state[ "proc/$what" ] = $this->entry( $value );
 		}
 
 		return $state;
@@ -1141,21 +1141,22 @@ class WP_PHPUnit_Leak_Listener implements PHPUnit\Framework\TestListener {
 
 		if ( defined( 'WP_CONTENT_DIR' ) && is_dir( WP_CONTENT_DIR ) ) {
 			$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( WP_CONTENT_DIR, FilesystemIterator::SKIP_DOTS ), RecursiveIteratorIterator::SELF_FIRST );
+			// Absolute paths: their leading "/" is the separator.
 			foreach ( $iterator as $path => $file ) {
-				$state[ "file|$path" ] = $this->file( $file );
+				$state[ 'file' . $path ] = $this->file( $file );
 			}
 		}
 
 		foreach ( new FilesystemIterator( sys_get_temp_dir() ) as $path => $file ) {
 			if ( ! str_starts_with( $file->getFilename(), self::PHPUNIT_TEMP_PREFIX ) ) {
-				$state[ "file|$path" ] = $this->file( $file );
+				$state[ 'file' . $path ] = $this->file( $file );
 			}
 		}
 
 		// The listener's own output, e.g. with WP_TESTS_LEAKS_OUT in the temp dir.
 		$own = realpath( $this->out );
 		if ( false !== $own ) {
-			unset( $state[ "file|$own" ] );
+			unset( $state[ 'file' . $own ] );
 		}
 
 		return $state;

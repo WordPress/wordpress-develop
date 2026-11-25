@@ -18,7 +18,7 @@ const USAGE = "Usage: php diff.php run.jsonl\n       php diff.php a.jsonl b.json
 
 // A dropped cache entry is a miss, which reads the source again, and a stale one gone agrees with it: not a leak,
 // e.g. the test framework's flushes.
-const CACHE_AREAS = '/^(cache|mc|stale)\|/';
+const CACHE_AREAS = '#^(cache|mc|stale)/#';
 
 // Yields one snapshot at a time: a full run's file can exceed the memory limit. Returns the unreadable line count.
 function load( $file ) {

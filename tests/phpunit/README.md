@@ -54,12 +54,12 @@ node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/di
 For example, before [r65746](https://core.trac.wordpress.org/changeset/65746), two `Tests_Post_TheTitleAttribute` tests passed alone and failed after `Tests_Post_wpGetPostAutosave`: post titles were saved without kses. A sweep over the hook that should have filtered them names one class, instead of hundreds of global differences:
 
 ```
-node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_SCOPE=class -e 'WP_TESTS_LEAKS_AREAS=global|wp_filter|title_save_pre' php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --order-by=reverse --filter 'Tests_Post_wpGetPostAutosave|Tests_Post_TheTitleAttribute'
+node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_SCOPE=class -e WP_TESTS_LEAKS_AREAS=global/wp_filter/title_save_pre php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --order-by=reverse --filter 'Tests_Post_wpGetPostAutosave|Tests_Post_TheTitleAttribute'
 ```
 
-`diff.php` reports `Tests_Post_wpGetPostAutosave` leaving `global|wp_filter|title_save_pre` without `wp_filter_kses`: its `wpSetUpBeforeClass()` logged in an administrator, whose `unfiltered_html` removes the kses filters, and never logged out. `--order-by=reverse` runs it first.
+`diff.php` reports `Tests_Post_wpGetPostAutosave` leaving `global/wp_filter/title_save_pre` without `wp_filter_kses`: its `wpSetUpBeforeClass()` logged in an administrator, whose `unfiltered_html` removes the kses filters, and never logged out. `--order-by=reverse` runs it first.
 
-`tests/phpunit/leaks/rules.php` sets what is snapshotted: per scope, a list of patterns over the snapshot keys (`area|key`, e.g. `static|WP_Theme_JSON_Resolver::*`; `!` negates, the last match wins), and per test file, rules adding or dropping patterns, each saying why. A file no pattern keeps, e.g. one rule `!*`, is not snapshotted. The listener checks the file before any test runs, and stops on an unknown area, a rule missing its reason, or a path matching no file.
+`tests/phpunit/leaks/rules.php` sets what is snapshotted: per scope, a list of patterns over the snapshot keys (`area/key`, e.g. `static/WP_Theme_JSON_Resolver::*`; `!` negates, the last match wins), and per test file, rules adding or dropping patterns, each saying why. A file no pattern keeps, e.g. one rule `!*`, is not snapshotted. The listener checks the file before any test runs, and stops on an unknown area, a rule missing its reason, or a path matching no file.
 
 The leak configurations pass the listener its settings: `rules`, the rules file from the repo root, and `scope`, `test` or `class`. Environment variables win over them when set:
 

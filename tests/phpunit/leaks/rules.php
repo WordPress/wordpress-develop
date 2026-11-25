@@ -2,7 +2,7 @@
 /**
  * What WP_PHPUnit_Leak_Listener snapshots, see tests/phpunit/README.md.
  *
- * Patterns are fnmatch() globs over snapshot keys, "area|key", without escapes. "!" negates.
+ * Patterns are fnmatch() globs over snapshot keys, "area/key", without escapes. "!" negates.
  * The last pattern matching a key decides. A bare area name means all its keys, e.g. "mc".
  *
  * 'areas' holds each scope's defaults; WP_TESTS_LEAKS_AREAS replaces them. A test file's
@@ -12,22 +12,22 @@
 return array(
 	'areas' => array(
 		'test'  => array(
-			'db|*',
-			'dbcount|*',
-			'autoinc|*',
-			'schema|*',
-			'temptable|*',
-			'cache|*',
-			'mc|*',
-			'stale|*',
-			'global|*',
-			'static|*',
-			'fstatic|*',
-			'const|*',
-			'ini|*',
-			'env|*',
-			'proc|*',
-			'file|*',
+			'db/*',
+			'dbcount/*',
+			'autoinc/*',
+			'schema/*',
+			'temptable/*',
+			'cache/*',
+			'mc/*',
+			'stale/*',
+			'global/*',
+			'static/*',
+			'fstatic/*',
+			'const/*',
+			'ini/*',
+			'env/*',
+			'proc/*',
+			'file/*',
 		),
 		/*
 		 * What the next class inherits. Not row counts, they repeat the db rows, nor AUTO_INCREMENT
@@ -35,11 +35,11 @@ return array(
 		 * connection can't see them.
 		 */
 		'class' => array(
-			'db|*',
-			'schema|*',
-			'mc|*',
-			'file|*',
-			'stale|*',
+			'db/*',
+			'schema/*',
+			'mc/*',
+			'file/*',
+			'stale/*',
 		),
 	),
 	'files' => array(
@@ -49,8 +49,8 @@ return array(
 				'tests/phpunit/leaks/probe/leakProbe.php',
 			),
 			'areas' => array(
-				'!global|leak_probe_filtered_*',
-				'global|leak_probe_filtered_kept',
+				'!global/leak_probe_filtered_*',
+				'global/leak_probe_filtered_kept',
 			),
 		),
 		array(
