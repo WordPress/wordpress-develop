@@ -280,6 +280,9 @@ if ( ! function_exists( 'ipsum_register_block_styles' ) ) :
 		 * Outlines the Search button until it is hovered, focused or pressed, when
 		 * the global button states take back over. A theme.json css string would
 		 * wrap this in :where() and only tie with the global button styles.
+		 * The icon button keeps a transparent border in those states, so it does
+		 * not shrink by 2px under the pointer on hover, which made it flicker.
+		 * The text button already has a border there from theme.json.
 		 */
 		register_block_style(
 			'core/search',
@@ -287,6 +290,10 @@ if ( ! function_exists( 'ipsum_register_block_styles' ) ) :
 				'name'         => 'outline',
 				'label'        => _x( 'Outline', 'Block style label', 'ipsum' ),
 				'inline_style' => '
+				.wp-block-search.is-style-outline .wp-block-search__button.has-icon.wp-element-button {
+					border: 1px solid transparent;
+				}
+
 				.wp-block-search.is-style-outline .wp-block-search__button.wp-element-button:not(:hover):not(:focus):not(:active) {
 					background-color: var(--wp--preset--color--base);
 					border: 1px dotted var(--wp--preset--color--contrast);
