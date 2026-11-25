@@ -30,13 +30,13 @@ if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
  *
  * @since 2.7.0
  *
- * @phpstan-type Response array{
- *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string|string[]>,
+ * @phpstan-type HTTP_Response array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
  *     body: string,
- *     response: array{ code: int|false, message: string|false },
+ *     response: array{code: int|false, message: string|false},
  *     cookies: WP_Http_Cookie[],
  *     filename?: string|null,
- *     http_response: WP_HTTP_Requests_Response|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
  * }
  * @phpstan-type Prepared_Request array{
  *     url: string,
@@ -183,7 +183,8 @@ class WP_Http {
 	 *     @type string|null                                            $filename      Optional. Filename of the response.
 	 *     @type WP_HTTP_Requests_Response|null                         $http_response Response object.
 	 * }
-	 * @phpstan-return Response|WP_Error
+	 *
+	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	public function request( $url, $args = array() ) {
 		if ( ! is_array( $args ) ) {
@@ -249,7 +250,7 @@ class WP_Http {
 	 * @return array Responses keyed like $requests. Each is a response array, or a WP_Error
 	 *               on failure. See {@see WP_Http::request()} for the response format.
 	 * @phpstan-param array<string|array{ url?: string, args?: string|mixed[] }> $requests
-	 * @phpstan-return array<Response|WP_Error>
+	 * @phpstan-return array<HTTP_Response|WP_Error>
 	 */
 	public function request_multiple( array $requests, array $options = array() ): array {
 		$responses = array();
@@ -386,7 +387,7 @@ class WP_Http {
 	 *     @type array|WP_Error $response Optional. The response returned by the 'pre_http_request' filter.
 	 * }
 	 * @phpstan-param mixed[] $args
-	 * @phpstan-return Prepared_Request|array{ response: Response|WP_Error }|WP_Error
+	 * @phpstan-return Prepared_Request|array{ response: HTTP_Response|WP_Error }|WP_Error
 	 */
 	protected function prepare_request( $url, array $args = array() ) {
 		$defaults = array(
@@ -492,7 +493,7 @@ class WP_Http {
 		 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
 		 * @param array                $parsed_args HTTP request arguments.
 		 * @param string               $url         The request URL.
-		 * @phpstan-param false|Response|WP_Error $response
+		 * @phpstan-param false|HTTP_Response|WP_Error $response
 		 */
 		$pre = apply_filters( 'pre_http_request', false, $parsed_args, $url );
 
@@ -654,7 +655,7 @@ class WP_Http {
 	 *                                                                                 returned by {@see WP_Http::prepare_request()}.
 	 * @param string                                                      $url         The request URL.
 	 * @return array|WP_Error The response array, or a WP_Error on failure. See {@see WP_Http::request()}.
-	 * @phpstan-return Response|WP_Error
+	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	protected function finalize_response( $response, array $parsed_args, string $url ) {
 		if ( $response instanceof WpOrg\Requests\Exception ) {
@@ -889,6 +890,8 @@ class WP_Http {
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+	 *
+	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	public function post( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'POST' );
@@ -907,6 +910,8 @@ class WP_Http {
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+	 *
+	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	public function get( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'GET' );
@@ -925,6 +930,8 @@ class WP_Http {
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error. See WP_Http::response() for details.
+	 *
+	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	public function head( $url, $args = array() ) {
 		$defaults    = array( 'method' => 'HEAD' );

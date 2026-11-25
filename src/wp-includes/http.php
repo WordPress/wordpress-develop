@@ -48,6 +48,15 @@ function _wp_http_get_object() {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
+ *     body: string,
+ *     response: array{code: int|false, message: string|false},
+ *     cookies: WP_Http_Cookie[],
+ *     filename?: string|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
+ * }|WP_Error
  */
 function wp_safe_remote_request( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -77,6 +86,15 @@ function wp_safe_remote_request( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
+ *     body: string,
+ *     response: array{code: int|false, message: string|false},
+ *     cookies: WP_Http_Cookie[],
+ *     filename?: string|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
+ * }|WP_Error
  */
 function wp_safe_remote_get( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -106,6 +124,15 @@ function wp_safe_remote_get( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
+ *     body: string,
+ *     response: array{code: int|false, message: string|false},
+ *     cookies: WP_Http_Cookie[],
+ *     filename?: string|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
+ * }|WP_Error
  */
 function wp_safe_remote_post( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -135,6 +162,15 @@ function wp_safe_remote_post( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
+ *     body: string,
+ *     response: array{code: int|false, message: string|false},
+ *     cookies: WP_Http_Cookie[],
+ *     filename?: string|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
+ * }|WP_Error
  */
 function wp_safe_remote_head( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -205,6 +241,15 @@ function wp_safe_remote_request_multiple( array $requests, array $options = arra
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response array or a WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
+ *     body: string,
+ *     response: array{code: int|false, message: string|false},
+ *     cookies: WP_Http_Cookie[],
+ *     filename?: string|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
+ * }|WP_Error
  */
 function wp_remote_request( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -226,6 +271,15 @@ function wp_remote_request( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
+ *     body: string,
+ *     response: array{code: int|false, message: string|false},
+ *     cookies: WP_Http_Cookie[],
+ *     filename?: string|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
+ * }|WP_Error
  */
 function wp_remote_get( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -247,6 +301,15 @@ function wp_remote_get( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
+ *     body: string,
+ *     response: array{code: int|false, message: string|false},
+ *     cookies: WP_Http_Cookie[],
+ *     filename?: string|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
+ * }|WP_Error
  */
 function wp_remote_post( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -268,6 +331,15 @@ function wp_remote_post( $url, $args = array() ) {
  *                     See WP_Http::request() for information on accepted arguments.
  * @return array|WP_Error The response or WP_Error on failure.
  *                        See WP_Http::request() for information on return value.
+ *
+ * @phpstan-return array{
+ *     headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary|array<string, string>,
+ *     body: string,
+ *     response: array{code: int|false, message: string|false},
+ *     cookies: WP_Http_Cookie[],
+ *     filename?: string|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
+ * }|WP_Error
  */
 function wp_remote_head( $url, $args = array() ) {
 	$http = _wp_http_get_object();
