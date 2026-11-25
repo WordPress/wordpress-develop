@@ -94,8 +94,6 @@ function wp_ajax_fetch_list() {
 	}
 
 	$wp_list_table->ajax_response();
-
-	wp_die( 0 );
 }
 
 /**
@@ -2849,8 +2847,6 @@ function wp_ajax_set_attachment_thumbnail() {
 	} else {
 		wp_send_json_success();
 	}
-
-	wp_send_json_error();
 }
 
 /**

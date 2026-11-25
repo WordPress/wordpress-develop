@@ -170,3 +170,42 @@ parameters:
 			identifier: identical.alwaysFalse
 			count: 2
 			path: src/wp-includes/html-api/class-wp-html-processor.php
+
+		# Unreachable statements that are kept on purpose:
+		# These are not work still to be done, so they are ignored here rather than in a baseline.
+		-
+			# Translatable strings placed after `return;` so that they are added to the POT file without running.
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/wp-admin/about.php
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/wp-admin/credits.php
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/wp-includes/capabilities.php
+		-
+			# A `break` or `exit` that ends a `switch` case after a call that never returns. Without it, the case reads
+			# as falling through to the next one, which PHPCS reports as an error for all but the `editpost` case in
+			# post.php. That one would appear to fall through into the `trash` case.
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/wp-admin/includes/ajax-actions.php
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 2
+			path: src/wp-admin/post.php
+		-
+			# The `die()` after `wp_nonce_ays()` in `check_admin_referer()` stops a request with an invalid nonce even
+			# if a custom `wp_die()` handler returns.
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/wp-includes/pluggable.php
