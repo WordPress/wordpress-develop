@@ -108,6 +108,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 				'post_author' => self::$editor_id,
 			)
 		);
+		wp_set_current_user( 0 );
 	}
 
 	public static function wpTearDownAfterClass() {
