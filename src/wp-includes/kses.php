@@ -2057,9 +2057,9 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 										$given_value === $value &&
 										$this->set_attribute( $lower_name, true )
 									) {
-										$original              = $this->lexical_updates[ $lower_name ];
-										$original_at           = $original->start;
-										$original_end          = $original->start + $original->length;
+										$original     = $this->lexical_updates[ $lower_name ];
+										$original_at  = $original->start;
+										$original_end = $original->start + $original->length;
 										unset( $this->lexical_updates[ $lower_name ] );
 
 										// Assignment follows the first `=` not at the beginning of the attribute name.
@@ -2081,11 +2081,13 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 											$value,
 											array(
 												"\r" => '&#xD;',
+												'"'  => '&quot;',
+												"'"  => '&apos;',
 												'<'  => '&lt;',
 												'&'  => '&amp;',
 												'>'  => '&gt;',
-												'"'  => '&quot;',
-												"'"  => '&apos;',
+												'['  => '&#x5B;',
+												']'  => '&#x5D;',
 											)
 										);
 									}
