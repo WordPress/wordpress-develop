@@ -3047,6 +3047,8 @@ if ( ! function_exists( 'wp_rand' ) ) :
 	 * @param int $max Optional. Upper limit for the generated number.
 	 *                 Accepts positive integers. Defaults to 4294967295.
 	 * @return int A random non-negative number between min and max.
+	 *
+	 * @phpstan-return non-negative-int
 	 */
 	function wp_rand( $min = null, $max = null ) {
 		global $rnd_value;
