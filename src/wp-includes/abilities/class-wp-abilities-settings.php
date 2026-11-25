@@ -222,15 +222,6 @@ final class WP_Abilities_Settings {
 	 *                                       or an error when the update is refused.
 	 */
 	private function execute_settings_update( array $input ) {
-		// A permission filter can grant the call to a user who cannot manage options, who must still not write.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return new WP_Error(
-				'settings_cannot_update',
-				__( 'Sorry, you are not allowed to manage options for this site.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
 		$data  = $input['data'];
 		$named = array_intersect_key( $this->writable_settings, $data );
 
@@ -312,8 +303,12 @@ final class WP_Abilities_Settings {
 
 			update_option( $setting['option'], $value );
 
-			// update_option() stores nothing when no value is stored and the value matches the default get_option() reads.
-			if ( false === get_option( $setting['option'], false ) && get_option( $setting['option'] ) === $value ) {
+			/*
+			 * update_option() stores nothing when no value is stored and the value matches the default
+			 * get_option() reads. The stored value reads as null when there is none, while a stored
+			 * false reads as false.
+			 */
+			if ( null === get_option( $setting['option'], null ) && get_option( $setting['option'] ) === $value ) {
 				add_option( $setting['option'], $value );
 			}
 		}

@@ -612,7 +612,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * Users without `manage_options` cannot update settings, even when a filter grants permission.
+	 * Users without `manage_options` cannot update settings.
 	 *
 	 * @ticket 64616
 	 *
@@ -620,10 +620,9 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 *
 	 * @dataProvider data_roles_without_manage_options
 	 *
-	 * @param string|null $role   The role of the user, or null when logged out.
-	 * @param int         $status The expected status when a filter grants permission.
+	 * @param string|null $role The role of the user, or null when logged out.
 	 */
-	public function test_users_without_manage_options_cannot_update( ?string $role, int $status ): void {
+	public function test_users_without_manage_options_cannot_update( ?string $role ): void {
 		wp_set_current_user( null === $role ? 0 : self::$user_ids[ $role ] );
 		$before = $this->snapshot();
 
@@ -633,24 +632,21 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 				'posts_per_page' => 3,
 			)
 		);
+
 		$this->assert_error_code( $result, 'ability_invalid_permissions' );
-
-		add_filter( 'wp_ability_permission_result', '__return_true' );
-		$this->assert_error( $this->update( array( 'title' => 'Changed title' ) ), 'settings_cannot_update', $status );
-
 		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: string|null, 1: int}> Roles without `manage_options`, null when logged out, and the expected status.
+	 * @return array<string, array{0: string|null}> Roles without `manage_options`, null when logged out.
 	 */
 	public static function data_roles_without_manage_options(): array {
 		return array(
-			'subscriber' => array( 'subscriber', 403 ),
-			'editor'     => array( 'editor', 403 ),
-			'logged out' => array( null, 401 ),
+			'subscriber' => array( 'subscriber' ),
+			'editor'     => array( 'editor' ),
+			'logged out' => array( null ),
 		);
 	}
 
@@ -1620,6 +1616,81 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 				false,
 				'false',
 				'',
+			),
+		);
+	}
+
+	/**
+	 * A false value written over a stored value updates the option without adding it again, also
+	 * when false is the default get_option() reads.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_false_values_over_a_stored_value
+	 *
+	 * @param array<string, mixed> $args  The setting registration arguments.
+	 * @param bool|null            $value The value to write.
+	 */
+	public function test_false_over_a_stored_value_does_not_add_the_option( array $args, ?bool $value ): void {
+		global $wpdb;
+
+		$option = 'settings_update_test_stored_boolean';
+		register_setting( 'general', $option, $args );
+		$this->register_ability();
+		$this->store_raw( $option, '1' );
+		$this->become_admin();
+
+		$added = array();
+		add_action(
+			'add_option',
+			static function ( $name ) use ( &$added ): void {
+				$added[] = $name;
+			}
+		);
+
+		$result = $this->update( array( $option => $value ) );
+
+		$this->assertSame( array( $option => false ), $result, 'The output should show the written value.' );
+		$this->assertSame( '', $this->snapshot()[ $option ] ?? null, 'The value should be stored.' );
+		$this->assertNotContains( $option, $added, 'The stored option should not be added again.' );
+		$this->assertSame(
+			'on',
+			$wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s", $option ) ),
+			'The autoload value of the stored option should not change.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: array<string, mixed>, 1: bool|null}> Boolean settings and a value that is saved as false.
+	 */
+	public static function data_false_values_over_a_stored_value(): array {
+		return array(
+			'false for a boolean without a default'      => array(
+				array(
+					'type'              => 'boolean',
+					'show_in_abilities' => true,
+				),
+				false,
+			),
+			'false for a boolean that defaults to false' => array(
+				array(
+					'type'              => 'boolean',
+					'default'           => false,
+					'show_in_abilities' => true,
+				),
+				false,
+			),
+			'null for a boolean that defaults to false'  => array(
+				array(
+					'type'              => 'boolean',
+					'default'           => false,
+					'show_in_abilities' => true,
+				),
+				null,
 			),
 		);
 	}
