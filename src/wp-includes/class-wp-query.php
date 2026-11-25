@@ -3357,7 +3357,6 @@ class WP_Query {
 			$this->post_count = count( $this->posts );
 			$this->set_found_posts( $query_vars, $limits );
 
-			/** @var int[] */
 			$post_parents       = array();
 			$post_ids           = array();
 			$post_parents_cache = array();
