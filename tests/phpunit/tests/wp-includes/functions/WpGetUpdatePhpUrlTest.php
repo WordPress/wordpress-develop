@@ -69,6 +69,17 @@ class WpGetUpdatePhpUrlTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an empty environment variable falls back to the default URL.
+	 *
+	 * @ticket 65653
+	 */
+	public function test_wp_get_update_php_url_empty_env_var() {
+		putenv( 'WP_UPDATE_PHP_URL=' );
+
+		$this->assertSame( 'https://wordpress.org/support/update-php/', wp_get_update_php_url() );
+	}
+
+	/**
 	 * Tests that wp_get_update_php_url() respects the wp_update_php_url filter.
 	 *
 	 * @ticket 65653
