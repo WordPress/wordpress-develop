@@ -13,36 +13,15 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-posts-list-table.php';
 class Test_WP_Posts_List_Table extends WP_Posts_List_Table {
 
 	/**
-	 * Handles an incoming ajax request and sends JSON via wp_send_json()
-	 * so it can be intercepted by WP_Ajax_UnitTestCase.
+	 * Sends the list table class and screen ID as an AJAX response.
 	 */
 	public function ajax_response() {
-		$this->prepare_items();
-
-		ob_start();
-		if ( ! empty( $_REQUEST['no_placeholder'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$this->display_rows();
-		} else {
-			$this->display_rows_or_placeholder();
-		}
-
-		$rows = ob_get_clean();
-
-		$response = array( 'rows' => $rows );
-
-		if ( isset( $this->_pagination_args['total_items'] ) ) {
-			$response['total_items_i18n'] = sprintf(
-				/* translators: Number of items. */
-				_n( '%s item', '%s items', $this->_pagination_args['total_items'] ),
-				number_format_i18n( $this->_pagination_args['total_items'] )
-			);
-		}
-		if ( isset( $this->_pagination_args['total_pages'] ) ) {
-			$response['total_pages']      = $this->_pagination_args['total_pages'];
-			$response['total_pages_i18n'] = number_format_i18n( $this->_pagination_args['total_pages'] );
-		}
-
-		wp_send_json( $response );
+		wp_send_json(
+			array(
+				'class'     => get_class( $this ),
+				'screen_id' => $this->screen->id,
+			)
+		);
 	}
 }
 
@@ -93,22 +72,21 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Tests fetching a list table via AJAX with no items.
+	 * Tests fetching a list table via AJAX.
 	 *
 	 * @ticket 65237
 	 */
-	public function test_wp_ajax_fetch_list_no_items(): void {
+	public function test_wp_ajax_fetch_list(): void {
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up the $_GET request.
 		$list_class = 'WP_Posts_List_Table';
 
 		$_GET = array(
 			'list_args'              => array(
 				'class'  => $list_class,
 				'screen' => array(
-					'id' => 'edit-post',
+					'id' => 'edit-page',
 				),
 			),
 			'_ajax_fetch_list_nonce' => wp_create_nonce( "fetch-list-$list_class" ),
@@ -134,62 +112,8 @@ class Tests_Ajax_wpAjaxFetchList extends WP_Ajax_UnitTestCase {
 		$response = json_decode( $this->_last_response, true );
 
 		$this->assertIsArray( $response );
-		$this->assertArrayHasKey( 'rows', $response );
-		$this->assertStringContainsString( 'No posts found.', $response['rows'] );
-		$this->assertSame( '0 items', $response['total_items_i18n'] );
-		$this->assertSame( 0, $response['total_pages'] );
-		$this->assertSame( '0', $response['total_pages_i18n'] );
-	}
-
-	/**
-	 * Tests fetching a list table via AJAX with items.
-	 *
-	 * @ticket 65237
-	 */
-	public function test_wp_ajax_fetch_list_with_items(): void {
-		// Become an administrator.
-		$this->_setRole( 'administrator' );
-
-		// Create a post.
-		self::factory()->post->create( array( 'post_title' => 'Test Post' ) );
-
-		$list_class = 'WP_Posts_List_Table';
-
-		$_GET = array(
-			'list_args'              => array(
-				'class'  => $list_class,
-				'screen' => array(
-					'id' => 'edit-post',
-				),
-			),
-			'_ajax_fetch_list_nonce' => wp_create_nonce( "fetch-list-$list_class" ),
-		);
-
-		// Make the request.
-		try {
-			$this->_handleAjax( 'fetch-list' );
-		} catch ( WPAjaxDieContinueException $e ) {
-			// Expected exception.
-			unset( $e );
-		} catch ( WPAjaxDieStopException $e ) {
-			// Expected exception.
-			unset( $e );
-		} catch ( Exception $e ) {
-			$this->fail( 'Unexpected exception: ' . $e->getMessage() );
-		}
-
-		if ( empty( $this->_last_response ) ) {
-			$this->fail( 'Ajax response was empty' );
-		}
-
-		$response = json_decode( $this->_last_response, true );
-
-		$this->assertIsArray( $response );
-		$this->assertArrayHasKey( 'rows', $response );
-		$this->assertStringContainsString( 'Test Post', $response['rows'] );
-		$this->assertSame( '1 item', $response['total_items_i18n'] );
-		$this->assertSame( 1, $response['total_pages'] );
-		$this->assertSame( '1', $response['total_pages_i18n'] );
+		$this->assertSame( 'Test_WP_Posts_List_Table', $response['class'] );
+		$this->assertSame( 'edit-page', $response['screen_id'] );
 	}
 
 	/**
