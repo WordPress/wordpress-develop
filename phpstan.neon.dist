@@ -168,5 +168,5 @@ parameters:
 			# blocks of step() can never match, when in fact they do whenever bookmarks run out.
 			message: '#^Strict comparison using \=\=\= between ''exceeded\-max…'' and null will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
-			count: 1
+			count: 2
 			path: src/wp-includes/html-api/class-wp-html-processor.php
