@@ -18,6 +18,153 @@
  * @phpstan-property-read bool                                      $query_vars_changed
  * @phpstan-property-read false|(lowercase-string&non-falsy-string) $query_vars_hash
  * @phpstan-method void init_query_flags()
+ *
+ * @phpstan-type Filled_Query_Vars array{
+ *     error: scalar|array<scalar>,
+ *     m: scalar|array<scalar>,
+ *     p: scalar|array<scalar>,
+ *     post_parent: scalar|array<scalar>,
+ *     subpost: scalar|array<scalar>,
+ *     subpost_id: scalar|array<scalar>,
+ *     attachment: scalar|array<scalar>,
+ *     attachment_id: scalar|array<scalar>,
+ *     name: scalar|array<scalar>,
+ *     pagename: scalar|array<scalar>,
+ *     page_id: scalar|array<scalar>,
+ *     second: scalar|array<scalar>,
+ *     minute: scalar|array<scalar>,
+ *     hour: scalar|array<scalar>,
+ *     day: scalar|array<scalar>,
+ *     monthnum: scalar|array<scalar>,
+ *     year: scalar|array<scalar>,
+ *     w: scalar|array<scalar>,
+ *     category_name: scalar|array<scalar>,
+ *     tag: scalar|array<scalar>,
+ *     cat: scalar|array<scalar>,
+ *     tag_id: scalar|array<scalar>,
+ *     author: scalar|array<scalar>,
+ *     author_name: scalar|array<scalar>,
+ *     feed: scalar|array<scalar>,
+ *     tb: scalar|array<scalar>,
+ *     paged: scalar|array<scalar>,
+ *     meta_key: scalar|array<scalar>,
+ *     meta_value: scalar|array<scalar>,
+ *     preview: scalar|array<scalar>,
+ *     s: scalar|array<scalar>,
+ *     sentence: scalar|array<scalar>,
+ *     title: scalar|array<scalar>,
+ *     fields: scalar|array<scalar>,
+ *     menu_order: scalar|array<scalar>,
+ *     embed: scalar|array<scalar>,
+ *     category__in: array<scalar>,
+ *     category__not_in: array<scalar>,
+ *     category__and: array<scalar>,
+ *     post__in: array<scalar>,
+ *     post__not_in: array<scalar>,
+ *     post_name__in: array<scalar>,
+ *     tag__in: array<scalar>,
+ *     tag__not_in: array<scalar>,
+ *     tag__and: array<scalar>,
+ *     tag_slug__in: array<scalar>,
+ *     tag_slug__and: array<scalar>,
+ *     post_parent__in: array<scalar>,
+ *     post_parent__not_in: array<scalar>,
+ *     author__in: array<scalar>,
+ *     author__not_in: array<scalar>,
+ *     search_columns: array<scalar>,
+ *     ...<array-key, mixed>
+ * }
+ *
+ * @phpstan-type Query_Vars array{
+ *     error: scalar,
+ *     m: string,
+ *     p: int,
+ *     post_parent: scalar,
+ *     subpost: scalar,
+ *     subpost_id: scalar,
+ *     attachment: scalar,
+ *     attachment_id: int,
+ *     name: string,
+ *     pagename: string,
+ *     page_id: int,
+ *     second: int<0, max>|'',
+ *     minute: int<0, max>|'',
+ *     hour: int<0, max>|'',
+ *     day: int<0, max>,
+ *     monthnum: int<0, max>,
+ *     year: int<0, max>,
+ *     w: int<0, max>,
+ *     category_name: scalar,
+ *     tag: string,
+ *     cat: string,
+ *     tag_id: scalar,
+ *     author: string|int|false,
+ *     author_name: scalar,
+ *     feed: string,
+ *     tb: scalar,
+ *     paged: int<0, max>,
+ *     meta_key: scalar|array<scalar>,
+ *     meta_value: scalar|array<scalar>,
+ *     preview: scalar,
+ *     s: scalar,
+ *     sentence: scalar,
+ *     title: string,
+ *     fields: scalar,
+ *     menu_order: int<0, max>|'',
+ *     embed: scalar,
+ *     category__in: array<scalar>,
+ *     category__not_in: array<scalar>,
+ *     category__and: array<scalar>,
+ *     post__in: array<scalar>,
+ *     post__not_in: array<scalar>,
+ *     post_name__in: array<scalar>,
+ *     tag__in: array<scalar>,
+ *     tag__not_in: array<scalar>,
+ *     tag__and: array<scalar>,
+ *     tag_slug__in: array<scalar>,
+ *     tag_slug__and: array<scalar>,
+ *     post_parent__in: array<scalar>,
+ *     post_parent__not_in: array<scalar>,
+ *     author__in: array<scalar>,
+ *     author__not_in: array<scalar>,
+ *     search_columns: array<scalar>,
+ *     post_type?: string|array<string>,
+ *     post_status?: string|array<string>,
+ *     post_mime_type?: string|array<string>,
+ *     orderby?: string|array<string>|false,
+ *     page?: scalar,
+ *     offset?: scalar,
+ *     showposts?: scalar,
+ *     posts_per_archive_page?: scalar,
+ *     withcomments?: scalar,
+ *     withoutcomments?: scalar,
+ *     taxonomy?: scalar,
+ *     term?: scalar,
+ *     exact?: scalar,
+ *     random?: scalar,
+ *     date_query?: array{ column?: string, compare?: string, relation?: string, ...<array-key, mixed> },
+ *     robots?: scalar,
+ *     favicon?: scalar,
+ *     perm?: scalar,
+ *     order?: scalar,
+ *     ...<array-key, mixed>
+ * }
+ *
+ * @phpstan-type Posts_Query_Vars Query_Vars&array{
+ *     ignore_sticky_posts: bool,
+ *     suppress_filters: bool,
+ *     cache_results: bool,
+ *     update_post_term_cache: bool,
+ *     update_menu_item_cache: bool,
+ *     lazy_load_term_meta: bool,
+ *     update_post_meta_cache: bool,
+ *     post_type: string|array<string>,
+ *     posts_per_page: int,
+ *     nopaging: bool,
+ *     comments_per_page: mixed,
+ *     no_found_rows: bool,
+ *     ...
+ * }
  */
 #[AllowDynamicProperties]
 class WP_Query {
@@ -91,8 +238,11 @@ class WP_Query {
 	/**
 	 * Array of post objects or post IDs.
 	 *
+	 * When the 'fields' query var is 'id=>parent', this is an array of objects with only the
+	 * `ID` and `post_parent` properties.
+	 *
 	 * @since 1.5.0
-	 * @var WP_Post[]|int[]|null
+	 * @var WP_Post[]|int[]|stdClass[]|null
 	 */
 	public $posts;
 
@@ -591,79 +741,351 @@ class WP_Query {
 	/**
 	 * Fills in the query variables, which do not exist within the parameter.
 	 *
+	 * Query variables which take a list of values are normalized to arrays of scalars: an empty value
+	 * becomes an empty array, a scalar value becomes an array containing that value, an array has any
+	 * values which are not scalar removed, and any other value becomes an empty array.
+	 *
+	 * Other query variables are normalized to scalars or arrays of scalars: an undefined value becomes
+	 * an empty string, an array has any values which are not scalar removed, and any other value which
+	 * is not scalar becomes an empty array.
+	 *
 	 * @since 2.1.0
 	 * @since 4.5.0 Removed the `comments_popup` public query variable.
+	 * @since 7.3.0 Query variables are normalized to scalars or arrays of scalars, and those which
+	 *              take a list of values are normalized to arrays.
 	 *
 	 * @param array $query_vars Defined query variables.
 	 * @return array Complete query variables with undefined ones filled in empty.
+	 *
+	 * @phpstan-param array<mixed> $query_vars
+	 * @phpstan-return Filled_Query_Vars
 	 */
 	public function fill_query_vars( $query_vars ) {
-		$keys = array(
-			'error',
-			'm',
-			'p',
-			'post_parent',
-			'subpost',
-			'subpost_id',
-			'attachment',
-			'attachment_id',
-			'name',
-			'pagename',
-			'page_id',
-			'second',
-			'minute',
-			'hour',
-			'day',
-			'monthnum',
-			'year',
-			'w',
-			'category_name',
-			'tag',
-			'cat',
-			'tag_id',
-			'author',
-			'author_name',
-			'feed',
-			'tb',
-			'paged',
-			'meta_key',
-			'meta_value',
-			'preview',
-			's',
-			'sentence',
-			'title',
-			'fields',
-			'menu_order',
-			'embed',
+		/*
+		 * Each query var is listed explicitly, rather than filled in a loop over its key,
+		 * so that static analysis can infer the type of each one.
+		 */
+		return array_replace(
+			$query_vars,
+			array(
+				'error'               => self::normalize_query_var_value( $query_vars['error'] ?? '' ),
+				'm'                   => self::normalize_query_var_value( $query_vars['m'] ?? '' ),
+				'p'                   => self::normalize_query_var_value( $query_vars['p'] ?? '' ),
+				'post_parent'         => self::normalize_query_var_value( $query_vars['post_parent'] ?? '' ),
+				'subpost'             => self::normalize_query_var_value( $query_vars['subpost'] ?? '' ),
+				'subpost_id'          => self::normalize_query_var_value( $query_vars['subpost_id'] ?? '' ),
+				'attachment'          => self::normalize_query_var_value( $query_vars['attachment'] ?? '' ),
+				'attachment_id'       => self::normalize_query_var_value( $query_vars['attachment_id'] ?? '' ),
+				'name'                => self::normalize_query_var_value( $query_vars['name'] ?? '' ),
+				'pagename'            => self::normalize_query_var_value( $query_vars['pagename'] ?? '' ),
+				'page_id'             => self::normalize_query_var_value( $query_vars['page_id'] ?? '' ),
+				'second'              => self::normalize_query_var_value( $query_vars['second'] ?? '' ),
+				'minute'              => self::normalize_query_var_value( $query_vars['minute'] ?? '' ),
+				'hour'                => self::normalize_query_var_value( $query_vars['hour'] ?? '' ),
+				'day'                 => self::normalize_query_var_value( $query_vars['day'] ?? '' ),
+				'monthnum'            => self::normalize_query_var_value( $query_vars['monthnum'] ?? '' ),
+				'year'                => self::normalize_query_var_value( $query_vars['year'] ?? '' ),
+				'w'                   => self::normalize_query_var_value( $query_vars['w'] ?? '' ),
+				'category_name'       => self::normalize_query_var_value( $query_vars['category_name'] ?? '' ),
+				'tag'                 => self::normalize_query_var_value( $query_vars['tag'] ?? '' ),
+				'cat'                 => self::normalize_query_var_value( $query_vars['cat'] ?? '' ),
+				'tag_id'              => self::normalize_query_var_value( $query_vars['tag_id'] ?? '' ),
+				'author'              => self::normalize_query_var_value( $query_vars['author'] ?? '' ),
+				'author_name'         => self::normalize_query_var_value( $query_vars['author_name'] ?? '' ),
+				'feed'                => self::normalize_query_var_value( $query_vars['feed'] ?? '' ),
+				'tb'                  => self::normalize_query_var_value( $query_vars['tb'] ?? '' ),
+				'paged'               => self::normalize_query_var_value( $query_vars['paged'] ?? '' ),
+				'meta_key'            => self::normalize_query_var_value( $query_vars['meta_key'] ?? '' ),
+				'meta_value'          => self::normalize_query_var_value( $query_vars['meta_value'] ?? '' ),
+				'preview'             => self::normalize_query_var_value( $query_vars['preview'] ?? '' ),
+				's'                   => self::normalize_query_var_value( $query_vars['s'] ?? '' ),
+				'sentence'            => self::normalize_query_var_value( $query_vars['sentence'] ?? '' ),
+				'title'               => self::normalize_query_var_value( $query_vars['title'] ?? '' ),
+				'fields'              => self::normalize_query_var_value( $query_vars['fields'] ?? '' ),
+				'menu_order'          => self::normalize_query_var_value( $query_vars['menu_order'] ?? '' ),
+				'embed'               => self::normalize_query_var_value( $query_vars['embed'] ?? '' ),
+				'category__in'        => self::normalize_list_query_var( $query_vars['category__in'] ?? null ),
+				'category__not_in'    => self::normalize_list_query_var( $query_vars['category__not_in'] ?? null ),
+				'category__and'       => self::normalize_list_query_var( $query_vars['category__and'] ?? null ),
+				'post__in'            => self::normalize_list_query_var( $query_vars['post__in'] ?? null ),
+				'post__not_in'        => self::normalize_list_query_var( $query_vars['post__not_in'] ?? null ),
+				'post_name__in'       => self::normalize_list_query_var( $query_vars['post_name__in'] ?? null ),
+				'tag__in'             => self::normalize_list_query_var( $query_vars['tag__in'] ?? null ),
+				'tag__not_in'         => self::normalize_list_query_var( $query_vars['tag__not_in'] ?? null ),
+				'tag__and'            => self::normalize_list_query_var( $query_vars['tag__and'] ?? null ),
+				'tag_slug__in'        => self::normalize_list_query_var( $query_vars['tag_slug__in'] ?? null ),
+				'tag_slug__and'       => self::normalize_list_query_var( $query_vars['tag_slug__and'] ?? null ),
+				'post_parent__in'     => self::normalize_list_query_var( $query_vars['post_parent__in'] ?? null ),
+				'post_parent__not_in' => self::normalize_list_query_var( $query_vars['post_parent__not_in'] ?? null ),
+				'author__in'          => self::normalize_list_query_var( $query_vars['author__in'] ?? null ),
+				'author__not_in'      => self::normalize_list_query_var( $query_vars['author__not_in'] ?? null ),
+				'search_columns'      => self::normalize_list_query_var( $query_vars['search_columns'] ?? null ),
+			)
 		);
+	}
 
-		foreach ( $keys as $key ) {
-			$query_vars[ $key ] ??= '';
+	/**
+	 * Normalizes the value of a query variable which takes a list of values to an array.
+	 *
+	 * An empty value becomes an empty array, a scalar value becomes an array containing that value,
+	 * an array has any values which are not scalar removed, and any other value becomes an empty array.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $value Query variable value.
+	 * @return array<scalar> Normalized value.
+	 */
+	private static function normalize_list_query_var( $value ): array {
+		if ( empty( $value ) ) {
+			return array();
+		} elseif ( is_scalar( $value ) ) {
+			return array( $value );
+		} elseif ( is_array( $value ) ) {
+			return array_filter( $value, 'is_scalar' );
+		} else {
+			return array();
+		}
+	}
+
+	/**
+	 * Normalizes the value of a query variable to a scalar or an array of scalars.
+	 *
+	 * A scalar value is kept as is, an array has any values which are not scalar removed,
+	 * and any other value becomes an empty array, so that it is still recognized as invalid
+	 * for query variables which take a single value. Whether an array is valid for the query
+	 * variable is left to {@see WP_Query::normalize_query_vars()}.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $value Query variable value.
+	 * @return scalar|array<scalar> Normalized value.
+	 */
+	private static function normalize_query_var_value( $value ) {
+		if ( is_scalar( $value ) ) {
+			return $value;
+		} elseif ( is_array( $value ) ) {
+			return array_filter( $value, 'is_scalar' );
+		} else {
+			return array();
+		}
+	}
+
+	/**
+	 * Normalizes the value of a query variable which takes a string or an array of strings.
+	 *
+	 * A scalar value becomes a string, an array has any values which are not scalar removed and
+	 * the rest converted to strings, and any other value becomes an empty string.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $value Query variable value.
+	 * @return string|string[] Normalized value.
+	 */
+	private static function normalize_string_or_array_query_var( $value ) {
+		if ( is_scalar( $value ) ) {
+			return (string) $value;
+		} elseif ( is_array( $value ) ) {
+			return array_map( 'strval', array_filter( $value, 'is_scalar' ) );
+		} else {
+			return '';
+		}
+	}
+
+	/**
+	 * Normalizes the values of query variables which take a single value.
+	 *
+	 * This runs in {@see WP_Query::parse_query()}, and again in {@see WP_Query::get_posts()}
+	 * after the {@see 'pre_get_posts'} action, so that values set by callbacks are normalized too.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array $query_vars Query variables, as filled by {@see WP_Query::fill_query_vars()}.
+	 * @return array Query variables with normalized values.
+	 *
+	 * @phpstan-param Filled_Query_Vars $query_vars
+	 * @phpstan-return Query_Vars
+	 */
+	private function normalize_query_vars( array $query_vars ): array {
+		// Array or comma-separated list of positive or negative integers.
+		if ( is_array( $query_vars['cat'] ) ) {
+			$query_vars['cat'] = implode( ',', $query_vars['cat'] );
 		}
 
-		$array_keys = array(
-			'category__in',
-			'category__not_in',
-			'category__and',
-			'post__in',
-			'post__not_in',
-			'post_name__in',
-			'tag__in',
-			'tag__not_in',
-			'tag__and',
-			'tag_slug__in',
-			'tag_slug__and',
-			'post_parent__in',
-			'post_parent__not_in',
-			'author__in',
-			'author__not_in',
-			'search_columns',
-		);
-
-		foreach ( $array_keys as $key ) {
-			$query_vars[ $key ] ??= array();
+		// Array or comma-separated (either) or plus-separated (all) list of tag slugs.
+		if ( is_array( $query_vars['tag'] ) ) {
+			$query_vars['tag'] = implode( ',', $query_vars['tag'] );
 		}
 
+		// A post type or status, or an array of them. These are only set when given.
+		if ( isset( $query_vars['post_type'] ) ) {
+			$query_vars['post_type'] = self::normalize_string_or_array_query_var( $query_vars['post_type'] );
+		}
+		if ( isset( $query_vars['post_status'] ) ) {
+			$query_vars['post_status'] = self::normalize_string_or_array_query_var( $query_vars['post_status'] );
+		}
+		if ( isset( $query_vars['post_mime_type'] ) ) {
+			$query_vars['post_mime_type'] = self::normalize_string_or_array_query_var( $query_vars['post_mime_type'] );
+		}
+
+		/*
+		 * A field to order by, a space-separated list of them, or an array of fields mapped to orders.
+		 * False is kept, since it blanks out the ORDER BY clause.
+		 */
+		if ( isset( $query_vars['orderby'] ) && false !== $query_vars['orderby'] ) {
+			$query_vars['orderby'] = self::normalize_string_or_array_query_var( $query_vars['orderby'] );
+		}
+
+		/*
+		 * Paging query vars which take a single value. These are only set when given, so any other
+		 * value is removed, as though it were not given. A page number is set to 0 instead, as before.
+		 */
+		if ( isset( $query_vars['page'] ) && ! is_scalar( $query_vars['page'] ) ) {
+			$query_vars['page'] = 0;
+		}
+		if ( isset( $query_vars['offset'] ) && ! is_scalar( $query_vars['offset'] ) ) {
+			unset( $query_vars['offset'] );
+		}
+		if ( isset( $query_vars['showposts'] ) && ! is_scalar( $query_vars['showposts'] ) ) {
+			unset( $query_vars['showposts'] );
+		}
+		if ( isset( $query_vars['posts_per_archive_page'] ) && ! is_scalar( $query_vars['posts_per_archive_page'] ) ) {
+			unset( $query_vars['posts_per_archive_page'] );
+		}
+
+		// Comment query vars which take a single value. These are only set when given, so any other value is removed.
+		if ( isset( $query_vars['withcomments'] ) && ! is_scalar( $query_vars['withcomments'] ) ) {
+			unset( $query_vars['withcomments'] );
+		}
+		if ( isset( $query_vars['withoutcomments'] ) && ! is_scalar( $query_vars['withoutcomments'] ) ) {
+			unset( $query_vars['withoutcomments'] );
+		}
+		if ( isset( $query_vars['comments_per_page'] ) && ! is_scalar( $query_vars['comments_per_page'] ) ) {
+			unset( $query_vars['comments_per_page'] );
+		}
+
+		// A taxonomy and a term slug in it. These are only set when given, so any other value is removed.
+		if ( isset( $query_vars['taxonomy'] ) && ! is_scalar( $query_vars['taxonomy'] ) ) {
+			unset( $query_vars['taxonomy'] );
+		}
+		if ( isset( $query_vars['term'] ) && ! is_scalar( $query_vars['term'] ) ) {
+			unset( $query_vars['term'] );
+		}
+
+		// Other query vars which take a single value. These are only set when given, so any other value is removed.
+		if ( isset( $query_vars['exact'] ) && ! is_scalar( $query_vars['exact'] ) ) {
+			unset( $query_vars['exact'] );
+		}
+		if ( isset( $query_vars['robots'] ) && ! is_scalar( $query_vars['robots'] ) ) {
+			unset( $query_vars['robots'] );
+		}
+		if ( isset( $query_vars['favicon'] ) && ! is_scalar( $query_vars['favicon'] ) ) {
+			unset( $query_vars['favicon'] );
+		}
+		if ( isset( $query_vars['perm'] ) && ! is_scalar( $query_vars['perm'] ) ) {
+			unset( $query_vars['perm'] );
+		}
+		if ( isset( $query_vars['order'] ) && ! is_scalar( $query_vars['order'] ) ) {
+			unset( $query_vars['order'] );
+		}
+
+		/*
+		 * A flag for random content, which is only checked for whether it is set. Rewrite rules set it
+		 * to '1', and a query string may set it to an empty string or an array. Any other value is
+		 * replaced with '1', so that random content is still requested.
+		 */
+		if ( isset( $query_vars['random'] ) && ! is_scalar( $query_vars['random'] ) ) {
+			$query_vars['random'] = '1';
+		}
+
+		/*
+		 * A date query, which is only set when given, so any value other than an array is removed.
+		 * The clauses are sanitized by WP_Date_Query, but the column, comparison operator, and relation
+		 * at its top level must be strings, so a scalar is converted to a string and any other value removed.
+		 */
+		if ( isset( $query_vars['date_query'] ) ) {
+			if ( ! is_array( $query_vars['date_query'] ) ) {
+				unset( $query_vars['date_query'] );
+			} else {
+				foreach ( array( 'column', 'compare', 'relation' ) as $key ) {
+					if ( ! isset( $query_vars['date_query'][ $key ] ) ) {
+						continue;
+					}
+					if ( is_scalar( $query_vars['date_query'][ $key ] ) ) {
+						$query_vars['date_query'][ $key ] = (string) $query_vars['date_query'][ $key ];
+					} else {
+						unset( $query_vars['date_query'][ $key ] );
+					}
+				}
+			}
+		}
+
+		$query_vars['error']         = is_scalar( $query_vars['error'] ) ? $query_vars['error'] : '';
+		$query_vars['post_parent']   = is_scalar( $query_vars['post_parent'] ) ? $query_vars['post_parent'] : '';
+		$query_vars['subpost']       = is_scalar( $query_vars['subpost'] ) ? $query_vars['subpost'] : '';
+		$query_vars['subpost_id']    = is_scalar( $query_vars['subpost_id'] ) ? $query_vars['subpost_id'] : '';
+		$query_vars['category_name'] = is_scalar( $query_vars['category_name'] ) ? $query_vars['category_name'] : '';
+		$query_vars['tag']           = is_scalar( $query_vars['tag'] ) ? (string) $query_vars['tag'] : '';
+		$query_vars['tag_id']        = is_scalar( $query_vars['tag_id'] ) ? $query_vars['tag_id'] : '';
+		$query_vars['tb']            = is_scalar( $query_vars['tb'] ) ? $query_vars['tb'] : '';
+		$query_vars['preview']       = is_scalar( $query_vars['preview'] ) ? $query_vars['preview'] : '';
+		$query_vars['sentence']      = is_scalar( $query_vars['sentence'] ) ? $query_vars['sentence'] : '';
+		$query_vars['fields']        = is_scalar( $query_vars['fields'] ) ? $query_vars['fields'] : '';
+		$query_vars['embed']         = is_scalar( $query_vars['embed'] ) ? $query_vars['embed'] : '';
+
+		$query_vars['p']           = is_scalar( $query_vars['p'] ) ? max( 0, (int) $query_vars['p'] ) : 0;
+		$query_vars['page_id']     = is_scalar( $query_vars['page_id'] ) ? absint( $query_vars['page_id'] ) : 0;
+		$query_vars['year']        = is_scalar( $query_vars['year'] ) ? absint( $query_vars['year'] ) : 0;
+		$query_vars['monthnum']    = is_scalar( $query_vars['monthnum'] ) ? absint( $query_vars['monthnum'] ) : 0;
+		$query_vars['day']         = is_scalar( $query_vars['day'] ) ? absint( $query_vars['day'] ) : 0;
+		$query_vars['w']           = is_scalar( $query_vars['w'] ) ? absint( $query_vars['w'] ) : 0;
+		$query_vars['m']           = is_scalar( $query_vars['m'] ) ? preg_replace( '|[^0-9]|', '', (string) $query_vars['m'] ) ?? '' : '';
+		$query_vars['paged']       = is_scalar( $query_vars['paged'] ) ? absint( $query_vars['paged'] ) : 0;
+		$query_vars['cat']         = is_scalar( $query_vars['cat'] ) ? preg_replace( '|[^0-9,-]|', '', (string) $query_vars['cat'] ) ?? '' : '';
+		$query_vars['author']      = is_scalar( $query_vars['author'] ) ? preg_replace( '|[^0-9,-]|', '', (string) $query_vars['author'] ) ?? '' : ''; // Comma-separated list of positive or negative integers.
+		$query_vars['pagename']    = is_scalar( $query_vars['pagename'] ) ? trim( (string) $query_vars['pagename'] ) : '';
+		$query_vars['name']        = is_scalar( $query_vars['name'] ) ? trim( (string) $query_vars['name'] ) : '';
+		$query_vars['title']       = is_scalar( $query_vars['title'] ) ? trim( (string) $query_vars['title'] ) : '';
+		$query_vars['feed']        = is_scalar( $query_vars['feed'] ) ? trim( (string) $query_vars['feed'] ) : '';
+		$query_vars['attachment']  = is_scalar( $query_vars['attachment'] ) ? $query_vars['attachment'] : '';
+		$query_vars['author_name'] = is_scalar( $query_vars['author_name'] ) ? $query_vars['author_name'] : '';
+
+		$query_vars['attachment_id'] = is_scalar( $query_vars['attachment_id'] ) ? absint( $query_vars['attachment_id'] ) : 0;
+
+		if ( is_scalar( $query_vars['hour'] ) && '' !== $query_vars['hour'] ) {
+			$query_vars['hour'] = absint( $query_vars['hour'] );
+		} else {
+			$query_vars['hour'] = '';
+		}
+
+		if ( is_scalar( $query_vars['minute'] ) && '' !== $query_vars['minute'] ) {
+			$query_vars['minute'] = absint( $query_vars['minute'] );
+		} else {
+			$query_vars['minute'] = '';
+		}
+
+		if ( is_scalar( $query_vars['second'] ) && '' !== $query_vars['second'] ) {
+			$query_vars['second'] = absint( $query_vars['second'] );
+		} else {
+			$query_vars['second'] = '';
+		}
+
+		if ( is_scalar( $query_vars['menu_order'] ) && '' !== $query_vars['menu_order'] ) {
+			$query_vars['menu_order'] = absint( $query_vars['menu_order'] );
+		} else {
+			$query_vars['menu_order'] = '';
+		}
+
+		// Fairly large, potentially too large, upper bound for search string lengths.
+		if ( ! is_scalar( $query_vars['s'] ) || strlen( (string) $query_vars['s'] ) > 1600 ) {
+			$query_vars['s'] = '';
+		}
+
+		/*
+		 * PHPStan cannot prove the types of the optional query vars, such as 'post_type', which are only
+		 * normalized when they are set. Since the query vars may have any other key, PHPStan loses track
+		 * of a key whenever one branch can leave it absent, and falls back to the mixed type of any other key.
+		 */
+		/** @var Query_Vars $query_vars */
 		return $query_vars;
 	}
 
@@ -846,52 +1268,7 @@ class WP_Query {
 		}
 
 		if ( ! is_scalar( $query_vars['p'] ) || (int) $query_vars['p'] < 0 ) {
-			$query_vars['p']     = 0;
 			$query_vars['error'] = '404';
-		} else {
-			$query_vars['p'] = (int) $query_vars['p'];
-		}
-
-		$query_vars['page_id']  = is_scalar( $query_vars['page_id'] ) ? absint( $query_vars['page_id'] ) : 0;
-		$query_vars['year']     = is_scalar( $query_vars['year'] ) ? absint( $query_vars['year'] ) : 0;
-		$query_vars['monthnum'] = is_scalar( $query_vars['monthnum'] ) ? absint( $query_vars['monthnum'] ) : 0;
-		$query_vars['day']      = is_scalar( $query_vars['day'] ) ? absint( $query_vars['day'] ) : 0;
-		$query_vars['w']        = is_scalar( $query_vars['w'] ) ? absint( $query_vars['w'] ) : 0;
-		$query_vars['m']        = is_scalar( $query_vars['m'] ) ? preg_replace( '|[^0-9]|', '', $query_vars['m'] ) : '';
-		$query_vars['paged']    = is_scalar( $query_vars['paged'] ) ? absint( $query_vars['paged'] ) : 0;
-		$query_vars['cat']      = preg_replace( '|[^0-9,-]|', '', $query_vars['cat'] ); // Array or comma-separated list of positive or negative integers.
-		$query_vars['author']   = is_scalar( $query_vars['author'] ) ? preg_replace( '|[^0-9,-]|', '', $query_vars['author'] ) : ''; // Comma-separated list of positive or negative integers.
-		$query_vars['pagename'] = is_scalar( $query_vars['pagename'] ) ? trim( $query_vars['pagename'] ) : '';
-		$query_vars['name']     = is_scalar( $query_vars['name'] ) ? trim( $query_vars['name'] ) : '';
-		$query_vars['title']    = is_scalar( $query_vars['title'] ) ? trim( $query_vars['title'] ) : '';
-
-		if ( is_scalar( $query_vars['hour'] ) && '' !== $query_vars['hour'] ) {
-			$query_vars['hour'] = absint( $query_vars['hour'] );
-		} else {
-			$query_vars['hour'] = '';
-		}
-
-		if ( is_scalar( $query_vars['minute'] ) && '' !== $query_vars['minute'] ) {
-			$query_vars['minute'] = absint( $query_vars['minute'] );
-		} else {
-			$query_vars['minute'] = '';
-		}
-
-		if ( is_scalar( $query_vars['second'] ) && '' !== $query_vars['second'] ) {
-			$query_vars['second'] = absint( $query_vars['second'] );
-		} else {
-			$query_vars['second'] = '';
-		}
-
-		if ( is_scalar( $query_vars['menu_order'] ) && '' !== $query_vars['menu_order'] ) {
-			$query_vars['menu_order'] = absint( $query_vars['menu_order'] );
-		} else {
-			$query_vars['menu_order'] = '';
-		}
-
-		// Fairly large, potentially too large, upper bound for search string lengths.
-		if ( ! is_scalar( $query_vars['s'] ) || ( ! empty( $query_vars['s'] ) && strlen( $query_vars['s'] ) > 1600 ) ) {
-			$query_vars['s'] = '';
 		}
 
 		// Compat. Map subpost to attachment.
@@ -902,7 +1279,7 @@ class WP_Query {
 			$query_vars['attachment_id'] = $query_vars['subpost_id'];
 		}
 
-		$query_vars['attachment_id'] = is_scalar( $query_vars['attachment_id'] ) ? absint( $query_vars['attachment_id'] ) : 0;
+		$query_vars = $this->normalize_query_vars( $query_vars );
 
 		if ( ( '' !== $query_vars['attachment'] ) || ! empty( $query_vars['attachment_id'] ) ) {
 			$this->is_single     = true;
@@ -1083,7 +1460,7 @@ class WP_Query {
 			if ( empty( $_query ) || ! array_diff( array_keys( $_query ), array( 'preview', 'page', 'paged', 'cpage' ) ) ) {
 				$this->is_page         = true;
 				$this->is_home         = false;
-				$query_vars['page_id'] = get_option( 'page_on_front' );
+				$query_vars['page_id'] = (int) get_option( 'page_on_front' );
 				// Correct <!--nextpage--> for 'page_on_front'.
 				if ( ! empty( $query_vars['paged'] ) ) {
 					$query_vars['page'] = $query_vars['paged'];
@@ -1197,6 +1574,10 @@ class WP_Query {
 	 * @since 3.1.0
 	 *
 	 * @param array $query_vars The query variables. Passed by reference.
+	 *
+	 * @phpstan-param Query_Vars $query_vars
+	 * @phpstan-param-out ($query_vars is Posts_Query_Vars ? Posts_Query_Vars : Query_Vars) $query_vars
+	 * @phpstan-assert WP_Tax_Query $this->tax_query
 	 */
 	public function parse_tax_query( &$query_vars ) {
 		if ( ! empty( $query_vars['tax_query'] ) && is_array( $query_vars['tax_query'] ) ) {
@@ -1225,7 +1606,17 @@ class WP_Query {
 				);
 
 				if ( is_string( $query_vars[ $t->query_var ] ) && ! empty( $t->rewrite['hierarchical'] ) ) {
-					$query_vars[ $t->query_var ] = wp_basename( $query_vars[ $t->query_var ] );
+					$query_vars[ $t->query_var ] = wp_basename( $query_vars[ $t->query_var ] ); // @phpstan-ignore paramOut.type (A non-empty string is replaced with a string, which keeps the type of any query var that can hold it.)
+
+					/*
+					 * PHPStan cannot prove that the taxonomy's query var name is not one of the query vars
+					 * declared in Query_Vars, such as 'p' or 'post__in', so it widens every declared query
+					 * var to also allow a string, and each later write would fail the param-out type. The
+					 * write only replaces a non-empty string with a string, so the declared types still
+					 * hold: a query var which cannot be a non-empty string, such as 'p' (an integer) or
+					 * 'post__in' (an array), never reaches this write.
+					 */
+					/** @var Query_Vars $query_vars */
 				}
 
 				$term = $query_vars[ $t->query_var ];
@@ -1259,9 +1650,7 @@ class WP_Query {
 		}
 
 		// If query string 'cat' is an array, implode it.
-		if ( is_array( $query_vars['cat'] ) ) {
-			$query_vars['cat'] = implode( ',', $query_vars['cat'] );
-		}
+		$query_vars['cat'] = is_array( $query_vars['cat'] ) ? implode( ',', $query_vars['cat'] ) : $query_vars['cat'];
 
 		// Category stuff.
 
@@ -1307,7 +1696,7 @@ class WP_Query {
 			$query_vars['category__and']  = (array) $query_vars['category__and'];
 			$query_vars['category__in'] ??= array();
 			$query_vars['category__in'][] = absint( reset( $query_vars['category__and'] ) );
-			unset( $query_vars['category__and'] );
+			$query_vars['category__and']  = array();
 		}
 
 		if ( ! empty( $query_vars['category__in'] ) ) {
@@ -1345,9 +1734,7 @@ class WP_Query {
 		}
 
 		// If query string 'tag' is array, implode it.
-		if ( is_array( $query_vars['tag'] ) ) {
-			$query_vars['tag'] = implode( ',', $query_vars['tag'] );
-		}
+		$query_vars['tag'] = is_array( $query_vars['tag'] ) ? implode( ',', $query_vars['tag'] ) : $query_vars['tag'];
 
 		// Tag stuff.
 
@@ -1356,18 +1743,29 @@ class WP_Query {
 				// @todo Handle normalizing `tag` query string.
 				$tags = preg_split( '/[,\r\n\t ]+/', $query_vars['tag'] );
 				foreach ( (array) $tags as $tag ) {
-					$tag                          = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
-					$query_vars['tag_slug__in'][] = $tag;
+					$tag = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
+
+					// A filter on the slug may return any type, but only a scalar is a valid slug.
+					if ( is_scalar( $tag ) ) {
+						$query_vars['tag_slug__in'][] = $tag;
+					}
 					sort( $query_vars['tag_slug__in'] );
 				}
 			} elseif ( preg_match( '/[+\r\n\t ]+/', $query_vars['tag'] ) || ! empty( $query_vars['cat'] ) ) {
 				$tags = preg_split( '/[+\r\n\t ]+/', $query_vars['tag'] );
 				foreach ( (array) $tags as $tag ) {
-					$tag                           = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
-					$query_vars['tag_slug__and'][] = $tag;
+					$tag = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
+
+					// A filter on the slug may return any type, but only a scalar is a valid slug.
+					if ( is_scalar( $tag ) ) {
+						$query_vars['tag_slug__and'][] = $tag;
+					}
 				}
 			} else {
-				$query_vars['tag']            = sanitize_term_field( 'slug', $query_vars['tag'], 0, 'post_tag', 'db' );
+				$tag = sanitize_term_field( 'slug', $query_vars['tag'], 0, 'post_tag', 'db' );
+
+				// A filter on the slug may return any type, but only a scalar is a valid slug.
+				$query_vars['tag']            = is_scalar( $tag ) ? (string) $tag : '';
 				$query_vars['tag_slug__in'][] = $query_vars['tag'];
 				sort( $query_vars['tag_slug__in'] );
 			}
@@ -1452,6 +1850,9 @@ class WP_Query {
 	 *
 	 * @param array $query_vars Query variables.
 	 * @return string WHERE clause.
+	 *
+	 * @phpstan-param Posts_Query_Vars $query_vars
+	 * @phpstan-param-out Posts_Query_Vars $query_vars
 	 */
 	protected function parse_search( &$query_vars ) {
 		global $wpdb;
@@ -1459,7 +1860,7 @@ class WP_Query {
 		$search = '';
 
 		// Added slashes screw with quote grouping when done early, so done later.
-		$query_vars['s'] = stripslashes( $query_vars['s'] );
+		$query_vars['s'] = stripslashes( (string) $query_vars['s'] );
 		if ( empty( $_GET['s'] ) && $this->is_main_query() ) {
 			$query_vars['s'] = urldecode( $query_vars['s'] );
 		}
@@ -1484,6 +1885,7 @@ class WP_Query {
 		$n                                  = ! empty( $query_vars['exact'] ) ? '' : '%';
 		$searchand                          = '';
 		$query_vars['search_orderby_title'] = array();
+		$search_orderby_title               = array();
 
 		$default_search_columns = array( 'post_title', 'post_excerpt', 'post_content' );
 		$search_columns         = ! empty( $query_vars['search_columns'] ) ? $query_vars['search_columns'] : $default_search_columns;
@@ -1534,8 +1936,8 @@ class WP_Query {
 			}
 
 			if ( $n && ! $exclude ) {
-				$like                                 = '%' . $wpdb->esc_like( $term ) . '%';
-				$query_vars['search_orderby_title'][] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
+				$like                   = '%' . $wpdb->esc_like( $term ) . '%';
+				$search_orderby_title[] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
 			}
 
 			$like = $n . $wpdb->esc_like( $term ) . $n;
@@ -1553,6 +1955,8 @@ class WP_Query {
 
 			$searchand = ' AND ';
 		}
+
+		$query_vars['search_orderby_title'] = $search_orderby_title;
 
 		if ( ! empty( $search ) ) {
 			$search = " AND ({$search}) ";
@@ -1658,17 +2062,27 @@ class WP_Query {
 	 *
 	 * @param array $query_vars Query variables.
 	 * @return string ORDER BY clause.
+	 *
+	 * @phpstan-param Posts_Query_Vars $query_vars
+	 * @phpstan-param-out Posts_Query_Vars $query_vars
 	 */
 	protected function parse_search_order( &$query_vars ) {
 		global $wpdb;
 
-		if ( $query_vars['search_terms_count'] > 1 ) {
-			$num_terms = count( $query_vars['search_orderby_title'] );
+		// These are set by WP_Query::parse_search().
+		$search_terms_count   = $query_vars['search_terms_count'] ?? 0;
+		$search_terms_count   = is_int( $search_terms_count ) ? $search_terms_count : 0;
+		$search_orderby_title = $query_vars['search_orderby_title'] ?? array();
+		$search_orderby_title = is_array( $search_orderby_title ) ? array_filter( $search_orderby_title, 'is_string' ) : array();
+		$search               = (string) $query_vars['s'];
+
+		if ( $search_terms_count > 1 ) {
+			$num_terms = count( $search_orderby_title );
 
 			// If the search terms contain negative queries, don't bother ordering by sentence matches.
 			$like = '';
-			if ( ! preg_match( '/(?:\s|^)\-/', $query_vars['s'] ) ) {
-				$like = '%' . $wpdb->esc_like( $query_vars['s'] ) . '%';
+			if ( ! preg_match( '/(?:\s|^)\-/', $search ) ) {
+				$like = '%' . $wpdb->esc_like( $search ) . '%';
 			}
 
 			$search_orderby = '';
@@ -1684,10 +2098,10 @@ class WP_Query {
 			 */
 			if ( $num_terms < 7 ) {
 				// All words in title.
-				$search_orderby .= 'WHEN ' . implode( ' AND ', $query_vars['search_orderby_title'] ) . ' THEN 2 ';
+				$search_orderby .= 'WHEN ' . implode( ' AND ', $search_orderby_title ) . ' THEN 2 ';
 				// Any word in title, not needed when $num_terms == 1.
 				if ( $num_terms > 1 ) {
-					$search_orderby .= 'WHEN ' . implode( ' OR ', $query_vars['search_orderby_title'] ) . ' THEN 3 ';
+					$search_orderby .= 'WHEN ' . implode( ' OR ', $search_orderby_title ) . ' THEN 3 ';
 				}
 			}
 
@@ -1702,7 +2116,7 @@ class WP_Query {
 			}
 		} else {
 			// Single word or sentence search.
-			$search_orderby = reset( $query_vars['search_orderby_title'] ) . ' DESC';
+			$search_orderby = reset( $search_orderby_title ) . ' DESC';
 		}
 
 		return $search_orderby;
@@ -1845,6 +2259,9 @@ class WP_Query {
 	 *
 	 * @param string $order The 'order' query variable.
 	 * @return string The sanitized 'order' query variable.
+	 *
+	 * @phpstan-param mixed $order
+	 * @phpstan-return 'ASC'|'DESC'
 	 */
 	protected function parse_order( $order ) {
 		if ( ! is_string( $order ) || empty( $order ) ) {
@@ -1946,8 +2363,8 @@ class WP_Query {
 		// Locally scoped reference for easy of use.
 		$query_vars = &$this->query_vars;
 
-		// Fill again in case 'pre_get_posts' unset some vars.
-		$query_vars = $this->fill_query_vars( $query_vars );
+		// Fill and normalize again in case 'pre_get_posts' unset or changed some vars.
+		$query_vars = $this->normalize_query_vars( $this->fill_query_vars( $query_vars ) );
 
 		/**
 		 * Filters whether an attachment query should include filenames or not.
@@ -1998,19 +2415,24 @@ class WP_Query {
 			$query_vars['ignore_sticky_posts'] ??= $query_vars['caller_get_posts'];
 		}
 
-		$query_vars['ignore_sticky_posts']    ??= false;
-		$query_vars['suppress_filters']       ??= false;
-		$query_vars['cache_results']          ??= true;
-		$query_vars['update_post_term_cache'] ??= true;
-		$query_vars['update_menu_item_cache'] ??= false;
+		$query_vars['ignore_sticky_posts']    = (bool) ( $query_vars['ignore_sticky_posts'] ?? false );
+		$query_vars['suppress_filters']       = (bool) ( $query_vars['suppress_filters'] ?? false );
+		$query_vars['cache_results']          = (bool) ( $query_vars['cache_results'] ?? true );
+		$query_vars['update_post_term_cache'] = (bool) ( $query_vars['update_post_term_cache'] ?? true );
+		$query_vars['update_menu_item_cache'] = (bool) ( $query_vars['update_menu_item_cache'] ?? false );
 
 		if ( ! isset( $query_vars['lazy_load_term_meta'] ) ) {
 			$query_vars['lazy_load_term_meta'] = $query_vars['update_post_term_cache'];
-		} elseif ( $query_vars['lazy_load_term_meta'] ) { // Lazy loading term meta only works if term caches are primed.
-			$query_vars['update_post_term_cache'] = true;
+		} else {
+			$query_vars['lazy_load_term_meta'] = (bool) $query_vars['lazy_load_term_meta'];
+
+			// Lazy loading term meta only works if term caches are primed.
+			if ( $query_vars['lazy_load_term_meta'] ) {
+				$query_vars['update_post_term_cache'] = true;
+			}
 		}
 
-		$query_vars['update_post_meta_cache'] ??= true;
+		$query_vars['update_post_meta_cache'] = (bool) ( $query_vars['update_post_meta_cache'] ?? true );
 
 		if ( ! isset( $query_vars['post_type'] ) ) {
 			if ( $this->is_search ) {
@@ -2036,6 +2458,8 @@ class WP_Query {
 			} else {
 				$query_vars['nopaging'] = false;
 			}
+		} else {
+			$query_vars['nopaging'] = (bool) $query_vars['nopaging'];
 		}
 
 		if ( $this->is_feed ) {
@@ -2062,11 +2486,11 @@ class WP_Query {
 		if ( $this->is_home && ( empty( $this->query ) || 'true' === $query_vars['preview'] ) && ( 'page' === get_option( 'show_on_front' ) ) && get_option( 'page_on_front' ) ) {
 			$this->is_page         = true;
 			$this->is_home         = false;
-			$query_vars['page_id'] = get_option( 'page_on_front' );
+			$query_vars['page_id'] = (int) get_option( 'page_on_front' );
 		}
 
 		if ( isset( $query_vars['page'] ) ) {
-			$query_vars['page'] = is_scalar( $query_vars['page'] ) ? absint( trim( $query_vars['page'], '/' ) ) : 0;
+			$query_vars['page'] = is_scalar( $query_vars['page'] ) ? absint( trim( (string) $query_vars['page'], '/' ) ) : 0;
 		}
 
 		// If true, forcibly turns off SQL_CALC_FOUND_ROWS even when limits are present.
@@ -2173,11 +2597,15 @@ class WP_Query {
 
 				if ( ! $ptype_obj->hierarchical ) {
 					// Non-hierarchical post types can directly use 'name'.
-					$query_vars['name'] = $query_vars[ $ptype_obj->query_var ];
+					$query_vars['name'] = is_scalar( $query_vars[ $ptype_obj->query_var ] )
+						? (string) $query_vars[ $ptype_obj->query_var ]
+						: '';
 				} else {
 					// Hierarchical post types will operate through 'pagename'.
-					$query_vars['pagename'] = $query_vars[ $ptype_obj->query_var ];
-					$query_vars['name']     = '';
+					if ( is_scalar( $query_vars[ $ptype_obj->query_var ] ) ) {
+						$query_vars['pagename'] = (string) $query_vars[ $ptype_obj->query_var ];
+					}
+					$query_vars['name'] = '';
 				}
 
 				// Only one request for a slug is possible, this is why name & pagename are overwritten above.
@@ -2295,7 +2723,7 @@ class WP_Query {
 		}
 
 		// If a search pattern is specified, load the posts that match.
-		if ( strlen( $query_vars['s'] ) ) {
+		if ( strlen( (string) $query_vars['s'] ) ) {
 			$search = $this->parse_search( $query_vars );
 		}
 
@@ -2359,7 +2787,7 @@ class WP_Query {
 			 */
 			if ( ! isset( $query_vars['taxonomy'] ) ) {
 				foreach ( $this->tax_query->queried_terms as $queried_taxonomy => $queried_items ) {
-					if ( empty( $queried_items['terms'][0] ) ) {
+					if ( empty( $queried_items['terms'][0] ) || ! is_scalar( $queried_items['terms'][0] ) ) {
 						continue;
 					}
 
@@ -2410,8 +2838,9 @@ class WP_Query {
 		// Author/user stuff.
 
 		if ( ! empty( $query_vars['author'] ) && '0' != $query_vars['author'] ) {
-			$query_vars['author'] = wp_slash( '' . urldecode( $query_vars['author'] ) );
-			$authors              = array_unique( array_map( 'intval', preg_split( '/[,\s]+/', $query_vars['author'] ) ) );
+			$query_vars['author'] = wp_slash( urldecode( (string) $query_vars['author'] ) );
+			$authors              = preg_split( '/[,\s]+/', $query_vars['author'] );
+			$authors              = array_unique( array_map( 'intval', false !== $authors ? $authors : array() ) );
 			sort( $authors );
 			foreach ( $authors as $author ) {
 				$key                  = $author > 0 ? 'author__in' : 'author__not_in';
@@ -2443,6 +2872,8 @@ class WP_Query {
 		// Author stuff for nice URLs.
 
 		if ( '' !== $query_vars['author_name'] ) {
+			// It is sanitized as a string below anyway.
+			$query_vars['author_name'] = (string) $query_vars['author_name'];
 			if ( str_contains( $query_vars['author_name'], '/' ) ) {
 				$author_name_parts = explode( '/', $query_vars['author_name'] );
 				$last_part         = array_last( $author_name_parts );
@@ -2454,38 +2885,45 @@ class WP_Query {
 				}
 			}
 			$query_vars['author_name'] = sanitize_title_for_query( $query_vars['author_name'] );
-			$query_vars['author']      = get_user_by( 'slug', $query_vars['author_name'] );
-			if ( $query_vars['author'] ) {
-				$query_vars['author'] = $query_vars['author']->ID;
-			}
+			$author_user               = get_user_by( 'slug', $query_vars['author_name'] );
+			$query_vars['author']      = $author_user ? $author_user->ID : false;
+			unset( $author_user );
 			$whichauthor .= " AND ({$wpdb->posts}.post_author = " . absint( $query_vars['author'] ) . ')';
 		}
 
 		// Matching by comment count.
 		if ( isset( $query_vars['comment_count'] ) ) {
+			$comment_count = $query_vars['comment_count'];
+
 			// Numeric comment count is converted to array format.
-			if ( is_numeric( $query_vars['comment_count'] ) ) {
-				$query_vars['comment_count'] = array(
-					'value' => (int) $query_vars['comment_count'],
+			if ( is_numeric( $comment_count ) ) {
+				$comment_count = array(
+					'value' => (int) $comment_count,
 				);
 			}
 
-			if ( isset( $query_vars['comment_count']['value'] ) ) {
-				$query_vars['comment_count'] = array_merge(
+			if ( is_array( $comment_count ) && isset( $comment_count['value'] ) ) {
+				$comment_count_value = $comment_count['value'];
+
+				$comment_count = array_merge(
 					array(
 						'compare' => '=',
 					),
-					$query_vars['comment_count']
+					$comment_count
 				);
 
 				// Fallback for invalid compare operators is '='.
 				$compare_operators = array( '=', '!=', '>', '>=', '<', '<=' );
-				if ( ! in_array( $query_vars['comment_count']['compare'], $compare_operators, true ) ) {
-					$query_vars['comment_count']['compare'] = '=';
+				if ( ! in_array( $comment_count['compare'], $compare_operators, true ) ) {
+					$comment_count['compare'] = '=';
 				}
 
-				$where .= $wpdb->prepare( " AND {$wpdb->posts}.comment_count {$query_vars['comment_count']['compare']} %d", $query_vars['comment_count']['value'] );
+				$where .= $wpdb->prepare( " AND {$wpdb->posts}.comment_count {$comment_count['compare']} %d", $comment_count_value );
+				unset( $comment_count_value );
 			}
+
+			$query_vars['comment_count'] = $comment_count;
+			unset( $comment_count );
 		}
 
 		// MIME-Type stuff for attachment browsing.
@@ -2501,8 +2939,12 @@ class WP_Query {
 
 		if ( ! empty( $this->meta_query->queries ) ) {
 			$clauses = $this->meta_query->get_sql( 'post', $wpdb->posts, 'ID', $this );
-			$join   .= $clauses['join'];
-			$where  .= $clauses['where'];
+
+			// This is only false when there is no meta table for the type, and posts always have one.
+			if ( false !== $clauses ) {
+				$join  .= $clauses['join'];
+				$where .= $clauses['where'];
+			}
 		}
 
 		$rand = ( isset( $query_vars['orderby'] ) && 'rand' === $query_vars['orderby'] );
@@ -2535,7 +2977,7 @@ class WP_Query {
 			$orderby_array = array();
 			if ( is_array( $query_vars['orderby'] ) ) {
 				foreach ( $query_vars['orderby'] as $_orderby => $order ) {
-					$orderby = wp_slash( urldecode( $_orderby ) );
+					$orderby = wp_slash( urldecode( (string) $_orderby ) );
 					$parsed  = $this->parse_orderby( $orderby );
 
 					if ( ! $parsed ) {
@@ -2550,7 +2992,7 @@ class WP_Query {
 				$query_vars['orderby'] = urldecode( $query_vars['orderby'] );
 				$query_vars['orderby'] = wp_slash( $query_vars['orderby'] );
 
-				foreach ( explode( ' ', $query_vars['orderby'] ) as $i => $orderby ) {
+				foreach ( explode( ' ', $query_vars['orderby'] ) as $orderby ) {
 					$parsed = $this->parse_orderby( $orderby );
 					// Only allow certain values for safety.
 					if ( ! $parsed ) {
@@ -2597,7 +3039,8 @@ class WP_Query {
 			$post_type_cap = 'multiple_post_type';
 		} else {
 			if ( is_array( $post_type ) ) {
-				$post_type = reset( $post_type );
+				// An empty array yields false, which is cast to an empty string.
+				$post_type = (string) reset( $post_type );
 			}
 			$post_type_object = get_post_type_object( $post_type );
 			if ( empty( $post_type_object ) ) {
@@ -2922,11 +3365,8 @@ class WP_Query {
 				$comment_ids = $wpdb->get_col( $comments_request );
 				wp_cache_set_salted( $cache_key, $comment_ids, 'comment-queries', $last_changed );
 			}
-			_prime_comment_caches( $comment_ids );
-
 			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
-			$this->comments      = array_map( 'get_comment', $comment_ids );
+			$this->comments      = self::get_comments_by_ids( $comment_ids );
 			$this->comment_count = count( $this->comments );
 
 			$post_ids = array();
@@ -3291,14 +3731,20 @@ class WP_Query {
 			if ( null === $this->posts ) {
 				$cached_results = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 
-				if ( $cached_results ) {
+				// Ignore a cached value which does not have the shape that is cached below.
+				if (
+					is_array( $cached_results )
+					&& isset( $cached_results['posts'], $cached_results['found_posts'], $cached_results['max_num_pages'] )
+					&& is_array( $cached_results['posts'] )
+					&& is_numeric( $cached_results['found_posts'] )
+					&& is_numeric( $cached_results['max_num_pages'] )
+				) {
 					$cache_found = true;
-					/** @var int[] */
-					$post_ids = array_map( 'intval', $cached_results['posts'] );
+					$post_ids    = array_map( 'intval', array_values( array_filter( $cached_results['posts'], 'is_scalar' ) ) );
 
 					$this->post_count    = count( $post_ids );
-					$this->found_posts   = $cached_results['found_posts'];
-					$this->max_num_pages = $cached_results['max_num_pages'];
+					$this->found_posts   = max( 0, (int) $cached_results['found_posts'] );
+					$this->max_num_pages = max( 0, (int) $cached_results['max_num_pages'] );
 
 					if ( 'ids' === $query_vars['fields'] ) {
 						$this->posts = $post_ids;
@@ -3331,18 +3777,17 @@ class WP_Query {
 						return $post_parents;
 					} else {
 						_prime_post_caches( $post_ids, $query_vars['update_post_term_cache'], $query_vars['update_post_meta_cache'] );
-						/** @var WP_Post[] */
-						$this->posts = array_map( 'get_post', $post_ids );
+						$this->posts = self::convert_to_post_objects( $post_ids );
 					}
 				}
 			}
 		}
 
 		if ( 'ids' === $query_vars['fields'] ) {
-			$this->posts ??= $wpdb->get_col( $this->request );
+			$post_ids = $this->posts ?? $wpdb->get_col( $this->request );
 
-			/** @var int[] */
-			$this->posts      = array_map( 'intval', $this->posts );
+			// Only a scalar is a valid post ID.
+			$this->posts      = array_map( 'intval', array_values( array_filter( $post_ids, 'is_scalar' ) ) );
 			$this->post_count = count( $this->posts );
 			$this->set_found_posts( $query_vars, $limits );
 
@@ -3360,25 +3805,32 @@ class WP_Query {
 		}
 
 		if ( 'id=>parent' === $query_vars['fields'] ) {
-			$this->posts ??= $wpdb->get_results( $this->request );
+			$posts = $this->posts ?? $wpdb->get_results( $this->request );
 
-			$this->post_count = count( $this->posts );
-			$this->set_found_posts( $query_vars, $limits );
-
-			/** @var int[] */
+			$this->posts        = array();
 			$post_parents       = array();
 			$post_ids           = array();
 			$post_parents_cache = array();
 
-			foreach ( $this->posts as $key => $post ) {
-				$this->posts[ $key ]->ID          = (int) $post->ID;
-				$this->posts[ $key ]->post_parent = (int) $post->post_parent;
+			foreach ( is_array( $posts ) ? $posts : array() as $post ) {
+				// Only an object with an ID is a valid post.
+				if ( ! ( $post instanceof stdClass || $post instanceof WP_Post ) || ! isset( $post->ID ) ) {
+					continue;
+				}
 
-				$post_parents[ (int) $post->ID ] = (int) $post->post_parent;
-				$post_ids[]                      = (int) $post->ID;
+				$post->ID          = (int) $post->ID;
+				$post->post_parent = (int) ( $post->post_parent ?? 0 );
+				$this->posts[]     = $post;
 
-				$post_parents_cache[ 'post_parent:' . (string) $post->ID ] = (int) $post->post_parent;
+				$post_parents[ $post->ID ] = $post->post_parent;
+				$post_ids[]                = $post->ID;
+
+				$post_parents_cache[ 'post_parent:' . $post->ID ] = $post->post_parent;
 			}
+			unset( $posts );
+
+			$this->post_count = count( $this->posts );
+			$this->set_found_posts( $query_vars, $limits );
 			// Prime post parent caches, so that on second run, there is not another database query.
 			wp_cache_add_multiple( $post_parents_cache, 'posts' );
 
@@ -3456,6 +3908,7 @@ class WP_Query {
 				$this->request = apply_filters( 'posts_request_ids', $this->request, $this );
 
 				$post_ids = $wpdb->get_col( $this->request );
+				$post_ids = array_map( 'intval', array_filter( $post_ids, 'is_scalar' ) );
 
 				if ( $post_ids ) {
 					$this->posts = $post_ids;
@@ -3471,15 +3924,12 @@ class WP_Query {
 		}
 
 		// Convert to WP_Post objects.
-		if ( $this->posts ) {
-			/** @var WP_Post[] */
-			$this->posts = array_map( 'get_post', $this->posts );
-		}
+		$this->posts = is_array( $this->posts ) ? self::convert_to_post_objects( $this->posts ) : array();
 
 		$unfiltered_posts = $this->posts;
 
 		if ( $query_vars['cache_results'] && $id_query_is_cacheable && ! $cache_found ) {
-			$post_ids = wp_list_pluck( $this->posts, 'ID' );
+			$post_ids = wp_list_pluck( $this->posts ?? array(), 'ID' );
 
 			$cache_value = array(
 				'posts'         => $post_ids,
@@ -3500,11 +3950,15 @@ class WP_Query {
 			 * @param WP_Query  $query The WP_Query instance (passed by reference).
 			 */
 			$this->posts = apply_filters_ref_array( 'posts_results', array( $this->posts, &$this ) );
+
+			// Ensure that any posts added or modified by the filter are WP_Post objects.
+			$this->posts = is_array( $this->posts ) ? self::convert_to_post_objects( $this->posts ) : array();
 		}
 
 		// Check post status to determine if post should be displayed.
 		if ( ! empty( $this->posts ) && ( $this->is_single || $this->is_page ) ) {
-			$status = get_post_status( $this->posts[0] );
+			// This is only false for a value which is not a post, for which no status object exists.
+			$status = (string) get_post_status( $this->posts[0] );
 
 			if ( 'attachment' === $this->posts[0]->post_type && 0 === (int) $this->posts[0]->post_parent ) {
 				$this->is_page       = false;
@@ -3556,7 +4010,11 @@ class WP_Query {
 				 * @param WP_Post  $post_preview  The Post object.
 				 * @param WP_Query $query         The WP_Query instance (passed by reference).
 				 */
-				$this->posts[0] = get_post( apply_filters_ref_array( 'the_preview', array( $this->posts[0], &$this ) ) );
+				$preview_post = apply_filters_ref_array( 'the_preview', array( $this->posts[0], &$this ) );
+
+				// Replace the first post with the preview, or remove it if the preview is not a post.
+				$this->posts = array_merge( self::convert_to_post_objects( array( $preview_post ) ), array_slice( $this->posts, 1 ) );
+				unset( $preview_post );
 			}
 		}
 
@@ -3592,17 +4050,15 @@ class WP_Query {
 				$comment_ids = $wpdb->get_col( $comments_request );
 				wp_cache_set_salted( $comment_cache_key, $comment_ids, 'comment-queries', $comment_last_changed );
 			}
-			_prime_comment_caches( $comment_ids );
-
 			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
-			$this->comments      = array_map( 'get_comment', $comment_ids );
+			$this->comments      = self::get_comments_by_ids( $comment_ids );
 			$this->comment_count = count( $this->comments );
 		}
 
 		// Put sticky posts at the top of the posts array.
 		$sticky_posts = get_option( 'sticky_posts' );
-		if ( $this->is_home && $page <= 1 && is_array( $sticky_posts ) && ! empty( $sticky_posts ) && ! $query_vars['ignore_sticky_posts'] ) {
+		$sticky_posts = is_array( $sticky_posts ) ? array_map( 'intval', array_filter( $sticky_posts, 'is_scalar' ) ) : array();
+		if ( $this->is_home && $page <= 1 && ! empty( $sticky_posts ) && ! $query_vars['ignore_sticky_posts'] ) {
 			$num_posts     = count( $this->posts );
 			$sticky_offset = 0;
 			// Loop over posts and relocate stickies to the front.
@@ -3666,23 +4122,26 @@ class WP_Query {
 		 * Ensure that any posts added/modified via one of the filters above are
 		 * of the type WP_Post and are filtered.
 		 */
+		$this->posts = is_array( $this->posts ) ? self::convert_to_post_objects( $this->posts ) : array();
+
 		if ( $this->posts ) {
 			$this->post_count = count( $this->posts );
-
-			/** @var WP_Post[] */
-			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $query_vars['cache_results'] ) {
 				if ( $is_unfiltered_query && $unfiltered_posts === $this->posts ) {
 					update_post_caches( $this->posts, $post_type, $query_vars['update_post_term_cache'], $query_vars['update_post_meta_cache'] );
 				} else {
-					$post_ids = wp_list_pluck( $this->posts, 'ID' );
+					$post_ids = array_map(
+						static function ( WP_Post $post ): int {
+							return $post->ID;
+						},
+						$this->posts
+					);
 					_prime_post_caches( $post_ids, $query_vars['update_post_term_cache'], $query_vars['update_post_meta_cache'] );
 				}
 			}
 
-			/** @var WP_Post */
-			$this->post = reset( $this->posts );
+			$this->post = $this->posts[0];
 		} else {
 			$this->post_count = 0;
 			$this->posts      = array();
@@ -3700,6 +4159,68 @@ class WP_Query {
 	}
 
 	/**
+	 * Converts posts to `WP_Post` objects.
+	 *
+	 * Each post ID, numeric string, or object is passed to {@see get_post()}. Any other value, and any
+	 * value which does not resolve to a post, is removed, and the array is reindexed.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $posts Post objects or IDs.
+	 * @return list<WP_Post> Post objects.
+	 */
+	private static function convert_to_post_objects( array $posts ): array {
+		$post_objects = array();
+		foreach ( $posts as $post ) {
+			if ( is_numeric( $post ) ) {
+				$post = get_post( (int) $post );
+			} elseif ( is_object( $post ) ) {
+				$post = get_post( $post );
+			} else {
+				continue;
+			}
+
+			if ( $post instanceof WP_Post ) {
+				$post_objects[] = $post;
+			}
+		}
+		return $post_objects;
+	}
+
+	/**
+	 * Gets comment objects for comment IDs, priming the comment caches.
+	 *
+	 * Any value which is not a numeric comment ID, and any ID which does not resolve to a comment,
+	 * is removed.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $comment_ids Comment IDs, as queried or as cached.
+	 * @return list<WP_Comment> Comment objects.
+	 */
+	private static function get_comments_by_ids( $comment_ids ): array {
+		$ids = array();
+		if ( is_array( $comment_ids ) ) {
+			foreach ( $comment_ids as $comment_id ) {
+				if ( is_numeric( $comment_id ) ) {
+					$ids[] = (int) $comment_id;
+				}
+			}
+		}
+
+		_prime_comment_caches( $ids );
+
+		$comments = array();
+		foreach ( $ids as $comment_id ) {
+			$comment = get_comment( $comment_id );
+			if ( $comment instanceof WP_Comment ) {
+				$comments[] = $comment;
+			}
+		}
+		return $comments;
+	}
+
+	/**
 	 * Sets up the amount of found posts and the number of pages (if limit clause was used)
 	 * for the current query.
 	 *
@@ -3709,6 +4230,8 @@ class WP_Query {
 	 *
 	 * @param array  $query_vars Query variables.
 	 * @param string $limits     LIMIT clauses of the query.
+	 *
+	 * @phpstan-param Posts_Query_Vars $query_vars
 	 */
 	private function set_found_posts( $query_vars, $limits ) {
 		global $wpdb;

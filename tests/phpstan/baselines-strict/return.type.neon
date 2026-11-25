@@ -23,3 +23,23 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: ../../../src/wp-includes/abilities-api/class-wp-ability-categories-registry.php
+		-
+			message: '#^Method WP_Query\:\:fill_query_vars\(\) should return array\{error\: array\<bool\|float\|int\|string\>\|bool\|float\|int\|string, m\: array\<bool\|float\|int\|string\>\|bool\|float\|int\|string, p\: array\<bool\|float\|int\|string\>\|bool\|float\|int\|string, post_parent\: array\<bool\|float\|int\|string\>\|bool\|float\|int\|string, subpost\: array\<bool\|float\|int\|string\>\|bool\|float\|int\|string, subpost_id\: array\<bool\|float\|int\|string\>\|bool\|float\|int\|string, attachment\: array\<bool\|float\|int\|string\>\|bool\|float\|int\|string, attachment_id\: array\<bool\|float\|int\|string\>\|bool\|float\|int\|string, \.\.\., \.\.\.\<mixed\>\} but returns non\-empty\-array\<mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:get_queried_object\(\) should return WP_Post\|WP_Post_Type\|WP_Term\|WP_User\|null but returns array\|object\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:get_search_stopwords\(\) should return array\<string\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:next_post\(\) should return WP_Post but returns int\|stdClass\|WP_Post\.$#'
+			identifier: return.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php

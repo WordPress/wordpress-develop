@@ -44,6 +44,56 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ai-client.php
 		-
+			message: '#^Method WP_Query\:\:__call\(\) has parameter \$arguments with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:__construct\(\) has parameter \$query with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:generate_cache_key\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:generate_postdata\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:parse_query\(\) has parameter \$query with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Method WP_Query\:\:query\(\) has parameter \$query with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^PHPDoc tag @var for variable \$pages has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Property WP_Query\:\:\$query type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Property WP_Query\:\:\$query_vars type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
+			message: '#^Property WP_Query\:\:\$stopwords type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: ../../../src/wp-includes/class-wp-query.php
+		-
 			message: '#^Method WP_Style_Engine_CSS_Declarations\:\:get_declaration_options\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
