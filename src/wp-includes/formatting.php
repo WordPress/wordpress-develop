@@ -436,6 +436,7 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
  * after conversion become `<br />` tags, unless `$br` is set to '0' or 'false'.
  *
  * @since 0.71
+ * @since 7.3.0 Shortcodes listed by the {@see 'no_autop_shortcodes'} filter are left untouched.
  *
  * @param string $text The text which has to be formatted.
  * @param bool   $br   Optional. If set, this will convert all remaining line breaks
@@ -444,7 +445,8 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
  * @return string Text which has been converted into correct paragraph tags.
  */
 function wpautop( $text, $br = true ) {
-	$pre_tags = array();
+	$pre_tags               = array();
+	$shortcode_placeholders = array();
 
 	if ( '' === trim( $text ) ) {
 		return '';
@@ -481,6 +483,45 @@ function wpautop( $text, $br = true ) {
 
 		$text .= $last_part;
 	}
+
+	/*
+	 * Shortcodes that opted out of autop shouldn't be touched.
+	 * Replace them with placeholders and bring them back after autop.
+	 */
+	if ( str_contains( $text, '[' ) ) {
+		/**
+		 * Filters the list of shortcodes whose content wpautop() should not format.
+		 *
+		 * Line breaks inside the listed shortcodes, including the content between
+		 * their opening and closing tags, are left as they are instead of being
+		 * converted to paragraphs and `<br />` tags.
+		 *
+		 * @since 7.3.0
+		 *
+		 * @param string[] $no_autop_shortcodes An array of shortcode names. Default empty array.
+		 */
+		$no_autop_shortcodes = (array) apply_filters( 'no_autop_shortcodes', array() );
+
+		if ( ! empty( $no_autop_shortcodes ) ) {
+			$text = preg_replace_callback(
+				'/' . get_shortcode_regex( $no_autop_shortcodes ) . '/',
+				static function ( $matches ) use ( &$shortcode_placeholders ) {
+					// Leave escaped shortcodes, [[tag]], alone.
+					if ( '[' === $matches[1] && ']' === $matches[6] ) {
+						return $matches[0];
+					}
+
+					$name = '%wp-autop-shortcode-' . count( $shortcode_placeholders ) . '%';
+
+					$shortcode_placeholders[ $name ] = $matches[0];
+
+					return $name;
+				},
+				$text
+			);
+		}
+	}
+
 	// Change multiple <br>'s into two line breaks, which will turn into paragraphs.
 	$text = preg_replace( '|<br\s*/?>\s*<br\s*/?>|', "\n\n", $text );
 
@@ -590,6 +631,11 @@ function wpautop( $text, $br = true ) {
 	// If a <br /> tag is before a subset of opening or closing block tags, remove it.
 	$text = preg_replace( '!<br />(\s*</?(?:p|li|div|dl|dd|dt|th|pre|td|ul|ol)[^>]*>)!', '$1', $text );
 	$text = preg_replace( "|\n</p>$|", '</p>', $text );
+
+	// Replace placeholder shortcodes with their original content.
+	if ( ! empty( $shortcode_placeholders ) ) {
+		$text = str_replace( array_keys( $shortcode_placeholders ), array_values( $shortcode_placeholders ), $text );
+	}
 
 	// Replace placeholder <pre> tags with their original content.
 	if ( ! empty( $pre_tags ) ) {

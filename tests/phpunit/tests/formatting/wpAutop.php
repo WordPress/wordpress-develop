@@ -660,4 +660,154 @@ line 2<br/>
 
 		$this->assertSameIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
+
+	/**
+	 * Shortcodes are formatted by default.
+	 *
+	 * @ticket 6984
+	 */
+	public function test_shortcode_content_is_formatted_by_default() {
+		$this->assertSame(
+			"<p>[code]a</p>\n<p>b<br />\nc[/code]</p>\n",
+			wpautop( "[code]a\n\nb\nc[/code]" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_leaves_shortcode_content_untouched() {
+		add_filter(
+			'no_autop_shortcodes',
+			static function () {
+				return array( 'code' );
+			}
+		);
+
+		$this->assertSame(
+			"<p>Before</p>\n<p>[code]line1\n\nline2\nline3[/code]</p>\n<p>After</p>\n",
+			wpautop( "Before\n\n[code]line1\n\nline2\nline3[/code]\n\nAfter" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_only_affects_listed_shortcodes() {
+		add_filter(
+			'no_autop_shortcodes',
+			static function () {
+				return array( 'code' );
+			}
+		);
+
+		$this->assertSame(
+			"<p>[other]a</p>\n<p>b[/other]</p>\n",
+			wpautop( "[other]a\n\nb[/other]" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_handles_multiple_shortcodes() {
+		add_filter(
+			'no_autop_shortcodes',
+			static function () {
+				return array( 'code' );
+			}
+		);
+
+		$this->assertSame(
+			"<p>[code]a\n\nb[/code]</p>\n<p>[code]c\n\nd[/code]</p>\n",
+			wpautop( "[code]a\n\nb[/code]\n\n[code]c\n\nd[/code]" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_keeps_surrounding_text_formatted() {
+		add_filter(
+			'no_autop_shortcodes',
+			static function () {
+				return array( 'code' );
+			}
+		);
+
+		$this->assertSame(
+			"<p>Text [code]a\n\nb[/code] more<br />\ntext</p>\n",
+			wpautop( "Text [code]a\n\nb[/code] more\ntext" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_keeps_line_breaks_in_attributes() {
+		add_filter(
+			'no_autop_shortcodes',
+			static function () {
+				return array( 'code' );
+			}
+		);
+
+		$this->assertSame(
+			"<p>[code lang=\"php\"\nfoo=\"1\"] x</p>\n<p>y</p>\n",
+			wpautop( "[code lang=\"php\"\nfoo=\"1\"] x\n\ny" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_ignores_escaped_shortcodes() {
+		add_filter(
+			'no_autop_shortcodes',
+			static function () {
+				return array( 'code' );
+			}
+		);
+
+		$this->assertSame(
+			"<p>[[code]]x</p>\n<p>y[[/code]]</p>\n",
+			wpautop( "[[code]]x\n\ny[[/code]]" )
+		);
+	}
+
+	/**
+	 * Replacement-like characters in the content must be preserved.
+	 *
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_preserves_replacement_characters() {
+		add_filter(
+			'no_autop_shortcodes',
+			static function () {
+				return array( 'code' );
+			}
+		);
+
+		$this->assertSame(
+			"<p>[code]\$1 \\1\n\nx[/code]</p>\n",
+			wpautop( "[code]\$1 \\1\n\nx[/code]" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_without_line_breaks_conversion() {
+		add_filter(
+			'no_autop_shortcodes',
+			static function () {
+				return array( 'code' );
+			}
+		);
+
+		$this->assertSame(
+			"<p>[code]a\nb[/code]\nc\nd</p>\n",
+			wpautop( "[code]a\nb[/code]\nc\nd", false )
+		);
+	}
 }
