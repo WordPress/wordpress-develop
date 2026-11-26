@@ -39,6 +39,7 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Navigation Menu widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		// Get menu.
 		$nav_menu = ! empty( $instance['nav_menu'] ) ? wp_get_nav_menu_object( $instance['nav_menu'] ) : false;
@@ -121,6 +122,7 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Updated settings to save.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$instance = array();
 		if ( ! empty( $new_instance['title'] ) ) {
@@ -141,6 +143,7 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 	 *
 	 * @param array $instance Current settings.
 	 */
+	#[Override]
 	public function form( $instance ) {
 		global $wp_customize;
 		$title    = $instance['title'] ?? '';

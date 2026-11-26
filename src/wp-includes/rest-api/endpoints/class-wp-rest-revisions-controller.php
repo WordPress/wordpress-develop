@@ -79,6 +79,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[Override]
 	public function register_routes() {
 
 		register_rest_route(
@@ -178,6 +179,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_items_permissions_check( $request ) {
 		$parent = $this->get_parent( $request['parent'] );
 		if ( is_wp_error( $parent ) ) {
@@ -232,6 +234,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_items( $request ) {
 		$parent = $this->get_parent( $request['parent'] );
 		if ( is_wp_error( $parent ) ) {
@@ -413,6 +416,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function get_item_permissions_check( $request ) {
 		return $this->get_items_permissions_check( $request );
 	}
@@ -426,6 +430,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function get_item( $request ) {
 		$parent = $this->get_parent( $request['parent'] );
 		if ( is_wp_error( $parent ) ) {
@@ -458,6 +463,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
 	 */
+	#[Override]
 	public function delete_item_permissions_check( $request ) {
 		$parent = $this->get_parent( $request['parent'] );
 		if ( is_wp_error( $parent ) ) {
@@ -501,6 +507,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[Override]
 	public function delete_item( $request ) {
 		$revision = $this->get_revision( $request['id'] );
 		if ( is_wp_error( $revision ) ) {
@@ -605,6 +612,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[Override]
 	public function prepare_item_for_response( $item, $request ) {
 		/*
 		 * Save the previous global post so it can be restored before returning.
@@ -819,6 +827,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -914,6 +923,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[Override]
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
 

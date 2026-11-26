@@ -65,6 +65,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @return bool Whether the current user can perform an Ajax action.
 	 */
+	#[Override]
 	public function ajax_user_can() {
 		return current_user_can( 'install_plugins' );
 	}
@@ -130,6 +131,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * @global string                $type  The type of search being performed.
 	 * @global string                $term  The search term.
 	 */
+	#[Override]
 	public function prepare_items() {
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
@@ -336,6 +338,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 */
+	#[Override]
 	public function no_items() {
 		if ( isset( $this->error ) ) {
 			$error_message  = '<p>' . $this->error->get_error_message() . '</p>';
@@ -364,6 +367,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @return array<string, string> View link markup keyed by view ID ('plugin-install-' followed by the tab slug).
 	 */
+	#[Override]
 	protected function get_views() {
 		global $tabs, $tab;
 
@@ -388,6 +392,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @global string $tab The current tab.
 	 */
+	#[Override]
 	public function views() {
 		global $tab;
 
@@ -432,6 +437,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.0.0
 	 */
+	#[Override]
 	public function display() {
 		$singular = $this->_args['singular'];
 
@@ -467,6 +473,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @phpstan-param 'top'|'bottom' $which
 	 */
+	#[Override]
 	protected function display_tablenav( $which ) {
 		if ( 'featured' === $GLOBALS['tab'] ) {
 			return;
@@ -509,6 +516,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @phpstan-return non-empty-list<string>
 	 */
+	#[Override]
 	protected function get_table_classes() {
 		return array( 'widefat', $this->_args['plural'] );
 	}
@@ -520,6 +528,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @return array<string, string> Array of column titles keyed by their column name.
 	 */
+	#[Override]
 	public function get_columns() {
 		return array();
 	}
@@ -552,6 +561,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 */
+	#[Override]
 	public function display_rows() {
 		$plugins_allowedtags = array(
 			'a'       => array(

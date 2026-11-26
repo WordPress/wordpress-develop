@@ -41,6 +41,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[Override]
 	public function register_routes(): void {
 		register_rest_route(
 			$this->namespace,

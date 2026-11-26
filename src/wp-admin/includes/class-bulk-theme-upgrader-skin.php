@@ -34,6 +34,7 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 	 *
 	 * @since 3.0.0
 	 */
+	#[Override]
 	public function add_strings() {
 		parent::add_strings();
 		/* translators: 1: Theme name, 2: Number of the theme, 3: Total number of themes being updated. */
@@ -47,6 +48,7 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 	 *
 	 * @param string $title
 	 */
+	#[Override]
 	public function before( $title = '' ) {
 		parent::before( $this->theme_info->display( 'Name' ) );
 	}
@@ -58,6 +60,7 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 	 *
 	 * @param string $title
 	 */
+	#[Override]
 	public function after( $title = '' ) {
 		parent::after( $this->theme_info->display( 'Name' ) );
 		$this->decrement_update_count( 'theme' );
@@ -68,6 +71,7 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 	 *
 	 * @since 3.0.0
 	 */
+	#[Override]
 	public function bulk_footer() {
 		parent::bulk_footer();
 

@@ -46,6 +46,7 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 	 * @param mixed $value The value to update.
 	 * @return true Always returns true.
 	 */
+	#[Override]
 	public function update( $value ) {
 		global $custom_image_header;
 
@@ -100,6 +101,7 @@ final class WP_Customize_Header_Image_Setting extends WP_Customize_Setting {
 	 *
 	 * @phpstan-return array<mixed, mixed>|string|WP_Error|null
 	 */
+	#[Override]
 	public function sanitize( $value ) {
 		/*
 		 * The update() method unwraps the legacy `choice` format before handing the value off to

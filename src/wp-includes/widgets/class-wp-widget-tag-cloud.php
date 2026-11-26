@@ -39,6 +39,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Tag Cloud widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		$current_taxonomy = $this->_get_current_taxonomy( $instance );
 
@@ -128,6 +129,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	 * @param array $old_instance Old settings for this instance.
 	 * @return array Settings to save or bool false to cancel saving.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$instance             = array();
 		$instance['title']    = sanitize_text_field( $new_instance['title'] );
@@ -143,6 +145,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	 *
 	 * @param array $instance Current settings.
 	 */
+	#[Override]
 	public function form( $instance ) {
 		$title = ! empty( $instance['title'] ) ? $instance['title'] : '';
 		$count = isset( $instance['count'] ) ? (bool) $instance['count'] : false;

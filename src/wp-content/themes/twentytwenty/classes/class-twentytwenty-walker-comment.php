@@ -32,6 +32,7 @@ if ( ! class_exists( 'TwentyTwenty_Walker_Comment' ) ) {
 		 * @param int        $depth   Depth of the current comment.
 		 * @param array      $args    An array of arguments.
 		 */
+		#[Override]
 		protected function html5_comment( $comment, $depth, $args ) {
 
 			$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';

@@ -52,6 +52,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 * @param array                     $args     An array of standard parameters for widgets in this theme.
 	 * @param array<string, string|int> $instance An array of settings for this widget instance.
 	 */
+	#[Override]
 	public function widget( $args, $instance ) {
 		$cache = wp_cache_get( 'widget_twentyeleven_ephemera', 'widget' );
 
@@ -161,6 +162,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 * @param array $old_instance Original widget instance.
 	 * @return array<string, string|int> Updated widget instance.
 	 */
+	#[Override]
 	public function update( $new_instance, $old_instance ) {
 		$instance           = $old_instance;
 		$instance['title']  = strip_tags( $new_instance['title'] );
@@ -193,6 +195,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 *
 	 * @param array $instance The settings for the particular instance of the widget.
 	 */
+	#[Override]
 	public function form( $instance ) {
 		$title  = isset( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
 		$number = isset( $instance['number'] ) ? absint( $instance['number'] ) : 10;

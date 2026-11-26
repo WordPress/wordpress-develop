@@ -62,6 +62,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param array $args
 	 * @return bool
 	 */
+	#[Override]
 	public static function test( $args = array() ) {
 
 		// First, test Imagick's extension and classes.
@@ -117,6 +118,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param string $mime_type
 	 * @return bool
 	 */
+	#[Override]
 	public static function supports_mime_type( $mime_type ) {
 		$imagick_extension = strtoupper( self::get_extension( $mime_type ) );
 
@@ -147,6 +149,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @return true|WP_Error True if loaded; WP_Error on failure.
 	 */
+	#[Override]
 	public function load() {
 		if ( $this->image instanceof Imagick ) {
 			return true;
@@ -396,6 +399,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param array $dims    Optional. Image dimensions array with 'width' and 'height' keys.
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
 	 */
+	#[Override]
 	public function set_quality( $quality = null, $dims = array() ) {
 		$quality_result = parent::set_quality( $quality, $dims );
 		if ( is_wp_error( $quality_result ) ) {
@@ -451,6 +455,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param int|null $height Image height.
 	 * @return true|WP_Error
 	 */
+	#[Override]
 	protected function update_size( $width = null, $height = null ) {
 		$size = null;
 
@@ -556,6 +561,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * }
 	 * @return true|WP_Error
 	 */
+	#[Override]
 	public function resize( $max_w, $max_h, $crop = false ) {
 		if ( ( $this->size['width'] === $max_w ) && ( $this->size['height'] === $max_h ) ) {
 			return true;
@@ -838,6 +844,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * }
 	 * @return array An array of resized images' metadata by size.
 	 */
+	#[Override]
 	public function multi_resize( $sizes ) {
 		$metadata = array();
 
@@ -919,6 +926,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param bool $src_abs Optional. If the source crop points are absolute.
 	 * @return true|WP_Error
 	 */
+	#[Override]
 	public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
 		if ( $src_abs ) {
 			$src_w -= $src_x;
@@ -963,6 +971,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param float $angle
 	 * @return true|WP_Error
 	 */
+	#[Override]
 	public function rotate( $angle ) {
 		/**
 		 * $angle is 360-$angle because Imagick rotates clockwise
@@ -999,6 +1008,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param bool $vert Flip along Vertical Axis
 	 * @return true|WP_Error
 	 */
+	#[Override]
 	public function flip( $horz, $vert ) {
 		try {
 			if ( $horz ) {
@@ -1031,6 +1041,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @return bool|WP_Error True if the image was rotated. False if no EXIF data or if the image doesn't need rotation.
 	 *                       WP_Error if error while rotating.
 	 */
+	#[Override]
 	public function maybe_exif_rotate() {
 		if ( is_callable( array( $this->image, 'setImageOrientation' ) ) && defined( 'Imagick::ORIENTATION_TOPLEFT' ) ) {
 			return parent::maybe_exif_rotate();
@@ -1058,6 +1069,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *     @type int    $filesize  File size of the image.
 	 * }
 	 */
+	#[Override]
 	public function save( $destfilename = null, $mime_type = null ) {
 		$saved = $this->_save( $this->image, $destfilename, $mime_type );
 
@@ -1235,6 +1247,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param string $mime_type The mime type of the image.
 	 * @return true|WP_Error True on success, WP_Error object on failure.
 	 */
+	#[Override]
 	public function stream( $mime_type = null ) {
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( null, $mime_type );
 

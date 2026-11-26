@@ -62,6 +62,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 	 *
 	 * @return array Schema for properties.
 	 */
+	#[Override]
 	public function get_instance_schema() {
 		return array_merge(
 			array(
@@ -174,6 +175,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 	 *
 	 * @param array $instance Widget instance props.
 	 */
+	#[Override]
 	public function render_media( $instance ) {
 		$instance = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
 		$instance = wp_parse_args(
@@ -309,6 +311,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 	 *
 	 * @since 4.8.0
 	 */
+	#[Override]
 	public function enqueue_admin_scripts() {
 		parent::enqueue_admin_scripts();
 
@@ -347,6 +350,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 	 *
 	 * @since 4.8.0
 	 */
+	#[Override]
 	public function render_control_template_scripts() {
 		parent::render_control_template_scripts();
 

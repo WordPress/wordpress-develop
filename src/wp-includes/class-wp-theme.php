@@ -672,6 +672,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @param mixed $value
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetSet( $offset, $value ) {}
 
 	/**
@@ -682,6 +683,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @param mixed $offset
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetUnset( $offset ) {}
 
 	/**
@@ -695,6 +697,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @phpstan-return ( $offset is Theme_Key ? true : false )
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetExists( $offset ) {
 		static $keys = array(
 			'Name',
@@ -739,6 +742,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @phpstan-return ( $offset is Theme_Key ? mixed : null )
 	 */
 	#[ReturnTypeWillChange]
+	#[Override]
 	public function offsetGet( $offset ) {
 		switch ( $offset ) {
 			case 'Name':

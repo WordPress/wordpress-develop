@@ -1192,6 +1192,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		 * @param string|true $value Value to set; `true` for boolean attribute.
 		 * @return bool Whether the attribute was set.
 		 */
+		#[Override]
 		public function set_attribute( $name, $value ): bool {
 			$lower_name = strtolower( $name );
 			$is_url_ish = in_array( $lower_name, $this->uri_attributes, true );

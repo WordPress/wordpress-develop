@@ -23,6 +23,7 @@ class TwentyNineteen_Walker_Comment extends Walker_Comment {
 	 * @param int        $depth   Depth of the current comment.
 	 * @param array      $args    An array of arguments.
 	 */
+	#[Override]
 	protected function html5_comment( $comment, $depth, $args ) {
 
 		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';

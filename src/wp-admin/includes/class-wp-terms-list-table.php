@@ -68,12 +68,14 @@ class WP_Terms_List_Table extends WP_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[Override]
 	public function ajax_user_can() {
 		return current_user_can( get_taxonomy( $this->screen->taxonomy )->cap->manage_terms );
 	}
 
 	/**
 	 */
+	#[Override]
 	public function prepare_items() {
 		$taxonomy = $this->screen->taxonomy;
 
@@ -155,6 +157,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 	/**
 	 */
+	#[Override]
 	public function no_items() {
 		echo get_taxonomy( $this->screen->taxonomy )->labels->not_found;
 	}
@@ -162,6 +165,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[Override]
 	protected function get_bulk_actions() {
 		$actions = array();
 
@@ -175,6 +179,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	/**
 	 * @return string
 	 */
+	#[Override]
 	public function current_action() {
 		if ( isset( $_REQUEST['action'] ) && isset( $_REQUEST['delete_tags'] ) && 'delete' === $_REQUEST['action'] ) {
 			return 'bulk-delete';
@@ -186,6 +191,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	/**
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[Override]
 	public function get_columns() {
 		$columns = array(
 			'cb'          => '<input type="checkbox" />',
@@ -206,6 +212,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[Override]
 	protected function get_sortable_columns() {
 		$taxonomy = $this->screen->taxonomy;
 
@@ -226,6 +233,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 	/**
 	 */
+	#[Override]
 	public function display_rows_or_placeholder() {
 		$taxonomy = $this->screen->taxonomy;
 
@@ -335,6 +343,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @param WP_Term $tag   Term object.
 	 * @param int     $level
 	 */
+	#[Override]
 	public function single_row( $tag, $level = 0 ) {
 		global $taxonomy;
 		$tag = sanitize_term( $tag, $taxonomy );
@@ -359,6 +368,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @param WP_Term $item Term object.
 	 * @return string
 	 */
+	#[Override]
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$tag = $item;
@@ -446,6 +456,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 *
 	 * @return string Name of the default primary column, in this case, 'name'.
 	 */
+	#[Override]
 	protected function get_default_primary_column_name() {
 		return 'name';
 	}
@@ -462,6 +473,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @return string Row actions output for terms, or an empty string
 	 *                if the current column is not the primary column.
 	 */
+	#[Override]
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
@@ -643,6 +655,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @param string  $column_name Name of the column.
 	 * @return string
 	 */
+	#[Override]
 	public function column_default( $item, $column_name ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$tag = $item;
@@ -763,6 +776,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @param WP_Term $term Term object.
 	 * @return string The term name.
 	 */
+	#[Override]
 	protected function get_primary_column_aria_label( $term ) {
 		// Term names are already sanitized via `sanitize_term()` on creation and update.
 		return $term->name;

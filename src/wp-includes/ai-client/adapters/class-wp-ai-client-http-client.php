@@ -65,6 +65,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 	 *
 	 * @throws NetworkException If the WordPress HTTP request fails.
 	 */
+	#[Override]
 	public function sendRequest( RequestInterface $request ): ResponseInterface {
 		$args = $this->prepare_wp_args( $request );
 		$url  = (string) $request->getUri();
@@ -96,6 +97,7 @@ class WP_AI_Client_HTTP_Client implements ClientInterface, ClientWithOptionsInte
 	 *
 	 * @throws NetworkException If the WordPress HTTP request fails.
 	 */
+	#[Override]
 	public function sendRequestWithOptions( RequestInterface $request, RequestOptions $options ): ResponseInterface {
 		$args = $this->prepare_wp_args( $request, $options );
 		$url  = (string) $request->getUri();

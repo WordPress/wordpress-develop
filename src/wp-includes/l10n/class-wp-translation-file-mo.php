@@ -87,6 +87,7 @@ class WP_Translation_File_MO extends WP_Translation_File {
 	 *
 	 * @return bool True on success, false otherwise.
 	 */
+	#[Override]
 	protected function parse_file(): bool {
 		$this->parsed = true;
 
@@ -185,6 +186,7 @@ class WP_Translation_File_MO extends WP_Translation_File {
 	 *
 	 * @return string Translation file contents.
 	 */
+	#[Override]
 	public function export(): string {
 		// Prefix the headers as the first key.
 		$headers_string = '';

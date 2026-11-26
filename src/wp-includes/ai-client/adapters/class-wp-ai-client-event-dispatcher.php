@@ -32,6 +32,7 @@ class WP_AI_Client_Event_Dispatcher implements EventDispatcherInterface {
 	 * @param object $event The event object to dispatch.
 	 * @return object The same event object, potentially modified by listeners.
 	 */
+	#[Override]
 	public function dispatch( object $event ): object {
 		$event_name = $this->get_hook_name_portion_for_event( $event );
 

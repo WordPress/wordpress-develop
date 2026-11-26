@@ -76,6 +76,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @return bool Whether the user can edit posts.
 	 */
+	#[Override]
 	public function ajax_user_can() {
 		return current_user_can( 'edit_posts' );
 	}
@@ -89,6 +90,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * @global string $comment_type   Comment type filter.
 	 * @global string $search         Search term.
 	 */
+	#[Override]
 	public function prepare_items() {
 		global $mode, $post_id, $comment_status, $comment_type, $search;
 
@@ -228,6 +230,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * Displays a message when no comments are found.
 	 * @global string $comment_status The current comment status filter.
 	 */
+	#[Override]
 	public function no_items() {
 		global $comment_status;
 
@@ -249,6 +252,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @return array<string, string> Comment status HTML links keyed by view.
 	 */
+	#[Override]
 	protected function get_views() {
 		global $post_id, $comment_status, $comment_type;
 
@@ -374,6 +378,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @return array<string, string> Bulk action labels keyed by action name.
 	 */
+	#[Override]
 	protected function get_bulk_actions() {
 		global $comment_status;
 
@@ -418,6 +423,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @param string $which The location of the extra table nav markup: Either 'top' or 'bottom'.
 	 */
+	#[Override]
 	protected function extra_tablenav( $which ) {
 		global $comment_status, $comment_type;
 		static $has_items;
@@ -475,6 +481,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @return string|false Current action or false if none.
 	 */
+	#[Override]
 	public function current_action() {
 		if ( isset( $_REQUEST['delete_all'] ) || isset( $_REQUEST['delete_all2'] ) ) {
 			return 'delete_all';
@@ -490,6 +497,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[Override]
 	public function get_columns() {
 		global $post_id;
 
@@ -573,6 +581,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @return array<string, string|array> The sortable columns.
 	 */
+	#[Override]
 	protected function get_sortable_columns() {
 		return array(
 			'author'   => array( 'comment_author', false, __( 'Author' ), __( 'Table ordered by Comment Author.' ) ),
@@ -588,6 +597,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @return string Name of the default primary column, in this case, 'comment'.
 	 */
+	#[Override]
 	protected function get_default_primary_column_name() {
 		return 'comment';
 	}
@@ -599,6 +609,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 */
+	#[Override]
 	public function display() {
 		wp_nonce_field( 'fetch-list-' . get_class( $this ), '_ajax_fetch_list_nonce' );
 		static $has_items;
@@ -669,6 +680,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @param WP_Comment $item The comment object.
 	 */
+	#[Override]
 	public function single_row( $item ) {
 		global $post, $comment;
 
@@ -721,6 +733,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *                if the current column is not the primary column,
 	 *                or if the current user cannot edit the comment.
 	 */
+	#[Override]
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		global $comment_status;
 
@@ -950,6 +963,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @param WP_Comment $item The comment object.
 	 */
+	#[Override]
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$comment = $item;
@@ -1157,6 +1171,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * @param WP_Comment $item        The comment object.
 	 * @param string     $column_name The custom column's name.
 	 */
+	#[Override]
 	public function column_default( $item, $column_name ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$comment = $item;

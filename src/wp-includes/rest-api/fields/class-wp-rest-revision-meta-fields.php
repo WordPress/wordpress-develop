@@ -35,6 +35,7 @@ class WP_REST_Revision_Meta_Fields extends WP_REST_Post_Meta_Fields {
 	 * @param WP_REST_Request $request   Full details about the request.
 	 * @return array Array containing the meta values keyed by name.
 	 */
+	#[Override]
 	public function get_value( $object_id, $request ) {
 		if ( 'revision' !== get_post_type( $object_id ) ) {
 			$post_meta = new WP_REST_Post_Meta_Fields( $this->post_type );
@@ -51,6 +52,7 @@ class WP_REST_Revision_Meta_Fields extends WP_REST_Post_Meta_Fields {
 	 *
 	 * @return array Registered fields, limited to the revisioned meta keys.
 	 */
+	#[Override]
 	protected function get_registered_fields() {
 		// The keys are filterable, so ignore anything that isn't a meta key.
 		$revisioned_keys = array_filter( (array) wp_post_revision_meta_keys( $this->post_type ), 'is_string' );

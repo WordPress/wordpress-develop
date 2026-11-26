@@ -36,6 +36,7 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 	 *                               provider class. Default empty.
 	 * @return array[] Array of URL information for a sitemap.
 	 */
+	#[Override]
 	public function get_url_list( $page_num, $object_subtype = '' ) {
 		/**
 		 * Filters the users URL list before it is generated.
@@ -97,6 +98,7 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 	 *                               provider class. Default empty.
 	 * @return int Total page count.
 	 */
+	#[Override]
 	public function get_max_num_pages( $object_subtype = '' ) {
 		/**
 		 * Filters the max number of pages for a user sitemap before it is generated.
