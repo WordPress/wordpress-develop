@@ -29,11 +29,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-panel.php
 		-
-			message: '#^Property WP_Customize_Panel\:\:\$theme_supports \(array\<mixed\>\) does not accept default value of type string\.$#'
-			identifier: property.defaultValue
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-panel.php
-		-
 			message: '#^Property WP_Customize_Section\:\:\$active_callback \(callable\(\)\: mixed\) does not accept default value of type ''''\.$#'
 			identifier: property.defaultValue
 			count: 1
