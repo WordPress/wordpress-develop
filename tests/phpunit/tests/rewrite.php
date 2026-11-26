@@ -35,6 +35,121 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+
+	/**
+	 * Gets permalink bases that must not be confused with rewrite tags.
+	 *
+	 * @return string[] Permalink bases.
+	 */
+	private function get_percent_encoded_bases() {
+		return array(
+			'Lucky%20Dip',
+			'this%20is%20a%20test',
+			'%E6%BC%A2%E8%AA%9E',
+			'%e6%bc%a2%e8%aa%9e',
+			'100%25',
+			'100%',
+			'Lucky%20Dip/More%20Posts',
+			'topics',
+		);
+	}
+
+	/**
+	 * @ticket 45819
+	 */
+	public function test_generate_rewrite_rules_with_percent_encoded_bases() {
+		global $wp_rewrite;
+
+		$rewrite          = clone $wp_rewrite;
+		$rewrite->matches = 'matches';
+		$rewrite->add_rewrite_tag( '%test.tag%', '([^/]+)', 'test_tag=' );
+
+		foreach ( $this->get_percent_encoded_bases() as $base ) {
+			$rules = $rewrite->generate_rewrite_rules( $base . '/%category%', EP_NONE, false, false, false, false, false );
+			$this->assertSame( 'index.php?category_name=$matches[1]', $rules[ $base . '/(.+?)/?$' ], $base );
+		}
+
+		$rules = $rewrite->generate_rewrite_rules( 'Lucky%20Dip/%test.tag%/more%20posts/%author%', EP_NONE, true, true, false, true, false );
+		$this->assertSame( 'index.php?test_tag=$matches[1]&author_name=$matches[2]', $rules['Lucky%20Dip/([^/]+)/more%20posts/([^/]+)/?$'] );
+		$this->assertSame( 'index.php?test_tag=$matches[1]&author_name=$matches[2]&paged=$matches[3]', $rules['Lucky%20Dip/([^/]+)/more%20posts/([^/]+)/page/?([0-9]{1,})/?$'] );
+		$this->assertSame( 'index.php?test_tag=$matches[1]&author_name=$matches[2]&feed=$matches[3]', $rules['Lucky%20Dip/([^/]+)/more%20posts/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$'] );
+
+		$rewrite->rewritecode = array();
+		$this->assertSame( array(), $rewrite->generate_rewrite_rules( 'Lucky%20Dip', EP_NONE, false, false, false, false, false ) );
+	}
+
+	/**
+	 * @ticket 45819
+	 */
+	public function test_percent_encoded_bases_preserve_archive_and_random_queries() {
+		global $wp, $wp_rewrite, $wp_taxonomies;
+
+		$original_rewrite    = clone $wp_rewrite;
+		$original_taxonomies = $wp_taxonomies;
+		$original_options    = array();
+		foreach ( array( 'permalink_structure', 'category_base', 'tag_base', 'wp_random_base' ) as $option ) {
+			$original_options[ $option ] = get_option( $option );
+		}
+		$stop_redirect = static function () {
+			throw new WP_Tests_Exception( 'Random content redirect.' );
+		};
+
+		try {
+			$this->set_permalink_structure( '/%postname%/' );
+			$terms   = array();
+			$post_id = self::factory()->post->create();
+			foreach ( array( 'category', 'post_tag' ) as $taxonomy ) {
+				$terms[ $taxonomy ] = self::factory()->term->create_and_get( array( 'taxonomy' => $taxonomy ) );
+				wp_set_object_terms( $post_id, array( $terms[ $taxonomy ]->term_id ), $taxonomy );
+			}
+
+			foreach ( $this->get_percent_encoded_bases() as $base ) {
+				update_option( 'category_base', $base );
+				update_option( 'tag_base', 'tags/' . $base );
+				$wp_rewrite->init();
+				$wp_rewrite->extra_rules_top = $original_rewrite->extra_rules_top;
+				create_initial_taxonomies();
+				flush_rewrite_rules( false );
+
+				foreach ( $terms as $term ) {
+					$this->go_to( get_term_link( $term ) );
+					$this->assertFalse( is_404(), $base );
+					$this->assertSame( $term->term_id, get_queried_object_id(), $base );
+				}
+			}
+
+			update_option( 'category_base', '' );
+			update_option( 'tag_base', '' );
+			$wp_rewrite->set_random_base( 'Lucky Dip' );
+			$wp_rewrite->extra_rules_top = $original_rewrite->extra_rules_top;
+			create_initial_taxonomies();
+			flush_rewrite_rules( false );
+			add_filter( 'wp_redirect', $stop_redirect );
+
+			foreach ( array(
+				'author/admin/'     => array( 'author_name', 'admin' ),
+				'category/missing/' => array( 'category_name', 'missing' ),
+				'tag/missing/'      => array( 'tag', 'missing' ),
+			) as $path => $expected ) {
+				try {
+					$this->go_to( home_url( '/Lucky%20Dip/' . $path ) );
+				} catch ( WP_Tests_Exception $e ) {
+					$this->assertSame( 'Random content redirect.', $e->getMessage() );
+				}
+				$this->assertSame( '1', $wp->query_vars['random'], $path );
+				$this->assertArrayHasKey( $expected[0], $wp->query_vars, $path );
+				$this->assertSame( $expected[1], $wp->query_vars[ $expected[0] ], $path );
+			}
+		} finally {
+			remove_filter( 'wp_redirect', $stop_redirect );
+			foreach ( $original_options as $option => $value ) {
+				update_option( $option, $value );
+			}
+			$wp_rewrite    = $original_rewrite;
+			$wp_taxonomies = $original_taxonomies;
+		}
+	}
+
 	/**
 	 * @ticket 16840
 	 */
