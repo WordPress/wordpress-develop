@@ -566,6 +566,9 @@ function populate_options( array $options = array() ) {
 
 		// 7.2.0
 		'wp_random_base'                  => '',
+
+		// 7.3.0
+		'show_archive_on_front'           => 'post',
 	);
 
 	// 3.3.0

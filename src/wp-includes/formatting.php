@@ -4966,6 +4966,7 @@ function wp_make_link_relative( $link ) {
  *
  * @since 2.0.5
  * @since 7.1.5 The `show_on_front` option is sanitized.
+ * @since 7.3.0 The `show_archive_on_front` option is sanitized.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -5210,6 +5211,12 @@ function sanitize_option( $option, $value ) {
 			// Any value other than 'page' is treated as 'posts'.
 			if ( 'page' !== $value ) {
 				$value = 'posts';
+			}
+			break;
+
+		case 'show_archive_on_front':
+			if ( ! in_array( $value, get_home_page_post_types(), true ) ) {
+				$value = 'post';
 			}
 			break;
 
