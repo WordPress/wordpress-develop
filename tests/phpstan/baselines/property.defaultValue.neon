@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property Walker_Nav_Menu\:\:\$tree_type \(string\) does not accept default value of type array\<int, string\>\.$#'
-			identifier: property.defaultValue
-			count: 1
-			path: ../../../src/wp-includes/class-walker-nav-menu.php
-		-
 			message: '#^Property WP_Block\:\:\$inner_blocks \(WP_Block_List\) does not accept default value of type array\.$#'
 			identifier: property.defaultValue
 			count: 1
