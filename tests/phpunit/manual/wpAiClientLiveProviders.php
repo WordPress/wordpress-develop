@@ -2,11 +2,12 @@
 /**
  * Tests that live AI providers can call the core abilities through the AI Client.
  *
- * These tests send real requests. The tests of a provider only run when its API key is in the
+ * These tests send real requests to paid APIs, so they are outside the test suites and only run
+ * when this directory is named. The tests of a provider only run when its API key is in the
  * `WP_TESTS_AI_ANTHROPIC_API_KEY`, `WP_TESTS_AI_GOOGLE_API_KEY` or `WP_TESTS_AI_OPENAI_API_KEY`
  * environment variable or constant:
  *
- *     WP_TESTS_AI_ANTHROPIC_API_KEY=your-key vendor/bin/phpunit --group external-http --filter Tests_AI_Client_LiveProviders
+ *     WP_TESTS_AI_ANTHROPIC_API_KEY=your-key vendor/bin/phpunit --group external-http --test-suffix .php tests/phpunit/manual
  *
  * A provider uses its default model, unless its `WP_TESTS_AI_*_MODEL` environment variable or
  * constant, such as `WP_TESTS_AI_GOOGLE_MODEL`, names another one.
