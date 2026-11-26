@@ -24,11 +24,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/blocks.php
 		-
-			message: '#^Property WP_Customize_Control\:\:\$active_callback \(callable\) in empty\(\) is not falsy\.$#'
-			identifier: empty.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-control.php
-		-
 			message: '#^Property WP_Customize_Manager\:\:\$nav_menus \(WP_Customize_Nav_Menus\) in empty\(\) is not falsy\.$#'
 			identifier: empty.property
 			count: 4

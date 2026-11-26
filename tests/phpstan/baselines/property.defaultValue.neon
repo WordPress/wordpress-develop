@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property WP_Customize_Control\:\:\$active_callback \(callable\(\)\: mixed\) does not accept default value of type ''''\.$#'
-			identifier: property.defaultValue
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-control.php
-		-
 			message: '#^Property WP_Customize_Panel\:\:\$active_callback \(callable\(\)\: mixed\) does not accept default value of type ''''\.$#'
 			identifier: property.defaultValue
 			count: 1
