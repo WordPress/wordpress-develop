@@ -541,6 +541,20 @@
 	vertical-align: middle;
 }
 
+/* The URL pill overlays the image at the position it has in the design (112px of 450px). */
+.about__container .about__image-random {
+	position: relative;
+}
+
+.about__container .about__image-random .about__image-random-url {
+	position: absolute;
+	top: 24.8889%;
+	/* rtl:ignore */
+	left: 24.8889%;
+	width: 37.1449%;
+	height: auto;
+}
+
 .about__container .about__image + h3 {
 	margin-top: calc(0.75 * var(--gap));
 }

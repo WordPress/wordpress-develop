@@ -90,8 +90,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
-				<div class="about__image">
-					<img loading="lazy" src="https://s.w.org/images/core/7.2/about-feature-02.webp?ver=20261123" alt="" height="900" width="900" />
+				<div class="about__image about__image-random">
+					<img loading="lazy" src="<?php echo esc_url( admin_url( 'images/about-feature-02.webp?ver=20261126' ) ); ?>" alt="" height="900" width="900" />
+					<svg class="about__image-random-url" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 167.152 56" aria-hidden="true" focusable="false">
+						<rect width="167.152" height="56" rx="28" fill="#fff" />
+						<rect x="12" y="12" width="32" height="32" rx="16" fill="#e6e2d7" />
+						<path fill="#1e1e1e" d="M26 33.389h-1.556a5.194 5.194 0 1 1 0-10.389H26v1.5h-1.556a3.69 3.69 0 0 0-3.694 3.694 3.695 3.695 0 0 0 3.694 3.695H26zM30 23h1.556a5.2 5.2 0 0 1 3.673 1.522 5.19 5.19 0 0 1 0 7.346 5.2 5.2 0 0 1-3.673 1.522H30v-1.5h1.556a3.695 3.695 0 1 0 0-7.39H30zm-4.5 6h5v-1.5h-5z" />
+						<text x="56" y="36.5" fill="#1e1e1e" font-family="Inter, sans-serif" font-size="24" direction="ltr" unicode-bidi="embed">/<?php echo esc_html( urldecode( $wp_rewrite->get_random_base() ) ); ?></text>
+					</svg>
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
