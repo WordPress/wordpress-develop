@@ -188,7 +188,7 @@
 
 			/*
 			 * Switch the interval to 120 seconds by using the Page Visibility API.
-			 * If the browser doesn't support it (Safari < 7, Android < 4.4, IE < 10), the
+			 * If the browser doesn't support it (Safari < 7, Android < 4.4), the
 			 * interval will be increased to 120 seconds after 5 minutes of mouse and keyboard
 			 * inactivity.
 			 */
@@ -196,10 +196,6 @@
 				hidden = 'hidden';
 				visibilitychange = 'visibilitychange';
 				visibilityState = 'visibilityState';
-			} else if ( typeof document.msHidden !== 'undefined' ) { // IE10.
-				hidden = 'msHidden';
-				visibilitychange = 'msvisibilitychange';
-				visibilityState = 'msVisibilityState';
 			} else if ( typeof document.webkitHidden !== 'undefined' ) { // Android.
 				hidden = 'webkitHidden';
 				visibilitychange = 'webkitvisibilitychange';
