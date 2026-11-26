@@ -13,6 +13,7 @@ namespace WordPress\PHPStan;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\AssignOp;
 use PhpParser\Node\Expr\AssignRef;
@@ -100,6 +101,13 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	private NodeFinder $node_finder;
 
 	/**
+	 * Names of the parameters of the arrow functions being walked, which shadow the variables outside them.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $shadowed = array();
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -143,6 +151,23 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	 * @param list<array{ 0: list<Node>, 1: int }> $position Position of the statement the node is in.
 	 */
 	private function walk_node( Node $node, array $position ): void {
+		$shadowed = $this->shadowed;
+		if ( $node instanceof FunctionLike ) {
+			/*
+			 * An arrow function has no statements of its own, so the variables in it are followed outside it, except
+			 * its parameters. Another function starts a new scope, whose variables are followed in it alone.
+			 */
+			if ( $node instanceof ArrowFunction ) {
+				foreach ( $node->getParams() as $param ) {
+					if ( $param->var instanceof Variable && is_string( $param->var->name ) ) {
+						$this->shadowed[ $param->var->name ] = true;
+					}
+				}
+			} else {
+				$this->shadowed = array();
+			}
+		}
+
 		foreach ( $node->getSubNodeNames() as $name ) {
 			$sub_node = $node->$name;
 			if ( is_array( $sub_node ) ) {
@@ -161,6 +186,7 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 				$this->walk_node( $sub_node, $position );
 			}
 		}
+		$this->shadowed = $shadowed;
 
 		if (
 			$node instanceof MethodCall
@@ -221,7 +247,13 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 			);
 		}
 
-		if ( $expr instanceof Variable && is_string( $expr->name ) && $depth < self::MAX_DEPTH ) {
+		if (
+			$expr instanceof Variable
+			&& is_string( $expr->name )
+			&& $depth < self::MAX_DEPTH
+			// A parameter of an arrow function the call is in, whose value is not assigned by a statement.
+			&& ! ( 0 === $depth && isset( $this->shadowed[ $expr->name ] ) )
+		) {
 			return $this->resolve_variable( $expr->name, $position, $depth + 1 );
 		}
 
