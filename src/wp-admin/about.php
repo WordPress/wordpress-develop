@@ -92,13 +92,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image about__image-random">
 					<img loading="lazy" src="<?php echo esc_url( admin_url( 'images/about-feature-02.webp?ver=20261126' ) ); ?>" alt="" height="900" width="900" />
-					<a class="about__image-random-url" href="<?php echo esc_url( home_url( '/?random' ) ); ?>" dir="ltr">
+					<a class="about__image-random-url" href="<?php echo esc_url( home_url( '/?random' ) ); ?>">
 						<span class="about__image-random-icon">
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 								<path fill="currentColor" d="M10 17.389H8.444a5.194 5.194 0 1 1 0-10.389H10v1.5H8.444a3.69 3.69 0 0 0-3.694 3.694 3.695 3.695 0 0 0 3.694 3.695H10zM14 7h1.556a5.2 5.2 0 0 1 3.673 1.522 5.19 5.19 0 0 1 0 7.346 5.2 5.2 0 0 1-3.673 1.522H14v-1.5h1.556a3.695 3.695 0 1 0 0-7.39H14zm-4.5 6h5v-1.5h-5z" />
 							</svg>
 						</span>
-						<span class="about__image-random-text"><?php echo esc_html( $wp_rewrite->using_permalinks() ? '/' . _x( 'random', 'random content permalink base' ) : '/?random' ); ?></span>
+						<span class="about__image-random-text" dir="ltr"><?php echo esc_html( $wp_rewrite->using_permalinks() ? '/' . _x( 'random', 'random content permalink base' ) : '/?random' ); ?></span>
 					</a>
 				</div>
 			</div>

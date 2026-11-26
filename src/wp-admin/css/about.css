@@ -545,6 +545,10 @@
  * The URL pill overlays the image. Sizes are the 450px design's pixel values
  * converted to container query units (1px = 100cqw / 450) so the pill scales with
  * the image, while its width follows the translated text.
+ *
+ * In RTL the pill is mirrored and grows from the right, 32px in from the image's
+ * edge. The URL text reads left to right but is right-aligned, as in RTL browser
+ * address bars.
  */
 .about__container .about__image-random {
 	position: relative;
@@ -553,7 +557,7 @@
 
 .about__container .about__image-random-url {
 	position: absolute;
-	top: 24.8889%;
+	top: 24.8889cqw;
 	/* rtl:ignore */
 	left: 24.8889%;
 	box-sizing: border-box;
@@ -571,6 +575,13 @@
 	font-size: 5.3333cqw;
 	font-weight: 400;
 	line-height: 1.25;
+}
+
+[dir="rtl"] .about__container .about__image-random-url {
+	/* rtl:ignore */
+	left: auto;
+	/* rtl:ignore */
+	right: 7.1111%;
 }
 
 .about__container .about__image-random-url:hover,
@@ -602,6 +613,7 @@
 .about__container .about__image-random-text {
 	min-width: 0;
 	overflow-wrap: anywhere;
+	text-align: left;
 }
 
 .about__container .about__image + h3 {
