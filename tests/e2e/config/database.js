@@ -58,7 +58,7 @@ function getBaseURL() {
 /**
  * Run a WP-CLI command in the local development environment.
  *
- * @param {string[]} args    WP-CLI arguments.
+ * @param {string[]} args     WP-CLI arguments.
  * @param {string}   localDir WordPress document root.
  * @return {{ status: number, stdout: string, stderr: string }} WP-CLI command result.
  */
@@ -115,8 +115,8 @@ function wpCli( args, localDir = getLocalDir() ) {
 /**
  * Get a wp-config.php constant, returning null when it is not defined.
  *
- * @param {string}   name     Constant name.
- * @param {string}   localDir WordPress document root.
+ * @param {string} name     Constant name.
+ * @param {string} localDir WordPress document root.
  * @return {?string} Constant value, or null if undefined.
  */
 function getConfigConstant( name, localDir ) {
@@ -312,6 +312,8 @@ async function restoreSavedConfiguration() {
 	}
 
 	if (
+		typeof state.lockId !== 'string' ||
+		typeof state.localDir !== 'string' ||
 		typeof state.originalDbName !== 'string' ||
 		! /^[A-Za-z0-9_-]+$/.test( state.originalDbName )
 	) {
@@ -516,6 +518,9 @@ async function restoreE2EDatabase() {
 		}
 
 		throw error;
+	}
+	if ( ! state || typeof state.lockId !== 'string' ) {
+		throw new Error( 'Invalid saved E2E database lock; refusing to restore it.' );
 	}
 
 	const owner = await readLock();
