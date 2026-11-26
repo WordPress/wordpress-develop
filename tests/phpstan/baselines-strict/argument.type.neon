@@ -34,11 +34,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ai-client/adapters/class-wp-ai-client-http-client.php
 		-
-			message: '#^Parameter \#1 \$wp_response of method WP_AI_Client_HTTP_Client\:\:create_psr_response\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/ai-client/adapters/class-wp-ai-client-http-client.php
-		-
 			message: '#^Parameter \#2 \$value of method WordPress\\AiClientDependencies\\Psr\\Http\\Message\\MessageInterface\:\:withHeader\(\) expects array\<string\>\|string, mixed given\.$#'
 			identifier: argument.type
 			count: 1

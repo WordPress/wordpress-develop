@@ -841,6 +841,20 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_registered_theme_features() falls back to an empty array when the registry is not an array.
+	 *
+	 * @ticket 49406
+	 *
+	 * @covers ::get_registered_theme_features
+	 */
+	public function test_get_registered_theme_features_fallback() {
+		global $_wp_registered_theme_features;
+		$_wp_registered_theme_features = null;
+
+		$this->assertSame( array(), get_registered_theme_features() );
+	}
+
+	/**
 	 * Tests that block themes support a feature by default.
 	 *
 	 * @ticket 54597

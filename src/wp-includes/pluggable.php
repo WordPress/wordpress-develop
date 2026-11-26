@@ -3047,15 +3047,18 @@ if ( ! function_exists( 'wp_rand' ) ) :
 	 * @param int $max Optional. Upper limit for the generated number.
 	 *                 Accepts positive integers. Defaults to 4294967295.
 	 * @return int A random non-negative number between min and max.
+	 *
+	 * @phpstan-return non-negative-int
 	 */
 	function wp_rand( $min = null, $max = null ) {
 		global $rnd_value;
 
 		/*
-		 * Some misconfigured 32-bit environments (Entropy PHP, for example)
-		 * truncate integers larger than PHP_INT_MAX to PHP_INT_MAX rather than overflowing them to floats.
+		 * On 32-bit systems, 0xffffffff exceeds PHP_INT_MAX, so it is cast to a float explicitly.
+		 * Some misconfigured 32-bit environments (Entropy PHP, for example) truncate integer literals
+		 * larger than PHP_INT_MAX to PHP_INT_MAX rather than overflowing them to floats.
 		 */
-		$max_random_number = 3000000000 === 2147483647 ? (float) '4294967295' : 4294967295; // 4294967295 = 0xffffffff
+		$max_random_number = PHP_INT_SIZE === 4 ? (float) '4294967295' : 4294967295; // 4294967295 = 0xffffffff
 
 		if ( null === $min ) {
 			$min = 0;
@@ -3077,11 +3080,7 @@ if ( ! function_exists( 'wp_rand' ) ) :
 				$_max = max( $min, $max );
 				$_min = min( $min, $max );
 				$val  = random_int( $_min, $_max );
-				if ( false !== $val ) {
-					return absint( $val );
-				} else {
-					$use_random_int_functionality = false;
-				}
+				return absint( $val );
 			} catch ( Error $e ) {
 				$use_random_int_functionality = false;
 			} catch ( Exception $e ) {
@@ -3095,9 +3094,13 @@ if ( ! function_exists( 'wp_rand' ) ) :
 		 */
 		if ( strlen( $rnd_value ) < 8 ) {
 			if ( defined( 'WP_SETUP_CONFIG' ) ) {
+				/** @var string $seed */
 				static $seed = '';
 			} else {
 				$seed = get_transient( 'random_seed' );
+				if ( ! is_string( $seed ) ) {
+					$seed = '';
+				}
 			}
 			$rnd_value  = md5( uniqid( microtime() . mt_rand(), true ) . $seed );
 			$rnd_value .= sha1( $rnd_value );
@@ -3409,6 +3412,8 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 	 * are equivalent, then an empty string will be returned.
 	 *
 	 * @since 2.6.0
+	 * @since 7.3.0 Added the `$max_word_diff_line_length`, `$max_changed_lines`,
+	 *              and `$max_changed_line_pairs` arguments.
 	 *
 	 * @see wp_parse_args() Used to change defaults to user defined settings.
 	 * @uses Text_Diff
@@ -3419,14 +3424,22 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 	 * @param string|array $args {
 	 *     Associative array of options to pass to WP_Text_Diff_Renderer_Table().
 	 *
-	 *     @type string $title           Titles the diff in a manner compatible
-	 *                                   with the output. Default empty.
-	 *     @type string $title_left      Change the HTML to the left of the title.
-	 *                                   Default empty.
-	 *     @type string $title_right     Change the HTML to the right of the title.
-	 *                                   Default empty.
-	 *     @type bool   $show_split_view True for split view (two columns), false for
-	 *                                   un-split view (single column). Default true.
+	 *     @type string $title                      Titles the diff in a manner compatible
+	 *                                              with the output. Default empty.
+	 *     @type string $title_left                 Change the HTML to the left of the title.
+	 *                                              Default empty.
+	 *     @type string $title_right                Change the HTML to the right of the title.
+	 *                                              Default empty.
+	 *     @type bool   $show_split_view            True for split view (two columns), false for
+	 *                                              un-split view (single column). Default true.
+	 *     @type int    $max_word_diff_line_length  Changed lines longer than this many bytes get
+	 *                                              no word-level highlighting. Default 10000.
+	 *     @type int    $max_changed_lines          A changed block with more old and new lines
+	 *                                              than this shows removed lines, then added
+	 *                                              lines. Default 5000.
+	 *     @type int    $max_changed_line_pairs     A changed block with more old-by-new line
+	 *                                              pairs than this shows removed lines, then
+	 *                                              added lines. Default 250000.
 	 * }
 	 * @return string Empty string if strings are equivalent or HTML with differences.
 	 */
