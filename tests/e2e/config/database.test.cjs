@@ -16,6 +16,14 @@ function loadDatabase() {
 	return require( databasePath );
 }
 
+test( 'passes the request host, including its port, to PHP', async () => {
+	const nginxConfig = await readFile(
+		path.join( process.cwd(), 'tools/local-env/default.template' ),
+		'utf8'
+	);
+	assert.match( nginxConfig, /fastcgi_param HTTP_HOST \$http_host;/ );
+} );
+
 test( 'uses a separate local E2E port and classifies local URLs', ( t ) => {
 	const { getBaseURL, isDefaultEnvironment } = loadDatabase();
 	const originalPort = process.env.LOCAL_PORT;
