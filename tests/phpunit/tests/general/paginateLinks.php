@@ -571,7 +571,7 @@ EXPECTED;
 	 *
 	 * @ticket 66827
 	 */
-	public function test_paginate_links_returns_null_when_total_less_than_two() {
+	public function test_paginate_links_returns_null_for_a_single_page() {
 		$this->assertNull(
 			paginate_links(
 				array(
