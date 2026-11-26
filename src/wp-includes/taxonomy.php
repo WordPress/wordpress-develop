@@ -5329,3 +5329,107 @@ function wp_check_term_meta_support_prefilter( $check ) {
 
 	return $check;
 }
+
+/**
+ * Checks to see if more than one term of a given taxonomy has associated posts.
+ *
+ * @since 7.3.0
+ *
+ * @param string $taxonomy Taxonomy name.
+ * @return bool Whether or not we have more than one term of the given taxonomy.
+ */
+function wp_has_multiple_terms( $taxonomy ) {
+	$wp_has_multiple_terms = get_transient( 'has_multiple_terms_' . $taxonomy );
+	if ( false === $wp_has_multiple_terms ) {
+		$wp_has_multiple_terms = get_terms(
+			array(
+				'taxonomy' => $taxonomy,
+				'fields'   => 'count',
+				'number'   => 2,
+			)
+		);
+		$wp_has_multiple_terms = $wp_has_multiple_terms > 1 ? 1 : 0;
+		set_transient( 'has_multiple_terms_' . $taxonomy, $wp_has_multiple_terms );
+	}
+
+		/**
+		 * Filters whether the site has more than one term of the given taxonomy with associated posts.
+		 *
+		 * @since 7.3.0
+		 *
+		 * @param bool   $wp_has_multiple_terms Whether $wp_has_multiple_terms should evaluate as true.
+		 * @param string $taxonomy              Taxonomy name.
+		 */
+		return apply_filters( 'wp_has_multiple_terms', (bool) $wp_has_multiple_terms, $taxonomy );
+}
+
+/**
+ * Helper function to clear the cache for a number of taxonomy terms.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param string|array $taxonomies One or more taxonomy names.
+ */
+function _clear_multi_taxonomy_cache( $taxonomies ) {
+	$taxonomies = (array) $taxonomies;
+
+	foreach ( $taxonomies as $taxonomy ) {
+		delete_transient( 'has_multiple_terms_' . $taxonomy );
+	}
+}
+
+/**
+ * Helper function to clear the $is_multi_taxonomy cache for a term.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param int    $term_id  Term ID.
+ * @param int    $tt_id    Term taxonomy ID.
+ * @param string $taxonomy Taxonomy name.
+ */
+function _clear_multi_taxonomy_cache_for_term( $term_id, $tt_id, $taxonomy ) {
+	_clear_multi_taxonomy_cache( $taxonomy );
+}
+
+/**
+ * Helper function to clear the $is_multi_taxonomy cache for a post.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param int $post_id Post ID.
+ */
+function _clear_multi_taxonomy_cache_for_post( $post_id ) {
+	_clear_multi_taxonomy_cache( get_object_taxonomies( get_post( $post_id ) ) );
+}
+
+/**
+ * Clears the multiple terms cache when terms are set on an object.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param int    $object_id Object ID.
+ * @param array  $terms     An array of object term IDs or slugs.
+ * @param array  $tt_ids    An array of term taxonomy IDs.
+ * @param string $taxonomy  Taxonomy slug.
+ */
+function _clear_multi_taxonomy_cache_for_object_terms( $object_id, $terms, $tt_ids, $taxonomy ) {
+	_clear_multi_taxonomy_cache( $taxonomy );
+}
+
+/**
+ * Clears the multiple terms cache when terms are removed from an object.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param int    $object_id Object ID.
+ * @param array  $tt_ids    An array of term taxonomy IDs.
+ * @param string $taxonomy  Taxonomy slug.
+ */
+function _clear_multi_taxonomy_cache_for_removed_terms( $object_id, $tt_ids, $taxonomy ) {
+	_clear_multi_taxonomy_cache( $taxonomy );
+}

@@ -411,6 +411,28 @@ function clean_category_cache( $id ) {
 }
 
 /**
+ * Checks to see if more than one category has associated posts.
+ *
+ * @since 7.3.0
+ *
+ * @return bool Whether or not we have more than one categories.
+ */
+function wp_has_multiple_categories() {
+	return wp_has_multiple_terms( 'category' );
+}
+
+/**
+ * Checks to see if more than one tag has associated posts.
+ *
+ * @since 7.3.0
+ *
+ * @return bool Whether or not we have more than one tags.
+ */
+function wp_has_multiple_tags() {
+	return wp_has_multiple_terms( 'post_tag' );
+}
+
+/**
  * Updates category structure to old pre-2.3 from new taxonomy structure.
  *
  * This function was added for the taxonomy support to update the new category
