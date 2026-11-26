@@ -86,24 +86,33 @@ class WP_Customize_Setting {
 	/**
 	 * Server-side validation callback for the setting's value.
 	 *
+	 * An empty string means there is no callback.
+	 *
 	 * @since 4.6.0
-	 * @var callable
+	 * @var callable|string
+	 * @phpstan-var callable|''
 	 */
 	public $validate_callback = '';
 
 	/**
 	 * Callback to filter a Customize setting value in un-slashed form.
 	 *
+	 * An empty string means there is no callback.
+	 *
 	 * @since 3.4.0
-	 * @var callable
+	 * @var callable|string
+	 * @phpstan-var callable|''
 	 */
 	public $sanitize_callback = '';
 
 	/**
 	 * Callback to convert a Customize PHP setting value to a value that is JSON serializable.
 	 *
+	 * An empty string means there is no callback.
+	 *
 	 * @since 3.4.0
-	 * @var callable
+	 * @var callable|string
+	 * @phpstan-var callable|''
 	 */
 	public $sanitize_js_callback = '';
 
