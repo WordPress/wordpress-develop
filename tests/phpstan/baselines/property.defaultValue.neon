@@ -19,16 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property WP_Comment_Query\:\:\$date_query \(WP_Date_Query\) does not accept default value of type false\.$#'
-			identifier: property.defaultValue
-			count: 1
-			path: ../../../src/wp-includes/class-wp-comment-query.php
-		-
-			message: '#^Property WP_Comment_Query\:\:\$meta_query \(WP_Meta_Query\) does not accept default value of type false\.$#'
-			identifier: property.defaultValue
-			count: 1
-			path: ../../../src/wp-includes/class-wp-comment-query.php
-		-
 			message: '#^Property WP_Customize_Control\:\:\$active_callback \(callable\(\)\: mixed\) does not accept default value of type ''''\.$#'
 			identifier: property.defaultValue
 			count: 1
