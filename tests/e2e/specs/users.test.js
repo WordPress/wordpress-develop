@@ -24,7 +24,7 @@ test.describe( 'User management', () => {
 	test( 'creates a user who can log in', async ( {
 		admin,
 		page,
-		browser,
+		loggedOutPage,
 		userFactory,
 	} ) => {
 		const username = `${ prefix }-new`;
@@ -49,24 +49,16 @@ test.describe( 'User management', () => {
 			'New user created.'
 		);
 
-		const context = await browser.newContext( {
-			storageState: { cookies: [], origins: [] },
-		} );
-		try {
-			const loginPage = await context.newPage();
-			await signIn( loginPage, username, password );
-			await expect(
-				loginPage.getByRole( 'heading', {
-					name: 'Profile',
-					exact: true,
-				} )
-			).toBeVisible();
-			await expect( loginPage.locator( '#user_login' ) ).toHaveValue(
-				username
-			);
-		} finally {
-			await context.close();
-		}
+		await signIn( loggedOutPage, username, password );
+		await expect(
+			loggedOutPage.getByRole( 'heading', {
+				name: 'Profile',
+				exact: true,
+			} )
+		).toBeVisible();
+		await expect( loggedOutPage.locator( '#user_login' ) ).toHaveValue(
+			username
+		);
 	} );
 
 	test( 'bulk deletes selected users and keeps the unselected user', async ( {
@@ -121,7 +113,7 @@ test.describe( 'User management', () => {
 	} );
 
 	test( 'prevents an administrator from changing their own role to subscriber', async ( {
-		browser,
+		loggedOutPage,
 		requestUtils,
 		baseURL,
 		userFactory,
@@ -137,49 +129,43 @@ test.describe( 'User management', () => {
 			roles: [ 'administrator' ],
 		} );
 
-		const context = await browser.newContext( {
-			storageState: { cookies: [], origins: [] },
+		await signIn( loggedOutPage, username, password );
+		await expect(
+			loggedOutPage.getByRole( 'heading', {
+				name: 'Dashboard',
+				exact: true,
+			} )
+		).toBeVisible();
+
+		await loggedOutPage.goto(
+			new URL( 'wp-admin/profile.php', baseURL ).href
+		);
+		await expect(
+			loggedOutPage.getByLabel( 'Role', { exact: true } )
+		).toHaveCount( 0 );
+
+		await loggedOutPage.goto(
+			new URL(
+				`wp-admin/users.php?s=${ encodeURIComponent( username ) }`,
+				baseURL
+			).href
+		);
+		await loggedOutPage
+			.locator( `#user-${ disposable.id }` )
+			.getByRole( 'checkbox' )
+			.check();
+		// Top/bottom role controls share an accessible name, so use the top control ID.
+		await loggedOutPage.locator( '#new_role' ).selectOption( 'subscriber' );
+		await loggedOutPage.locator( '#changeit' ).click();
+		await expect( loggedOutPage.locator( '#message.error' ) ).toContainText(
+			'You cannot change your own role to one that does not allow managing other users. Your role was not changed.'
+		);
+
+		const stillAdmin = await requestUtils.rest( {
+			path: `/wp/v2/users/${ disposable.id }`,
+			params: { context: 'edit' },
 		} );
-		try {
-			const page = await context.newPage();
-			await signIn( page, username, password );
-			await expect(
-				page.getByRole( 'heading', {
-					name: 'Dashboard',
-					exact: true,
-				} )
-			).toBeVisible();
-
-			await page.goto( new URL( 'wp-admin/profile.php', baseURL ).href );
-			await expect(
-				page.getByLabel( 'Role', { exact: true } )
-			).toHaveCount( 0 );
-
-			await page.goto(
-				new URL(
-					`wp-admin/users.php?s=${ encodeURIComponent( username ) }`,
-					baseURL
-				).href
-			);
-			await page
-				.locator( `#user-${ disposable.id }` )
-				.getByRole( 'checkbox' )
-				.check();
-			// Top/bottom role controls share an accessible name, so use the top control ID.
-			await page.locator( '#new_role' ).selectOption( 'subscriber' );
-			await page.locator( '#changeit' ).click();
-			await expect( page.locator( '#message.error' ) ).toContainText(
-				'You cannot change your own role to one that does not allow managing other users. Your role was not changed.'
-			);
-
-			const stillAdmin = await requestUtils.rest( {
-				path: `/wp/v2/users/${ disposable.id }`,
-				params: { context: 'edit' },
-			} );
-			expect( stillAdmin.roles ).toContain( 'administrator' );
-		} finally {
-			await context.close();
-		}
+		expect( stillAdmin.roles ).toContain( 'administrator' );
 	} );
 
 	test( 'shows an empty result when searching for a missing user', async ( {
