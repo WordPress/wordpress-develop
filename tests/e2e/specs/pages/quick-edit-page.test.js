@@ -2,6 +2,7 @@
  * Internal dependencies
  */
 import { test, expect } from '../../fixtures';
+import { postRow } from '../../utils/admin';
 
 test.describe( 'Quick Edit page', () => {
 	test( 'saves a page parent using Quick Edit', async ( {
@@ -10,23 +11,25 @@ test.describe( 'Quick Edit page', () => {
 		postFactory,
 	} ) => {
 		const parentPage = await postFactory.createPage( {
-			title: 'Quick Edit parent',
+			title: postFactory.uniqueTitle( 'Quick Edit parent' ),
 			status: 'publish',
 		} );
+		const title = postFactory.uniqueTitle( 'Quick Edit page' );
 		const createdPage = await postFactory.createPage( {
-			title: 'Quick Edit page',
+			title,
 			status: 'publish',
 		} );
 		const pageId = createdPage.id;
 
-		await admin.visitAdminPage( 'edit.php?post_type=page' );
-		const row = page.locator( `#post-${ pageId }` );
-		await row
-			.getByRole( 'link', { name: 'Quick Edit page', exact: true } )
-			.hover();
+		await admin.visitAdminPage(
+			'edit.php',
+			`post_type=page&s=${ encodeURIComponent( title ) }`
+		);
+		const row = postRow( page, pageId );
+		await row.getByRole( 'link', { name: title, exact: true } ).hover();
 		await row
 			.getByRole( 'button', {
-				name: 'Quick edit “Quick Edit page” inline',
+				name: `Quick edit “${ title }” inline`,
 				exact: true,
 			} )
 			.click();
@@ -47,12 +50,10 @@ test.describe( 'Quick Edit page', () => {
 		await expect( editRow ).toBeHidden();
 
 		await page.reload();
-		await row
-			.getByRole( 'link', { name: 'Quick Edit page', exact: true } )
-			.hover();
+		await row.getByRole( 'link', { name: title, exact: true } ).hover();
 		await row
 			.getByRole( 'button', {
-				name: 'Quick edit “Quick Edit page” inline',
+				name: `Quick edit “${ title }” inline`,
 				exact: true,
 			} )
 			.click();

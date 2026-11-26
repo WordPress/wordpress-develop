@@ -7,6 +7,12 @@ import { randomUUID } from 'node:crypto';
  * Internal dependencies
  */
 import { test, expect } from '../fixtures';
+import {
+	adminNotice,
+	bulkActionApply,
+	bulkActionSelect,
+	postRow,
+} from '../utils/admin';
 
 test.describe( 'Edit Posts', () => {
 	async function visitPostList( admin, title ) {
@@ -43,7 +49,7 @@ test.describe( 'Edit Posts', () => {
 		await expect(
 			listTable.locator( '#the-list' ).getByRole( 'row' )
 		).toHaveCount( 1 );
-		const row = listTable.locator( `#post-${ post.id }` );
+		const row = postRow( listTable, post.id );
 
 		// Expect the title of the post to be correct.
 		const postLink = row.getByRole( 'link', {
@@ -72,8 +78,7 @@ test.describe( 'Edit Posts', () => {
 		await expect( listTable ).toBeVisible();
 
 		// Click the post title (edit) link
-		await listTable
-			.locator( `#post-${ post.id }` )
+		await postRow( listTable, post.id )
 			.getByRole( 'link', { name: title, exact: true } )
 			.click();
 
@@ -97,7 +102,7 @@ test.describe( 'Edit Posts', () => {
 
 		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
 		await expect( listTable ).toBeVisible();
-		const row = listTable.locator( `#post-${ post.id }` );
+		const row = postRow( listTable, post.id );
 
 		// // Focus on the post title link.
 		await row.getByRole( 'link', { name: title, exact: true } ).focus();
@@ -146,7 +151,7 @@ test.describe( 'Edit Posts', () => {
 
 		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
 		await expect( listTable ).toBeVisible();
-		const row = listTable.locator( `#post-${ post.id }` );
+		const row = postRow( listTable, post.id );
 
 		await row.getByRole( 'link', { name: title, exact: true } ).hover();
 		await row
@@ -185,13 +190,10 @@ test( 'bulk edits only the selected posts', async ( {
 		new URLSearchParams( { s: titlePrefix } ).toString()
 	);
 	for ( const post of posts.slice( 0, 2 ) ) {
-		await page
-			.locator( `#post-${ post.id }` )
-			.getByRole( 'checkbox' )
-			.check();
+		await postRow( page, post.id ).getByRole( 'checkbox' ).check();
 	}
-	await page.locator( '#bulk-action-selector-top' ).selectOption( 'edit' );
-	await page.locator( '#doaction' ).click();
+	await bulkActionSelect( page ).selectOption( 'edit' );
+	await bulkActionApply( page ).click();
 	const bulkEdit = page.getByRole( 'region', {
 		name: 'Bulk Edit',
 		exact: true,
@@ -202,15 +204,14 @@ test( 'bulk edits only the selected posts', async ( {
 	await bulkEdit
 		.getByRole( 'button', { name: 'Update', exact: true } )
 		.click();
-	await expect( page.locator( '#message' ) ).toContainText(
+	await expect( adminNotice( page ) ).toContainText(
 		'2 posts updated.'
 	);
 
 	await page.reload();
 	for ( const post of posts.slice( 0, 2 ) ) {
 		await expect(
-			page
-				.locator( `#post-${ post.id }` )
+			postRow( page, post.id )
 				.getByText( 'Draft', { exact: true } )
 		).toBeVisible();
 		const savedPost = await requestUtils.rest( {

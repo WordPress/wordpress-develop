@@ -8,6 +8,11 @@ import { randomUUID } from 'node:crypto';
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
+/**
+ * Internal dependencies
+ */
+import { commentRow } from '../utils/admin';
+
 test.describe( 'Front-end comments', () => {
 	let postId;
 
@@ -85,8 +90,8 @@ test.describe( 'Front-end comments', () => {
 				status: 'approved',
 			} );
 
-		await admin.visitAdminPage( '/edit-comments.php' );
-		const row = page.locator( `#comment-${ commentId }` );
+		await admin.visitAdminPage( '/edit-comments.php', `p=${ post.id }` );
+		const row = commentRow( page, commentId );
 		await expect( row ).toBeVisible();
 		await expect(
 			row
