@@ -2,14 +2,14 @@
 /**
  * Tests for the wp_delete_file_from_directory function.
  *
- * @group functions.php
+ * @group functions
  *
  * @covers ::wp_delete_file_from_directory
  */
-class Tests_functions_wpDeleteFileFromDirectory extends WP_UnitTestCase {
+class Tests_Functions_wpDeleteFileFromDirectory extends WP_UnitTestCase {
 
 	/**
-	 * call with file and correct directory.
+	 * Call with file and correct directory.
 	 *
 	 * @ticket 59781
 	 */
@@ -45,12 +45,15 @@ class Tests_functions_wpDeleteFileFromDirectory extends WP_UnitTestCase {
 		$directory = realpath( DIR_TESTDATA );
 		touch( $file );
 
-		$this->assertTrue( wp_delete_file_from_directory( 'file://' . $file, 'file://' . $directory ) );
+		$file_url      = 'file://' . ( '/' === $file[0] ? $file : '/' . wp_normalize_path( $file ) );
+		$directory_url = 'file://' . ( '/' === $directory[0] ? $directory : '/' . wp_normalize_path( $directory ) );
+
+		$this->assertTrue( wp_delete_file_from_directory( $file_url, $directory_url ) );
 		$this->assertFileDoesNotExist( $file );
 	}
 
 	/**
-	 * Call with unsorted stream file.
+	 * Call with unsupported stream file.
 	 *
 	 * @ticket 59781
 	 */
@@ -59,7 +62,7 @@ class Tests_functions_wpDeleteFileFromDirectory extends WP_UnitTestCase {
 		$directory = realpath( DIR_TESTDATA );
 		touch( $file );
 
-		$this->assertFalse( wp_delete_file_from_directory( 'php://' . $file, 'php://' . $directory ) );
+		$this->assertFalse( wp_delete_file_from_directory( 'php://temp', 'php://temp' ) );
 		$this->assertFileExists( $file );
 		@unlink( $file );
 	}
