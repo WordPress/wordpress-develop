@@ -34,11 +34,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
-			message: '#^Property WP_Customize_Panel\:\:\$active_callback \(callable\) in empty\(\) is not falsy\.$#'
-			identifier: empty.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-panel.php
-		-
 			message: '#^Property WP_Customize_Section\:\:\$active_callback \(callable\) in empty\(\) is not falsy\.$#'
 			identifier: empty.property
 			count: 1
