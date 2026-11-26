@@ -314,18 +314,26 @@ final class WpdbSelectParser {
 			$depth += self::get_depth_change( $token['text'] );
 		}
 
-		// The alias, if any.
-		$alias = null;
-		if ( $count >= 3 && 'AS' === strtoupper( $item[ $count - 2 ]['text'] ) && self::is_identifier( $item[ $count - 1 ]['text'] ) ) {
-			$alias = self::unquote( $item[ $count - 1 ]['text'] );
+		// The alias, if any, which may be a name or a quoted string.
+		$alias     = null;
+		$last_text = $item[ $count - 1 ]['text'];
+		$previous  = $count >= 2 ? $item[ $count - 2 ]['text'] : '';
+		if ( $count >= 3 && 'AS' === strtoupper( $previous ) && ( self::is_identifier( $last_text ) || self::is_quoted_string( $last_text ) ) ) {
+			$alias = self::unquote( $last_text );
 			$item  = array_slice( $item, 0, $count - 2 );
 		} elseif (
 			$count >= 2
-			&& self::is_identifier( $item[ $count - 1 ]['text'] )
-			&& ! in_array( strtoupper( $item[ $count - 1 ]['text'] ), self::NON_ALIAS_KEYWORDS, true )
-			&& ( ')' === $item[ $count - 2 ]['text'] || self::is_identifier( $item[ $count - 2 ]['text'] ) || self::is_literal( $item[ $count - 2 ]['text'] ) )
+			&& (
+				// A string following a string literal is not an alias, but is joined to it.
+				( self::is_quoted_string( $last_text ) && ( ')' === $previous || self::is_identifier( $previous ) ) )
+				|| (
+					self::is_identifier( $last_text )
+					&& ! in_array( strtoupper( $last_text ), self::NON_ALIAS_KEYWORDS, true )
+					&& ( ')' === $previous || self::is_identifier( $previous ) || self::is_literal( $previous ) )
+				)
+			)
 		) {
-			$alias = self::unquote( $item[ $count - 1 ]['text'] );
+			$alias = self::unquote( $last_text );
 			$item  = array_slice( $item, 0, $count - 1 );
 		}
 
@@ -586,14 +594,28 @@ final class WpdbSelectParser {
 	}
 
 	/**
-	 * Removes backticks around an identifier.
+	 * Determines whether a token is a quoted string, with single or double quotes.
 	 *
-	 * @param string $text Identifier.
+	 * @param string $text Token.
+	 * @return bool
+	 */
+	private static function is_quoted_string( string $text ): bool {
+		return strlen( $text ) >= 2 && ( "'" === $text[0] || '"' === $text[0] ) && $text[0] === substr( $text, -1 );
+	}
+
+	/**
+	 * Removes the backticks around an identifier, or the quotes around a string used as an alias.
+	 *
+	 * @param string $text Identifier or quoted string.
 	 * @return string
 	 */
 	private static function unquote( string $text ): string {
 		if ( strlen( $text ) >= 2 && '`' === $text[0] && '`' === substr( $text, -1 ) ) {
 			return substr( $text, 1, -1 );
+		}
+		if ( self::is_quoted_string( $text ) ) {
+			$quote = $text[0];
+			return str_replace( array( $quote . $quote, '\\' . $quote, '\\\\' ), array( $quote, $quote, '\\' ), substr( $text, 1, -1 ) );
 		}
 		return $text;
 	}
