@@ -990,8 +990,6 @@ class Tests_Query_DateQuery extends WP_UnitTestCase {
 			)
 		);
 
-		_unregister_taxonomy( 'foo' );
-
 		$this->assertSame( array( $p1 ), wp_list_pluck( $posts, 'ID' ) );
 	}
 
