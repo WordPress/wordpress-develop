@@ -187,7 +187,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<?php wp_nonce_field( 'authorize_application_password' ); ?>
 				<input type="hidden" name="action" value="authorize_application_password" />
 				<input type="hidden" name="app_id" value="<?php echo esc_attr( $app_id ); ?>" />
-				<input type="hidden" name="success_url" value="<?php echo esc_url( $success_url ); ?>" />
+				<input type="hidden" name="success_url" value="<?php echo esc_attr( $success_url ); ?>" />
 
 				<?php if ( $app_name ) : ?>
 					<p>
