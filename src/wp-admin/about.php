@@ -9,6 +9,9 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/** @global WP_Rewrite $wp_rewrite WordPress rewrite component. */
+global $wp_rewrite;
+
 // Used in the HTML title tag.
 /* translators: Page title of the About WordPress page in the admin. */
 $title = _x( 'About', 'page title' );
