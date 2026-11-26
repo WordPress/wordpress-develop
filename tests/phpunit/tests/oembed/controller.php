@@ -185,6 +185,9 @@ class Tests_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( 'json', wp_oembed_ensure_format( array() ) );
 	}
 
+	/**
+	 * @requires extension simplexml
+	 */
 	public function test_oembed_create_xml() {
 		$actual = _oembed_create_xml(
 			array(
@@ -454,6 +457,9 @@ class Tests_oEmbed_Controller extends WP_UnitTestCase {
 		restore_current_blog();
 	}
 
+	/**
+	 * @requires extension simplexml
+	 */
 	public function test_rest_pre_serve_request() {
 		$user = get_user_by( 'id', self::$subscriber );
 		$post = self::factory()->post->create_and_get(
