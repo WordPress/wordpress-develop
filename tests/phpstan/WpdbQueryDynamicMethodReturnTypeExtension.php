@@ -233,19 +233,42 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	 * those after it. So there are two variants of the row, one with those columns and one without. They are taken to
 	 * be all present or all absent together, as the multisite columns are.
 	 *
+	 * The values are those of the row object's properties, so there is one for each column name: a later column with
+	 * the name of an earlier one replaces its value, in its position.
+	 *
 	 * @param list<array{ name: string|null, type: Type, optional: bool }> $columns Columns.
 	 * @return non-empty-list<list<Type>> Types of the values, in each variant of the row.
 	 */
 	private static function get_row_variants( array $columns ): array {
-		$with    = array();
-		$without = array();
-		foreach ( $columns as $column ) {
-			$with[] = $column['type'];
-			if ( ! $column['optional'] ) {
-				$without[] = $column['type'];
-			}
-		}
+		$with    = self::get_row_values( $columns );
+		$without = self::get_row_values( array_values( array_filter( $columns, static fn ( array $column ): bool => ! $column['optional'] ) ) );
 		return count( $with ) === count( $without ) ? array( $with ) : array( $with, $without );
+	}
+
+	/**
+	 * Gets the types of the values of a row, as `array_values( get_object_vars( $row ) )` gives them.
+	 *
+	 * A column whose name is unknown is taken to have a name of its own.
+	 *
+	 * @param list<array{ name: string|null, type: Type, optional: bool }> $columns Columns present in the row.
+	 * @return list<Type> Types of the values.
+	 */
+	private static function get_row_values( array $columns ): array {
+		$values    = array();
+		$positions = array();
+		foreach ( $columns as $column ) {
+			$name = $column['name'];
+			if ( null !== $name && isset( $positions[ $name ] ) ) {
+				$values[ $positions[ $name ] ] = $column['type'];
+				continue;
+			}
+			if ( null !== $name ) {
+				$positions[ $name ] = count( $values );
+			}
+			$values[] = $column['type'];
+		}
+		// Replacing a value at its position keeps the keys sequential.
+		return array_values( $values );
 	}
 
 	/**
