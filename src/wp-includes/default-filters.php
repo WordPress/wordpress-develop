@@ -697,6 +697,10 @@ add_filter( 'theme_wp_navigation_templates', '__return_empty_array' );
 
 // Taxonomy.
 add_action( 'init', 'create_initial_taxonomies', 0 ); // Highest priority.
+add_action( 'edit_term', '_clear_multi_taxonomy_cache_for_term', 10, 3 );
+add_action( 'deleted_term_relationships', '_clear_multi_taxonomy_cache_for_removed_terms', 10, 3 );
+add_action( 'set_object_terms', '_clear_multi_taxonomy_cache_for_object_terms', 10, 4 );
+add_action( 'save_post', '_clear_multi_taxonomy_cache_for_post', 10, 1 );
 add_action( 'change_locale', 'create_initial_taxonomies' );
 
 // Canonical.
