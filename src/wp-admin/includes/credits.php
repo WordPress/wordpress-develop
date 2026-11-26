@@ -32,12 +32,8 @@ function wp_credits( $version = '', $locale = '' ) {
 		|| str_contains( $version, '-' )
 		|| ( isset( $results['data']['version'] ) && ! str_starts_with( $version, $results['data']['version'] ) )
 	) {
-		$url     = "http://api.wordpress.org/core/credits/1.1/?version={$version}&locale={$locale}";
+		$url     = "https://api.wordpress.org/core/credits/1.1/?version={$version}&locale={$locale}";
 		$options = array( 'user-agent' => 'WordPress/' . $version . '; ' . home_url( '/' ) );
-
-		if ( wp_http_supports( array( 'ssl' ) ) ) {
-			$url = set_url_scheme( $url, 'https' );
-		}
 
 		$response = wp_remote_get( $url, $options );
 

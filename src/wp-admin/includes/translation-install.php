@@ -50,12 +50,7 @@ function translations_api( $type, $args = null ) {
 	$res = apply_filters( 'translations_api', false, $type, $args );
 
 	if ( false === $res ) {
-		$url      = 'http://api.wordpress.org/translations/' . $type . '/1.0/';
-		$http_url = $url;
-		$ssl      = wp_http_supports( array( 'ssl' ) );
-		if ( $ssl ) {
-			$url = set_url_scheme( $url, 'https' );
-		}
+		$url = 'https://api.wordpress.org/translations/' . $type . '/1.0/';
 
 		$options = array(
 			'timeout' => 3,
@@ -71,20 +66,6 @@ function translations_api( $type, $args = null ) {
 		}
 
 		$request = wp_remote_post( $url, $options );
-
-		if ( $ssl && is_wp_error( $request ) ) {
-			wp_trigger_error(
-				__FUNCTION__,
-				sprintf(
-					/* translators: %s: Support forums URL. */
-					__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
-					__( 'https://wordpress.org/support/forums/' )
-				) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
-				headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
-			);
-
-			$request = wp_remote_post( $http_url, $options );
-		}
 
 		if ( is_wp_error( $request ) ) {
 			$res = new WP_Error(
