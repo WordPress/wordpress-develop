@@ -662,6 +662,21 @@ line 2<br/>
 	}
 
 	/**
+	 * Opts a shortcode out of autop through the `no_autop_shortcodes` filter.
+	 *
+	 * @param string $tagname Shortcode name.
+	 */
+	private function opt_out_of_autop( $tagname ) {
+		add_filter(
+			'no_autop_shortcodes',
+			static function ( $tagnames ) use ( $tagname ) {
+				$tagnames[] = $tagname;
+				return $tagnames;
+			}
+		);
+	}
+
+	/**
 	 * Shortcodes are formatted by default.
 	 *
 	 * @ticket 6984
@@ -677,12 +692,7 @@ line 2<br/>
 	 * @ticket 6984
 	 */
 	public function test_no_autop_shortcodes_filter_leaves_shortcode_content_untouched() {
-		add_filter(
-			'no_autop_shortcodes',
-			static function () {
-				return array( 'code' );
-			}
-		);
+		$this->opt_out_of_autop( 'code' );
 
 		$this->assertSame(
 			"<p>Before</p>\n<p>[code]line1\n\nline2\nline3[/code]</p>\n<p>After</p>\n",
@@ -694,12 +704,7 @@ line 2<br/>
 	 * @ticket 6984
 	 */
 	public function test_no_autop_shortcodes_filter_only_affects_listed_shortcodes() {
-		add_filter(
-			'no_autop_shortcodes',
-			static function () {
-				return array( 'code' );
-			}
-		);
+		$this->opt_out_of_autop( 'code' );
 
 		$this->assertSame(
 			"<p>[other]a</p>\n<p>b[/other]</p>\n",
@@ -711,12 +716,7 @@ line 2<br/>
 	 * @ticket 6984
 	 */
 	public function test_no_autop_shortcodes_filter_handles_multiple_shortcodes() {
-		add_filter(
-			'no_autop_shortcodes',
-			static function () {
-				return array( 'code' );
-			}
-		);
+		$this->opt_out_of_autop( 'code' );
 
 		$this->assertSame(
 			"<p>[code]a\n\nb[/code]</p>\n<p>[code]c\n\nd[/code]</p>\n",
@@ -728,12 +728,7 @@ line 2<br/>
 	 * @ticket 6984
 	 */
 	public function test_no_autop_shortcodes_filter_keeps_surrounding_text_formatted() {
-		add_filter(
-			'no_autop_shortcodes',
-			static function () {
-				return array( 'code' );
-			}
-		);
+		$this->opt_out_of_autop( 'code' );
 
 		$this->assertSame(
 			"<p>Text [code]a\n\nb[/code] more<br />\ntext</p>\n",
@@ -745,12 +740,7 @@ line 2<br/>
 	 * @ticket 6984
 	 */
 	public function test_no_autop_shortcodes_filter_keeps_line_breaks_in_attributes() {
-		add_filter(
-			'no_autop_shortcodes',
-			static function () {
-				return array( 'code' );
-			}
-		);
+		$this->opt_out_of_autop( 'code' );
 
 		$this->assertSame(
 			"<p>[code lang=\"php\"\nfoo=\"1\"] x</p>\n<p>y</p>\n",
@@ -762,12 +752,7 @@ line 2<br/>
 	 * @ticket 6984
 	 */
 	public function test_no_autop_shortcodes_filter_ignores_escaped_shortcodes() {
-		add_filter(
-			'no_autop_shortcodes',
-			static function () {
-				return array( 'code' );
-			}
-		);
+		$this->opt_out_of_autop( 'code' );
 
 		$this->assertSame(
 			"<p>[[code]]x</p>\n<p>y[[/code]]</p>\n",
@@ -781,12 +766,7 @@ line 2<br/>
 	 * @ticket 6984
 	 */
 	public function test_no_autop_shortcodes_filter_preserves_replacement_characters() {
-		add_filter(
-			'no_autop_shortcodes',
-			static function () {
-				return array( 'code' );
-			}
-		);
+		$this->opt_out_of_autop( 'code' );
 
 		$this->assertSame(
 			"<p>[code]\$1 \\1\n\nx[/code]</p>\n",
@@ -798,12 +778,7 @@ line 2<br/>
 	 * @ticket 6984
 	 */
 	public function test_no_autop_shortcodes_filter_without_line_breaks_conversion() {
-		add_filter(
-			'no_autop_shortcodes',
-			static function () {
-				return array( 'code' );
-			}
-		);
+		$this->opt_out_of_autop( 'code' );
 
 		$this->assertSame(
 			"<p>[code]a\nb[/code]\nc\nd</p>\n",
@@ -827,12 +802,7 @@ line 2<br/>
 			}
 		);
 
-		add_filter(
-			'no_autop_shortcodes',
-			static function () {
-				return array( 'code' );
-			}
-		);
+		$this->opt_out_of_autop( 'code' );
 
 		try {
 			// Same order as the default `the_content` filters: wpautop(), shortcode_unautop(), do_shortcode().

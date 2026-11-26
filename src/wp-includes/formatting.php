@@ -503,22 +503,7 @@ function wpautop( $text, $br = true ) {
 		$no_autop_shortcodes = (array) apply_filters( 'no_autop_shortcodes', array() );
 
 		if ( ! empty( $no_autop_shortcodes ) ) {
-			$text = preg_replace_callback(
-				'/' . get_shortcode_regex( $no_autop_shortcodes ) . '/',
-				static function ( $matches ) use ( &$shortcode_placeholders ) {
-					// Leave escaped shortcodes, [[tag]], alone.
-					if ( '[' === $matches[1] && ']' === $matches[6] ) {
-						return $matches[0];
-					}
-
-					$name = '%wp-autop-shortcode-' . count( $shortcode_placeholders ) . '%';
-
-					$shortcode_placeholders[ $name ] = $matches[0];
-
-					return $name;
-				},
-				$text
-			);
+			$text = _autop_replace_shortcodes( $text, $no_autop_shortcodes, $shortcode_placeholders );
 		}
 	}
 
@@ -648,6 +633,39 @@ function wpautop( $text, $br = true ) {
 	}
 
 	return $text;
+}
+
+/**
+ * Replaces shortcodes with placeholders so wpautop() doesn't format them.
+ *
+ * Escaped shortcodes, such as `[[tag]]`, are left in place.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param string   $text                   The text containing the shortcodes.
+ * @param string[] $tagnames               Names of the shortcodes to replace.
+ * @param string[] $shortcode_placeholders Passed by reference. Placeholders are added to this array,
+ *                                         keyed by placeholder with the original shortcode as the value.
+ * @return string The text with the shortcodes replaced by placeholders.
+ */
+function _autop_replace_shortcodes( $text, $tagnames, &$shortcode_placeholders ) {
+	return preg_replace_callback(
+		'/' . get_shortcode_regex( $tagnames ) . '/',
+		static function ( $matches ) use ( &$shortcode_placeholders ) {
+			// Leave escaped shortcodes, [[tag]], alone.
+			if ( '[' === $matches[1] && ']' === $matches[6] ) {
+				return $matches[0];
+			}
+
+			$placeholder = '%wp-autop-shortcode-' . count( $shortcode_placeholders ) . '%';
+
+			$shortcode_placeholders[ $placeholder ] = $matches[0];
+
+			return $placeholder;
+		},
+		$text
+	);
 }
 
 /**
