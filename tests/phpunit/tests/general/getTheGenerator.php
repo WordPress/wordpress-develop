@@ -92,29 +92,19 @@ class Tests_General_GetTheGenerator extends WP_UnitTestCase {
 	/**
 	 * Tests that an empty $type is inferred from the current filter.
 	 *
-	 * @ticket 66757
+	 * @ticket 66832
 	 *
 	 * @dataProvider data_generator_type_from_current_filter
 	 *
-	 * @param string $filter   Current filter name.
-	 * @param string $type     Inferred generator type.
-	 * @param string $expected Expected markup template with placeholder for version.
+	 * @param string $filter Current filter name.
+	 * @param string $type   Expected inferred generator type.
 	 */
-	public function test_get_the_generator_infers_type_from_current_filter( $filter, $type, $expected ) {
+	public function test_get_the_generator_infers_type_from_current_filter( $filter, $type ) {
 		global $wp_current_filter;
 
-		$original_filter   = $wp_current_filter;
 		$wp_current_filter = array( $filter );
 
-		try {
-			$version = ( 'atom' === $type || 'rss2' === $type || 'rdf' === $type )
-				? get_bloginfo_rss( 'version' )
-				: get_bloginfo( 'version' );
-
-			$this->assertSame( sprintf( $expected, $version ), get_the_generator() );
-		} finally {
-			$wp_current_filter = $original_filter;
-		}
+		$this->assertSame( get_the_generator( $type ), get_the_generator() );
 	}
 
 	/**
@@ -124,46 +114,14 @@ class Tests_General_GetTheGenerator extends WP_UnitTestCase {
 	 */
 	public static function data_generator_type_from_current_filter() {
 		return array(
-			'rss2_head'          => array(
-				'rss2_head',
-				'rss2',
-				'<generator>https://wordpress.org/?v=%s</generator>',
-			),
-			'commentsrss2_head'  => array(
-				'commentsrss2_head',
-				'rss2',
-				'<generator>https://wordpress.org/?v=%s</generator>',
-			),
-			'rss_head'           => array(
-				'rss_head',
-				'comment',
-				'<!-- generator="WordPress/%s" -->',
-			),
-			'opml_head'          => array(
-				'opml_head',
-				'comment',
-				'<!-- generator="WordPress/%s" -->',
-			),
-			'rdf_header'         => array(
-				'rdf_header',
-				'rdf',
-				'<admin:generatorAgent rdf:resource="https://wordpress.org/?v=%s" />',
-			),
-			'atom_head'          => array(
-				'atom_head',
-				'atom',
-				'<generator uri="https://wordpress.org/" version="%s">WordPress</generator>',
-			),
-			'comments_atom_head' => array(
-				'comments_atom_head',
-				'atom',
-				'<generator uri="https://wordpress.org/" version="%s">WordPress</generator>',
-			),
-			'app_head'           => array(
-				'app_head',
-				'atom',
-				'<generator uri="https://wordpress.org/" version="%s">WordPress</generator>',
-			),
+			'rss2_head'          => array( 'rss2_head', 'rss2' ),
+			'commentsrss2_head'  => array( 'commentsrss2_head', 'rss2' ),
+			'rss_head'           => array( 'rss_head', 'comment' ),
+			'opml_head'          => array( 'opml_head', 'comment' ),
+			'rdf_header'         => array( 'rdf_header', 'rdf' ),
+			'atom_head'          => array( 'atom_head', 'atom' ),
+			'comments_atom_head' => array( 'comments_atom_head', 'atom' ),
+			'app_head'           => array( 'app_head', 'atom' ),
 		);
 	}
 
