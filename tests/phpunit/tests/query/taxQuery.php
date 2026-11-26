@@ -830,9 +830,6 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		_unregister_taxonomy( 'foo' );
-		_unregister_taxonomy( 'bar' );
-
 		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
 	}
 
@@ -903,9 +900,6 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 				),
 			)
 		);
-
-		_unregister_taxonomy( 'foo' );
-		_unregister_taxonomy( 'bar' );
 
 		$this->assertSameSets( array( $p1, $p2 ), $q->posts );
 	}
@@ -986,9 +980,6 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 				),
 			)
 		);
-
-		_unregister_taxonomy( 'foo' );
-		_unregister_taxonomy( 'bar' );
 
 		$this->assertSameSets( array( $p1, $p2, $p3 ), $q->posts );
 	}
@@ -1413,8 +1404,6 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 'foo', $q->get( 'taxonomy' ) );
-
-		_unregister_taxonomy( 'foo' );
 	}
 
 	public function test_populate_taxonomy_query_var_from_tax_query_taxonomy_already_set() {
@@ -1439,9 +1428,6 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 'bar', $q->get( 'taxonomy' ) );
-
-		_unregister_taxonomy( 'foo' );
-		_unregister_taxonomy( 'foo1' );
 	}
 
 	public function test_populate_term_query_var_from_tax_query() {
@@ -1466,8 +1452,6 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 'bar', $q->get( 'term' ) );
-
-		_unregister_taxonomy( 'foo' );
 	}
 
 	public function test_populate_term_id_query_var_from_tax_query() {
@@ -1492,8 +1476,6 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $t, $q->get( 'term_id' ) );
-
-		_unregister_taxonomy( 'foo' );
 	}
 
 	/**
@@ -1539,8 +1521,6 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 
 		$this->assertSame( $c, $q->get( 'cat' ) );
 		$this->assertSame( 'bar', $q->get( 'category_name' ) );
-
-		_unregister_taxonomy( 'foo' );
 	}
 
 	/**
@@ -1585,8 +1565,6 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $tag, $q->get( 'tag_id' ) );
-
-		_unregister_taxonomy( 'foo' );
 	}
 
 	/**
