@@ -1,1 +1,96 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="300" fill="none"><linearGradient id="a"><stop offset=".589" stop-color="#3858e9"/><stop offset="1" stop-color="#00c253"/></linearGradient><linearGradient xlink:href="#a" id="c" x1="975" x2="965" y1="393" y2="-40" gradientUnits="userSpaceOnUse"/><linearGradient xlink:href="#a" id="d" x1="523.2" x2="-99.5" y1="-362.725" y2="307.5" gradientUnits="userSpaceOnUse"/><linearGradient xlink:href="#a" id="e" x1="43.5" x2="322.499" y1="395" y2="-88.5" gradientUnits="userSpaceOnUse"/><linearGradient xlink:href="#a" id="g" x1="143.5" x2="-129.5" y1="-280.5" y2="91.5" gradientUnits="userSpaceOnUse"/><clipPath id="b"><path d="M1000 0H0v300h1000z"/></clipPath><g clip-path="url(#b)"><path fill="#3858e9" d="M1000 0H0v300h1000z"/><path fill="url(#c)" d="M671.152 750.405 1264.41-277.152 236.855-870.413l-593.26 1027.557z"/><path fill="url(#d)" d="M220.471-665.454 825.93-59.995 220.471 545.464l-605.459-605.46z"/><path fill="url(#e)" d="M-77.294 341.021 431.194 47.444 137.618-461.045l-508.489 293.577z"/><path fill="url(#g)" d="M-21.733-269.737 66.914 61.1l-330.837 88.647-88.647-330.837z"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="300" viewBox="0 0 1000 300">
+	<!--!
+	Font: JetBrains Mono (subset)
+	Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+	This Font Software is licensed under the SIL Open Font License, Version 1.1.
+	https://openfontlicense.org
+	-->
+	<style>@font-face{font-family:a;src:url(data:font/woff2;base64,d09GMgABAAAAAAvwAA8AAAAAFtwAAAuWAAI2BAAAAAAAAAAAAAAAAAAAAAAAAAAAGkwbIBwqBmA/U1RBVF4AgVgRCAqgFJkYATYCJAOBYAtyAAQgBYMkByAb6RGjooZxVgZkf3Fgg3vUAlGwCZG2FErLYIbUXLB/GH/L3/s1TT4ed0PvkvAADnBeuO3ncdv/GeD7oi8Dm4jcdjfAUTInGBMYZWDHj8zSj5+zZtJ0YV5+lgj8rVAflvksUGJbewzCIlokpY5odXs1cegvDH3+pwKcbCszYiCkKmavUsFPxtVaabdDPAk7RCEjU5Gqd27q5vr25g9wf55obwMPAJuwTcXFSOInVEFQoFI+QotcS9cs1Ua0g5XQTAiTI2h/+bs2gAHBeiDmikCAgQJgDCFjyGUY5DMMilCwErtZuTqqAYZBHWDzJqiBSvWwYDiegmrwgQDW1hDh2t1MTXRHsHGkMDMGuwMAxpeIeOxEAyQ6uiYBICZfjOXAGhJABCQFfDoGw0YfADxItVb73wM0S0Xv3iFSit7Wjar6GcxqYwdsJ36anGh+YHAGA4L/ykSxTeBmQDktdkWYBDsx8QbAHr4BxHpcdO85sHdzT0CkxJEtlloCr1JQo0D+6rWaaVi54WgRbVgpgooJi5atFoIHMBX9Fh8SuH0Fw6Z0vo2Fg+8eD2v3ODs5mr1sG2vUBSjOPZADMLKbvLqFlo6KkZJGsxZyag42dk4YeFm4vEZOhtYohwmDaSD5iXVXPkWiBAqC+RI8KSXjcbihh7vnUjSVzaRJMg+Zp1OtkuyC7OzaIF9l52R3ZFWhJKxeTa9cCmvCElE5rcX5YWlY3FWQr2okHocJUFFRGfh+6BcUtLZCIGOBla1UX+2rLWBOrOgZ2BtUfApqkUQaKYJPE/wW1YvEIs0ckwirlksp+sKJmL+GISW5rJUC8iJ0EfxHByMprEh8EJKYu+C7C77Mn7e89kW7BeIluDSU6SmZ5jJNoh5xsYoM27MQd6oMQZIYMm35ZzGTcjsAx+soXim+1cgTlhJcZdPMXOfMFC1LIU9rE5IkSKM1ZoqcIq5JfXnK7hbfsGgSaQDw60Pc6B9uh2X4wtIBpZ+JgmtXTjU5Mx51FBLC6HGAWPMLEUg8w6Lam9lJC/FIJ9FmEFO7eLrKIgmiDESeKnFDYuCoceXdhKd5cJicEiuk7p5ZW+pHT4yzhNJ4a6b70ap8LRilNwdz0jP+4rVnbrx4vVGvacAdlpT8ZkMuYBGWaiUmHvegD9U4PyAw6ep17wFVdXLhJtR4LL1qUak/pMEoXTYSQUuXCs8lV6MA5jF1uSm72NXMYPZkxXlnhVchYX6zMn3BLT5ll05iZhrmtFJ0VispWuSMasrKhdq4JgEDyIJLbL4KysvdX3yEai714vjNSp4UPV6LEs0OpJzdR8YR+brwP/taK4qGxHbuodVan1SNY2bG20Wixt8BGR68N/UudVJiZjC5Di3ogjYQcxSHlu5UqaNXUPSqzwcMf12YGI15E/z5/vHuSxvczdcrf/Zdb2/wc1m9rzKfQVjU1vrSANADWn2qtl8YxEqduzp6H4Gfa/W1Z9WjzlwH6sywIrOObFikSQdCHLkRFodzvHL3XHLm1LzMS3RwWdwZLd46FJ4+Ni0Nru/9CvdvgzNQOWy/5RfIAc2k/+bg68lAeuNzZ0ge0f94P/xon+l5/t7qEUjdk/6t5ZnKSvrd/5v7MZmN8kSpx6qJxFXsphO1wZj24bZewUwfxq4QDOX1M1FipW3OSwUcDhTwzoNJSuUt9hyKUvasmglFCVZbFvE4Sfl8FMJjOKXGJimcJ205wQoV7jTnadzho2GAf3vh/YndEkbEys/umu94b2KXeDjF2ZB5+5tgye4UKOTMixGCJ+lXT/KFmQAebvWdZPlff4wKdkeWiMYraNuZxNAxjlnnEUe66bDXR4fcR4JJyvSbXD0beFeUoIlwwKU3onuL9dGd7HDEZ+8UzCg/PQTdvJP0+7yky2owoedKDczO5GjU7+opW2DtqHfc19yTR8E/git1xxOlrvTVLtvjbgtSU3x1eLqjSxgtpJa6K5u+92dCzjDZTljbrjRYdMZPISYNtjPE9q0V/m3+Qmxl+3aci9AdpVHholx10kTCg2jydPJgj4sM4afjvHQbihbHztMpR7b4k4XpPlEXLyfdbl+Iws/AQ7TPTXpaeFHXdB/USrnyaO4ioTTaEWyP4Nu3YysX8m/zla3biXZGkXAT8RDluBM0B50U5W32HHESsWdVEMGfnSULnQ6EggH7r2W+OjjDqigFIkN4AIVQXRW8e96F3IUCao8yF3EXNayvEz7iPjoPLryFu0Hbpw5jpa0b/ckQnS6M5WZyhdE0nQz5N26p9HijfLpdLk++uGLgGyok/jdm3uZvrWyTo0Q41FHo657iB3046XSTITIHae6Rg6/mJK/exYHwNn/G0AUfD9xZdU9N5YJfh3+DeXOrQhUyfXcXt41o7my8gQNKmaS2vmGs0hotNH6ZVmVUaO3uBHlxxyXNj8n2fdp8KXNJy6cy2a3odpBR8h3S9wToEt1+lPCowskgmCcIkVOQhqgZSvoQIk8mN7k+L6UQ8qD3lqGdkGOCHcUR4SJC38ta3HTHwJcs/OEhhxlxrseFEMKcYVzZXdkhI3vifLyrfyTbxO9BeNDryfZ337ufm2veFOMzSK91eOUtX74eqWU3tDHhaJbNKZNC5Hy+53+N0vaZsvmAyyO13RvYGBPPdxZhsLUtFqLP4c45hz/nXe5dmvCfzoFWKkxOFHJ8DieCLjcZxA/TKUxPwA93KDKLkxfKzKTsxLnJ3vHwsNylYJ2HKYqbNx+s8B/W6YdFB/+K7sPivYqSd9l3RkPDfCywDNaH995eMzRy1dBTLtVTQ6NXVW6vfWjP0OwtQ88y7m+X5m6Bm25hX3tGXD6gI38/QdzPzncUNr4FOildtDvyiKQcgsrQwYI4SKBI5Mg3p+J+Jh4gA8zEj1r4vt+HyfbBvtXHlGHAc48HHjulfOnS8pEXc5DJvP/tsbacPkCFvCTTSvAYcufLNprKf1Ha4mgxmrjlrgSX7HsaHV0+FM7G5XnjrSZaY/7C6fzSrDbSh+QNSXlrjuqZGywnA2HcoTOELhWMSWVrD+G2tPfqCGKN8nO5idZuTi0YD9EHtc4wATqp8hmF6jml8jmV4hm49IKk8+CDnHCVbKnyNJ3V1Hh143ZkipoQHd1pu1aA9wSfzh/XfN5zp91aZM4/fLR3Z/r/bMq2mrw1YV3Ncf/D1HwPuTHLzTOJW5N1WF/t/3Rm52GjfjMv3nraec/Ba6O+lFIXbZFe0phDY+wYyskPEV2kprrPwBpMe/fOmyfIUJysIsIJhRO8CJhMhZAaNeMkSlRZJQoaYq2LyFeSY6xBF10oHNPEkiz4SrEPYzByXe1LfIGveWmHjACmjXDamcLpNadR6iz2eva6H6qZQYrscpyhXj95kKzacSZ/3etlEJEUR93r3gsEb0mvhoMHd6d48qCFUCo+6vWOxq9vdclalOebUbAtvhDH3xmZz1e9ulsaqvIoEozKyZemB1PloalsOCbRaAr2cdOwRr1iWjCtgO7Ipva6eq6piauvaw9knRK2Ac5gZHc0AjDSzUU6sfSAtb+MxM/AJ3JK7DeXfxVy/L9Vi8VfIoB3Plx+AYAvOt5XUf2Pl0PMtLPSgxWAid/EiKjbseKO46LngtxG4jFZ15CFblXRVQaAAZdC4E0D+C/VbQIB6pdTQsI48Ke6oEVZsWKRYo7wFlwGV0MM7vJOp1DHpobT4fdLQb9cA4DPsr0zN4IYiolyF+d2Naw7bJZIj1vuZR9DpXv3eRDCt70hDPv8GAxoPSbzSNxRbJNpqbrtZqjB7EAb//VtOaViwKAZrq3Ma7tRSoM+igp7BoWpEGKPmWZOwrixNQKxJpQ05LZKTW1kVtKgbk0FWeqYyGnizPYyLfWAihNDnCKjEr/FKFOCPnWZ8so1PSLOvGvArJFLT6VGaZWypQmGR2Y0TSOY95YGXF2TwuK69BWEImsquN2KEq6vdQrGiGGxc62P1ZkwAAA=)}text{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:geometricPrecision}</style>
+	<path fill="#757575" d="M0 0h1000v300H0z"/>
+	<g fill="#4c4c4c" font-family="a, monospace" font-size="7.86" letter-spacing="0.2584" font-variant-ligatures="none">
+		<text x="611.97" y="25.02">import { r</text>
+		<text x="884.67" y="25.02">import { r</text>
+		<text x="66.59" y="30.19">import { r</text>
+		<text x="339.28" y="30.19">import <tspan fill="#fff">{ </tspan>r</text>
+		<text x="577.14" y="37.54">egisterBlockType } from '</text>
+		<text x="849.84" y="37.54">egisterBlockType } from <tspan fill="#fff">'</tspan></text>
+		<text x="31.76" y="42.71">egisterBlockType <tspan fill="#fff">} </tspan>from '</text>
+		<text x="304.45" y="42.71">egisterBlockType } from '</text>
+		<text x="557.25" y="50.06">@wordpress/blocks'; import { use</text>
+		<text x="829.94" y="50.06">@wordpress/blocks'; import { use</text>
+		<text x="11.86" y="55.23"><tspan fill="#fff">@</tspan>wordpress/blocks'; import { use</text>
+		<text x="284.55" y="55.23">@wordpress/blocks'; import { use</text>
+		<text x="542.33" y="62.58">BlockProps, RichText, InspectorControl</text>
+		<text x="815.03" y="62.58">BlockProps, RichText, InspectorControl</text>
+		<text x="-3.05" y="67.75">BlockProps, RichText<tspan fill="#fff">, </tspan>InspectorControl</text>
+		<text x="269.64" y="67.75">BlockProps, RichText, InspectorControl</text>
+		<text x="532.42" y="75.1">s } from '<tspan fill="#fff">@</tspan>wordpress/block-editor'; import</text>
+		<text x="805.12" y="75.1">s } from '@wordpress/block-editor'<tspan fill="#fff">; </tspan>impo</text>
+		<text x="-3.06" y="80.27">} from '@wordpress/block-editor'; import</text>
+		<text x="259.73" y="80.27">s } from <tspan fill="#fff">'</tspan>@wordpress/block-editor'<tspan fill="#fff">; </tspan>import</text>
+		<text x="532.38" y="87.62">{ PanelBody, RangeControl } from '@wordpres</text>
+		<text x="805.08" y="87.62">{ PanelBody, RangeControl <tspan fill="#fff">} </tspan>from '@wordp</text>
+		<text x="-3.06" y="92.79">PanelBody, RangeControl <tspan fill="#fff">} </tspan>from '@wordpres</text>
+		<text x="259.69" y="92.79">{ PanelBody, RangeControl } from '@wordpres</text>
+		<text x="517.49" y="100.15">s/components'; import { __ } from '@wordpress/i1</text>
+		<text x="790.19" y="100.15">s/components'; import { __ } from '@wordpre</text>
+		<text x="-3.07" y="105.32">ponents'; import { __ } from '@wordpress/i1</text>
+		<text x="244.8" y="105.32">s/components'; import { __ } from '@wordpress/i1</text>
+		<text x="517.46" y="112.67">8n'; registerBlockType( 'vamp/path', { edit( { at</text>
+		<text x="790.16" y="112.67">8n'; registerBlockType( 'vamp/path', { edit</text>
+		<text x="-3.06" y="117.84">registerBlockType( 'vamp/path', { edit( { at</text>
+		<text x="244.77" y="117.84">8n'; registerBlockType( 'vamp/path', { edit( { at</text>
+		<text x="512.48" y="125.19">tributes, setAttributes } ) { const blockProps = u</text>
+		<text x="785.18" y="125.19">tributes, setAttributes } ) { const blockPro</text>
+		<text x="-3.07" y="130.36">es, setAttributes } ) { const blockProps = u</text>
+		<text x="239.79" y="130.36">tributes, setAttributes } ) { const blockProps = u</text>
+		<text x="507.54" y="137.71">seBlockProps(); return ( &lt;&gt; &lt;InspectorControls&gt; &lt;Pan</text>
+		<text x="780.24" y="137.71">seBlockProps(); return ( &lt;&gt; &lt;InspectorControl</text>
+		<text x="-3.07" y="142.88">Props(); return ( &lt;&gt; &lt;InspectorControls&gt; &lt;Pan</text>
+		<text x="234.85" y="142.88">seBlockProps(); return ( &lt;&gt; &lt;InspectorControls&gt; &lt;Pan</text>
+		<text x="507.49" y="150.23">elBody title={ __( 'Spacing', 'vamp' ) }&gt; &lt;RangeCont</text>
+		<text x="780.19" y="150.23">elBody title={ __( 'Spacing', 'vamp' ) }&gt; &lt;Ra</text>
+		<text x="-3.06" y="155.4">title={ __( 'Spacing', 'vamp' ) }&gt; &lt;RangeCont</text>
+		<text x="234.8" y="155.4">elBody title={ __( 'Spacing', 'vamp' ) }&gt; &lt;RangeCont</text>
+		<text x="507.5" y="162.75">rol label={ __( 'Tracking', 'vamp' ) } value={ attri</text>
+		<text x="780.2" y="162.75">rol label={ __( 'Tracking', 'vamp' ) } value=</text>
+		<text x="-3.06" y="167.92">el={ __( 'Tracking', 'vamp' ) } value={ attri</text>
+		<text x="234.81" y="167.92">rol label={ __( 'Tracking', 'vamp' ) } value={ attri</text>
+		<text x="512.48" y="175.27">butes.tracking } onChange={ ( tracking ) =&gt; setAtt</text>
+		<text x="785.18" y="175.27">butes.tracking } onChange={ ( tracking ) =&gt;</text>
+		<text x="-3.06" y="180.44">tracking } onChange={ ( tracking ) =&gt; setAtt</text>
+		<text x="239.79" y="180.44">butes.tracking } onChange={ ( tracking ) =&gt; setAtt</text>
+		<text x="517.46" y="187.79">ributes( { tracking } ) } min={ 0 } max={ 20 } /&gt;</text>
+		<text x="790.16" y="187.79">ributes( { tracking } ) } min={ 0 } max={ 2</text>
+		<text x="-3.06" y="192.96">es( { tracking } ) } min={ 0 } max={ 20 } /&gt;</text>
+		<text x="244.77" y="192.96">ributes( { tracking } ) } min={ 0 } max={ 20 } /&gt;</text>
+		<text x="522.43" y="200.31">&lt;/PanelBody&gt; &lt;/InspectorControls&gt; &lt;RichText { .</text>
+		<text x="795.13" y="200.31">&lt;/PanelBody&gt; &lt;/InspectorControls&gt; &lt;RichTex</text>
+		<text x="-3.06" y="205.48">nelBody&gt; &lt;/InspectorControls&gt; &lt;RichText { .</text>
+		<text x="249.74" y="205.48">&lt;/PanelBody&gt; &lt;/InspectorControls&gt; &lt;RichText { .</text>
+		<text x="527.41" y="212.83">..blockProps } tagName="p" value={ attributes</text>
+		<text x="800.11" y="212.83">..blockProps } tagName="p" value={ attrib</text>
+		<text x="-3.05" y="218">lockProps } tagName="p" value={ attributes</text>
+		<text x="254.72" y="218">..blockProps } tagName="p" value={ attributes</text>
+		<text x="532.36" y="225.35">.content } onChange={ ( content ) =&gt; setAt</text>
+		<text x="805.06" y="225.35">.content } onChange={ ( content ) =&gt; set</text>
+		<text x="-3.07" y="230.52">ontent } onChange={ ( content ) =&gt; setAt</text>
+		<text x="259.67" y="230.52">.content } onChange={ ( content ) =&gt; setAt</text>
+		<text x="542.33" y="237.87">tributes( { content } <tspan fill="#f4f5f2">) </tspan>} /&gt; &lt;/&gt; ); },</text>
+		<text x="815.03" y="237.87">tributes( { content } ) } /&gt; <tspan fill="#f4f5f2">&lt;/&gt; </tspan>); }</text>
+		<text x="-3.05" y="243.04">tributes( { content } ) } /&gt; &lt;/&gt; ); },</text>
+		<text x="269.64" y="243.04">tributes( { content } ) } /&gt; &lt;/&gt; ); },</text>
+		<text x="562.26" y="250.39">save( { attributes } ) { return</text>
+		<text x="834.96" y="250.39">save( { attributes } ) { return</text>
+		<text x="16.88" y="255.56">save( { attributes <tspan fill="#f4f5f2">} ) </tspan>{ return</text>
+		<text x="289.57" y="255.56">save( <tspan fill="#f4f5f2">{ </tspan>attributes } ) { return</text>
+		<text x="577.13" y="262.91">&lt;RichText<tspan fill="#f4f5f2">.</tspan>Content { ...us</text>
+		<text x="849.83" y="262.91">&lt;RichText.Content { ...us</text>
+		<text x="31.75" y="268.08">&lt;RichText.Content { ..<tspan fill="#f4f5f2">.</tspan>us</text>
+		<text x="304.44" y="268.08"><tspan fill="#f4f5f2">&lt;</tspan>RichText.Content { ...us</text>
+		<text x="606.98" y="275.43">eBlockProps.</text>
+		<text x="879.68" y="275.43">eBlockProps.</text>
+		<text x="61.6" y="280.6">eBlockProps<tspan fill="#f4f5f2">.</tspan></text>
+		<text x="334.29" y="280.6">eBlockProps.</text>
+	</g>
+</svg>

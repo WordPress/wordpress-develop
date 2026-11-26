@@ -73,7 +73,7 @@ test.describe( 'Moderate Comments', () => {
 		postFactory,
 		requestUtils,
 	} ) => {
-		const { comment } = await createPostWithComment(
+		const { post, comment } = await createPostWithComment(
 			postFactory,
 			requestUtils,
 			'hold'
@@ -81,7 +81,7 @@ test.describe( 'Moderate Comments', () => {
 
 		await admin.visitAdminPage(
 			'/edit-comments.php',
-			'comment_status=moderated'
+			`comment_status=moderated&p=${ post.id }`
 		);
 
 		const row = commentRow( page, comment.id );
@@ -104,7 +104,7 @@ test.describe( 'Moderate Comments', () => {
 		await expect( row ).toBeHidden();
 		await admin.visitAdminPage(
 			'/edit-comments.php',
-			'comment_status=approved'
+			`comment_status=approved&p=${ post.id }`
 		);
 		await expect( row ).toBeVisible();
 	} );
@@ -115,13 +115,13 @@ test.describe( 'Moderate Comments', () => {
 		postFactory,
 		requestUtils,
 	} ) => {
-		const { comment } = await createPostWithComment(
+		const { post, comment } = await createPostWithComment(
 			postFactory,
 			requestUtils,
 			'approved'
 		);
 
-		await admin.visitAdminPage( '/edit-comments.php' );
+		await admin.visitAdminPage( '/edit-comments.php', `p=${ post.id }` );
 
 		const row = commentRow( page, comment.id );
 		await expect( row ).toBeVisible();
@@ -156,7 +156,7 @@ test.describe( 'Moderate Comments', () => {
 			'approved'
 		);
 
-		await admin.visitAdminPage( '/edit-comments.php' );
+		await admin.visitAdminPage( '/edit-comments.php', `p=${ post.id }` );
 
 		const row = commentRow( page, comment.id );
 		await expect( row ).toBeVisible();
@@ -249,7 +249,7 @@ test.describe( 'Moderate Comments', () => {
 
 		await admin.visitAdminPage(
 			'/edit-comments.php',
-			'comment_status=moderated'
+			`comment_status=moderated&p=${ post.id }`
 		);
 
 		const firstRow = commentRow( page, comment.id );
@@ -273,7 +273,7 @@ test.describe( 'Moderate Comments', () => {
 		await expect( secondRow ).toBeHidden();
 		await admin.visitAdminPage(
 			'/edit-comments.php',
-			'comment_status=spam'
+			`comment_status=spam&p=${ post.id }`
 		);
 		await expect( firstRow ).toBeVisible();
 		await expect( secondRow ).toBeVisible();

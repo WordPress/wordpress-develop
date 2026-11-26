@@ -194,6 +194,8 @@
 				<element value="CharSet"/>
 				<element value="ContentType"/>
 				<element value="Encoding"/>
+				<element value="From"/>
+				<element value="FromName"/>
 				<element value="Hostname"/>
 				<element value="mailHeader"/>
 				<element value="MIMEBody"/>

@@ -611,6 +611,8 @@ function wpautop( $text, $br = true ) {
  *
  * @param string $input The text which has to be formatted.
  * @return string[] Array of the formatted text.
+ *
+ * @phpstan-return non-empty-list<string>
  */
 function wp_html_split( $input ) {
 	return preg_split( get_html_split_regex(), $input, -1, PREG_SPLIT_DELIM_CAPTURE );
@@ -2835,6 +2837,7 @@ function format_to_edit( $content, $rich_text = false ) {
  * @param int $threshold  Digit places number needs to be to not have zeros added.
  * @return string Adds leading zeros to number if needed.
  *
+ * @phpstan-param non-negative-int $threshold
  * @phpstan-return (
  *     $threshold is 0
  *         ? lowercase-string&non-empty-string&numeric-string
@@ -3006,6 +3009,8 @@ function urldecode_deep( $value ) {
  * @param string $email_address Email address.
  * @param int    $hex_encoding  Optional. Set to 1 to enable hex encoding.
  * @return string Converted email address.
+ *
+ * @phpstan-param 0|1 $hex_encoding
  */
 function antispambot( $email_address, $hex_encoding = 0 ) {
 	$obfuscated     = '';
