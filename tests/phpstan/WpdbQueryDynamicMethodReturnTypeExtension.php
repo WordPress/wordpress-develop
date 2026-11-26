@@ -166,6 +166,14 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 				return null !== $value ? TypeCombinator::intersect( new ArrayType( new IntegerType(), $value ), new AccessoryArrayListType() ) : null;
 
 			default:
+				/*
+				 * For an `$output` of more than one value, the declared conditional return type joins the row arrays of
+				 * `ARRAY_A` and `ARRAY_N` into one `array<mixed>`, which could then only be refined as one or the other.
+				 */
+				if ( isset( $args[1] ) && 1 !== count( $scope->getType( $args[1]->value )->getConstantStrings() ) ) {
+					return null;
+				}
+
 				$declared = ParametersAcceptorSelector::selectFromArgs( $scope, $args, $methodReflection->getVariants() )->getReturnType();
 				$refined  = $this->refine_rows( $declared, $columns, $result['complete'] );
 				return $refined->equals( $declared ) ? null : $refined;
