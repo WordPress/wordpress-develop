@@ -21,13 +21,6 @@ class Tests_Block_Templates_GetTemplate_Hierarchy extends WP_Block_Templates_Uni
 		register_taxonomy( 'books', 'custom_book' );
 	}
 
-	public function tear_down() {
-		unregister_post_type( 'custom_book' );
-		unregister_taxonomy( 'book_type' );
-		unregister_taxonomy( 'books' );
-		parent::tear_down();
-	}
-
 	/**
 	 * @dataProvider data_get_template_hierarchy
 	 *
