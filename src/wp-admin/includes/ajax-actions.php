@@ -79,6 +79,8 @@ function wp_ajax_nopriv_heartbeat() {
  * Handles fetching a list table via AJAX.
  *
  * @since 3.1.0
+ *
+ * @return never
  */
 function wp_ajax_fetch_list() {
 	$list_class = $_GET['list_args']['class'];
@@ -95,7 +97,7 @@ function wp_ajax_fetch_list() {
 
 	$wp_list_table->ajax_response();
 
-	wp_die( 0 );
+	wp_die( 0 ); // @phpstan-ignore deadCode.unreachable (The wp_list_table_class_name filter can supply a class whose ajax_response() returns.)
 }
 
 /**
@@ -1310,10 +1312,31 @@ function wp_ajax_replyto_comment( $action ) {
 
 	$comment_type = isset( $_POST['comment_type'] ) ? trim( $_POST['comment_type'] ) : 'comment';
 
+	/*
+	 * Notes and reactions are only created through the REST API. The lowercase
+	 * ASCII limit also catches spellings the case- and accent-insensitive
+	 * collation would match.
+	 */
+	if (
+		! preg_match( '/^[a-z0-9_-]+\z/', $comment_type ) ||
+		in_array( $comment_type, array( 'note', 'reaction' ), true )
+	) {
+		wp_die( -1 );
+	}
+
 	$comment_parent = 0;
 
 	if ( isset( $_POST['comment_ID'] ) ) {
 		$comment_parent = absint( $_POST['comment_ID'] );
+	}
+
+	// A comment on another post cannot be the parent.
+	if ( $comment_parent ) {
+		$parent = get_comment( $comment_parent );
+
+		if ( $parent && (int) $parent->comment_post_ID !== $comment_post_id ) {
+			$comment_parent = 0;
+		}
 	}
 
 	$comment_auto_approved = false;
@@ -2652,6 +2675,8 @@ function wp_ajax_upload_attachment() {
  * Handles image editing via AJAX.
  *
  * @since 3.1.0
+ *
+ * @return never
  */
 function wp_ajax_image_editor() {
 	$attachment_id = (int) $_POST['postid'];
@@ -2673,7 +2698,7 @@ function wp_ajax_image_editor() {
 			}
 
 			wp_send_json_success( $message );
-			break;
+			break; // @phpstan-ignore deadCode.unreachable (Ends the case so that it does not read as falling through, which PHPCS reports.)
 		case 'scale':
 			$message = wp_save_image( $attachment_id );
 			break;
@@ -2772,6 +2797,8 @@ function wp_ajax_get_post_thumbnail_html() {
  * @since 4.0.0
  *
  * @see set_post_thumbnail()
+ *
+ * @return never
  */
 function wp_ajax_set_attachment_thumbnail() {
 	if ( empty( $_POST['urls'] ) || ! is_array( $_POST['urls'] ) ) {
@@ -2817,8 +2844,6 @@ function wp_ajax_set_attachment_thumbnail() {
 	} else {
 		wp_send_json_success();
 	}
-
-	wp_send_json_error();
 }
 
 /**

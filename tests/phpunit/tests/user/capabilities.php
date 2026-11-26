@@ -126,7 +126,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'import'                  => array( 'administrator' ),
 			'list_users'              => array( 'administrator' ),
 			'manage_options'          => array( 'administrator' ),
-			'manage_secrets'          => array( 'administrator' ),
 			'promote_users'           => array( 'administrator' ),
 			'remove_users'            => array( 'administrator' ),
 			'switch_themes'           => array( 'administrator' ),
@@ -210,7 +209,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'import'                  => array( 'administrator' ),
 			'list_users'              => array( 'administrator' ),
 			'manage_options'          => array( 'administrator' ),
-			'manage_secrets'          => array( 'administrator' ),
 			'promote_users'           => array( 'administrator' ),
 			'remove_users'            => array( 'administrator' ),
 			'switch_themes'           => array( 'administrator' ),
@@ -277,7 +275,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'manage_network_plugins'      => array(),
 			'manage_network_themes'       => array(),
 			'manage_network_options'      => array(),
-			'manage_network_secrets'      => array(),
 			'delete_site'                 => array(),
 			'upgrade_network'             => array(),
 
@@ -317,7 +314,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'manage_network_plugins'      => array(),
 			'manage_network_themes'       => array(),
 			'manage_network_options'      => array(),
-			'manage_network_secrets'      => array(),
 			'setup_network'               => array(),
 			'upload_plugins'              => array(),
 			'upload_themes'               => array(),
@@ -1302,7 +1298,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$something = get_post_type_object( 'something' );
 		$this->assertSame( 'draw_somethings', $something->cap->edit_posts );
 		$this->assertSame( 'create_somethings', $something->cap->create_posts );
-		_unregister_post_type( 'something' );
 
 		// Test meta authorization callbacks.
 		if ( function_exists( 'register_meta' ) ) {
@@ -1393,7 +1388,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertTrue( $contributor->has_cap( $cap->create_posts ) );
 		$this->assertFalse( $subscriber->has_cap( $cap->create_posts ) );
 
-		_unregister_post_type( 'foobar' );
+		unregister_post_type( 'foobar' );
 
 		// Primitive capability 'edit_foobars' is not assigned to any users.
 		register_post_type( 'foobar', array( 'capability_type' => array( 'foobar', 'foobars' ) ) );
@@ -1418,8 +1413,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( $subscriber->has_cap( $cap->create_posts ) );
 
 		$admin->remove_cap( 'edit_foobars' );
-
-		_unregister_post_type( 'foobar' );
 
 		$cap = get_post_type_object( 'attachment' )->cap;
 		$this->assertSame( 'upload_files', $cap->create_posts );
@@ -1998,7 +1991,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	public function test_require_edit_others_posts_if_post_type_doesnt_exist() {
 		register_post_type( 'existed' );
 		$post_id = self::factory()->post->create( array( 'post_type' => 'existed' ) );
-		_unregister_post_type( 'existed' );
+		unregister_post_type( 'existed' );
 
 		$subscriber_id = self::$users['subscriber']->ID;
 		$editor_id     = self::$users['editor']->ID;
@@ -2084,8 +2077,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertTrue( user_can( $editor->ID, 'edit_post', $author_post->ID ) );
 		$this->assertFalse( user_can( $author->ID, 'edit_post', $author_post->ID ) );
 		$this->assertFalse( user_can( $contributor->ID, 'edit_post', $author_post->ID ) );
-
-		_unregister_post_type( 'page_capability' );
 	}
 
 	public function test_non_logged_in_users_have_no_capabilities() {

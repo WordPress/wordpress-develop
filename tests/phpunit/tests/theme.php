@@ -6,9 +6,9 @@
  * @group themes
  */
 class Tests_Theme extends WP_UnitTestCase {
-	protected $theme_slug     = 'twentyeleven';
-	protected $theme_name     = 'Twenty Eleven';
-	protected $default_themes = array(
+	protected $theme_slug            = 'twentyeleven';
+	protected $theme_name            = 'Twenty Eleven';
+	protected static $default_themes = array(
 		'twentyten',
 		'twentyeleven',
 		'twentytwelve',
@@ -41,6 +41,13 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	private $orig_theme_features;
 
+	/**
+	 * Theme features registered with register_theme_feature() before the test ran.
+	 *
+	 * @var array
+	 */
+	private $orig_registered_theme_features;
+
 	public function set_up() {
 		global $wp_theme_directories;
 
@@ -50,6 +57,8 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->orig_theme_dir      = $wp_theme_directories;
 		$wp_theme_directories      = array( WP_CONTENT_DIR . '/themes', realpath( DIR_TESTDATA . '/themedir1' ) );
 		$this->orig_theme_features = $GLOBALS['_wp_theme_features'];
+
+		$this->orig_registered_theme_features = $GLOBALS['_wp_registered_theme_features'];
 
 		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -69,7 +78,8 @@ class Tests_Theme extends WP_UnitTestCase {
 			parent::tear_down();
 		} finally {
 			// Restore after the parent removes HTML5 theme support.
-			$GLOBALS['_wp_theme_features'] = $this->orig_theme_features;
+			$GLOBALS['_wp_theme_features']            = $this->orig_theme_features;
+			$GLOBALS['_wp_registered_theme_features'] = $this->orig_registered_theme_features;
 		}
 	}
 
@@ -236,7 +246,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		if ( ! $latest_default_theme->exists() ) {
 			$this->fail( 'No default themes are installed.' );
 		}
-		$this->assertContains( $latest_default_theme->get_stylesheet(), $this->default_themes );
+		$this->assertContains( $latest_default_theme->get_stylesheet(), self::$default_themes );
 	}
 
 	/**
@@ -261,7 +271,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$default_themes = array_keys( $property->getValue() );
 		$default_themes = array_diff( $default_themes, array( 'default', 'classic' ) );
 
-		$this->assertSameSets( $default_themes, $this->default_themes, 'Test suite default themes should match the runtime default themes.' );
+		$this->assertSameSets( $default_themes, self::$default_themes, 'Test suite default themes should match the runtime default themes.' );
 	}
 
 	/**
@@ -309,7 +319,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			}
 		);
 
-		$tested_themes = $this->default_themes;
+		$tested_themes = self::$default_themes;
 		// Convert the tested themes to directory names.
 		$tested_themes = array_map(
 			static function ( $theme ) {
@@ -322,7 +332,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	public function test_default_themes_have_textdomain() {
-		foreach ( $this->default_themes as $theme ) {
+		foreach ( self::$default_themes as $theme ) {
 			if ( wp_get_theme( $theme )->exists() ) {
 				$this->assertSame( $theme, wp_get_theme( $theme )->get( 'TextDomain' ) );
 			}
@@ -359,9 +369,9 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ theme: string }>
 	 */
-	public function data_provider_default_themes(): array {
+	public static function data_provider_default_themes(): array {
 		$data = array();
-		foreach ( $this->default_themes as $default_theme ) {
+		foreach ( self::$default_themes as $default_theme ) {
 			$data[ $default_theme ] = array( 'theme' => $default_theme );
 		}
 		return $data;
@@ -831,6 +841,20 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_registered_theme_features() falls back to an empty array when the registry is not an array.
+	 *
+	 * @ticket 49406
+	 *
+	 * @covers ::get_registered_theme_features
+	 */
+	public function test_get_registered_theme_features_fallback() {
+		global $_wp_registered_theme_features;
+		$_wp_registered_theme_features = null;
+
+		$this->assertSame( array(), get_registered_theme_features() );
+	}
+
+	/**
 	 * Tests that block themes support a feature by default.
 	 *
 	 * @ticket 54597
@@ -877,7 +901,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_block_theme_has_default_support() {
+	public static function data_block_theme_has_default_support() {
 		return array(
 			'post-thumbnails'      => array(
 				'support' => array(
@@ -1103,7 +1127,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_stylesheet_directory_with_filter() {
+	public static function data_get_stylesheet_directory_with_filter() {
 		return array(
 			'with stylesheet_directory filter' => array(
 				'block-theme',
@@ -1163,7 +1187,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_template_directory_with_filter() {
+	public static function data_get_template_directory_with_filter() {
 		return array(
 			'with template_directory filter' => array(
 				'block-theme',

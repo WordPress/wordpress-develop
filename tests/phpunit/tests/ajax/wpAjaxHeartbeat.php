@@ -39,6 +39,7 @@ class Tests_Ajax_wpAjaxHeartbeat extends WP_Ajax_UnitTestCase {
 
 		self::$post_id = $factory->post->create( array( 'post_status' => 'draft' ) );
 		self::$post    = get_post( self::$post_id );
+		wp_set_current_user( 0 );
 	}
 
 	/**

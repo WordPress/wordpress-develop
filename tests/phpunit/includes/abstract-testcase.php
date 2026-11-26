@@ -396,6 +396,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$GLOBALS[ $global ] = null;
 		}
 
+		// Reset the Customizer global so that `is_customize_preview()` is false when the next test runs.
+		$GLOBALS['wp_customize'] = null;
+
 		// Reset comment globals.
 		$comment_globals = array( 'comment_alt', 'comment_depth', 'comment_thread_alt', 'in_comment_loop' );
 		foreach ( $comment_globals as $global ) {
@@ -575,10 +578,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Stores $wp_filter, $wp_actions, $wp_filters, and $wp_current_filter
 	 * on a class variable so they can be restored on tear_down() using _restore_hooks().
 	 *
-	 * @global array $wp_filter         All of the filters and actions.
-	 * @global array $wp_actions        The number of times each action was triggered.
-	 * @global array $wp_filters        The number of times each filter was triggered.
-	 * @global array $wp_current_filter The list of current filters with the current one last.
+	 * @global array                       $wp_filter         All of the filters and actions.
+	 * @global array<string, positive-int> $wp_actions        The number of times each action was triggered.
+	 * @global array<string, positive-int> $wp_filters        The number of times each filter was triggered.
+	 * @global array                       $wp_current_filter The list of current filters with the current one last.
 	 */
 	protected function _backup_hooks() {
 		self::$hooks_saved['wp_filter'] = array();
@@ -598,10 +601,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Restores the hook-related globals to their state at set_up()
 	 * so that future tests aren't affected by hooks set during this last test.
 	 *
-	 * @global array $wp_filter         All of the filters and actions.
-	 * @global array $wp_actions        The number of times each action was triggered.
-	 * @global array $wp_filters        The number of times each filter was triggered.
-	 * @global array $wp_current_filter The list of current filters with the current one last.
+	 * @global array                       $wp_filter         All of the filters and actions.
+	 * @global array<string, positive-int> $wp_actions        The number of times each action was triggered.
+	 * @global array<string, positive-int> $wp_filters        The number of times each filter was triggered.
+	 * @global array                       $wp_current_filter The list of current filters with the current one last.
 	 */
 	protected function _restore_hooks() {
 		if ( isset( self::$hooks_saved['wp_filter'] ) ) {
@@ -838,15 +841,34 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 3.7.0
 	 */
 	public function expectDeprecated() {
-		if ( method_exists( $this, 'getAnnotations' ) ) {
-			// PHPUnit < 9.5.0.
-			$annotations = $this->getAnnotations();
-		} else {
-			// PHPUnit >= 9.5.0.
-			$annotations = \PHPUnit\Util\Test::parseTestMethodAnnotations(
-				static::class,
-				$this->getName( false )
-			);
+		$method_name = method_exists( $this, 'name' ) ? $this->name() : $this->getName( false );
+		$class       = new ReflectionClass( $this );
+		$reflectors  = array(
+			'class'  => array_merge( array_values( $class->getTraits() ), array( $class ) ),
+			'method' => array( $class->getMethod( $method_name ) ),
+		);
+		$annotations = array(
+			'class'  => array(),
+			'method' => array(),
+		);
+
+		foreach ( $reflectors as $depth => $depth_reflectors ) {
+			foreach ( $depth_reflectors as $reflector ) {
+				$docblock        = substr( (string) $reflector->getDocComment(), 3, -2 );
+				$doc_annotations = array();
+
+				// Parse all tags before filtering so annotation values remain intact.
+				if ( preg_match_all( '/@([A-Za-z_-]+)(?:[ \t]+(.*?))?[ \t]*\r?$/m', $docblock, $matches, PREG_SET_ORDER ) ) {
+					foreach ( $matches as $match ) {
+						if ( in_array( $match[1], array( 'expectedDeprecated', 'expectedIncorrectUsage' ), true ) ) {
+							$doc_annotations[ $match[1] ][] = $match[2] ?? '';
+						}
+					}
+				}
+
+				// Later traits and the class replace earlier values for the same annotation.
+				$annotations[ $depth ] = array_merge( $annotations[ $depth ], $doc_annotations );
+			}
 		}
 
 		foreach ( array( 'class', 'method' ) as $depth ) {

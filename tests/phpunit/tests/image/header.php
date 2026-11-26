@@ -8,9 +8,23 @@ require_once ABSPATH . 'wp-admin/includes/class-custom-image-header.php';
 class Tests_Image_Header extends WP_UnitTestCase {
 	public $custom_image_header;
 
+	/**
+	 * Original value of the `$_wp_theme_features` global.
+	 *
+	 * @var array
+	 */
+	private $orig_theme_features;
+
 	public function set_up() {
 		parent::set_up();
+		$this->orig_theme_features = $GLOBALS['_wp_theme_features'];
 		$this->custom_image_header = new Custom_Image_Header( '__return_null' );
+	}
+
+	public function tear_down() {
+		$GLOBALS['_wp_theme_features'] = $this->orig_theme_features;
+
+		parent::tear_down();
 	}
 
 	public function test_header_image_has_correct_dimensions_with_max_width() {

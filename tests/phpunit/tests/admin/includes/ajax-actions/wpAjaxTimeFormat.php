@@ -140,7 +140,7 @@ class Tests_wp_ajax_time_format extends WP_Ajax_UnitTestCase {
 	 *     },
 	 * }>
 	 */
-	public function data_time_format(): array {
+	public static function data_time_format(): array {
 		return array(
 			'standard_time' => array(
 				'payload' => array(
