@@ -684,7 +684,7 @@ function wp_cache_switch_to_blog_fallback() {
 			);
 		}
 
-		wp_cache_add_non_persistent_groups( $non_persistent_groups );
+		wp_cache_add_non_persistent_groups( $non_persistent_groups ); // @phpstan-ignore function.resultUnused (A no-op in core, but object cache drop-ins implement it.)
 	}
 }
 
