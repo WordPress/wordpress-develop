@@ -9,8 +9,6 @@
 
 /**
  * Version number for our API.
- *
- * @var string
  */
 define( 'REST_API_VERSION', '2.0' );
 
@@ -485,7 +483,6 @@ function rest_api_loaded() {
 	 * Whether this is a REST Request.
 	 *
 	 * @since 4.4.0
-	 * @var bool
 	 */
 	define( 'REST_REQUEST', true );
 
@@ -1554,6 +1551,8 @@ function rest_get_date_with_gmt( $date, $is_utc = false ) {
  * @since 4.7.0
  *
  * @return int 401 if the user is not logged in, 403 if the user is logged in.
+ *
+ * @phpstan-return 401|403
  */
 function rest_authorization_required_code() {
 	return is_user_logged_in() ? 403 : 401;
