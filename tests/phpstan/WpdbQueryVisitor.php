@@ -243,13 +243,7 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 		for ( $level = count( $position ) - 1; $level >= 0; $level-- ) {
 			list( $stmts, $index ) = $position[ $level ];
 
-			/*
-			 * The statement at an outer level is the block the position is in. A write to the variable anywhere in a
-			 * loop may have run before the position, in an earlier iteration, and likewise in the try block for a
-			 * position in a catch block, and so on. The exception is an `if`: of its branches, only the one the
-			 * position is in has run.
-			 */
-			if ( count( $position ) - 1 !== $level && ! $stmts[ $index ] instanceof Stmt\If_ && $this->writes_variable( $stmts[ $index ], $name, false ) ) {
+			if ( $this->may_write_before( $stmts[ $index ], $name, count( $position ) - 1 === $level ) ) {
 				return self::UNKNOWN;
 			}
 
@@ -284,6 +278,43 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 
 		// The variable is not assigned in the function, so it is a parameter, global or the like.
 		return self::UNKNOWN;
+	}
+
+	/**
+	 * Determines whether a statement the position is in may write to a variable before the position.
+	 *
+	 * A statement at an outer level is a block the position is in. A write to the variable anywhere in a loop may have
+	 * run before the position, in an earlier iteration, and likewise in the try block for a position in a catch block,
+	 * and so on. The exception is an `if`: of its branches, only the one the position is in has run, after the
+	 * conditions.
+	 *
+	 * The innermost statement is the one the position is in directly, which runs before the position only where it is
+	 * a loop, whose body may have run in an earlier iteration, or the conditions of an `if`.
+	 *
+	 * @param Node   $stmt      Statement.
+	 * @param string $name      Variable name.
+	 * @param bool   $innermost Whether the statement is the innermost one.
+	 * @return bool
+	 */
+	private function may_write_before( Node $stmt, string $name, bool $innermost ): bool {
+		if ( $stmt instanceof Stmt\If_ ) {
+			$conditions = array( $stmt->cond );
+			foreach ( $stmt->elseifs as $elseif ) {
+				$conditions[] = $elseif->cond;
+			}
+			foreach ( $conditions as $condition ) {
+				if ( $this->writes_variable( $condition, $name, false ) ) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		$is_loop = $stmt instanceof Stmt\While_ || $stmt instanceof Stmt\Do_ || $stmt instanceof Stmt\For_ || $stmt instanceof Stmt\Foreach_;
+		if ( $innermost && ! $is_loop ) {
+			return false;
+		}
+		return $this->writes_variable( $stmt, $name, false );
 	}
 
 	/**
