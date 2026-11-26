@@ -67,13 +67,6 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	private $revision_3_id;
 
 	/**
-	 * Whether the current test granted super admin to the administrator.
-	 *
-	 * @var bool
-	 */
-	private $granted_super_admin = false;
-
-	/**
 	 * Create fake data before our tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
@@ -232,26 +225,12 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
-	 * Cleans up after tests.
-	 */
-	public function tear_down() {
-		if ( $this->granted_super_admin ) {
-			revoke_super_admin( self::$admin_id );
-			kses_init();
-			$this->granted_super_admin = false;
-		}
-
-		parent::tear_down();
-	}
-
-	/**
 	 * Sets the current user to the admin, granting super admin on multisite
 	 * so global styles JSON is not stripped by KSES on save.
 	 */
 	private function set_admin_user_with_unfiltered_html() {
 		if ( is_multisite() ) {
 			grant_super_admin( self::$admin_id );
-			$this->granted_super_admin = true;
 		}
 		wp_set_current_user( self::$admin_id );
 	}
