@@ -8,11 +8,11 @@ import { defineConfig, devices } from '@playwright/test';
  * WordPress dependencies
  */
 const database = require( './config/database.js' );
+
+const { isDefaultEnvironment, setTestBaseURL } = database;
+
+const baseURL = setTestBaseURL();
 const baseConfig = require( '@wordpress/scripts/config/playwright.config' );
-
-const { getBaseURL, isDefaultEnvironment } = database;
-
-const baseURL = getBaseURL();
 
 process.env.WP_ARTIFACTS_PATH ??= path.join( process.cwd(), 'artifacts' );
 process.env.STORAGE_STATE_PATH ??= path.join(

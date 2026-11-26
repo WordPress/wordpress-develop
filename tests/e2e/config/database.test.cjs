@@ -25,7 +25,7 @@ test( 'passes the request host, including its port, to PHP', async () => {
 } );
 
 test( 'uses a separate local E2E port and classifies local URLs', ( t ) => {
-	const { getBaseURL, isDefaultEnvironment } = loadDatabase();
+	const { getBaseURL, isDefaultEnvironment, setTestBaseURL } = loadDatabase();
 	const originalPort = process.env.LOCAL_PORT;
 	const originalE2EPort = process.env.LOCAL_E2E_PORT;
 	const originalBaseURL = process.env.WP_BASE_URL;
@@ -51,6 +51,8 @@ test( 'uses a separate local E2E port and classifies local URLs', ( t ) => {
 	delete process.env.LOCAL_E2E_PORT;
 	delete process.env.WP_BASE_URL;
 	assert.equal( getBaseURL(), 'http://localhost:8900/' );
+	assert.equal( setTestBaseURL(), 'http://localhost:8900/' );
+	assert.equal( process.env.WP_BASE_URL, 'http://localhost:8900/' );
 	assert.equal( isDefaultEnvironment( 'http://localhost:8900' ), true );
 	assert.equal( isDefaultEnvironment( 'http://127.0.0.1:8900' ), true );
 	assert.equal( isDefaultEnvironment( 'http://localhost:8899' ), false );
@@ -58,6 +60,7 @@ test( 'uses a separate local E2E port and classifies local URLs', ( t ) => {
 	assert.equal( isDefaultEnvironment( 'https://localhost:8900' ), false );
 	process.env.WP_BASE_URL = 'http://localhost:8899';
 	assert.equal( getBaseURL(), 'http://localhost:8900/' );
+	assert.equal( setTestBaseURL(), 'http://localhost:8900/' );
 	assert.equal( isDefaultEnvironment( getBaseURL() ), true );
 	process.env.LOCAL_E2E_PORT = '8899';
 	assert.throws( () => getBaseURL(), /distinct valid TCP ports/ );

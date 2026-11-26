@@ -76,6 +76,17 @@ function getBaseURL() {
 }
 
 /**
+ * Set the base URL used by both Playwright and the E2E test utilities.
+ *
+ * @return {string} Test environment URL.
+ */
+function setTestBaseURL() {
+	const baseURL = getBaseURL();
+	process.env.WP_BASE_URL = baseURL;
+	return baseURL;
+}
+
+/**
  * Get the local E2E site's port, one above the development site's port by default.
  *
  * @return {string} E2E site port.
@@ -871,5 +882,6 @@ module.exports = {
 	getBaseURL,
 	isDefaultEnvironment,
 	restoreE2EDatabase,
+	setTestBaseURL,
 	setupE2EDatabase,
 };
