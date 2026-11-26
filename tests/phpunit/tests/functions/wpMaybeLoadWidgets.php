@@ -15,10 +15,6 @@ class Tests_Functions_WpMaybeLoadWidgets extends WP_UnitTestCase {
 		remove_action( '_admin_menu', 'wp_widgets_add_menu' );
 	}
 
-	public function tear_down() {
-		parent::tear_down();
-	}
-
 	/**
 	 * Tests that wp_maybe_load_widgets() registers wp_widgets_add_menu to _admin_menu.
 	 *
