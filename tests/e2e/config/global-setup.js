@@ -19,8 +19,10 @@ import database from './database.js';
 const { restoreE2EDatabase, setupE2EDatabase } = database;
 
 /**
- * @param {import('@playwright/test').FullConfig} config
- * @return {Promise<void>}
+ * Set up the E2E environment.
+ *
+ * @param {import('@playwright/test').FullConfig} config Playwright configuration.
+ * @return {Promise<void>} Promise that resolves when setup is complete.
  */
 async function globalSetup( config ) {
 	const { storageState, baseURL } = config.projects[ 0 ].use;

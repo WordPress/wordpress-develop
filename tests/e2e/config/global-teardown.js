@@ -8,6 +8,7 @@ const { isDefaultEnvironment, restoreE2EDatabase } = database;
 /**
  * Restore the development environment configuration after the E2E suite completes.
  *
+ * @param {import('@playwright/test').FullConfig} config Playwright configuration.
  * @return {Promise<void>}
  */
 async function globalTeardown( config ) {

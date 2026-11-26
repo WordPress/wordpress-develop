@@ -5,7 +5,7 @@ End-To-End (E2E) tests for WordPress.
 
 ## Running the tests
 
-The e2e tests require a production-like environment to run. By default, they will assume an environment is available at `http://localhost:8889`, with username `admin` and password `password`.
+The e2e tests require a production-like environment to run. By default, the development site remains at `http://localhost:8889`, and the E2E site uses the next port, `http://localhost:8890`. The E2E port defaults to `LOCAL_PORT + 1`; set `LOCAL_E2E_PORT` to choose another port. Both sites use the configured `LOCAL_DIR` tree.
 
 If you don't already have an environment ready, you can set one up by following [these instructions](https://github.com/WordPress/wordpress-develop/blob/master/README.md).
 
@@ -17,7 +17,7 @@ npm run test:e2e
 
 which will run the test suite using a headless browser.
 
-By default, the tests use the `wordpress_develop_e2e` database and a separate `uploads-e2e` directory. The database, uploads, and object-cache settings in `wp-config.php` are restored after the tests.
+The E2E site has its own `wp-config-e2e.php`, `wordpress_develop_e2e` database, `uploads-e2e` directory, and Memcached service when persistent caching is enabled. The development URL keeps using its original database and configuration throughout the run. E2E setup restores its temporary host-and-port routing after the tests.
 
 If using a custom URL, it must point to an isolated WordPress test site with a disposable database and uploads directory. Set `WP_E2E_ISOLATED=true` to confirm that setup, along with the base URL, username and password. Playwright will use that site without starting the local Docker environment:
 
@@ -26,7 +26,7 @@ WP_BASE_URL=http://mycustomurl WP_USERNAME=username WP_PASSWORD=password WP_E2E_
 ```
 The E2E setup clears test posts, blocks, and preferences. Do not point it at a production or development site.
 
-The local E2E setup holds a lock while it switches `wp-config.php`. A second E2E run in the same checkout exits before changing the configuration. PHPUnit continues to use `wordpress_develop_tests`.
+The local E2E setup holds a lock while it prepares the separate site configuration. A second E2E run in the same checkout exits before changing configuration. Interrupted runs restore the routing and regenerate the E2E config, including its original table prefix. PHPUnit continues to use `wordpress_develop_tests`.
 
 For debugging purposes, you might want to follow the test visually. You can do so by running the tests in an interactive mode:
 

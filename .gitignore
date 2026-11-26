@@ -3,6 +3,7 @@
 # Configuration files with possibly sensitive information
 .env
 wp-config.php
+/wp-config-e2e*
 wp-tests-config.php
 .htaccess
 

@@ -8,6 +8,7 @@ const local_env_utils = require( './utils' );
 local_env_utils.ensure_env_file();
 
 dotenvExpand.expand( dotenv.config() );
+process.env.LOCAL_E2E_PORT ||= String( Number( process.env.LOCAL_PORT || 8889 ) + 1 );
 
 // Check if the Docker service is running.
 try {
@@ -23,7 +24,7 @@ try {
 // Start the local-env containers.
 const containers = [ 'wordpress-develop', 'cli' ];
 if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
-	containers.push( 'memcached' );
+	containers.push( 'memcached', 'memcached-e2e' );
 }
 
 // `up` pulls any image that is missing, so it is re-attempted for the same reasons as `env:pull`.
