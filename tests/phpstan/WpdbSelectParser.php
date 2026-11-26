@@ -20,7 +20,8 @@ namespace WordPress\PHPStan;
  * Each column is typed as follows:
  *
  * - A column of a core table, including each one a `*` or `alias.*` expands
- *   to, has the type `WpdbSchema` gives it.
+ *   to, has the type `WpdbSchema` gives it, or null as well for a table on the
+ *   outer side of a `LEFT JOIN` or `RIGHT JOIN`, which has no row to match.
  * - `COUNT()` is a `decimal-int-string`, `SUM()` and `AVG()` are a
  *   `numeric-string` or null, and `MIN()` and `MAX()` of a core column are the
  *   column's type or null.
@@ -38,6 +39,7 @@ namespace WordPress\PHPStan;
  * @phpstan-type Column array{ name: string|null, type: non-empty-string, optional: bool }
  * @phpstan-type Columns array{ columns: list<Column>, complete: bool }
  * @phpstan-type Token array{ text: string, offset: int }
+ * @phpstan-type Table array{ name: string|null, nullable: bool }
  * @phpstan-import-type Column from WpdbSchema as SchemaColumn
  */
 final class WpdbSelectParser {
@@ -180,10 +182,14 @@ final class WpdbSelectParser {
 	 *
 	 * @param list<array{ text: string, offset: int }> $tokens Tokens of the query.
 	 * @param int                                      $i      Index of the token ending the select list.
-	 * @return array<string, string|null>|null Table names, by `wpdb` property name or null if not a core table, keyed
-	 *                                         by the lowercase alias or name they are referred to by. Null if the query
-	 *                                         is a union, whose column types this does not read.
+	 * @return array<string, array{ name: string|null, nullable: bool }>|null Tables, keyed by the lowercase alias or
+	 *                                                                    name they are referred to by. Each has its
+	 *                                                                    `wpdb` property name, or null if not a core
+	 *                                                                    table, and whether its columns may be null
+	 *                                                                    from an outer join. Null if the query is a
+	 *                                                                    union, whose column types this does not read.
 	 * @phpstan-param list<Token> $tokens
+	 * @phpstan-return array<string, Table>|null
 	 */
 	private function parse_from( array $tokens, int $i ): ?array {
 		$count = count( $tokens );
@@ -203,6 +209,7 @@ final class WpdbSelectParser {
 		}
 
 		$expect_table = true;
+		$outer_join   = null;
 		$depth        = 0;
 		for ( ++$i; $i < $count; $i++ ) {
 			$text  = $tokens[ $i ]['text'];
@@ -212,8 +219,19 @@ final class WpdbSelectParser {
 				break;
 			}
 
+			// `LEFT` and `RIGHT` are also functions, as in an `ON` condition.
+			if ( ( 'LEFT' === $upper || 'RIGHT' === $upper ) && ! in_array( strtoupper( $tokens[ $i + 1 ]['text'] ?? '' ), array( 'JOIN', 'OUTER' ), true ) ) {
+				$depth += self::get_depth_change( $text );
+				continue;
+			}
+
 			if ( 0 === $depth && ( ',' === $text || in_array( $upper, self::JOIN_KEYWORDS, true ) ) ) {
 				$expect_table = true;
+				if ( 'LEFT' === $upper || 'RIGHT' === $upper ) {
+					$outer_join = $upper;
+				} elseif ( ',' === $text ) {
+					$outer_join = null;
+				}
 				continue;
 			}
 
@@ -250,7 +268,17 @@ final class WpdbSelectParser {
 					$i  += 1;
 				}
 
-				$tables[ $key ] = $name;
+				// The table on the outer side of a join may have no row to match, which makes its columns null.
+				if ( 'RIGHT' === $outer_join ) {
+					foreach ( array_keys( $tables ) as $table_key ) {
+						$tables[ $table_key ]['nullable'] = true;
+					}
+				}
+				$tables[ $key ] = array(
+					'name'     => $name,
+					'nullable' => 'LEFT' === $outer_join,
+				);
+				$outer_join     = null;
 				continue;
 			}
 
@@ -263,11 +291,12 @@ final class WpdbSelectParser {
 	/**
 	 * Gets the columns of one expression in the select list.
 	 *
-	 * @param list<array{ text: string, offset: int }> $item   Tokens of the expression, with its alias.
-	 * @param array<string, string|null>               $tables Tables in the `FROM` clause.
-	 * @param string                                   $query  Query.
+	 * @param list<array{ text: string, offset: int }>                  $item   Tokens of the expression, with its alias.
+	 * @param array<string, array{ name: string|null, nullable: bool }> $tables Tables in the `FROM` clause.
+	 * @param string                                                    $query  Query.
 	 * @return list<array{ name: string|null, type: non-empty-string, optional: bool }>|null Columns, or null if unknown.
 	 * @phpstan-param list<Token> $item
+	 * @phpstan-param array<string, Table> $tables
 	 * @phpstan-return list<Column>|null
 	 */
 	private function get_item_columns( array $item, array $tables, string $query ): ?array {
@@ -311,11 +340,11 @@ final class WpdbSelectParser {
 			}
 			$columns = array();
 			foreach ( $star_tables as $table ) {
-				if ( null === $table ) {
+				if ( null === $table || null === $table['name'] ) {
 					return null;
 				}
-				foreach ( $this->schema->get_columns( $table ) as $column ) {
-					$columns[] = $column;
+				foreach ( $this->schema->get_columns( $table['name'] ) as $column ) {
+					$columns[] = self::apply_nullable( $column, $table );
 				}
 			}
 			return $columns;
@@ -354,9 +383,10 @@ final class WpdbSelectParser {
 	/**
 	 * Gets the type of the values of an expression which is not a column reference.
 	 *
-	 * @param list<string>               $texts  Tokens of the expression.
-	 * @param array<string, string|null> $tables Tables in the `FROM` clause.
+	 * @param list<string>                                              $texts  Tokens of the expression.
+	 * @param array<string, array{ name: string|null, nullable: bool }> $tables Tables in the `FROM` clause.
 	 * @return non-empty-string PHPDoc type.
+	 * @phpstan-param array<string, Table> $tables
 	 */
 	private function get_expression_type( array $texts, array $tables ): string {
 		$count = count( $texts );
@@ -394,7 +424,7 @@ final class WpdbSelectParser {
 					$column_ref = self::get_column_reference( $arguments );
 					$column     = null !== $column_ref ? $this->find_column( $tables, $column_ref[0], $column_ref[1] ) : null;
 					if ( null !== $column ) {
-						return '|null' === substr( $column['type'], -5 ) ? $column['type'] : $column['type'] . '|null';
+						return self::add_null( $column['type'] );
 					}
 					return 'string|null';
 			}
@@ -406,25 +436,58 @@ final class WpdbSelectParser {
 	/**
 	 * Finds a column of a core table.
 	 *
-	 * @param array<string, string|null> $tables    Tables in the `FROM` clause.
-	 * @param string|null                $qualifier Lowercase alias or name of the table, or null if not qualified.
-	 * @param string                     $name      Column name.
+	 * @param array<string, array{ name: string|null, nullable: bool }> $tables    Tables in the `FROM` clause.
+	 * @param string|null                                               $qualifier Lowercase alias or name of the table,
+	 *                                                                             or null if not qualified.
+	 * @param string                                                    $name      Column name.
 	 * @return array{ name: non-empty-string, type: non-empty-string, optional: bool }|null Column, or null if unknown.
+	 * @phpstan-param array<string, Table> $tables
 	 * @phpstan-return SchemaColumn|null
 	 */
 	private function find_column( array $tables, ?string $qualifier, string $name ): ?array {
 		if ( null !== $qualifier ) {
 			$table = $tables[ $qualifier ] ?? null;
-			return null !== $table ? $this->schema->get_column( $table, $name ) : null;
+			if ( null === $table || null === $table['name'] ) {
+				return null;
+			}
+			$column = $this->schema->get_column( $table['name'], $name );
+			return null !== $column ? self::apply_nullable( $column, $table ) : null;
 		}
 
 		foreach ( $tables as $table ) {
-			$column = null !== $table ? $this->schema->get_column( $table, $name ) : null;
+			$column = null !== $table['name'] ? $this->schema->get_column( $table['name'], $name ) : null;
 			if ( null !== $column ) {
-				return $column;
+				return self::apply_nullable( $column, $table );
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Makes a column's type nullable if its table is on the outer side of a join.
+	 *
+	 * @param array{ name: non-empty-string, type: non-empty-string, optional: bool } $column Column of a core table.
+	 * @param array{ name: string|null, nullable: bool }                             $table  Table the column is in.
+	 * @return array{ name: non-empty-string, type: non-empty-string, optional: bool } Column.
+	 * @phpstan-param SchemaColumn $column
+	 * @phpstan-param Table $table
+	 * @phpstan-return SchemaColumn
+	 */
+	private static function apply_nullable( array $column, array $table ): array {
+		if ( $table['nullable'] ) {
+			$column['type'] = self::add_null( $column['type'] );
+		}
+		return $column;
+	}
+
+	/**
+	 * Adds null to a PHPDoc type.
+	 *
+	 * @param non-empty-string $type PHPDoc type.
+	 * @return non-empty-string
+	 */
+	private static function add_null( string $type ): string {
+		return '|null' === substr( $type, -5 ) ? $type : $type . '|null';
 	}
 
 	/**
