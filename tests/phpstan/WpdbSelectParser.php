@@ -66,6 +66,16 @@ final class WpdbSelectParser {
 	private const NON_ALIAS_KEYWORDS = array( 'END', 'NULL', 'TRUE', 'FALSE', 'ASC', 'DESC', 'DISTINCT' );
 
 	/**
+	 * Keywords which an operand follows, so that a name following one is not an alias.
+	 */
+	private const OPERAND_KEYWORDS = array( 'AND', 'BETWEEN', 'BINARY', 'CASE', 'COLLATE', 'DIV', 'ELSE', 'ESCAPE', 'IN', 'INTERVAL', 'IS', 'LIKE', 'MOD', 'NOT', 'OR', 'REGEXP', 'RLIKE', 'THEN', 'WHEN', 'XOR' );
+
+	/**
+	 * Units of an `INTERVAL`, as in `post_date + INTERVAL 1 DAY`, which are not an alias there.
+	 */
+	private const INTERVAL_UNITS = array( 'MICROSECOND', 'SECOND', 'MINUTE', 'HOUR', 'DAY', 'WEEK', 'MONTH', 'QUARTER', 'YEAR', 'SECOND_MICROSECOND', 'MINUTE_MICROSECOND', 'MINUTE_SECOND', 'HOUR_MICROSECOND', 'HOUR_SECOND', 'HOUR_MINUTE', 'DAY_MICROSECOND', 'DAY_SECOND', 'DAY_MINUTE', 'DAY_HOUR', 'YEAR_MONTH' );
+
+	/**
 	 * Schema of the core tables.
 	 *
 	 * @var WpdbSchema
@@ -324,6 +334,8 @@ final class WpdbSelectParser {
 			$item  = array_slice( $item, 0, $count - 2 );
 		} elseif (
 			$count >= 2
+			&& ! in_array( strtoupper( $previous ), self::OPERAND_KEYWORDS, true )
+			&& ! ( in_array( strtoupper( $last_text ), self::INTERVAL_UNITS, true ) && self::has_top_level_token( $item, 'INTERVAL' ) )
 			&& (
 				// A string following a string literal is not an alias, but is joined to it.
 				( self::is_quoted_string( $last_text ) && ( ')' === $previous || self::is_identifier( $previous ) ) )
@@ -373,8 +385,13 @@ final class WpdbSelectParser {
 			);
 		}
 
-		// Otherwise MySQL names the column by the text of its expression.
-		if ( null === $alias ) {
+		/*
+		 * Otherwise MySQL names the column by the value of a string, or the first of adjacent strings it joins, or else
+		 * by the text of its expression.
+		 */
+		if ( null === $alias && array() === array_filter( $texts, static fn ( string $text ): bool => ! self::is_quoted_string( $text ) ) ) {
+			$alias = self::unquote( $texts[0] );
+		} elseif ( null === $alias ) {
 			$last  = end( $item );
 			$text  = (string) substr( $query, $item[0]['offset'], $last['offset'] + strlen( $last['text'] ) - $item[0]['offset'] );
 			$alias = false === strpos( $text, '{' ) ? $text : null;
@@ -592,6 +609,25 @@ final class WpdbSelectParser {
 	 */
 	private static function is_keyword_value( string $text ): bool {
 		return in_array( strtoupper( $text ), array( 'NULL', 'TRUE', 'FALSE', 'CURRENT_TIMESTAMP', 'CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_USER' ), true );
+	}
+
+	/**
+	 * Determines whether an expression has a keyword outside any parentheses.
+	 *
+	 * @param list<array{ text: string, offset: int }> $item    Tokens of the expression.
+	 * @param string                                   $keyword Uppercase keyword.
+	 * @return bool
+	 * @phpstan-param list<Token> $item
+	 */
+	private static function has_top_level_token( array $item, string $keyword ): bool {
+		$depth = 0;
+		foreach ( $item as $token ) {
+			if ( 0 === $depth && strtoupper( $token['text'] ) === $keyword ) {
+				return true;
+			}
+			$depth += self::get_depth_change( $token['text'] );
+		}
+		return false;
 	}
 
 	/**
