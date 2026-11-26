@@ -323,15 +323,23 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 			$list_row = TypeCombinator::union( ...$list_rows );
 		}
 
-		// `OBJECT_K` keys the rows by the first column's value, with null as ''.
-		$key = null;
-		if ( isset( $columns[0] ) && ! $columns[0]['optional'] ) {
-			$key = $columns[0]['type'];
+		/*
+		 * `OBJECT_K` keys the rows by the first value of the row object, with null as ''. That is the value of the
+		 * last column with the first column's name, and on some sites, of another column if the first is not there.
+		 */
+		$keys = array();
+		foreach ( self::get_row_variants( $columns ) as $variant ) {
+			if ( ! isset( $variant[0] ) ) {
+				$keys = array();
+				break;
+			}
+			$key = $variant[0];
 			if ( ! $key->isNull()->no() ) {
 				$key = TypeCombinator::union( TypeCombinator::removeNull( $key ), new ConstantStringType( '' ) );
 			}
-			$key = $key->toArrayKey();
+			$keys[] = $key->toArrayKey();
 		}
+		$key = array() !== $keys ? TypeCombinator::union( ...$keys ) : null;
 
 		return self::replace_rows(
 			$declared,
