@@ -153,7 +153,7 @@ class getid3_quicktime extends getid3_handler
 			foreach ($info['quicktime']['comments']['location.ISO6709'] as $ISO6709string) {
 				$ISO6709parsed = array('latitude'=>false, 'longitude'=>false, 'altitude'=>false);
 				if (preg_match('#^([\\+\\-])([0-9]{2}|[0-9]{4}|[0-9]{6})(\\.[0-9]+)?([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?(([\\+\\-])([0-9]{3}|[0-9]{5}|[0-9]{7})(\\.[0-9]+)?)?/$#', $ISO6709string, $matches)) {
-					@list($dummy, $lat_sign, $lat_deg, $lat_deg_dec, $lon_sign, $lon_deg, $lon_deg_dec, $dummy, $alt_sign, $alt_deg, $alt_deg_dec) = $matches;
+					list($dummy, $lat_sign, $lat_deg, $lat_deg_dec, $lon_sign, $lon_deg, $lon_deg_dec, $dummy, $alt_sign, $alt_deg, $alt_deg_dec) = array_pad($matches, 11, '');
 
 					if (strlen($lat_deg) == 2) {        // [+-]DD.D
 						$ISO6709parsed['latitude'] = (($lat_sign == '-') ? -1 : 1) * (float) (ltrim($lat_deg, '0').$lat_deg_dec);
@@ -318,7 +318,7 @@ $this->error('HEIF files not currently supported');
 						// some "ilst" atoms contain data atoms that have a numeric name, and the data is far more accessible if the returned array is compacted
 						$allnumericnames = true;
 						foreach ($atom_structure['subatoms'] as $subatomarray) {
-							if (!is_integer($subatomarray['name']) || (count($subatomarray['subatoms']) != 1)) {
+							if (!is_int($subatomarray['name']) || (count($subatomarray['subatoms']) != 1)) {
 								$allnumericnames = false;
 								break;
 							}
@@ -827,6 +827,12 @@ $this->error('HEIF files not currently supported');
 						}
 					}
 
+					// prevent memory exhaustion from crafted files: each "stsd" entry is at least 16 bytes (4 size + 4 data_format + 6 reserved + 2 reference_index)
+					$max_entries = (int) floor(max(0, strlen($atom_data) - 8) / 16);
+					if ($atom_structure['number_entries'] > $max_entries) {
+						$this->warning('QuickTime atom "stsd" claims '.$atom_structure['number_entries'].' entries but only has data for '.$max_entries.', truncating');
+						$atom_structure['number_entries'] = $max_entries;
+					}
 					$stsdEntriesDataOffset = 8;
 					for ($i = 0; $i < (int) $atom_structure['number_entries']; $i++) {
 						$atom_structure['sample_description_table'][$i]['size']             = getid3_lib::BigEndian2Int(substr($atom_data, $stsdEntriesDataOffset, 4));
@@ -1180,6 +1186,12 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 					$atom_structure['version']        = getid3_lib::BigEndian2Int(substr($atom_data,  0, 1));
 					$atom_structure['flags_raw']      = getid3_lib::BigEndian2Int(substr($atom_data,  1, 3)); // hardcoded: 0x0000
 					$atom_structure['number_entries'] = getid3_lib::BigEndian2Int(substr($atom_data,  4, 4));
+					// prevent memory exhaustion from crafted files: each "dref" entry is at least 12 bytes (4 size + 4 type + 1 version + 3 flags)
+					$max_entries = (int) floor(max(0, strlen($atom_data) - 8) / 12);
+					if ($atom_structure['number_entries'] > $max_entries) {
+						$this->warning('QuickTime atom "dref" claims '.$atom_structure['number_entries'].' entries but only has data for '.$max_entries.', truncating');
+						$atom_structure['number_entries'] = $max_entries;
+					}
 					$drefDataOffset = 8;
 					for ($i = 0; $i < $atom_structure['number_entries']; $i++) {
 						$atom_structure['data_references'][$i]['size']                    = getid3_lib::BigEndian2Int(substr($atom_data, $drefDataOffset, 4));
@@ -1318,6 +1330,12 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 					$atom_structure['version']        = getid3_lib::BigEndian2Int(substr($atom_data,  0, 1));
 					$atom_structure['flags_raw']      = getid3_lib::BigEndian2Int(substr($atom_data,  1, 3)); // hardcoded: 0x0000
 					$atom_structure['number_entries'] = getid3_lib::BigEndian2Int(substr($atom_data,  4, 4));
+					// prevent memory exhaustion from crafted files: each "elst" entry is at least 12 bytes (4 track_duration + 4 media_time + 4 media_rate)
+					$max_entries = (int) floor(max(0, strlen($atom_data) - 8) / 12);
+					if ($atom_structure['number_entries'] > $max_entries) {
+						$this->warning('QuickTime atom "elst" claims '.$atom_structure['number_entries'].' entries but only has data for '.$max_entries.', truncating');
+						$atom_structure['number_entries'] = $max_entries;
+					}
 					for ($i = 0; $i < $atom_structure['number_entries']; $i++ ) {
 						$atom_structure['edit_list'][$i]['track_duration'] =   getid3_lib::BigEndian2Int(substr($atom_data, 8 + ($i * 12) + 0, 4));
 						$atom_structure['edit_list'][$i]['media_time']     =   getid3_lib::BigEndian2Int(substr($atom_data, 8 + ($i * 12) + 4, 4));
@@ -1681,10 +1699,10 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 				case "\xA9".'xyz':  // GPS latitude+longitude+altitude
 					$atom_structure['data'] = $atom_data;
 					if (preg_match('#([\\+\\-][0-9\\.]+)([\\+\\-][0-9\\.]+)([\\+\\-][0-9\\.]+)?/$#i', $atom_data, $matches)) {
-						@list($all, $latitude, $longitude, $altitude) = $matches;
+						list($all, $latitude, $longitude, $altitude) = array_pad($matches, 4, '');
 						$info['quicktime']['comments']['gps_latitude'][]  = floatval($latitude);
 						$info['quicktime']['comments']['gps_longitude'][] = floatval($longitude);
-						if (!empty($altitude)) { // @phpstan-ignore-line
+						if (!empty($altitude)) {
 							$info['quicktime']['comments']['gps_altitude'][] = floatval($altitude);
 						}
 					} else {
@@ -1800,6 +1818,12 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 					$atom_structure['version']       = getid3_lib::BigEndian2Int(substr($atom_data,  0, 1));
 					$atom_structure['flags_raw']     = getid3_lib::BigEndian2Int(substr($atom_data,  1, 3));
 					$atom_structure['entry_count']   = getid3_lib::BigEndian2Int(substr($atom_data,  4, 4));
+					// prevent memory exhaustion from crafted files: each "keys" entry is at least 8 bytes (4 key_size + 4 key_namespace)
+					$max_entries = (int) floor(max(0, strlen($atom_data) - 8) / 8);
+					if ($atom_structure['entry_count'] > $max_entries) {
+						$this->warning('QuickTime atom "keys" claims '.$atom_structure['entry_count'].' entries but only has data for '.$max_entries.', truncating');
+						$atom_structure['entry_count'] = $max_entries;
+					}
 					$keys_atom_offset = 8;
 
 					$keys_index_base = (!empty($info['quicktime']['temp_meta_key_names']) ? count($info['quicktime']['temp_meta_key_names']) : 0); // file may contain multiple "keys" entries, starting index should be culmulative not reset to 1 on each set; https://github.com/JamesHeinrich/getID3/issues/452
@@ -2371,6 +2395,9 @@ $this->error('fragmented mp4 files not currently supported');
 		$num_bytes = 0;
 		$length    = 0;
 		do {
+			if ($offset >= strlen($data)) { // https://github.com/JamesHeinrich/getID3/issues/477#issuecomment-4351311805
+				break;
+			}
 			$b = ord(substr($data, $offset++, 1));
 			$length = ($length << 7) | ($b & 0x7F);
 		} while (($b & 0x80) && ($num_bytes++ < 4));

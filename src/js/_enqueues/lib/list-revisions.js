@@ -2,6 +2,12 @@
  * @output wp-includes/js/wp-list-revisions.js
  */
 
+/**
+ * Hides the revisions radio buttons to stop selecting reverse comparisons
+ *
+ * @param {Window} w The global window object.
+ */
+
 (function(w) {
 	var init = function() {
 		var pr = document.getElementById('post-revisions'),

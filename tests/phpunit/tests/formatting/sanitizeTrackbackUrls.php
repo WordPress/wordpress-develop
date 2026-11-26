@@ -17,7 +17,7 @@ class Tests_Formatting_SanitizeTrackbackUrls extends WP_UnitTestCase {
 		);
 	}
 
-	public function data_sanitize_trackback_urls_with_multiple_urls() {
+	public static function data_sanitize_trackback_urls_with_multiple_urls() {
 		return array(
 			array( "\r\n\t " ),
 			array( "\r" ),
