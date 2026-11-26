@@ -33,7 +33,7 @@ use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\TypeTraverser;
 
 /**
- * Types the results of `wpdb::get_var()`, `get_row()`, `get_col()` and
+ * Types the results of `wpdb::get_var()`, `get_row()`, `get_col()`, and
  * `get_results()` from the columns their query selects.
  *
  * For example, given:

@@ -32,7 +32,7 @@ use PhpParser\NodeVisitorAbstract;
 
 /**
  * Attaches the text of the SQL query passed to `wpdb::get_var()`, `get_row()`,
- * `get_col()` and `get_results()` to the method call node.
+ * `get_col()`, and `get_results()` to the method call node.
  *
  * The type of a query is rarely a constant string, since it almost always
  * interpolates a table name like `$wpdb->posts`, so the query text cannot be
@@ -40,7 +40,7 @@ use PhpParser\NodeVisitorAbstract;
  * call, which a type extension cannot see the statements of. So this visitor
  * reconstructs the text from the syntax tree instead, before analysis:
  *
- * - String literals, interpolation and concatenation are joined.
+ * - String literals, interpolation, and concatenation are joined.
  * - A table property on `$wpdb`, like `$wpdb->posts`, becomes the placeholder
  *   `{wpdb:posts}`, so that the query parser knows which table it names.
  * - `$wpdb->prepare( $query, ... )` is replaced by its query, with the

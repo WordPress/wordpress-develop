@@ -211,7 +211,7 @@ These identifiers are specific to WordPress, and can be ignored or baselined lik
 
 ### Database query results
 
-`WpdbQueryDynamicMethodReturnTypeExtension` types the results of `$wpdb->get_var()`, `get_row()`, `get_col()` and `get_results()` from the columns their query selects, so that they need no inline `@var` tag. For example:
+`WpdbQueryDynamicMethodReturnTypeExtension` types the results of `$wpdb->get_var()`, `get_row()`, `get_col()`, and `get_results()` from the columns their query selects, so that they need no inline `@var` tag. For example:
 
 ```php
 $post = $wpdb->get_row( $wpdb->prepare( "SELECT ID, post_title FROM $wpdb->posts WHERE ID = %d", $id ) );
@@ -221,7 +221,7 @@ is typed `(object{ID: decimal-int-string, post_title: string}&stdClass)|null` ra
 
 - **The columns of core tables are typed from the schema.** They are read from the `CREATE TABLE` statements in `wp_get_db_schema()`, so a column added there needs no change here. `wpdb` returns every value as a string, or null for SQL `NULL`, so an integer column is a `decimal-int-string`, a `DATETIME` column a `non-falsy-string`, and a column without `NOT NULL` is nullable. The `spam` and `deleted` columns, which `users` only has on multisite, are optional.
 - **Select expressions are named and typed as MySQL does.** An alias names a column, as does the text of an expression without one, like `COUNT(*)`. `COUNT()` is a `decimal-int-string`, `SUM()` and `AVG()` are a nullable `numeric-string`, `MIN()` and `MAX()` of a column are the column's type or null, and a literal is that constant string. Anything else, including a column of a table that is not a core table, is `string|null`, which is what any value can be.
-- **A query built up in variables is followed.** The query is reconstructed from the syntax tree, by `WpdbQueryVisitor`: literals, interpolation, `$wpdb->prepare()` and concatenation are joined, `$wpdb->posts` and the like name the table, and a variable is replaced by what the statements before the call assign and append to it. Only what the select list and the `FROM` clause need must be known, so a `WHERE` clause built from parameters does no harm. The variable is not followed through a loop which writes to it, or through a branch which does more than append to it.
+- **A query built up in variables is followed.** The query is reconstructed from the syntax tree, by `WpdbQueryVisitor`: literals, interpolation, `$wpdb->prepare()`, and concatenation are joined, `$wpdb->posts` and the like name the table, and a variable is replaced by what the statements before the call assign and append to it. Only what the select list and the `FROM` clause need must be known, so a `WHERE` clause built from parameters does no harm. The variable is not followed through a loop which writes to it, or through a branch which does more than append to it.
 
 Where the columns cannot be determined, such as for `SELECT *` from a table that is not a core table, for a select list holding a variable, or for a query that is not `SELECT`, the method's declared return type is used as before. The cases in which a method returns null or an empty array are as declared either way, since they depend on its arguments rather than the query.
 
