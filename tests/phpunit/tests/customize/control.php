@@ -182,6 +182,75 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that dropdown-pages controls bound the query and preserve the selected page.
+	 *
+	 * @ticket 66775
+	 *
+	 * @covers WP_Customize_Control::render_content
+	 */
+	public function test_dropdown_pages_limit_preserves_selected_page() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		foreach ( array( 'Page A', 'Page B', 'Page C', 'Page D' ) as $title ) {
+			self::factory()->post->create(
+				array(
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+					'post_title'  => $title,
+				)
+			);
+		}
+
+		$selected_page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Page Z',
+			)
+		);
+
+		$this->wp_customize->add_setting(
+			'page_on_front',
+			array(
+				'type'       => 'option',
+				'capability' => 'manage_options',
+				'default'    => $selected_page_id,
+			)
+		);
+
+		$control = new WP_Customize_Control(
+			$this->wp_customize,
+			'page_on_front',
+			array(
+				'label'   => 'Homepage',
+				'section' => 'static_front_page',
+				'type'    => 'dropdown-pages',
+			)
+		);
+		$this->wp_customize->add_control( $control );
+
+		$limit_callback = static function () {
+			return 2;
+		};
+		add_filter( 'customize_dropdown_pages_limit', $limit_callback );
+
+		ob_start();
+		$control->maybe_render();
+		$content = ob_get_clean();
+
+		remove_filter( 'customize_dropdown_pages_limit', $limit_callback );
+
+		$this->assertStringContainsString( 'Page A', $content );
+		$this->assertStringContainsString( 'Page B', $content );
+		$this->assertStringNotContainsString( 'Page C', $content );
+		$this->assertStringNotContainsString( 'Page D', $content );
+		$this->assertStringContainsString(
+			sprintf( '<option class="level-0" value="%d" selected="selected">Page Z</option>', $selected_page_id ),
+			$content
+		);
+	}
+
+	/**
 	 * Tear down.
 	 */
 	public function tear_down() {

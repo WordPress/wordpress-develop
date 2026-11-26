@@ -597,19 +597,59 @@ class WP_Customize_Control {
 				$dropdown_name     = '_customize-dropdown-pages-' . $this->id;
 				$show_option_none  = __( '&mdash; Select &mdash;' );
 				$option_none_value = '0';
-				$dropdown          = wp_dropdown_pages(
-					array(
-						'name'              => $dropdown_name,
-						'echo'              => 0,
-						'show_option_none'  => $show_option_none,
-						'option_none_value' => $option_none_value,
-						'selected'          => $this->value(),
-					)
+				$selected          = $this->value();
+				$dropdown_args     = array(
+					'name'              => $dropdown_name,
+					'echo'              => 0,
+					'show_option_none'  => $show_option_none,
+					'option_none_value' => $option_none_value,
+					'selected'          => $selected,
 				);
+
+				/**
+				 * Filters the maximum number of pages to load in Customizer dropdown-pages controls.
+				 *
+				 * Bounding the query prevents PHP memory exhaustion on sites with large numbers of pages.
+				 * Return 0 or a negative integer to disable the limit.
+				 *
+				 * @since 7.3.0
+				 *
+				 * @param int                  $limit   Maximum number of pages to query. Default 500.
+				 * @param WP_Customize_Control $control Current Customizer control instance.
+				 */
+				$max_pages   = (int) apply_filters( 'customize_dropdown_pages_limit', 500, $this );
+				$page_counts = wp_count_posts( 'page' );
+				$is_limited  = $max_pages > 0 && isset( $page_counts->publish ) && (int) $page_counts->publish > $max_pages;
+
+				if ( $is_limited ) {
+					$dropdown_args['number']       = $max_pages;
+					$dropdown_args['hierarchical'] = 0;
+				}
+
+				$dropdown = wp_dropdown_pages( $dropdown_args );
 				if ( empty( $dropdown ) ) {
 					$dropdown  = sprintf( '<select id="%1$s" name="%1$s">', esc_attr( $dropdown_name ) );
 					$dropdown .= sprintf( '<option value="%1$s">%2$s</option>', esc_attr( $option_none_value ), esc_html( $show_option_none ) );
 					$dropdown .= '</select>';
+				} elseif ( $is_limited && (int) $selected > 0 && false === strpos( $dropdown, 'value="' . (int) $selected . '"' ) ) {
+					$selected_page = get_post( (int) $selected );
+					if ( $selected_page instanceof WP_Post && 'page' === $selected_page->post_type ) {
+						$selected_title = $selected_page->post_title;
+						if ( '' === $selected_title ) {
+							/* translators: %d: ID of a post. */
+							$selected_title = sprintf( __( '#%d (no title)' ), $selected_page->ID );
+						}
+
+						/** This filter is documented in wp-includes/class-walker-page-dropdown.php */
+						$selected_title = apply_filters( 'list_pages', $selected_title, $selected_page );
+
+						$selected_option = sprintf(
+							"\t<option class=\"level-0\" value=\"%s\" selected=\"selected\">%s</option>\n",
+							esc_attr( $selected_page->ID ),
+							esc_html( $selected_title )
+						);
+						$dropdown        = str_replace( '</select>', $selected_option . '</select>', $dropdown );
+					}
 				}
 
 				// Hackily add in the data link parameter.
