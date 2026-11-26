@@ -84,6 +84,30 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 38243
+	 */
+	public function test_wp_update_term_with_invalid_utf8_name_should_return_wp_error() {
+		$t = self::factory()->term->create(
+			array(
+				'name'     => 'Foo',
+				'taxonomy' => 'post_tag',
+			)
+		);
+
+		$found = wp_update_term(
+			$t,
+			'post_tag',
+			array(
+				'name' => urldecode( '360%BF' ),
+			)
+		);
+
+		$this->assertWPError( $found );
+		$this->assertSame( 'empty_term_name', $found->get_error_code() );
+		$this->assertSame( 'Foo', get_term( $t )->name );
+	}
+
+	/**
 	 * @ticket 29614
 	 */
 	public function test_wp_update_term_parent_does_not_exist() {
