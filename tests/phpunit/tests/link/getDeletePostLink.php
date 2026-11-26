@@ -265,8 +265,6 @@ class Tests_Link_GetDeletePostLink extends WP_UnitTestCase {
 
 		$actual = get_delete_post_link( $cpt_post_id );
 
-		unregister_post_type( 'cpt_delete_test' );
-
 		$this->assertSame( $expected, $actual );
 	}
 
