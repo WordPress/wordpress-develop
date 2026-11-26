@@ -54,11 +54,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-setting.php
 		-
-			message: '#^Property WP_Term_Query\:\:\$meta_query \(WP_Meta_Query\) does not accept default value of type false\.$#'
-			identifier: property.defaultValue
-			count: 1
-			path: ../../../src/wp-includes/class-wp-term-query.php
-		-
 			message: '#^Property WP_User_Query\:\:\$meta_query \(WP_Meta_Query\) does not accept default value of type false\.$#'
 			identifier: property.defaultValue
 			count: 1
