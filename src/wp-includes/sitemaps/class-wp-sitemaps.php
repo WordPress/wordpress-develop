@@ -126,6 +126,7 @@ class WP_Sitemaps {
 	 * Registers sitemap rewrite tags and routing rules.
 	 *
 	 * @since 5.5.0
+	 * @since 7.3.0 Provider names may contain digits and underscores.
 	 */
 	public function register_rewrites() {
 		// Add rewrite tags.
@@ -137,12 +138,12 @@ class WP_Sitemaps {
 
 		// Register routes for providers.
 		add_rewrite_rule(
-			'^wp-sitemap-([a-z]+?)-([a-z\d_-]+?)-(\d+?)\.xml$',
+			'^wp-sitemap-([a-z\d_-]+?)-([a-z\d_-]+?)-(\d+?)\.xml$',
 			'index.php?sitemap=$matches[1]&sitemap-subtype=$matches[2]&paged=$matches[3]',
 			'top'
 		);
 		add_rewrite_rule(
-			'^wp-sitemap-([a-z]+?)-(\d+?)\.xml$',
+			'^wp-sitemap-([a-z\d_-]+?)-(\d+?)\.xml$',
 			'index.php?sitemap=$matches[1]&paged=$matches[2]',
 			'top'
 		);
@@ -152,6 +153,7 @@ class WP_Sitemaps {
 	 * Renders sitemap templates based on rewrite rules.
 	 *
 	 * @since 5.5.0
+	 * @since 7.3.0 Resolves providers whose names contain dashes.
 	 */
 	public function render_sitemaps() {
 		/*
@@ -191,6 +193,25 @@ class WP_Sitemaps {
 		}
 
 		$provider = $this->registry->get_provider( $sitemap );
+
+		if ( $object_subtype && ( ! $provider || ! array_key_exists( $object_subtype, $provider->get_object_subtypes() ) ) ) {
+			$route = $sitemap . '-' . $object_subtype;
+
+			if ( $this->registry->get_provider( $route ) ) {
+				$provider       = $this->registry->get_provider( $route );
+				$object_subtype = '';
+			} else {
+				foreach ( $this->registry->get_providers() as $name => $candidate ) {
+					if ( str_starts_with( $route, $name . '-' )
+						&& array_key_exists( substr( $route, strlen( $name ) + 1 ), $candidate->get_object_subtypes() )
+					) {
+						$provider       = $candidate;
+						$object_subtype = substr( $route, strlen( $name ) + 1 );
+						break;
+					}
+				}
+			}
+		}
 
 		// Force a 404 and bail early if the requested provider is not registered.
 		if ( ! $provider ) {
