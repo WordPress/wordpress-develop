@@ -158,6 +158,7 @@ final class WP_oEmbed_Controller {
 	 * Returns the JSON object for the proxied item.
 	 *
 	 * @since 4.8.0
+	 * @since X.Y.Z The {@see 'pre_oembed_result'} filter is applied before the remote request.
 	 *
 	 * @see WP_oEmbed::get_html()
 	 * @global WP_Embed   $wp_embed   WordPress Embed object.
@@ -199,6 +200,17 @@ final class WP_oEmbed_Controller {
 
 		if ( $data ) {
 			return $data;
+		}
+
+		/** This filter is documented in wp-includes/class-wp-oembed.php */
+		$pre = apply_filters( 'pre_oembed_result', null, $url, $args );
+
+		if ( null !== $pre ) {
+			if ( ! is_string( $pre ) || '' === $pre ) {
+				return new WP_Error( 'oembed_invalid_url', get_status_header_desc( 404 ), array( 'status' => 404 ) );
+			}
+
+			return (object) array( 'html' => $pre );
 		}
 
 		$data = _wp_oembed_get_object()->get_data( $url, $args );

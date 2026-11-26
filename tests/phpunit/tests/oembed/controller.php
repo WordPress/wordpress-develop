@@ -629,6 +629,110 @@ class Tests_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertIsArray( $data->scripts );
 	}
 
+	/**
+	 * @ticket 51471
+	 */
+	public function test_proxy_short_circuits_with_pre_oembed_result_filter() {
+		add_filter(
+			'pre_oembed_result',
+			static function () {
+				return '<p>Short-circuited</p>';
+			}
+		);
+
+		$response = rest_get_server()->dispatch( $this->get_youtube_proxy_request() );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsObject( $data );
+		$this->assertSame( '<p>Short-circuited</p>', $data->html );
+		$this->assertSame( 0, $this->request_count );
+		$this->assertSame( 0, $this->oembed_result_filter_count );
+	}
+
+	/**
+	 * @ticket 51471
+	 */
+	public function test_proxy_passes_url_and_args_to_pre_oembed_result_filter() {
+		$captured_url  = null;
+		$captured_args = null;
+
+		add_filter(
+			'pre_oembed_result',
+			static function ( $result, $url, $args ) use ( &$captured_url, &$captured_args ) {
+				$captured_url  = $url;
+				$captured_args = $args;
+				return '<p>x</p>';
+			},
+			10,
+			3
+		);
+
+		rest_get_server()->dispatch( $this->get_youtube_proxy_request() );
+
+		$this->assertSame( 'https://www.youtube.com/watch?v=' . self::YOUTUBE_VIDEO_ID, $captured_url );
+		$this->assertEquals( 456, $captured_args['width'] );
+		$this->assertEquals( 789, $captured_args['height'] );
+		$this->assertArrayNotHasKey( 'url', $captured_args );
+		$this->assertArrayNotHasKey( '_wpnonce', $captured_args );
+	}
+
+	/**
+	 * @ticket 51471
+	 */
+	public function test_proxy_returns_error_when_pre_oembed_result_filter_returns_false() {
+		add_filter( 'pre_oembed_result', '__return_false' );
+
+		$response = rest_get_server()->dispatch( $this->get_youtube_proxy_request() );
+
+		$this->assertSame( 404, $response->get_status() );
+		$this->assertSame( 'oembed_invalid_url', $response->get_data()['code'] );
+		$this->assertSame( 0, $this->request_count );
+	}
+
+	/**
+	 * @ticket 51471
+	 */
+	public function test_proxy_pre_oembed_result_filter_skipped_for_internal_url() {
+		$post_id = self::factory()->post->create();
+		$calls   = 0;
+
+		add_filter(
+			'pre_oembed_result',
+			static function ( $result ) use ( &$calls ) {
+				++$calls;
+				return $result;
+			},
+			20
+		);
+
+		wp_set_current_user( self::$editor );
+		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
+		$request->set_param( 'url', get_permalink( $post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 0, $calls );
+		$this->assertSame( 'rich', $data->type );
+		$this->assertTrue( isset( $data->version ) );
+	}
+
+	/**
+	 * Builds an authenticated proxy request for the YouTube test video.
+	 *
+	 * @return WP_REST_Request
+	 */
+	private function get_youtube_proxy_request() {
+		wp_set_current_user( self::$editor );
+		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
+		$request->set_param( 'url', 'https://www.youtube.com/watch?v=' . self::YOUTUBE_VIDEO_ID );
+		$request->set_param( 'maxwidth', 456 );
+		$request->set_param( 'maxheight', 789 );
+		$request->set_param( '_wpnonce', wp_create_nonce( 'wp_rest' ) );
+
+		return $request;
+	}
+
 	public function test_proxy_with_invalid_oembed_provider_no_discovery() {
 		wp_set_current_user( self::$editor );
 
