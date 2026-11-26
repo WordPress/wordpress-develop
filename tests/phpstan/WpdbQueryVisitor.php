@@ -42,7 +42,9 @@ use PhpParser\NodeVisitorAbstract;
  * - String literals, interpolation and concatenation are joined.
  * - A table property on `$wpdb`, like `$wpdb->posts`, becomes the placeholder
  *   `{wpdb:posts}`, so that the query parser knows which table it names.
- * - `$wpdb->prepare( $query, ... )` is replaced by its query.
+ * - `$wpdb->prepare( $query, ... )` is replaced by its query, with the
+ *   placeholder `{value}` for each of its placeholders, like `%d` or `%i`, and
+ *   `%` for each `%%`.
  * - A variable is replaced by the value assigned to it by the nearest preceding
  *   `$var = ...;` statement, followed by any `$var .= ...;` statements after it.
  *   The search walks back through the preceding statements, out through the
@@ -74,6 +76,11 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	 * Placeholder for a part of the query whose text is unknown.
 	 */
 	public const UNKNOWN = '{?}';
+
+	/**
+	 * Placeholder for a single value or identifier whose text is unknown, from a placeholder in a prepared query.
+	 */
+	public const VALUE = '{value}';
 
 	/**
 	 * Methods of `wpdb` whose first parameter is a query to reconstruct.
@@ -206,7 +213,12 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 			&& isset( $expr->args[0] )
 			&& $expr->args[0] instanceof Arg
 		) {
-			return $this->evaluate( $expr->args[0]->value, $position, $depth );
+			// Each placeholder is a value, or for `%i` an identifier, which is not known.
+			return (string) preg_replace_callback(
+				'/%(?:%|(?:\d+\$)?[-+0 ]*(?:\'.)?\d*(?:\.\d+)?[dfFsi])/',
+				static fn ( array $matches ): string => '%%' === $matches[0] ? '%' : self::VALUE,
+				$this->evaluate( $expr->args[0]->value, $position, $depth )
+			);
 		}
 
 		if ( $expr instanceof Variable && is_string( $expr->name ) && $depth < self::MAX_DEPTH ) {

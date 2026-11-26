@@ -15,7 +15,8 @@ namespace WordPress\PHPStan;
  * This is not a SQL parser. It reads only as much of the query as it needs:
  * the select list, and the tables named in the `FROM` clause with their
  * aliases. The query text is as reconstructed by `WpdbQueryVisitor`, where a
- * core table is `{wpdb:<table>}` and an unknown part is `{?}`.
+ * core table is `{wpdb:<table>}`, an unknown part is `{?}`, and an unknown
+ * single value, from a placeholder, is `{value}`.
  *
  * Each column is typed as follows:
  *
@@ -574,13 +575,13 @@ final class WpdbSelectParser {
 	}
 
 	/**
-	 * Determines whether a token is a literal: a number or a quoted string.
+	 * Determines whether a token is a literal: a number, a quoted string, or a value from a placeholder.
 	 *
 	 * @param string $text Token.
 	 * @return bool
 	 */
 	private static function is_literal( string $text ): bool {
-		return (bool) preg_match( '/^(?:\d|\'|")/', $text );
+		return WpdbQueryVisitor::VALUE === $text || (bool) preg_match( '/^(?:\d|\'|")/', $text );
 	}
 
 	/**
