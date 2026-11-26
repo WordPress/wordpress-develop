@@ -1044,7 +1044,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 			}
 
 			// Display a caught exception as an error since it prevents any of the output buffer filters from applying.
-			if ( $did_just_catch ) {
+			if ( $did_just_catch ) { // @phpstan-ignore if.alwaysFalse (Captured by reference and set to true in the catch blocks before trigger_error() calls this handler.)
 				$level = E_USER_ERROR;
 			}
 

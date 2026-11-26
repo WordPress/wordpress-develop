@@ -7,7 +7,7 @@
  */
 
 // Confidence check.
-if ( false ) {
+if ( false ) { // @phpstan-ignore if.alwaysFalse (Never runs, so the error page below is only shown when the server outputs this file without running PHP.)
 	?>
 <!DOCTYPE html>
 <html lang="en-US">
