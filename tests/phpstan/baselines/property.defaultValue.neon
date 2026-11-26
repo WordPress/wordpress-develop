@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property WP_Customize_Section\:\:\$active_callback \(callable\(\)\: mixed\) does not accept default value of type ''''\.$#'
-			identifier: property.defaultValue
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-section.php
-		-
 			message: '#^Property WP_Customize_Setting\:\:\$sanitize_callback \(callable\(\)\: mixed\) does not accept default value of type ''''\.$#'
 			identifier: property.defaultValue
 			count: 1

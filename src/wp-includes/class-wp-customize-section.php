@@ -120,14 +120,18 @@ class WP_Customize_Section {
 	/**
 	 * Active callback.
 	 *
+	 * This is an empty string by default, which the constructor replaces with
+	 * WP_Customize_Section::active_callback().
+	 *
 	 * @since 4.1.0
 	 *
 	 * @see WP_Customize_Section::active()
 	 *
-	 * @var callable Callback is called with one argument, the instance of
-	 *               WP_Customize_Section, and returns bool to indicate whether
-	 *               the section is active (such as it relates to the URL currently
-	 *               being previewed).
+	 * @var callable|string Callback is called with one argument, the instance of
+	 *                      WP_Customize_Section, and returns bool to indicate whether
+	 *                      the section is active (such as it relates to the URL currently
+	 *                      being previewed).
+	 * @phpstan-var callable|''
 	 */
 	public $active_callback = '';
 
