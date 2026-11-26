@@ -320,8 +320,10 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	 * and so on. The exception is an `if`: of its branches, only the one the position is in has run, after the
 	 * conditions.
 	 *
-	 * The innermost statement is the one the position is in directly, which runs before the position only where it is
-	 * a loop, whose body may have run in an earlier iteration, or the conditions of an `if`.
+	 * The innermost statement is the one the position is in directly. Any write to the variable in it is taken to
+	 * have run before the position, since the order in which the parts of a statement run is not followed here, and a
+	 * loop's body may have run in an earlier iteration. The exceptions are the branches of an `if`, which run after
+	 * its conditions, and an assignment to the variable, which is made after the value being assigned.
 	 *
 	 * @param Node   $stmt      Statement.
 	 * @param string $name      Variable name.
@@ -343,8 +345,15 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 		}
 
 		$is_loop = $stmt instanceof Stmt\While_ || $stmt instanceof Stmt\Do_ || $stmt instanceof Stmt\For_ || $stmt instanceof Stmt\Foreach_;
-		if ( $innermost && ! $is_loop ) {
-			return false;
+		if (
+			$innermost
+			&& ! $is_loop
+			&& $stmt instanceof Stmt\Expression
+			&& ( $stmt->expr instanceof Assign || $stmt->expr instanceof AssignOp )
+			&& $this->is_variable( $stmt->expr->var, $name )
+		) {
+			// An assignment to the variable is made after its value, which the position is in, is evaluated.
+			return $this->writes_variable( $stmt->expr->expr, $name, false );
 		}
 		return $this->writes_variable( $stmt, $name, false );
 	}
