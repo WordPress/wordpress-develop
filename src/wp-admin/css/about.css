@@ -565,7 +565,6 @@
 	align-items: center;
 	gap: 2.6667cqw;
 	max-width: 70%;
-	min-height: 12.4444cqw;
 	padding: 2.6667cqw 4.4444cqw 2.6667cqw 2.6667cqw;
 	border-radius: 6.2222cqw;
 	background: #fff;
@@ -573,7 +572,6 @@
 	text-decoration: none;
 	font-family: Inter, Roboto, "Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial, sans-serif;
 	font-size: 5.3333cqw;
-	font-weight: 400;
 	line-height: 1.25;
 }
 
@@ -606,12 +604,10 @@
 }
 
 .about__container .about__image-random-icon svg {
-	width: 5.3333cqw;
 	height: 5.3333cqw;
 }
 
 .about__container .about__image-random-text {
-	min-width: 0;
 	overflow-wrap: anywhere;
 	text-align: left;
 }
