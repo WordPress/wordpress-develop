@@ -569,7 +569,7 @@ EXPECTED;
 	/**
 	 * Tests that paginate_links() returns null when there is only one page.
 	 *
-	 * @ticket 66757
+	 * @ticket 66827
 	 */
 	public function test_paginate_links_returns_null_when_total_less_than_two() {
 		$this->assertNull(
