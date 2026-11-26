@@ -1301,6 +1301,138 @@ function wp_magic_quotes() {
 }
 
 /**
+ * Reads a string from a `$_GET` input var.
+ *
+ * Input vars are slashed by wp_magic_quotes(), and a var that is expected to be a string
+ * can still be an array, as with `?s[]=1`. Passing such a value to a function that
+ * requires a string is a fatal error in PHP 8.
+ *
+ * @since 7.3.0
+ *
+ * @param string $name Name of the input var.
+ * @return string|null The unslashed value, or null if the input var is not set or is not a scalar.
+ */
+function wp_read_get_input_var_string( string $name ): ?string {
+	return _wp_read_input_var_string( $_GET, $name );
+}
+
+/**
+ * Reads a string from a `$_POST` input var.
+ *
+ * @since 7.3.0
+ *
+ * @see wp_read_get_input_var_string()
+ *
+ * @param string $name Name of the input var.
+ * @return string|null The unslashed value, or null if the input var is not set or is not a scalar.
+ */
+function wp_read_post_input_var_string( string $name ): ?string {
+	return _wp_read_input_var_string( $_POST, $name );
+}
+
+/**
+ * Reads a string from a `$_REQUEST` input var.
+ *
+ * @since 7.3.0
+ *
+ * @see wp_read_get_input_var_string()
+ *
+ * @param string $name Name of the input var.
+ * @return string|null The unslashed value, or null if the input var is not set or is not a scalar.
+ */
+function wp_read_request_input_var_string( string $name ): ?string {
+	return _wp_read_input_var_string( $_REQUEST, $name );
+}
+
+/**
+ * Reads an array of strings from a `$_GET` input var.
+ *
+ * Keys are kept. Values that are not scalars, such as nested arrays from `?ids[0][]=1`,
+ * are skipped, so every value in the result is a string.
+ *
+ * @since 7.3.0
+ *
+ * @param string $name Name of the input var.
+ * @return array<string|int, string>|null The unslashed values, or null if the input var is not set or is not an array.
+ */
+function wp_read_get_input_var_string_array( string $name ): ?array {
+	return _wp_read_input_var_string_array( $_GET, $name );
+}
+
+/**
+ * Reads an array of strings from a `$_POST` input var.
+ *
+ * @since 7.3.0
+ *
+ * @see wp_read_get_input_var_string_array()
+ *
+ * @param string $name Name of the input var.
+ * @return array<string|int, string>|null The unslashed values, or null if the input var is not set or is not an array.
+ */
+function wp_read_post_input_var_string_array( string $name ): ?array {
+	return _wp_read_input_var_string_array( $_POST, $name );
+}
+
+/**
+ * Reads an array of strings from a `$_REQUEST` input var.
+ *
+ * @since 7.3.0
+ *
+ * @see wp_read_get_input_var_string_array()
+ *
+ * @param string $name Name of the input var.
+ * @return array<string|int, string>|null The unslashed values, or null if the input var is not set or is not an array.
+ */
+function wp_read_request_input_var_string_array( string $name ): ?array {
+	return _wp_read_input_var_string_array( $_REQUEST, $name );
+}
+
+/**
+ * Reads a string from an input var array.
+ *
+ * Uses stripslashes() rather than wp_unslash() so that it works before formatting.php is loaded.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param array<string|int, mixed> $input Input vars, such as `$_GET`.
+ * @param string                   $name  Name of the input var.
+ * @return string|null The unslashed value, or null if the input var is not set or is not a scalar.
+ */
+function _wp_read_input_var_string( array $input, string $name ): ?string {
+	if ( ! isset( $input[ $name ] ) || ! is_scalar( $input[ $name ] ) ) {
+		return null;
+	}
+
+	return stripslashes( (string) $input[ $name ] );
+}
+
+/**
+ * Reads an array of strings from an input var array.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param array<string|int, mixed> $input Input vars, such as `$_GET`.
+ * @param string                   $name  Name of the input var.
+ * @return array<string|int, string>|null The unslashed values, or null if the input var is not set or is not an array.
+ */
+function _wp_read_input_var_string_array( array $input, string $name ): ?array {
+	if ( ! isset( $input[ $name ] ) || ! is_array( $input[ $name ] ) ) {
+		return null;
+	}
+
+	$values = array();
+	foreach ( $input[ $name ] as $key => $value ) {
+		if ( is_scalar( $value ) ) {
+			$values[ $key ] = stripslashes( (string) $value );
+		}
+	}
+
+	return $values;
+}
+
+/**
  * Runs just before PHP shuts down execution.
  *
  * @since 1.2.0
