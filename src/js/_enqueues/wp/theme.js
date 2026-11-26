@@ -1908,6 +1908,24 @@ themes.view.Installer = themes.view.Appearance.extend({
 				username: username
 			},
 			success: function () {
+				var queries = that.collection.queries;
+
+				/*
+				 * Drop cached favorites results, such as the empty one from before a
+				 * username was saved, so they are not served for the previous username.
+				 */
+				that.collection.queries = _.reject( queries, function( query ) {
+					return 'favorites' === query.request.browse;
+				} );
+
+				/*
+				 * The Favorites tab queries without a user (the server uses the saved
+				 * one), so use the same request to share its cache entry.
+				 */
+				if ( username ) {
+					request = { browse: 'favorites' };
+				}
+
 				// Get the themes by sending Ajax POST request to api.wordpress.org/themes
 				// or searching the local cache.
 				that.collection.query( request );
@@ -1975,6 +1993,12 @@ themes.view.Installer = themes.view.Appearance.extend({
 		themes.router.navigate( themes.router.baseUrl( '' ) );
 		// Toggle the feature filters view.
 		$body.toggleClass( 'show-filters' );
+
+		// Opening the filters leaves the previous section's results behind, so drop the stale message.
+		if ( $body.hasClass( 'show-filters' ) ) {
+			$body.removeClass( 'no-results' );
+		}
+
 		// Toggle the `aria-expanded` button attribute.
 		$toggleButton.attr( 'aria-expanded', $body.hasClass( 'show-filters' ) );
 	},
