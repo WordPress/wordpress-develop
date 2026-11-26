@@ -1386,10 +1386,15 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		$raw_title = $item->get_title();
 
 		$ilink = wp_nonce_url('plugin-install.php?tab=plugin-information&plugin=' . $slug, 'install-plugin_' . $slug) . '&amp;TB_iframe=true&amp;width=600&amp;height=800';
+		$install_label = sprintf(
+			/* translators: %s: Plugin name. */
+			_x( 'Install %s', 'plugin' ),
+			$raw_title
+		);
+
 		echo '<li class="dashboard-news-plugin"><span>' . __( 'Popular Plugin' ) . ':</span> ' . esc_html( $raw_title ) .
 			'&nbsp;<a href="' . $ilink . '" class="thickbox open-plugin-details-modal" aria-label="' .
-			/* translators: %s: Plugin name. */
-			esc_attr( sprintf( _x( 'Install %s', 'plugin' ), $raw_title ) ) . '">(' . __( 'Install' ) . ')</a></li>';
+			esc_attr( $install_label ) . '">(' . __( 'Install' ) . ')</a></li>';
 
 		$feed->__destruct();
 		unset( $feed );
@@ -1427,13 +1432,15 @@ function _relocate_children( $old_ID, $new_ID ) {
  * @see add_menu_page()
  * @global int $_wp_last_object_menu
  *
- * @param string   $page_title The text to be displayed in the title tags of the page when the menu is selected.
- * @param string   $menu_title The text to be used for the menu.
- * @param string   $capability The capability required for this menu to be displayed to the user.
- * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $callback   Optional. The function to be called to output the content for this page.
- * @param string   $icon_url   Optional. The URL to the icon to be used for this menu.
+ * @param string               $page_title The text to be displayed in the title tags of the page when the menu is selected.
+ * @param string               $menu_title The text to be used for the menu.
+ * @param string               $capability The capability required for this menu to be displayed to the user.
+ * @param string               $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
+ * @param callable|string|null $callback   Optional. The function to be called to output the content for this page.
+ * @param string               $icon_url   Optional. The URL to the icon to be used for this menu.
  * @return string The resulting page's hook_suffix.
+ *
+ * @phpstan-param ''|(callable(): mixed)|null $callback
  */
 function add_object_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '') {
 	_deprecated_function( __FUNCTION__, '4.5.0', 'add_menu_page()' );
@@ -1460,13 +1467,15 @@ function add_object_page( $page_title, $menu_title, $capability, $menu_slug, $ca
  * @see add_menu_page()
  * @global int $_wp_last_utility_menu
  *
- * @param string   $page_title The text to be displayed in the title tags of the page when the menu is selected.
- * @param string   $menu_title The text to be used for the menu.
- * @param string   $capability The capability required for this menu to be displayed to the user.
- * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $callback   Optional. The function to be called to output the content for this page.
- * @param string   $icon_url   Optional. The URL to the icon to be used for this menu.
+ * @param string               $page_title The text to be displayed in the title tags of the page when the menu is selected.
+ * @param string               $menu_title The text to be used for the menu.
+ * @param string               $capability The capability required for this menu to be displayed to the user.
+ * @param string               $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
+ * @param callable|string|null $callback   Optional. The function to be called to output the content for this page.
+ * @param string               $icon_url   Optional. The URL to the icon to be used for this menu.
  * @return string The resulting page's hook_suffix.
+ *
+ * @phpstan-param ''|(callable(): mixed)|null $callback
  */
 function add_utility_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '') {
 	_deprecated_function( __FUNCTION__, '4.5.0', 'add_menu_page()' );
@@ -1599,4 +1608,28 @@ function image_attachment_fields_to_save( $post, $attachment ) {
  */
 function delete_users_add_js() {
 	_deprecated_function( __FUNCTION__, '7.1.0' );
+}
+
+/**
+ * Was used to output JavaScript that tested whether compressing scripts from PHP works.
+ *
+ * The scripts and styles have not been compressed from PHP since 4.9.9, so the result
+ * of the test went unused.
+ *
+ * @since 2.8.0
+ * @deprecated 7.2.0
+ */
+function compression_test() {
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+}
+
+/**
+ * Was used to handle the compression test via AJAX.
+ *
+ * @since 3.1.0
+ * @deprecated 7.2.0
+ */
+function wp_ajax_wp_compression_test() {
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+	wp_die( 0 );
 }

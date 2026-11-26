@@ -28,10 +28,10 @@ require __DIR__ . '/class-wp-filter-sentinel.php';
 /** @var WP_Hook[] $wp_filter */
 global $wp_filter;
 
-/** @var int[] $wp_actions */
+/** @var array<string, positive-int> $wp_actions */
 global $wp_actions;
 
-/** @var int[] $wp_filters */
+/** @var array<string, positive-int> $wp_filters */
 global $wp_filters;
 
 /** @var string[] $wp_current_filter */
@@ -43,17 +43,11 @@ if ( $wp_filter ) {
 	$wp_filter = array();
 }
 
-if ( ! isset( $wp_actions ) ) {
-	$wp_actions = array();
-}
+$wp_actions ??= array();
 
-if ( ! isset( $wp_filters ) ) {
-	$wp_filters = array();
-}
+$wp_filters ??= array();
 
-if ( ! isset( $wp_current_filter ) ) {
-	$wp_current_filter = array();
-}
+$wp_current_filter ??= array();
 
 /**
  * Adds a callback function to a filter hook.
@@ -162,13 +156,14 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @since 6.0.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
  *
- * @global WP_Hook[] $wp_filter         Stores all of the filters and actions.
- * @global int[]     $wp_filters        Stores the number of times each filter was triggered.
- * @global string[]  $wp_current_filter Stores the list of current filters with the current one last.
+ * @global WP_Hook[]                   $wp_filter         Stores all of the filters and actions.
+ * @global array<string, positive-int> $wp_filters        Stores the number of times each filter was triggered.
+ * @global string[]                    $wp_current_filter Stores the list of current filters with the current one last.
  *
  * @param string $hook_name The name of the filter hook.
  * @param mixed  $value     The value to filter.
  * @param mixed  ...$args   Optional. Additional parameters to pass to the callback functions.
+ * @no-named-arguments
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters( $hook_name, $value, ...$args ) {
@@ -218,12 +213,12 @@ function apply_filters( $hook_name, $value, ...$args ) {
  * @see apply_filters() This function is identical, but the arguments passed to the
  *                      functions hooked to `$hook_name` are supplied using an array.
  *
- * @global WP_Hook[] $wp_filter         Stores all of the filters and actions.
- * @global int[]     $wp_filters        Stores the number of times each filter was triggered.
- * @global string[]  $wp_current_filter Stores the list of current filters with the current one last.
+ * @global WP_Hook[]                   $wp_filter         Stores all of the filters and actions.
+ * @global array<string, positive-int> $wp_filters        Stores the number of times each filter was triggered.
+ * @global string[]                    $wp_current_filter Stores the list of current filters with the current one last.
  *
- * @param string $hook_name The name of the filter hook.
- * @param array  $args      The arguments supplied to the functions hooked to `$hook_name`.
+ * @param string                $hook_name The name of the filter hook.
+ * @param non-empty-list<mixed> $args      The arguments supplied to the functions hooked to `$hook_name`.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_ref_array( $hook_name, $args ) {
@@ -283,6 +278,14 @@ function apply_filters_ref_array( $hook_name, $args ) {
  *                  of that hook is returned, or false if the function is not attached.
  *                  If `$callback` and `$priority` are both provided, a boolean is returned
  *                  for whether the specific function is registered at that priority.
+ * @phpstan-param callable|string|array{0: string|object, 1: string}|false $callback
+ * @phpstan-return (
+ *     $callback is false
+ *         ? bool
+ *         : ( $priority is int
+ *             ? bool
+ *             : false|int )
+ * )
  */
 function has_filter( $hook_name, $callback = false, $priority = false ) {
 	global $wp_filter;
@@ -315,6 +318,7 @@ function has_filter( $hook_name, $callback = false, $priority = false ) {
  * @param int                   $priority  Optional. The exact priority used when adding the original
  *                                         filter callback. Default 10.
  * @return bool Whether the function existed before it was removed.
+ * @phpstan-param callable|string|array{0: string|object, 1: string} $callback
  */
 function remove_filter( $hook_name, $callback, $priority = 10 ) {
 	global $wp_filter;
@@ -409,10 +413,12 @@ function doing_filter( $hook_name = null ) {
  *
  * @since 6.1.0
  *
- * @global int[] $wp_filters Stores the number of times each filter was triggered.
+ * @global array<string, positive-int> $wp_filters Stores the number of times each filter was triggered.
  *
  * @param string $hook_name The name of the filter hook.
  * @return int The number of times the filter hook has been applied.
+ *
+ * @phpstan-return non-negative-int
  */
 function did_filter( $hook_name ) {
 	global $wp_filters;
@@ -477,13 +483,14 @@ function add_action( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @since 5.3.0 Formalized the existing and already documented `...$arg` parameter
  *              by adding it to the function signature.
  *
- * @global WP_Hook[] $wp_filter         Stores all of the filters and actions.
- * @global int[]     $wp_actions        Stores the number of times each action was triggered.
- * @global string[]  $wp_current_filter Stores the list of current filters with the current one last.
+ * @global WP_Hook[]                   $wp_filter         Stores all of the filters and actions.
+ * @global array<string, positive-int> $wp_actions        Stores the number of times each action was triggered.
+ * @global string[]                    $wp_current_filter Stores the list of current filters with the current one last.
  *
  * @param string $hook_name The name of the action to be executed.
  * @param mixed  ...$arg    Optional. Additional arguments which are passed on to the
  *                          functions hooked to the action. Default empty.
+ * @no-named-arguments
  */
 function do_action( $hook_name, ...$arg ) {
 	global $wp_filter, $wp_actions, $wp_current_filter;
@@ -533,12 +540,12 @@ function do_action( $hook_name, ...$arg ) {
  * @see do_action() This function is identical, but the arguments passed to the
  *                  functions hooked to `$hook_name` are supplied using an array.
  *
- * @global WP_Hook[] $wp_filter         Stores all of the filters and actions.
- * @global int[]     $wp_actions        Stores the number of times each action was triggered.
- * @global string[]  $wp_current_filter Stores the list of current filters with the current one last.
+ * @global WP_Hook[]                   $wp_filter         Stores all of the filters and actions.
+ * @global array<string, positive-int> $wp_actions        Stores the number of times each action was triggered.
+ * @global string[]                    $wp_current_filter Stores the list of current filters with the current one last.
  *
- * @param string $hook_name The name of the action to be executed.
- * @param array  $args      The arguments supplied to the functions hooked to `$hook_name`.
+ * @param string      $hook_name The name of the action to be executed.
+ * @param list<mixed> $args      The arguments supplied to the functions hooked to `$hook_name`.
  */
 function do_action_ref_array( $hook_name, $args ) {
 	global $wp_filter, $wp_actions, $wp_current_filter;
@@ -595,6 +602,14 @@ function do_action_ref_array( $hook_name, $args ) {
  *                  of that hook is returned, or false if the function is not attached.
  *                  If `$callback` and `$priority` are both provided, a boolean is returned
  *                  for whether the specific function is registered at that priority.
+ * @phpstan-param callable|string|array{0: string|object, 1: string}|false $callback
+ * @phpstan-return (
+ *     $callback is false
+ *         ? bool
+ *         : ( $priority is int
+ *             ? bool
+ *             : false|int )
+ * )
  */
 function has_action( $hook_name, $callback = false, $priority = false ) {
 	return has_filter( $hook_name, $callback, $priority );
@@ -619,6 +634,7 @@ function has_action( $hook_name, $callback = false, $priority = false ) {
  * @param int                   $priority  Optional. The exact priority used when adding the original
  *                                         action callback. Default 10.
  * @return bool Whether the function is removed.
+ * @phpstan-param callable|string|array{0: string|object, 1: string} $callback
  */
 function remove_action( $hook_name, $callback, $priority = 10 ) {
 	return remove_filter( $hook_name, $callback, $priority );
@@ -678,10 +694,12 @@ function doing_action( $hook_name = null ) {
  *
  * @since 2.1.0
  *
- * @global int[] $wp_actions Stores the number of times each action was triggered.
+ * @global array<string, positive-int> $wp_actions Stores the number of times each action was triggered.
  *
  * @param string $hook_name The name of the action hook.
  * @return int The number of times the action hook has been fired.
+ *
+ * @phpstan-return non-negative-int
  */
 function did_action( $hook_name ) {
 	global $wp_actions;
@@ -713,11 +731,11 @@ function did_action( $hook_name ) {
  *
  * @see _deprecated_hook()
  *
- * @param string $hook_name   The name of the filter hook.
- * @param array  $args        Array of additional function arguments to be passed to apply_filters().
- * @param string $version     The version of WordPress that deprecated the hook.
- * @param string $replacement Optional. The hook that should have been used. Default empty.
- * @param string $message     Optional. A message regarding the change. Default empty.
+ * @param string                $hook_name   The name of the filter hook.
+ * @param non-empty-list<mixed> $args        Array of additional function arguments to be passed to apply_filters().
+ * @param string                $version     The version of WordPress that deprecated the hook.
+ * @param string                $replacement Optional. The hook that should have been used. Default empty.
+ * @param string                $message     Optional. A message regarding the change. Default empty.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
@@ -741,11 +759,11 @@ function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '
  *
  * @see _deprecated_hook()
  *
- * @param string $hook_name   The name of the action hook.
- * @param array  $args        Array of additional function arguments to be passed to do_action().
- * @param string $version     The version of WordPress that deprecated the hook.
- * @param string $replacement Optional. The hook that should have been used. Default empty.
- * @param string $message     Optional. A message regarding the change. Default empty.
+ * @param string      $hook_name   The name of the action hook.
+ * @param list<mixed> $args        Array of additional function arguments to be passed to do_action().
+ * @param string      $version     The version of WordPress that deprecated the hook.
+ * @param string      $replacement Optional. The hook that should have been used. Default empty.
+ * @param string      $message     Optional. A message regarding the change. Default empty.
  */
 function do_action_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
 	if ( ! has_action( $hook_name ) ) {
@@ -876,6 +894,8 @@ function plugin_dir_url( $file ) {
  *
  * @param string   $file     The filename of the plugin including the path.
  * @param callable $callback The function hooked to the 'activate_PLUGIN' action.
+ *
+ * @phpstan-param callable(bool): mixed $callback
  */
 function register_activation_hook( $file, $callback ) {
 	$file = plugin_basename( $file );
@@ -899,6 +919,8 @@ function register_activation_hook( $file, $callback ) {
  *
  * @param string   $file     The filename of the plugin including the path.
  * @param callable $callback The function hooked to the 'deactivate_PLUGIN' action.
+ *
+ * @phpstan-param callable(bool): mixed $callback
  */
 function register_deactivation_hook( $file, $callback ) {
 	$file = plugin_basename( $file );
@@ -930,6 +952,8 @@ function register_deactivation_hook( $file, $callback ) {
  * @param string   $file     Plugin file.
  * @param callable $callback The callback to run when the hook is called. Must be
  *                           a static method or function.
+ *
+ * @phpstan-param (callable-string|array{class-string, non-empty-string})&(callable(): mixed) $callback
  */
 function register_uninstall_hook( $file, $callback ) {
 	if ( is_array( $callback ) && is_object( $callback[0] ) ) {
@@ -967,7 +991,7 @@ function register_uninstall_hook( $file, $callback ) {
  *
  * @global WP_Hook[] $wp_filter Stores all of the filters and actions.
  *
- * @param array $args The collected parameters from the hook that was called.
+ * @param list<mixed> $args The collected parameters from the hook that was called.
  */
 function _wp_call_all_hook( $args ) {
 	global $wp_filter;
@@ -993,13 +1017,13 @@ function _wp_call_all_hook( $args ) {
  *
  * @access private
  *
- * @param string   $hook_name Unused. The name of the filter to build ID for.
- * @param callable $callback  The callback to generate ID for. The callback may
- *                            or may not exist.
- * @param int      $priority  Unused. The order in which the functions
- *                            associated with a particular action are executed.
+ * @param string                $hook_name Unused. The name of the filter to build ID for.
+ * @param callable|string|array $callback  The callback to generate ID for. The callback may
+ *                                         or may not exist.
+ * @param int                   $priority  Unused. The order in which the functions
+ *                                         associated with a particular action are executed.
  * @return string|null Unique function ID for usage as array key, or null if it couldn't be determined.
- *
+ * @phpstan-param callable|string|array{0: string|object, 1: string} $callback
  * @phpstan-return non-decimal-int-string|null
  */
 function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string {

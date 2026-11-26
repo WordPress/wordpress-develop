@@ -5,17 +5,52 @@
  * @package WordPress
  * @subpackage Theme
  * @since 3.4.0
+ *
+ * @property-read string|false   $name
+ * @property-read string|false   $title
+ * @property-read string|false   $version
+ * @property-read string|false   $parent_theme
+ * @property-read string         $template_dir
+ * @property-read string         $stylesheet_dir
+ * @property-read string         $template
+ * @property-read string         $stylesheet
+ * @property-read string|false   $screenshot
+ * @property-read string|false   $description
+ * @property-read string|false   $author
+ * @property-read string[]|false $tags
+ * @property-read string         $theme_root
+ * @property-read string         $theme_root_uri
+ *
+ * @phpstan-type Theme_Key 'Name'|'Version'|'Status'|'Title'|'Author'|'Author Name'|'Author URI'|'Description'|'Template'|'Stylesheet'|'Template Files'|'Stylesheet Files'|'Template Dir'|'Stylesheet Dir'|'Screenshot'|'Tags'|'Theme Root'|'Theme Root URI'|'Parent Theme'
  */
 #[AllowDynamicProperties]
 final class WP_Theme implements ArrayAccess {
 
 	/**
-	 * Whether the theme has been marked as updateable.
+	 * Whether the theme has been marked as updateable, or the theme's update data.
+	 *
+	 * This is false by default. WP_MS_Themes_List_Table sets it to true when an
+	 * update is available for the theme, while get_theme_updates() sets it to the
+	 * theme's entry in the `response` of the `update_themes` site transient. That
+	 * entry always contains the `new_version`, and usually the `theme`, `url`,
+	 * `package`, `requires`, and `requires_php` as well, where `requires` and
+	 * `requires_php` are false when the theme does not declare them. Themes updated
+	 * via the {@see 'update_themes_$hostname'} filter may also include other keys.
 	 *
 	 * @since 4.4.0
-	 * @var bool
+	 * @var bool|array<string, mixed>
+	 * @phpstan-var bool|array{
+	 *     new_version: string,
+	 *     theme?: string,
+	 *     url?: string,
+	 *     package?: string,
+	 *     requires?: string|false,
+	 *     requires_php?: string|false,
+	 *     ...
+	 * }
 	 *
 	 * @see WP_MS_Themes_List_Table
+	 * @see get_theme_updates()
 	 */
 	public $update = false;
 
@@ -61,6 +96,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 6.1.0 Added the Twenty Twenty-Three theme.
 	 * @since 6.4.0 Added the Twenty Twenty-Four theme.
 	 * @since 6.7.0 Added the Twenty Twenty-Five theme.
+	 * @since 7.2.0 Added the Ipsum theme.
 	 * @var string[]
 	 */
 	private static $default_themes = array(
@@ -81,6 +117,7 @@ final class WP_Theme implements ArrayAccess {
 		'twentytwentythree' => 'Twenty Twenty-Three',
 		'twentytwentyfour'  => 'Twenty Twenty-Four',
 		'twentytwentyfive'  => 'Twenty Twenty-Five',
+		'ipsum'             => 'Ipsum',
 	);
 
 	/**
@@ -246,7 +283,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param string        $theme_dir  Directory of the theme within the theme_root.
 	 * @param string        $theme_root Theme root.
-	 * @param WP_Theme|null $_child If this theme is a parent theme, the child may be passed for validation purposes.
+	 * @param WP_Theme|null $_child     If this theme is a parent theme, the child may be passed for validation purposes.
 	 */
 	public function __construct( $theme_dir, $theme_root, $_child = null ) {
 		global $wp_theme_directories;
@@ -361,7 +398,7 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		if ( ! $this->template && $this->stylesheet === $this->headers['Template'] ) {
-			$this->errors = new WP_Error(
+			$this->errors   = new WP_Error(
 				'theme_child_invalid',
 				sprintf(
 					/* translators: %s: Template. */
@@ -369,6 +406,7 @@ final class WP_Theme implements ArrayAccess {
 					'<code>Template</code>'
 				)
 			);
+			$this->template = $this->stylesheet;
 			$this->cache_add(
 				'theme',
 				array(
@@ -377,6 +415,7 @@ final class WP_Theme implements ArrayAccess {
 					'headers'                => $this->headers,
 					'errors'                 => $this->errors,
 					'stylesheet'             => $this->stylesheet,
+					'template'               => $this->template,
 				)
 			);
 
@@ -652,6 +691,8 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param mixed $offset
 	 * @return bool
+	 *
+	 * @phpstan-return ( $offset is Theme_Key ? true : false )
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetExists( $offset ) {
@@ -694,6 +735,8 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param mixed $offset
 	 * @return mixed
+	 *
+	 * @phpstan-return ( $offset is Theme_Key ? mixed : null )
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {
@@ -914,6 +957,14 @@ final class WP_Theme implements ArrayAccess {
 	 * @param bool   $translate Optional. Whether to translate the header. Defaults to true.
 	 * @return string|array|false Processed header. An array for Tags if `$markup` is false, string otherwise.
 	 *                            False on failure.
+	 *
+	 * @phpstan-return (
+	 *     $markup is false
+	 *         ? ( $header is 'Tags'
+	 *             ? string[]|false
+	 *             : string|false )
+	 *         : string|false
+	 * )
 	 */
 	public function display( $header, $markup = true, $translate = true ) {
 		$value = $this->get( $header );
@@ -947,7 +998,9 @@ final class WP_Theme implements ArrayAccess {
 	 *                       'ThemeURI', 'AuthorURI', 'Status', 'Tags', 'RequiresWP', 'RequiresPHP',
 	 *                       'UpdateURI'.
 	 * @param string $value  Value to sanitize.
-	 * @return string|array An array for Tags header, string otherwise.
+	 * @return string|string[] An array for Tags header, string otherwise.
+	 *
+	 * @phpstan-return ( $header is 'Tags' ? string[] : string )
 	 */
 	private function sanitize_header( $header, $value ) {
 		switch ( $header ) {
@@ -1051,9 +1104,11 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param string       $header Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
-	 * @param string|array $value  Value to translate. An array for Tags header, string otherwise.
-	 * @return string|array Translated value. An array for Tags header, string otherwise.
+	 * @param string          $header Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
+	 * @param string|string[] $value  Value to translate. An array for Tags header, string otherwise.
+	 * @return string|string[] Translated value. An array for Tags header, string otherwise.
+	 *
+	 * @phpstan-return ( $value is string ? string : string[] )
 	 */
 	private function translate_header( $header, $value ) {
 		switch ( $header ) {
@@ -1357,10 +1412,8 @@ final class WP_Theme implements ArrayAccess {
 				}
 
 				foreach ( $types as $type ) {
-					$type = sanitize_key( $type );
-					if ( ! isset( $post_templates[ $type ] ) ) {
-						$post_templates[ $type ] = array();
-					}
+					$type                      = sanitize_key( $type );
+					$post_templates[ $type ] ??= array();
 
 					$post_templates[ $type ][ $file ] = $headers['TemplateName'];
 				}

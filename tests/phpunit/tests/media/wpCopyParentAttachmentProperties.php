@@ -15,7 +15,7 @@ class Tests_Media_wpCopyParentAttachmentProperties extends WP_UnitTestCase {
 	}
 
 	public function test_wp_copy_parent_attachment_properties() {
-		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 		$parent_url = get_post( $attachment )->guid;
 		// Add alternative text.
 		update_post_meta( $attachment, '_wp_attachment_image_alt', 'Alt text' );
