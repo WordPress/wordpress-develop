@@ -31,7 +31,7 @@ class Tests_Functions_CleanupHeaderComment extends WP_UnitTestCase {
 	 *     @type string $expected    Expected return value.
 	 * }
 	 */
-	public function data_cleanup_header_comment() {
+	public static function data_cleanup_header_comment() {
 		return array(
 			// Set 0: A string.
 			array(

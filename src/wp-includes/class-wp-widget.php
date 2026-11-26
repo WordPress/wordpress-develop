@@ -109,6 +109,22 @@ class WP_Widget {
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance The settings for the particular instance of the widget.
+	 *
+	 * @phpstan-param array{
+	 *     name?: string,
+	 *     id?: string,
+	 *     description?: string,
+	 *     class?: string,
+	 *     before_widget: string,
+	 *     after_widget: string,
+	 *     before_title: string,
+	 *     after_title: string,
+	 *     before_sidebar?: string,
+	 *     after_sidebar?: string,
+	 *     show_in_rest?: bool,
+	 *     widget_id?: string,
+	 *     widget_name?: string,
+	 * } $args
 	 */
 	public function widget( $args, $instance ) {
 		die( 'function WP_Widget::widget() must be overridden in a subclass.' );
@@ -138,7 +154,8 @@ class WP_Widget {
 	 * @since 2.8.0
 	 *
 	 * @param array $instance The settings for the particular instance of the widget.
-	 * @return string|void Default return is 'noform'.
+	 * @return string|void Default return is 'noform'. A subclass which echoes its own
+	 *                     form returns nothing.
 	 */
 	public function form( $instance ) {
 		echo '<p class="no-options-widget">' . __( 'There are no options for this widget.' ) . '</p>';
@@ -212,6 +229,8 @@ class WP_Widget {
 	 *
 	 * @param string $field_name Field name.
 	 * @return string Name attribute for `$field_name`.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_field_name( $field_name ) {
 		$pos = strpos( $field_name, '[' );
@@ -237,6 +256,8 @@ class WP_Widget {
 	 *
 	 * @param string $field_name Field name.
 	 * @return string ID attribute for `$field_name`.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_field_id( $field_name ) {
 		$field_name = str_replace( array( '[]', '[', ']' ), array( '', '-', '' ), $field_name );
@@ -407,6 +428,8 @@ class WP_Widget {
 	 * @global array $wp_registered_widgets
 	 *
 	 * @param int $deprecated Not used.
+	 *
+	 * @final
 	 */
 	public function update_callback( $deprecated = 1 ) {
 		global $wp_registered_widgets;
@@ -499,6 +522,8 @@ class WP_Widget {
 	 *     @type int $number Number increment used for multiples of the same widget.
 	 * }
 	 * @return string|null
+	 *
+	 * @final
 	 */
 	public function form_callback( $widget_args = 1 ) {
 		if ( is_numeric( $widget_args ) ) {
@@ -546,9 +571,9 @@ class WP_Widget {
 			 *
 			 * @since 2.8.0
 			 *
-			 * @param WP_Widget $widget   The widget instance (passed by reference).
-			 * @param null      $return   Return null if new fields are added.
-			 * @param array     $instance An array of the widget's settings.
+			 * @param WP_Widget   $widget   The widget instance (passed by reference).
+			 * @param null|string $return   Default 'noform'. Return null if new fields are added.
+			 * @param array       $instance An array of the widget's settings.
 			 */
 			do_action_ref_array( 'in_widget_form', array( &$this, &$return, $instance ) );
 		}

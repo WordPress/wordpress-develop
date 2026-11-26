@@ -76,7 +76,7 @@ Description: Used to style blocks in the editor.
 /* Main column width */
 
 .wp-block {
-	max-width: 655px; /* 625px + 30px for padding */
+	max-width: 625px;
 }
 
 /* Link styles */
@@ -254,7 +254,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 4.0 Blocks - Formatting
 --------------------------------------------------------------*/
 
-/* Verse */
+/* Poetry (Verse) */
 
 .editor-block-list__block .wp-block-verse pre {
 	font-size: 12px;
