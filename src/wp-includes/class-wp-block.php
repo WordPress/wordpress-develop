@@ -68,8 +68,10 @@ class WP_Block {
 	/**
 	 * List of inner blocks (of this same class)
 	 *
+	 * This is an empty array when the block has no inner blocks.
+	 *
 	 * @since 5.5.0
-	 * @var WP_Block_List
+	 * @var WP_Block_List|array{}
 	 */
 	public $inner_blocks = array();
 

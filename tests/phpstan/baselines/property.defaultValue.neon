@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property WP_Block\:\:\$inner_blocks \(WP_Block_List\) does not accept default value of type array\.$#'
-			identifier: property.defaultValue
-			count: 1
-			path: ../../../src/wp-includes/class-wp-block.php
-		-
 			message: '#^Property WP_Comment_Query\:\:\$date_query \(WP_Date_Query\) does not accept default value of type false\.$#'
 			identifier: property.defaultValue
 			count: 1
