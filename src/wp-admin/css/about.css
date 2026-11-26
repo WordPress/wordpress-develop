@@ -569,7 +569,6 @@
 	border-radius: 6.2222cqw;
 	background: #fff;
 	color: #1e1e1e;
-	text-decoration: none;
 	font-family: Inter, Roboto, "Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial, sans-serif;
 	font-size: 5.3333cqw;
 	line-height: 1.25;
@@ -580,16 +579,6 @@
 	left: auto;
 	/* rtl:ignore */
 	right: 7.1111%;
-}
-
-.about__container .about__image-random-url:hover,
-.about__container .about__image-random-url:focus {
-	color: #1e1e1e;
-}
-
-.about__container .about__image-random-url:hover .about__image-random-text,
-.about__container .about__image-random-url:focus .about__image-random-text {
-	text-decoration: underline;
 }
 
 .about__container .about__image-random-icon {
