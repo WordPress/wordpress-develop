@@ -67,6 +67,13 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	private $revision_3_id;
 
 	/**
+	 * Whether the current test granted super admin to the administrator.
+	 *
+	 * @var bool
+	 */
+	private $granted_super_admin = false;
+
+	/**
 	 * Create fake data before our tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
@@ -222,6 +229,31 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 
 		$this->revision_3    = array_pop( $revisions );
 		$this->revision_3_id = $this->revision_3->ID;
+	}
+
+	/**
+	 * Cleans up after tests.
+	 */
+	public function tear_down() {
+		if ( $this->granted_super_admin ) {
+			revoke_super_admin( self::$admin_id );
+			kses_init();
+			$this->granted_super_admin = false;
+		}
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Sets the current user to the admin, granting super admin on multisite
+	 * so global styles JSON is not stripped by KSES on save.
+	 */
+	private function set_admin_user_with_unfiltered_html() {
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+			$this->granted_super_admin = true;
+		}
+		wp_set_current_user( self::$admin_id );
 	}
 
 	/**
@@ -991,7 +1023,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
 	 */
 	public function test_get_item_preserves_block_style_variations() {
-		wp_set_current_user( self::$admin_id );
+		$this->set_admin_user_with_unfiltered_html();
 		switch_theme( 'block-theme-child-with-block-style-variations' );
 
 		// Create a global styles post for the theme.
@@ -1077,7 +1109,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
 	 */
 	public function test_multiple_block_variations_are_preserved() {
-		wp_set_current_user( self::$admin_id );
+		$this->set_admin_user_with_unfiltered_html();
 		switch_theme( 'block-theme-child-with-block-style-variations' );
 
 		// Create a global styles post for the theme.
@@ -1181,7 +1213,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
 	 */
 	public function test_theme_variations_are_registered_for_revisions() {
-		wp_set_current_user( self::$admin_id );
+		$this->set_admin_user_with_unfiltered_html();
 		switch_theme( 'block-theme-child-with-block-style-variations' );
 
 		// Verify the theme has a block style variation defined.
@@ -1264,7 +1296,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
 	 */
 	public function test_get_items_preserves_block_style_variations() {
-		wp_set_current_user( self::$admin_id );
+		$this->set_admin_user_with_unfiltered_html();
 		switch_theme( 'block-theme-child-with-block-style-variations' );
 
 		// Create a global styles post for the theme.
