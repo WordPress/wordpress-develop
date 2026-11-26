@@ -44,8 +44,10 @@ class WP_User_Query {
 	/**
 	 * Metadata query container.
 	 *
+	 * This is false until the query is run.
+	 *
 	 * @since 4.2.0
-	 * @var WP_Meta_Query
+	 * @var WP_Meta_Query|false
 	 */
 	public $meta_query = false;
 
