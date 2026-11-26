@@ -43,13 +43,15 @@ To sweep the whole suite, use the `class` scope: it snapshots at class bounds on
 node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_SCOPE=class php ./vendor/bin/phpunit -c tests/phpunit/leaks/multisite.xml
 ```
 
-To find out why a class only fails after others, run it alone and in sequence, each with its own `WP_TESTS_LEAKS_OUT` and without `WP_TESTS_LEAKS_SCOPE`, then compare the state it starts with. Keys that differ between the two runs before any snapshotted class ran, e.g. timestamps, are run noise and left out. Both runs are read only up to its `class_start`, so they need not finish. In the sequence run another snapshotted class must run before it, else `diff.php` exits with 1: `--filter` keeps file order, so use `--order-by=reverse` when the earlier class's file sorts after its:
+To find out why a class only fails after others, run it alone and in sequence, each with its own `WP_TESTS_LEAKS_OUT` and without `WP_TESTS_LEAKS_SCOPE`, then compare the state it starts with. Keys that differ between the two runs before any snapshotted class ran, e.g. timestamps, are run noise and left out. Both runs are read only up to its `class_start`, so they need not finish. In the sequence run another snapshotted class must run before it. `--filter` keeps file order, so use `--order-by=reverse` when the earlier class's file sorts after its:
 
 ```
 node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_OUT=/var/www/tests/phpunit/build/leaks/alone.jsonl php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --filter Tests_Class_Name
 node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_OUT=/var/www/tests/phpunit/build/leaks/sequence.jsonl php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --filter 'Tests_Earlier_Class|Tests_Class_Name'
 node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/diff.php tests/phpunit/build/leaks/alone.jsonl tests/phpunit/build/leaks/sequence.jsonl Tests_Class_Name
 ```
+
+In comparison mode, `diff.php` exits with 2 when it reports differences after filtering out run noise, or 0 when there are none. It exits with 1 if either run has no `class_start` for the target or the target was the first snapshotted class in the sequence run.
 
 For example, before [r65746](https://core.trac.wordpress.org/changeset/65746), two `Tests_Post_TheTitleAttribute` tests passed alone and failed after `Tests_Post_wpGetPostAutosave`: post titles were saved without kses. On a checkout before it, a sweep over the hook that should have filtered them names one class, instead of hundreds of global differences:
 
