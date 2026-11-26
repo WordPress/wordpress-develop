@@ -73,7 +73,7 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public function data_capabilities() {
+	public static function data_capabilities() {
 		return array(
 			array( 'create', 'editor', 201 ),
 			array( 'create', 'author', 201 ),
@@ -254,5 +254,156 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( 'wp_pattern_sync_status', $data );
 		$this->assertArrayNotHasKey( 'wp_pattern_sync_status', $data['meta'] );
+	}
+
+	/**
+	 * Check that the response includes the pattern's author.
+	 *
+	 * @ticket 66307
+	 */
+	public function test_author_in_response() {
+		wp_set_current_user( self::$user_ids['editor'] );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_block',
+				'post_author' => self::$user_ids['author'],
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/blocks/' . $post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( self::$user_ids['author'], $data['author'] );
+	}
+
+	/**
+	 * Check that patterns can be filtered by author.
+	 *
+	 * @ticket 66307
+	 */
+	public function test_filter_by_author() {
+		wp_set_current_user( self::$user_ids['editor'] );
+
+		$editor_post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_block',
+				'post_author' => self::$user_ids['editor'],
+			)
+		);
+		$author_post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_block',
+				'post_author' => self::$user_ids['author'],
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/blocks' );
+		$request->set_param( 'author', self::$user_ids['author'] );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( array( $author_post_id ), wp_list_pluck( $response->get_data(), 'id' ), 'The author filter should only return the author\'s patterns.' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/blocks' );
+		$request->set_param( 'author_exclude', self::$user_ids['author'] );
+		$response = rest_get_server()->dispatch( $request );
+		$ids      = wp_list_pluck( $response->get_data(), 'id' );
+
+		$this->assertContains( $editor_post_id, $ids, 'The author_exclude filter should return other users\' patterns.' );
+		$this->assertNotContains( $author_post_id, $ids, 'The author_exclude filter should not return the author\'s patterns.' );
+	}
+
+	/**
+	 * Check that only users who can edit others' patterns can change a pattern's author.
+	 *
+	 * @ticket 66307
+	 *
+	 * @dataProvider data_change_author
+	 *
+	 * @param string $role            User role to test.
+	 * @param int    $expected_status Expected HTTP response status.
+	 */
+	public function test_change_author( $role, $expected_status ) {
+		$user_id = self::$user_ids[ $role ];
+		wp_set_current_user( $user_id );
+
+		$post_id    = self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_block',
+				'post_author' => $user_id,
+			)
+		);
+		$new_author = 'editor' === $role ? self::$user_ids['author'] : self::$user_ids['editor'];
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/blocks/' . $post_id );
+		$request->set_body_params( array( 'author' => $new_author ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( $expected_status, $response->get_status(), 'The response status should match.' );
+		$this->assertSame( 200 === $expected_status ? $new_author : $user_id, (int) get_post( $post_id )->post_author, 'The pattern\'s author should match.' );
+	}
+
+	/**
+	 * Test cases for test_change_author().
+	 *
+	 * @return array[]
+	 */
+	public static function data_change_author() {
+		return array(
+			'editor' => array( 'editor', 200 ),
+			'author' => array( 'author', 403 ),
+		);
+	}
+
+	/**
+	 * @ticket 40538
+	 */
+	public function test_prepare_item() {
+		wp_set_current_user( self::$user_ids['editor'] );
+
+		$endpoint = new WP_REST_Blocks_Controller( 'wp_block' );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/blocks/%d', self::$post_id ) );
+		$request->set_param( 'context', 'edit' );
+		$post     = get_post( self::$post_id );
+		$response = $endpoint->prepare_item_for_response( $post, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$data = $response->get_data();
+		$this->assertSame( self::$post_id, $data['id'] );
+		$this->assertSame( 'My cool block', $data['title']['raw'] );
+		$this->assertSame( '<!-- wp:paragraph --><p>Hello!</p><!-- /wp:paragraph -->', $data['content']['raw'] );
+		$this->assertArrayNotHasKey( 'rendered', $data['title'] );
+		$this->assertArrayNotHasKey( 'rendered', $data['content'] );
+		$this->assertArrayHasKey( 'wp_pattern_sync_status', $data );
+
+		$links = test_rest_expand_compact_links( $response->get_links() );
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertArrayHasKey( 'collection', $links );
+		$this->assertArrayHasKey( 'about', $links );
+	}
+
+	/**
+	 * @ticket 40538
+	 */
+	public function test_prepare_item_limit_fields() {
+		wp_set_current_user( self::$user_ids['editor'] );
+
+		$endpoint = new WP_REST_Blocks_Controller( 'wp_block' );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/blocks/%d', self::$post_id ) );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,slug,wp_pattern_sync_status' );
+		$post     = get_post( self::$post_id );
+		$response = $endpoint->prepare_item_for_response( $post, $request );
+
+		$this->assertSame(
+			array(
+				'id',
+				'slug',
+				'wp_pattern_sync_status',
+			),
+			array_keys( $response->get_data() )
+		);
+		$this->assertEmpty( $response->get_links(), 'Links should be omitted when not requested in _fields.' );
 	}
 }

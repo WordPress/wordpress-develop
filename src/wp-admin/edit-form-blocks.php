@@ -85,19 +85,22 @@ $preload_paths = array(
 	'/wp/v2/global-styles/' . WP_Theme_JSON_Resolver::get_user_global_styles_post_id() . '?context=' . $global_styles_endpoint_context,
 	// Used by getBlockPatternCategories in useBlockEditorSettings.
 	'/wp/v2/block-patterns/categories',
-	// @see packages/core-data/src/entities.js
+	/**
+	 * The preloaded URL must exactly match the request the client makes,
+	 * including the field order.
+	 * @link https://github.com/WordPress/gutenberg/blob/trunk/packages/core-data/src/entities.js
+	 */
 	'/?_fields=' . implode(
 		',',
 		array(
 			'description',
+			'generate_animated_image_subsizes',
 			'gmt_offset',
 			'home',
+			'image_max_bit_depth',
 			'image_sizes',
 			'image_size_threshold',
-			'image_output_formats',
-			'jpeg_interlaced',
-			'png_interlaced',
-			'gif_interlaced',
+			'image_strip_meta',
 			'name',
 			'site_icon',
 			'site_icon_url',
@@ -109,12 +112,21 @@ $preload_paths = array(
 			'show_on_front',
 		)
 	),
-	$paths[] = add_query_arg(
+	add_query_arg(
 		'slug',
 		// @link https://github.com/WordPress/gutenberg/blob/e093fefd041eb6cc4a4e7f67b92ab54fd75c8858/packages/core-data/src/private-selectors.ts#L244-L254
 		$template_lookup_slug,
 		'/wp/v2/templates/lookup'
 	),
+	'/wp/v2/templates/lookup?slug=front-page',
+	'/wp/v2/taxonomies?context=edit',
+	array( rest_get_route_for_post_type_items( $post_type ), 'OPTIONS' ),
+	/*
+	 * The post summary of the inspector requests the form config of the post type
+	 * through `useViewConfig` with `fields: [ 'form' ]`, so the path must match
+	 * the resulting `_fields=form` request.
+	 */
+	'/wp/v2/view-config?kind=postType&name=' . $post_type . '&_fields=form',
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
@@ -330,6 +342,7 @@ wp_enqueue_editor();
 /**
  * Styles
  */
+// Prefetched for the block editor by wp_prefetch_admin_assets(), which needs updating if this changes.
 wp_enqueue_style( 'wp-edit-post' );
 
 /**

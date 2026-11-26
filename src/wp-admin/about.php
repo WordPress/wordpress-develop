@@ -14,7 +14,7 @@ require_once __DIR__ . '/admin.php';
 $title = _x( 'About', 'page title' );
 
 list( $display_version ) = explode( '-', wp_get_wp_version() );
-$display_major_version   = '7.0';
+$display_major_version   = '7.2';
 
 $release_notes_url = sprintf(
 	/* translators: %s: WordPress version number. */
@@ -34,21 +34,19 @@ $release_page_url = sprintf(
 	sanitize_title( $display_major_version )
 );
 
+$version_text = sprintf(
+	/* translators: %s: Version number. */
+	__( 'WordPress %s' ),
+	$display_version
+);
+
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 	<div class="wrap about__container">
 
 		<div class="about__header">
 			<div class="about__header-title">
-				<h1>
-					<?php
-					printf(
-						/* translators: %s: Version number. */
-						__( 'WordPress %s' ),
-						$display_version
-					);
-					?>
-				</h1>
+				<h1><?php echo esc_html( $version_text ); ?></h1>
 			</div>
 		</div>
 
@@ -62,22 +60,30 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section">
 			<div class="column is-left-padding-zero is-right-padding-zero">
-				<h2><?php _e( 'Welcome to WordPress 7.0' ); ?></h2>
-				<p class="is-subheading"><?php _e( 'WordPress 7.0 introduces the foundation for AI across the platform, letting you connect your preferred provider and put it to work across your site. Edit more simply by dropping in layouts and swapping content without diving into blocks. The navigation overlay now taps into the full potential of blocks, and reviewing historical changes is easier with a visual comparison.' ); ?></p>
+				<h2>
+					<?php
+					printf(
+						/* translators: %s: Version number. */
+						__( 'Welcome to WordPress %s' ),
+						$display_major_version
+					);
+					?>
+				</h2>
+				<p class="is-subheading"><?php _e( 'WordPress 7.2 gives your words a fresh place to start. Ipsum, the new default theme, is a minimal blank canvas for blogging that&#8217;s ready to make your own. Text shadows and form styling in Global Styles add new ways to shape how your site looks, all without writing custom CSS. A new /random/ address invites readers to rediscover your archive, Notes now support emoji reactions, and refreshed icons in the admin bring more visual consistency across WordPress.' ); ?></p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
-				<h3><?php _e( 'Design your navigation overlay' ); ?></h3>
+				<h3><?php _e( 'Introducing Ipsum, the next default theme' ); ?></h3>
 				<p>
-					<strong><?php _e( 'A dedicated canvas for your menu.' ); ?></strong><br />
-					<?php _e( 'Build the menu overlay you want visitors to see. Go beyond a simple list of links: add columns, increase the font size, and align everything to your liking. Start from a pre-built template, or design your own from scratch.' ); ?>
+					<strong><?php _e( 'A blank canvas, until real words arrive.' ); ?></strong><br />
+					<?php _e( 'WordPress 7.2 introduces Ipsum, a minimal default theme built around blogging so your writing is the main focus. It starts simple on purpose, with various patterns to match how you want your content to shine and style variations that change the whole look in a click.' ); ?>
 				</p>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.0/about-feature-01.webp" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/7.2/about-feature-01.webp?ver=20261123" alt="" height="900" width="900" />
 				</div>
 			</div>
 		</div>
@@ -85,29 +91,29 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.0/about-feature-02.webp" alt="" height="436" width="436" />
+					<img loading="lazy" src="https://s.w.org/images/core/7.2/about-feature-02.webp?ver=20261123" alt="" height="900" width="900" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
-				<h3><?php _e( 'AI foundations' ); ?></h3>
+				<h3><?php _e( 'Discover posts differently' ); ?></h3>
 				<p>
-					<strong><?php _e( 'A centralized hub for your connections.' ); ?></strong><br />
-					<?php _e( 'The Connectors screen introduces a single hub for managing a range of external service integrations, including AI providers. Opt in by connecting your preferred AI provider, then put it to work across your site. The optional AI plugin adds a growing set of tools directly into the editor: create titles and excerpts, generate and edit images, and suggest alt text. Any plugin that needs to connect to an outside service can tap into this standardized connection management system, making it easy for users and developers alike.' ); ?>
+					<strong><?php _e( 'One link, a different post every time.' ); ?></strong><br />
+					<?php _e( 'WordPress 7.2 adds a /random/ address to every site. Visit it and you land on a randomly chosen post, giving readers a playful way to explore your archive and rediscover writing that deserves a second look.' ); ?>
 				</p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
-				<h3><?php _e( 'Visual revisions' ); ?></h3>
+				<h3><?php _e( 'React on notes' ); ?></h3>
 				<p>
-					<strong><?php _e( 'Scrub through every version of your page.' ); ?></strong><br />
-					<?php _e( 'Review your post&#8217;s revision history with a timeline slider and see exactly what changed in the document with visual markers, block by block. Find the version you want and restore it in one click.' ); ?>
+					<strong><?php _e( 'Say it with an emoji.' ); ?></strong><br />
+					<?php _e( 'Emoji reactions are now available in Notes. Acknowledge feedback, agree with a note, or celebrate a finished draft without writing a reply. Hover a reaction to see who left it, or click it to add your own.' ); ?>
 				</p>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.0/about-feature-03.webp" alt="" height="436" width="436" />
+					<img loading="lazy" src="https://s.w.org/images/core/7.2/about-feature-03.webp?ver=20261123" alt="" height="900" width="900" />
 				</div>
 			</div>
 		</div>
@@ -115,14 +121,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center is-left-padding-zero">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/7.0/about-feature-04.webp" alt="" height="436" width="436" />
+					<img loading="lazy" src="https://s.w.org/images/core/7.2/about-feature-04.webp?ver=20261123" alt="" height="900" width="900" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero">
-				<h3><?php _e( 'A simpler way to build with patterns' ); ?></h3>
+				<h3><?php _e( 'Modern icons in admin' ); ?></h3>
 				<p>
-					<strong><?php _e( 'Patterns as single blocks.' ); ?></strong><br />
-					<?php _e( 'Drop a pattern onto your page and it behaves like one block, so you don’t have to hunt through nested blocks for the element you want to change. Swap the text and images, adjust styles from the inspector, and keep moving. For any advanced edits, a single click to "edit pattern" gives you access to all available tools.' ); ?>
+					<strong><?php _e( 'One icon set, everywhere.' ); ?></strong><br />
+					<?php _e( 'WordPress 7.2 replaces the legacy Dashicons in the admin bar and sidebar with updated icons from the WordPress icon library. The dashboard now matches the icons you see in the editor, offering a more consistent, performant, and accessible experience.' ); ?>
 				</p>
 			</div>
 		</div>
@@ -138,7 +144,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Performance' ); ?></h3>
-				<p><?php _e( 'WordPress 7.0 improves the accuracy of image loading prioritization, preventing hidden images in navigation overlays or interactive blocks from degrading the loading of critical resources. On-demand block stylesheet loading in classic themes is more reliable, and the ability is added for scripts to depend on script modules to reduce render-blocking.' ); ?></p>
+				<p><?php _e( 'The admin feels faster in WordPress 7.2. Scripts and stylesheets now load individually instead of in large combined files, so browsers cache them better, and WordPress prefetches the screen you&#8217;re likely to open next. Image resizing, compression, and conversion in the browser now extend to the Media Library, easing the load on your server during uploads.' ); ?></p>
 			</div>
 			<div class="column is-right-padding-zero">
 				<div class="about__image">
@@ -147,7 +153,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Accessibility' ); ?></h3>
-				<p><?php _e( 'WordPress continues to polish accessibility across WordPress Core and Gutenberg, advancing the goals to meet accessibility standards. WordPress 7.0 includes fixes across the platform, improving media management, usability for voice control, and improvements to color contrast with the new admin color scheme. The editor ships with new blocks and improvements to editor navigation and interaction.' ); ?></p>
+				<p><?php _e( 'In this release, high impact changes include clearer keyboard focus in Windows High Contrast mode, improved keyboard navigation in the admin toolbar, and an option to turn off metabox rearranging to prevent accidental changes on touch devices. Ipsum ships with clear focus indicators, descriptive screen reader links, and transitions that respect reduced-motion preferences.' ); ?></p>
 			</div>
 		</div>
 
@@ -177,7 +183,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-3-columns">
 			<div class="column about__image is-vertically-aligned-top is-left-padding-zero">
-				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=7.0' ) ); ?>" alt="" height="280" width="280" />
+				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=7.2' ) ); ?>" alt="<?php echo esc_attr( $version_text ); ?>" height="280" width="280" />
 			</div>
 			<div class="column is-vertically-aligned-center is-right-padding-zero" style="grid-column-end:span 2">
 				<h3>
@@ -288,7 +294,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 // These are strings we may use to describe maintenance/security releases, where we aim for no new strings.
 return;
 
-__( 'Maintenance Release' );
+__( 'Maintenance Release' ); // @phpstan-ignore deadCode.unreachable (Placed after the return so that the strings are added to the POT file without running.)
 __( 'Maintenance Releases' );
 
 __( 'Security Release' );

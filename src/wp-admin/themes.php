@@ -131,9 +131,10 @@ $parent_file = 'themes.php';
 if ( current_user_can( 'switch_themes' ) ) {
 	$help_overview = '<p>' . __( 'This screen is used for managing your installed themes. Aside from the default theme(s) included with your WordPress installation, themes are designed and developed by third parties.' ) . '</p>' .
 		'<p>' . __( 'From this screen you can:' ) . '</p>' .
-		'<ul><li>' . __( 'Hover or tap to see Activate and Live Preview buttons' ) . '</li>' .
-		'<li>' . __( 'Click on the theme to see the theme name, version, author, description, tags, and the Delete link' ) . '</li>' .
-		'<li>' . __( 'Click Customize for the active theme or Live Preview for any other theme to see a live preview' ) . '</li></ul>' .
+		'<ul><li>' . __( 'Hover or tap to see Activate and Live Preview buttons.' ) . '</li>' .
+		'<li>' . __( 'Click Customize for the active theme or Live Preview for any other theme to see a live preview.' ) . '</li>' .
+		'<li>' . __( 'Click on a theme to open the Theme Details dialog and see the theme name, version, author, description, tags, and the Delete link.' ) . '</li>' .
+		'<li>' . __( 'Use the buttons at the top of the dialog, or <code>alt</code>/<code>option</code> plus the left or right arrow keys on your keyboard, to navigate between themes quickly.' ) . '</li></ul>' .
 		'<p>' . __( 'The active theme is displayed highlighted as the first theme.' ) . '</p>' .
 		'<p>' . __( 'The search for installed themes will search for terms in their name, description, author, or tag.' ) . ' <span id="live-search-desc">' . __( 'The search results will be updated as you type.' ) . '</span></p>';
 
@@ -236,6 +237,8 @@ wp_localize_script(
 			/* translators: %d: Number of themes. */
 			'themesFound'   => __( 'Number of Themes found: %d' ),
 			'noThemesFound' => __( 'No themes found. Try a different search.' ),
+			/* translators: %s: Theme name. */
+			'themeViewed'   => __( 'Theme details: %s' ),
 		),
 	)
 );
@@ -245,6 +248,13 @@ wp_enqueue_script( 'theme' );
 wp_enqueue_script( 'updates' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
+
+/**
+ * @global string $self        The current admin page, set in wp-admin/menu-header.php.
+ * @global string $parent_file The parent menu file, filtered in wp-admin/menu-header.php.
+ * @global array<string, array<int, array{ 0: string, 1: string, 2: string, 3?: string, 4?: string }>> $submenu The admin submenu items keyed by parent slug, set in wp-admin/menu.php.
+ */
+global $self, $parent_file, $submenu;
 ?>
 
 <div class="wrap">
@@ -661,7 +671,7 @@ foreach ( $themes as $theme ) :
 <?php endforeach; ?>
 	</div>
 </div>
-<div class="theme-overlay" tabindex="0" role="dialog" aria-label="<?php esc_attr_e( 'Theme Details' ); ?>"></div>
+<div class="theme-overlay theme-overlay-initial" tabindex="0" role="dialog" aria-label="<?php esc_attr_e( 'Theme Details' ); ?>"></div>
 
 <p class="no-themes"><?php _e( 'No themes found. Try a different search.' ); ?></p>
 
@@ -808,7 +818,7 @@ function wp_theme_auto_update_setting_template() {
 				<# } else { #>
 					<span class="auto-update-time hidden">
 				<# } #>
-				<br />' . wp_get_auto_update_message() . '</span>
+				<br />' . wp_get_auto_update_message( 'theme' ) . '</span>
 			<# } #>
 			' . $notice . '
 		</div>
@@ -1054,19 +1064,19 @@ function wp_theme_auto_update_setting_template() {
 			<button class="left dashicons dashicons-no"><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
-				_e( 'Show previous theme' );
+				_ex( 'Previous', 'theme' );
 				?>
 			</span></button>
 			<button class="right dashicons dashicons-no"><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
-				_e( 'Show next theme' );
+				_ex( 'Next', 'theme' );
 				?>
 			</span></button>
 			<button class="close dashicons dashicons-no"><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
-				_e( 'Close details dialog' );
+				_e( 'Close' );
 				?>
 			</span></button>
 		</div>

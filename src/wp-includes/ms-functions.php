@@ -1631,6 +1631,8 @@ function wpmu_create_blog( $domain, $path, $title, $user_id, $options = array(),
  * @param WP_Site|int $blog_id    The new site's object or ID.
  * @param string      $deprecated Not used.
  * @return bool
+ *
+ * @phpstan-param '' $deprecated
  */
 function newblog_notify_siteadmin( $blog_id, $deprecated = '' ) {
 	if ( is_object( $blog_id ) ) {
@@ -2004,7 +2006,7 @@ Name: %3$s'
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param array $new_site_email {
+	 * @param array   $new_site_email {
 	 *     Used to build wp_mail().
 	 *
 	 *     @type string $to      The email address of the recipient.
@@ -2012,8 +2014,8 @@ Name: %3$s'
 	 *     @type string $message The content of the email.
 	 *     @type string $headers Headers.
 	 * }
-	 * @param WP_Site $site         Site object of the new site.
-	 * @param WP_User $user         User object of the administrator of the new site.
+	 * @param WP_Site $site           Site object of the new site.
+	 * @param WP_User $user           User object of the administrator of the new site.
 	 */
 	$new_site_email = apply_filters( 'new_site_email', $new_site_email, $site, $user );
 
@@ -2241,6 +2243,8 @@ function check_upload_mimes( $mimes ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $deprecated Not used.
+ *
+ * @phpstan-param '' $deprecated
  */
 function update_posts_count( $deprecated = '' ) {
 	global $wpdb;
@@ -2955,7 +2959,7 @@ function update_network_option_new_admin_email( $old_value, $value ) {
 		return;
 	}
 
-	$hash            = md5( $value . time() . mt_rand() );
+	$hash            = md5( $value . time() . wp_rand() );
 	$new_admin_email = array(
 		'hash'     => $hash,
 		'newemail' => $value,
@@ -3093,7 +3097,7 @@ All at ###SITENAME###
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array $email_change_email {
+	 * @param array  $email_change_email {
 	 *     Used to build wp_mail().
 	 *
 	 *     @type string $to      The intended recipient.
@@ -3106,9 +3110,9 @@ All at ###SITENAME###
 	 *          - `###SITEURL###`   The URL to the site.
 	 *     @type string $headers Headers.
 	 * }
-	 * @param string $old_email  The old network admin email address.
-	 * @param string $new_email  The new network admin email address.
-	 * @param int    $network_id ID of the network.
+	 * @param string $old_email          The old network admin email address.
+	 * @param string $new_email          The new network admin email address.
+	 * @param int    $network_id         ID of the network.
 	 */
 	$email_change_email = apply_filters( 'network_admin_email_change_email', $email_change_email, $old_email, $new_email, $network_id );
 

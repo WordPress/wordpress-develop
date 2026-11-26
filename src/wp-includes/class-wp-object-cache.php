@@ -20,6 +20,8 @@
  * exists, then this file will not be included.
  *
  * @since 2.0.0
+ *
+ * @property array<string, true> $global_groups Global cache groups, keyed by group name.
  */
 #[AllowDynamicProperties]
 class WP_Object_Cache {
@@ -49,10 +51,10 @@ class WP_Object_Cache {
 	public $cache_misses = 0;
 
 	/**
-	 * List of global cache groups.
+	 * Global cache groups, keyed by group name.
 	 *
 	 * @since 3.0.0
-	 * @var string[]
+	 * @var array<string, true>
 	 */
 	protected $global_groups = array();
 
@@ -152,10 +154,15 @@ class WP_Object_Cache {
 			wp_load_translations_early();
 		}
 
-		$message = is_string( $key )
-			? __( 'Cache key must not be an empty string.' )
-			/* translators: %s: The type of the given cache key. */
-			: sprintf( __( 'Cache key must be an integer or a non-empty string, %s given.' ), $type );
+		if ( is_string( $key ) ) {
+			$message = __( 'Cache key must not be an empty string.' );
+		} else {
+			$message = sprintf(
+				/* translators: %s: The type of the given cache key. */
+				__( 'Cache key must be an integer or a non-empty string, %s given.' ),
+				$type
+			);
+		}
 
 		_doing_it_wrong(
 			sprintf( '%s::%s', __CLASS__, debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 )[1]['function'] ),
@@ -420,6 +427,8 @@ class WP_Object_Cache {
 	 * @param string     $group      Optional. Where the cache contents are grouped. Default 'default'.
 	 * @param bool       $deprecated Optional. Unused. Default false.
 	 * @return bool True on success, false if the contents were not deleted.
+	 *
+	 * @phpstan-param false $deprecated
 	 */
 	public function delete( $key, $group = 'default', $deprecated = false ) {
 		if ( ! $this->is_valid_key( $key ) ) {

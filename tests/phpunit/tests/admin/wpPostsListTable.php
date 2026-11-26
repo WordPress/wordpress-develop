@@ -197,6 +197,61 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64932
+	 *
+	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_child_page_row_title_has_hierarchy_description() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$output = $this->get_hierarchical_page_list_output(
+			array(
+				self::$top[1],
+				self::$children[1][1],
+			)
+		);
+
+		$expected = sprintf(
+			'<span aria-hidden="true">&#8212;</span> ' .
+			'<a class="row-title" href="%1$s" aria-describedby="post-hierarchy-%2$d">Child 1</a>' .
+			'<span id="post-hierarchy-%2$d" class="hidden">Child of Top Level Page 1</span>',
+			get_edit_post_link( self::$children[1][1]->ID ),
+			self::$children[1][1]->ID
+		);
+
+		$this->assertStringContainsString( $expected, $output );
+	}
+
+	/**
+	 * @ticket 64932
+	 *
+	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
+	 * @covers WP_Posts_List_Table::column_title
+	 */
+	public function test_top_level_page_row_title_does_not_have_hierarchy_description() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$output = $this->get_hierarchical_page_list_output(
+			array(
+				self::$top[1],
+			)
+		);
+
+		$this->assertStringContainsString(
+			sprintf(
+				'<a class="row-title" href="%s">Top Level Page 1</a>',
+				get_edit_post_link( self::$top[1]->ID )
+			),
+			$output
+		);
+		$this->assertStringNotContainsString( 'aria-describedby="post-hierarchy-', $output );
+		$this->assertStringNotContainsString( 'class="hidden">Child of ', $output );
+	}
+
+	/**
 	 * Helper function to test the output of a page which uses `WP_Posts_List_Table`.
 	 *
 	 * @param array $args         Query args for the list of pages.
@@ -243,6 +298,27 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		foreach ( $expected_ids as $id ) {
 			$this->assertStringContainsString( sprintf( 'id="post-%d"', $id ), $output );
 		}
+	}
+
+	/**
+	 * Gets the output for a hierarchical page list table.
+	 *
+	 * @param WP_Post[] $posts Posts to display.
+	 * @return string List table rows output.
+	 */
+	protected function get_hierarchical_page_list_output( array $posts ) {
+		$_REQUEST['paged']   = 1;
+		$GLOBALS['per_page'] = 20;
+
+		ob_start();
+		$this->table->set_hierarchical_display( true );
+		$this->table->display_rows( $posts );
+		$output = ob_get_clean();
+
+		unset( $_REQUEST['paged'] );
+		unset( $GLOBALS['per_page'] );
+
+		return $output;
 	}
 
 	/**
@@ -332,6 +408,130 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65772
+	 * @covers WP_Posts_List_Table::get_views
+	 */
+	public function test_get_views_should_include_scheduled_posts_link() {
+		$global_names = array( 'avail_post_stati', 'locked_post_status', 'post_type_object' );
+		$backup       = array_intersect_key( $GLOBALS, array_flip( $global_names ) );
+		$future_date  = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
+		self::factory()->post->create(
+			array(
+				'post_status'   => 'future',
+				'post_date'     => get_date_from_gmt( $future_date ),
+				'post_date_gmt' => $future_date,
+			)
+		);
+
+		try {
+			$GLOBALS['locked_post_status'] = '';
+			$GLOBALS['avail_post_stati']   = get_available_post_statuses( 'post' );
+			$table                         = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+
+			$views = $table->get_views();
+
+			$this->assertArrayHasKey( 'future', $views );
+			$this->assertSame(
+				'<a href="edit.php?post_status=future&#038;post_type=post">Scheduled <span class="count">(1)</span></a>',
+				$views['future']
+			);
+		} finally {
+			foreach ( $global_names as $name ) {
+				if ( array_key_exists( $name, $backup ) ) {
+					$GLOBALS[ $name ] = $backup[ $name ];
+				} else {
+					unset( $GLOBALS[ $name ] );
+				}
+			}
+		}
+	}
+
+	/**
+	 * @ticket 65772
+	 * @covers WP_Posts_List_Table::prepare_items
+	 */
+	public function test_prepare_items_should_only_include_scheduled_posts_when_filtered() {
+		$global_names = array( 'mode', 'avail_post_stati', 'per_page', 'post_type_object' );
+		$backup       = array_intersect_key( $GLOBALS, array_flip( $global_names ) );
+		$future_date  = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
+		$scheduled_id = self::factory()->post->create(
+			array(
+				'post_status'   => 'future',
+				'post_date'     => get_date_from_gmt( $future_date ),
+				'post_date_gmt' => $future_date,
+			)
+		);
+		self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		try {
+			$_GET     = array(
+				'post_type'   => 'post',
+				'post_status' => 'future',
+			);
+			$_REQUEST = $_GET;
+			$table    = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+
+			$table->prepare_items();
+
+			$post_ids = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
+			$this->assertSame( array( $scheduled_id ), $post_ids );
+		} finally {
+			foreach ( $global_names as $name ) {
+				if ( array_key_exists( $name, $backup ) ) {
+					$GLOBALS[ $name ] = $backup[ $name ];
+				} else {
+					unset( $GLOBALS[ $name ] );
+				}
+			}
+		}
+	}
+
+	/**
+	 * @ticket 65772
+	 * @dataProvider data_scheduled_post_date_column_status
+	 * @covers WP_Posts_List_Table::column_date
+	 *
+	 * @param int    $offset   Seconds from now to the scheduled date.
+	 * @param string $expected Expected status markup.
+	 */
+	public function test_column_date_should_show_scheduled_post_status( $offset, $expected ) {
+		$future_date = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
+		$post        = self::factory()->post->create_and_get(
+			array(
+				'post_status'   => 'future',
+				'post_date'     => get_date_from_gmt( $future_date ),
+				'post_date_gmt' => $future_date,
+			)
+		);
+
+		// Model an overdue date without letting wp_update_post() publish the fixture.
+		$date                = gmdate( 'Y-m-d H:i:s', time() + $offset );
+		$post->post_date     = get_date_from_gmt( $date );
+		$post->post_date_gmt = $date;
+
+		ob_start();
+		try {
+			$this->table->column_date( $post );
+			$output = ob_get_contents();
+		} finally {
+			ob_end_clean();
+		}
+
+		$this->assertStringStartsWith( $expected . '<br />', $output );
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public static function data_scheduled_post_date_column_status() {
+		return array(
+			'future date'   => array( DAY_IN_SECONDS, 'Scheduled' ),
+			'past due date' => array( -DAY_IN_SECONDS, '<strong class="error-message">Missed schedule</strong>' ),
+		);
+	}
+
+	/**
 	 * Renders the title column for a post in a given list view mode.
 	 *
 	 * @param WP_Post $post       The post to render.
@@ -391,7 +591,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_no_title_excerpt_visibility() {
+	public static function data_no_title_excerpt_visibility() {
 		return array(
 			'compact view, untitled'  => array( 'list', array(), true ),
 			'extended view, untitled' => array( 'excerpt', array(), false ),

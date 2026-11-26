@@ -467,7 +467,7 @@ function twentyseventeen_scripts() {
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20260520' );
+	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20260819' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20240729' );
@@ -609,7 +609,7 @@ add_filter( 'get_header_image_tag', 'twentyseventeen_header_image_tag', 10, 3 );
  *
  * @param string[]     $attr       Array of attribute values for the image markup, keyed by attribute name.
  *                                 See wp_get_attachment_image().
- * @param WP_Post      $attachment Image attachment post.
+ * @param WP_Post|null $attachment Image attachment post, or null if no post is found.
  * @param string|int[] $size       Requested image size. Can be any registered image size name, or
  *                                 an array of width and height values in pixels (in that order).
  * @return string[] The filtered attributes for the image markup.

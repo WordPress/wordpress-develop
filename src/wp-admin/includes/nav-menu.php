@@ -1348,6 +1348,16 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
  * @since 3.0.0
  *
  * @return string[] Array of column titles keyed by their column name.
+ *
+ * @phpstan-return array{
+ *     _title: string,
+ *     cb: non-falsy-string,
+ *     link-target: string,
+ *     title-attribute: string,
+ *     css-classes: string,
+ *     xfn: string,
+ *     description: string,
+ * }
  */
 function wp_nav_menu_manage_columns() {
 	return array(
@@ -1483,9 +1493,7 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 	$auto_add        = ! empty( $_POST['auto-add-pages'] );
 	$nav_menu_option = (array) get_option( 'nav_menu_options' );
 
-	if ( ! isset( $nav_menu_option['auto_add'] ) ) {
-		$nav_menu_option['auto_add'] = array();
-	}
+	$nav_menu_option['auto_add'] ??= array();
 
 	if ( $auto_add ) {
 		if ( ! in_array( $nav_menu_selected_id, $nav_menu_option['auto_add'], true ) ) {
@@ -1509,7 +1517,7 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 	wp_defer_term_counting( false );
 
 	/** This action is documented in wp-includes/nav-menu.php */
-	do_action( 'wp_update_nav_menu', $nav_menu_selected_id );
+	do_action( 'wp_update_nav_menu', $nav_menu_selected_id, array() );
 
 	/* translators: %s: Nav menu title. */
 	$message     = sprintf( __( '%s has been updated.' ), '<strong>' . $nav_menu_selected_title . '</strong>' );

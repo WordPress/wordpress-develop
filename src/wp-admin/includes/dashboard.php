@@ -88,13 +88,6 @@ function wp_dashboard_setup() {
 		wp_add_dashboard_widget( 'dashboard_quick_press', $quick_draft_title, 'wp_dashboard_quick_press' );
 	}
 
-	// On This Day.
-	if ( ! function_exists( 'wp_dashboard_on_this_day_setup' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/dashboard-on-this-day.php';
-	}
-
-	wp_dashboard_on_this_day_setup();
-
 	// WordPress Events and News.
 	wp_add_dashboard_widget( 'dashboard_primary', __( 'WordPress Events and News' ), 'wp_dashboard_events_news' );
 
@@ -324,6 +317,7 @@ function wp_dashboard_right_now() {
 
 			$text             = sprintf( $text, number_format_i18n( $num_posts->publish ) );
 			$post_type_object = get_post_type_object( $post_type );
+			$icon             = wp_get_icon( 'post' === $post_type ? 'core-admin/pin' : 'core-admin/page', array( 'size' => 20 ) );
 
 			if ( $post_type_object && current_user_can( $post_type_object->cap->edit_posts ) ) {
 				$url = add_query_arg(
@@ -333,9 +327,9 @@ function wp_dashboard_right_now() {
 					),
 					admin_url( 'edit.php' )
 				);
-				printf( '<li class="%1$s-count"><a href="%2$s">%3$s</a></li>', $post_type, esc_url( $url ), esc_html( $text ) );
+				printf( '<li class="%1$s-count"><a href="%2$s">%3$s%4$s</a></li>', $post_type, esc_url( $url ), $icon, esc_html( $text ) );
 			} else {
-				printf( '<li class="%1$s-count"><span>%2$s</span></li>', $post_type, $text );
+				printf( '<li class="%1$s-count"><span>%2$s%3$s</span></li>', $post_type, $icon, esc_html( $text ) );
 			}
 		}
 	}
@@ -348,7 +342,7 @@ function wp_dashboard_right_now() {
 		$text = sprintf( _n( '%s Comment', '%s Comments', $num_comm->approved ), number_format_i18n( $num_comm->approved ) );
 		?>
 		<li class="comment-count">
-			<a href="edit-comments.php"><?php echo $text; ?></a>
+			<a href="edit-comments.php"><?php echo wp_get_icon( 'core-admin/comment', array( 'size' => 20 ) ); ?><span class="comments-count-text"><?php echo $text; ?></span></a>
 		</li>
 		<?php
 		$moderated_comments_count_i18n = number_format_i18n( $num_comm->moderated );
@@ -356,7 +350,7 @@ function wp_dashboard_right_now() {
 		$text = sprintf( _n( '%s Comment in moderation', '%s Comments in moderation', $num_comm->moderated ), $moderated_comments_count_i18n );
 		?>
 		<li class="comment-mod-count<?php echo ! $num_comm->moderated ? ' hidden' : ''; ?>">
-			<a href="edit-comments.php?comment_status=moderated" class="comments-in-moderation-text"><?php echo $text; ?></a>
+			<a href="edit-comments.php?comment_status=moderated"><?php echo wp_get_icon( 'core-admin/post-comments', array( 'size' => 20 ) ); ?><span class="comments-in-moderation-text"><?php echo $text; ?></span></a>
 		</li>
 		<?php
 	}
@@ -415,7 +409,8 @@ function wp_dashboard_right_now() {
 
 		$title_attr = '' === $title ? '' : " title='$title'";
 
-		echo "<p class='search-engines-info'><a href='options-reading.php'$title_attr>$content</a></p>";
+		$icon = wp_get_icon( 'core-admin/info', array( 'size' => 20 ) );
+		echo "<p class='search-engines-info'><a href='options-reading.php'$title_attr>$icon$content</a></p>";
 	}
 	?>
 	</div>
@@ -575,11 +570,13 @@ function wp_dashboard_quick_press( $message = false, $notice_type = 'error' ) {
 			$post->post_title = ''; // Remove the auto draft title.
 		}
 	} else {
-		$post    = get_default_post_to_edit( 'post', true );
-		$user_id = get_current_user_id();
+		$post            = get_default_post_to_edit( 'post', true );
+		$user_id         = get_current_user_id();
+		$user_blogs      = get_blogs_of_user( $user_id );
+		$current_blog_id = get_current_blog_id();
 
 		// Don't create an option if this is a super admin who does not belong to this site.
-		if ( in_array( get_current_blog_id(), array_keys( get_blogs_of_user( $user_id ) ), true ) ) {
+		if ( isset( $user_blogs[ $current_blog_id ] ) ) {
 			update_user_option( $user_id, 'dashboard_quick_press_last_post_id', (int) $post->ID ); // Save post_ID.
 		}
 	}
@@ -661,6 +658,9 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 
 		$drafts = get_posts( $query_args );
 		if ( ! $drafts ) {
+			echo '<div class="no-drafts">';
+			echo '<p>' . __( 'There are no recent drafts.' ) . '</p>';
+			echo '</div>';
 			return;
 		}
 	}
@@ -1189,13 +1189,6 @@ function wp_dashboard_rss_output( $widget_id ) {
 function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = array(), ...$args ) {
 	$doing_ajax = wp_doing_ajax();
 	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p>';
-	$loading   .= wp_get_admin_notice(
-		__( 'This widget requires JavaScript.' ),
-		array(
-			'type'               => 'error',
-			'additional_classes' => array( 'inline', 'hide-if-js' ),
-		)
-	);
 
 	if ( empty( $check_urls ) ) {
 		$widgets = get_option( 'dashboard_widget_options' );
@@ -1281,9 +1274,7 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 		$widget_options = array();
 	}
 
-	if ( ! isset( $widget_options[ $widget_id ] ) ) {
-		$widget_options[ $widget_id ] = array();
-	}
+	$widget_options[ $widget_id ] ??= array();
 
 	$number = 1; // Hack to use wp_widget_rss_form().
 
@@ -1294,7 +1285,7 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 		$widget_options[ $widget_id ]           = wp_widget_rss_process( $_POST['widget-rss'][ $number ] );
 		$widget_options[ $widget_id ]['number'] = $number;
 
-		// Title is optional. If black, fill it if possible.
+		// Title is optional. If blank, fill it if possible.
 		if ( ! $widget_options[ $widget_id ]['title'] && isset( $_POST['widget-rss'][ $number ]['title'] ) ) {
 			$rss = fetch_feed( $widget_options[ $widget_id ]['url'] );
 			if ( is_wp_error( $rss ) ) {
@@ -1377,7 +1368,7 @@ function wp_dashboard_events_news() {
  * @since 4.8.0
  */
 function wp_print_community_events_markup() {
-	$community_events_notice  = '<p class="hide-if-js">' . ( 'This widget requires JavaScript.' ) . '</p>';
+	$community_events_notice  = '<p class="hide-if-js">' . __( 'The WordPress Events and News feeds require JavaScript.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-error-occurred" aria-hidden="true">' . __( 'An error occurred. Please try again.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-could-not-locate" aria-hidden="true"></p>';
 
@@ -1695,8 +1686,9 @@ function wp_dashboard_quota() {
 				number_format_i18n( $quota )
 			);
 			printf(
-				'<a href="%1$s">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
+				'<a href="%1$s">%2$s%3$s<span class="screen-reader-text"> (%4$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
+				wp_get_icon( 'core-admin/media', array( 'size' => 20 ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
 				__( 'Manage Uploads' )
@@ -1711,8 +1703,9 @@ function wp_dashboard_quota() {
 				$percentused
 			);
 			printf(
-				'<a href="%1$s" class="musublink">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
+				'<a href="%1$s" class="musublink">%2$s%3$s<span class="screen-reader-text"> (%4$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
+				wp_get_icon( $used_class ? 'core-admin/error' : 'core-admin/media', array( 'size' => 20 ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
 				__( 'Manage Uploads' )
@@ -2003,7 +1996,7 @@ function wp_dashboard_site_health() {
 	$issues_total = $issue_counts['recommended'] + $issue_counts['critical'];
 	?>
 	<div class="health-check-widget">
-		<div class="health-check-widget-title-section site-health-progress-wrapper loading hide-if-no-js">
+		<div class="health-check-widget-title-section site-health-progress-wrapper loading">
 			<div class="site-health-progress">
 				<svg aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
 					<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>

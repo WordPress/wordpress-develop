@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="300" viewBox="0 0 1000 300">
+	<!--!
+	Font: JetBrains Mono (subset)
+	Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+	This Font Software is licensed under the SIL Open Font License, Version 1.1.
+	https://openfontlicense.org
+	-->
+	<style>@font-face{font-family:a;src:url(data:font/woff2;base64,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)}text{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:geometricPrecision}</style>
+	<path fill="#eeece5" d="M0 0h1000v300H0z"/>
+	<g fill="#cfc8b6" font-family="a, monospace" font-size="15.04" letter-spacing="0.6084" font-variant-ligatures="none">
+		<text x="2.19" y="10.22">, { edit( <tspan fill="#3858e9">{ </tspan>attribut▒</text>
+		<text x="291.14" y="10.22">es, setAttr▓</text>
+		<text x="2.17" y="26.4">utes } ) { const ▓</text>
+		<text x="291.13" y="26.4">blockProps ▓</text>
+		<text x="2.17" y="42.58">useBlockProps(▓</text>
+		<text x="291.21" y="42.58">)<tspan fill="#3858e9">; </tspan>return <tspan fill="#3858e9">(</tspan>▓</text>
+		<text x="2.23" y="58.76">&gt; &lt;Inspecto▓</text>
+		<text x="291.13" y="58.76">rControls&gt; ▓</text>
+		<text x="2.17" y="74.94">PanelBod<tspan fill="#3858e9">▓</tspan></text>
+		<text x="291.12" y="74.94">y title={ <tspan fill="#3858e9">_</tspan>▓</text>
+		<text x="2.25" y="91.13">▒█<tspan fill="#3858e9">_</tspan>( █</text>
+		<text x="291.16" y="91.13">'Spacing', ▓</text>
+		<text x="291.12" y="107.31">'vamp' ) }&gt;▓</text>
+		<text x="300.83" y="123.49">&lt;RangeCont▓</text>
+		<text x="560.9" y="123.49"><tspan fill="#3858e9">▒</tspan>▓rol la█░</text>
+		<text x="291.13" y="139.68">bel<tspan fill="#3858e9">=</tspan>{ __( '▓</text>
+		<text x="493.41" y="139.68">░▓Tracking', 'vamp▒</text>
+		<text x="291.2" y="155.86">' ) } value▓</text>
+		<text x="435.62" y="155.86">░▓█={ attributes.tracking░</text>
+		<text x="300.77" y="172.04">} onChange={ ( tracking ) =&gt; setAttribu▓</text>
+		<text x="291.14" y="188.22">tes( { tracking } ) } min={ 0 } max={ 20▓</text>
+		<text x="291.18" y="204.41">&gt; &lt;/PanelBody&gt; &lt;/InspectorControls&gt; &lt;Ric▓</text>
+		<text x="984.71" y="204.41">▓h</text>
+		<text x="291.14" y="220.59">..blockProps } tagName="p" value={ attri▓</text>
+		<text x="955.8" y="220.59">▒bute</text>
+		<text x="281.5" y="236.77">░ } onChange={ ( content ) <tspan fill="#3858e9">=</tspan>&gt;▓ setAttribu▓</text>
+		<text x="926.91" y="236.77">▒tes( {</text>
+		<text x="291.2" y="252.95">) } /&gt; &lt;/&gt; ); }, save(█▒</text>
+		<text x="580.09" y="252.95">{ attribut▓</text>
+		<text x="898.01" y="252.95">▒es } ) { r</text>
+		<text x="291.21" y="269.14">▓chText.Content█▓</text>
+		<text x="580.1" y="269.14">{ ...useBl▓</text>
+		<text x="869.12" y="269.14">▒ockProps.save</text>
+		<text x="310.39" y="285.32">Name<tspan fill="#3858e9">=</tspan>"p█▓░</text>
+		<text x="570.45" y="285.32">" value=<tspan fill="#3858e9">{ </tspan>a▓</text>
+		<text x="849.87" y="285.32">█ttributes.conte</text>
+		<text x="570.51" y="301.5">&gt;; }. } ); ▓</text>
+		<text x="811.32" y="301.5">▒█import <tspan fill="#3858e9">{ </tspan>registerB</text>
+	</g>
+</svg>
