@@ -386,6 +386,26 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( $user->user_login, $user7->user_login );
 	}
 
+	/**
+	 * Tests that {@see WP_User::init()} keeps the ID property and the ID in the data in agreement.
+	 *
+	 * @covers WP_User::init
+	 */
+	public function test_init_keeps_id_in_agreement_with_data(): void {
+		// Some plugins create virtual users with negative IDs, so these are preserved.
+		$negative = new WP_User( (object) array( 'ID' => -1 ) );
+		$this->assertSame( -1, $negative->ID, 'Expected a negative ID to be preserved.' );
+		$this->assertSame( -1, $negative->data->ID, 'Expected the data to agree with the ID property.' );
+
+		$missing = new WP_User( (object) array( 'user_login' => 'nobody' ) );
+		$this->assertSame( 0, $missing->ID, 'Expected a missing ID to be 0.' );
+		$this->assertSame( 0, $missing->data->ID, 'Expected the data to be given an ID of 0.' );
+
+		$user_id = self::factory()->user->create();
+		$author  = new WP_User( $user_id );
+		$this->assertSame( (string) $user_id, $author->data->ID, 'Expected the numeric-string ID of a database row to be preserved.' );
+	}
+
 	public function test_get() {
 		$user = new WP_User( self::$author_id );
 		$this->assertSame( 'author_login', $user->get( 'user_login' ) );
