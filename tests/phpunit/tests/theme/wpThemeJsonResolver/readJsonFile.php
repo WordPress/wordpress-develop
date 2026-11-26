@@ -10,7 +10,7 @@
  *
  * @covers WP_Theme_JSON_Resolver::read_json_file
  */
-class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
+class Tests_Theme_WpThemeJsonResolver_ReadJsonFile extends WP_UnitTestCase {
 
 	/**
 	 * WP_Theme_JSON_Resolver::$theme_json_file_cache property.
