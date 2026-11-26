@@ -30,7 +30,8 @@ namespace WordPress\PHPStan;
  * - Anything else is `string|null`, which is every value `wpdb` can return.
  *
  * A column's name is its alias, or else its name for a column reference, or
- * else the text of its expression, as MySQL names them.
+ * else the text of its expression, as MySQL names them. A name holding a part
+ * whose text is not known is itself unknown.
  *
  * The columns are incomplete from the first one whose count is not known: a
  * `*` over a table that is not a core table, or a select expression with an
@@ -378,7 +379,7 @@ final class WpdbSelectParser {
 			$column                   = $this->find_column( $tables, $qualifier, $name );
 			return array(
 				array(
-					'name'     => $alias ?? $name,
+					'name'     => self::get_known_name( $alias ?? $name ),
 					'type'     => null !== $column ? $column['type'] : 'string|null',
 					'optional' => null !== $column && $column['optional'],
 				),
@@ -393,13 +394,12 @@ final class WpdbSelectParser {
 			$alias = self::unquote( $texts[0] );
 		} elseif ( null === $alias ) {
 			$last  = end( $item );
-			$text  = (string) substr( $query, $item[0]['offset'], $last['offset'] + strlen( $last['text'] ) - $item[0]['offset'] );
-			$alias = false === strpos( $text, '{' ) ? $text : null;
+			$alias = (string) substr( $query, $item[0]['offset'], $last['offset'] + strlen( $last['text'] ) - $item[0]['offset'] );
 		}
 
 		return array(
 			array(
-				'name'     => $alias,
+				'name'     => self::get_known_name( $alias ),
 				'type'     => $this->get_expression_type( $texts, $tables ),
 				'optional' => false,
 			),
@@ -609,6 +609,19 @@ final class WpdbSelectParser {
 	 */
 	private static function is_keyword_value( string $text ): bool {
 		return in_array( strtoupper( $text ), array( 'NULL', 'TRUE', 'FALSE', 'CURRENT_TIMESTAMP', 'CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_USER' ), true );
+	}
+
+	/**
+	 * Gets a column name, unless it holds a placeholder, whose text is not known.
+	 *
+	 * A placeholder can be in a name as well as be one, as in `` `{?}` `` or `'{value}'`, or a `wpdb` property
+	 * other than a table, like `{wpdb:blogid}`.
+	 *
+	 * @param string|null $name Column name.
+	 * @return string|null Column name, or null if unknown.
+	 */
+	private static function get_known_name( ?string $name ): ?string {
+		return null !== $name && false === strpos( $name, '{' ) ? $name : null;
 	}
 
 	/**
