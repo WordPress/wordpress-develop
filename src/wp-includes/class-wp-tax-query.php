@@ -371,13 +371,13 @@ class WP_Tax_Query {
 	 *
 	 * @param array $clause       Query clause (passed by reference).
 	 * @param array $parent_query Parent query array.
+	 * @param-out array|WP_Error $clause
 	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to a first-order query.
 	 *
 	 *     @type string[] $join  Array of SQL fragments to append to the main JOIN clause.
 	 *     @type string[] $where Array of SQL fragments to append to the main WHERE clause.
 	 * }
-	 * @param-out array|WP_Error $clause
 	 */
 	public function get_sql_for_clause( &$clause, $parent_query ) {
 		global $wpdb;
