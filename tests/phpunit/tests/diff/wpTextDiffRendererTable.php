@@ -13,13 +13,93 @@ class Tests_Diff_WpTextDiffRendererTable extends WP_UnitTestCase {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
+		require_once ABSPATH . 'wp-includes/Text/Diff.php';
 		require_once ABSPATH . 'wp-includes/Text/Diff/Renderer.php';
+		require_once ABSPATH . 'wp-includes/Text/Diff/Renderer/inline.php';
 		require_once ABSPATH . 'wp-includes/class-wp-text-diff-renderer-table.php';
+		require_once ABSPATH . 'wp-includes/class-wp-text-diff-renderer-inline.php';
 	}
 
 	public function set_up() {
 		parent::set_up();
 		$this->diff_renderer_table = new WP_Text_Diff_Renderer_Table();
+	}
+
+	/**
+	 * @ticket 66095
+	 * @ticket 48973
+	 * @covers WP_Text_Diff_Renderer_Table::_changed
+	 * @dataProvider data_changed_block_limits
+	 *
+	 * @param string $limit Name of the limit argument.
+	 * @param int    $value Limit that the 3 old and 3 new lines exceed.
+	 */
+	public function test_changed_lists_deletions_before_additions_above_a_block_limit( $limit, $value ) {
+		$renderer = $this->diff_renderer_table;
+		$old      = array( 'alpha & old', 'bravo & old', 'charlie & old' );
+		$new      = array( 'alpha & new', 'bravo & new', 'charlie & new' );
+		$fallback = $renderer->_deleted( $old ) . $renderer->_added( $new );
+
+		$this->assertNotSame( $fallback, $renderer->_changed( $old, $new ) );
+
+		$limited = new WP_Text_Diff_Renderer_Table( array( $limit => $value ) );
+		$this->assertSame( $fallback, $limited->_changed( $old, $new ) );
+	}
+
+	/**
+	 * Data provider for test_changed_lists_deletions_before_additions_above_a_block_limit().
+	 *
+	 * @return array
+	 */
+	public static function data_changed_block_limits() {
+		return array(
+			'line pairs' => array( 'max_changed_line_pairs', 8 ),
+			'lines'      => array( 'max_changed_lines', 5 ),
+		);
+	}
+
+	/**
+	 * @ticket 66095
+	 * @covers WP_Text_Diff_Renderer_Table::_changed
+	 * @dataProvider data_long_line_pairs
+	 *
+	 * @param string $old_line Old line.
+	 * @param string $new_line New line.
+	 */
+	public function test_changed_skips_word_highlighting_when_a_line_exceeds_the_length_limit( $old_line, $new_line ) {
+		$renderer = $this->diff_renderer_table;
+
+		$this->assertSame(
+			'<tr>' . $renderer->deletedLine( str_replace( '&', '&amp;', $old_line ) ) . $renderer->addedLine( str_replace( '&', '&amp;', $new_line ) ) . "</tr>\n",
+			$renderer->_changed( array( $old_line ), array( $new_line ) )
+		);
+	}
+
+	/**
+	 * Data provider for test_changed_skips_word_highlighting_when_a_line_exceeds_the_length_limit().
+	 *
+	 * @return array
+	 */
+	public static function data_long_line_pairs() {
+		$short = str_repeat( 'x', 9000 ) . '&old';
+		$long  = str_repeat( 'x', 9000 ) . '&' . str_repeat( 'y', 2999 );
+
+		return array(
+			'long old line' => array( $long, $short ),
+			'long new line' => array( $short, $long ),
+		);
+	}
+
+	/**
+	 * @ticket 66095
+	 * @covers ::wp_text_diff
+	 */
+	public function test_wp_text_diff_limits_can_be_raised_through_args() {
+		$old = str_repeat( 'x', 12000 ) . ' old';
+		$new = str_repeat( 'x', 12000 ) . ' new';
+
+		$this->assertStringNotContainsString( '<del>old</del>', wp_text_diff( $old, $new ) );
+		$this->assertStringContainsString( '<del>old</del>', wp_text_diff( $old, $new, array( 'max_word_diff_line_length' => 20000 ) ) );
 	}
 
 	/**
