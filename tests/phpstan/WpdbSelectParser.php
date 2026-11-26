@@ -388,18 +388,19 @@ final class WpdbSelectParser {
 
 		/*
 		 * Otherwise MySQL names the column by the value of a string, or the first of adjacent strings it joins, or else
-		 * by the text of its expression.
+		 * by the text of its expression. The name of a string with a prefix, like `_utf8mb4'text'`, is not followed.
 		 */
-		if ( null === $alias && array() === array_filter( $texts, static fn ( string $text ): bool => ! self::is_quoted_string( $text ) ) ) {
-			$alias = self::unquote( $texts[0] );
-		} elseif ( null === $alias ) {
-			$last  = end( $item );
-			$alias = (string) substr( $query, $item[0]['offset'], $last['offset'] + strlen( $last['text'] ) - $item[0]['offset'] );
+		$name = $alias;
+		if ( null === $name && array() === array_filter( $texts, static fn ( string $text ): bool => ! self::is_quoted_string( $text ) ) ) {
+			$name = self::unquote( $texts[0] );
+		} elseif ( null === $name && ! ( 1 === $count && preg_match( '/^(?:[xXbBnN]|_[A-Za-z0-9]+)\'/', $texts[0] ) ) ) {
+			$last = end( $item );
+			$name = (string) substr( $query, $item[0]['offset'], $last['offset'] + strlen( $last['text'] ) - $item[0]['offset'] );
 		}
 
 		return array(
 			array(
-				'name'     => self::get_known_name( $alias ),
+				'name'     => self::get_known_name( $name ),
 				'type'     => $this->get_expression_type( $texts, $tables ),
 				'optional' => false,
 			),
@@ -417,7 +418,8 @@ final class WpdbSelectParser {
 	private function get_expression_type( array $texts, array $tables ): string {
 		$count = count( $texts );
 
-		if ( 1 === $count && preg_match( '/^-?\d+$/', $texts[0] ) ) {
+		// An integer, written as MySQL gives it back. Others, like `007` or `1e3`, are given back otherwise.
+		if ( 1 === $count && preg_match( '/^(?:0|[1-9]\d*)$/', $texts[0] ) ) {
 			return "'" . $texts[0] . "'";
 		}
 		if ( 1 === $count && preg_match( "/^'([\\w .:-]*)'$/", $texts[0], $match ) ) {
@@ -540,13 +542,16 @@ final class WpdbSelectParser {
 	 * A table placeholder with name characters on either side of it, as in `{wpdb:posts}_archive`, is one token with
 	 * them, since together they name some other table.
 	 *
+	 * A literal is one token, including a number like `0x41` or `1e3`, and a string with a prefix, like `x'41'` or
+	 * `_utf8mb4'text'`. A name may start with digits, as in `1st`, but not be all digits.
+	 *
 	 * @param string $query Query.
 	 * @return list<array{ text: string, offset: int }>
 	 * @phpstan-return list<Token>
 	 */
 	private static function tokenize( string $query ): array {
 		preg_match_all(
-			'/\s+|--[^\n]*|\/\*.*?\*\/|\'(?:[^\'\\\\]|\\\\.|\'\')*\'|"(?:[^"\\\\]|\\\\.|"")*"|`[^`]*`|[\w$]*\{wpdb:\w+\}[\w$]*|\{[^{}]*\}|\d+(?:\.\d+)?|[\w$]+|<=>|[<>!]=|<>|\|\||&&|./s',
+			'/\s+|--[^\n]*|\/\*.*?\*\/|\'(?:[^\'\\\\]|\\\\.|\'\')*\'|"(?:[^"\\\\]|\\\\.|"")*"|`[^`]*`|[\w$]*\{wpdb:\w+\}[\w$]*|\{[^{}]*\}|(?:[xXbBnN]|_[A-Za-z0-9]+)\'(?:[^\'\\\\]|\\\\.|\'\')*\'|0x[0-9a-fA-F]+(?![\w$])|\d+(?:\.\d+)?(?:[eE][-+]?\d+)?(?![\w$])|[\w$]+|<=>|[<>!]=|<>|\|\||&&|./s',
 			$query,
 			$matches,
 			PREG_OFFSET_CAPTURE
@@ -601,7 +606,7 @@ final class WpdbSelectParser {
 	 * @return bool
 	 */
 	private static function is_literal( string $text ): bool {
-		return WpdbQueryVisitor::VALUE === $text || (bool) preg_match( '/^(?:\d|\'|")/', $text );
+		return WpdbQueryVisitor::VALUE === $text || (bool) preg_match( '/^(?:\d|\'|"|(?:[xXbBnN]|_[A-Za-z0-9]+)\')/', $text );
 	}
 
 	/**
