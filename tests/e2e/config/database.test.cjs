@@ -182,14 +182,18 @@ test( 'isolates database setup and rejects another run in the same checkout', as
 		commands.some( ( args ) =>
 			args.includes( 'WP_CACHE_KEY_SALT' ) &&
 			args.includes( 'set' ) &&
-			args.some( ( arg ) => arg.includes( 'wp-config-e2e.' ) )
+			args.some( ( arg ) =>
+				arg.includes( 'WP_CONFIG_PATH=/var/www/wp-config-e2e.' )
+			)
 		)
 	);
 	assert.ok(
 		commands.some( ( args ) =>
 			args.includes( 'DB_NAME' ) &&
 			args.includes( 'wordpress_develop_e2e' ) &&
-			args.some( ( arg ) => arg.includes( 'wp-config-e2e.' ) )
+			args.some( ( arg ) =>
+				arg.includes( 'WP_CONFIG_PATH=/var/www/wp-config-e2e.' )
+			)
 		)
 	);
 	assert.ok(
@@ -202,7 +206,7 @@ test( 'isolates database setup and rejects another run in the same checkout', as
 		commands.some( ( args ) =>
 			args.includes( 'install' ) &&
 			args.includes( '--url=http://localhost:8900' ) &&
-			args.includes( '--config-file=/var/www/wp-config-e2e.php' )
+			args.includes( 'WP_CONFIG_PATH=/var/www/wp-config-e2e.php' )
 		)
 	);
 

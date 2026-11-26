@@ -121,13 +121,14 @@ function runWpCli(
 		[
 			path.join( process.cwd(), 'tools/local-env/scripts/docker.js' ),
 			'exec',
+			'--env',
+			`WP_CONFIG_PATH=/var/www/${ configFile }`,
 			'--user',
 			'wp_php',
 			'cli',
 			'wp',
 			...args,
 			`--path=/var/www/${ getLocalDir( localDir ) }`,
-			`--config-file=/var/www/${ configFile }`,
 		],
 		{
 			cwd: process.cwd(),

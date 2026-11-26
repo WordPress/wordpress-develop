@@ -24,7 +24,7 @@ const { getBaseURL, isDefaultEnvironment } = database;
 export function wpCli( args, options = {} ) {
 	const baseURL = getBaseURL();
 	const configArgs = isDefaultEnvironment( baseURL )
-		? [ '--config-file=/var/www/wp-config-e2e.php' ]
+		? [ '--env', 'WP_CONFIG_PATH=/var/www/wp-config-e2e.php' ]
 		: [];
 	const urlArgs = args.some( ( argument ) => argument.startsWith( '--url=' ) )
 		? []
