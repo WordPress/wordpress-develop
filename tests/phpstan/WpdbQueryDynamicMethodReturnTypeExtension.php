@@ -167,7 +167,8 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 
 			default:
 				$declared = ParametersAcceptorSelector::selectFromArgs( $scope, $args, $methodReflection->getVariants() )->getReturnType();
-				$refined  = $this->refine_rows( $declared, $columns, $result['complete'] );				return $refined->equals( $declared ) ? null : $refined;
+				$refined  = $this->refine_rows( $declared, $columns, $result['complete'] );
+				return $refined->equals( $declared ) ? null : $refined;
 		}
 	}
 
