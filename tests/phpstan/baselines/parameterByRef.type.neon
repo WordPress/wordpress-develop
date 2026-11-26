@@ -19,27 +19,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Parameter &\$stored_results by\-ref type of method WP_Scripts\:\:get_highest_fetchpriority_with_dependents\(\) expects array\<string, string\>, array\<string, mixed\> given\.$#'
-			identifier: parameterByRef.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-scripts.php
-		-
-			message: '#^Parameter &\$query by\-ref type of method WP_Tax_Query\:\:clean_query\(\) expects array, WP_Error given\.$#'
-			identifier: parameterByRef.type
-			count: 2
-			path: ../../../src/wp-includes/class-wp-tax-query.php
-		-
-			message: '#^Parameter &\$query by\-ref type of method WP_Tax_Query\:\:transform_query\(\) expects array, WP_Error given\.$#'
-			identifier: parameterByRef.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-tax-query.php
-		-
 			message: '#^Parameter &\$matched_token_byte_length by\-ref type of method WP_Token_Map\:\:read_token\(\) expects int\|null, \(float\|int\) given\.$#'
 			identifier: parameterByRef.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-token-map.php
-		-
-			message: '#^Parameter &\$result by\-ref type of function _page_traverse_name\(\) expects array\<string\>, array given\.$#'
-			identifier: parameterByRef.type
-			count: 1
-			path: ../../../src/wp-includes/post.php
