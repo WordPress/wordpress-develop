@@ -918,11 +918,12 @@ class WP_Rewrite {
 			}
 		}
 
-		// Get everything up to the first rewrite tag.
-		$front = substr( $permalink_structure, 0, strpos( $permalink_structure, '%' ) );
+		// Match registered rewrite tags only, leaving percent-encoded text in the base intact.
+		$tag_pattern = $this->rewritecode ? '#(?:' . implode( '|', array_map( 'preg_quote', $this->rewritecode ) ) . ')#' : '#(?!)#';
+		preg_match_all( $tag_pattern, $permalink_structure, $tokens );
 
-		// Build an array of the tags (note that said array ends up being in $tokens[0]).
-		preg_match_all( '/%.+?%/', $permalink_structure, $tokens );
+		// Get everything up to the first registered rewrite tag.
+		$front = empty( $tokens[0] ) ? '' : substr( $permalink_structure, 0, strpos( $permalink_structure, $tokens[0][0] ) );
 
 		$num_tokens = count( $tokens[0] );
 
@@ -980,7 +981,7 @@ class WP_Rewrite {
 			$match = str_replace( $this->rewritecode, $this->rewritereplace, $struct );
 
 			// Make a list of tags, and store how many there are in $num_toks.
-			$num_toks = preg_match_all( '/%.+?%/', $struct, $toks );
+			$num_toks = preg_match_all( $tag_pattern, $struct, $toks );
 
 			// Get the 'tagname=$matches[i]'.
 			$query = ( ! empty( $num_toks ) && isset( $queries[ $num_toks - 1 ] ) ) ? $queries[ $num_toks - 1 ] : '';
