@@ -77,7 +77,6 @@ class Tests_General_WpEnqueueEditor extends WP_UnitTestCase {
 		} finally {
 			$GLOBALS['wp_scripts'] = $old_wp_scripts;
 			$GLOBALS['wp_styles']  = $old_wp_styles;
-			set_current_screen( 'front' );
 		}
 	}
 }
