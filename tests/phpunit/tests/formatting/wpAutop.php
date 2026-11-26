@@ -810,4 +810,40 @@ line 2<br/>
 			wpautop( "[code]a\nb[/code]\nc\nd", false )
 		);
 	}
+
+	/**
+	 * The shortcode callback should receive the content as written, when the
+	 * shortcode content is processed in the same order as the `the_content` filter.
+	 *
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_passes_content_unchanged_to_shortcode_callback() {
+		$code = '$text = str_replace( array(\'<p><p>\', \'</p></p>\'), array(\'<p>\', \'</p>\'), $text);' . "\n\nif ( \$a ) {\n\techo 1;\n}";
+
+		add_shortcode(
+			'code',
+			static function ( $atts, $content = '' ) {
+				return '<pre class="code">' . $content . '</pre>';
+			}
+		);
+
+		add_filter(
+			'no_autop_shortcodes',
+			static function () {
+				return array( 'code' );
+			}
+		);
+
+		try {
+			// Same order as the default `the_content` filters: wpautop(), shortcode_unautop(), do_shortcode().
+			$actual = do_shortcode( shortcode_unautop( wpautop( "Intro.\n\n[code lang=\"php\"]{$code}[/code]\n\nOutro." ) ) );
+		} finally {
+			remove_shortcode( 'code' );
+		}
+
+		$this->assertSame(
+			"<p>Intro.</p>\n<pre class=\"code\">{$code}</pre>\n<p>Outro.</p>\n",
+			$actual
+		);
+	}
 }
