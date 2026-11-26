@@ -194,6 +194,7 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	private function get_positional_value_type( array $columns, bool $complete, ?\PhpParser\Node\Expr $x, Scope $scope ): ?Type {
 		$variants = self::get_row_variants( $columns );
 
+		$types   = array();
 		$indexes = array( 0 );
 		if ( null !== $x ) {
 			$indexes = array();
@@ -209,10 +210,11 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 					return null;
 				}
 				$indexes = array_keys( $variants[0] );
+				// Or an index past the last column, for which the value is null.
+				$types[] = new NullType();
 			}
 		}
 
-		$types = array();
 		foreach ( $indexes as $index ) {
 			foreach ( $variants as $variant ) {
 				if ( ! isset( $variant[ $index ] ) ) {
