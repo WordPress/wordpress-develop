@@ -426,7 +426,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_cancel_comment_reply_link() {
+	public static function data_get_cancel_comment_reply_link() {
 		return array(
 			'text as empty string, a valid post ID and an approved comment'    => array(
 				'text'       => '',
@@ -538,7 +538,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_allow_reply_to_an_approved_comment() {
+	public static function data_should_allow_reply_to_an_approved_comment() {
 		return array(
 			'a post ID'        => array( 'comment_post' => 'POST_ID' ),
 			'a WP_Post object' => array( 'comment_post' => 'POST' ),
@@ -618,7 +618,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_non_existent_posts() {
+	public static function data_non_existent_posts() {
 		return array(
 			'an unapproved comment and a non-existent post ID' => array(
 				'replytocom'   => false,
@@ -678,7 +678,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_parent_comments() {
+	public static function data_parent_comments() {
 		return array(
 			'an unapproved parent comment (ID)'      => array(
 				'replytocom'   => false,
@@ -772,7 +772,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_comment_reply_id() {
+	public static function data_get_comment_reply_id() {
 		return array(
 			'no comment ID set ($_GET["replytocom"])'     => array(
 				'replytocom' => false,
@@ -1245,6 +1245,387 @@ class Tests_Comment extends WP_UnitTestCase {
 		remove_filter( 'comment_notification_text', array( $this, 'save_comment_notification_text' ) );
 
 		$this->assertStringContainsString( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
+	}
+
+	/**
+	 * Ensures that a pingback cannot add lines to the comment notifications.
+	 *
+	 * The comment author of a pingback is the title of the linking page.
+	 *
+	 * @covers ::wp_notify_postauthor
+	 * @covers ::wp_notify_moderator
+	 *
+	 * @dataProvider data_line_break_injections
+	 *
+	 * @param string $author Linking page title containing some form of line feed.
+	 * @param string $email  Unused, since pingbacks have no author email address.
+	 * @param string $url    Linking page URL containing some form of line feed.
+	 */
+	public function test_pingback_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
+		/**
+		 * @see wp_xmlrpc_server::pingback_ping().
+		 */
+		$comment_id = wp_new_comment(
+			wp_slash(
+				array(
+					'comment_post_ID'      => self::$post_id,
+					'comment_type'         => 'pingback',
+					'comment_author'       => $author,
+					'comment_author_email' => '',
+					'comment_author_url'   => $url,
+					'comment_content'      => 'Pingback content.',
+				)
+			)
+		);
+
+		$this->assert_comment_notifications_not_injected( $comment_id );
+	}
+
+	/**
+	 * Ensures that a trackback cannot add lines to the comment notifications.
+	 *
+	 * The comment author of a trackback is the name of the linking blog.
+	 *
+	 * @covers ::wp_notify_postauthor
+	 * @covers ::wp_notify_moderator
+	 *
+	 * @dataProvider data_line_break_injections
+	 *
+	 * @param string $author Linking blog name containing some form of line feed.
+	 * @param string $email  Unused, since trackbacks have no author email address.
+	 * @param string $url    Linking page URL containing some form of line feed.
+	 */
+	public function test_trackback_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
+		/**
+		 * @see wp-trackback.php
+		 */
+		$comment_id = wp_new_comment(
+			wp_slash(
+				array(
+					'comment_post_ID'      => self::$post_id,
+					'comment_type'         => 'trackback',
+					'comment_author'       => sanitize_text_field( $author ),
+					'comment_author_email' => '',
+					'comment_author_url'   => sanitize_url( $url ),
+					'comment_content'      => 'Trackback content.',
+				)
+			)
+		);
+
+		$this->assert_comment_notifications_not_injected( $comment_id );
+	}
+
+	/**
+	 * Ensures that an anonymous XML-RPC comment cannot add lines to the comment notifications.
+	 *
+	 * @covers ::wp_notify_postauthor
+	 * @covers ::wp_notify_moderator
+	 *
+	 * @dataProvider data_line_break_injections_with_valid_email
+	 *
+	 * @param string $author Author name containing some form of line feed.
+	 * @param string $email  Author email address containing some form of line feed.
+	 * @param string $url    Author URL containing some form of line feed.
+	 */
+	public function test_xmlrpc_comment_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
+		require_once ABSPATH . WPINC . '/class-IXR.php';
+		require_once ABSPATH . WPINC . '/class-wp-xmlrpc-server.php';
+
+		add_filter( 'xmlrpc_allow_anonymous_comments', '__return_true' );
+
+		$server     = new wp_xmlrpc_server();
+		$comment_id = $server->wp_newComment(
+			array(
+				1,
+				'',
+				'',
+				self::$post_id,
+				array(
+					'author'       => $author,
+					'author_email' => $email,
+					'author_url'   => $url,
+					'content'      => 'XML-RPC content.',
+				),
+			)
+		);
+
+		$this->assert_comment_notifications_not_injected( $comment_id );
+	}
+
+	/**
+	 * Ensures that an anonymous comment form submission cannot add lines to the comment notifications.
+	 *
+	 * @covers ::wp_notify_postauthor
+	 * @covers ::wp_notify_moderator
+	 *
+	 * @dataProvider data_line_break_injections_with_valid_email
+	 *
+	 * @param string $author Author name containing some form of line feed.
+	 * @param string $email  Author email address containing some form of line feed.
+	 * @param string $url    Author URL containing some form of line feed.
+	 */
+	public function test_comment_form_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
+		$comment = wp_handle_comment_submission(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'author'          => $author,
+				'email'           => $email,
+				'url'             => $url,
+				'comment'         => 'Comment form content.',
+			)
+		);
+
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+		$this->assert_comment_notifications_not_injected( (int) $comment->comment_ID );
+	}
+
+	/**
+	 * Ensures that the profile of a logged-in commenter cannot add lines to the comment notifications.
+	 *
+	 * @covers ::wp_notify_postauthor
+	 * @covers ::wp_notify_moderator
+	 *
+	 * @dataProvider data_line_break_injections
+	 *
+	 * @param string $author Display name containing some form of line feed.
+	 * @param string $email  User email address containing some form of line feed.
+	 * @param string $url    User URL containing some form of line feed.
+	 */
+	public function test_logged_in_comment_form_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
+		wp_set_current_user(
+			self::factory()->user->create(
+				array(
+					'display_name' => $author,
+					'user_email'   => $email,
+					'user_url'     => $url,
+				)
+			)
+		);
+
+		$comment = wp_handle_comment_submission(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment'         => 'Logged-in comment form content.',
+			)
+		);
+
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+		$this->assert_comment_notifications_not_injected( (int) $comment->comment_ID );
+	}
+
+	/**
+	 * Ensures that author fields in a REST API request cannot add lines to the comment notifications.
+	 *
+	 * @covers ::wp_notify_postauthor
+	 * @covers ::wp_notify_moderator
+	 *
+	 * @dataProvider data_line_break_injections_with_valid_email
+	 *
+	 * @param string $author Author name containing some form of line feed.
+	 * @param string $email  Author email address containing some form of line feed.
+	 * @param string $url    Author URL containing some form of line feed.
+	 */
+	public function test_rest_api_comment_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->set_body_params(
+			array(
+				'post'         => self::$post_id,
+				'author_name'  => $author,
+				'author_email' => $email,
+				'author_url'   => $url,
+				'content'      => 'REST API content.',
+			)
+		);
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assert_comment_notifications_not_injected( $response->get_data()['id'] );
+	}
+
+	/**
+	 * Ensures that the profile of a logged-in REST API commenter cannot add lines to the comment notifications.
+	 *
+	 * @covers ::wp_notify_postauthor
+	 * @covers ::wp_notify_moderator
+	 *
+	 * @dataProvider data_line_break_injections
+	 *
+	 * @param string $author Display name containing some form of line feed.
+	 * @param string $email  User email address containing some form of line feed.
+	 * @param string $url    User URL containing some form of line feed.
+	 */
+	public function test_logged_in_rest_api_comment_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
+		wp_set_current_user(
+			self::factory()->user->create(
+				array(
+					'display_name' => $author,
+					'user_email'   => $email,
+					'user_url'     => $url,
+				)
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->set_body_params(
+			array(
+				'post'    => self::$post_id,
+				'content' => 'Logged-in REST API content.',
+			)
+		);
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assert_comment_notifications_not_injected( $response->get_data()['id'] );
+	}
+
+	/**
+	 * Ensures that editing a comment cannot add lines to the comment notifications.
+	 *
+	 * @covers ::wp_notify_postauthor
+	 * @covers ::wp_notify_moderator
+	 *
+	 * @dataProvider data_line_break_injections
+	 *
+	 * @param string $author Author name containing some form of line feed.
+	 * @param string $email  Author email address containing some form of line feed.
+	 * @param string $url    Author URL containing some form of line feed.
+	 */
+	public function test_comment_edit_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		wp_update_comment(
+			wp_slash(
+				array(
+					'comment_ID'           => $comment_id,
+					'comment_author'       => $author,
+					'comment_author_email' => $email,
+					'comment_author_url'   => $url,
+				)
+			)
+		);
+
+		$this->assert_comment_notifications_not_injected( $comment_id );
+	}
+
+	/**
+	 * Ensures that values already stored in a comment cannot add lines to the comment notifications.
+	 *
+	 * Values may reach the database through plugins, imports, or direct queries
+	 * which skip the save filters, so the notifications must not rely on them.
+	 *
+	 * @covers ::wp_notify_postauthor
+	 * @covers ::wp_notify_moderator
+	 *
+	 * @dataProvider data_line_break_injections
+	 *
+	 * @param string $author Stored comment author.
+	 * @param string $email  Stored comment author email address.
+	 * @param string $url    Stored comment author URL.
+	 */
+	public function test_stored_comment_cannot_inject_into_comment_notifications( string $author, string $email, string $url ) {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => $author,
+				'comment_author_email' => $email,
+				'comment_author_url'   => $url,
+			)
+		);
+
+		$this->assert_comment_notifications_not_injected( $comment_id );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * Each value tries to end the line it is placed in, then add lines which
+	 * replace the sender and add a recipient when read as email headers, or
+	 * which look like part of the notification when read in the email body.
+	 *
+	 * @return array<non-falsy-string, array{ string, string, string }>
+	 */
+	public static function data_line_break_injections(): array {
+		$author = static function ( $line_break ) {
+			return "Name{$line_break}From: spoof@example.net{$line_break}Bcc: attacker@example.net{$line_break}X:";
+		};
+
+		$email = static function ( $line_break, $colon, $at ) {
+			return "name{$line_break}Bcc{$colon}attacker{$at}example.net{$line_break}x@example.com";
+		};
+
+		$url = static function ( $line_break ) {
+			return "https://example.net/{$line_break}Bcc:attacker@example.net";
+		};
+
+		return array(
+			'Line feed'                             => array( $author( "\n" ), $email( "\n", ':', '@' ), $url( "\n" ) ),
+			'Carriage return'                       => array( $author( "\r" ), $email( "\r", ':', '@' ), $url( "\r" ) ),
+			'Carriage return and line feed'         => array( $author( "\r\n" ), $email( "\r\n", ':', '@' ), $url( "\r\n" ) ),
+			'Escaped line feed'                     => array( $author( '&#10;' ), $email( '&#10;', '&#58;', '&#64;' ), $url( '&#10;' ) ),
+			'Escaped line feed without semicolon'   => array( $author( '&#10' ), $email( '&#10', '&#58', '&#64' ), $url( '&#10' ) ),
+			'Escaped line feed in hexadecimal'      => array( $author( '&#xA;' ), $email( '&#xA;', '&#x3A;', '&#x40;' ), $url( '&#xA;' ) ),
+			'Escaped line feed with leading zeros'  => array( $author( '&#0010;' ), $email( '&#0010', '&#058', '&#064' ), $url( '&#0010;' ) ),
+			'Escaped line feed by name'             => array( $author( '&NewLine;' ), $email( '&NewLine;', '&colon;', '&commat;' ), $url( '&NewLine;' ) ),
+			'Escaped carriage return'               => array( $author( '&#13;' ), $email( '&#13', '&#58', '&#64' ), $url( '&#13;' ) ),
+			'Escaped carriage return and line feed' => array( $author( '&#13;&#10;' ), $email( '&#13&#10', '&#58', '&#64' ), $url( '&#13;&#10;' ) ),
+			'Carriage return and escaped line feed' => array( $author( "\r&#10;" ), $email( "\r&#10", '&#58', '&#64' ), $url( "\r&#10;" ) ),
+			'Double-escaped line feed'              => array( $author( '&amp;#10;' ), $email( '&amp#10', '&#58', '&#64' ), $url( '&amp;#10;' ) ),
+		);
+	}
+
+	/**
+	 * Data provider for sources which reject email addresses that fail is_email().
+	 *
+	 * These sources refuse such submissions before saving them, so a valid
+	 * address replaces those emails to still test the other fields.
+	 *
+	 * @return array<non-falsy-string, array{ string, string, string }>
+	 */
+	public static function data_line_break_injections_with_valid_email(): array {
+		$data = self::data_line_break_injections();
+
+		foreach ( $data as $name => $values ) {
+			if ( ! is_email( $values[1] ) ) {
+				$data[ $name ][1] = 'commenter@example.com';
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Asserts that the notifications for a comment contain no lines added through its author fields.
+	 *
+	 * Sends the post author and moderator notifications, then checks the
+	 * headers and body of every email sent.
+	 *
+	 * @param mixed $comment_id Comment ID, or an error value from attempting to create a comment.
+	 */
+	private function assert_comment_notifications_not_injected( $comment_id ) {
+		$this->assertIsInt( $comment_id, 'The comment should have been created.' );
+
+		reset_phpmailer_instance();
+
+		$this->assertTrue( wp_notify_postauthor( $comment_id ), 'The post author notification should have been sent.' );
+		$this->assertTrue( wp_notify_moderator( $comment_id ), 'The moderator notification should have been sent.' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertGreaterThanOrEqual( 2, count( $mailer->mock_sent ), 'Both notifications should have been sent.' );
+
+		foreach ( $mailer->mock_sent as $sent ) {
+			$this->assertSame( array(), $sent['cc'], 'The notification should not have Cc recipients.' );
+			$this->assertSame( array(), $sent['bcc'], 'The notification should not have Bcc recipients.' );
+			$this->assertSame( 1, preg_match_all( '/^From:/mi', $sent['header'] ), 'The notification should have one From header.' );
+			$this->assertStringNotContainsString( '<spoof@example.net>', $sent['header'], 'The notification should be sent from the site address.' );
+			$this->assertLessThanOrEqual( 1, preg_match_all( '/^Reply-To:/mi', $sent['header'] ), 'The notification should have at most one Reply-To header.' );
+			$this->assertDoesNotMatchRegularExpression( '/^(From|Bcc|X):/m', $sent['body'], 'The notification body should not contain lines added through the author fields.' );
+		}
 	}
 
 	/**
@@ -1846,7 +2227,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_trash_comment_trashes_child_notes.
 	 */
-	public function data_comment_approved_statuses() {
+	public static function data_comment_approved_statuses() {
 		return array(
 			array( '1' ),
 			array( '0' ),
@@ -2263,7 +2644,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string }>
 	 */
-	public function data_non_note_comment_types() {
+	public static function data_non_note_comment_types() {
 		return array(
 			'comment'   => array( 'comment' ),
 			'pingback'  => array( 'pingback' ),
@@ -2558,5 +2939,140 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$this->assertNull( get_comment( $comment_id . 'abc' ), 'Expected a malformed numeric string not to be cast to a comment ID.' );
 		$this->assertNull( get_comment( true ), 'Expected true not to be cast to comment ID 1.' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
+	}
+
+	/**
+	 * Queries made by metadata observers must see the newly added metadata.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_comment
+	 */
+	public function test_meta_query_is_fresh_inside_added_comment_meta_action() {
+		$result = $this->insert_comment_with_query_observer();
+
+		$this->assertSame( array(), $result['before'] );
+		$this->assertSameSets( array( $result['id'] ), $result['during'] );
+	}
+
+	/**
+	 * A query primed partway through insertion must be fresh after insertion.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_comment
+	 */
+	public function test_meta_query_is_fresh_after_comment_insertion() {
+		$result = $this->insert_comment_with_query_observer();
+
+		$this->assertSame( array(), $result['before'] );
+		$this->assertSameSets( array( $result['id'] ), $result['after'] );
+	}
+
+	/**
+	 * Inserts a comment while observing a query affected by its second meta key.
+	 *
+	 * @return array Recorded query results and the inserted comment ID.
+	 */
+	private function insert_comment_with_query_observer() {
+		$post_id = self::factory()->post->create();
+		$args    = array(
+			'post_id'    => $post_id,
+			'fields'     => 'ids',
+			'meta_key'   => 'target_meta_key',
+			'meta_value' => 'present',
+		);
+		$result  = array();
+
+		// Prime a query before its matching metadata is added, then repeat it afterwards.
+		$observer = static function ( $meta_id, $comment_id, $meta_key ) use ( $args, &$result ) {
+			if ( 'first_meta_key' === $meta_key ) {
+				$result['before'] = get_comments( $args );
+			}
+			if ( 'target_meta_key' === $meta_key ) {
+				$result['during'] = get_comments( $args );
+			}
+		};
+
+		add_action( 'added_comment_meta', $observer, 20, 3 );
+		try {
+			$result['id']    = wp_insert_comment(
+				array(
+					'comment_post_ID' => $post_id,
+					'comment_content' => 'Cache observer fixture',
+					'comment_meta'    => array(
+						'first_meta_key'  => 'present',
+						'target_meta_key' => 'present',
+					),
+				)
+			);
+			$result['after'] = get_comments( $args );
+		} finally {
+			remove_action( 'added_comment_meta', $observer, 20 );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * An intentionally absent invalidation callback must remain absent.
+	 *
+	 * @ticket 65485
+	 * @group cache
+	 * @covers ::wp_insert_comment
+	 */
+	public function test_meta_query_invalidation_preserves_absent_callback() {
+		remove_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
+		try {
+			wp_insert_comment(
+				array(
+					'comment_content' => 'Callback preservation fixture',
+					'comment_meta'    => array( 'target_meta_key' => 'present' ),
+				)
+			);
+			$this->assertFalse( has_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' ) );
+		} finally {
+			add_action( 'added_comment_meta', 'wp_cache_set_comments_last_changed' );
+		}
+	}
+
+	/**
+	 * The rules for notes and reactions belong to the request handlers.
+	 * wp_update_comment() stays unrestricted, like other low-level writers.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_wp_update_comment_does_not_restrict_reactions(): void {
+		$post_id     = self::factory()->post->create();
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+		$reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'comment_content'  => '2764',
+			)
+		);
+
+		$result = wp_update_comment(
+			array(
+				'comment_ID'      => $reaction_id,
+				'comment_content' => '1f680',
+			),
+			true
+		);
+
+		$this->assertSame( 1, $result );
+
+		$reaction = get_comment( $reaction_id );
+		$this->assertInstanceOf( WP_Comment::class, $reaction );
+		$this->assertSame( '1f680', $reaction->comment_content );
 	}
 }

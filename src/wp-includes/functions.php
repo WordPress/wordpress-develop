@@ -258,6 +258,11 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 	}
 
 	$datetime = date_create( '@' . $timestamp );
+
+	if ( false === $datetime ) {
+		return false;
+	}
+
 	$datetime->setTimezone( $timezone );
 
 	if ( empty( $wp_locale->month ) || empty( $wp_locale->weekday ) ) {
@@ -269,7 +274,7 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 		$new_format    = '';
 		$format_length = strlen( $format );
 		$month         = $wp_locale->get_month( $datetime->format( 'm' ) );
-		$weekday       = $wp_locale->get_weekday( $datetime->format( 'w' ) );
+		$weekday       = $wp_locale->get_weekday( (int) $datetime->format( 'w' ) );
 
 		for ( $i = 0; $i < $format_length; $i++ ) {
 			switch ( $format[ $i ] ) {
@@ -1036,6 +1041,8 @@ function wp_get_http_headers( $url, $deprecated = false ) {
  * @global string $previousday The day of the previous post in the loop.
  *
  * @return int 1 when new day, 0 if not a new day.
+ *
+ * @phpstan-return 0|1
  */
 function is_new_day() {
 	global $currentday, $previousday;
@@ -1158,9 +1165,10 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
  * @since 5.3.0 Formalized the existing and already documented parameters
  *              by adding `...$args` to the function signature.
  *
- * @param string|array $key   Either a query variable key, or an associative array of query variables.
- * @param string       $value Optional. Either a query variable value, or a URL to act upon.
- * @param string       $url   Optional. A URL to act upon.
+ * @param mixed ...$args Either a query variable key (string), its value (required; false removes
+ *                       the key), and an optional URL (string), or an associative array of query
+ *                       variables and an optional URL (string). If the URL is omitted or false,
+ *                       the current URL (`$_SERVER['REQUEST_URI']`) is used.
  * @return string New URL query string (unescaped).
  */
 function add_query_arg( ...$args ) {
@@ -1281,6 +1289,7 @@ function wp_removable_query_args() {
 		'ids',
 		'locked',
 		'message',
+		'network_admin_email_updated',
 		'same',
 		'saved',
 		'settings-updated',
@@ -2136,7 +2145,11 @@ function wp_mkdir_p( $target ) {
 		return true;
 	}
 
-	return false;
+	/*
+	 * Another process may have created the directory since the check above. Accept
+	 * it, with the permissions that process set: this call did not create it.
+	 */
+	return is_dir( $target );
 }
 
 /**
@@ -2149,8 +2162,8 @@ function wp_mkdir_p( $target ) {
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
  *
+ * @phpstan-assert-if-true =non-falsy-string $path
  * @phpstan-return ( $path is non-falsy-string ? bool : false )
- * @phpstan-assert-if-true non-falsy-string $path
  */
 function path_is_absolute( $path ) {
 	/*
@@ -2566,7 +2579,7 @@ function _wp_upload_dir( $time = null ) {
 			 *
 			 * Rather than UPLOADS, we actually use BLOGUPLOADDIR if it is set, as it is absolute.
 			 * (And it will be set, see ms_upload_constants().) Otherwise, UPLOADS can be used, as
-			 * as it is relative to ABSPATH. For the final piece: when UPLOADS is used with ms-files
+			 * it is relative to ABSPATH. For the final piece: when UPLOADS is used with ms-files
 			 * rewriting in multisite, the resulting URL is /files. (#WP22702 for background.)
 			 */
 
@@ -2911,6 +2924,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
 
 	// Edge case, file names like `.ext`.
 	if ( empty( $fname ) ) {
+
 		return false;
 	}
 
@@ -3299,8 +3313,24 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			 * and some media files are commonly named with the wrong extension (.mov instead of .mp4)
 			 */
 			if ( substr( $real_mime, 0, strcspn( $real_mime, '/' ) ) !== substr( $type, 0, strcspn( $type, '/' ) ) ) {
-				$type = false;
-				$ext  = false;
+				/*
+				 * Audio stored in an MP4/ISO-BMFF container (such as .m4a and .m4b, and
+				 * some .mp3 files produced by mobile recorders) is frequently detected as
+				 * video/mp4. Allow these known audio-in-video-container confusions rather
+				 * than rejecting a legitimate audio file whose major types don't match.
+				 * Also allow `video/3gpp`, as a RFC 3839 specification-compliant container
+				 * for audio-only content.
+				 */
+				$cross_container_types = array(
+					'audio/mpeg' => array( 'video/mp4', 'video/3gpp' ),
+				);
+
+				if ( empty( $cross_container_types[ $type ] )
+					|| ! in_array( $real_mime, $cross_container_types[ $type ], true )
+				) {
+					$type = false;
+					$ext  = false;
+				}
 			}
 		} elseif ( 'text/plain' === $real_mime ) {
 			// A few common file types are occasionally detected as text/plain; allow those.
@@ -3347,6 +3377,19 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				true
 			)
 			) {
+				$type = false;
+				$ext  = false;
+			}
+		} elseif ( in_array( $real_mime, array( 'font/ttf', 'font/sfnt' ), true ) ) {
+			/*
+			 * libmagic 5.47 changed the type reported for TrueType fonts from font/sfnt to the
+			 * canonical font/ttf. PHP 8.6 bundles a libmagic version with this change, but PHP
+			 * builds that use the system libmagic can report either type, so both are accepted
+			 * for TrueType fonts.
+			 *
+			 * @link https://github.com/file/file/commit/6481672a8eb64c2758bf6429d9a76ee5a22174e9
+			 */
+			if ( ! in_array( $type, array( 'font/ttf', 'font/sfnt' ), true ) ) {
 				$type = false;
 				$ext  = false;
 			}
@@ -4484,6 +4527,7 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  *                     greater than 0. Default 512.
  * @return string|false The JSON encoded string, or false if it cannot be encoded.
  *
+ * @phpstan-param positive-int $depth
  * @phpstan-return non-empty-string|false
  */
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
@@ -5460,7 +5504,7 @@ function wp_is_numeric_array( $data ): bool {
  * Key represents property name, and value represents property value.
  *
  * If an object has more properties than those specified in arguments,
- * that will not disqualify it. When using the 'AND' operator,
+ * that will not disqualify it. When using the 'and' operator,
  * any missing properties will disqualify it.
  *
  * When using the `$field` argument, this function can also retrieve
@@ -5473,13 +5517,15 @@ function wp_is_numeric_array( $data ): bool {
  * @param array       $input_list An array of objects to filter.
  * @param array       $args       Optional. An array of key => value arguments to match
  *                                against each object. Default empty array.
- * @param string      $operator   Optional. The logical operation to perform. 'AND' means
- *                                all elements from the array must match. 'OR' means only
- *                                one element needs to match. 'NOT' means no elements may
- *                                match. Default 'AND'.
+ * @param string      $operator   Optional. The logical operation to perform. 'and' means
+ *                                all elements from the array must match. 'or' means only
+ *                                one element needs to match. 'not' means no elements may
+ *                                match. The value is case-insensitive. Default 'and'.
  * @param bool|string $field      Optional. A field from the object to place instead
  *                                of the entire object. Default false.
  * @return array A list of objects or object fields.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  */
 function wp_filter_object_list( $input_list, $args = array(), $operator = 'and', $field = false ) {
 	if ( ! is_array( $input_list ) ) {
@@ -5504,7 +5550,7 @@ function wp_filter_object_list( $input_list, $args = array(), $operator = 'and',
  * Key represents property name, and value represents property value.
  *
  * If an object has more properties than those specified in arguments,
- * that will not disqualify it. When using the 'AND' operator,
+ * that will not disqualify it. When using the 'and' operator,
  * any missing properties will disqualify it.
  *
  * If you want to retrieve a particular field from all matching objects,
@@ -5517,13 +5563,15 @@ function wp_filter_object_list( $input_list, $args = array(), $operator = 'and',
  * @param array  $input_list An array of objects to filter.
  * @param array  $args       Optional. An array of key => value arguments to match
  *                           against each object. Default empty array.
- * @param string $operator   Optional. The logical operation to perform. 'AND' means
- *                           all elements from the array must match. 'OR' means only
- *                           one element needs to match. 'NOT' means no elements may
- *                           match. Default 'AND'.
+ * @param string $operator   Optional. The logical operation to perform. 'and' means
+ *                           all elements from the array must match. 'or' means only
+ *                           one element needs to match. 'not' means no elements may
+ *                           match. The value is case-insensitive. Default 'and'.
  * @return array Array of found values.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  */
-function wp_list_filter( $input_list, $args = array(), $operator = 'AND' ) {
+function wp_list_filter( $input_list, $args = array(), $operator = 'and' ) {
 	return wp_filter_object_list( $input_list, $args, $operator );
 }
 
@@ -6258,6 +6306,8 @@ function _doing_it_wrong( $function_name, $message, $version ) {
  *                              before passing to this function to avoid being stripped {@see wp_kses()}.
  * @param int    $error_level   Optional. The designated error type for this error.
  *                              Only works with E_USER family of constants. Default E_USER_NOTICE.
+ *
+ * @phpstan-param E_USER_ERROR|E_USER_WARNING|E_USER_NOTICE|E_USER_DEPRECATED $error_level
  */
 function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTICE ) {
 	/**
@@ -6694,6 +6744,8 @@ function is_main_network( $network_id = null ) {
  * @since 4.3.0
  *
  * @return int The ID of the main network.
+ *
+ * @phpstan-return non-negative-int
  */
 function get_main_network_id() {
 	if ( ! is_multisite() ) {
@@ -6723,6 +6775,8 @@ function get_main_network_id() {
 	 * @since 4.3.0
 	 *
 	 * @param int $main_network_id The ID of the main network.
+	 *
+	 * @phpstan-param non-negative-int $main_network_id
 	 */
 	return (int) apply_filters( 'get_main_network_id', $main_network_id );
 }
@@ -6875,11 +6929,11 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 
 		// This determines what gets set and translated - we don't translate Etc/* strings here, they are done later.
 		$exists    = array(
-			0 => ( isset( $zone[0] ) && $zone[0] ),
-			1 => ( isset( $zone[1] ) && $zone[1] ),
-			2 => ( isset( $zone[2] ) && $zone[2] ),
+			0 => ! empty( $zone[0] ),
+			1 => ! empty( $zone[1] ),
+			2 => ! empty( $zone[2] ),
 		);
-		$exists[3] = ( $exists[0] && 'Etc' !== $zone[0] );
+		$exists[3] = $exists[0];
 		$exists[4] = ( $exists[1] && $exists[3] );
 		$exists[5] = ( $exists[2] && $exists[3] );
 
@@ -6945,7 +6999,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 		$structure[] = '<option ' . $selected . 'value="' . esc_attr( $value ) . '" dir="auto">' . esc_html( $display ) . '</option>';
 
 		// Close continent optgroup.
-		if ( ! empty( $zone['city'] ) && ( ! isset( $zonen[ $key + 1 ] ) || ( isset( $zonen[ $key + 1 ] ) && $zonen[ $key + 1 ]['continent'] !== $zone['continent'] ) ) ) {
+		if ( ! empty( $zone['city'] ) && ( ! isset( $zonen[ $key + 1 ] ) || $zonen[ $key + 1 ]['continent'] !== $zone['continent'] ) ) {
 			$structure[] = '</optgroup>';
 		}
 	}
@@ -7205,6 +7259,8 @@ function __return_false() { // phpcs:ignore WordPress.NamingConventions.ValidFun
  * @since 3.0.0
  *
  * @return int 0.
+ *
+ * @phpstan-return 0
  */
 function __return_zero() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return 0;
@@ -7218,6 +7274,8 @@ function __return_zero() { // phpcs:ignore WordPress.NamingConventions.ValidFunc
  * @since 3.0.0
  *
  * @return array Empty array.
+ *
+ * @phpstan-return array{}
  */
 function __return_empty_array() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return array();
@@ -7246,6 +7304,8 @@ function __return_null() { // phpcs:ignore WordPress.NamingConventions.ValidFunc
  * @see __return_null()
  *
  * @return string Empty string.
+ *
+ * @phpstan-return ''
  */
 function __return_empty_string() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return '';
@@ -7597,6 +7657,8 @@ function _device_can_upload() {
  *
  * @param string $path The resource path or URL.
  * @return bool True if the path is a stream URL.
+ *
+ * @phpstan-assert-if-true =non-falsy-string $path
  */
 function wp_is_stream( $path ) {
 	$scheme_separator = strpos( $path, '://' );
@@ -7618,11 +7680,15 @@ function wp_is_stream( $path ) {
  *
  * @link https://www.php.net/manual/en/function.checkdate.php
  *
- * @param int    $month       Month number.
- * @param int    $day         Day number.
- * @param int    $year        Year number.
- * @param string $source_date The date to filter.
+ * @param int|string $month       Month number.
+ * @param int|string $day         Day number.
+ * @param int|string $year        Year number.
+ * @param string     $source_date The date to filter.
  * @return bool True if valid date, false if not valid date.
+ *
+ * @phpstan-param int|numeric-string $month
+ * @phpstan-param int|numeric-string $day
+ * @phpstan-param int|numeric-string $year
  */
 function wp_checkdate( $month, $day, $year, $source_date ) {
 	$checkdate = false;
@@ -8229,6 +8295,7 @@ function wp_generate_uuid4() {
  *                       to accept any UUID version. Otherwise, only version allowed is `4`.
  * @return bool The string is a valid UUID or false on failure.
  *
+ * @phpstan-assert-if-true =lowercase-string&non-falsy-string $uuid
  * @phpstan-return ( $version is 4|null ? bool : false )
  */
 function wp_is_uuid( $uuid, $version = null ) {
@@ -8327,6 +8394,7 @@ function wp_unique_prefixed_id( $prefix = '' ) {
  * @param string $prefix Optional. A prefix to prepend to the generated ID. Default empty string.
  * @return string The generated unique ID for the array.
  *
+ * @phpstan-param non-empty-array $data
  * @phpstan-return ( $prefix is lowercase-string ? lowercase-string&non-falsy-string : non-falsy-string )
  */
 function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
@@ -9538,6 +9606,8 @@ function wp_verify_fast_hash(
 /**
  * Sends an email to the user when a new application password is created.
  *
+ * Hooked to the {@see 'wp_create_application_password'} action.
+ *
  * @since 7.2.0
  *
  * @param int   $user_id  The user ID.
@@ -9567,15 +9637,27 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param bool    $send  Whether to send the email notification.
-	 * @param WP_User $user  The user object.
-	 * @param array   $new_item The application password details.
+	 * @param bool    $send     Whether to send the email notification.
+	 * @param WP_User $user     The user object.
+	 * @param array   $new_item {
+	 *     The details about the created password.
+	 *
+	 *     @type string $uuid      The unique identifier for the application password.
+	 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
+	 *     @type string $name      The name of the application password.
+	 *     @type string $password  A one-way hash of the password.
+	 *     @type int    $created   Unix timestamp of when the password was created.
+	 *     @type null   $last_used Null.
+	 *     @type null   $last_ip   Null.
+	 * }
 	 */
 	$send = apply_filters( 'wp_send_application_password_created_email', $send, $user, $new_item );
 
 	if ( ! $send ) {
 		return;
 	}
+
+	$switched_locale = switch_to_user_locale( $user->ID );
 
 	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, ADMIN_EMAIL, SITENAME, SITEURL, EMAIL: those are placeholders. */
 	$application_password_create_text = __(
@@ -9630,7 +9712,17 @@ All at ###SITENAME###
 	 *     @type string $headers Headers.
 	 * }
 	 * @param WP_User $user     The user object.
-	 * @param array   $new_item The application password details.
+	 * @param array   $new_item {
+	 *     The details about the created password.
+	 *
+	 *     @type string $uuid      The unique identifier for the application password.
+	 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
+	 *     @type string $name      The name of the application password.
+	 *     @type string $password  A one-way hash of the password.
+	 *     @type int    $created   Unix timestamp of when the password was created.
+	 *     @type null   $last_used Null.
+	 *     @type null   $last_ip   Null.
+	 * }
 	 */
 	$email = apply_filters( 'wp_application_password_created_email', $email, $user, $new_item );
 
@@ -9650,4 +9742,8 @@ All at ###SITENAME###
 		$email['message'],
 		$email['headers']
 	);
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 }

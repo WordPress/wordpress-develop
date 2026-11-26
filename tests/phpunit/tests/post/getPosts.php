@@ -5,6 +5,8 @@
  * @group query
  */
 class Tests_Post_GetPosts extends WP_UnitTestCase {
+	private $posts_where_filter_fired = false;
+
 	public function test_offset_should_be_null_by_default() {
 		$p1 = self::factory()->post->create(
 			array(
@@ -214,5 +216,36 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, get_posts( $args ), 'The uncached call is not of the expected form.' );
 		$this->assertSame( $expected, get_posts( $args ), 'The cached call is not of the expected form.' );
+	}
+
+	/**
+	 * @ticket 7326
+	 */
+	public function test_should_suppress_posts_where_filter_by_default() {
+		self::factory()->post->create();
+
+		add_filter( 'posts_where', array( $this, 'filter_posts_where_set_flag' ) );
+		get_posts();
+		remove_filter( 'posts_where', array( $this, 'filter_posts_where_set_flag' ) );
+
+		$this->assertFalse( $this->posts_where_filter_fired );
+	}
+
+	/**
+	 * @ticket 7326
+	 */
+	public function test_suppress_filters_false_should_apply_posts_where_filter() {
+		self::factory()->post->create();
+
+		add_filter( 'posts_where', array( $this, 'filter_posts_where_set_flag' ) );
+		get_posts( array( 'suppress_filters' => false ) );
+		remove_filter( 'posts_where', array( $this, 'filter_posts_where_set_flag' ) );
+
+		$this->assertTrue( $this->posts_where_filter_fired );
+	}
+
+	public function filter_posts_where_set_flag( $where ) {
+		$this->posts_where_filter_fired = true;
+		return $where;
 	}
 }

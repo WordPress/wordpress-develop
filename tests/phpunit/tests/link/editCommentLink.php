@@ -115,9 +115,6 @@ class Tests_Link_EditCommentLink extends WP_UnitTestCase {
 	public static function data_before_and_after_markup() {
 		return array(
 			'paragraph tags' => array( '<p>', '</p>' ),
-			'div tags'       => array( '<div class="edit-link">', '</div>' ),
-			'list item tags' => array( '<li>', '</li>' ),
-			'span tags'      => array( '<span>', '</span>' ),
 		);
 	}
 

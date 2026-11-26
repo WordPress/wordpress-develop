@@ -9,8 +9,6 @@
 
 /**
  * Version number for our API.
- *
- * @var string
  */
 define( 'REST_API_VERSION', '2.0' );
 
@@ -249,7 +247,7 @@ function rest_api_default_filters() {
 	}
 
 	// Default serving.
-	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
+	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers', 10, 4 );
 	add_filter( 'rest_post_dispatch', 'rest_send_allow_header', 10, 3 );
 	add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 
@@ -454,7 +452,11 @@ function create_initial_rest_routes() {
  * @global WP $wp Current WordPress environment instance.
  */
 function rest_api_loaded() {
-	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+	/*
+	 * Admin screens call wp() for list queries; they are never REST entry points.
+	 * Check WP_ADMIN rather than is_admin(), which follows the current screen.
+	 */
+	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) || defined( 'WP_ADMIN' ) ) {
 		return;
 	}
 
@@ -481,7 +483,6 @@ function rest_api_loaded() {
 	 * Whether this is a REST Request.
 	 *
 	 * @since 4.4.0
-	 * @var bool
 	 */
 	define( 'REST_REQUEST', true );
 
@@ -531,6 +532,8 @@ function rest_get_url_prefix() {
  * @param string   $path    Optional. REST route. Default '/'.
  * @param string   $scheme  Optional. Sanitization scheme. Default 'rest'.
  * @return string Full URL to the endpoint.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
 	if ( empty( $path ) ) {
@@ -589,6 +592,8 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
 	 * @param string   $path    REST route.
 	 * @param int|null $blog_id Blog ID.
 	 * @param string   $scheme  Sanitization scheme.
+	 *
+	 * @phpstan-param non-falsy-string $url
 	 */
 	return apply_filters( 'rest_url', $url, $path, $blog_id, $scheme );
 }
@@ -603,6 +608,8 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
  * @param string $path   Optional. REST route. Default empty.
  * @param string $scheme Optional. Sanitization scheme. Default 'rest'.
  * @return string Full URL to the endpoint.
+ *
+ * @phpstan-return non-falsy-string
  */
 function rest_url( $path = '', $scheme = 'rest' ) {
 	return get_rest_url( null, $path, $scheme );
@@ -808,11 +815,15 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
  * Sends Cross-Origin Resource Sharing headers with API requests.
  *
  * @since 4.4.0
+ * @since 7.2.0 Added the `$result`, `$request`, and `$server` parameters and the `rest_allowed_cors_methods` filter.
  *
- * @param mixed $value Response data.
+ * @param mixed                 $value   Response data.
+ * @param WP_HTTP_Response|null $result  Optional. Result to send to the client. Default null.
+ * @param WP_REST_Request|null  $request Optional. The request in context. Default null.
+ * @param WP_REST_Server|null   $server  Optional. The server instance. Default null.
  * @return mixed Response data.
  */
-function rest_send_cors_headers( $value ) {
+function rest_send_cors_headers( $value, $result = null, $request = null, $server = null ) {
 	$origin = get_http_origin();
 
 	if ( $origin ) {
@@ -820,10 +831,93 @@ function rest_send_cors_headers( $value ) {
 		if ( 'null' !== $origin ) {
 			$origin = sanitize_url( $origin );
 		}
-		header( 'Access-Control-Allow-Origin: ' . $origin );
-		header( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE' );
-		header( 'Access-Control-Allow-Credentials: true' );
-		header( 'Vary: Origin', false );
+
+		/*
+		 * Send through the server when serving a REST request. A direct call without one
+		 * sends the headers itself, so that it does not set up the REST server.
+		 */
+		if ( ! $server instanceof WP_REST_Server ) {
+			$server = null;
+		}
+		$send_header = static function ( string $key, string $header_value ) use ( $server ): void {
+			if ( $server ) {
+				$server->send_header( $key, $header_value );
+			} elseif ( ! headers_sent() ) {
+				header( "{$key}: {$header_value}" );
+			}
+		};
+
+		$send_header( 'Access-Control-Allow-Origin', $origin );
+
+		/*
+		 * The response's own headers have already been sent, and header() replaces them,
+		 * so seed the list from any value the response set rather than discarding it.
+		 */
+		$response_headers = ( $result instanceof WP_HTTP_Response ) ? $result->get_headers() : array();
+		$response_headers = array_change_key_case( $response_headers );
+
+		/**
+		 * Parses a list of methods, keeping only syntactically valid method tokens (RFC 9110, section 9.1).
+		 *
+		 * @phpstan-var Closure(mixed): list<non-empty-string> $parse_methods
+		 */
+		$parse_methods = static function ( $methods ): array {
+			if ( is_array( $methods ) ) {
+				// Join the entries so that each one is split like a string value, as in array( 'GET, POST' ).
+				$methods = implode( ',', array_filter( $methods, 'is_string' ) );
+			} elseif ( ! is_string( $methods ) ) {
+				return array();
+			}
+			$methods = preg_grep( '/^[!#$%&\'*+.^_`|~0-9A-Za-z-]+$/D', array_unique( wp_parse_list( $methods ) ) );
+			return is_array( $methods ) ? array_values( $methods ) : array();
+		};
+
+		// Fall back to the default list when the response names no valid methods.
+		$allow_methods = $parse_methods( $response_headers['access-control-allow-methods'] ?? null );
+		if ( empty( $allow_methods ) ) {
+			$allow_methods = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
+		}
+
+		/**
+		 * Filters the list of HTTP methods advertised to REST API CORS requests.
+		 *
+		 * The allowed methods are passed to the browser to specify which methods
+		 * may be used in a cross-origin request to the REST API. The list is a
+		 * fixed default and is not derived from the registered routes, so a site
+		 * serving routes that accept other methods can advertise them here.
+		 *
+		 * If the response already set its own `Access-Control-Allow-Methods` header
+		 * naming valid methods, `$allow_methods` is those methods instead of the default list.
+		 * Entries that are not valid method tokens are dropped, and an empty list
+		 * omits the header. A value that is neither an array nor a string is ignored.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param string[]             $allow_methods The list of HTTP methods to allow.
+		 * @param WP_REST_Request|null $request       The request in context, if available.
+		 */
+		$filtered_methods = apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request instanceof WP_REST_Request ? $request : null );
+
+		// Keep the unfiltered list for a callback that does not return one, rather than omitting the header.
+		if ( is_array( $filtered_methods ) || is_string( $filtered_methods ) ) {
+			$allow_methods = $parse_methods( $filtered_methods );
+		}
+
+		if ( ! empty( $allow_methods ) ) {
+			$send_header( 'Access-Control-Allow-Methods', implode( ', ', $allow_methods ) );
+		} elseif ( $server ) {
+			// Remove a value the response already sent.
+			$server->remove_header( 'Access-Control-Allow-Methods' );
+		} elseif ( ! headers_sent() ) {
+			header_remove( 'Access-Control-Allow-Methods' );
+		}
+
+		$send_header( 'Access-Control-Allow-Credentials', 'true' );
+
+		// WP_REST_Server::send_header() replaces a header, and Vary must be appended to.
+		if ( ! headers_sent() ) {
+			header( 'Vary: Origin', false );
+		}
 	} elseif ( ! headers_sent() && 'GET' === $_SERVER['REQUEST_METHOD'] && ! is_user_logged_in() ) {
 		header( 'Vary: Origin', false );
 	}
@@ -950,6 +1044,8 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
  * Filters the REST API response to include only an allow-listed set of response object fields.
  *
  * @since 4.8.0
+ * @since 7.2.0 The response is left unchanged when the route turns off the `fields` response
+ *              processing or when the response data is not an array.
  *
  * @param WP_REST_Response $response Current response being served.
  * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
@@ -961,7 +1057,17 @@ function rest_filter_response_fields( $response, $server, $request ) {
 		return $response;
 	}
 
+	$processing = $response->get_data_processing();
+	if ( ! $processing['fields'] ) {
+		return $response;
+	}
+
 	$data = $response->get_data();
+
+	// Only arrays have fields to filter.
+	if ( ! is_array( $data ) ) {
+		return $response;
+	}
 
 	$fields = wp_parse_list( $request['_fields'] );
 
@@ -973,6 +1079,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 	$fields = array_map( 'trim', $fields );
 
 	// Create nested array of accepted field hierarchy.
+	/** @var array<string, mixed> $fields_as_keyed */
 	$fields_as_keyed = array();
 	foreach ( $fields as $field ) {
 		$parts = explode( '.', $field );
@@ -993,7 +1100,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 	if ( wp_is_numeric_array( $data ) ) {
 		$new_data = array();
 		foreach ( $data as $item ) {
-			$new_data[] = _rest_array_intersect_key_recursive( $item, $fields_as_keyed );
+			$new_data[] = is_array( $item ) ? _rest_array_intersect_key_recursive( $item, $fields_as_keyed ) : $item;
 		}
 	} else {
 		$new_data = _rest_array_intersect_key_recursive( $data, $fields_as_keyed );
@@ -1444,6 +1551,8 @@ function rest_get_date_with_gmt( $date, $is_utc = false ) {
  * @since 4.7.0
  *
  * @return int 401 if the user is not logged in, 403 if the user is logged in.
+ *
+ * @phpstan-return 401|403
  */
 function rest_authorization_required_code() {
 	return is_user_logged_in() ? 403 : 401;
@@ -3048,7 +3157,7 @@ function rest_preload_api_request( $memo, $path ) {
 		/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
 		$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $server, $request );
 		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
-		$data     = (array) $server->response_to_data( $response, $embed );
+		$data     = $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
 			$memo[ $method ][ $path ] = array(

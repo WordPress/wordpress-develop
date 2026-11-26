@@ -109,6 +109,22 @@ class WP_Widget {
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance The settings for the particular instance of the widget.
+	 *
+	 * @phpstan-param array{
+	 *     name?: string,
+	 *     id?: string,
+	 *     description?: string,
+	 *     class?: string,
+	 *     before_widget: string,
+	 *     after_widget: string,
+	 *     before_title: string,
+	 *     after_title: string,
+	 *     before_sidebar?: string,
+	 *     after_sidebar?: string,
+	 *     show_in_rest?: bool,
+	 *     widget_id?: string,
+	 *     widget_name?: string,
+	 * } $args
 	 */
 	public function widget( $args, $instance ) {
 		die( 'function WP_Widget::widget() must be overridden in a subclass.' );
@@ -412,6 +428,8 @@ class WP_Widget {
 	 * @global array $wp_registered_widgets
 	 *
 	 * @param int $deprecated Not used.
+	 *
+	 * @final
 	 */
 	public function update_callback( $deprecated = 1 ) {
 		global $wp_registered_widgets;
@@ -504,6 +522,8 @@ class WP_Widget {
 	 *     @type int $number Number increment used for multiples of the same widget.
 	 * }
 	 * @return string|null
+	 *
+	 * @final
 	 */
 	public function form_callback( $widget_args = 1 ) {
 		if ( is_numeric( $widget_args ) ) {

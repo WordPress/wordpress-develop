@@ -31,19 +31,11 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global string $mode       List table view mode.
 	 * @global string $usersearch User search query.
 	 * @global string $role       The user role to filter by. Only 'super' (super admins) is supported.
 	 */
 	public function prepare_items() {
-		global $mode, $usersearch, $role;
-
-		if ( ! empty( $_REQUEST['mode'] ) ) {
-			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
-			set_user_setting( 'network_users_list_mode', $mode );
-		} else {
-			$mode = get_user_setting( 'network_users_list_mode', 'list' );
-		}
+		global $usersearch, $role;
 
 		$usersearch = isset( $_REQUEST['s'] ) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
 
@@ -190,27 +182,6 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Generates the list table pagination.
-	 *
-	 * @since 3.1.0
-	 *
-	 * @global string $mode List table view mode.
-	 *
-	 * @param string $which The location of the pagination: Either 'top' or 'bottom'.
-	 *
-	 * @phpstan-param 'top'|'bottom' $which
-	 */
-	protected function pagination( $which ) {
-		global $mode;
-
-		parent::pagination( $which );
-
-		if ( 'top' === $which ) {
-			$this->view_switcher( $mode );
-		}
-	}
-
-	/**
 	 * Gets the list of columns for the users list table.
 	 *
 	 * @since 3.1.0
@@ -276,7 +247,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			<span class="screen-reader-text">
 			<?php
 			/* translators: Hidden accessibility text. %s: User login. */
-			printf( __( 'Select %s' ), $user->user_login );
+			printf( __( 'Select %s' ), esc_html( $user->user_login ) );
 			?>
 			</span>
 		</label>
@@ -309,9 +280,9 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'edit_user', $user->ID ) ) {
 			$edit_link = esc_url( add_query_arg( 'wp_http_referer', urlencode( wp_unslash( $_SERVER['REQUEST_URI'] ) ), get_edit_user_link( $user->ID ) ) );
-			$edit      = "<a href=\"{$edit_link}\">{$user->user_login}</a>";
+			$edit      = "<a href=\"{$edit_link}\">" . esc_html( $user->user_login ) . '</a>';
 		} else {
-			$edit = $user->user_login;
+			$edit = esc_html( $user->user_login );
 		}
 
 		?>
@@ -370,18 +341,10 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @global string $mode List table view mode.
-	 *
 	 * @param WP_User $user The current WP_User object.
 	 */
 	public function column_registered( $user ) {
-		global $mode;
-		if ( 'list' === $mode ) {
-			$date = __( 'Y/m/d' );
-		} else {
-			$date = __( 'Y/m/d g:i:s a' );
-		}
-		echo mysql2date( $date, $user->user_registered );
+		echo mysql2date( __( 'Y/m/d g:i:s a' ), $user->user_registered );
 	}
 
 	/**

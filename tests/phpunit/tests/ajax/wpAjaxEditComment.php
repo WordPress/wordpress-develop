@@ -242,4 +242,521 @@ class Tests_Ajax_wpAjaxEditComment extends WP_Ajax_UnitTestCase {
 	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
 		return new WP_Error( 'comment_wrong', 'wp_update_comment_data filter fails for this comment.', 500 );
 	}
+
+	/**
+	 * The curated reaction key for the heart emoji, as stored in a reaction's content.
+	 */
+	private const HEART_REACTION_KEY = '2764';
+
+	/**
+	 * Creates an administrator's open note and approved reaction on a post.
+	 *
+	 * @param int $post_id  Post to attach the note to.
+	 * @param int $admin_id User who owns the note and reaction.
+	 * @return positive-int The reaction ID.
+	 */
+	private function create_admin_reaction( int $post_id, int $admin_id ): int {
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => $admin_id,
+				'comment_content'  => 'Editorial note',
+			)
+		);
+
+		return self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => $admin_id,
+				'comment_content'  => self::HEART_REACTION_KEY,
+			)
+		);
+	}
+
+	/**
+	 * Reactions are immutable. The REST API refuses to update them, and the
+	 * admin-ajax writer has to refuse too, or anyone who can edit the post
+	 * rewrites and reattributes other users' reactions.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_edit_reaction(): void {
+		$this->_setRole( 'contributor' );
+
+		$admin_id    = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$draft_id    = self::factory()->post->create(
+			array(
+				'post_author' => get_current_user_id(),
+				'post_status' => 'draft',
+			)
+		);
+		$reaction_id = $this->create_admin_reaction( $draft_id, $admin_id );
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $reaction_id,
+				'content'                     => 'rewritten',
+				'newcomment_author'           => 'Forged',
+				'newcomment_author_email'     => 'forged@example.org',
+				'user_id'                     => (string) get_current_user_id(),
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+			$this->fail( 'The handler should have refused to edit a reaction.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			unset( $e );
+		}
+
+		$reaction = get_comment( $reaction_id );
+		$this->assertInstanceOf( WP_Comment::class, $reaction );
+		$this->assertSame( self::HEART_REACTION_KEY, $reaction->comment_content );
+		$this->assertSame( (string) $admin_id, $reaction->user_id );
+		$this->assertSame( '', $reaction->comment_author_email );
+	}
+
+	/**
+	 * Moving a comment requires edit access to the destination post, not only
+	 * to the post it is on.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_move_comment_to_post_user_cannot_edit(): void {
+		$this->_setRole( 'contributor' );
+
+		$admin_id      = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$draft_id      = self::factory()->post->create(
+			array(
+				'post_author' => get_current_user_id(),
+				'post_status' => 'draft',
+			)
+		);
+		$admin_post_id = self::factory()->post->create( array( 'post_author' => $admin_id ) );
+		$comment_id    = self::factory()->comment->create( array( 'comment_post_ID' => $draft_id ) );
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $comment_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $admin_post_id,
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+			$this->fail( 'The handler should have refused to move the comment.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			unset( $e );
+		}
+
+		$comment = get_comment( $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+		$this->assertSame( (string) $draft_id, $comment->comment_post_ID );
+	}
+
+	/**
+	 * A user who can edit both posts can still move a comment between them.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_can_move_comment_to_post_user_can_edit(): void {
+		$this->_setRole( 'editor' );
+
+		$source_post_id = self::factory()->post->create();
+		$target_post_id = self::factory()->post->create();
+		$comment_id     = self::factory()->comment->create( array( 'comment_post_ID' => $source_post_id ) );
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $comment_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $target_post_id,
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$comment = get_comment( $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+		$this->assertSame( (string) $target_post_id, $comment->comment_post_ID );
+	}
+
+	/**
+	 * An author who can reply beneath a note on their own post must not be
+	 * able to turn that reply into a reaction attributed to someone else.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_convert_comment_into_reaction(): void {
+		$this->_setRole( 'author' );
+
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$post_id  = self::factory()->post->create( array( 'post_author' => get_current_user_id() ) );
+		$note_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => $admin_id,
+				'comment_content'  => 'Editorial note',
+			)
+		);
+
+		// Step 1: reply beneath the note with an ordinary comment.
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_post_ID'             => (string) $post_id,
+				'comment_ID'                  => (string) $note_id,
+				'content'                     => 'Ordinary reply',
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'replyto-comment' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$replies = get_comments(
+			array(
+				'post_id' => $post_id,
+				'parent'  => $note_id,
+				'type'    => 'comment',
+				'status'  => 'all',
+				'fields'  => 'ids',
+			)
+		);
+		$this->assertCount( 1, $replies );
+		$reply_id = (int) $replies[0];
+
+		// Step 2: edit the reply into a reaction owned by the administrator.
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $reply_id,
+				'content'                     => self::HEART_REACTION_KEY,
+				'comment_type'                => 'reaction',
+				'user_id'                     => (string) $admin_id,
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPDieException $e ) {
+			unset( $e );
+		}
+
+		$reply = get_comment( $reply_id );
+		$this->assertInstanceOf( WP_Comment::class, $reply );
+		$this->assertSame( 'comment', $reply->comment_type );
+		$this->assertSame( 'Ordinary reply', $reply->comment_content );
+		$this->assertSame( (string) get_current_user_id(), $reply->user_id );
+	}
+
+	/**
+	 * A post ID of zero skips the destination check and would orphan the
+	 * comment, which drops its capability mapping to the post.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_detach_comment_from_its_post(): void {
+		$this->_setRole( 'contributor' );
+
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$draft_id = self::factory()->post->create(
+			array(
+				'post_author' => get_current_user_id(),
+				'post_status' => 'draft',
+			)
+		);
+		$note_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $draft_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => $admin_id,
+				'comment_content'  => 'Editorial note',
+			)
+		);
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $note_id,
+				'content'                     => 'Editorial note',
+				'comment_post_ID'             => '0',
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPDieException $e ) {
+			unset( $e );
+		}
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( (string) $draft_id, $note->comment_post_ID );
+	}
+
+	/**
+	 * The new parent has to be on the post the comment is moving to, not the
+	 * one it is leaving.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_move_comment_under_parent_on_the_post_it_leaves(): void {
+		$this->_setRole( 'editor' );
+		update_option( 'thread_comments', 1 );
+
+		$post_a_id  = self::factory()->post->create();
+		$post_b_id  = self::factory()->post->create();
+		$parent_id  = self::factory()->comment->create( array( 'comment_post_ID' => $post_a_id ) );
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_a_id ) );
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $comment_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $post_b_id,
+				'comment_parent'              => (string) $parent_id,
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPDieException $e ) {
+			unset( $e );
+		}
+
+		$comment = get_comment( $comment_id );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
+		$this->assertSame( (string) $post_a_id, $comment->comment_post_ID );
+		$this->assertSame( '0', $comment->comment_parent );
+	}
+
+	/**
+	 * A reply cannot move to another post while still threaded under a
+	 * comment on the post it leaves.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_move_reply_away_from_its_parent(): void {
+		$this->_setRole( 'editor' );
+		update_option( 'thread_comments', 1 );
+
+		$post_a_id = self::factory()->post->create();
+		$post_b_id = self::factory()->post->create();
+		$parent_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_a_id ) );
+		$reply_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_a_id,
+				'comment_parent'  => $parent_id,
+			)
+		);
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $reply_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $post_b_id,
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPDieException $e ) {
+			unset( $e );
+		}
+
+		$reply = get_comment( $reply_id );
+		$this->assertInstanceOf( WP_Comment::class, $reply );
+		$this->assertSame( (string) $post_a_id, $reply->comment_post_ID );
+	}
+
+	/**
+	 * A reply can move to another post when the same request detaches it from
+	 * its parent, since the submitted parent is the one that will be kept.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_can_move_reply_to_another_post_when_detached_from_its_parent(): void {
+		$this->_setRole( 'editor' );
+		update_option( 'thread_comments', 1 );
+
+		$post_a_id = self::factory()->post->create();
+		$post_b_id = self::factory()->post->create();
+		$parent_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_a_id ) );
+		$reply_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_a_id,
+				'comment_parent'  => $parent_id,
+			)
+		);
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $reply_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $post_b_id,
+				'comment_parent'              => '0',
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$reply = get_comment( $reply_id );
+		$this->assertInstanceOf( WP_Comment::class, $reply );
+		$this->assertSame( (string) $post_b_id, $reply->comment_post_ID );
+		$this->assertSame( '0', $reply->comment_parent );
+	}
+
+	/**
+	 * A note's reactions stay on its post, so moving the note would separate
+	 * them and empty its reaction summary.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_cannot_move_note_that_has_reactions(): void {
+		$this->_setRole( 'editor' );
+
+		$post_a_id   = self::factory()->post->create();
+		$post_b_id   = self::factory()->post->create();
+		$reaction_id = $this->create_admin_reaction( $post_a_id, get_current_user_id() );
+		$reaction    = get_comment( $reaction_id );
+		$this->assertInstanceOf( WP_Comment::class, $reaction );
+		$note_id = (int) $reaction->comment_parent;
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $note_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $post_b_id,
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPDieException $e ) {
+			unset( $e );
+		}
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( (string) $post_a_id, $note->comment_post_ID );
+	}
+
+	/**
+	 * A note with no replies or reactions can still move.
+	 *
+	 * @ticket 66635
+	 */
+	public function test_can_move_note_without_children(): void {
+		$this->_setRole( 'editor' );
+
+		$post_a_id = self::factory()->post->create();
+		$post_b_id = self::factory()->post->create();
+		$note_id   = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_a_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $note_id,
+				'content'                     => 'Moved',
+				'comment_post_ID'             => (string) $post_b_id,
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( (string) $post_b_id, $note->comment_post_ID );
+	}
+
+	/**
+	 * A note cannot stop being one, including by a change of case.
+	 *
+	 * @ticket 66635
+	 *
+	 * @dataProvider data_types_a_note_cannot_become
+	 *
+	 * @param non-falsy-string $type The requested comment type.
+	 */
+	public function test_cannot_convert_note_into_another_type( string $type ): void {
+		$this->_setRole( 'editor' );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+
+		$_POST = wp_slash(
+			array(
+				'_ajax_nonce-replyto-comment' => wp_create_nonce( 'replyto-comment' ),
+				'comment_ID'                  => (string) $note_id,
+				'content'                     => 'Converted',
+				'comment_type'                => $type,
+			)
+		);
+
+		try {
+			$this->_handleAjax( 'edit-comment' );
+			$this->fail( 'The handler should have refused to change the note type.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			unset( $e );
+		}
+
+		$note = get_comment( $note_id );
+		$this->assertInstanceOf( WP_Comment::class, $note );
+		$this->assertSame( 'note', $note->comment_type );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ non-falsy-string }>
+	 */
+	public function data_types_a_note_cannot_become(): array {
+		return array(
+			'comment'        => array( 'comment' ),
+			'uppercase note' => array( 'NOTE' ),
+		);
+	}
 }

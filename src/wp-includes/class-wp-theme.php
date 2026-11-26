@@ -6,18 +6,51 @@
  * @subpackage Theme
  * @since 3.4.0
  *
+ * @property-read string|false   $name
+ * @property-read string|false   $title
+ * @property-read string|false   $version
+ * @property-read string|false   $parent_theme
+ * @property-read string         $template_dir
+ * @property-read string         $stylesheet_dir
+ * @property-read string         $template
+ * @property-read string         $stylesheet
+ * @property-read string|false   $screenshot
+ * @property-read string|false   $description
+ * @property-read string|false   $author
+ * @property-read string[]|false $tags
+ * @property-read string         $theme_root
+ * @property-read string         $theme_root_uri
+ *
  * @phpstan-type Theme_Key 'Name'|'Version'|'Status'|'Title'|'Author'|'Author Name'|'Author URI'|'Description'|'Template'|'Stylesheet'|'Template Files'|'Stylesheet Files'|'Template Dir'|'Stylesheet Dir'|'Screenshot'|'Tags'|'Theme Root'|'Theme Root URI'|'Parent Theme'
  */
 #[AllowDynamicProperties]
 final class WP_Theme implements ArrayAccess {
 
 	/**
-	 * Whether the theme has been marked as updateable.
+	 * Whether the theme has been marked as updateable, or the theme's update data.
+	 *
+	 * This is false by default. WP_MS_Themes_List_Table sets it to true when an
+	 * update is available for the theme, while get_theme_updates() sets it to the
+	 * theme's entry in the `response` of the `update_themes` site transient. That
+	 * entry always contains the `new_version`, and usually the `theme`, `url`,
+	 * `package`, `requires`, and `requires_php` as well, where `requires` and
+	 * `requires_php` are false when the theme does not declare them. Themes updated
+	 * via the {@see 'update_themes_$hostname'} filter may also include other keys.
 	 *
 	 * @since 4.4.0
-	 * @var bool
+	 * @var bool|array<string, mixed>
+	 * @phpstan-var bool|array{
+	 *     new_version: string,
+	 *     theme?: string,
+	 *     url?: string,
+	 *     package?: string,
+	 *     requires?: string|false,
+	 *     requires_php?: string|false,
+	 *     ...
+	 * }
 	 *
 	 * @see WP_MS_Themes_List_Table
+	 * @see get_theme_updates()
 	 */
 	public $update = false;
 
@@ -1379,10 +1412,8 @@ final class WP_Theme implements ArrayAccess {
 				}
 
 				foreach ( $types as $type ) {
-					$type = sanitize_key( $type );
-					if ( ! isset( $post_templates[ $type ] ) ) {
-						$post_templates[ $type ] = array();
-					}
+					$type                      = sanitize_key( $type );
+					$post_templates[ $type ] ??= array();
 
 					$post_templates[ $type ][ $file ] = $headers['TemplateName'];
 				}

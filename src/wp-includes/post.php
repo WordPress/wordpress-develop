@@ -1132,7 +1132,7 @@ function get_extended( $post ) {
  * @return WP_Post|array|null Type corresponding to $output on success or null on failure.
  *                            When $output is OBJECT, a `WP_Post` instance is returned.
  *
- * @phpstan-param int|numeric-string|WP_Post|null $post
+ * @phpstan-param int|decimal-int-string|WP_Post|null $post
  * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
  * @phpstan-param 'raw'|'edit'|'db'|'display' $filter
  * @phpstan-return (
@@ -1556,9 +1556,12 @@ function get_post_status_object( $post_status ) {
  *                               properties of the global `$wp_post_statuses objects`. Default empty array.
  * @param string       $output   Optional. The type of output to return, either 'names' or 'objects'. Default 'names'.
  * @param string       $operator Optional. The logical operation to perform. 'or' means only one element
- *                               from the array needs to match; 'and' means all elements must match.
+ *                               from the array needs to match; 'and' means all elements must match;
+ *                               'not' means no elements may match. The value is case-insensitive.
  *                               Default 'and'.
  * @return string[]|stdClass[] A list of post status names or objects.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  * @phpstan-return ( $output is 'names' ? array<non-falsy-string, non-falsy-string> : array<non-falsy-string, stdClass> )
  */
 function get_post_stati( $args = array(), $output = 'names', $operator = 'and' ) {
@@ -1663,8 +1666,11 @@ function get_post_type_object( $post_type ) {
  *                               or 'objects'. Default 'names'.
  * @param string       $operator Optional. The logical operation to perform. 'or' means only one
  *                               element from the array needs to match; 'and' means all elements
- *                               must match; 'not' means no elements may match. Default 'and'.
+ *                               must match; 'not' means no elements may match. The value is
+ *                               case-insensitive. Default 'and'.
  * @return string[]|WP_Post_Type[] An array of post type names or objects.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  * @phpstan-return ( $output is 'names' ? string[] : WP_Post_Type[] )
  */
 function get_post_types( $args = array(), $output = 'names', $operator = 'and' ) {
@@ -2435,8 +2441,10 @@ function post_type_supports( $post_type, $feature ) {
  * @param string       $operator Optional. The logical operation to perform. 'or' means
  *                               only one element from the array needs to match; 'and'
  *                               means all elements must match; 'not' means no elements may
- *                               match. Default 'and'.
+ *                               match. The value is case-insensitive. Default 'and'.
  * @return string[] A list of post type names.
+ *
+ * @phpstan-param 'and'|'AND'|'or'|'OR'|'not'|'NOT' $operator
  */
 function get_post_types_by_support( $feature, $operator = 'and' ) {
 	global $_wp_post_type_features;
@@ -3887,7 +3895,7 @@ function get_post_mime_types() {
  * @param string|string[] $wildcard_mime_types Mime types, e.g. `audio/mpeg`, `image` (same as `image/*`),
  *                                             or `flash` (same as `*flash*`).
  * @param string|string[] $real_mime_types     Real post mime type values.
- * @return array array(wildcard=>array(real types)).
+ * @return array<string[]> array(wildcard=>array(real types)).
  */
 function wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) {
 	$matches = array();
@@ -3947,6 +3955,8 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 	$wildcards = array( '', '%', '%/%' );
 	if ( is_string( $post_mime_types ) ) {
 		$post_mime_types = array_map( 'trim', explode( ',', $post_mime_types ) );
+		// Skip empty items left by extra commas, so they do not match the '' wildcard.
+		$post_mime_types = array_diff( $post_mime_types, array( '' ) );
 	}
 
 	$where_clauses = array();
@@ -4002,9 +4012,10 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  *
  * @since 1.0.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
  * @see wp_delete_attachment()
  * @see wp_trash_post()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int  $post_id      Post ID. (The default of 0 is for historical reasons; providing it is incorrect.)
  * @param bool $force_delete Optional. Whether to bypass Trash and force deletion.
@@ -4588,7 +4599,7 @@ function wp_untrash_post_comments( $post = null ) {
  *
  * @phpstan-return (
  *     $args is array{ fields: 'count', ... }
- *         ? numeric-string|WP_Error
+ *         ? decimal-int-string|WP_Error
  *         : ( $args is array{ fields: 'id=>parent', ... }
  *             ? array<int, int>|WP_Error
  *             : ( $args is array{ fields: 'names'|'slugs', ... }
@@ -4630,7 +4641,7 @@ function wp_get_post_categories( $post_id = 0, $args = array() ) {
  *
  * @phpstan-return (
  *     $args is array{ fields: 'count', ... }
- *         ? numeric-string|WP_Error
+ *         ? decimal-int-string|WP_Error
  *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
  *             ? int[]|WP_Error
  *             : ( $args is array{ fields: 'id=>parent', ... }
@@ -4667,7 +4678,7 @@ function wp_get_post_tags( $post_id = 0, $args = array() ) {
  *
  * @phpstan-return (
  *     $args is array{ fields: 'count', ... }
- *         ? numeric-string|WP_Error
+ *         ? decimal-int-string|WP_Error
  *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
  *             ? int[]|WP_Error
  *             : ( $args is array{ fields: 'id=>parent', ... }
@@ -4697,13 +4708,37 @@ function wp_get_post_terms( $post_id = 0, $taxonomy = 'post_tag', $args = array(
  *
  * @see get_posts()
  *
- * @param array  $args   Optional. Arguments to retrieve posts. Default empty array.
- * @param string $output Optional. The required return type. One of OBJECT or ARRAY_A, which
- *                       correspond to a WP_Post object or an associative array, respectively.
- *                       Default ARRAY_A.
+ * @param array|int $args {
+ *     Optional. Arguments to retrieve posts. See {@see get_posts()} and
+ *     {@see WP_Query::parse_query()} for all available arguments. Those listed here
+ *     have defaults that differ. Passing an integer number of posts is deprecated
+ *     since 3.1.0. Default empty array.
+ *
+ *     @type int             $numberposts Total number of posts to retrieve. Accepts -1 for all.
+ *                                        Default 10.
+ *     @type int             $offset      The number of posts to offset before retrieval. Default 0.
+ *     @type string|array    $orderby     Sort retrieved posts by parameter. Default 'post_date'.
+ *     @type string|string[] $post_status A post status (string) or array of post statuses.
+ *                                        Default 'draft, publish, future, pending, private'.
+ * }
+ * @param string    $output Optional. The required return type. One of OBJECT or ARRAY_A, which
+ *                          correspond to a WP_Post object or an associative array, respectively.
+ *                          Default ARRAY_A.
  * @return array|false Array of recent posts, where the type of each element is determined
  *                     by the `$output` parameter. Empty array on failure.
  *
+ * @phpstan-param positive-int|array{
+ *     numberposts?: int,
+ *     offset?: int,
+ *     orderby?: string|array<mixed>,
+ *     post_status?: string|string[],
+ *     category?: int|string,
+ *     include?: int[],
+ *     exclude?: int[],
+ *     suppress_filters?: bool,
+ *     fields?: ''|'all',
+ *     ...
+ * } $args
  * @phpstan-param 'OBJECT'|'ARRAY_A' $output
  * @phpstan-return (
  *     $output is 'ARRAY_A' ? array<int, non-empty-array<string, mixed>> : WP_Post[]|false
@@ -4723,8 +4758,8 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 		'category'         => 0,
 		'orderby'          => 'post_date',
 		'order'            => 'DESC',
-		'include'          => '',
-		'exclude'          => '',
+		'include'          => array(),
+		'exclude'          => array(),
 		'meta_key'         => '',
 		'meta_value'       => '',
 		'post_type'        => 'post',
@@ -4732,7 +4767,7 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 		'suppress_filters' => true,
 	);
 
-	/** @var array{ fields: null, ... } $parsed_args */
+	/** @var array{ numberposts: int, category: int|string, include: int[], exclude: int[], suppress_filters: bool, fields?: ''|'all', ... } $parsed_args */
 	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$results = get_posts( $parsed_args );
@@ -6444,7 +6479,7 @@ function get_all_page_ids() {
  *                            'edit', 'db', 'display'. Default 'raw'.
  * @return WP_Post|array|null WP_Post or array on success, null on failure.
  *
- * @phpstan-param int|numeric-string|WP_Post|null $page
+ * @phpstan-param int|decimal-int-string|WP_Post|null $page
  * @phpstan-param 'OBJECT'|'ARRAY_A'|'ARRAY_N' $output
  * @phpstan-param 'raw'|'edit'|'db'|'display' $filter
  * @phpstan-return (
@@ -7626,11 +7661,15 @@ function wp_attachment_is_image( $post = null ) {
  *
  * @param string|int $mime          MIME type or attachment ID.
  * @param string     $preferred_ext File format to prefer in return. Default '.png'.
- * @return string|false Icon, false otherwise.
+ * @return string|false Icon URL, or false if no icon was found.
  */
 function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
+	$icon = false;
 	if ( ! is_numeric( $mime ) ) {
-		$icon = wp_cache_get( "mime_type_icon_$mime" );
+		$cached_icon = wp_cache_get( "mime_type_icon_$mime" );
+		if ( is_string( $cached_icon ) ) {
+			$icon = $cached_icon;
+		}
 	}
 
 	// Check if preferred file format variable is present and is a validly formatted file extension.
@@ -7745,11 +7784,12 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 
 		foreach ( $matches as $match => $wilds ) {
 			foreach ( $wilds as $wild ) {
-				if ( ! isset( $types[ $wild ] ) ) {
+				$type_icon = $types[ $wild ] ?? null;
+				if ( ! is_string( $type_icon ) ) {
 					continue;
 				}
 
-				$icon = $types[ $wild ];
+				$icon = $type_icon;
 				if ( ! is_numeric( $mime ) ) {
 					wp_cache_add( "mime_type_icon_$mime", $icon );
 				}
@@ -7763,10 +7803,10 @@ function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $icon    Path to the mime type icon.
-	 * @param string $mime    Mime type.
-	 * @param int    $post_id Attachment ID. Will equal 0 if the function passed
-	 *                        the mime type.
+	 * @param string|false $icon    URL of the mime type icon, or false if no icon was found.
+	 * @param string|int   $mime    Mime type, or 0 if no post was found for the passed ID.
+	 * @param int          $post_id Attachment ID. Will equal 0 if the function passed
+	 *                              the mime type or no post was found for the passed ID.
 	 */
 	return apply_filters( 'wp_mime_type_icon', $icon, $mime, $post_id );
 }

@@ -361,7 +361,7 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_background_color_has_background_with_a_clip() {
+	public static function data_background_color_has_background_with_a_clip() {
 		return array(
 			'preset color clipped to the text'      => array(
 				array(
@@ -406,5 +406,79 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 				'has-background has-vivid-gradient-background',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 66269
+	 */
+	public function test_color_support_true_applies_text_and_background_colors() {
+		$this->test_block_name = 'test/color-support-true';
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'textColor'       => array(
+						'type' => 'string',
+					),
+					'backgroundColor' => array(
+						'type' => 'string',
+					),
+				),
+				'supports'    => array(
+					'color' => true,
+				),
+			)
+		);
+
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( $this->test_block_name );
+
+		$block_atts = array(
+			'textColor'       => 'contrast',
+			'backgroundColor' => 'base',
+		);
+
+		$actual   = wp_apply_colors_support( $block_type, $block_atts );
+		$expected = array(
+			'class' => 'has-text-color has-contrast-color has-background has-base-background-color',
+		);
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 66269
+	 */
+	public function test_color_text_support_disabled_skips_text_color() {
+		$this->test_block_name = 'test/color-text-support-disabled';
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'textColor' => array(
+						'type' => 'string',
+					),
+				),
+				'supports'    => array(
+					'color' => array(
+						'text' => false,
+					),
+				),
+			)
+		);
+
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( $this->test_block_name );
+
+		$block_atts = array(
+			'textColor' => 'contrast',
+		);
+
+		$actual   = wp_apply_colors_support( $block_type, $block_atts );
+		$expected = array();
+
+		$this->assertSame( $expected, $actual );
 	}
 }

@@ -37,6 +37,7 @@ class Tests_Post_wpGetPostAutosave extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$admin_id );
 		self::$post_id = $factory->post->create( array( 'post_status' => 'publish' ) );
+		wp_set_current_user( 0 );
 	}
 
 	/**

@@ -50,6 +50,15 @@ define( 'ARRAY_N', 'ARRAY_N' );
  * @link https://developer.wordpress.org/reference/classes/wpdb/
  *
  * @since 0.71
+ *
+ * @property      mysqli_result|bool|null         $result              Result of the last query.
+ * @property-read bool                            $check_current_query Whether the current query needs to be confidence checked.
+ * @property      array<int, stdClass|false>|null $col_info            Saved info on the table column.
+ * @property      int                             $reconnect_retries   Number of times to retry reconnecting before dying.
+ * @property      string                          $dbuser              Database username.
+ * @property      string                          $dbname              Database name.
+ * @property      string                          $dbhost              Database host.
+ * @property      mysqli|false|null               $dbh                 Database handle.
  */
 #[AllowDynamicProperties]
 class wpdb {
@@ -116,6 +125,7 @@ class wpdb {
 	 * @since 0.71
 	 *
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $insert_id = 0;
 
@@ -193,9 +203,15 @@ class wpdb {
 	/**
 	 * Saved info on the table column.
 	 *
+	 * Each value is populated by mysqli_fetch_field() in {@see wpdb::load_col_info()}, which is
+	 * typed as returning false when there are no more fields. A false value cannot actually occur,
+	 * however, since the loop only runs for the number of fields returned by mysqli_num_fields().
+	 * Populating the array with mysqli_fetch_fields() instead would allow this type to be narrowed
+	 * to a list of stdClass objects.
+	 *
 	 * @since 0.71
 	 *
-	 * @var array
+	 * @var array<int, stdClass|false>|null
 	 */
 	protected $col_info;
 
@@ -3106,6 +3122,8 @@ class wpdb {
 	 *         )
 	 *         : null
 	 * )
+	 *
+	 * @phpstan-param non-negative-int $y
 	 */
 	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";

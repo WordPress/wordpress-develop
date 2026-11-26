@@ -10598,7 +10598,8 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to comments of specific parent IDs.",
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "type": "integer",
+                                "minimum": 0
                             },
                             "required": false
                         },
@@ -10722,12 +10723,14 @@ mockedApiResponse.Schema = {
                             "default": 0,
                             "description": "The ID for the parent of the comment.",
                             "type": "integer",
+                            "minimum": 0,
                             "required": false
                         },
                         "post": {
                             "default": 0,
                             "description": "The ID of the associated post object.",
                             "type": "integer",
+                            "minimum": 0,
                             "required": false
                         },
                         "status": {
@@ -10870,11 +10873,13 @@ mockedApiResponse.Schema = {
                         "parent": {
                             "description": "The ID for the parent of the comment.",
                             "type": "integer",
+                            "minimum": 0,
                             "required": false
                         },
                         "post": {
                             "description": "The ID of the associated post object.",
                             "type": "integer",
+                            "minimum": 0,
                             "required": false
                         },
                         "status": {
@@ -13134,11 +13139,13 @@ mockedApiResponse.Schema = {
                         "kind": {
                             "description": "Entity kind.",
                             "type": "string",
+                            "minLength": 1,
                             "required": true
                         },
                         "name": {
                             "description": "Entity name.",
                             "type": "string",
+                            "minLength": 1,
                             "required": true
                         }
                     }
@@ -13527,9 +13534,7 @@ mockedApiResponse.postRevisions = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13559,9 +13564,7 @@ mockedApiResponse.postRevisions = [
         "excerpt": {
             "rendered": "<p>REST API Client Fixture: Post</p>\n"
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13593,9 +13596,7 @@ mockedApiResponse.revision = {
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Post</p>\n"
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.postAutosaves = [
@@ -13620,9 +13621,7 @@ mockedApiResponse.postAutosaves = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13654,9 +13653,7 @@ mockedApiResponse.autosave = {
     "excerpt": {
         "rendered": ""
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.PagesCollection = [
@@ -13825,9 +13822,7 @@ mockedApiResponse.pageRevisions = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13857,9 +13852,7 @@ mockedApiResponse.pageRevisions = [
         "excerpt": {
             "rendered": "<p>REST API Client Fixture: Page</p>\n"
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13891,9 +13884,7 @@ mockedApiResponse.pageRevision = {
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Page</p>\n"
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.pageAutosaves = [
@@ -13918,9 +13909,7 @@ mockedApiResponse.pageAutosaves = [
         "excerpt": {
             "rendered": ""
         },
-        "meta": {
-            "meta_key": ""
-        },
+        "meta": [],
         "_links": {
             "parent": [
                 {
@@ -13952,9 +13941,7 @@ mockedApiResponse.pageAutosave = {
     "excerpt": {
         "rendered": ""
     },
-    "meta": {
-        "meta_key": ""
-    }
+    "meta": []
 };
 
 mockedApiResponse.MediaCollection = [

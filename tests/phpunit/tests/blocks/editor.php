@@ -247,6 +247,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 * @ticket 66762
 	 */
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
@@ -300,6 +301,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertFalse( $settings['disableCustomFontSizes'] );
 		$this->assertFalse( $settings['disableCustomGradients'] );
 		$this->assertFalse( $settings['disableLayoutStyles'] );
+		$this->assertCount( 1, $settings['defaultEditorStyles'] );
+		$this->assertStringContainsString( 'font-size:18px', $settings['defaultEditorStyles'][0]['css'] );
 		$this->assertFalse( $settings['enableCustomLineHeight'] );
 		$this->assertFalse( $settings['enableCustomSpacing'] );
 		$this->assertFalse( $settings['enableCustomUnits'] );
@@ -375,7 +378,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_default_block_editor_settings_auto_attach_media_enabled() {
+	public static function data_get_default_block_editor_settings_auto_attach_media_enabled() {
 		return array(
 			'attachment pages disabled' => array( 0, true ),
 			'attachment pages enabled'  => array( 1, false ),
@@ -831,7 +834,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_block_editor_rest_api_preload_adds_missing_leading_slash() {
+	public static function data_block_editor_rest_api_preload_adds_missing_leading_slash() {
 		return array(
 			'a string without a slash'               => array(
 				'preload_paths' => array( 'wp/v2/blocks' ),
@@ -900,7 +903,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$expected = <<<HTML
 <script src="{$baseurl}/wp-includes/js/dist/api-fetch.min.js?ver=test" id="wp-api-fetch-js"></script>
 <script id="wp-api-fetch-js-after">
-wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( {"/test/v0/test-62797":{"body":["Unclosed comment and a script open tag \\u003C!--\\u003Cscript\\u003E"],"headers":{"Allow":"GET"}}} ) );
+wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( {"/test/v0/test-62797":{"body":"Unclosed comment and a script open tag \\u003C!--\\u003Cscript\\u003E","headers":{"Allow":"GET"}}} ) );
 //# sourceURL=wp-api-fetch-js-after
 </script>
 

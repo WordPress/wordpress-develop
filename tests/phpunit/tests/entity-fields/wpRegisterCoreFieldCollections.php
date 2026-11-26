@@ -26,7 +26,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 *
 	 * @var string[]
 	 */
-	const EVERY_POST_TYPE_FIELDS = array( 'date', 'last_edited_date', 'password', 'scheduled_date', 'status', 'template' );
+	const EVERY_POST_TYPE_FIELDS = array( 'date', 'last_edited_date', 'password', 'publish_date', 'scheduled_date', 'status', 'template' );
 
 	/**
 	 * The script module of the default fields of the post types.
@@ -240,7 +240,7 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 * @return array[] The id of each field and whether the design post types
 	 *                 exclude it.
 	 */
-	public function data_default_fields_of_every_post_type() {
+	public static function data_default_fields_of_every_post_type() {
 		return array(
 			'date'             => array( 'date', true ),
 			'last_edited_date' => array( 'last_edited_date', false ),
@@ -282,11 +282,10 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 *
 	 * @return array[] The id of each field and the supports that give it.
 	 */
-	public function data_default_fields_and_their_supports() {
+	public static function data_default_fields_and_their_supports() {
 		return array(
 			'discussion'        => array( 'discussion', array( 'comments', 'trackbacks' ) ),
 			'excerpt'           => array( 'excerpt', array( 'excerpt' ) ),
-			'parent'            => array( 'parent', array( 'page-attributes' ) ),
 			'ping_status'       => array( 'ping_status', array( 'trackbacks' ) ),
 			'title'             => array( 'title', array( 'title' ) ),
 			'post-content-info' => array( 'post-content-info', array( 'editor' ) ),
@@ -316,6 +315,51 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 			$this->assertContains( $field_id, self::get_field_ids( $post_type ), "$post_type gets the field." );
 		}
 		$this->assertNotContains( $field_id, self::get_field_ids( 'test_without' ), 'A post type without the supports does not get the field.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[] Post type settings and expected parent field registration.
+	 */
+	public static function data_parent_field_requirements() {
+		return array(
+			'hierarchical with attributes'        => array( true, true, true ),
+			'hierarchical without attributes'     => array( true, false, false ),
+			'non-hierarchical with attributes'    => array( false, true, false ),
+			'non-hierarchical without attributes' => array( false, false, false ),
+		);
+	}
+
+	/**
+	 * The parent field requires both hierarchy and page attributes support.
+	 *
+	 * @ticket 66428
+	 *
+	 * @dataProvider data_parent_field_requirements
+	 *
+	 * @param bool $hierarchical   Whether the post type is hierarchical.
+	 * @param bool $has_attributes Whether the post type supports page attributes.
+	 * @param bool $has_parent     Whether the parent field should be registered.
+	 */
+	public function test_the_parent_field_requires_hierarchy_and_page_attributes( $hierarchical, $has_attributes, $has_parent ) {
+		register_post_type(
+			'test_parent',
+			array(
+				'show_in_rest' => true,
+				'hierarchical' => $hierarchical,
+				'supports'     => $has_attributes ? array( 'page-attributes' ) : array(),
+			)
+		);
+
+		try {
+			self::reset_registry();
+			$ids = self::get_field_ids( 'test_parent' );
+		} finally {
+			unregister_post_type( 'test_parent' );
+		}
+
+		$this->assertSame( $has_parent, in_array( 'parent', $ids, true ) );
 	}
 
 	/**
