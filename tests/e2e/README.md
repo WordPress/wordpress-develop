@@ -17,12 +17,16 @@ npm run test:e2e
 
 which will run the test suite using a headless browser.
 
-If your environment has a different url, username or password to the default, you can provide the base URL, username and password like this:
+By default, the tests use the `wordpress_develop_e2e` database and a separate `uploads-e2e` directory. The database, uploads, and object-cache settings in `wp-config.php` are restored after the tests.
+
+If using a custom URL, it must point to an isolated WordPress test site with a disposable database and uploads directory. Set `WP_E2E_ISOLATED=true` to confirm that setup, along with the base URL, username and password. Playwright will use that site without starting the local Docker environment:
 
 ```
-WP_BASE_URL=http://mycustomurl WP_USERNAME=username WP_PASSWORD=password npm run test:e2e
+WP_BASE_URL=http://mycustomurl WP_USERNAME=username WP_PASSWORD=password WP_E2E_ISOLATED=true npm run test:e2e
 ```
-**DO NOT run these tests in an actual production environment, as they will delete all your content.**
+The E2E setup clears test posts, blocks, and preferences. Do not point it at a production or development site.
+
+The local E2E setup holds a lock while it switches `wp-config.php`. A second E2E run in the same checkout exits before changing the configuration. PHPUnit continues to use `wordpress_develop_tests`.
 
 For debugging purposes, you might want to follow the test visually. You can do so by running the tests in an interactive mode:
 
