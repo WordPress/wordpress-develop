@@ -227,19 +227,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Asserts that a result is the 403 edit error.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param mixed  $result  The ability result.
-	 * @param string $context What the call was, for the assertion messages.
-	 */
-	protected function assert_cannot_write( $result, string $context ): void {
-		$this->assert_error( $result, 'content_cannot_edit', 403, $context );
-		$this->assertSame( 'Sorry, you are not allowed to edit this post.', $result->get_error_message(), "{$context}: the message should be the edit message." );
-	}
-
-	/**
 	 * Creates a draft with a floating date, stored in the site's timezone with no GMT date.
 	 *
 	 * @since 7.3.0
@@ -312,7 +299,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$this->assertArrayNotHasKey( 'required', $data, 'The data should require no attribute.' );
 		$this->assertSame( array( 'title', 'content', 'excerpt', 'status', 'slug', 'date', 'author', 'parent' ), array_keys( $data['properties'] ), 'The data should take the allowed attributes and no post type.' );
 		$this->assertSame( array( 'publish', 'future', 'draft', 'pending', 'private' ), $data['properties']['status']['enum'], 'The status should list the statuses that are not internal.' );
-		$this->assertSame( 1, $data['properties']['slug']['minLength'], 'The slug should not be empty.' );
+		$this->assertArrayNotHasKey( 'minLength', $data['properties']['slug'], 'The slug should take an empty string, so the empty slug of a draft can be sent back.' );
 		$this->assertSame( 1, $data['properties']['author']['minimum'], 'The author should be at least 1.' );
 		$this->assertSame( 0, $data['properties']['parent']['minimum'], 'The parent should be at least 0.' );
 		$this->assertSame( 1, $data['properties']['date']['minProperties'], 'The date should hold at least one value.' );
@@ -498,46 +485,6 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Returns `data` values that are invalid in some way.
-	 *
-	 * @return array<string, array{0: array<string, mixed>}> The data.
-	 */
-	public static function data_invalid_data(): array {
-		return array(
-			'parent on a post'               => array( array( 'parent' => 1 ) ),
-			'trash'                          => array( array( 'status' => 'trash' ) ),
-			'private without publish_posts'  => array( array( 'status' => 'private' ) ),
-			'slug that sanitizes to nothing' => array( array( 'slug' => '!!!' ) ),
-			'missing author'                 => array( array( 'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) ),
-			'title that is a list'           => array( array( 'title' => array( 'x' ) ) ),
-			'invalid date'                   => array( array( 'date' => array( 'site' => 'not a date' ) ) ),
-			'empty data'                     => array( array() ),
-		);
-	}
-
-	/**
-	 * Called directly by a user who may not edit the post, the call fails on the capability before
-	 * anything about the attributes is checked.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_invalid_data
-	 * @since 7.3.0
-	 *
-	 * @param array<string, mixed> $data The data.
-	 */
-	public function test_direct_call_without_edit_post_fails_before_the_attributes( array $data ): void {
-		$post_id = self::$post_ids['admin_post'];
-
-		$this->login_as( 'contributor' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$before = $this->snapshot( $post_id );
-
-		$this->assert_cannot_write( $execute( $this->update_input( $post_id, $data ) ), 'A direct call without edit_post' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
-	}
-
-	/**
 	 * Returns keys that are not part of the input, and where they are sent.
 	 *
 	 * @return array<string, array{0: string, 1: string, 2: mixed}> The cases.
@@ -587,20 +534,17 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 * Returns status changes that a contributor, and an author denied `publish_posts`, may not
 	 * make on their own draft.
 	 *
-	 * @return array<string, array{0: string, 1: string, 2: string, 3?: string}> The cases.
+	 * @return array<string, array{0: string, 1: string, 2?: string}> The cases.
 	 */
 	public static function data_status_changes_without_publish_posts(): array {
-		$publish_message = 'Sorry, you are not allowed to publish posts in this post type.';
-		$private_message = 'Sorry, you are not allowed to create private posts in this post type.';
-
 		return array(
-			'publish by a contributor'                  => array( 'contributor', 'publish', $publish_message ),
-			'future by a contributor'                   => array( 'contributor', 'future', $publish_message ),
-			'private by a contributor'                  => array( 'contributor', 'private', $private_message ),
-			'publish by an author denied publish_posts' => array( 'restricted_author', 'publish', $publish_message ),
-			'future by an author denied publish_posts'  => array( 'restricted_author', 'future', $publish_message ),
-			'private by an author denied publish_posts' => array( 'restricted_author', 'private', $private_message ),
-			'publish from the Trash by a contributor'   => array( 'contributor', 'publish', $publish_message, 'trash_draft' ),
+			'publish by a contributor'                  => array( 'contributor', 'publish' ),
+			'future by a contributor'                   => array( 'contributor', 'future' ),
+			'private by a contributor'                  => array( 'contributor', 'private' ),
+			'publish by an author denied publish_posts' => array( 'restricted_author', 'publish' ),
+			'future by an author denied publish_posts'  => array( 'restricted_author', 'future' ),
+			'private by an author denied publish_posts' => array( 'restricted_author', 'private' ),
+			'publish from the Trash by a contributor'   => array( 'contributor', 'publish', 'trash_draft' ),
 		);
 	}
 
@@ -612,12 +556,11 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 * @dataProvider data_status_changes_without_publish_posts
 	 * @since 7.3.0
 	 *
-	 * @param string $role    The role or fixture name of the user, who owns the post.
-	 * @param string $status  The status.
-	 * @param string $message The error message.
-	 * @param string $stored  Optional. The matrix status of the post. Default 'draft'.
+	 * @param string $role   The role or fixture name of the user, who owns the post.
+	 * @param string $status The status.
+	 * @param string $stored Optional. The matrix status of the post. Default 'draft'.
 	 */
-	public function test_status_that_makes_a_post_visible_needs_publish_posts( string $role, string $status, string $message, string $stored = 'draft' ): void {
+	public function test_status_that_makes_a_post_visible_needs_publish_posts( string $role, string $status, string $stored = 'draft' ): void {
 		$post_id = self::$post_ids[ "{$role}:{$stored}" ];
 
 		$this->login_as( $role );
@@ -633,9 +576,38 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->update_post( $post_id, $data );
 
-		$this->assert_error( $result, 'content_cannot_publish', 403, 'A status that makes a post visible without publish_posts' );
-		$this->assertSame( $message, $result->get_error_message(), 'The message should name what the role may not do.' );
+		$this->assert_refused( $result, 'A status that makes a post visible without publish_posts' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Returns `data` values with a `status` or an `author` of the wrong type.
+	 *
+	 * @return array<string, array{0: array<string, mixed>}> The data.
+	 */
+	public static function data_malformed_status_or_author(): array {
+		return array(
+			'status that is a list' => array( array( 'status' => array( 'draft' ) ) ),
+			'author that is a word' => array( array( 'author' => 'admin' ) ),
+		);
+	}
+
+	/**
+	 * The permission callback returns false for a `status` or an `author` of the wrong type,
+	 * which only a direct call can send.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_malformed_status_or_author
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $data The data.
+	 */
+	public function test_permission_callback_returns_false_for_a_malformed_status_or_author( array $data ): void {
+		$this->login_as( 'administrator' );
+
+		$permission = $this->get_ability_callbacks()['permission_callback'];
+
+		$this->assertFalse( $permission( $this->update_input( self::$post_ids['admin_post'], $data ) ), 'The permission callback should return false.' );
 	}
 
 	/**
@@ -736,8 +708,8 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A user without `edit_others_posts` gets the same error for an existing and a missing
-	 * author, so the error never tells whether a user exists.
+	 * The permission callback refuses a user without `edit_others_posts` who names another
+	 * author, existing or not, so the refusal never tells whether a user exists.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_authors_named_without_edit_others_posts
@@ -754,20 +726,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->update_post( $post_id, array( 'author' => self::$user_ids[ $author ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
-		$this->assertWPError( $result, 'Naming another author should fail.' );
-		$this->assertSame(
-			array(
-				'code'    => 'content_cannot_edit_others',
-				'message' => 'Sorry, you are not allowed to update posts as this user.',
-				'data'    => array( 'status' => 403 ),
-			),
-			array(
-				'code'    => $result->get_error_code(),
-				'message' => $result->get_error_message(),
-				'data'    => $result->get_error_data(),
-			),
-			'The error should be the same whether the user exists or not.'
-		);
+		$this->assert_refused( $result, 'Naming another author' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
@@ -833,36 +792,24 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 */
 	public static function data_invalid_attributes(): array {
 		return array(
-			'missing author named with edit_others_posts'  => array(
+			'missing author named with edit_others_posts' => array(
 				'editor',
 				array( 'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
 				'author',
 				'The author must be an existing user of this site.',
 			),
-			'slug that sanitizes to nothing'               => array(
+			'slug that sanitizes to nothing'              => array(
 				'administrator',
 				array( 'slug' => '!!!' ),
 				'slug',
 				'The slug must contain characters that are valid in a slug.',
 			),
-			// Intentionally strict: dates that name different times are an error instead of one of them winning.
-			'site and GMT dates that name different times' => array(
-				'editor',
-				array(
-					'date' => array(
-						'site' => '2017-01-01T10:00:00',
-						'gmt'  => '2001-01-01T00:00:00',
-					),
-				),
-				'date',
-				'The `site` and `gmt` dates must name the same time.',
-			),
 		);
 	}
 
 	/**
-	 * A missing author named by a user with `edit_others_posts`, a slug that sanitizes to nothing
-	 * and site and GMT dates that name different times are invalid attributes.
+	 * A missing author named by a user with `edit_others_posts` and a slug that sanitizes to
+	 * nothing are invalid attributes.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_invalid_attributes
@@ -1142,6 +1089,74 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
+	 * Returns posts with an empty slug and the role of their author.
+	 *
+	 * @return array<string, array{0: string, 1: string}> The role and the post, as a fixture name.
+	 */
+	public static function data_posts_with_an_empty_slug(): array {
+		return array(
+			'draft'        => array( 'author', 'author:draft' ),
+			'pending post' => array( 'contributor', 'contributor:pending' ),
+		);
+	}
+
+	/**
+	 * The empty slug of a draft or a pending post, as the query returns it, can be sent back,
+	 * also by a user who may not publish the post.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_posts_with_an_empty_slug
+	 * @since 7.3.0
+	 *
+	 * @param string $role The role of the author of the post.
+	 * @param string $post The post, as a fixture name.
+	 */
+	public function test_empty_slug_of_a_post_without_a_slug_can_be_sent_back( string $role, string $post ): void {
+		$post_id = self::$post_ids[ $post ];
+
+		$this->assertSame( '', get_post( $post_id )->post_name, 'Precondition: the post should have no slug.' );
+
+		$this->login_as( $role );
+		$this->register_abilities();
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'title' => 'Round trip',
+				'slug'  => '',
+			),
+			array( 'slug' )
+		);
+
+		$stored = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( 'Round trip', $stored->post_title, 'The title should be stored.' );
+		$this->assertSame( '', $stored->post_name, 'The post should still have no slug.' );
+		$this->assertSame( '', $result['slug'], 'The empty slug should be returned.' );
+	}
+
+	/**
+	 * An empty slug sent for a post that has a slug is an invalid slug.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_empty_slug_of_a_post_with_a_slug_is_an_invalid_slug(): void {
+		$post_id = self::$post_ids['author:publish'];
+
+		$this->assertNotSame( '', get_post( $post_id )->post_name, 'Precondition: the post should have a slug.' );
+
+		$this->login_as( 'author' );
+		$this->register_abilities();
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, array( 'slug' => '' ) );
+
+		$this->assert_invalid_attribute( $result, 'slug', 'An empty slug', 'The slug must contain characters that are valid in a slug.' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
 	 * A user who may not publish the post cannot set the slug of a pending post.
 	 *
 	 * Intentionally strict: the save would drop the slug, so it is an error instead of being
@@ -1381,13 +1396,72 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 			'site'                => array( array( 'site' => '2017-01-01T10:00:00' ) ),
 			'gmt'                 => array( array( 'gmt' => '2017-01-01T15:00:00' ) ),
 			'site with an offset' => array( array( 'site' => '2017-01-01T16:00:00+01:00' ) ),
-			'both, the same time' => array(
+			'both, the site wins' => array(
 				array(
 					'site' => '2017-01-01T10:00:00',
-					'gmt'  => '2017-01-01T15:00:00',
+					'gmt'  => '2001-01-01T00:00:00',
 				),
 			),
 		);
+	}
+
+	/**
+	 * The date that core/content-query returns can be sent back after the site's timezone
+	 * changed, when its `site` and `gmt` dates name different times: `site` wins, and as it
+	 * equals the stored local date, the stored dates are kept.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_queried_date_can_be_sent_back_after_a_timezone_change(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'   => self::$user_ids['editor'],
+				'post_status'   => 'publish',
+				'post_date'     => '2017-01-01 10:00:00',
+				'post_date_gmt' => '2017-01-01 10:00:00',
+			)
+		);
+
+		update_option( 'timezone_string', 'Europe/Paris' );
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$queried = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( $post_id ),
+				),
+				'fields' => array( 'date' ),
+			)
+		);
+
+		$this->assertIsArray( $queried, 'The query should succeed.' );
+		$date = $queried['items'][0]['date'];
+		$this->assertSame(
+			array(
+				'site' => '2017-01-01T10:00:00+01:00',
+				'gmt'  => '2017-01-01T10:00:00+00:00',
+			),
+			$date,
+			'Precondition: the queried `site` and `gmt` dates should name different times.'
+		);
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'title' => 'Round trip',
+				'date'  => $date,
+			)
+		);
+
+		$post = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( 'Round trip', $post->post_title, 'The title should be stored.' );
+		$this->assertSame( '2017-01-01 10:00:00', $post->post_date, 'The local date should be kept.' );
+		$this->assertSame( '2017-01-01 10:00:00', $post->post_date_gmt, 'The GMT date should be kept.' );
 	}
 
 	/**
@@ -2034,8 +2108,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 			)
 		);
 
-		$this->assert_error( $result, 'content_cannot_publish', 403, 'A published or scheduled post moved to the other status without publish_posts' );
-		$this->assertSame( 'Sorry, you are not allowed to publish posts in this post type.', $result->get_error_message(), 'The message should be the publish message.' );
+		$this->assert_refused( $result, 'A published or scheduled post moved to the other status without publish_posts' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
@@ -2107,8 +2180,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$before  = $this->snapshot( $post_id );
 		$publish = $this->update_post( $post_id, array( 'status' => 'publish' ) );
 
-		$this->assert_error( $publish, 'content_cannot_publish', 403, 'Publishing the granted post' );
-		$this->assertSame( 'Sorry, you are not allowed to publish posts in this post type.', $publish->get_error_message(), 'The message should be the publish message.' );
+		$this->assert_refused( $publish, 'Publishing the granted post' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written for the refused publish.' );
 	}
 
@@ -2224,8 +2296,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A contributor may not set a custom public or private status on their own post, and the
-	 * refusal uses the general message.
+	 * A contributor may not set a custom public or private status on their own post.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_custom_visible_statuses_by_stored_status
@@ -2244,8 +2315,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->update_post( $post_id, array( 'status' => $status ) );
 
-		$this->assert_error( $result, 'content_cannot_publish', 403, 'A contributor setting a custom visible status' );
-		$this->assertSame( 'Sorry, you are not allowed to publish posts in this post type.', $result->get_error_message(), 'A custom status, also a private one, should get the general message.' );
+		$this->assert_refused( $result, 'A contributor setting a custom visible status' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 

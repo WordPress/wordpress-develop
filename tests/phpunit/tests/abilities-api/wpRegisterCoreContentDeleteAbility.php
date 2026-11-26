@@ -83,19 +83,6 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Asserts that a result is the 403 delete error.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param mixed  $result  The ability result.
-	 * @param string $context What the call was, for the assertion messages.
-	 */
-	protected function assert_cannot_write( $result, string $context ): void {
-		$this->assert_error( $result, 'content_cannot_delete', 403, $context );
-		$this->assertSame( 'Sorry, you are not allowed to delete this post.', $result->get_error_message(), "{$context}: the message should be the delete message." );
-	}
-
-	/**
 	 * Asserts that a post was moved to the Trash and the result says so.
 	 *
 	 * @since 7.3.0

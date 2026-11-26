@@ -240,7 +240,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$this->assertSame( 'string', $properties['status']['type'], 'The status should be a string.' );
 		$this->assertSame( array( 'publish', 'future', 'draft', 'pending', 'private' ), $properties['status']['enum'], 'The status should list the statuses that are not internal.' );
 		$this->assertSame( 'string', $properties['slug']['type'], 'The slug should be a string.' );
-		$this->assertSame( 1, $properties['slug']['minLength'], 'The slug should not be empty.' );
+		$this->assertArrayNotHasKey( 'minLength', $properties['slug'], 'The slug should take an empty string, so the empty slug of a draft can be sent back.' );
 		$this->assertSame( 'integer', $properties['author']['type'], 'The author should be an integer.' );
 		$this->assertSame( 1, $properties['author']['minimum'], 'The author should be at least 1.' );
 		$this->assertSame( 'integer', $properties['parent']['type'], 'The parent should be an integer.' );
@@ -480,6 +480,22 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			'type that is a number' => array( array( 'data' => array( 'type' => 1 ) ) ),
 			'unexposed type'        => array( array( 'data' => array( 'type' => 'attachment' ) ) ),
 			'unregistered type'     => array( array( 'data' => array( 'type' => 'cw_missing' ) ) ),
+			'status that is a list' => array(
+				array(
+					'data' => array(
+						'type'   => 'post',
+						'status' => array( 'draft' ),
+					),
+				),
+			),
+			'author that is a word' => array(
+				array(
+					'data' => array(
+						'type'   => 'post',
+						'author' => 'admin',
+					),
+				),
+			),
 		);
 	}
 
@@ -499,38 +515,35 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 	/**
 	 * Returns the outcome of creating a post per role and requested status: the role, the
-	 * requested status or null to send none, the stored status or the error code, and the error
-	 * message or null on success.
+	 * requested status or null to send none, and the stored status or null when the permission
+	 * callback refuses the call.
 	 *
-	 * @return array<string, array{0: string, 1: string|null, 2: string, 3: string|null}> The cases.
+	 * @return array<string, array{0: string, 1: string|null, 2: string|null}> The cases.
 	 */
 	public static function data_create_by_role_and_status(): array {
-		$publish_message = 'Sorry, you are not allowed to publish posts in this post type.';
-		$private_message = 'Sorry, you are not allowed to create private posts in this post type.';
-
 		$cases = array();
 		foreach ( array( 'administrator', 'editor', 'author', 'contributor' ) as $role ) {
-			$cases[ "{$role}, no status" ] = array( $role, null, 'draft', null );
+			$cases[ "{$role}, no status" ] = array( $role, null, 'draft' );
 			foreach ( array( 'draft', 'pending', 'publish', 'future', 'private' ) as $status ) {
 				// A contributor may only create drafts and pending posts.
 				if ( 'contributor' === $role && ! in_array( $status, array( 'draft', 'pending' ), true ) ) {
-					$cases[ "{$role}, {$status}" ] = array( $role, $status, 'content_cannot_publish', 'private' === $status ? $private_message : $publish_message );
+					$cases[ "{$role}, {$status}" ] = array( $role, $status, null );
 				} else {
-					$cases[ "{$role}, {$status}" ] = array( $role, $status, $status, null );
+					$cases[ "{$role}, {$status}" ] = array( $role, $status, $status );
 				}
 			}
 		}
 
 		return $cases + array(
-			// A custom status that makes a post visible needs `publish_posts`, and the refusal uses the general message.
-			'author, cw_public'        => array( 'author', 'cw_public', 'cw_public', null ),
-			'author, cw_private'       => array( 'author', 'cw_private', 'cw_private', null ),
-			'author, cw_viewable'      => array( 'author', 'cw_viewable', 'cw_viewable', null ),
-			'contributor, cw_public'   => array( 'contributor', 'cw_public', 'content_cannot_publish', $publish_message ),
-			'contributor, cw_private'  => array( 'contributor', 'cw_private', 'content_cannot_publish', $publish_message ),
-			'contributor, cw_viewable' => array( 'contributor', 'cw_viewable', 'content_cannot_publish', $publish_message ),
+			// A custom status that makes a post visible needs `publish_posts`.
+			'author, cw_public'        => array( 'author', 'cw_public', 'cw_public' ),
+			'author, cw_private'       => array( 'author', 'cw_private', 'cw_private' ),
+			'author, cw_viewable'      => array( 'author', 'cw_viewable', 'cw_viewable' ),
+			'contributor, cw_public'   => array( 'contributor', 'cw_public', null ),
+			'contributor, cw_private'  => array( 'contributor', 'cw_private', null ),
+			'contributor, cw_viewable' => array( 'contributor', 'cw_viewable', null ),
 			// A custom status that is neither public, private nor publicly viewable needs nothing beyond `create_posts`.
-			'contributor, cw_hidden'   => array( 'contributor', 'cw_hidden', 'cw_hidden', null ),
+			'contributor, cw_hidden'   => array( 'contributor', 'cw_hidden', 'cw_hidden' ),
 		);
 	}
 
@@ -547,10 +560,9 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 *
 	 * @param string      $role     The role to create as.
 	 * @param string|null $status   The requested status, or null to send none.
-	 * @param string      $expected The stored status, or the error code.
-	 * @param string|null $message  The error message, or null on success.
+	 * @param string|null $expected The stored status, or null when the call is refused.
 	 */
-	public function test_create_by_role_and_status( string $role, ?string $status, string $expected, ?string $message ): void {
+	public function test_create_by_role_and_status( string $role, ?string $status, ?string $expected ): void {
 		$this->register_custom_statuses();
 
 		$this->login_as( $role );
@@ -575,9 +587,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			)
 		);
 
-		if ( null !== $message ) {
-			$this->assert_error( $result, $expected, 403, 'Creating a post in a status the role may not set' );
-			$this->assertSame( $message, $result->get_error_message(), 'The message should name what the role may not do.' );
+		if ( null === $expected ) {
+			$this->assert_refused( $result, 'Creating a post in a status the role may not set' );
 			$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 			return;
 		}
@@ -678,83 +689,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$result = $execute( $input );
 
 		$this->assert_not_found( $result, 'A direct call without an exposed type' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Returns `data` values that are invalid in some way.
-	 *
-	 * @return array<string, array{0: array<string, mixed>}> The data.
-	 */
-	public static function data_invalid_data(): array {
-		return array(
-			'parent on a post'               => array(
-				array(
-					'type'   => 'post',
-					'parent' => 1,
-				),
-			),
-			'unregistered status'            => array(
-				array(
-					'type'   => 'post',
-					'status' => 'cw_unregistered',
-				),
-			),
-			'publish'                        => array(
-				array(
-					'type'   => 'post',
-					'status' => 'publish',
-				),
-			),
-			'slug that sanitizes to nothing' => array(
-				array(
-					'type'  => 'post',
-					'title' => 'x',
-					'slug'  => '!!!',
-				),
-			),
-			'missing author'                 => array(
-				array(
-					'type'   => 'post',
-					'title'  => 'x',
-					'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
-				),
-			),
-			'title that is a list'           => array(
-				array(
-					'type'  => 'post',
-					'title' => array( 'x' ),
-				),
-			),
-			'invalid date'                   => array(
-				array(
-					'type'  => 'post',
-					'title' => 'x',
-					'date'  => array( 'site' => 'not a date' ),
-				),
-			),
-		);
-	}
-
-	/**
-	 * Called directly by a user without `create_posts`, the call fails on the capability before
-	 * anything about the attributes is checked.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_invalid_data
-	 * @since 7.3.0
-	 *
-	 * @param array<string, mixed> $data The data.
-	 */
-	public function test_direct_call_without_create_posts_fails_before_the_attributes( array $data ): void {
-		$this->login_as( 'subscriber' );
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$before = $this->snapshot();
-		$result = $execute( array( 'data' => $data ) );
-
-		$this->assert_error( $result, 'content_cannot_create', 403, 'A direct call without create_posts' );
-		$this->assertSame( 'Sorry, you are not allowed to create posts as this user.', $result->get_error_message(), 'The message should be the create message.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -895,8 +829,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A user without `edit_others_posts` gets the same error for an existing and a missing
-	 * author, so the error never tells whether a user exists.
+	 * The permission callback refuses a user without `edit_others_posts` who names another
+	 * author, existing or not, so the refusal never tells whether a user exists.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_authors_named_without_edit_others_posts
@@ -919,20 +853,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			)
 		);
 
-		$this->assertWPError( $result, 'Naming another author should fail.' );
-		$this->assertSame(
-			array(
-				'code'    => 'content_cannot_edit_others',
-				'message' => 'Sorry, you are not allowed to create posts as this user.',
-				'data'    => array( 'status' => 403 ),
-			),
-			array(
-				'code'    => $result->get_error_code(),
-				'message' => $result->get_error_message(),
-				'data'    => $result->get_error_data(),
-			),
-			'The error should be the same whether the user exists or not.'
-		);
+		$this->assert_refused( $result, 'Naming another author' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -1004,19 +925,15 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 				'slug',
 				'The slug must contain characters that are valid in a slug.',
 			),
-			// Intentionally strict: dates that name different times are an error instead of one of them winning.
-			'site and GMT dates that name different times' => array(
+			'empty slug'                                   => array(
 				'administrator',
 				array(
 					'type'  => 'post',
-					'title' => 'Two dates',
-					'date'  => array(
-						'site' => '2016-12-12T14:00:00',
-						'gmt'  => '2001-01-01T00:00:00',
-					),
+					'title' => 'Slug',
+					'slug'  => '',
 				),
-				'date',
-				'The `site` and `gmt` dates must name the same time.',
+				'slug',
+				'The slug must contain characters that are valid in a slug.',
 			),
 			// Intentionally strict: the save would drop the slug, so it is an error instead of being dropped without notice.
 			'slug of a pending post without publish_posts' => array(
@@ -1034,9 +951,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A missing author named by a user with `edit_others_posts`, a slug that sanitizes to nothing,
-	 * site and GMT dates that name different times and the slug of a pending post set by a user
-	 * who may not publish posts are invalid attributes.
+	 * A missing author named by a user with `edit_others_posts`, a slug that sanitizes to nothing
+	 * and the slug of a pending post set by a user who may not publish posts are invalid attributes.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_invalid_attributes
@@ -1125,7 +1041,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			$errors[ $key ] = array( $result->get_error_code(), $result->get_error_message(), $result->get_error_data() );
 		}
 
-		$this->assertSame( 'content_cannot_edit_others', $errors['missing'][0], 'The error should be the authorship error.' );
+		$this->assertSame( 'ability_invalid_permissions', $errors['missing'][0], 'The permission callback should refuse the call.' );
 		$this->assertSame( $errors['missing'], $errors['non-member'], 'The error should be the same for a non-member and a missing user.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written for either user.' );
 	}
@@ -1545,18 +1461,10 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			'GMT without offset'  => array( array( 'gmt' => '2016-12-12T19:00:00' ), '2016-12-12 14:00:00', '2016-12-12 19:00:00' ),
 			'site with an offset' => array( array( 'site' => '2016-12-12T18:00:00-01:00' ), '2016-12-12 14:00:00', '2016-12-12 19:00:00' ),
 			'GMT with an offset'  => array( array( 'gmt' => '2016-12-12T18:00:00-01:00' ), '2016-12-12 14:00:00', '2016-12-12 19:00:00' ),
-			'both, the same time' => array(
+			'both, the site wins' => array(
 				array(
 					'site' => '2016-12-12T14:00:00',
-					'gmt'  => '2016-12-12T19:00:00',
-				),
-				'2016-12-12 14:00:00',
-				'2016-12-12 19:00:00',
-			),
-			'both, with offsets'  => array(
-				array(
-					'site' => '2016-12-12T18:00:00-01:00',
-					'gmt'  => '2016-12-12T20:00:00+01:00',
+					'gmt'  => '2001-01-01T00:00:00',
 				),
 				'2016-12-12 14:00:00',
 				'2016-12-12 19:00:00',
@@ -1807,8 +1715,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 * @since 7.3.0
 	 */
 	public function test_each_call_checks_the_current_user(): void {
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-		$input   = array(
+		$this->register_abilities();
+		$input = array(
 			'data' => array(
 				'type'  => 'post',
 				'title' => 'Twice',
@@ -1816,14 +1724,14 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		);
 
 		$this->login_as( 'author' );
-		$first = $execute( $input );
+		$first = $this->run_ability( $input );
 
 		$this->login_as( 'subscriber' );
 		$before = $this->snapshot();
-		$second = $execute( $input );
+		$second = $this->run_ability( $input );
 
 		$this->assertSame( self::$user_ids['author'], (int) $this->get_created_post( $first )->post_author, 'The first call should create a post for the author.' );
-		$this->assert_error( $second, 'content_cannot_create', 403, 'The second call as a subscriber' );
+		$this->assert_refused( $second, 'The second call as a subscriber' );
 		$this->assertSame( $before, $this->snapshot(), 'The second call should write nothing.' );
 	}
 
@@ -1969,18 +1877,18 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			)
 		);
 
-		$this->assert_error( $published, 'content_cannot_publish', 403, 'Publishing with only the create capability' );
+		$this->assert_refused( $published, 'Publishing with only the create capability' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written for the refused publish.' );
 	}
 
 	/**
-	 * Called directly, a user with only the edit capability of a type, and not its create
-	 * capability, may not create a post of it.
+	 * A user with only the edit capability of a type, and not its create capability, may not
+	 * create a post of it.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
-	public function test_direct_call_with_only_the_edit_capability_cannot_create(): void {
+	public function test_user_with_only_the_edit_capability_cannot_create(): void {
 		$this->register_type_with_its_own_create_capability();
 
 		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
@@ -1989,10 +1897,10 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 		$this->assertFalse( current_user_can( 'create_cw_books' ), 'Precondition: the user should not have the create capability.' );
 
-		$execute = $this->get_ability_callbacks()['execute_callback'];
+		$this->register_abilities();
 
 		$before = $this->snapshot();
-		$result = $execute(
+		$result = $this->run_ability(
 			array(
 				'data' => array(
 					'type'  => 'cw_book',
@@ -2001,7 +1909,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			)
 		);
 
-		$this->assert_error( $result, 'content_cannot_create', 403, 'A direct call with only the edit capability' );
+		$this->assert_refused( $result, 'A user with only the edit capability' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -2023,23 +1931,22 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$first_before = $this->snapshot();
 
 		switch_to_blog( $blog_id );
-		$callbacks = $this->get_ability_callbacks();
-		$input     = array(
-			'data' => array(
-				'type'  => 'post',
-				'title' => 'Second site',
-			),
-		);
+		$this->register_abilities();
 
 		$second_before = $this->snapshot();
-		$regular       = $this->run_ability( $input );
-		$direct        = $callbacks['execute_callback']( $input );
+		$result        = $this->run_ability(
+			array(
+				'data' => array(
+					'type'  => 'post',
+					'title' => 'Second site',
+				),
+			)
+		);
 		$second_after  = $this->snapshot();
 
 		restore_current_blog();
 
-		$this->assert_refused( $regular, 'The regular call on the second site' );
-		$this->assert_error( $direct, 'content_cannot_create', 403, 'A direct call on the second site' );
+		$this->assert_refused( $result, 'A call on the second site' );
 		$this->assertSame( $second_before, $second_after, 'Nothing should be written on the second site.' );
 		$this->assertSame( $first_before, $this->snapshot(), 'Nothing should be written on the first site.' );
 	}

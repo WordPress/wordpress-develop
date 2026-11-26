@@ -128,16 +128,6 @@ abstract class WP_Abilities_Content_Existing_Post_UnitTestCase extends WP_Abilit
 	}
 
 	/**
-	 * Asserts that a result is the 403 error of the capability check in the execute callback.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param mixed  $result  The ability result.
-	 * @param string $context What the call was, for the assertion messages.
-	 */
-	abstract protected function assert_cannot_write( $result, string $context ): void;
-
-	/**
 	 * Builds the input that names a post with the given `where`.
 	 *
 	 * @since 7.3.0
@@ -433,23 +423,27 @@ abstract class WP_Abilities_Content_Existing_Post_UnitTestCase extends WP_Abilit
 	}
 
 	/**
-	 * A permission result that a filter turned into a grant does not skip the capability check
-	 * on the post.
+	 * A permission result that a filter turns into a grant is the final permission decision:
+	 * the call runs without a second capability check on the post.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
-	public function test_granted_permission_result_does_not_skip_the_capability_check(): void {
+	public function test_permission_result_granted_by_a_filter_is_final(): void {
 		$post_id = self::$post_ids['admin_post'];
 
 		$this->login_as( 'contributor' );
 		$this->register_abilities();
+
+		$input = $this->build_post_input( $post_id );
+		$this->assert_refused( $this->run_ability( $input ), 'Precondition: a call without the filter' );
+
 		add_filter( 'wp_ability_permission_result', '__return_true' );
 
 		$before = $this->snapshot( $post_id );
 
-		$this->assert_cannot_write( $this->run_ability( $this->build_post_input( $post_id ) ), 'A call granted by a filter' );
-		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+		$this->assertIsArray( $this->run_ability( $input ), 'A call granted by a filter should succeed.' );
+		$this->assertNotSame( $before, $this->snapshot( $post_id ), 'A call granted by a filter should write the post.' );
 	}
 
 	/**
@@ -624,19 +618,19 @@ abstract class WP_Abilities_Content_Existing_Post_UnitTestCase extends WP_Abilit
 	public function test_each_call_checks_the_current_user(): void {
 		$own_id   = self::$post_ids['author:draft'];
 		$other_id = self::$post_ids['author:pending'];
-		$execute  = $this->get_ability_callbacks()['execute_callback'];
+		$this->register_abilities();
 
 		$this->login_as( 'author' );
 		$own_before = $this->snapshot( $own_id );
-		$first      = $execute( $this->build_post_input( $own_id ) );
+		$first      = $this->run_ability( $this->build_post_input( $own_id ) );
 
 		$this->login_as( 'contributor' );
 		$other_before = $this->snapshot( $other_id );
-		$second       = $execute( $this->build_post_input( $other_id ) );
+		$second       = $this->run_ability( $this->build_post_input( $other_id ) );
 
 		$this->assertIsArray( $first, 'The first call as the author should succeed.' );
 		$this->assertNotSame( $own_before, $this->snapshot( $own_id ), 'The first call should write the post.' );
-		$this->assert_cannot_write( $second, 'The second call as a contributor' );
+		$this->assert_refused( $second, 'The second call as a contributor' );
 		$this->assertSame( $other_before, $this->snapshot( $other_id ), 'The second call should write nothing.' );
 	}
 }
