@@ -189,8 +189,6 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	 * @covers WP_Customize_Control::render_content
 	 */
 	public function test_dropdown_pages_limit_preserves_selected_page() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
 		foreach ( array( 'Page A', 'Page B', 'Page C', 'Page D' ) as $title ) {
 			self::factory()->post->create(
 				array(
@@ -209,25 +207,10 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 			)
 		);
 
-		$this->wp_customize->add_setting(
-			'page_on_front',
-			array(
-				'type'       => 'option',
-				'capability' => 'manage_options',
-				'default'    => $selected_page_id,
-			)
-		);
+		update_option( 'page_on_front', $selected_page_id );
 
-		$control = new WP_Customize_Control(
-			$this->wp_customize,
-			'page_on_front',
-			array(
-				'label'   => 'Homepage',
-				'section' => 'static_front_page',
-				'type'    => 'dropdown-pages',
-			)
-		);
-		$this->wp_customize->add_control( $control );
+		do_action( 'customize_register', $this->wp_customize );
+		$control = $this->wp_customize->get_control( 'page_on_front' );
 
 		$limit_callback = static function () {
 			return 2;
