@@ -64,7 +64,7 @@ class Tests_General_WpHeartbeatSettings extends WP_UnitTestCase {
 	 *
 	 * Admin screens define `ajaxurl` themselves.
 	 *
-	 * @ticket 66757
+	 * @ticket 66820
 	 */
 	public function test_wp_heartbeat_settings_admin() {
 		wp_set_current_user( self::factory()->user->create() );
