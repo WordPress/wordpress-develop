@@ -35,12 +35,12 @@ export function wpCli( args, options = {} ) {
 		[
 			join( process.cwd(), 'tools/local-env/scripts/docker.js' ),
 			'exec',
+			...configArgs,
 			'--user',
 			'wp_php',
 			'cli',
 			'wp',
 			`--path=/var/www/${ process.env.LOCAL_DIR ?? 'src' }`,
-			...configArgs,
 			...urlArgs,
 			...args,
 		],
