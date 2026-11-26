@@ -1744,11 +1744,24 @@ themes.view.Installer = themes.view.Appearance.extend({
 				'</p>'
 			);
 
+			var details = '';
+
 			if ( response && response.errorData ) {
+				// Error payload sent by wp_ajax_query_themes().
+				details = response.errorData;
+			} else if ( response && response.status && 200 !== response.status ) {
+				// HTTP-level failure, e.g. 500, 502, or 504.
+				details = response.status + ( response.statusText ? ' ' + response.statusText : '' );
+			} else if ( response && response.responseText ) {
+				// A 200 response that could not be parsed as JSON.
+				details = wp.i18n.__( 'The server response was not valid JSON.' );
+			}
+
+			if ( details ) {
 				$error.append(
 					$( '<p></p>' ).append(
 						$( '<strong></strong>' ).text( wp.i18n.__( 'Error details:' ) + ' ' ),
-						document.createTextNode( response.errorData )
+						document.createTextNode( details )
 					)
 				);
 			}

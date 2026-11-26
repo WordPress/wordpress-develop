@@ -3641,9 +3641,7 @@ function wp_ajax_query_themes() {
 
 	if ( is_wp_error( $api ) ) {
 		$error_data = $api->get_error_data();
-		$response   = array(
-			'errorMessage' => $api->get_error_message(),
-		);
+		$response   = array();
 
 		if ( is_string( $error_data ) && '' !== trim( $error_data ) ) {
 			$response['errorData'] = wp_strip_all_tags( $error_data );
