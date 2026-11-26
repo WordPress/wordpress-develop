@@ -32,6 +32,27 @@
 				characters_including_spaces: 13
 			},
 			{
+				message: 'No-break space.',
+				string: 'one\u00A0two\u00A0three',
+				words: 3,
+				characters_excluding_spaces: 11,
+				characters_including_spaces: 13
+			},
+			{
+				message: 'Unicode spaces.',
+				string: 'one\u2003two\u202Fthree',
+				words: 3,
+				characters_excluding_spaces: 11,
+				characters_including_spaces: 13
+			},
+			{
+				message: 'No-break space after an abbreviation.',
+				string: 'Dr.\u00A0Smith',
+				words: 2,
+				characters_excluding_spaces: 8,
+				characters_including_spaces: 9
+			},
+			{
 				message: 'Punctuation.',
 				string: 'It\'s two three \u2026 4?',
 				words: 4,
