@@ -130,10 +130,21 @@ test( 'isolates database setup and rejects another run in the same checkout', as
 	);
 	assert.ok(
 		commands.some( ( args ) =>
-			args.some( ( arg ) =>
-				arg.includes( 'CREATE DATABASE IF NOT EXISTS wordpress_develop_e2e' )
+			args.includes( 'eval' ) &&
+			args.some(
+				( arg ) =>
+					arg.includes(
+						'DROP DATABASE IF EXISTS wordpress_develop_e2e'
+					) &&
+					arg.includes(
+						'CREATE DATABASE wordpress_develop_e2e'
+					)
 			)
 		)
+	);
+	assert.equal(
+		commands.some( ( args ) => args.includes( 'db' ) ),
+		false
 	);
 	assert.ok(
 		commands.some( ( args ) =>

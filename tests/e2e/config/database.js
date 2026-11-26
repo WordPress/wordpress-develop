@@ -442,11 +442,10 @@ async function setupE2EDatabase( baseURL ) {
 			originalCacheKeySalt,
 		};
 
-		// Create the dedicated database without touching the PHPUnit database.
-		wpCli(
-			[ 'db', 'query', `CREATE DATABASE IF NOT EXISTS ${ E2E_DB_NAME }` ],
-			localDir
-		);
+		// Recreate the dedicated database through WordPress's existing connection.
+		// The MySQL CLI may not trust the self-signed certificate in CI.
+		const resetDatabaseCommand = `global $wpdb; foreach ( array( "DROP DATABASE IF EXISTS ${ E2E_DB_NAME }", "CREATE DATABASE ${ E2E_DB_NAME }" ) as $query ) { if ( false === $wpdb->query( $query ) ) { WP_CLI::error( $wpdb->last_error ); } }`;
+		wpCli( [ 'eval', resetDatabaseCommand ], localDir );
 
 		const temporaryStatePath = `${ statePath }.${ lockId }.tmp`;
 		await writeFile( temporaryStatePath, JSON.stringify( state ), 'utf8' );
@@ -470,7 +469,6 @@ async function setupE2EDatabase( baseURL ) {
 			],
 			localDir
 		);
-		wpCli( [ 'db', 'reset', '--yes' ], localDir );
 		wpCli(
 			[
 				'core',
