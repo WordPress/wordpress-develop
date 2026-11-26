@@ -183,7 +183,7 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	 * @return Type|null Type, or null if unknown.
 	 */
 	private function get_positional_value_type( array $columns, bool $complete, ?\PhpParser\Node\Expr $x, Scope $scope ): ?Type {
-		$positional = $this->get_positional_columns( $columns, $complete );
+		$variants = self::get_row_variants( $columns );
 
 		$indexes = array( 0 );
 		if ( null !== $x ) {
@@ -196,28 +196,30 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 			}
 			if ( array() === $indexes ) {
 				// Any column.
-				if ( count( $positional ) !== count( $columns ) || ! $complete ) {
+				if ( ! $complete ) {
 					return null;
 				}
-				$indexes = array_keys( $columns );
+				$indexes = array_keys( $variants[0] );
 			}
 		}
 
 		$types = array();
 		foreach ( $indexes as $index ) {
-			if ( ! isset( $positional[ $index ] ) ) {
-				// Past the known columns, or an index with no column, for which the value is null.
-				if ( $complete && count( $positional ) === count( $columns ) ) {
+			foreach ( $variants as $variant ) {
+				if ( ! isset( $variant[ $index ] ) ) {
+					// Past the known columns, or an index with no column, for which the value is null.
+					if ( ! $complete ) {
+						return null;
+					}
 					$types[] = new NullType();
 					continue;
 				}
-				return null;
-			}
-			$type     = $positional[ $index ]['type'];
-			$non_null = TypeCombinator::removeNull( $type );
-			$types[]  = TypeCombinator::intersect( $non_null, new StringType(), new AccessoryNonEmptyStringType() );
-			if ( ! $type->isNull()->no() || ! $non_null->isSuperTypeOf( new ConstantStringType( '' ) )->no() ) {
-				$types[] = new NullType();
+				$type     = $variant[ $index ];
+				$non_null = TypeCombinator::removeNull( $type );
+				$types[]  = TypeCombinator::intersect( $non_null, new StringType(), new AccessoryNonEmptyStringType() );
+				if ( ! $type->isNull()->no() || ! $non_null->isSuperTypeOf( new ConstantStringType( '' ) )->no() ) {
+					$types[] = new NullType();
+				}
 			}
 		}
 
@@ -225,28 +227,25 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	}
 
 	/**
-	 * Gets the columns whose positions are known.
+	 * Gets the values of a row as a list, as `ARRAY_N` and the column index of `get_var()` and `get_col()` see them.
 	 *
-	 * A column only present on some sites shifts the positions of those after it, and the columns after an unknown
-	 * one are unknown.
+	 * A column only present on some sites, like the multisite columns of the users table, shifts the positions of
+	 * those after it. So there are two variants of the row, one with those columns and one without. They are taken to
+	 * be all present or all absent together, as the multisite columns are.
 	 *
-	 * @param list<array{ name: string|null, type: Type, optional: bool }> $columns  Columns.
-	 * @param bool                                                         $complete Whether the columns are all known.
-	 * @return list<array{ name: string|null, type: Type, optional: bool }> Columns, from the first.
+	 * @param list<array{ name: string|null, type: Type, optional: bool }> $columns Columns.
+	 * @return non-empty-list<list<Type>> Types of the values, in each variant of the row.
 	 */
-	private function get_positional_columns( array $columns, bool $complete ): array {
-		$positional = array();
-		foreach ( $columns as $index => $column ) {
-			if ( $column['optional'] ) {
-				// Its own position is known, but whether it is there is not.
-				$is_last = ( count( $columns ) - 1 === $index ) && $complete;
-				if ( ! $is_last ) {
-					break;
-				}
+	private static function get_row_variants( array $columns ): array {
+		$with    = array();
+		$without = array();
+		foreach ( $columns as $column ) {
+			$with[] = $column['type'];
+			if ( ! $column['optional'] ) {
+				$without[] = $column['type'];
 			}
-			$positional[] = $column;
 		}
-		return $positional;
+		return count( $with ) === count( $without ) ? array( $with ) : array( $with, $without );
 	}
 
 	/**
@@ -281,11 +280,15 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 
 		$list_row = null;
 		if ( $complete ) {
-			$builder = ConstantArrayTypeBuilder::createEmpty();
-			foreach ( $columns as $index => $column ) {
-				$builder->setOffsetValueType( new ConstantIntegerType( $index ), $column['type'], $column['optional'] );
+			$list_rows = array();
+			foreach ( self::get_row_variants( $columns ) as $variant ) {
+				$builder = ConstantArrayTypeBuilder::createEmpty();
+				foreach ( $variant as $index => $type ) {
+					$builder->setOffsetValueType( new ConstantIntegerType( $index ), $type );
+				}
+				$list_rows[] = $builder->getArray();
 			}
-			$list_row = $builder->getArray();
+			$list_row = TypeCombinator::union( ...$list_rows );
 		}
 
 		// `OBJECT_K` keys the rows by the first column's value, with null as ''.
