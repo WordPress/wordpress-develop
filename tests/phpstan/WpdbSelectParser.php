@@ -537,13 +537,16 @@ final class WpdbSelectParser {
 	/**
 	 * Splits a query into tokens, leaving out whitespace and comments.
 	 *
+	 * A table placeholder with name characters on either side of it, as in `{wpdb:posts}_archive`, is one token with
+	 * them, since together they name some other table.
+	 *
 	 * @param string $query Query.
 	 * @return list<array{ text: string, offset: int }>
 	 * @phpstan-return list<Token>
 	 */
 	private static function tokenize( string $query ): array {
 		preg_match_all(
-			'/\s+|--[^\n]*|\/\*.*?\*\/|\'(?:[^\'\\\\]|\\\\.|\'\')*\'|"(?:[^"\\\\]|\\\\.|"")*"|`[^`]*`|\{[^{}]*\}|\d+(?:\.\d+)?|[\w$]+|<=>|[<>!]=|<>|\|\||&&|./s',
+			'/\s+|--[^\n]*|\/\*.*?\*\/|\'(?:[^\'\\\\]|\\\\.|\'\')*\'|"(?:[^"\\\\]|\\\\.|"")*"|`[^`]*`|[\w$]*\{wpdb:\w+\}[\w$]*|\{[^{}]*\}|\d+(?:\.\d+)?|[\w$]+|<=>|[<>!]=|<>|\|\||&&|./s',
 			$query,
 			$matches,
 			PREG_OFFSET_CAPTURE
