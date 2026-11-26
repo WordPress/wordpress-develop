@@ -17,7 +17,7 @@ class Tests_General_FeedLinks extends WP_UnitTestCase {
 	/**
 	 * Tests that nothing is printed without automatic-feed-links support.
 	 *
-	 * @ticket 66757
+	 * @ticket 66821
 	 */
 	public function test_feed_links_does_nothing_without_theme_support() {
 		remove_theme_support( 'automatic-feed-links' );
@@ -28,7 +28,7 @@ class Tests_General_FeedLinks extends WP_UnitTestCase {
 	/**
 	 * Tests that posts and comments feed links are printed when supported.
 	 *
-	 * @ticket 66757
+	 * @ticket 66821
 	 */
 	public function test_feed_links_prints_posts_and_comments_feeds() {
 		add_theme_support( 'automatic-feed-links' );
@@ -58,7 +58,7 @@ class Tests_General_FeedLinks extends WP_UnitTestCase {
 	/**
 	 * Tests that the posts feed link can be suppressed by filter.
 	 *
-	 * @ticket 66757
+	 * @ticket 66821
 	 */
 	public function test_feed_links_can_hide_posts_feed() {
 		add_theme_support( 'automatic-feed-links' );
@@ -76,7 +76,7 @@ class Tests_General_FeedLinks extends WP_UnitTestCase {
 	/**
 	 * Tests that the comments feed link can be suppressed by filter.
 	 *
-	 * @ticket 66757
+	 * @ticket 66821
 	 */
 	public function test_feed_links_can_hide_comments_feed() {
 		add_theme_support( 'automatic-feed-links' );
