@@ -806,7 +806,7 @@ class RSSCache {
 	Function:	unserialize
 \*=======================================================================*/
 	function unserialize ( $data ) {
-		return unserialize( $data );
+		return maybe_unserialize( $data );
 	}
 
 /*=======================================================================*\

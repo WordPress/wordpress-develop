@@ -1493,7 +1493,7 @@ final class WP_Customize_Widgets {
 			return null;
 		}
 
-		$instance = unserialize( $decoded );
+		$instance = maybe_unserialize( $decoded );
 		if ( false === $instance ) {
 			return null;
 		}
