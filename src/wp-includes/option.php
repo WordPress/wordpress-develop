@@ -3184,7 +3184,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
  *
  * @phpstan-param '' $deprecated
  */
-function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
+function unregister_setting( $option_group, $option_name, $deprecated = null ) {
 	global $new_allowed_options, $wp_registered_settings;
 
 	/*
@@ -3228,7 +3228,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 		unset( $new_allowed_options[ $option_group ][ $pos ] );
 	}
 
-	if ( '' !== $deprecated ) {
+	if ( '' !== $deprecated && null !== $deprecated ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'4.7.0',
