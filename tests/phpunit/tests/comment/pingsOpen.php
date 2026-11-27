@@ -17,7 +17,9 @@ class Tests_Comment_PingsOpen extends WP_UnitTestCase {
 	 * @ticket 54159
 	 */
 	public function test_post_exist_status_open() {
-		$post = self::factory()->post->create_and_get();
+		$post = self::factory()->post->create_and_get(
+			array( 'ping_status' => 'open' )
+		);
 		$this->assertTrue( pings_open( $post ) );
 	}
 
