@@ -96,6 +96,13 @@ function wp_initial_constants() {
 			define( 'WP_DEBUG', false );
 		}
 	}
+	/*
+	 * Add define( 'WP_DEBUG_LEVEL', null ); to wp-config.php to use the globally configured setting
+	 * for 'error_reporting'.
+	 */
+	if ( ! defined( 'WP_DEBUG_LEVEL' ) ) {
+		define( 'WP_DEBUG_LEVEL', '' );
+	}
 
 	/*
 	 * Add define( 'WP_DEBUG_DISPLAY', null ); to wp-config.php to use the globally configured setting
