@@ -398,6 +398,30 @@ function wp_functionality_constants() {
 	if ( ! defined( 'WP_CRON_LOCK_TIMEOUT' ) ) {
 		define( 'WP_CRON_LOCK_TIMEOUT', MINUTE_IN_SECONDS );
 	}
+
+	/**
+	 * Wether or not to ignore user abort when running wp-cron
+	 *
+	 * @see https://www.php.net/manual/en/function.ignore-user-abort.php
+	 */
+	if ( ! defined( 'WP_CRON_IGNORE_ABORT' ) ) {
+		define( 'WP_CRON_IGNORE_ABORT', true );
+	}
+
+	/**
+	 * Flush wp-cron response data
+	 *
+	 * Wether or not to flush wp-cron response data and close the HTTP request
+	 * before continuing in the background. This invokes a child process in
+	 * PHP-FPM and LSPHP and closes the HTTP connection to the client.
+	 *
+	 * @link https://www.php.net/manual/en/function.ignore-user-abort.php
+	 * @link https://www.php.net/manual/en/function.fastcgi-finish-request.php
+	 * @link https://www.php.net/manual/en/function.litespeed-finish-request.php
+	 */
+	if ( ! defined( 'WP_CRON_FLUSH' ) ) {
+		define( 'WP_CRON_FLUSH', true );
+	}
 }
 
 /**
