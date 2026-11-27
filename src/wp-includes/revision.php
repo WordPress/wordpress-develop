@@ -102,15 +102,11 @@ function _wp_post_revision_data( $post = array(), $autosave = false ) {
  *
  * @since 6.4.0
  *
- * @param int     $post_id The post id that was inserted.
- * @param WP_Post $post    The post object that was inserted.
+ * @param int     $post_id The post ID that was inserted or updated.
+ * @param WP_Post $post    The post object that was inserted or updated.
  * @param bool    $update  Whether this insert is updating an existing post.
  */
 function wp_save_post_revision_on_insert( $post_id, $post, $update ) {
-	if ( ! $update ) {
-		return;
-	}
-
 	if ( ! has_action( 'post_updated', 'wp_save_post_revision' ) ) {
 		return;
 	}
@@ -216,7 +212,16 @@ function wp_save_post_revision( $post_id ) {
 		}
 	}
 
-	$return = _wp_put_post_revision( $post );
+	/*
+	 * With no current user (eg. imports or cron), credit the first revision
+	 * to the post author instead of user 0.
+	 */
+	$revision_author = null;
+	if ( ! $revisions && 0 === get_current_user_id() ) {
+		$revision_author = (int) $post->post_author;
+	}
+
+	$return = _wp_put_post_revision( $post, false, $revision_author );
 
 	/*
 	 * If a limit for the number of revisions to keep has been set,
@@ -348,14 +353,16 @@ function wp_is_post_autosave( $post ) {
  * Inserts post data into the posts table as a post revision.
  *
  * @since 2.6.0
+ * @since 7.3.0 The `$post_author` parameter was added.
  * @access private
  *
- * @param int|WP_Post|array|null $post     Post ID, post object OR post array.
- * @param bool                   $autosave Optional. Whether the revision is an autosave or not.
- *                                         Default false.
+ * @param int|WP_Post|array|null $post        Post ID, post object OR post array.
+ * @param bool                   $autosave    Optional. Whether the revision is an autosave or not.
+ *                                            Default false.
+ * @param int|null               $post_author Optional. The revision author ID. Default null.
  * @return int|WP_Error WP_Error or 0 if error, new revision ID if success.
  */
-function _wp_put_post_revision( $post = null, $autosave = false ) {
+function _wp_put_post_revision( $post = null, $autosave = false, $post_author = null ) {
 	if ( is_object( $post ) ) {
 		$post = get_object_vars( $post );
 	} elseif ( ! is_array( $post ) ) {
@@ -371,6 +378,11 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 	}
 
 	$post = _wp_post_revision_data( $post, $autosave );
+
+	if ( null !== $post_author ) {
+		$post['post_author'] = absint( $post_author );
+	}
+
 	$post = wp_slash( $post ); // Since data is from DB.
 
 	$revision_id = wp_insert_post( $post, true );

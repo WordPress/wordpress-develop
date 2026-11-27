@@ -13425,7 +13425,7 @@ mockedApiResponse.PostsCollection = [
             ],
             "version-history": [
                 {
-                    "count": 2,
+                    "count": 3,
                     "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4/revisions"
                 }
             ],
@@ -13572,6 +13572,36 @@ mockedApiResponse.postRevisions = [
                 }
             ]
         }
+    },
+    {
+        "author": 674,
+        "date": "2017-02-14T00:00:00",
+        "date_gmt": "2017-02-14T00:00:00",
+        "id": 4202885,
+        "modified": "2017-02-14T00:00:00",
+        "modified_gmt": "2017-02-14T00:00:00",
+        "parent": 4202884,
+        "slug": "4202884-revision-v1",
+        "guid": {
+            "rendered": "http://example.org/?p=4202885"
+        },
+        "title": {
+            "rendered": "REST API Client Fixture: Post"
+        },
+        "content": {
+            "rendered": "<p>REST API Client Fixture: Post</p>\n"
+        },
+        "excerpt": {
+            "rendered": "<p>REST API Client Fixture: Post</p>\n"
+        },
+        "meta": [],
+        "_links": {
+            "parent": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4202884"
+                }
+            ]
+        }
     }
 ];
 
@@ -13591,7 +13621,7 @@ mockedApiResponse.revision = {
         "rendered": "REST API Client Fixture: Post"
     },
     "content": {
-        "rendered": "<p>Updated post content.</p>\n"
+        "rendered": "<p>REST API Client Fixture: Post</p>\n"
     },
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Post</p>\n"
@@ -13731,7 +13761,7 @@ mockedApiResponse.PagesCollection = [
             ],
             "version-history": [
                 {
-                    "count": 2,
+                    "count": 3,
                     "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7/revisions"
                 }
             ],
@@ -13860,6 +13890,36 @@ mockedApiResponse.pageRevisions = [
                 }
             ]
         }
+    },
+    {
+        "author": 674,
+        "date": "2017-02-14T00:00:00",
+        "date_gmt": "2017-02-14T00:00:00",
+        "id": 4202889,
+        "modified": "2017-02-14T00:00:00",
+        "modified_gmt": "2017-02-14T00:00:00",
+        "parent": 4202888,
+        "slug": "4202888-revision-v1",
+        "guid": {
+            "rendered": "http://example.org/?p=4202889"
+        },
+        "title": {
+            "rendered": "REST API Client Fixture: Page"
+        },
+        "content": {
+            "rendered": "<p>REST API Client Fixture: Page</p>\n"
+        },
+        "excerpt": {
+            "rendered": "<p>REST API Client Fixture: Page</p>\n"
+        },
+        "meta": [],
+        "_links": {
+            "parent": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/4202888"
+                }
+            ]
+        }
     }
 ];
 
@@ -13879,7 +13939,7 @@ mockedApiResponse.pageRevision = {
         "rendered": "REST API Client Fixture: Page"
     },
     "content": {
-        "rendered": "<p>Updated page content.</p>\n"
+        "rendered": "<p>REST API Client Fixture: Page</p>\n"
     },
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Page</p>\n"
