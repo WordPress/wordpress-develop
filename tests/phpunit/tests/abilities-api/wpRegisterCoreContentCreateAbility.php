@@ -496,6 +496,14 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 					),
 				),
 			),
+			'parent that is a word' => array(
+				array(
+					'data' => array(
+						'type'   => 'page',
+						'parent' => 'top',
+					),
+				),
+			),
 		);
 	}
 
@@ -905,7 +913,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 */
 	public static function data_invalid_attributes(): array {
 		return array(
-			'missing author named with edit_others_posts'  => array(
+			'missing author named with edit_others_posts' => array(
 				'editor',
 				array(
 					'type'   => 'post',
@@ -915,7 +923,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 				'author',
 				'The author must be an existing user of this site.',
 			),
-			'slug that sanitizes to nothing'               => array(
+			'slug that sanitizes to nothing'              => array(
 				'administrator',
 				array(
 					'type'  => 'post',
@@ -925,7 +933,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 				'slug',
 				'The slug must contain characters that are valid in a slug.',
 			),
-			'empty slug'                                   => array(
+			'empty slug'                                  => array(
 				'administrator',
 				array(
 					'type'  => 'post',
@@ -935,24 +943,12 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 				'slug',
 				'The slug must contain characters that are valid in a slug.',
 			),
-			// Intentionally strict: the save would drop the slug, so it is an error instead of being dropped without notice.
-			'slug of a pending post without publish_posts' => array(
-				'contributor',
-				array(
-					'type'   => 'post',
-					'title'  => 'Pending slug',
-					'status' => 'pending',
-					'slug'   => 'pending-slug',
-				),
-				'slug',
-				'The slug of a pending post can only be set by a user who can publish the post.',
-			),
 		);
 	}
 
 	/**
-	 * A missing author named by a user with `edit_others_posts`, a slug that sanitizes to nothing
-	 * and the slug of a pending post set by a user who may not publish posts are invalid attributes.
+	 * A missing author named by a user with `edit_others_posts` and a slug that sanitizes to
+	 * nothing are invalid attributes.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_invalid_attributes
@@ -1051,30 +1047,29 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 *
 	 * @return array<string, array{0: string}> The parents, as fixture names.
 	 */
-	public static function data_parents_that_cannot_be_used(): array {
+	public static function data_parents_refused_by_the_permission_callback(): array {
 		return array(
 			'missing post'               => array( 'missing' ),
-			'post of another type'       => array( 'published_post' ),
 			'page the user may not read' => array( 'editor_draft_page' ),
 			'revision of a page'         => array( 'page_revision' ),
 		);
 	}
 
 	/**
-	 * A missing parent, a parent of another type, a parent the user may not read and a revision
-	 * give one identical error, so the error never tells whether a post exists.
+	 * A missing parent, a parent the user may not read and a revision, whose type is not exposed
+	 * to abilities, are refused by the permission callback with one identical error, so the
+	 * refusal never tells whether a post exists.
 	 *
 	 * @ticket 66706
-	 * @dataProvider data_parents_that_cannot_be_used
+	 * @dataProvider data_parents_refused_by_the_permission_callback
 	 * @since 7.3.0
 	 *
 	 * @param string $parent_key The parent, as a fixture name.
 	 */
-	public function test_parent_that_cannot_be_used_gives_one_identical_error( string $parent_key ): void {
+	public function test_parent_that_is_missing_or_unreadable_is_refused( string $parent_key ): void {
 		$this->login_as( 'page_writer' );
 		$this->register_abilities();
 
-		$this->assertTrue( current_user_can( get_post_type_object( 'page' )->cap->create_posts ), 'Precondition: the user should be able to create pages.' );
 		$this->assertFalse( current_user_can( 'read_post', self::$post_ids['editor_draft_page'] ), 'Precondition: the user should not be able to read the draft page of the editor.' );
 
 		$create = function ( int $parent_id ) {
@@ -1094,9 +1089,50 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$reference = $create( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER + 1 );
 		$result    = $create( self::$post_ids[ $parent_key ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 
-		$this->assert_invalid_attribute( $result, 'parent', 'A parent that cannot be used' );
-		$this->assertWPError( $reference, 'Another missing parent should fail.' );
-		$this->assertSame( $reference->get_error_data(), $result->get_error_data(), 'The error data, with its reason, should be the same as for another missing parent.' );
+		$this->assert_refused( $reference, 'Another missing parent' );
+		$this->assert_refused( $result, 'A missing or unreadable parent' );
+		$this->assertSame( $reference->get_error_message(), $result->get_error_message(), 'The refusal should be the same as for another missing parent.' );
+		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Returns readable parents that a new page may not have.
+	 *
+	 * @return array<string, array{0: string}> The parents, as fixture names.
+	 */
+	public static function data_parents_that_cannot_be_used(): array {
+		return array(
+			'post of another type' => array( 'published_post' ),
+		);
+	}
+
+	/**
+	 * A readable parent of another type is an invalid parent.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_parents_that_cannot_be_used
+	 * @since 7.3.0
+	 *
+	 * @param string $parent_key The parent, as a fixture name.
+	 */
+	public function test_parent_that_cannot_be_used_is_an_invalid_parent( string $parent_key ): void {
+		$this->login_as( 'page_writer' );
+		$this->register_abilities();
+
+		$this->assertTrue( current_user_can( 'read_post', self::$post_ids[ $parent_key ] ), 'Precondition: the user should be able to read the parent.' );
+
+		$before = $this->snapshot();
+		$result = $this->run_ability(
+			array(
+				'data' => array(
+					'type'   => 'page',
+					'title'  => 'Child',
+					'parent' => self::$post_ids[ $parent_key ],
+				),
+			)
+		);
+
+		$this->assert_invalid_attribute( $result, 'parent', 'A parent that cannot be used', 'The parent must be 0, or a post of the same post type that is neither the post itself nor one of its descendants.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -1337,6 +1373,35 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 		$this->assertSame( $expected, $this->get_created_post( $result )->post_name, 'The sanitized slug should be stored.' );
 		$this->assertSame( $expected, $result['slug'], 'The stored slug should be returned.' );
+	}
+
+	/**
+	 * A user who may not publish posts cannot set the slug of a pending post.
+	 *
+	 * Intentionally strict: the save would drop the slug, so the call is refused instead of the
+	 * slug being dropped without notice.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_slug_of_a_pending_post_is_refused_without_publish_posts(): void {
+		$this->login_as( 'contributor' );
+		$this->register_abilities();
+
+		$before = $this->snapshot();
+		$result = $this->run_ability(
+			array(
+				'data' => array(
+					'type'   => 'post',
+					'title'  => 'Pending slug',
+					'status' => 'pending',
+					'slug'   => 'pending-slug',
+				),
+			)
+		);
+
+		$this->assert_refused( $result, 'A slug on a pending post without publish_posts' );
+		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
 	/**

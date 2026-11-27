@@ -353,12 +353,15 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Checks the capabilities that the sent `status` and `author` need.
+	 * Checks the capabilities that the sent `status`, `author`, `parent` and `slug` need.
 	 *
 	 * A status that makes the post visible needs the capability to publish posts of the type,
 	 * and an author other than the current user needs the capability to edit the posts of
-	 * others. A status or an author that keeps the stored value needs neither. Every other
-	 * rule on these attributes is checked by the execute callbacks.
+	 * others. A parent must be a post the current user can read, of a type exposed to
+	 * abilities; a missing post is refused the same way, so the refusal never tells whether a
+	 * post exists. The slug of a post that will be pending needs the capability to publish the
+	 * post. A value that keeps the stored one needs none of these. Every other rule on these
+	 * attributes is checked by the execute callbacks.
 	 *
 	 * @since 7.3.0
 	 *
@@ -396,6 +399,41 @@ final class WP_Abilities_Content {
 			$is_unchanged = $post && (int) $post->post_author === $author_id;
 			if ( ! $is_unchanged && get_current_user_id() !== $author_id && ! current_user_can( $post_type_object->cap->edit_others_posts ) ) {
 				return false;
+			}
+		}
+
+		// A parent sent for a post type that is not hierarchical is refused by the execute callbacks.
+		if ( array_key_exists( 'parent', $data ) && is_post_type_hierarchical( $post_type_object->name ) ) {
+			$parent_id = $this->parse_filter_int( $data['parent'], 0 );
+			if ( null === $parent_id ) {
+				return false;
+			}
+
+			$is_unchanged = $post && (int) $post->post_parent === $parent_id;
+			if ( ! $is_unchanged && 0 !== $parent_id ) {
+				$parent = get_post( $parent_id );
+				if ( ! $parent instanceof WP_Post || ! $this->check_read_permission( $parent ) ) {
+					return false;
+				}
+			}
+		}
+
+		if ( array_key_exists( 'slug', $data ) ) {
+			// Without a sent status, the save keeps the stored status, or defaults to `draft`.
+			$status       = $data['status'] ?? ( $post ? $post->post_status : 'draft' );
+			$is_unchanged = $post && $post->post_name === $data['slug'];
+
+			/*
+			 * Intentionally strict: the save drops the slug of a pending post when the user
+			 * cannot publish it, so the slug is refused instead of being dropped without notice.
+			 */
+			if ( 'pending' === $status && ! $is_unchanged ) {
+				$can_publish = $post
+					? current_user_can( 'publish_post', $post->ID )
+					: current_user_can( $post_type_object->cap->publish_posts );
+				if ( ! $can_publish ) {
+					return false;
+				}
 			}
 		}
 
@@ -1258,7 +1296,8 @@ final class WP_Abilities_Content {
 	/**
 	 * Checks the sent `parent`.
 	 *
-	 * Every failure returns the same error, so it never tells whether a post ID exists.
+	 * The permission callbacks refuse a parent that is missing or that the current user cannot
+	 * read, so the errors here never tell whether a post ID exists.
 	 *
 	 * @since 7.3.0
 	 *
@@ -1283,14 +1322,14 @@ final class WP_Abilities_Content {
 			return 0;
 		}
 
-		$reason = __( 'The parent must be 0, or a readable post of the same post type that is neither the post itself nor one of its descendants.' );
+		$reason = __( 'The parent must be 0, or a post of the same post type that is neither the post itself nor one of its descendants.' );
 
 		/*
-		 * Intentionally strict: a parent must be readable, of the same type and free of
-		 * loops; it is never silently reset.
+		 * Intentionally strict: a parent must be of the same type and free of loops; it is
+		 * never silently reset.
 		 */
 		$parent = get_post( $parent_id );
-		if ( ! $parent instanceof WP_Post || $post_type !== $parent->post_type || ! $this->check_read_permission( $parent ) ) {
+		if ( ! $parent instanceof WP_Post || $post_type !== $parent->post_type ) {
 			return $this->invalid_attribute_error( 'data[parent]', $reason );
 		}
 
@@ -1381,19 +1420,6 @@ final class WP_Abilities_Content {
 		// Keeping the stored slug changes nothing, also the empty slug of a draft.
 		if ( $post && $post->post_name === $data['slug'] ) {
 			return null;
-		}
-
-		/*
-		 * Intentionally strict: the save drops the slug of a pending post when the user cannot
-		 * publish it, so the slug is an error here instead of being dropped without notice.
-		 */
-		if ( 'pending' === $status ) {
-			$can_publish = $post
-				? current_user_can( 'publish_post', $post->ID )
-				: current_user_can( $post_type_object->cap->publish_posts );
-			if ( ! $can_publish ) {
-				return $this->invalid_attribute_error( 'data[slug]', __( 'The slug of a pending post can only be set by a user who can publish the post.' ) );
-			}
 		}
 
 		$slug = sanitize_title( $data['slug'] );

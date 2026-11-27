@@ -862,29 +862,26 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 *
 	 * @return array<string, array{0: string}> The parents, as fixture names.
 	 */
-	public static function data_parents_that_cannot_be_used(): array {
+	public static function data_parents_refused_by_the_permission_callback(): array {
 		return array(
 			'missing post'               => array( 'missing' ),
-			'post of another type'       => array( 'admin_post' ),
 			'page the user may not read' => array( 'editor_draft_page' ),
-			'the page itself'            => array( 'writer_page' ),
-			'a child'                    => array( 'writer_child' ),
-			'a grandchild'               => array( 'writer_grandchild' ),
-			'revision'                   => array( 'revision' ),
+			'revision of a page'         => array( 'revision' ),
 		);
 	}
 
 	/**
-	 * A missing parent, a parent of another type, a parent the user may not read, a revision and a
-	 * parent that would make a loop give one identical error.
+	 * A missing parent, a parent the user may not read and a revision, whose type is not exposed
+	 * to abilities, are refused by the permission callback with one identical error, so the
+	 * refusal never tells whether a post exists.
 	 *
 	 * @ticket 66706
-	 * @dataProvider data_parents_that_cannot_be_used
+	 * @dataProvider data_parents_refused_by_the_permission_callback
 	 * @since 7.3.0
 	 *
 	 * @param string $parent_key The parent, as a fixture name.
 	 */
-	public function test_parent_that_cannot_be_used_gives_one_identical_error( string $parent_key ): void {
+	public function test_parent_that_is_missing_or_unreadable_is_refused( string $parent_key ): void {
 		$post_id = self::$post_ids['writer_page'];
 
 		$this->login_as( 'page_writer' );
@@ -898,9 +895,49 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$reference = $this->update_post( $post_id, array( 'parent' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER + 1 ) );
 		$result    = $this->update_post( $post_id, array( 'parent' => self::$post_ids[ $parent_key ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
-		$this->assertWPError( $reference, 'The reference call with a missing parent should fail.' );
-		$this->assert_invalid_attribute( $result, 'parent', 'A parent that cannot be used' );
-		$this->assertSame( $reference->get_error_data(), $result->get_error_data(), 'The error data, with its reason, should be the same as for a missing parent.' );
+		$this->assert_refused( $reference, 'Another missing parent' );
+		$this->assert_refused( $result, 'A missing or unreadable parent' );
+		$this->assertSame( $reference->get_error_message(), $result->get_error_message(), 'The refusal should be the same as for a missing parent.' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Returns readable parents that a page may not have.
+	 *
+	 * @return array<string, array{0: string}> The parents, as fixture names.
+	 */
+	public static function data_parents_that_cannot_be_used(): array {
+		return array(
+			'post of another type' => array( 'admin_post' ),
+			'the page itself'      => array( 'writer_page' ),
+			'a child'              => array( 'writer_child' ),
+			'a grandchild'         => array( 'writer_grandchild' ),
+		);
+	}
+
+	/**
+	 * A readable parent of another type and a parent that would make a loop are invalid parents
+	 * with one identical error.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_parents_that_cannot_be_used
+	 * @since 7.3.0
+	 *
+	 * @param string $parent_key The parent, as a fixture name.
+	 */
+	public function test_parent_that_cannot_be_used_is_an_invalid_parent( string $parent_key ): void {
+		$post_id = self::$post_ids['writer_page'];
+
+		$this->login_as( 'page_writer' );
+		$this->register_abilities();
+
+		$this->assertTrue( current_user_can( 'edit_post', $post_id ), 'Precondition: the user should be able to edit the page.' );
+		$this->assertTrue( current_user_can( 'read_post', self::$post_ids[ $parent_key ] ), 'Precondition: the user should be able to read the parent.' );
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, array( 'parent' => self::$post_ids[ $parent_key ] ) );
+
+		$this->assert_invalid_attribute( $result, 'parent', 'A parent that cannot be used', 'The parent must be 0, or a post of the same post type that is neither the post itself nor one of its descendants.' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
@@ -1159,8 +1196,8 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	/**
 	 * A user who may not publish the post cannot set the slug of a pending post.
 	 *
-	 * Intentionally strict: the save would drop the slug, so it is an error instead of being
-	 * dropped without notice.
+	 * Intentionally strict: the save would drop the slug, so the call is refused instead of the
+	 * slug being dropped without notice.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_slugs_of_pending_posts
@@ -1169,7 +1206,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 * @param string                $post The post, as a fixture name.
 	 * @param array<string, string> $data The `data` input.
 	 */
-	public function test_slug_of_a_pending_post_is_rejected_without_publish_posts( string $post, array $data ): void {
+	public function test_slug_of_a_pending_post_is_refused_without_publish_posts( string $post, array $data ): void {
 		$post_id = self::$post_ids[ $post ];
 
 		$this->login_as( 'contributor' );
@@ -1178,7 +1215,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$before = $this->snapshot( $post_id );
 		$result = $this->update_post( $post_id, $data );
 
-		$this->assert_invalid_attribute( $result, 'slug', 'A slug on a pending post without publish_posts', 'The slug of a pending post can only be set by a user who can publish the post.' );
+		$this->assert_refused( $result, 'A slug on a pending post without publish_posts' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written for a slug that cannot be stored.' );
 	}
 
