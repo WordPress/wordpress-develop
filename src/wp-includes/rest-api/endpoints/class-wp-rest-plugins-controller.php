@@ -361,20 +361,6 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'inactive' !== $request['status'] ) {
-			$can_change_status = $this->plugin_status_permission_check( $file, $request['status'], 'inactive' );
-
-			if ( is_wp_error( $can_change_status ) ) {
-				return $can_change_status;
-			}
-
-			$changed_status = $this->handle_plugin_status( $file, $request['status'], 'inactive' );
-
-			if ( is_wp_error( $changed_status ) ) {
-				return $changed_status;
-			}
-		}
-
 		// Install translations.
 		$installed_locales = array_values( get_available_languages() );
 		/** This filter is documented in wp-includes/update.php */
@@ -399,6 +385,21 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 
 			// Install all applicable language packs for the plugin.
 			$lp_upgrader->bulk_upgrade( $language_packs );
+		}
+
+		// Now handle plugin activation.
+		if ( 'inactive' !== $request['status'] ) {
+			$can_change_status = $this->plugin_status_permission_check( $file, $request['status'], 'inactive' );
+
+			if ( is_wp_error( $can_change_status ) ) {
+				return $can_change_status;
+			}
+
+			$changed_status = $this->handle_plugin_status( $file, $request['status'], 'inactive' );
+
+			if ( is_wp_error( $changed_status ) ) {
+				return $changed_status;
+			}
 		}
 
 		$path          = WP_PLUGIN_DIR . '/' . $file;
