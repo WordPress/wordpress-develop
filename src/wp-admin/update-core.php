@@ -567,7 +567,18 @@ function list_plugin_updates() {
 			$upgrade_notice = '';
 		}
 
-		$details_url = self_admin_url( 'plugin-install.php?tab=plugin-information&plugin=' . $plugin_data->update->slug . '&section=changelog&TB_iframe=true&width=640&height=662' );
+		/*
+		 * Ensure the slug used in the plugin details URL is a clean plugin slug,
+		 * not the plugin's basename (e.g. `plugin/plugin.php`). When the update
+		 * response is missing or contains a non-clean slug, derive it from the
+		 * plugin directory name, matching the value used on the Plugins screen.
+		 */
+		$plugin_slug = $plugin_data->update->slug ?? '';
+		if ( '' === $plugin_slug || str_contains( $plugin_slug, '/' ) ) {
+			$plugin_slug = dirname( $plugin_file );
+		}
+
+		$details_url = self_admin_url( 'plugin-install.php?tab=plugin-information&plugin=' . $plugin_slug . '&section=changelog&TB_iframe=true&width=640&height=662' );
 		$details     = sprintf(
 			'<a href="%1$s" class="thickbox open-plugin-details-modal" aria-label="%2$s">%3$s</a>',
 			esc_url( $details_url ),
