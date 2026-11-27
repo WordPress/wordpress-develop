@@ -304,6 +304,7 @@ class Tests_Widgets_wpWidgetRecentPosts extends WP_UnitTestCase {
 						'posts_per_page'      => $expected,
 						'no_found_rows'       => true,
 						'post_status'         => 'publish',
+						'post_type'           => array( 'post' ),
 						'ignore_sticky_posts' => true,
 					),
 					$instance,
@@ -480,6 +481,7 @@ class Tests_Widgets_wpWidgetRecentPosts extends WP_UnitTestCase {
 					'number'    => 3,
 					'show_date' => true,
 					'custom'    => 'value',
+					'post_type' => array( 'post' ),
 				),
 			),
 			'unchecked date'   => array(
@@ -492,6 +494,7 @@ class Tests_Widgets_wpWidgetRecentPosts extends WP_UnitTestCase {
 					'number'    => 10,
 					'show_date' => false,
 					'custom'    => 'value',
+					'post_type' => array( 'post' ),
 				),
 			),
 			'empty values'     => array(
@@ -505,6 +508,7 @@ class Tests_Widgets_wpWidgetRecentPosts extends WP_UnitTestCase {
 					'number'    => 0,
 					'show_date' => false,
 					'custom'    => 'value',
+					'post_type' => array( 'post' ),
 				),
 			),
 		);
@@ -568,5 +572,267 @@ class Tests_Widgets_wpWidgetRecentPosts extends WP_UnitTestCase {
 			),
 			'zero number'  => array( array( 'number' => 0 ), '', '0', false ),
 		);
+	}
+
+	/**
+	 * Unregisters any custom post type registered by a test.
+	 *
+	 * @ticket 31085
+	 */
+	public function tear_down() {
+		unregister_post_type( 'widget-cpt' );
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Tests that the widget only queries the 'post' post type by default.
+	 *
+	 * @ticket 31085
+	 *
+	 * @covers WP_Widget_Recent_Posts::widget
+	 */
+	public function test_widget_defaults_to_post_type_post() {
+		$filter = new MockAction();
+		add_filter( 'widget_posts_args', array( $filter, 'filter' ) );
+
+		$this->render( array() );
+
+		$args = $filter->get_args();
+		$this->assertSame( array( 'post' ), $args[0][0]['post_type'] );
+	}
+
+	/**
+	 * Tests that the widget only lists posts of the selected post types.
+	 *
+	 * @ticket 31085
+	 *
+	 * @covers WP_Widget_Recent_Posts::widget
+	 */
+	public function test_widget_lists_only_selected_post_types() {
+		register_post_type(
+			'widget-cpt',
+			array(
+				'public' => true,
+				'label'  => 'Widget CPTs',
+			)
+		);
+
+		$cpt_post_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'widget-cpt',
+				'post_title' => 'CPT Post',
+				'post_date'  => '2026-02-01 10:00:00',
+			)
+		);
+
+		$titles = $this->get_listed_titles( $this->render( array( 'post_type' => array( 'widget-cpt' ) ) ) );
+
+		$this->assertSame( array( 'CPT Post' ), $titles );
+
+		wp_delete_post( $cpt_post_id, true );
+	}
+
+	/**
+	 * Tests that selecting 'any' lists posts of every public post type.
+	 *
+	 * @ticket 31085
+	 *
+	 * @covers WP_Widget_Recent_Posts::widget
+	 */
+	public function test_widget_lists_any_post_type() {
+		register_post_type(
+			'widget-cpt',
+			array(
+				'public' => true,
+				'label'  => 'Widget CPTs',
+			)
+		);
+
+		$cpt_post_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'widget-cpt',
+				'post_title' => 'CPT Post',
+				'post_date'  => '2026-02-01 10:00:00',
+			)
+		);
+
+		$titles = $this->get_listed_titles(
+			$this->render(
+				array(
+					'post_type' => array( 'any' ),
+					'number'    => 1,
+				)
+			)
+		);
+
+		$this->assertSame( array( 'CPT Post' ), $titles );
+
+		wp_delete_post( $cpt_post_id, true );
+	}
+
+	/**
+	 * Tests that update() discards post types that are not valid choices.
+	 *
+	 * @ticket 31085
+	 *
+	 * @covers WP_Widget_Recent_Posts::update
+	 *
+	 * @dataProvider data_update_post_type
+	 *
+	 * @param mixed $post_type Submitted post_type setting.
+	 * @param array $expected  Expected saved post_type setting.
+	 */
+	public function test_update_sanitizes_post_type( $post_type, $expected ) {
+		$widget = new WP_Widget_Recent_Posts();
+
+		$new_instance = array(
+			'title'     => 'Title',
+			'number'    => 5,
+			'post_type' => $post_type,
+		);
+
+		$instance = $widget->update( $new_instance, array() );
+
+		$this->assertSame( $expected, $instance['post_type'] );
+	}
+
+	/**
+	 * Data provider for test_update_sanitizes_post_type.
+	 *
+	 * @return array[]
+	 */
+	public static function data_update_post_type() {
+		return array(
+			'not set'                => array( null, array( 'post' ) ),
+			'unregistered post type' => array( array( 'does-not-exist' ), array( 'post' ) ),
+			'post explicitly'        => array( array( 'post' ), array( 'post' ) ),
+			'any'                    => array( array( 'any' ), 'any' ),
+			'any alongside post'     => array( array( 'any', 'post' ), 'any' ),
+		);
+	}
+
+	/**
+	 * Tests that update() keeps a registered public custom post type.
+	 *
+	 * @ticket 31085
+	 *
+	 * @covers WP_Widget_Recent_Posts::update
+	 */
+	public function test_update_keeps_registered_custom_post_type() {
+		register_post_type(
+			'widget-cpt',
+			array(
+				'public' => true,
+				'label'  => 'Widget CPTs',
+			)
+		);
+
+		$new_instance = array(
+			'title'     => 'Title',
+			'number'    => 5,
+			'post_type' => array( 'widget-cpt' ),
+		);
+
+		$widget   = new WP_Widget_Recent_Posts();
+		$instance = $widget->update( $new_instance, array() );
+
+		$this->assertSame( array( 'widget-cpt' ), $instance['post_type'] );
+	}
+
+	/**
+	 * Tests that the post types selector is hidden when there are no custom post types.
+	 *
+	 * @ticket 31085
+	 *
+	 * @covers WP_Widget_Recent_Posts::form
+	 */
+	public function test_form_hides_post_type_selector_without_custom_post_types() {
+		$widget = new WP_Widget_Recent_Posts();
+
+		$output = get_echo( array( $widget, 'form' ), array( array() ) );
+
+		$this->assertStringNotContainsString( 'Post types to show', $output );
+	}
+
+	/**
+	 * Tests that the post types selector is shown when a custom post type is registered.
+	 *
+	 * @ticket 31085
+	 *
+	 * @covers WP_Widget_Recent_Posts::form
+	 */
+	public function test_form_shows_post_type_selector_with_custom_post_types() {
+		register_post_type(
+			'widget-cpt',
+			array(
+				'public' => true,
+				'label'  => 'Widget CPTs',
+			)
+		);
+
+		$widget = new WP_Widget_Recent_Posts();
+		$widget->_set( 2 );
+
+		$output = get_echo( array( $widget, 'form' ), array( array( 'post_type' => array( 'widget-cpt' ) ) ) );
+
+		$this->assertStringContainsString( 'Post types to show', $output );
+
+		$processor = new WP_HTML_Tag_Processor( $output );
+		$this->assertTrue(
+			$processor->next_tag(
+				array(
+					'tag_name' => 'SELECT',
+					'id'       => 'widget-recent-posts-2-post_type',
+				)
+			)
+		);
+		$this->assertSame( 'widget-recent-posts[2][post_type][]', $processor->get_attribute( 'name' ) );
+	}
+
+	/**
+	 * Tests that the widget_posts_cpt_args filter changes the available custom post types.
+	 *
+	 * @ticket 31085
+	 *
+	 * @covers WP_Widget_Recent_Posts::form
+	 */
+	public function test_widget_posts_cpt_args_filter() {
+		register_post_type(
+			'widget-cpt',
+			array(
+				'public' => true,
+				'label'  => 'Widget CPTs',
+			)
+		);
+
+		add_filter(
+			'widget_posts_cpt_args',
+			static function ( $args ) {
+				$args['name'] = 'widget-cpt';
+				return $args;
+			}
+		);
+
+		$widget = new WP_Widget_Recent_Posts();
+		$output = get_echo( array( $widget, 'form' ), array( array() ) );
+
+		$this->assertStringContainsString( 'Widget CPTs', $output );
+	}
+
+	/**
+	 * Tests that the widget_posts_cpt_selector filter overrides the selector's visibility.
+	 *
+	 * @ticket 31085
+	 *
+	 * @covers WP_Widget_Recent_Posts::form
+	 */
+	public function test_widget_posts_cpt_selector_filter() {
+		add_filter( 'widget_posts_cpt_selector', '__return_true' );
+
+		$widget = new WP_Widget_Recent_Posts();
+		$output = get_echo( array( $widget, 'form' ), array( array() ) );
+
+		$this->assertStringContainsString( 'Post types to show', $output );
 	}
 }

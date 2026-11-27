@@ -57,6 +57,7 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 			$number = 5;
 		}
 		$show_date = $instance['show_date'] ?? false;
+		$post_type = $this->sanitize_post_types( $instance['post_type'] ?? array( 'post' ) );
 
 		$r = new WP_Query(
 			/**
@@ -76,6 +77,7 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 					'posts_per_page'      => $number,
 					'no_found_rows'       => true,
 					'post_status'         => 'publish',
+					'post_type'           => $post_type,
 					'ignore_sticky_posts' => true,
 				),
 				$instance
@@ -139,6 +141,7 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 	 * Handles updating the settings for the current Recent Posts widget instance.
 	 *
 	 * @since 2.8.0
+	 * @since 7.2.0 Added the `post_type` setting.
 	 *
 	 * @param array $new_instance New settings for this instance as input by the user via
 	 *                            WP_Widget::form().
@@ -150,6 +153,10 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 		$instance['title']     = sanitize_text_field( $new_instance['title'] );
 		$instance['number']    = (int) $new_instance['number'];
 		$instance['show_date'] = isset( $new_instance['show_date'] ) ? (bool) $new_instance['show_date'] : false;
+
+		$post_type             = isset( $new_instance['post_type'] ) ? array_map( 'sanitize_key', (array) $new_instance['post_type'] ) : array();
+		$instance['post_type'] = $this->sanitize_post_types( $post_type );
+
 		return $instance;
 	}
 
@@ -157,6 +164,7 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 	 * Outputs the settings form for the Recent Posts widget.
 	 *
 	 * @since 2.8.0
+	 * @since 7.2.0 Added the post types selector.
 	 *
 	 * @param array $instance Current settings.
 	 */
@@ -164,6 +172,23 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 		$title     = isset( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
 		$number    = isset( $instance['number'] ) ? absint( $instance['number'] ) : 5;
 		$show_date = isset( $instance['show_date'] ) ? (bool) $instance['show_date'] : false;
+		$post_type = $this->sanitize_post_types( $instance['post_type'] ?? array( 'post' ) );
+
+		$custom_post_types = $this->get_custom_post_types();
+
+		/**
+		 * Filters whether to display the post types selector in the Recent Posts widget form.
+		 *
+		 * By default, the selector is only displayed when the site has registered public,
+		 * non-built-in post types for the widget to choose from.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param bool              $show_selector     Whether to display the post types selector.
+		 * @param string[]          $custom_post_types Public, non-built-in post type names registered for the site.
+		 * @param WP_Widget_Recent_Posts $widget       The current widget instance.
+		 */
+		$show_post_type_selector = apply_filters( 'widget_posts_cpt_selector', ! empty( $custom_post_types ), $custom_post_types, $this );
 		?>
 		<p>
 			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
@@ -175,10 +200,78 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 			<input class="tiny-text" id="<?php echo $this->get_field_id( 'number' ); ?>" name="<?php echo $this->get_field_name( 'number' ); ?>" type="number" step="1" min="1" value="<?php echo $number; ?>" size="3" />
 		</p>
 
+		<?php if ( $show_post_type_selector ) : ?>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'post_type' ); ?>"><?php _e( 'Post types to show:' ); ?></label>
+			<select class="widefat" id="<?php echo $this->get_field_id( 'post_type' ); ?>" name="<?php echo $this->get_field_name( 'post_type' ); ?>[]" multiple="multiple">
+				<option value="any"<?php echo in_array( 'any', $post_type, true ) ? ' selected="selected"' : ''; ?>><?php _e( 'All public post types' ); ?></option>
+				<option value="post"<?php echo in_array( 'post', $post_type, true ) ? ' selected="selected"' : ''; ?>><?php _e( 'Posts' ); ?></option>
+				<?php foreach ( $custom_post_types as $custom_post_type ) : ?>
+					<?php $post_type_object = get_post_type_object( $custom_post_type ); ?>
+					<option value="<?php echo esc_attr( $custom_post_type ); ?>"<?php echo in_array( $custom_post_type, $post_type, true ) ? ' selected="selected"' : ''; ?>><?php echo esc_html( $post_type_object->labels->name ); ?></option>
+				<?php endforeach; ?>
+			</select>
+		</p>
+		<?php endif; ?>
+
 		<p>
 			<input class="checkbox" type="checkbox"<?php checked( $show_date ); ?> id="<?php echo $this->get_field_id( 'show_date' ); ?>" name="<?php echo $this->get_field_name( 'show_date' ); ?>" />
 			<label for="<?php echo $this->get_field_id( 'show_date' ); ?>"><?php _e( 'Display post date?' ); ?></label>
 		</p>
 		<?php
+	}
+
+	/**
+	 * Retrieves the public, non-built-in post types available for selection in the widget.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string[] Post type names.
+	 */
+	protected function get_custom_post_types() {
+		/**
+		 * Filters the arguments used to retrieve the custom post types that can be
+		 * selected in the Recent Posts widget.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @see get_post_types()
+		 *
+		 * @param array $args Arguments used to retrieve registered post types.
+		 */
+		$args = apply_filters(
+			'widget_posts_cpt_args',
+			array(
+				'public'   => true,
+				'_builtin' => false,
+			)
+		);
+
+		return array_values( get_post_types( $args ) );
+	}
+
+	/**
+	 * Sanitizes a list of post types for use in the widget's query, keeping only
+	 * post types that are currently valid choices for the widget.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|string[] $post_type One or more post type names, or 'any'.
+	 * @return string|string[] 'any', or a non-empty list of valid post type names.
+	 */
+	protected function sanitize_post_types( $post_type ) {
+		$post_type        = (array) $post_type;
+		$valid_post_types = array_merge( array( 'any', 'post' ), $this->get_custom_post_types() );
+		$post_type        = array_values( array_intersect( $post_type, $valid_post_types ) );
+
+		if ( empty( $post_type ) ) {
+			return array( 'post' );
+		}
+
+		if ( in_array( 'any', $post_type, true ) ) {
+			return 'any';
+		}
+
+		return $post_type;
 	}
 }
