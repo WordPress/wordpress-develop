@@ -667,40 +667,40 @@ figure.wp-block-pullquote blockquote {
 
 /* Table */
 
-table.wp-block-table {
+figure.wp-block-table table {
 	border-collapse: collapse;
 	margin: 0 0 1.5em;
 	width: 100%;
 }
 
-table.wp-block-table thead th {
+figure.wp-block-table table thead th {
 	border: 0;
 	border-bottom: 2px solid #bbb;
 	padding-bottom: 0.5em;
 }
 
-table.wp-block-table th {
+figure.wp-block-table table th {
 	padding: 0.4em;
 	text-align: left;
 }
 
-table.wp-block-table tr {
+figure.wp-block-table table tr {
 	border-bottom: 1px solid #eee;
 }
 
-table.wp-block-table th,
-table.wp-block-table td {
+figure.wp-block-table table th,
+figure.wp-block-table table td {
 	border: 0;
 	padding: 0.4em;
 }
 
-table.wp-block-table th:first-child,
-table.wp-block-table td:first-child {
+figure.wp-block-table table th:first-child,
+figure.wp-block-table table td:first-child {
 	padding-left: 0;
 }
 
-table.wp-block-table th:last-child,
-table.wp-block-table td:last-child {
+figure.wp-block-table table th:last-child,
+figure.wp-block-table table td:last-child {
 	padding-right: 0;
 }
 
@@ -708,8 +708,8 @@ table.wp-block-table td:last-child {
 	padding: 0;
 }
 
-.rtl table.wp-block-table th,
-.rtl table.wp-block-table td {
+.rtl figure.wp-block-table table th,
+.rtl figure.wp-block-table table td {
 	text-align: right;
 }
 
