@@ -321,7 +321,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		if ( is_wp_error( $resized ) ) {
 			$saved = $resized;
 		} else {
+			$this->crop_position = $size_data['crop'];
+
 			$saved = $this->_save( $resized );
+
+			$this->crop_position = false;
 
 			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
 				imagedestroy( $resized );
