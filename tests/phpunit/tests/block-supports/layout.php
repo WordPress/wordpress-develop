@@ -1658,7 +1658,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			'.wp-layout{grid-template-columns:repeat(3, minmax(0, 1fr));grid-template-rows:repeat(2, minmax(1rem, auto));}',
+			'.wp-layout{grid-template-columns:repeat(3, minmax(0, 1fr));grid-template-rows:repeat(2, minmax(1rem, 1fr));aspect-ratio:3 / 2;}',
 			$layout_styles
 		);
 	}

@@ -976,7 +976,14 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 		if ( $should_output_grid_rows ) {
 			$layout_styles[] = array(
 				'selector'     => $selector,
-				'declarations' => array( 'grid-template-rows' => 'repeat(' . $row_count . ', minmax(1rem, auto))' ),
+				/*
+				 * The aspect ratio gives empty rows a height, so cells are roughly square.
+				 * Rows still grow if their content is taller.
+				 */
+				'declarations' => array(
+					'grid-template-rows' => 'repeat(' . $row_count . ', minmax(1rem, 1fr))',
+					'aspect-ratio'       => $column_count . ' / ' . $row_count,
+				),
 			);
 		}
 
