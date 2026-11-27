@@ -120,13 +120,20 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		update_option( 'timezone_string', 'Pacific/Chatham' );
 
 		// The core abilities can only be registered while their registration actions run.
+		// Pop in finally so a setup exception cannot leave the simulated action on the stack.
 		$wp_current_filter[] = 'wp_abilities_api_categories_init';
-		wp_register_core_ability_categories();
-		array_pop( $wp_current_filter );
+		try {
+			wp_register_core_ability_categories();
+		} finally {
+			array_pop( $wp_current_filter );
+		}
 
 		$wp_current_filter[] = 'wp_abilities_api_init';
-		wp_register_core_abilities();
-		array_pop( $wp_current_filter );
+		try {
+			wp_register_core_abilities();
+		} finally {
+			array_pop( $wp_current_filter );
+		}
 	}
 
 	/**
@@ -174,7 +181,7 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		$missing = array_filter( array_column( $questions, 'answer' ), static fn ( $value ) => false === stripos( $answer, $value ) );
 		$context = "Model: $model. Answer: $answer";
 
-		$this->assertSameSets( $abilities, $called, "Every ability given to the model should run without an error. $context" );
+		$this->assertSameSets( $abilities, $called, "Every ability given to the model should be called. $context" );
 		$this->assertSame( array(), $missing, "The answer should contain every expected value. $context" );
 	}
 
@@ -209,17 +216,18 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	 * @param string[] $abilities Names of the abilities given to the model.
 	 * @param string   $question  The question.
 	 * @return array{0: string, 1: string[], 2: string} The answer, the names of the abilities
-	 *                                                  that ran without an error and the model ID.
+	 *                                                  that ran and the model ID.
 	 */
 	private function ask( string $provider, array $abilities, string $question ): array {
 		$provider_class = self::PROVIDERS[ $provider ];
-		$key_name       = 'WP_TESTS_AI_' . strtoupper( $provider ) . '_API_KEY';
-		$model_name     = 'WP_TESTS_AI_' . strtoupper( $provider ) . '_MODEL';
-		$api_key        = defined( $key_name ) ? constant( $key_name ) : getenv( $key_name );
-		$model          = defined( $model_name ) ? constant( $model_name ) : getenv( $model_name );
+		$prefix         = 'WP_TESTS_AI_' . strtoupper( $provider );
+		$key_var        = "{$prefix}_API_KEY";
+		$model_var      = "{$prefix}_MODEL";
+		$api_key        = self::get_setting( $key_var );
+		$model          = self::get_setting( $model_var );
 
 		if ( ! $api_key ) {
-			$this->markTestSkipped( "The $key_name environment variable or constant is not set." );
+			$this->markTestSkipped( "The $key_var environment variable or constant is not set." );
 		}
 
 		/*
@@ -256,7 +264,7 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 			$provider_class::modelMetadataDirectory()->listModelMetadata();
 		} catch ( ClientException $e ) {
 			if ( 429 !== $e->getCode() ) {
-				$this->fail( "The model list request failed, check the $key_name: " . $e->getMessage() );
+				$this->fail( "The model list request failed, check the $key_var: " . $e->getMessage() );
 			}
 			$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
 		} catch ( NetworkException | ServerException $e ) {
@@ -264,21 +272,13 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		}
 
 		if ( $model && ! $provider_class::modelMetadataDirectory()->hasModelMetadata( $model ) ) {
-			$this->fail( "The provider has no \"$model\" model, check the $model_name." );
+			$this->fail( "The provider has no \"$model\" model, check the $model_var." );
 		}
 		$model_instance = $model ? $registry->getProviderModel( $provider, $model ) : null;
 
 		$resolver = new WP_AI_Client_Ability_Function_Resolver( ...$abilities );
 		$messages = array( new UserMessage( array( new MessagePart( $question ) ) ) );
 		$called   = array();
-
-		// The action only fires after an ability ran without an error, so only those count as called.
-		add_action(
-			'wp_after_execute_ability',
-			static function ( string $ability_name ) use ( &$called ) {
-				$called[ $ability_name ] = true;
-			}
-		);
 
 		// A model may call one ability per response: a request for each, one to answer and a spare one.
 		$max_rounds = count( $abilities ) + 2;
@@ -323,12 +323,15 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 					// The model could retry after an error and still answer, so an error fails the test.
 					foreach ( $response_message->getParts() as $part ) {
 						$function_response = $part->getFunctionResponse();
-						$response          = $function_response ? $function_response->getResponse() : null;
+						$response          = $function_response->getResponse();
+						$ability_name      = WP_AI_Client_Ability_Function_Resolver::function_name_to_ability_name( (string) $function_response->getName() );
 
 						if ( is_array( $response ) && isset( $response['error'], $response['code'] ) ) {
-							$ability_name = WP_AI_Client_Ability_Function_Resolver::function_name_to_ability_name( (string) $function_response->getName() );
-							$this->fail( "The $ability_name ability returned an error: {$response['error']} ({$response['code']})" );
+							$data = isset( $response['data'] ) ? ' ' . wp_json_encode( $response['data'] ) : '';
+							$this->fail( "The $ability_name ability returned an error: {$response['error']} ({$response['code']})$data" );
 						}
+
+						$called[ $ability_name ] = true;
 					}
 
 					$messages[] = $response_message;
@@ -342,5 +345,24 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		}
 
 		$this->fail( 'The model kept calling abilities without answering. Abilities that ran: ' . implode( ', ', array_keys( $called ) ) );
+	}
+
+	/**
+	 * Gets a setting from an environment variable or, when that is empty or not set, a constant.
+	 *
+	 * The AI Client reads the environment variable first too, so an empty constant in
+	 * `wp-tests-config.php` does not hide a value in the environment.
+	 *
+	 * @param string $name Name of the environment variable and the constant.
+	 * @return string The value, or an empty string when neither is set.
+	 */
+	private static function get_setting( string $name ): string {
+		$value = getenv( $name );
+
+		if ( false === $value || '' === $value ) {
+			$value = defined( $name ) ? constant( $name ) : '';
+		}
+
+		return (string) $value;
 	}
 }

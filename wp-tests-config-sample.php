@@ -24,14 +24,17 @@ define( 'WP_DEFAULT_THEME', 'default' );
 // define( 'WP_TESTS_FORCE_KNOWN_BUGS', true );
 
 /*
- * API keys for the live AI provider tests, which send real requests.
- * The tests of a provider are skipped while its key is not set, here or in an environment
- * variable of the same name. A provider uses its default model unless its
- * `WP_TESTS_AI_*_MODEL` constant, such as `WP_TESTS_AI_GOOGLE_MODEL`, names another one.
+ * API keys and models for the live AI provider tests, which send real requests.
+ * An environment variable of the same name takes precedence over each constant.
+ * The tests of a provider are skipped while its key is not set, and a provider
+ * uses its default model while its model is not set.
  */
 // define( 'WP_TESTS_AI_ANTHROPIC_API_KEY', '' );
 // define( 'WP_TESTS_AI_GOOGLE_API_KEY', '' );
 // define( 'WP_TESTS_AI_OPENAI_API_KEY', '' );
+// define( 'WP_TESTS_AI_ANTHROPIC_MODEL', '' );
+// define( 'WP_TESTS_AI_GOOGLE_MODEL', '' );
+// define( 'WP_TESTS_AI_OPENAI_MODEL', '' );
 
 // Test with WordPress debug mode (default).
 define( 'WP_DEBUG', true );
