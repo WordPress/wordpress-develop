@@ -211,7 +211,6 @@ class Tests_Multisite_WpCacheSwitchToBlogFallback extends WP_UnitTestCase {
 		// Verify default global groups are present.
 		$expected_groups = array(
 			'blog-details',
-			'blog-id-cache',
 			'blog-lookup',
 			'blog_meta',
 			'global-posts',
