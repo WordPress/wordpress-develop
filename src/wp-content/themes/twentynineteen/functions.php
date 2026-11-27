@@ -282,7 +282,7 @@ function twentynineteen_scripts() {
 			'twentynineteen-touch-navigation',
 			get_theme_file_uri( '/js/touch-keyboard-navigation.js' ),
 			array(),
-			'20250802',
+			'20261102',
 			array(
 				'in_footer' => true,
 				'strategy'  => 'defer',
