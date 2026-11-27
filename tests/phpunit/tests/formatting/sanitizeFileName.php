@@ -70,7 +70,7 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	 * @ticket 16226
 	 */
 	public function test_replaces_percent_sign() {
-		$this->assertSame( 'a22b.jpg', sanitize_file_name( 'a%22b.jpg' ) );
+		$this->assertSame( 'a23b.jpg', sanitize_file_name( 'a%23b.jpg' ) );
 	}
 
 	public function test_replaces_unnamed_file_extensions() {
@@ -147,5 +147,12 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 				'expected' => 'filename',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 66125
+	 */
+	public function test_replaces_quote_sign() {
+		$this->assertSame( 'test.jpg', sanitize_file_name( '"test".jpg' ) );
 	}
 }
