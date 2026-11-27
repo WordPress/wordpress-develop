@@ -44,6 +44,11 @@ class WP_Theme_JSON_Schema {
 	 */
 	public static function migrate( $theme_json, $origin = 'theme' ) {
 		if ( ! isset( $theme_json['version'] ) ) {
+			if ( ! is_array( $theme_json ) ) {
+				WP_Theme_JSON_Sanitizer::add_diagnostic( 'theme_json_expected_object', array() );
+			} else {
+				WP_Theme_JSON_Sanitizer::add_diagnostic( 'theme_json_missing_version', array() );
+			}
 			$theme_json = array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
 			);
