@@ -1056,7 +1056,13 @@ class WP_User_Query {
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 
-		$key = md5( $sql );
+		/*
+		 * A single-element 'fields' array (e.g. array( 'ID' )) generates the same SQL
+		 * as the equivalent scalar string (e.g. 'ID'), but the two are expected to return
+		 * differently shaped results (objects vs. scalars). Fold that shape into the key
+		 * so the two requests don't collide in the cache. See #62003.
+		 */
+		$key = md5( $sql . '|' . ( is_array( $this->query_vars['fields'] ) ? '1' : '0' ) );
 
 		return "get_users:$key";
 	}
