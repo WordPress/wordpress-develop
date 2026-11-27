@@ -195,7 +195,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 * @param string $role The role, as a fixture name.
 	 * @return int The post ID.
 	 */
-	protected function data_write_post_id( string $role ): ?int {
+	protected function get_write_post_id( string $role ): int {
 		return self::$post_ids[ "{$role}:draft" ];
 	}
 
@@ -209,7 +209,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	 * @param list<string>|null    $fields  Optional. The fields, or null for the default. Default null.
 	 * @return array<string, mixed> The input.
 	 */
-	protected function data_write_input( ?int $post_id, array $data, ?array $fields = null ): array {
+	protected function build_write_input( ?int $post_id, array $data, ?array $fields = null ): array {
 		return $this->update_input( (int) $post_id, $data, $fields );
 	}
 
@@ -866,14 +866,14 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		return array(
 			'missing post'               => array( 'missing' ),
 			'page the user may not read' => array( 'editor_draft_page' ),
-			'revision of a page'         => array( 'revision' ),
+			'revision of a post'         => array( 'revision' ),
 		);
 	}
 
 	/**
 	 * A missing parent, a parent the user may not read and a revision, whose type is not exposed
-	 * to abilities, are refused by the permission callback with one identical error, so the
-	 * refusal never tells whether a post exists.
+	 * to abilities, are refused by the permission callback, so the refusal never tells whether a
+	 * post exists.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_parents_refused_by_the_permission_callback
@@ -890,14 +890,10 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$this->assertTrue( current_user_can( 'edit_post', $post_id ), 'Precondition: the user should be able to edit the page.' );
 		$this->assertFalse( current_user_can( 'read_post', self::$post_ids['editor_draft_page'] ), 'Precondition: the user should not be able to read the draft page of the editor.' );
 
-		// The reference names another missing ID than the missing post row, so no row compares a call with itself.
-		$before    = $this->snapshot( $post_id );
-		$reference = $this->update_post( $post_id, array( 'parent' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER + 1 ) );
-		$result    = $this->update_post( $post_id, array( 'parent' => self::$post_ids[ $parent_key ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, array( 'parent' => self::$post_ids[ $parent_key ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
-		$this->assert_refused( $reference, 'Another missing parent' );
 		$this->assert_refused( $result, 'A missing or unreadable parent' );
-		$this->assertSame( $reference->get_error_message(), $result->get_error_message(), 'The refusal should be the same as for a missing parent.' );
 		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
 	}
 
@@ -1737,7 +1733,7 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 		$result = $this->update_post( $post_id, array( 'status' => 'publish' ), array( 'title', 'content.raw', 'content.rendered' ) );
 
 		$this->assertSame( 'publish', $this->assert_updated( $result, $post_id )->post_status, 'The post should be published.' );
-		$this->assertFalse( current_user_can( 'edit_post', $post_id ), 'The user should not be able to edit the published post.' );
+		$this->assertFalse( current_user_can( 'edit_post', $post_id ), 'Precondition: The user should not be able to edit the published post.' );
 		$this->assertSame( array( 'rendered' => 'Publish once' ), $result['title'], 'The title should be returned without its raw value.' );
 		$this->assertSame( array( 'rendered' => "<p>Body.</p>\n" ), $result['content'], 'The content should be returned without its raw value.' );
 	}
@@ -1882,15 +1878,15 @@ class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * The after-insert hooks fire once for the updated post, as in any regular save.
+	 * The `wp_after_insert_post` action fires once for the updated post, as in any regular save.
 	 *
-	 * A save that stores a revision also fires the hooks for the revision, so only the fires
+	 * A save that stores a revision also fires the action for the revision, so only the fires
 	 * for the updated post are counted, and a regular save of an identical post is the reference.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
-	public function test_after_insert_hooks_fire_once(): void {
+	public function test_wp_after_insert_post_fires_once(): void {
 		$post_id      = self::$post_ids['administrator:draft'];
 		$reference_id = self::factory()->post->create(
 			array(

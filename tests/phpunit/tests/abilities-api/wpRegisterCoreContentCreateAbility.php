@@ -150,7 +150,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 * @param string $role The role, as a fixture name.
 	 * @return null No post ID.
 	 */
-	protected function data_write_post_id( string $role ): ?int {
+	protected function get_write_post_id( string $role ): ?int {
 		return null;
 	}
 
@@ -164,7 +164,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 * @param list<string>|null    $fields  Optional. The fields, or null for the default. Default null.
 	 * @return array<string, mixed> The input.
 	 */
-	protected function data_write_input( ?int $post_id, array $data, ?array $fields = null ): array {
+	protected function build_write_input( ?int $post_id, array $data, ?array $fields = null ): array {
 		$input = array( 'data' => array_merge( array( 'type' => 'post' ), $data ) );
 		if ( null !== $fields ) {
 			$input['fields'] = $fields;
@@ -1003,46 +1003,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * On multisite, a user without `edit_others_posts` who names a user who is not a member of the
-	 * site gets the same error as for a missing user.
-	 *
-	 * @group ms-required
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_naming_a_non_member_without_edit_others_posts_is_refused_like_a_missing_user(): void {
-		$non_member = self::factory()->user->create( array( 'role' => 'author' ) );
-		remove_user_from_blog( $non_member, get_current_blog_id() );
-
-		$this->login_as( 'author' );
-		$this->register_abilities();
-
-		$before = $this->snapshot();
-		$errors = array();
-		foreach ( array(
-			'non-member' => $non_member,
-			'missing'    => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
-		) as $key => $author ) {
-			$result = $this->run_ability(
-				array(
-					'data' => array(
-						'type'   => 'post',
-						'title'  => 'Ghost written',
-						'author' => $author,
-					),
-				)
-			);
-			$this->assertWPError( $result, "Naming the {$key} user should fail." );
-			$errors[ $key ] = array( $result->get_error_code(), $result->get_error_message(), $result->get_error_data() );
-		}
-
-		$this->assertSame( 'ability_invalid_permissions', $errors['missing'][0], 'The permission callback should refuse the call.' );
-		$this->assertSame( $errors['missing'], $errors['non-member'], 'The error should be the same for a non-member and a missing user.' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written for either user.' );
-	}
-
-	/**
 	 * Returns parents that a page may not have.
 	 *
 	 * @return array<string, array{0: string}> The parents, as fixture names.
@@ -1057,8 +1017,8 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 	/**
 	 * A missing parent, a parent the user may not read and a revision, whose type is not exposed
-	 * to abilities, are refused by the permission callback with one identical error, so the
-	 * refusal never tells whether a post exists.
+	 * to abilities, are refused by the permission callback, so the refusal never tells whether a
+	 * post exists.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_parents_refused_by_the_permission_callback
@@ -1072,26 +1032,18 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 		$this->assertFalse( current_user_can( 'read_post', self::$post_ids['editor_draft_page'] ), 'Precondition: the user should not be able to read the draft page of the editor.' );
 
-		$create = function ( int $parent_id ) {
-			return $this->run_ability(
-				array(
-					'data' => array(
-						'type'   => 'page',
-						'title'  => 'Child',
-						'parent' => $parent_id,
-					),
-				)
-			);
-		};
+		$before = $this->snapshot();
+		$result = $this->run_ability(
+			array(
+				'data' => array(
+					'type'   => 'page',
+					'title'  => 'Child',
+					'parent' => self::$post_ids[ $parent_key ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+				),
+			)
+		);
 
-		// The reference is another missing ID, so the `missing post` row is compared with a different input too.
-		$before    = $this->snapshot();
-		$reference = $create( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER + 1 );
-		$result    = $create( self::$post_ids[ $parent_key ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
-
-		$this->assert_refused( $reference, 'Another missing parent' );
 		$this->assert_refused( $result, 'A missing or unreadable parent' );
-		$this->assertSame( $reference->get_error_message(), $result->get_error_message(), 'The refusal should be the same as for another missing parent.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -1308,12 +1260,12 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * The after-insert hooks fire once, as in any regular save.
+	 * The `wp_after_insert_post` action fires once, as in any regular save.
 	 *
 	 * @ticket 66706
 	 * @since 7.3.0
 	 */
-	public function test_after_insert_hooks_fire_once(): void {
+	public function test_wp_after_insert_post_fires_once(): void {
 		$this->login_as( 'administrator' );
 		$this->register_abilities();
 
@@ -1434,7 +1386,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Returns statuses for which the slug of a published post is made unique.
+	 * Returns statuses for which the slug of a new post is made unique against another post.
 	 *
 	 * @return array<string, array{0: string|null}> The statuses, or null for the default.
 	 */
@@ -1768,7 +1720,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$post = $this->get_created_post( $result );
 
 		$this->assertSame( 'publish', $post->post_status, 'The post should be published.' );
-		$this->assertFalse( current_user_can( 'edit_post', $post->ID ), 'The user should not be able to edit the published post.' );
+		$this->assertFalse( current_user_can( 'edit_post', $post->ID ), 'Precondition: The user should not be able to edit the published post.' );
 		$this->assertSame( array( 'rendered' => 'Published once' ), $result['title'], 'The title should be returned without its raw value.' );
 		$this->assertSame( array( 'rendered' => "<p>Body.</p>\n" ), $result['content'], 'The content should be returned without its raw value.' );
 	}

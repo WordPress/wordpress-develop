@@ -21,7 +21,7 @@ trait WP_Abilities_Content_Data_Write_Tests {
 	 * @param string $role The role, as a fixture name.
 	 * @return int|null The post ID, or null when the call creates a post.
 	 */
-	abstract protected function data_write_post_id( string $role ): ?int;
+	abstract protected function get_write_post_id( string $role ): ?int;
 
 	/**
 	 * Builds the input that writes the given data to a post of type `post`.
@@ -33,7 +33,7 @@ trait WP_Abilities_Content_Data_Write_Tests {
 	 * @param list<string>|null    $fields  Optional. The fields, or null for the default. Default null.
 	 * @return array<string, mixed> The input.
 	 */
-	abstract protected function data_write_input( ?int $post_id, array $data, ?array $fields = null ): array;
+	abstract protected function build_write_input( ?int $post_id, array $data, ?array $fields = null ): array;
 
 	/**
 	 * Asserts that a result is the post item of a successful write and returns the stored post.
@@ -56,14 +56,14 @@ trait WP_Abilities_Content_Data_Write_Tests {
 	 * @param string $status The status.
 	 */
 	public function test_direct_call_rejects_a_status_that_can_never_be_set( string $status ): void {
-		$post_id = $this->data_write_post_id( 'administrator' );
+		$post_id = $this->get_write_post_id( 'administrator' );
 
 		$this->login_as( 'administrator' );
 		$execute = $this->get_ability_callbacks()['execute_callback'];
 
 		$before = $this->snapshot( $post_id );
 		$result = $execute(
-			$this->data_write_input(
+			$this->build_write_input(
 				$post_id,
 				array(
 					'title'  => 'Unusable status',
@@ -101,12 +101,12 @@ trait WP_Abilities_Content_Data_Write_Tests {
 	 * @param string $expected The stored status.
 	 */
 	public function test_output_reports_the_stored_status( string $status, string $gmt, string $expected ): void {
-		$post_id = $this->data_write_post_id( 'editor' );
+		$post_id = $this->get_write_post_id( 'editor' );
 
 		$this->login_as( 'editor' );
 		$this->register_abilities();
 
-		$input  = $this->data_write_input(
+		$input  = $this->build_write_input(
 			$post_id,
 			array(
 				'title'  => 'Scheduled',
@@ -128,14 +128,14 @@ trait WP_Abilities_Content_Data_Write_Tests {
 	 * @since 7.3.0
 	 */
 	public function test_empty_post_is_the_save_error(): void {
-		$post_id = $this->data_write_post_id( 'administrator' );
+		$post_id = $this->get_write_post_id( 'administrator' );
 
 		$this->login_as( 'administrator' );
 		$this->register_abilities();
 
 		$before = $this->snapshot( $post_id );
 		$result = $this->run_ability(
-			$this->data_write_input(
+			$this->build_write_input(
 				$post_id,
 				array(
 					'title'   => '',
@@ -158,12 +158,12 @@ trait WP_Abilities_Content_Data_Write_Tests {
 	 */
 	public function test_quotes_backslashes_and_non_ascii_text_survive_a_round_trip(): void {
 		$text    = 'He said "it\'s done" \\ C:\\path\\to\\file \\\\server – café, naïve, 日本語, emoji ✓';
-		$post_id = $this->data_write_post_id( 'editor' );
+		$post_id = $this->get_write_post_id( 'editor' );
 
 		$this->login_as( 'editor' );
 		$this->register_abilities();
 
-		$input  = $this->data_write_input(
+		$input  = $this->build_write_input(
 			$post_id,
 			array(
 				'title'   => $text,
