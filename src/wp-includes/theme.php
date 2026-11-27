@@ -726,6 +726,8 @@ function get_raw_theme_root( $stylesheet_or_template, $skip_cache = false ) {
  * Displays localized stylesheet link element.
  *
  * @since 2.1.0
+ * @since 7.3.0 The stylesheet URL is escaped, and the attributes of the link tag can be filtered
+ *              with {@see 'wp_style_attributes'}.
  */
 function locale_stylesheet() {
 	$stylesheet = get_locale_stylesheet_uri();
@@ -733,9 +735,12 @@ function locale_stylesheet() {
 		return;
 	}
 
-	printf(
-		'<link rel="stylesheet" href="%s" media="screen" />',
-		$stylesheet
+	wp_print_style_link_tag(
+		array(
+			'rel'   => 'stylesheet',
+			'href'  => $stylesheet,
+			'media' => 'screen',
+		)
 	);
 }
 
