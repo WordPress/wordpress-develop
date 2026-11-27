@@ -518,7 +518,7 @@
 			"core/list": {
 				"spacing": {
 					"padding": {
-						"left": "var(--wp--preset--spacing--10)"
+						"left": "var(--wp--preset--spacing--20)"
 					}
 				}
 			},
