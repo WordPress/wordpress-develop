@@ -4532,6 +4532,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * upload as `original_image` and leaves no files behind after it is deleted.
 	 *
 	 * @ticket 66763
+	 * @ticket 53665
 	 *
 	 * @dataProvider data_client_side_converted_main_file_flow
 	 *
@@ -4597,6 +4598,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertSame( 'flow-photo.jpg', $metadata['original_image'], 'The untouched upload should be recorded as original_image.' );
 		$this->assertSame( $main_file, wp_basename( $metadata['file'] ), 'The converted main file should become the attached file.' );
+		$this->assertSame( 'image/webp', get_post_mime_type( $attachment_id ), 'The attachment MIME type should match the converted main file.' );
 
 		$written = array_map( 'wp_basename', array_diff( (array) glob( $upload_dir['path'] . '/*' ), $files_before ) );
 		$this->assertEqualsCanonicalizing( array( 'flow-photo.jpg', $main_file ), $written, 'Only the upload and the converted main file should be written.' );

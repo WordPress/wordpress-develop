@@ -3083,6 +3083,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				);
 			}
 
+			// Update the post mime type when the supplied image is in a different format.
+			if ( get_post_mime_type( $attachment_id ) !== $type ) {
+				wp_update_post(
+					array(
+						'ID'             => $attachment_id,
+						'post_mime_type' => $type,
+					)
+				);
+			}
+
 			$sub_size_data['width']    = $size[0];
 			$sub_size_data['height']   = $size[1];
 			$sub_size_data['filesize'] = $filesize;
