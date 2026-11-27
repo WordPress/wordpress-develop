@@ -1088,7 +1088,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		echo '<div class="submitted-on">';
 
-		if ( 'approved' === wp_get_comment_status( $comment ) && ! empty( $comment->comment_post_ID ) ) {
+		$post_type = ! empty( $comment->comment_post_ID ) ? get_post_type( $comment->comment_post_ID ) : false;
+
+		if ( 'approved' === wp_get_comment_status( $comment ) && $post_type && post_type_exists( $post_type ) ) {
 			printf(
 				'<a href="%s">%s</a>',
 				esc_url( get_comment_link( $comment ) ),
@@ -1121,7 +1123,10 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$this->pending_count[ $post->ID ] = $pending_comments;
 		}
 
-		if ( current_user_can( 'edit_post', $post->ID ) ) {
+		// Posts of an unregistered post type have no edit screen or permalink to link to.
+		$post_type_object = get_post_type_object( $post->post_type );
+
+		if ( $post_type_object && current_user_can( 'edit_post', $post->ID ) ) {
 			$post_link  = "<a href='" . get_edit_post_link( $post->ID ) . "' class='comments-edit-item-link'>";
 			$post_link .= esc_html( get_the_title( $post->ID ) ) . '</a>';
 		} else {
@@ -1139,8 +1144,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		echo $post_link;
 
-		$post_type_object = get_post_type_object( $post->post_type );
-		echo "<a href='" . get_permalink( $post->ID ) . "' class='comments-view-item-link'>" . $post_type_object->labels->view_item . '</a>';
+		if ( $post_type_object ) {
+			echo "<a href='" . get_permalink( $post->ID ) . "' class='comments-view-item-link'>" . $post_type_object->labels->view_item . '</a>';
+		}
 
 		echo '<span class="post-com-count-wrapper post-com-count-', $post->ID, '">';
 		$this->comments_bubble( $post->ID, $pending_comments );
