@@ -331,6 +331,82 @@ class Tests_Multisite_Bootstrap extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Site', $site );
 	}
 
+	/**
+	 * @ticket 17376
+	 */
+	public function test_admin_request_for_missing_subfolder_redirects_to_resolved_site() {
+		global $current_blog, $current_site;
+
+		set_current_screen( 'dashboard' );
+
+		$current_blog = null;
+		$current_site = null;
+
+		$result = ms_load_current_site_and_network( 'wordpress.org', '/nonexistent/' );
+
+		$this->assertIsString( $result );
+		$this->assertSame( ( is_ssl() ? 'https' : 'http' ) . '://wordpress.org/wp-admin/', $result );
+		$this->assertStringNotContainsString( 'nonexistent', $result );
+	}
+
+	/**
+	 * @ticket 17376
+	 */
+	public function test_admin_request_for_valid_subfolder_is_not_redirected() {
+		global $current_blog, $current_site;
+
+		set_current_screen( 'dashboard' );
+
+		$current_blog = null;
+		$current_site = null;
+
+		$result = ms_load_current_site_and_network( 'wordpress.org', '/foo/' );
+
+		$this->assertTrue( $result );
+		$this->assertSame( self::$site_ids['wordpress.org/foo/'], (int) $current_blog->blog_id );
+	}
+
+	/**
+	 * @ticket 17376
+	 */
+	public function test_frontend_request_for_missing_subfolder_is_not_redirected() {
+		global $current_blog, $current_site;
+
+		set_current_screen( 'front' );
+
+		$current_blog = null;
+		$current_site = null;
+
+		$result = ms_load_current_site_and_network( 'wordpress.org', '/nonexistent/' );
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * @ticket 17376
+	 */
+	public function test_admin_request_mismatch_redirect_is_filterable() {
+		global $current_blog, $current_site;
+
+		set_current_screen( 'dashboard' );
+
+		$current_blog = null;
+		$current_site = null;
+
+		$sentinel = 'https://example.com/wp-admin/';
+		add_filter( 'ms_site_path_mismatch_redirect', array( $this, 'filter_ms_site_path_mismatch_redirect' ) );
+
+		$result = ms_load_current_site_and_network( 'wordpress.org', '/nonexistent/' );
+
+		remove_filter( 'ms_site_path_mismatch_redirect', array( $this, 'filter_ms_site_path_mismatch_redirect' ) );
+
+		$this->assertSame( $sentinel, $result );
+	}
+
+	public function filter_ms_site_path_mismatch_redirect() {
+		return 'https://example.com/wp-admin/';
+	}
+
 	public function filter_path_segments_to_two() {
 		return 2;
 	}
