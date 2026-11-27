@@ -1361,6 +1361,64 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
 	return $allcaps;
 }
 
+/**
+ * Returns the block Navigation Menu capability names.
+ *
+ * These are the primitive capabilities used by the `wp_navigation` post type,
+ * mirrored from the mapping registered in `create_initial_post_types()`.
+ *
+ * @since 7.2.0
+ *
+ * @return string[] Capability names.
+ */
+function wp_get_navigation_menu_capability_names() {
+	return array(
+		'create_navigation_menus',
+		'delete_navigation_menus',
+		'delete_others_navigation_menus',
+		'delete_private_navigation_menus',
+		'delete_published_navigation_menus',
+		'edit_navigation_menus',
+		'edit_others_navigation_menus',
+		'edit_private_navigation_menus',
+		'edit_published_navigation_menus',
+		'publish_navigation_menus',
+		'read_private_navigation_menus',
+	);
+}
+
+/**
+ * Filters the user capabilities to grant the block Navigation Menu capabilities
+ * to users who can `edit_theme_options`.
+ *
+ * This preserves existing behavior for the `wp_navigation` post type without
+ * adding the new capabilities to roles in the database. Sites can still grant
+ * the new capabilities to roles independently.
+ *
+ * @since 7.2.0
+ *
+ * @param bool[]   $allcaps An array of all the user's capabilities.
+ * @param string[] $caps    Required primitive capabilities for the requested capability.
+ * @return bool[] Filtered array of the user's capabilities.
+ */
+function wp_maybe_grant_navigation_menus_caps( $allcaps, $caps ) {
+	if ( empty( $allcaps['edit_theme_options'] ) ) {
+		return $allcaps;
+	}
+
+	$navigation_menu_caps = wp_get_navigation_menu_capability_names();
+
+	if ( ! array_intersect( $caps, $navigation_menu_caps ) ) {
+		return $allcaps;
+	}
+
+	foreach ( $navigation_menu_caps as $capability ) {
+		$allcaps[ $capability ] = true;
+	}
+
+	return $allcaps;
+}
+
 return;
 
 // Dummy gettext calls to get strings in the catalog.
