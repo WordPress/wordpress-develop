@@ -625,7 +625,71 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 				),
 				'false',
 			),
+			'a default in the REST API schema'  => array(
+				array(
+					'type'         => 'string',
+					'show_in_rest' => array(
+						'schema' => array( 'default' => 'from-rest-schema' ),
+					),
+				),
+				'"from-rest-schema"',
+			),
+			'a REST API schema default overriding the registered default' => array(
+				array(
+					'type'         => 'string',
+					'default'      => 'registered',
+					'show_in_rest' => array(
+						'schema' => array( 'default' => 'from-rest-schema' ),
+					),
+				),
+				'"from-rest-schema"',
+			),
+			'a default in the abilities schema' => array(
+				array(
+					'type'              => 'string',
+					'show_in_abilities' => array(
+						'schema' => array( 'default' => 'from-abilities-schema' ),
+					),
+				),
+				'"from-abilities-schema"',
+			),
 		);
+	}
+
+	/**
+	 * A setting that was never saved reads the same default through the ability as through
+	 * the settings endpoint, including a default declared only in the REST API schema.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_settings_get_matches_the_settings_endpoint_for_a_schema_default(): void {
+		$option = 'core_settings_get_ability_schema_default_test_option';
+
+		register_setting(
+			'general',
+			$option,
+			array(
+				'type'              => 'string',
+				'show_in_rest'      => array(
+					'schema' => array( 'default' => 'from-rest-schema' ),
+				),
+				'show_in_abilities' => true,
+			)
+		);
+
+		try {
+			$this->register_ability();
+			$this->become_admin();
+
+			$ability_result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $option ) ) );
+			$rest_result    = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/settings' ) )->get_data();
+		} finally {
+			unregister_setting( 'general', $option );
+			$this->register_ability();
+		}
+
+		$this->assertSame( 'from-rest-schema', $rest_result[ $option ] ?? null, 'The settings endpoint should read the REST API schema default.' );
+		$this->assertSame( $rest_result[ $option ] ?? null, $ability_result[ $option ] ?? null, 'The ability should read the same default as the settings endpoint.' );
 	}
 
 	/**

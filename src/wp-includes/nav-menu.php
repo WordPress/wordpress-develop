@@ -85,7 +85,7 @@ function is_nav_menu( $menu ) {
  *
  * @global array $_wp_registered_nav_menus
  *
- * @param string[] $locations Associative array of menu location identifiers (like a slug) and descriptive text.
+ * @param array<string, string> $locations Associative array of menu location identifiers (like a slug) and descriptive text.
  */
 function register_nav_menus( $locations = array() ) {
 	global $_wp_registered_nav_menus;
@@ -734,12 +734,8 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		),
 	);
 	$args     = wp_parse_args( $args, $defaults );
-	if ( $menu->count > 0 ) {
-		$items = get_posts( $args );
-	} else {
-		$items = array();
-	}
 
+	$items = get_posts( $args );
 	$items = array_map( 'wp_setup_nav_menu_item', $items );
 
 	if ( ! is_admin() ) { // Remove invalid items only on front end.

@@ -9,8 +9,6 @@
 
 /**
  * Version number for our API.
- *
- * @var string
  */
 define( 'REST_API_VERSION', '2.0' );
 
@@ -454,7 +452,11 @@ function create_initial_rest_routes() {
  * @global WP $wp Current WordPress environment instance.
  */
 function rest_api_loaded() {
-	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+	/*
+	 * Admin screens call wp() for list queries; they are never REST entry points.
+	 * Check WP_ADMIN rather than is_admin(), which follows the current screen.
+	 */
+	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) || defined( 'WP_ADMIN' ) ) {
 		return;
 	}
 
@@ -481,7 +483,6 @@ function rest_api_loaded() {
 	 * Whether this is a REST Request.
 	 *
 	 * @since 4.4.0
-	 * @var bool
 	 */
 	define( 'REST_REQUEST', true );
 
@@ -1550,6 +1551,8 @@ function rest_get_date_with_gmt( $date, $is_utc = false ) {
  * @since 4.7.0
  *
  * @return int 401 if the user is not logged in, 403 if the user is logged in.
+ *
+ * @phpstan-return 401|403
  */
 function rest_authorization_required_code() {
 	return is_user_logged_in() ? 403 : 401;

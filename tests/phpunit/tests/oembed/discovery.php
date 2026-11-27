@@ -32,8 +32,10 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->go_to( home_url() );
 		$this->assertQueryTrue( 'is_front_page', 'is_singular', 'is_page' );
 
-		$expected  = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
-		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		$expected = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
+		if ( class_exists( 'SimpleXMLElement' ) ) {
+			$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		}
 
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 
@@ -45,8 +47,10 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $post_id ) );
 		$this->assertQueryTrue( 'is_single', 'is_singular' );
 
-		$expected  = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
-		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		$expected = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
+		if ( class_exists( 'SimpleXMLElement' ) ) {
+			$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		}
 
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 
@@ -63,8 +67,10 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $post_id ) );
 		$this->assertQueryTrue( 'is_page', 'is_singular' );
 
-		$expected  = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
-		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		$expected = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
+		if ( class_exists( 'SimpleXMLElement' ) ) {
+			$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		}
 
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
@@ -83,8 +89,10 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $attachment_id ) );
 		$this->assertQueryTrue( 'is_attachment', 'is_singular', 'is_single' );
 
-		$expected  = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
-		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		$expected = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
+		if ( class_exists( 'SimpleXMLElement' ) ) {
+			$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		}
 
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
@@ -132,8 +140,10 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$wp_head_output = get_echo( 'wp_head' );
 		$this->assertSame( 1, $mock_action->get_call_count() );
 
-		$expected  = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
-		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		$expected = '<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
+		if ( class_exists( 'SimpleXMLElement' ) ) {
+			$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+		}
 
 		$this->assertSame( $expected, $wp_head_output, 'Expected wp_head output to be the same as the wp_oembed_add_discovery_links() output.' );
 		$this->assertSame( $expected, get_echo( $callback ), 'Expected wp_oembed_add_discovery_links() output to be the same as the wp_head output when called outside of wp_head.' );

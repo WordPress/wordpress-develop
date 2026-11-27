@@ -11,7 +11,7 @@
  */
 class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
-	protected WP_Script_Modules $original_script_modules;
+	protected ?WP_Script_Modules $original_script_modules;
 
 	protected string $original_wp_version;
 
