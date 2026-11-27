@@ -2243,6 +2243,9 @@ class wpdb {
 	 *
 	 * More information can be found on the documentation page.
 	 *
+	 * The number of rows returned is never negative: `mysqli_affected_rows()` only gives -1
+	 * for a query which failed, for which false is returned instead.
+	 *
 	 * @since 0.71
 	 *
 	 * @link https://developer.wordpress.org/reference/classes/wpdb/
