@@ -21,6 +21,9 @@ on:
       - 'tests/phpstan/base.neon'
       - 'tests/phpstan/baselines/**'
       - 'tests/phpstan/baselines-strict/**'
+      # These files configure the tests of the PHPStan extensions, and hold their fixtures.
+      - 'tests/phpstan/phpunit.xml.dist'
+      - 'tests/phpstan/Tests/**'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/phpstan-static-analysis.yml'
       - '.github/workflows/reusable-phpstan-static-analysis-v2.yml'
