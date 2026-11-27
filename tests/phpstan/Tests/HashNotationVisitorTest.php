@@ -472,6 +472,9 @@ final class HashNotationVisitorTest extends TestCase {
 	/**
 	 * Returns the `@phpstan-*` lines the docblocks in a snippet gain from the visitor.
 	 *
+	 * Each line present beforehand is removed only once, rather than every line equal to it,
+	 * so that a tag the visitor writes a second time is still returned.
+	 *
 	 * @param string $code PHP source.
 	 * @return list<string>
 	 */
@@ -479,7 +482,14 @@ final class HashNotationVisitorTest extends TestCase {
 		$before = self::phpstan_lines( self::docblocks( $code, false ) );
 		$after  = self::phpstan_lines( self::docblocks_after_visiting( $code ) );
 
-		return array_values( array_diff( $after, $before ) );
+		foreach ( $before as $line ) {
+			$key = array_search( $line, $after, true );
+			if ( false !== $key ) {
+				unset( $after[ $key ] );
+			}
+		}
+
+		return array_values( $after );
 	}
 
 	/**
