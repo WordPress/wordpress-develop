@@ -1172,6 +1172,7 @@ function link_submit_meta_box( $link ) {
  * @param object $link Current link object.
  */
 function link_categories_meta_box( $link ) {
+	$taxonomy = get_taxonomy( 'link_category' );
 	?>
 <div id="taxonomy-linkcategory" class="categorydiv">
 	<ul id="category-tabs" class="category-tabs" role="tablist">
@@ -1197,6 +1198,7 @@ function link_categories_meta_box( $link ) {
 		</ul>
 	</div>
 
+	<?php if ( current_user_can( $taxonomy->cap->manage_terms ) ) : ?>
 	<div id="category-adder" class="wp-hidden-children">
 		<a id="category-add-toggle" href="#category-add" class="taxonomy-add-new"><?php _e( '+ Add Category' ); ?></a>
 		<p id="link-category-add" class="wp-hidden-child">
@@ -1212,6 +1214,7 @@ function link_categories_meta_box( $link ) {
 			<span id="category-ajax-response"></span>
 		</p>
 	</div>
+	<?php endif; ?>
 </div>
 	<?php
 }
