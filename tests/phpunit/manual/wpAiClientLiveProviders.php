@@ -39,14 +39,23 @@ use WordPress\OpenAiAiProvider\Provider\OpenAiProvider;
 class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 
 	/**
-	 * Provider classes keyed by provider ID.
+	 * Provider classes and the namespaces of their packages, keyed by provider ID.
 	 *
-	 * @var array<string, class-string>
+	 * @var array<string, array{class: class-string, namespace: string}>
 	 */
 	private const PROVIDERS = array(
-		'anthropic' => AnthropicProvider::class,
-		'google'    => GoogleProvider::class,
-		'openai'    => OpenAiProvider::class,
+		'anthropic' => array(
+			'class'     => AnthropicProvider::class,
+			'namespace' => 'WordPress\\AnthropicAiProvider\\',
+		),
+		'google'    => array(
+			'class'     => GoogleProvider::class,
+			'namespace' => 'WordPress\\GoogleAiProvider\\',
+		),
+		'openai'    => array(
+			'class'     => OpenAiProvider::class,
+			'namespace' => 'WordPress\\OpenAiAiProvider\\',
+		),
 	);
 
 	/**
@@ -127,20 +136,14 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		);
 		update_option( 'timezone_string', 'Pacific/Chatham' );
 
-		// The core abilities can only be registered while their registration actions run.
-		// Pop in finally so a setup exception cannot leave the simulated action on the stack.
-		$wp_current_filter[] = 'wp_abilities_api_categories_init';
+		// The core abilities and their categories can only be registered while their registration actions run.
+		// Pop in finally so a setup exception cannot leave the simulated actions on the stack.
+		array_push( $wp_current_filter, 'wp_abilities_api_categories_init', 'wp_abilities_api_init' );
 		try {
 			wp_register_core_ability_categories();
-		} finally {
-			array_pop( $wp_current_filter );
-		}
-
-		$wp_current_filter[] = 'wp_abilities_api_init';
-		try {
 			wp_register_core_abilities();
 		} finally {
-			array_pop( $wp_current_filter );
+			array_splice( $wp_current_filter, -2 );
 		}
 	}
 
@@ -226,7 +229,7 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	 *                                                  that ran and the model ID.
 	 */
 	private function ask( string $provider, array $abilities, string $question ): array {
-		$provider_class = self::PROVIDERS[ $provider ];
+		$provider_class = self::PROVIDERS[ $provider ]['class'];
 		$prefix         = 'WP_TESTS_AI_' . strtoupper( $provider );
 		$key_var        = "{$prefix}_API_KEY";
 		$model_var      = "{$prefix}_MODEL";
@@ -252,12 +255,10 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		 */
 		try {
 			$provider_class::modelMetadataDirectory()->listModelMetadata();
-		} catch ( ClientException $e ) {
-			if ( 429 !== $e->getCode() ) {
+		} catch ( ClientException | NetworkException | ServerException $e ) {
+			if ( $e instanceof ClientException && 429 !== $e->getCode() ) {
 				$this->fail( "The model list request failed, check the $key_var: " . $e->getMessage() );
 			}
-			$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
-		} catch ( NetworkException | ServerException $e ) {
 			$this->markTestSkipped( 'The provider is unavailable: ' . $e->getMessage() );
 		}
 
@@ -345,11 +346,11 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	 * of the provider packages are loaded, from their `src` directories.
 	 */
 	private static function register_provider_autoloaders(): void {
-		foreach ( self::PROVIDERS as $provider => $provider_class ) {
-			$namespace   = strstr( $provider_class, '\\Provider\\', true ) . '\\';
+		foreach ( self::PROVIDERS as $provider => $package ) {
+			$namespace   = $package['namespace'];
 			$package_dir = dirname( __DIR__, 3 ) . "/vendor/wordpress/ai-provider-for-$provider/src/";
 
-			if ( class_exists( $provider_class ) || ! is_dir( $package_dir ) ) {
+			if ( class_exists( $package['class'] ) || ! is_dir( $package_dir ) ) {
 				continue;
 			}
 
