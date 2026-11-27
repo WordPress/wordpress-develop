@@ -12,6 +12,13 @@ require __DIR__ . '/wp-load.php';
 
 add_filter( 'wp_robots', 'wp_robots_no_robots' );
 
+/*
+ * Skip the main query, as its posts are not used on this screen. The 404 handling
+ * is bypassed, as an empty main query should not result in a 404 status here.
+ */
+add_filter( 'posts_pre_query', '_wp_short_circuit_main_query', 10, 2 );
+add_filter( 'pre_handle_404', '__return_true' );
+
 require __DIR__ . '/wp-blog-header.php';
 
 nocache_headers();
