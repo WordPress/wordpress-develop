@@ -982,14 +982,28 @@ function is_dynamic_sidebar() {
  * Conditional Tags} article in the Theme Developer Handbook.
  *
  * @since 2.8.0
+ * @since 7.3.0 Only widgets that are registered are taken into account.
+ *
+ * @global array $wp_registered_widgets The registered widgets.
  *
  * @param string|int $index Sidebar name, id or number to check.
  * @return bool True if the sidebar has widgets, false otherwise.
  */
 function is_active_sidebar( $index ) {
+	global $wp_registered_widgets;
+
 	$index             = ( is_int( $index ) ) ? "sidebar-$index" : sanitize_title( $index );
 	$sidebars_widgets  = wp_get_sidebars_widgets();
 	$is_active_sidebar = ! empty( $sidebars_widgets[ $index ] );
+
+	/*
+	 * Widgets are registered on 'widgets_init'. Before then, keep the stored list as the answer
+	 * rather than reporting every sidebar as empty.
+	 */
+	if ( $is_active_sidebar && did_action( 'widgets_init' ) ) {
+		$registered_ids    = array_keys( (array) $wp_registered_widgets );
+		$is_active_sidebar = array() !== array_intersect( (array) $sidebars_widgets[ $index ], $registered_ids );
+	}
 
 	/**
 	 * Filters whether a dynamic sidebar is considered "active".
