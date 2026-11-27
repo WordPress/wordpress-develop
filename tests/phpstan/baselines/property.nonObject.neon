@@ -179,11 +179,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-plugins-controller.php
 		-
-			message: '#^Cannot access property \$language_packs on array\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-includes/rest-api/endpoints/class-wp-rest-plugins-controller.php
-		-
 			message: '#^Cannot access property \$template_name on array\.$#'
 			identifier: property.nonObject
 			count: 1
