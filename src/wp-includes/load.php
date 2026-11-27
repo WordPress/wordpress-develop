@@ -400,7 +400,7 @@ function wp_favicon_request() {
  * @since 7.2.0 Added status, no-cache and retry-after headers before loading a custom `maintenance.php` drop-in.
  * @access private
  */
-function wp_maintenance() {
+function maybe_show_wp_maintenance() {
 	// Return if maintenance mode is disabled.
 	if ( ! wp_is_maintenance_mode() ) {
 		return;
