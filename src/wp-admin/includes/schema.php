@@ -601,9 +601,9 @@ function populate_options( array $options = array() ) {
 		}
 
 		if ( in_array( $option, $fat_options, true ) ) {
-			$autoload = 'off';
+			$autoload = WP_Option_Autoload::OFF;
 		} else {
-			$autoload = 'on';
+			$autoload = WP_Option_Autoload::ON;
 		}
 
 		if ( ! empty( $insert ) ) {

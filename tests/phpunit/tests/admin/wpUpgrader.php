@@ -1764,4 +1764,26 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 			'Unexpected WP_Error code'
 		);
 	}
+
+	/**
+	 * Tests that WP_Upgrader::create_lock() stores the lock with the 'off' autoload value.
+	 *
+	 * @ticket 61045
+	 *
+	 * @covers WP_Upgrader::create_lock
+	 */
+	public function test_create_lock_should_not_autoload_the_lock() {
+		global $wpdb;
+
+		$this->assertTrue( WP_Upgrader::create_lock( 'test_lock' ), 'The lock was not created.' );
+
+		$autoload = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT autoload FROM {$wpdb->options} WHERE option_name = %s",
+				'test_lock.lock'
+			)
+		);
+
+		$this->assertSame( 'off', $autoload );
+	}
 }
