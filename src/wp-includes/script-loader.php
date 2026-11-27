@@ -1729,6 +1729,12 @@ function wp_default_styles( $styles ) {
 		$wp_edit_blocks_dependencies
 	);
 
+	/*
+	 * Block editor styles without the content styles of `wp-edit-blocks`,
+	 * since they also target UI outside the editor canvas.
+	 */
+	$styles->add( 'wp-block-library-editor', "/wp-includes/css/dist/block-library/editor$suffix.css" );
+
 	$styles->add( 'wp-view-transitions-admin', false );
 	did_action( 'init' ) && $styles->add_inline_style( 'wp-view-transitions-admin', wp_get_view_transitions_admin_css() );
 
@@ -1744,7 +1750,7 @@ function wp_default_styles( $styles ) {
 			'wp-components',
 			'wp-block-editor',
 			'wp-editor',
-			'wp-edit-blocks',
+			'wp-block-library-editor',
 			'wp-block-library',
 			'wp-commands',
 			'wp-preferences',
@@ -1856,6 +1862,7 @@ function wp_default_styles( $styles ) {
 		'wp-block-library-theme',
 		'wp-theme',
 		'wp-edit-blocks',
+		'wp-block-library-editor',
 		'wp-block-editor',
 		'wp-block-library',
 		'wp-block-directory',
@@ -2559,12 +2566,13 @@ function wp_prefetch_admin_assets(): void {
 	if ( $next_screen_is_block_editor ) {
 		/*
 		 * Roots as well, expanded along with any from the login screen. `wp-edit-post` alone accounts
-		 * for most of the editor chrome, including the block editor's content and reset styles by way
-		 * of `wp-edit-blocks`; the rest cover the block directory, the format library, the classic
-		 * editor's buttons and the media modal.
+		 * for most of the editor chrome, and `wp-edit-blocks` for the block editor's content and
+		 * reset styles loaded in the editor canvas; the rest cover the block directory, the format
+		 * library, the classic editor's buttons and the media modal.
 		 *
 		 * Each root mirrors an enqueue elsewhere, which carries a note pointing back here:
-		 * `wp-edit-post` in wp-admin/edit-form-blocks.php, `wp-block-directory` in
+		 * `wp-edit-post` in wp-admin/edit-form-blocks.php, `wp-edit-blocks` in
+		 * _wp_get_iframed_editor_assets(), `wp-block-directory` in
 		 * wp_enqueue_editor_block_directory_assets(), `wp-format-library` in
 		 * wp_enqueue_editor_format_library_assets(), `editor-buttons` in
 		 * _WP_Editors::enqueue_default_editor(), and `media-views` and `imgareaselect` in
@@ -2574,6 +2582,7 @@ function wp_prefetch_admin_assets(): void {
 			$style_roots,
 			array(
 				'wp-edit-post',
+				'wp-edit-blocks',
 				'wp-block-directory',
 				'wp-format-library',
 				'editor-buttons',
