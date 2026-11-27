@@ -1582,6 +1582,20 @@ class WP_REST_Server {
 		// Add media processing settings for users who can upload files.
 		if ( wp_is_client_side_media_processing_enabled() && current_user_can( 'upload_files' ) ) {
 			$available = array_merge( $available, _wp_get_client_side_media_image_settings() );
+
+			/**
+			 * Filters whether the original video upload is kept when a video is transcoded.
+			 *
+			 * When true (default), the original video is stored as the attachment and
+			 * the transcoded web-safe version is sideloaded as a companion file. When
+			 * false, the video is transcoded before upload so only the optimized file
+			 * is stored.
+			 *
+			 * @since 7.2.0
+			 *
+			 * @param bool $keep_original Whether to keep the original video upload. Default true.
+			 */
+			$available['video_keep_original'] = (bool) apply_filters( 'wp_video_transcoding_keep_original', true );
 		}
 
 		$response = new WP_REST_Response( $available );
