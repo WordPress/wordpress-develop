@@ -605,6 +605,9 @@ final class WpdbSelectParser {
 	/**
 	 * Splits a query into tokens, leaving out whitespace and comments.
 	 *
+	 * The comments are those of MySQL: from `#`, or from `--` followed by whitespace or a control character, to the
+	 * end of the line, and between `/*` and `*\/`. A `--` followed by anything else is two minus signs, as in `5--3`.
+	 *
 	 * A table placeholder with name characters or other placeholders on either side of it, as in
 	 * `{wpdb:posts}_archive` or `{wpdb:posts}{?}`, is one token with them, since together they may name some other
 	 * table.
@@ -618,7 +621,7 @@ final class WpdbSelectParser {
 	 */
 	private static function tokenize( string $query ): array {
 		preg_match_all(
-			'/\s+|--[^\n]*|\/\*.*?\*\/|\'(?:[^\'\\\\]|\\\\.|\'\')*\'|"(?:[^"\\\\]|\\\\.|"")*"|`[^`]*`|(?:[\w$]|\{[^{}]*\})*\{wpdb:\w+\}(?:[\w$]|\{[^{}]*\})*|\{[^{}]*\}|(?:[xXbBnN]|_[A-Za-z0-9]+)\'(?:[^\'\\\\]|\\\\.|\'\')*\'|0x[0-9a-fA-F]+(?![\w$])|\d+(?:\.\d+)?(?:[eE][-+]?\d+)?(?![\w$])|[\w$]+|<=>|[<>!]=|<>|\|\||&&|./s',
+			'/\s+|--(?:[\s\x00-\x1f][^\n]*|$)|#[^\n]*|\/\*.*?\*\/|\'(?:[^\'\\\\]|\\\\.|\'\')*\'|"(?:[^"\\\\]|\\\\.|"")*"|`[^`]*`|(?:[\w$]|\{[^{}]*\})*\{wpdb:\w+\}(?:[\w$]|\{[^{}]*\})*|\{[^{}]*\}|(?:[xXbBnN]|_[A-Za-z0-9]+)\'(?:[^\'\\\\]|\\\\.|\'\')*\'|0x[0-9a-fA-F]+(?![\w$])|\d+(?:\.\d+)?(?:[eE][-+]?\d+)?(?![\w$])|[\w$]+|<=>|[<>!]=|<>|\|\||&&|./s',
 			$query,
 			$matches,
 			PREG_OFFSET_CAPTURE
@@ -627,7 +630,7 @@ final class WpdbSelectParser {
 		$tokens = array();
 		foreach ( $matches[0] as $match ) {
 			list( $text, $offset ) = $match;
-			if ( '' === trim( $text ) || 0 === strpos( $text, '--' ) || 0 === strpos( $text, '/*' ) ) {
+			if ( '' === trim( $text ) || 0 === strpos( $text, '--' ) || 0 === strpos( $text, '#' ) || 0 === strpos( $text, '/*' ) ) {
 				continue;
 			}
 			$tokens[] = array(

@@ -128,6 +128,9 @@ function wp_tests_wpdb_expressions( wpdb $wpdb ): void {
 	// A column in parentheses is still named and typed by the column.
 	assertType( 'array{post_author: decimal-int-string, ID: decimal-int-string, \'(ID) + (1)\': string|null}|null', $wpdb->get_row( "SELECT DISTINCT(post_author), ((p.ID)), (ID) + (1) FROM $wpdb->posts p", ARRAY_A ) );
 
+	// Comments, and a `--` which is not one.
+	assertType( "array{ID: decimal-int-string, '5--3': string|null, post_title: string}|null", $wpdb->get_row( "SELECT ID, # post_name,\n 5--3, -- post_date,\n post_title /* , post_type */ FROM $wpdb->posts", ARRAY_A ) );
+
 	// The subtotal rows of `WITH ROLLUP` have NULL for the columns grouped by.
 	assertType( 'array{post_type: string|null, c: decimal-int-string|null}|null', $wpdb->get_row( "SELECT post_type, COUNT(*) AS c FROM $wpdb->posts GROUP BY post_type WITH ROLLUP", ARRAY_A ) );
 
