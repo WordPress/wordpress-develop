@@ -630,7 +630,8 @@
 	 */
 	wp.updates.updatePluginError = function( response ) {
 		var $pluginRow, $card, $message, errorMessage, buttonText, ariaLabel,
-			$adminBarUpdates = $( '#wp-admin-bar-updates' );
+			$adminBarUpdates = $( '#wp-admin-bar-updates' ),
+			isPluginInstall = 'plugin-install' === pagenow || 'plugin-install-network' === pagenow;
 
 		if ( ! wp.updates.isValidResponse( response, 'update' ) ) {
 			return;
@@ -669,7 +670,7 @@
 			} else {
 				$message.find( 'p' ).removeAttr( 'aria-label' );
 			}
-		} else if ( 'plugin-install' === pagenow || 'plugin-install-network' === pagenow ) {
+		} else if ( isPluginInstall ) {
 			buttonText = __( 'Update failed.' );
 
 			$card = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' )
@@ -718,7 +719,7 @@
 
 		wp.a11y.speak( errorMessage, 'assertive' );
 
-		if ( 'plugin-information-footer' === $card.attr('id' ) ) {
+		if ( isPluginInstall && 'plugin-information-footer' === $card.attr( 'id' ) ) {
 			wp.updates.setCardButtonStatus(
 				{
 					status: 'plugin-update-failed',
