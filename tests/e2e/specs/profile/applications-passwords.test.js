@@ -55,6 +55,17 @@ test.describe( 'Manage applications passwords', () => {
 		);
 	} );
 
+	test( 'explains the access granted on the application authorization screen', async ( {
+		page,
+		applicationPasswords,
+	} ) => {
+		await applicationPasswords.get();
+		await page.goto( '/wp-admin/authorize-application.php?app_name=Test+Application' );
+
+		await expect( page.getByText( 'It will have the same capabilities as your account.' ) ).toBeVisible();
+		await expect( page.getByText( 'Only approve this request if you initiated it from an application you trust.' ) ).toBeVisible();
+	} );
+
 	test( 'should correctly revoke a single application password', async ( {
 		page,
 		applicationPasswords
