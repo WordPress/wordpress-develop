@@ -3006,7 +3006,12 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 
 	$filter_comment = false;
 	if ( ! has_filter( 'pre_comment_content', 'wp_filter_kses' ) ) {
-		$filter_comment = ! user_can( $comment['user_id'] ?? 0, 'unfiltered_html' );
+		/*
+		 * Filter the comment content based on the capability of the user performing
+		 * the update rather than the comment author, for consistency with the post
+		 * editor. Programmatic updates without a logged-in user are filtered by default.
+		 */
+		$filter_comment = ! current_user_can( 'unfiltered_html' );
 	}
 
 	if ( $filter_comment ) {
