@@ -57,6 +57,18 @@ final class WP_Abilities_Settings {
 	private const READ_ONLY_OPTIONS = array( 'siteurl', 'home', 'admin_email' );
 
 	/**
+	 * Options that `core/settings-update` cannot reset with a null value, whatever name exposes them.
+	 *
+	 * They have no registered default, so a reset would delete them, and Core needs a value:
+	 * without one, dates and times show as empty strings, and new posts get no category. They
+	 * can still be updated with a value.
+	 *
+	 * @since 7.3.0
+	 * @var string[]
+	 */
+	private const NON_RESETTABLE_OPTIONS = array( 'date_format', 'time_format', 'default_category' );
+
+	/**
 	 * Settings exposed through the Abilities API, computed once at registration.
 	 *
 	 * @since 7.2.0
@@ -160,7 +172,7 @@ final class WP_Abilities_Settings {
 			'core/settings-update',
 			array(
 				'label'                 => __( 'Update Settings' ),
-				'description'           => __( 'Updates WordPress settings and returns the saved values of the settings named in the call. A null value resets a setting to its default, or deletes its stored value when it has no default. Read-only settings, such as the site address and the administration email address, cannot be updated. Requires an authenticated user who can manage options, and who can also manage privacy options to set the privacy policy page.' ),
+				'description'           => __( 'Updates WordPress settings and returns the saved values of the settings named in the call. A null value resets a setting to its default, or deletes its stored value when it has no default, except for the date format, the time format and the default category, which cannot be reset. Read-only settings, such as the site address and the administration email address, cannot be updated. Requires an authenticated user who can manage options, and who can also manage privacy options to set the privacy policy page.' ),
 				'category'              => self::CATEGORY,
 				'input_schema'          => $this->get_settings_update_input_schema(),
 				'output_schema'         => $this->get_settings_output_schema( $this->writable_settings, __( 'A map of setting name to its value after the update.' ) ),
@@ -533,8 +545,8 @@ final class WP_Abilities_Settings {
 			'properties'           => array(
 				'data' => array(
 					'type'                 => 'object',
-					'description'          => __( 'Settings to update, keyed by setting name. A null value resets a setting to its default, or deletes its stored value when it has no default.' ),
-					'properties'           => array_map( array( $this, 'nullable_schema' ), wp_list_pluck( $this->writable_settings, 'schema' ) ),
+					'description'          => __( 'Settings to update, keyed by setting name. A null value resets a setting to its default, or deletes its stored value when it has no default. The date format, the time format and the default category cannot be reset.' ),
+					'properties'           => array_map( array( $this, 'get_update_value_schema' ), $this->writable_settings ),
 					'additionalProperties' => false,
 					'minProperties'        => 1,
 				),
@@ -542,6 +554,39 @@ final class WP_Abilities_Settings {
 			'required'             => array( 'data' ),
 			'additionalProperties' => false,
 		);
+	}
+
+	/**
+	 * Returns the input schema of a writable setting.
+	 *
+	 * Allows null, unless the option is one of NON_RESETTABLE_OPTIONS, and removes the default,
+	 * see nullable_schema().
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array{option: string, group: string, default: mixed, schema: array<string, mixed>} $setting The writable setting.
+	 * @return array<string, mixed> The input JSON Schema of the setting.
+	 *
+	 * @phpstan-param array{
+	 *     option: string,
+	 *     schema: array{
+	 *         type: non-empty-string|non-empty-string[],
+	 *         enum?: mixed[],
+	 *         default?: mixed,
+	 *         ...
+	 *     },
+	 *     ...
+	 * } $setting
+	 */
+	private function get_update_value_schema( array $setting ): array {
+		if ( in_array( $setting['option'], self::NON_RESETTABLE_OPTIONS, true ) ) {
+			$schema = $setting['schema'];
+			unset( $schema['default'] );
+
+			return $schema;
+		}
+
+		return $this->nullable_schema( $setting['schema'] );
 	}
 
 	/**

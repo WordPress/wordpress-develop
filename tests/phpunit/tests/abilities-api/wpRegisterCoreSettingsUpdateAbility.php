@@ -52,6 +52,13 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	const ID_OPTIONS = array( 'default_category', 'page_on_front', 'page_for_posts', 'wp_page_for_privacy_policy' );
 
 	/**
+	 * Options that a null value cannot reset.
+	 *
+	 * @var string[]
+	 */
+	const NON_RESETTABLE_OPTIONS = array( 'date_format', 'time_format', 'default_category' );
+
+	/**
 	 * Raw values a null value stores, keyed by option: the default of each core setting that has one.
 	 *
 	 * @var array<string, string>
@@ -1081,7 +1088,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 *
 	 * @since 7.3.0
 	 *
-	 * @dataProvider data_settings
+	 * @dataProvider data_resettable_settings
 	 *
 	 * @param string      $name       The exposed setting name.
 	 * @param string      $option     The option name.
@@ -1152,6 +1159,108 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'a setting with numeric name'    => array( '456', 'settings_update_test_numeric_option', 9, '9', '9', null ),
 			'a setting with mixed-case name' => array( 'Mixed_Case_Name', 'settings_update_test_mixed_case_option', 'Mixed', '"Mixed"', 'Mixed', null ),
 			'a setting with readonly false'  => array( 'settings_update_test_readonly_false', 'settings_update_test_readonly_false', 'Open', '"Open"', 'Open', null ),
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * The settings of data_settings() that a null value can reset.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: mixed, 3: string, 4: string, 5: string|null}> Settings with a valid value.
+	 */
+	public static function data_resettable_settings(): array {
+		return array_filter(
+			self::data_settings(),
+			static fn( array $setting ): bool => ! in_array( $setting[1], self::NON_RESETTABLE_OPTIONS, true )
+		);
+	}
+
+	/**
+	 * A null value is refused for the date format, the time format and the default category,
+	 * and nothing is written.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_non_resettable_core_settings
+	 *
+	 * @param string $name   The exposed setting name.
+	 * @param string $option The option name.
+	 */
+	public function test_null_is_refused_for_a_setting_that_cannot_be_reset( string $name, string $option ): void {
+		$this->become_admin();
+		$before = $this->snapshot();
+
+		$property = wp_get_ability( self::ABILITY )->get_input_schema()['properties']['data']['properties'][ $name ];
+		$result   = $this->update( array( $name => null ) );
+
+		$this->assertArrayHasKey( $option, $before, 'The option should have a stored value before the call.' );
+		$this->assertNotContains( 'null', (array) $property['type'], 'The setting should not accept null.' );
+		$this->assert_error_code( $result, 'ability_invalid_input' );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}> Setting names and option names.
+	 */
+	public static function data_non_resettable_core_settings(): array {
+		return array(
+			'date_format'      => array( 'date_format', 'date_format' ),
+			'time_format'      => array( 'time_format', 'time_format' ),
+			'default_category' => array( 'default_category', 'default_category' ),
+		);
+	}
+
+	/**
+	 * The reset rule holds for each option that cannot be reset, also when a plugin exposes it
+	 * under another name, or registers its name with surrounding spaces, which the options API
+	 * trims.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_non_resettable_options
+	 *
+	 * @param string $option The name the option is registered with.
+	 * @param string $type   The type the option is registered with.
+	 */
+	public function test_reset_rule_follows_the_option_under_another_name( string $option, string $type ): void {
+		$name = 'settings_update_test_non_resettable_option';
+
+		register_setting(
+			'general',
+			$option,
+			array(
+				'type'              => $type,
+				'show_in_abilities' => array( 'name' => $name ),
+			)
+		);
+		$this->register_ability();
+		$this->become_admin();
+		$before = $this->snapshot();
+
+		$result = $this->update( array( $name => null ) );
+
+		$this->assert_error_code( $result, 'ability_invalid_input' );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}> Names and types that options that cannot be reset are registered with.
+	 */
+	public static function data_non_resettable_options(): array {
+		return array(
+			'the date format'             => array( 'date_format', 'string' ),
+			'the time format'             => array( 'time_format', 'string' ),
+			'the default category'        => array( 'default_category', 'integer' ),
+			'the date format with spaces' => array( ' date_format ', 'string' ),
 		);
 	}
 
