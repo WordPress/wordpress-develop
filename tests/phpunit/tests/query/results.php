@@ -1264,4 +1264,99 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$feed_comment = $this->q->next_comment();
 		$this->assertSame( (string) $comment_id, $feed_comment->comment_ID );
 	}
+
+	/**
+	 * @ticket 39428
+	 *
+	 * @dataProvider data_unknown_author_name_fields
+	 *
+	 * @param string $fields Value of the `fields` query var.
+	 */
+	public function test_unknown_author_name_returns_no_posts_without_querying_posts( $fields ) {
+		global $wpdb;
+
+		$post_id = self::factory()->post->create();
+		$wpdb->update( $wpdb->posts, array( 'post_author' => 0 ), array( 'ID' => $post_id ) );
+		clean_post_cache( $post_id );
+
+		$posts_queries = array();
+		$filter        = static function ( $query ) use ( &$posts_queries, $wpdb ) {
+			if ( str_contains( $query, "FROM {$wpdb->posts}" ) ) {
+				$posts_queries[] = $query;
+			}
+			return $query;
+		};
+		add_filter( 'query', $filter );
+
+		$posts = $this->q->query(
+			array(
+				'author_name' => 'no-such-author',
+				'fields'      => $fields,
+			)
+		);
+
+		remove_filter( 'query', $filter );
+
+		$this->assertSame( array(), $posts, 'An unknown author should have no posts.' );
+		$this->assertSame( 0, $this->q->found_posts, 'An unknown author should have no found posts.' );
+		$this->assertSame( array(), $posts_queries, 'No posts query should run for an unknown author.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_unknown_author_name_fields() {
+		return array(
+			'all fields' => array( '' ),
+			'ids'        => array( 'ids' ),
+			'id=>parent' => array( 'id=>parent' ),
+		);
+	}
+
+	/**
+	 * @ticket 39428
+	 */
+	public function test_unknown_author_name_returns_no_posts_with_suppress_filters() {
+		global $wpdb;
+
+		$post_id = self::factory()->post->create();
+		$wpdb->update( $wpdb->posts, array( 'post_author' => 0 ), array( 'ID' => $post_id ) );
+		clean_post_cache( $post_id );
+
+		$posts = $this->q->query(
+			array(
+				'author_name'      => 'no-such-author',
+				'suppress_filters' => true,
+			)
+		);
+
+		$this->assertSame( array(), $posts );
+	}
+
+	/**
+	 * @ticket 39428
+	 */
+	public function test_unknown_author_name_queries_posts_when_author_clause_is_filtered() {
+		global $wpdb;
+
+		$post_id = self::factory()->post->create( array( 'post_author' => self::factory()->user->create() ) );
+
+		add_filter(
+			'posts_where',
+			static function ( $where ) use ( $wpdb, $post_id ) {
+				return str_replace( " AND ({$wpdb->posts}.post_author = 0)", " AND ({$wpdb->posts}.ID = {$post_id})", $where );
+			}
+		);
+
+		$posts = $this->q->query(
+			array(
+				'author_name' => 'guest-author',
+				'fields'      => 'ids',
+			)
+		);
+
+		$this->assertSame( array( $post_id ), $posts );
+	}
 }
