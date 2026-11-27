@@ -430,9 +430,10 @@ class WP {
 	 * @since 6.1.0 Runs after posts have been queried.
 	 *
 	 * @global WP_Query $wp_query WordPress Query object.
+	 * @global string   $wp_version WordPress version.
 	 */
 	public function send_headers() {
-		global $wp_query;
+		global $wp_query, $wp_version;
 
 		$headers       = array();
 		$status        = null;
@@ -504,7 +505,7 @@ class WP {
 			}
 
 			$wp_last_modified .= ' GMT';
-			$wp_etag           = '"' . md5( $wp_last_modified ) . '"';
+			$wp_etag           = '"' . md5( $wp_last_modified . $wp_version ) . '"';
 
 			$headers['Last-Modified'] = $wp_last_modified;
 			$headers['ETag']          = $wp_etag;
