@@ -12,8 +12,11 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 	 * @dataProvider data_preload_resources
 	 *
 	 * @ticket 42438
+	 *
+	 * @param string                               $expected          Expected markup.
+	 * @param array<int, array<int|string, mixed>> $preload_resources Resources to preload.
 	 */
-	public function test_preload_resources( $expected, $preload_resources ) {
+	public function test_preload_resources( string $expected, array $preload_resources ) {
 		$callback = static function () use ( $preload_resources ) {
 			return $preload_resources;
 		};
@@ -22,17 +25,17 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 		$actual = get_echo( 'wp_preload_resources' );
 		remove_filter( 'wp_preload_resources', $callback );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
-	 * Test provider for all preload link possible combinations.
+	 * Data provider for {@see self::test_preload_resources()}.
 	 *
 	 * @return array[]
 	 */
 	public static function data_preload_resources() {
 		return array(
-			'basic_preload'          => array(
+			'basic_preload'            => array(
 				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' />\n",
 				'urls'     => array(
 					array(
@@ -41,7 +44,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					),
 				),
 			),
-			'multiple_links'         => array(
+			'multiple_links'           => array(
 				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' />\n" .
 							"<link rel='preload' href='https://example.com/main.js' as='script' />\n",
 				'urls'     => array(
@@ -55,7 +58,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					),
 				),
 			),
-			'MIME_types'             => array(
+			'MIME_types'               => array(
 				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' />\n" .
 							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4' />\n" .
 							"<link rel='preload' href='https://example.com/main.js' as='script' />\n",
@@ -77,7 +80,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					),
 				),
 			),
-			'CORS'                   => array(
+			'CORS'                     => array(
 				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' crossorigin='anonymous' />\n" .
 							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4' />\n" .
 							"<link rel='preload' href='https://example.com/main.js' as='script' />\n" .
@@ -107,7 +110,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					),
 				),
 			),
-			'media'                  => array(
+			'media'                    => array(
 				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' crossorigin='anonymous' />\n" .
 							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4' />\n" .
 							"<link rel='preload' href='https://example.com/main.js' as='script' />\n" .
@@ -154,7 +157,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 
 				),
 			),
-			'media_extra_attributes' => array(
+			'media_extra_attributes'   => array(
 				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' crossorigin='anonymous' />\n" .
 							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4' />\n" .
 							"<link rel='preload' href='https://example.com/main.js' as='script' />\n" .
@@ -247,7 +250,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					),
 				),
 			),
-			'fetchpriority'          => array(
+			'fetchpriority'            => array(
 				'expected'  => "<link rel='preload' href='https://example.com/image.jpg' as='image' fetchpriority='high' />\n",
 				'resources' => array(
 					array(
@@ -257,7 +260,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					),
 				),
 			),
-			'imagesizes_only'        => array(
+			'imagesizes_only'          => array(
 				'expected'  => "<link rel='preload' as='image' imagesrcset='640.png 640w, 800.png 800w' imagesizes='100vw' />\n",
 				'resources' => array(
 					// No href and no imagesrcset, so there is nothing to preload.
@@ -276,12 +279,172 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					),
 				),
 			),
-			'missing_href_and_as'    => array(
+			'missing_href_and_as'      => array(
 				'expected'  => '',
 				'resources' => array(
 					array(
 						'imagesrcset' => '640.png 640w, 800.png 800w',
 					),
+				),
+			),
+			'unsafe_href'              => array(
+				'expected'  => '',
+				'resources' => array(
+					array(
+						'href' => 'javascript:alert(1)',
+						'as'   => 'script',
+					),
+				),
+			),
+			'non_string_href'          => array(
+				'expected'  => '',
+				'resources' => array(
+					array(
+						'href' => true,
+						'as'   => 'script',
+					),
+					array(
+						'href' => array( 'https://example.com/main.js' ),
+						'as'   => 'script',
+					),
+				),
+			),
+			'unsafe_href_imagesrcset'  => array(
+				'expected'  => "<link rel='preload' as='image' imagesrcset='640.png 640w, 800.png 800w' />\n",
+				'resources' => array(
+					array(
+						'href'        => 'javascript:alert(1)',
+						'as'          => 'image',
+						'imagesrcset' => '640.png 640w, 800.png 800w',
+					),
+				),
+			),
+			'non_string_imagesrcset'   => array(
+				'expected'  => '',
+				'resources' => array(
+					array(
+						'as'          => 'image',
+						'imagesrcset' => array( '640.png 640w' ),
+					),
+				),
+			),
+			'duplicate_sanitized_href' => array(
+				'expected'  => "<link rel='preload' href='https://example.com/a%20b.js' as='script' />\n",
+				'resources' => array(
+					array(
+						'href' => 'https://example.com/a b.js',
+						'as'   => 'script',
+					),
+					array(
+						'href' => 'https://example.com/a%20b.js',
+						'as'   => 'script',
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that boolean attribute values and list items are only printed when valueless.
+	 *
+	 * @ticket 66435
+	 *
+	 * @dataProvider data_boolean_attributes
+	 *
+	 * @param string                   $expected         Expected markup.
+	 * @param array<int|string, mixed> $preload_resource Resource to preload.
+	 */
+	public function test_boolean_attributes( string $expected, array $preload_resource ) {
+		add_filter(
+			'wp_preload_resources',
+			static function () use ( $preload_resource ): array {
+				return array( $preload_resource );
+			}
+		);
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_preload_resources' ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_boolean_attributes()}.
+	 *
+	 * @return array<non-falsy-string, array{ expected: string, preload_resource: array<int|string, mixed> }>
+	 */
+	public static function data_boolean_attributes(): array {
+		return array(
+			'crossorigin true'           => array(
+				'expected'         => "<link rel='preload' href='https://example.com/font.woff2' as='font' crossorigin />\n",
+				'preload_resource' => array(
+					'href'        => 'https://example.com/font.woff2',
+					'as'          => 'font',
+					'crossorigin' => true,
+				),
+			),
+			'crossorigin false'          => array(
+				'expected'         => "<link rel='preload' href='https://example.com/font.woff2' as='font' />\n",
+				'preload_resource' => array(
+					'href'        => 'https://example.com/font.woff2',
+					'as'          => 'font',
+					'crossorigin' => false,
+				),
+			),
+			'non-boolean attribute true' => array(
+				'expected'         => "<link rel='preload' href='https://example.com/main.js' as='script' />\n",
+				'preload_resource' => array(
+					'href' => 'https://example.com/main.js',
+					'as'   => 'script',
+					'type' => true,
+				),
+			),
+			'unsupported list item'      => array(
+				'expected'         => "<link rel='preload' href='https://example.com/main.js' as='script' />\n",
+				'preload_resource' => array(
+					'href' => 'https://example.com/main.js',
+					'as'   => 'script',
+					'async',
+				),
+			),
+			'non-string list item'       => array(
+				'expected'         => "<link rel='preload' href='https://example.com/main.js' as='script' />\n",
+				'preload_resource' => array(
+					'href' => 'https://example.com/main.js',
+					'as'   => 'script',
+					true,
+				),
+			),
+			'escaped attribute value'    => array(
+				'expected'         => "<link rel='preload' href='https://example.com/style.css' as='style' media='screen and (min-width: 600px)&quot; onload=&quot;alert(1)' />\n",
+				'preload_resource' => array(
+					'href'  => 'https://example.com/style.css',
+					'as'    => 'style',
+					'media' => 'screen and (min-width: 600px)" onload="alert(1)',
+				),
+			),
+			'list item before value'     => array(
+				'expected'         => "<link rel='preload' href='https://example.com/font.woff2' as='font' crossorigin />\n",
+				'preload_resource' => array(
+					'href'        => 'https://example.com/font.woff2',
+					'as'          => 'font',
+					'crossorigin',
+					'crossorigin' => 'use-credentials',
+				),
+			),
+			'value before list item'     => array(
+				'expected'         => "<link rel='preload' href='https://example.com/font.woff2' as='font' crossorigin='use-credentials' />\n",
+				'preload_resource' => array(
+					'href'        => 'https://example.com/font.woff2',
+					'as'          => 'font',
+					'crossorigin' => 'use-credentials',
+					'crossorigin',
+				),
+			),
+			'repeated list item'         => array(
+				'expected'         => "<link rel='preload' href='https://example.com/font.woff2' as='font' crossorigin />\n",
+				'preload_resource' => array(
+					'href' => 'https://example.com/font.woff2',
+					'as'   => 'font',
+					'crossorigin',
+					'crossorigin',
 				),
 			),
 		);
