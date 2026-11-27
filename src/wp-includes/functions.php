@@ -7672,6 +7672,11 @@ function _device_can_upload() {
  * @phpstan-assert-if-true =non-falsy-string $path
  */
 function wp_is_stream( $path ) {
+
+	if ( empty( $path ) && ! is_string( $path ) ) {
+		return false;
+	}
+
 	$scheme_separator = strpos( $path, '://' );
 
 	if ( false === $scheme_separator ) {
