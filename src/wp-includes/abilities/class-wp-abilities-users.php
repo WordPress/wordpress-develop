@@ -792,6 +792,11 @@ final class WP_Abilities_Users {
 	 * does. A value that ends empty, too long or taken is refused here; everything else
 	 * is stored as the save sanitizes it.
 	 *
+	 * To compute that value, the checks apply the `pre_user_email`,
+	 * `pre_user_display_name`, `pre_user_nicename` and `pre_user_url` filters, and the save
+	 * applies them again: a filter applied here runs once in the check and once more in
+	 * the save.
+	 *
 	 * @since 7.3.0
 	 *
 	 * @param array<mixed> $data   The `data` input.
@@ -858,7 +863,8 @@ final class WP_Abilities_Users {
 
 			/*
 			 * Intentionally strict: an address that the save would store differently from the
-			 * address sent is refused, rather than stored changed.
+			 * address sent is refused, rather than stored changed. The `pre_user_email` filter
+			 * runs here and again in the save.
 			 */
 			/** This filter is documented in wp-includes/user.php */
 			if ( wp_unslash( apply_filters( 'pre_user_email', wp_slash( $data['email'] ) ) ) !== $data['email'] ) {
@@ -949,16 +955,8 @@ final class WP_Abilities_Users {
 			$url = (string) apply_filters( 'pre_user_url', wp_slash( $data['url'] ) );
 
 			// Intentionally strict: a URL with nothing left after sanitizing is refused rather than saved empty.
-			$error = $this->get_validation_error(
-				'data[url]',
-				$url,
-				array(
-					'type'      => 'string',
-					'minLength' => 1,
-				)
-			);
-			if ( $error ) {
-				return $error;
+			if ( '' === $url ) {
+				return $this->invalid_attribute_error( 'data[url]', __( 'Invalid URL.' ) );
 			}
 
 			if ( mb_strlen( $url ) > 100 ) {

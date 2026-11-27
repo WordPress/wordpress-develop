@@ -691,7 +691,8 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 * @param string|null           $message The message, or null when it is not fixed.
 	 */
 	public function test_refuses_attributes( array $data, string $code, string $param, ?string $message ): void {
-		$user_id = $this->create_target( 'uwtrefused' );
+		// The user has a URL, so a refused URL that cleared it would show as a change.
+		$user_id = $this->create_target( 'uwtrefused', array( 'user_url' => 'https://example.test/kept' ) );
 		$this->create_target( 'uwtteamdesk', array( 'user_nicename' => 'team-desk' ) );
 
 		$this->login_as( 'manager' );

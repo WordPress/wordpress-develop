@@ -921,7 +921,7 @@ abstract class WP_Abilities_User_Write_UnitTestCase extends WP_UnitTestCase {
 			'slug of another user'                    => array( array( 'slug' => 'uwt_editor' ), 'user_exists', 'data[slug]', 'Sorry, that slug is already used by another user.' ),
 			'slug of another user once cleaned'       => array( array( 'slug' => 'Team/Desk' ), 'user_exists', 'data[slug]', 'Sorry, that slug is already used by another user.' ),
 			'slug of 51 characters'                   => array( array( 'slug' => str_repeat( 'a', 51 ) ), 'user_invalid_attribute', 'data[slug]', null ),
-			'url with nothing left'                   => array( array( 'url' => 'javascript:alert(1)' ), 'user_invalid_attribute', 'data[url]', null ),
+			'url with nothing left'                   => array( array( 'url' => 'javascript:alert(1)' ), 'user_invalid_attribute', 'data[url]', 'Invalid URL.' ),
 			'url of 101 characters'                   => array( array( 'url' => 'https://example.test/' . str_repeat( 'a', 80 ) ), 'user_invalid_attribute', 'data[url]', null ),
 		);
 	}
