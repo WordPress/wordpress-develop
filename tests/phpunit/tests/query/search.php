@@ -263,6 +263,97 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50871
+	 * @ticket 66805
+	 *
+	 * @dataProvider data_relevance_orderby_without_title_search_terms
+	 *
+	 * @param array $args Query arguments.
+	 */
+	public function test_relevance_orderby_should_not_produce_invalid_sql_without_title_search_terms( $args ) {
+		global $wpdb;
+
+		$q = new WP_Query(
+			array_merge(
+				$args,
+				array(
+					'orderby' => 'relevance',
+					'fields'  => 'ids',
+				)
+			)
+		);
+
+		$this->assertEmpty( $wpdb->last_error, 'The query should not produce a database error.' );
+		$this->assertDoesNotMatchRegularExpression( '/WHEN\s+THEN/', $q->request, 'The ORDER BY clause should not contain an empty WHEN condition.' );
+		$this->assertDoesNotMatchRegularExpression( '/ORDER BY\s+DESC/', $q->request, 'The ORDER BY clause should not start with a bare DESC.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_relevance_orderby_without_title_search_terms() {
+		return array(
+			'exact single term'       => array(
+				array(
+					's'     => 'one',
+					'exact' => true,
+				),
+			),
+			'exact multiple terms'    => array(
+				array(
+					's'     => 'one two',
+					'exact' => true,
+				),
+			),
+			'multiple excluded terms' => array(
+				array( 's' => '-one -two' ),
+			),
+			'single excluded term'    => array(
+				array( 's' => '-one' ),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 50871
+	 * @ticket 66805
+	 */
+	public function test_relevance_orderby_should_order_by_title_when_some_search_terms_are_excluded() {
+		global $wpdb;
+
+		$q = new WP_Query(
+			array(
+				's'       => 'one -two',
+				'orderby' => 'relevance',
+				'fields'  => 'ids',
+			)
+		);
+
+		$this->assertEmpty( $wpdb->last_error, 'The query should not produce a database error.' );
+		$this->assertMatchesRegularExpression( "/ORDER BY \(CASE WHEN {$wpdb->posts}\.post_title LIKE '[^']*one[^']*' THEN 2 ELSE 6 END\)/", $q->request );
+	}
+
+	/**
+	 * @ticket 50871
+	 * @ticket 66805
+	 */
+	public function test_default_orderby_should_be_unchanged_when_all_search_terms_are_excluded() {
+		global $wpdb;
+
+		$q = new WP_Query(
+			array(
+				's'      => '-one -two',
+				'fields' => 'ids',
+			)
+		);
+
+		$this->assertEmpty( $wpdb->last_error, 'The query should not produce a database error.' );
+		$this->assertMatchesRegularExpression( "/ORDER BY {$wpdb->posts}\.post_date DESC\s+LIMIT/", $q->request );
+	}
+
+	/**
 	 * @ticket 31025
 	 */
 	public function test_s_zero() {
