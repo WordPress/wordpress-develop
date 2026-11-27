@@ -556,14 +556,14 @@ function wp_edit_theme_plugin_file( $args ) {
 
 		// Attempt loopback request to editor to see if user just whitescreened themselves.
 		if ( $plugin ) {
-			$url = add_query_arg( compact( 'plugin', 'file' ), admin_url( 'plugin-editor.php' ) );
+			$url = add_query_arg( compact( 'plugin', 'file' ), network_admin_url( 'plugin-editor.php' ) );
 		} elseif ( $stylesheet ) {
 			$url = add_query_arg(
 				array(
 					'theme' => $stylesheet,
 					'file'  => $file,
 				),
-				admin_url( 'theme-editor.php' )
+				network_admin_url( 'theme-editor.php' )
 			);
 		} else {
 			$url = admin_url();
