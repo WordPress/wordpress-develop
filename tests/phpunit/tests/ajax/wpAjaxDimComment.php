@@ -239,4 +239,57 @@ class Tests_Ajax_wpAjaxDimComment extends WP_Ajax_UnitTestCase {
 		$comment = array_pop( $this->_comments );
 		$this->_test_with_bad_nonce( $comment );
 	}
+
+	/**
+	 * Creates a reaction by another user on a note on a post the current user can edit.
+	 *
+	 * @return int Reaction comment ID.
+	 */
+	private function create_other_users_reaction() {
+		$reactor_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+		$post_id    = self::factory()->post->create();
+		$note_id    = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => $reactor_id,
+			)
+		);
+
+		return self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => $reactor_id,
+				'comment_content'  => '2764',
+			)
+		);
+	}
+
+	/**
+	 * An administrator who can edit the post cannot unapprove another user's reaction.
+	 *
+	 * @ticket 66807
+	 */
+	public function test_ajax_cannot_dim_another_users_reaction() {
+		$reaction_id = $this->create_other_users_reaction();
+
+		$this->_clear_post_action();
+		$this->_setRole( 'administrator' );
+
+		$_POST['id']          = $reaction_id;
+		$_POST['_ajax_nonce'] = wp_create_nonce( 'approve-comment_' . $reaction_id );
+
+		try {
+			$this->_handleAjax( 'dim-comment' );
+			$this->fail( 'Expected exception: WPAjaxDieStopException' );
+		} catch ( WPAjaxDieStopException $e ) {
+			$this->assertSame( '-1', $e->getMessage() );
+		}
+
+		$this->assertSame( 'approved', wp_get_comment_status( $reaction_id ) );
+	}
 }

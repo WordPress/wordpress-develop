@@ -81,6 +81,11 @@ if ( $doaction ) {
 			continue;
 		}
 
+		// Only a reaction's author can remove it, and not once its thread is resolved.
+		if ( is_wp_error( _wp_check_reaction_removal_permission( $comment_id ) ) ) {
+			continue;
+		}
+
 		switch ( $doaction ) {
 			case 'approve':
 				wp_set_comment_status( $comment_id, 'approve' );

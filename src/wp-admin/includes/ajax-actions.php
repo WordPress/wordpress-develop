@@ -682,6 +682,10 @@ function wp_ajax_delete_comment() {
 		wp_die( -1 );
 	}
 
+	if ( is_wp_error( _wp_check_reaction_removal_permission( $comment ) ) ) {
+		wp_die( -1 );
+	}
+
 	check_ajax_referer( "delete-comment_$id" );
 	$status = wp_get_comment_status( $comment );
 	$delta  = -1;
@@ -948,6 +952,10 @@ function wp_ajax_dim_comment() {
 	}
 
 	if ( ! current_user_can( 'edit_comment', $comment->comment_ID ) && ! current_user_can( 'moderate_comments' ) ) {
+		wp_die( -1 );
+	}
+
+	if ( is_wp_error( _wp_check_reaction_removal_permission( $comment ) ) ) {
 		wp_die( -1 );
 	}
 

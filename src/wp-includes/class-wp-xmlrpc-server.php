@@ -3911,6 +3911,11 @@ class wp_xmlrpc_server extends IXR_Server {
 			return new IXR_Error( 403, __( 'Sorry, you are not allowed to delete this comment.' ) );
 		}
 
+		$reaction_check = _wp_check_reaction_removal_permission( $comment_id );
+		if ( is_wp_error( $reaction_check ) ) {
+			return new IXR_Error( 403, $reaction_check->get_error_message() );
+		}
+
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
 		do_action( 'xmlrpc_call', 'wp.deleteComment', $args, $this );
 
