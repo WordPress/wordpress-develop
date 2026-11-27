@@ -33,6 +33,7 @@ Embed = wp.media.controller.State.extend(/** @lends wp.media.controller.Embed.pr
 		menu:     'default',
 		toolbar:  'main-embed',
 		priority: 120,
+		uploader: false,
 		type:     'link',
 		url:      '',
 		metadata: {}

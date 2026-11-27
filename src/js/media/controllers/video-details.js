@@ -21,6 +21,7 @@ VideoDetails = State.extend(/** @lends wp.media.controller.VideoDetails.prototyp
 		content: 'video-details',
 		menu: 'video-details',
 		router: false,
+		uploader: false,
 		priority: 60
 	},
 

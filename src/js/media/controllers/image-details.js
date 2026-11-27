@@ -38,6 +38,7 @@ ImageDetails = State.extend(/** @lends wp.media.controller.ImageDetails.prototyp
 		router:   false,
 		toolbar:  'image-details',
 		editing:  false,
+		uploader: false,
 		priority: 60
 	}, Library.prototype.defaults ),
 
