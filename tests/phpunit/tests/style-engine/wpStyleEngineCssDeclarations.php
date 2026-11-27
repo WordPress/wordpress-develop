@@ -384,4 +384,102 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 			'Non-string values should be rejected without causing errors.'
 		);
 	}
+
+	/**
+	 * Tests that significant whitespace inside quoted strings is preserved.
+	 *
+	 * @ticket 66199
+	 *
+	 * @covers ::filter_declaration
+	 * @covers ::get_declarations_string
+	 *
+	 * @dataProvider data_should_preserve_whitespace_inside_quoted_strings
+	 *
+	 * @param array  $declarations Expected declarations input.
+	 * @param string $expected     Expected compiled CSS string.
+	 */
+	public function test_should_preserve_whitespace_inside_quoted_strings( $declarations, $expected ) {
+		$filter = static function ( $styles ) {
+			$styles[] = 'font-variation-settings';
+			return $styles;
+		};
+		add_filter( 'safe_style_css', $filter );
+
+		$css_declarations = new WP_Style_Engine_CSS_Declarations( $declarations );
+
+		$this->assertSame(
+			$expected,
+			$css_declarations->get_declarations_string()
+		);
+
+		remove_filter( 'safe_style_css', $filter );
+	}
+
+	/**
+	 * Data provider for test_should_preserve_whitespace_inside_quoted_strings().
+	 *
+	 * @return array
+	 */
+	public function data_should_preserve_whitespace_inside_quoted_strings() {
+		return array(
+			'font-family with double quotes containing consecutive spaces' => array(
+				'declarations' => array(
+					'font-family' => '"My  Font", sans-serif',
+				),
+				'expected'     => 'font-family:"My  Font", sans-serif;',
+			),
+			'font-family with single quotes containing consecutive spaces' => array(
+				'declarations' => array(
+					'font-family' => "'Another  Custom   Font', serif",
+				),
+				'expected'     => "font-family:'Another  Custom   Font', serif;",
+			),
+			'space-padded OpenType axis tags in font-variation-settings' => array(
+				'declarations' => array(
+					'font-variation-settings' => '"a   " 12, "opsz" 36',
+				),
+				'expected'     => 'font-variation-settings:"a   " 12, "opsz" 36;',
+			),
+			'collapses runs of whitespace outside quotes while preserving whitespace inside quotes' => array(
+				'declarations' => array(
+					'font-family' => '  "My  Font",   sans-serif  ',
+				),
+				'expected'     => 'font-family:"My  Font", sans-serif;',
+			),
+			'collapses newlines, tabs, and spaces outside quotes' => array(
+				'declarations' => array(
+					'margin' => "10px   \n\t  20px",
+				),
+				'expected'     => 'margin:10px 20px;',
+			),
+		);
+	}
+
+	/**
+	 * Tests that wp_style_engine_get_styles() produces matching declaration and compiled CSS for quoted font families.
+	 *
+	 * @ticket 66199
+	 *
+	 * @covers ::filter_declaration
+	 */
+	public function test_should_preserve_whitespace_with_wp_style_engine_get_styles() {
+		$styles = wp_style_engine_get_styles(
+			array(
+				'typography' => array(
+					'fontFamily' => '"My  Font", sans-serif',
+				),
+			)
+		);
+
+		$this->assertSame(
+			'"My  Font", sans-serif',
+			$styles['declarations']['font-family'],
+			'Style Engine declaration value should match the original input.'
+		);
+		$this->assertSame(
+			'font-family:"My  Font", sans-serif;',
+			$styles['css'],
+			'Style Engine compiled CSS should retain significant whitespace inside quotes.'
+		);
+	}
 }
