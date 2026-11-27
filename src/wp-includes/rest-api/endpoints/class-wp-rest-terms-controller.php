@@ -773,7 +773,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return $term;
 		}
 
-		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+		$force = isset( $request['force'] ) && $request['force'];
 
 		// We don't support trashing for terms.
 		if ( ! $force ) {
