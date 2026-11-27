@@ -134,6 +134,19 @@ final class WP_Taxonomy {
 	public $show_admin_column = false;
 
 	/**
+	 * Whether objects of this taxonomy can be associated with more than one term.
+	 *
+	 * When set to false, core admin UIs render a single-select control (radio buttons for
+	 * hierarchical taxonomies, a dropdown for non-hierarchical ones) and term assignment
+	 * is capped at one term per object across all entry points, including the REST API
+	 * and wp_set_object_terms(). Default true.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	public $allow_multiple_terms = true;
+
+	/**
 	 * The callback function for the meta box display.
 	 *
 	 * @since 4.7.0
@@ -357,6 +370,7 @@ final class WP_Taxonomy {
 			'show_tagcloud'         => null,
 			'show_in_quick_edit'    => null,
 			'show_admin_column'     => false,
+			'allow_multiple_terms'  => true,
 			'meta_box_cb'           => null,
 			'meta_box_sanitize_cb'  => null,
 			'capabilities'          => array(),
@@ -440,7 +454,9 @@ final class WP_Taxonomy {
 
 		// If not set, use the default meta box.
 		if ( null === $args['meta_box_cb'] ) {
-			if ( $args['hierarchical'] ) {
+			if ( ! $args['allow_multiple_terms'] ) {
+				$args['meta_box_cb'] = 'post_single_term_meta_box';
+			} elseif ( $args['hierarchical'] ) {
 				$args['meta_box_cb'] = 'post_categories_meta_box';
 			} else {
 				$args['meta_box_cb'] = 'post_tags_meta_box';
@@ -452,6 +468,10 @@ final class WP_Taxonomy {
 		// Default meta box sanitization callback depends on the value of 'meta_box_cb'.
 		if ( null === $args['meta_box_sanitize_cb'] ) {
 			switch ( $args['meta_box_cb'] ) {
+				case 'post_single_term_meta_box':
+					$args['meta_box_sanitize_cb'] = 'taxonomy_meta_box_sanitize_cb_single_term';
+					break;
+
 				case 'post_categories_meta_box':
 					$args['meta_box_sanitize_cb'] = 'taxonomy_meta_box_sanitize_cb_checkboxes';
 					break;
