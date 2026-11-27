@@ -718,6 +718,90 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		$this->assertSame( self::$user_id, $user_id_4, 'User ID should match the main admin ID again' );
 	}
 
+	/**
+	 * @ticket 63334
+	 *
+	 * @covers ::switch_to_locale
+	 * @covers ::create_initial_taxonomies
+	 */
+	public function test_switch_to_locale_keeps_post_types_added_to_core_taxonomies() {
+		register_post_type( 'wptests_pt' );
+		register_taxonomy_for_object_type( 'category', 'wptests_pt' );
+
+		switch_to_locale( 'de_DE' );
+
+		$this->assertEqualsCanonicalizing( array( 'post', 'wptests_pt' ), get_taxonomy( 'category' )->object_type );
+	}
+
+	/**
+	 * @ticket 63334
+	 *
+	 * @covers ::restore_previous_locale
+	 * @covers ::create_initial_taxonomies
+	 */
+	public function test_restore_previous_locale_keeps_post_types_added_to_core_taxonomies() {
+		register_post_type( 'wptests_pt' );
+		register_taxonomy_for_object_type( 'category', 'wptests_pt' );
+
+		switch_to_locale( 'de_DE' );
+		restore_previous_locale();
+
+		$this->assertEqualsCanonicalizing( array( 'post', 'wptests_pt' ), get_taxonomy( 'category' )->object_type );
+	}
+
+	/**
+	 * @ticket 63334
+	 *
+	 * @covers ::switch_to_locale
+	 * @covers ::create_initial_taxonomies
+	 */
+	public function test_switch_to_locale_keeps_core_taxonomies_registered_by_a_post_type() {
+		register_post_type( 'wptests_pt', array( 'taxonomies' => array( 'post_tag' ) ) );
+
+		switch_to_locale( 'de_DE' );
+
+		$this->assertEqualsCanonicalizing( array( 'post', 'wptests_pt' ), get_taxonomy( 'post_tag' )->object_type );
+	}
+
+	/**
+	 * @ticket 63334
+	 *
+	 * @covers ::switch_to_locale
+	 * @covers ::create_initial_taxonomies
+	 */
+	public function test_switch_to_locale_keeps_post_types_removed_from_core_taxonomies() {
+		unregister_taxonomy_for_object_type( 'post_tag', 'post' );
+
+		switch_to_locale( 'de_DE' );
+
+		$this->assertSame( array(), get_taxonomy( 'post_tag' )->object_type );
+	}
+
+	/**
+	 * @ticket 63334
+	 *
+	 * @covers ::switch_to_locale
+	 * @covers ::create_initial_taxonomies
+	 */
+	public function test_switch_to_locale_translates_core_taxonomy_labels() {
+		add_filter(
+			'gettext_with_context',
+			static function ( $translation, $text, $context ) {
+				if ( 'de_DE' === get_locale() && 'Categories' === $text && 'taxonomy general name' === $context ) {
+					return 'Kategorien';
+				}
+
+				return $translation;
+			},
+			10,
+			3
+		);
+
+		switch_to_locale( 'de_DE' );
+
+		$this->assertSame( 'Kategorien', get_taxonomy( 'category' )->labels->name );
+	}
+
 	public function filter_locale() {
 		return 'es_ES';
 	}
