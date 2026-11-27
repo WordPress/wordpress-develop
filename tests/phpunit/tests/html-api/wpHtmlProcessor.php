@@ -1226,4 +1226,129 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			$processor->set_bookmark( 'beyond the limit' )
 		);
 	}
+
+	/**
+	 * Ensures that the parser reaches the token that follows consecutive ignored tokens.
+	 *
+	 * Each of these tokens is a parse error inside a P element and the parser ignores it.
+	 *
+	 * @covers ::step
+	 * @covers ::next_token
+	 *
+	 * @dataProvider data_tokens_ignored_inside_p
+	 *
+	 * @param string $ignored_tokens Tokens that the parser ignores inside a P element.
+	 */
+	public function test_parses_past_consecutive_ignored_tokens( string $ignored_tokens ) {
+		$processor = WP_HTML_Processor::create_fragment( "<p>x{$ignored_tokens}</p>" );
+
+		$this->assertTrue( $processor->next_tag( 'P' ), 'Failed to find the P opener.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the text node.' );
+		$this->assertSame( '#text', $processor->get_token_name(), 'Found the wrong token after the P opener.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to reach the P closer after the ignored tokens.' );
+		$this->assertTrue( $processor->is_tag_closer(), 'Found a token other than a tag closer after the ignored tokens.' );
+		$this->assertSame( 'P', $processor->get_tag(), 'Found the wrong tag closer after the ignored tokens.' );
+		$this->assertSame( array( 'HTML', 'BODY' ), $processor->get_breadcrumbs(), 'Found the wrong breadcrumbs at the P closer.' );
+		$this->assertFalse( $processor->next_token(), 'Found a token after the end of the document.' );
+		$this->assertNull( $processor->get_last_error(), 'Reported an error after parsing the document.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_tokens_ignored_inside_p() {
+		return array(
+			'DIV closers' => array( '</div></div></div>' ),
+			'COL openers' => array( '<col><col><col>' ),
+			'TD closers'  => array( '</td></td></td>' ),
+			'DOCTYPEs'    => array( '<!doctype><!doctype><!doctype>' ),
+			'Mixed'       => array( '</div><col></td><!doctype>' ),
+		);
+	}
+
+	/**
+	 * Ensures that the parser reaches the end of consecutive B closers
+	 * that follow the closer of the DIV containing their B elements.
+	 *
+	 * The DIV closer pops every B from the stack of open elements. Each B closer
+	 * that follows removes one B from the list of active formatting elements
+	 * and produces no token.
+	 *
+	 * @covers ::step
+	 * @covers ::next_token
+	 */
+	public function test_parses_past_closers_for_formatting_elements_not_in_scope() {
+		$processor = WP_HTML_Processor::create_fragment( '<div><b><b><b></div></b></b></b>' );
+
+		$this->assertTrue( $processor->next_tag( 'DIV' ), 'Failed to find the DIV opener.' );
+
+		$b_openers = 0;
+		$b_closers = 0;
+		while ( $processor->next_token() && 'B' === $processor->get_tag() ) {
+			if ( $processor->is_tag_closer() ) {
+				++$b_closers;
+			} else {
+				++$b_openers;
+			}
+		}
+
+		$this->assertSame( 3, $b_openers, 'Found the wrong number of B openers.' );
+		$this->assertSame( 3, $b_closers, 'Found the wrong number of B closers.' );
+		$this->assertSame( 'DIV', $processor->get_tag(), 'Failed to reach the DIV closer after the B elements.' );
+		$this->assertTrue( $processor->is_tag_closer(), 'Found the DIV opener instead of the DIV closer.' );
+		$this->assertSame( array( 'HTML', 'BODY' ), $processor->get_breadcrumbs(), 'Found the wrong breadcrumbs at the DIV closer.' );
+		$this->assertFalse( $processor->next_token(), 'Found a token after the end of the document.' );
+		$this->assertNull( $processor->get_last_error(), 'Reported an error after parsing the document.' );
+	}
+
+	/**
+	 * Ensures that the full parser reaches the first element of a document
+	 * that starts with consecutive ignored end tags.
+	 *
+	 * Before the HTML element, an end tag other than HEAD, BODY, HTML, or BR
+	 * is a parse error and the parser ignores it.
+	 *
+	 * @covers ::step
+	 * @covers ::next_token
+	 */
+	public function test_full_parser_parses_past_consecutive_ignored_tokens_before_html() {
+		$processor = WP_HTML_Processor::create_full_parser( '</div></div></div><p>x</p>' );
+
+		$this->assertTrue( $processor->next_tag( 'P' ), 'Failed to find the P opener after the ignored tokens.' );
+		$this->assertSame( array( 'HTML', 'BODY', 'P' ), $processor->get_breadcrumbs(), 'Found the wrong breadcrumbs at the P opener.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the text node.' );
+		$this->assertSame( '#text', $processor->get_token_name(), 'Found the wrong token after the P opener.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to reach the P closer.' );
+		$this->assertTrue( $processor->is_tag_closer(), 'Found a token other than a tag closer after the text node.' );
+		$this->assertSame( 'P', $processor->get_tag(), 'Found the wrong tag closer after the text node.' );
+		$this->assertNull( $processor->get_last_error(), 'Reported an error after parsing the document.' );
+	}
+
+	/**
+	 * Ensures that the full parser reaches the token that follows consecutive
+	 * tokens which each change the insertion mode and are then reprocessed.
+	 *
+	 * Inside BODY, a BODY closer switches to the "after body" insertion mode
+	 * and produces no token. In that mode, the next BODY closer switches back
+	 * to the "in body" insertion mode and is processed again there.
+	 *
+	 * @covers ::step
+	 * @covers ::next_token
+	 */
+	public function test_full_parser_parses_past_consecutive_reprocessed_tokens() {
+		$processor = WP_HTML_Processor::create_full_parser( '<body>x</body></body></body>y' );
+
+		$this->assertTrue( $processor->next_tag( 'BODY' ), 'Failed to find the BODY opener.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to find the first text node.' );
+		$this->assertSame( 'x', $processor->get_modifiable_text(), 'Found the wrong token after the BODY opener.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to reach the second text node after the BODY closers.' );
+		$this->assertSame( 'y', $processor->get_modifiable_text(), 'Found the wrong token after the BODY closers.' );
+		$this->assertSame( array( 'HTML', 'BODY', '#text' ), $processor->get_breadcrumbs(), 'Found the wrong breadcrumbs at the second text node.' );
+		$this->assertTrue( $processor->next_token(), 'Failed to reach the BODY closer.' );
+		$this->assertSame( 'BODY', $processor->get_tag(), 'Found the wrong token after the second text node.' );
+		$this->assertTrue( $processor->is_tag_closer(), 'Found the BODY opener instead of the BODY closer.' );
+		$this->assertNull( $processor->get_last_error(), 'Reported an error after parsing the document.' );
+	}
 }
