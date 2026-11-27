@@ -127,6 +127,23 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that WP_Theme::__construct() reports a theme directory containing a NUL byte as not found.
+	 *
+	 * As of PHP 8.6, `file_exists()` throws a `ValueError` for such a path.
+	 *
+	 * @ticket 66803
+	 *
+	 * @covers WP_Theme::__construct
+	 */
+	public function test_new_WP_Theme_theme_directory_containing_nul_byte() {
+		$theme = new WP_Theme( "theme1\0", $this->theme_root );
+
+		$this->assertFalse( $theme->exists(), 'The theme should not exist.' );
+		$this->assertWPError( $theme->errors(), 'The theme should have an error.' );
+		$this->assertSame( 'theme_not_found', $theme->errors()->get_error_code(), 'The error should be that the theme was not found.' );
+	}
+
+	/**
 	 * @ticket 21749
 	 */
 	public function test_wp_theme_uris_with_spaces() {

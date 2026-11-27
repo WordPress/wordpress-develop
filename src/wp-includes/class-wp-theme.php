@@ -319,6 +319,9 @@ final class WP_Theme implements ArrayAccess {
 		$this->cache_hash = md5( $this->theme_root . '/' . $this->stylesheet );
 		$theme_file       = $this->stylesheet . '/style.css';
 
+		// As of PHP 8.6, file_exists() throws a ValueError for a path containing a NUL byte.
+		$has_nul_byte = str_contains( $this->theme_root . '/' . $this->stylesheet, "\0" );
+
 		$cache = $this->cache_get( 'theme' );
 
 		if ( is_array( $cache ) ) {
@@ -333,9 +336,9 @@ final class WP_Theme implements ArrayAccess {
 			if ( isset( $cache['theme_root_template'] ) ) {
 				$theme_root_template = $cache['theme_root_template'];
 			}
-		} elseif ( ! file_exists( $this->theme_root . '/' . $theme_file ) ) {
+		} elseif ( $has_nul_byte || ! file_exists( $this->theme_root . '/' . $theme_file ) ) {
 			$this->headers['Name'] = $this->stylesheet;
-			if ( ! file_exists( $this->theme_root . '/' . $this->stylesheet ) ) {
+			if ( $has_nul_byte || ! file_exists( $this->theme_root . '/' . $this->stylesheet ) ) {
 				$this->errors = new WP_Error(
 					'theme_not_found',
 					sprintf(
