@@ -559,6 +559,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			imageinterlace( $image, apply_filters( 'image_save_progressive', false, $mime_type ) );
 		}
 
+		// WebP and AVIF do not support palette images.
+		if ( in_array( $mime_type, array( 'image/webp', 'image/avif' ), true ) && ! imageistruecolor( $image ) ) {
+			imagepalettetotruecolor( $image );
+		}
+
 		if ( 'image/gif' === $mime_type ) {
 			if ( ! $this->make_image( $filename, 'imagegif', array( $image, $filename ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
@@ -658,6 +663,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 */
 	public function stream( $mime_type = null ) {
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( null, $mime_type );
+
+		// WebP and AVIF do not support palette images.
+		if ( in_array( $mime_type, array( 'image/webp', 'image/avif' ), true ) && ! imageistruecolor( $this->image ) ) {
+			imagepalettetotruecolor( $this->image );
+		}
 
 		switch ( $mime_type ) {
 			case 'image/png':
