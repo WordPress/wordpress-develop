@@ -1498,6 +1498,20 @@ function is_admin_bar_showing() {
 	}
 
 	if ( ! isset( $show_admin_bar ) ) {
+		if ( ! function_exists( 'is_user_logged_in' ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: %s: plugins_loaded */
+					__( 'The admin bar visibility cannot be determined before the %s action.' ),
+					'<code>plugins_loaded</code>'
+				),
+				'7.3.0'
+			);
+
+			return false;
+		}
+
 		if ( ! is_user_logged_in() || 'wp-login.php' === $pagenow ) {
 			$show_admin_bar = false;
 		} else {
