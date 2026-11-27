@@ -257,6 +257,58 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * Tests that users without edit_theme_options cannot read non-published templates or template parts via wp_id query.
+	 *
+	 * @ticket 66783
+	 * @covers WP_REST_Templates_Controller::get_items
+	 * @dataProvider data_non_published_template_statuses_for_collection
+	 *
+	 * @param string $post_type Post type (`wp_template` or `wp_template_part`).
+	 * @param string $rest_base REST base (`templates` or `template-parts`).
+	 * @param string $status    Post status to test.
+	 */
+	public function test_get_items_editor_cannot_read_non_published_templates_by_wp_id( $post_type, $rest_base, $status ) {
+		$template_post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => $post_type,
+				'post_name'    => 'non_published_' . $post_type . '_' . $status,
+				'post_title'   => 'Non Published Template',
+				'post_content' => 'Secret template content',
+				'post_status'  => $status,
+			)
+		);
+		wp_set_post_terms( $template_post->ID, get_stylesheet(), 'wp_theme' );
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base );
+		$request->set_param( 'wp_id', $template_post->ID );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Editor request should return 200 OK.' );
+		$this->assertSame( array(), $response->get_data(), 'Editor should not receive non-published templates when querying by wp_id.' );
+
+		wp_set_current_user( self::$admin_id );
+		$admin_response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $admin_response->get_status(), 'Admin request should return 200 OK.' );
+		$this->assertCount( 1, $admin_response->get_data(), 'Admin with edit_theme_options should still receive the non-published template.' );
+	}
+
+	/**
+	 * Data provider for non-published statuses queried by get_block_templates() with wp_id.
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_published_template_statuses_for_collection() {
+		return array(
+			'template draft'           => array( 'wp_template', 'templates', 'draft' ),
+			'template auto-draft'      => array( 'wp_template', 'templates', 'auto-draft' ),
+			'template part draft'      => array( 'wp_template_part', 'template-parts', 'draft' ),
+			'template part auto-draft' => array( 'wp_template_part', 'template-parts', 'auto-draft' ),
+		);
+	}
+
+	/**
 	 * @covers WP_REST_Templates_Controller::get_items
 	 */
 	public function test_get_items_no_permission_subscriber() {
@@ -374,6 +426,64 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/default//my_template' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 403 );
+	}
+
+	/**
+	 * Tests that users without edit_theme_options cannot read non-published templates or template parts by ID.
+	 *
+	 * @ticket 66783
+	 * @covers WP_REST_Templates_Controller::get_item
+	 * @dataProvider data_non_published_template_statuses_for_item
+	 *
+	 * @param string $post_type Post type (`wp_template` or `wp_template_part`).
+	 * @param string $rest_base REST base (`templates` or `template-parts`).
+	 * @param string $status    Post status to test.
+	 */
+	public function test_get_item_editor_cannot_read_non_published_templates( $post_type, $rest_base, $status ) {
+		$slug          = 'non_published_item_' . $post_type . '_' . $status;
+		$template_post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => $post_type,
+				'post_name'    => $slug,
+				'post_title'   => 'Non Published Item Template',
+				'post_content' => 'Secret template content',
+				'post_status'  => 'trash' === $status ? 'publish' : $status,
+			)
+		);
+		wp_set_post_terms( $template_post->ID, get_stylesheet(), 'wp_theme' );
+
+		if ( 'trash' === $status ) {
+			wp_trash_post( $template_post->ID );
+			$template_post = get_post( $template_post->ID );
+		}
+
+		$route = '/wp/v2/' . $rest_base . '/' . get_stylesheet() . '//' . $template_post->post_name;
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', $route );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 403 );
+
+		wp_set_current_user( self::$admin_id );
+		$admin_response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $admin_response->get_status(), 'Admin with edit_theme_options should still be able to read the non-published template.' );
+		$this->assertSame( $status, $admin_response->get_data()['status'], 'Admin response should include the non-published template status.' );
+	}
+
+	/**
+	 * Data provider for non-published statuses queried by get_block_template().
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_published_template_statuses_for_item() {
+		return array(
+			'template trash'           => array( 'wp_template', 'templates', 'trash' ),
+			'template draft'           => array( 'wp_template', 'templates', 'draft' ),
+			'template auto-draft'      => array( 'wp_template', 'templates', 'auto-draft' ),
+			'template part trash'      => array( 'wp_template_part', 'template-parts', 'trash' ),
+			'template part draft'      => array( 'wp_template_part', 'template-parts', 'draft' ),
+			'template part auto-draft' => array( 'wp_template_part', 'template-parts', 'auto-draft' ),
+		);
 	}
 
 	/**

@@ -264,6 +264,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Returns a list of templates.
 	 *
 	 * @since 5.8.0
+	 * @since 7.3.0 Restrict non-published templates to users with the `edit_theme_options` capability.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 * @return WP_REST_Response
@@ -285,8 +286,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$query['post_type'] = $request['post_type'];
 		}
 
-		$templates = array();
+		$can_manage_templates = current_user_can( 'edit_theme_options' );
+		$templates            = array();
 		foreach ( get_block_templates( $query, $this->post_type ) as $template ) {
+			if ( ! $can_manage_templates && 'publish' !== $template->status ) {
+				continue;
+			}
 			$data        = $this->prepare_item_for_response( $template, $request );
 			$templates[] = $this->prepare_response_for_collection( $data );
 		}
@@ -326,6 +331,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Returns the given template
 	 *
 	 * @since 5.8.0
+	 * @since 7.3.0 Restrict non-published templates to users with the `edit_theme_options` capability.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 * @return WP_REST_Response|WP_Error
@@ -339,6 +345,16 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		if ( ! $template ) {
 			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
+		}
+
+		if ( 'publish' !== $template->status && ! current_user_can( 'edit_theme_options' ) ) {
+			return new WP_Error(
+				'rest_cannot_manage_templates',
+				__( 'Sorry, you are not allowed to access the templates on this site.' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
 		}
 
 		return $this->prepare_item_for_response( $template, $request );
