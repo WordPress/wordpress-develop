@@ -2243,6 +2243,7 @@ class wpdb {
 	 * @param string $query Database query.
 	 * @return int|bool Boolean true for CREATE, ALTER, TRUNCATE and DROP queries. Number of rows
 	 *                  affected/selected for all other queries. Boolean false on error.
+	 * @phpstan-return int<0, max>|bool
 	 */
 	public function query( $query ) {
 		if ( ! $this->ready ) {
