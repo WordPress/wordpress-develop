@@ -176,6 +176,24 @@ else :
 </fieldset></td>
 </tr>
 <?php endif; ?>
+<?php
+$home_page_post_types = get_home_page_post_types();
+
+// The setting is only needed when there is a choice other than posts.
+if ( array_diff( $home_page_post_types, array( 'post' ) ) ) :
+	?>
+<tr>
+<th scope="row"><label for="show_archive_on_front"><?php _e( 'Homepage post type' ); ?></label></th>
+<td>
+<select name="show_archive_on_front" id="show_archive_on_front" aria-describedby="show-archive-on-front-description">
+	<?php foreach ( $home_page_post_types as $home_page_post_type ) : ?>
+	<option value="<?php echo esc_attr( $home_page_post_type ); ?>" <?php selected( $home_page_post_type, get_option( 'show_archive_on_front', 'post' ) ); ?>><?php echo esc_html( get_post_type_object( $home_page_post_type )->labels->name ); ?></option>
+	<?php endforeach; ?>
+</select>
+<p class="description" id="show-archive-on-front-description"><?php _e( 'Used when your homepage displays your latest posts.' ); ?></p>
+</td>
+</tr>
+<?php endif; ?>
 <tr>
 <th scope="row"><label for="posts_per_page"><?php _e( 'Number of recent posts shown on archive pages' ); ?></label></th>
 <td>

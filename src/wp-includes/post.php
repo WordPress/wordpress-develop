@@ -23,22 +23,22 @@ function create_initial_post_types() {
 	register_post_type(
 		'post',
 		array(
-			'labels'                => array(
+			'labels'                 => array(
 				'name_admin_bar' => _x( 'Post', 'add new from admin bar' ),
 			),
-			'public'                => true,
-			'randomable'            => true,
-			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
-			'capability_type'       => 'post',
-			'map_meta_cap'          => true,
-			'menu_position'         => 5,
-			'menu_icon'             => 'dashicons-admin-post',
-			'hierarchical'          => false,
-			'rewrite'               => false,
-			'query_var'             => false,
-			'delete_with_user'      => true,
-			'supports'              => array(
+			'public'                 => true,
+			'randomable'             => true,
+			'_builtin'               => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'             => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
+			'capability_type'        => 'post',
+			'map_meta_cap'           => true,
+			'menu_position'          => 5,
+			'menu_icon'              => 'dashicons-admin-post',
+			'hierarchical'           => false,
+			'rewrite'                => false,
+			'query_var'              => false,
+			'delete_with_user'       => true,
+			'supports'               => array(
 				'title',
 				'editor' => array( 'notes' => true ),
 				'author',
@@ -50,10 +50,11 @@ function create_initial_post_types() {
 				'revisions',
 				'post-formats',
 			),
-			'show_in_rest'          => true,
-			'show_in_abilities'     => true,
-			'rest_base'             => 'posts',
-			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'show_in_rest'           => true,
+			'show_in_abilities'      => true,
+			'rest_base'              => 'posts',
+			'rest_controller_class'  => 'WP_REST_Posts_Controller',
+			'show_in_home_page_list' => true,
 		)
 	);
 
@@ -1682,6 +1683,33 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
 }
 
 /**
+ * Retrieves the post types whose latest posts can be shown on the home page.
+ *
+ * @since 7.3.0
+ *
+ * @return string[] Array of post type names.
+ */
+function get_home_page_post_types() {
+	$post_types = array_values( get_post_types( array( 'show_in_home_page_list' => true ) ) );
+
+	/**
+	 * Filters the post types whose latest posts can be shown on the home page.
+	 *
+	 * Defaults to the post types registered with `show_in_home_page_list` set to true.
+	 * Developers can use this filter to adjust the post types offered on the
+	 * Settings > Reading screen.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string[] $post_types Array of post type names.
+	 */
+	$post_types = apply_filters( 'post_types_allowed_on_home_page', $post_types );
+
+	// Pages are excluded because they are set as the home page through the static page setting.
+	return array_values( array_diff( array_filter( $post_types, 'post_type_exists' ), array( 'page' ) ) );
+}
+
+/**
  * Registers a post type.
  *
  * Note: Post type registrations should not be hooked before the
@@ -1706,6 +1734,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  * @since 5.3.0 The `supports` argument will now accept an array of arguments for a feature.
  * @since 5.9.0 The `rest_namespace` argument was added.
  * @since 7.2.0 The `show_in_abilities` argument was added.
+ * @since 7.3.0 The `show_in_home_page_list` argument was added.
  *
  * @global array $wp_post_types List of post types.
  *
@@ -1740,6 +1769,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type bool         $randomable                      Whether posts of this post type can be selected by random content
  *                                                         redirects, such as example.com/random/. If not set, the default is
  *                                                         true when $publicly_queryable is true and $has_archive is set.
+ *     @type bool         $show_in_home_page_list          Whether the latest posts of this post type can be shown on the home
+ *                                                         page in place of posts. Not supported for pages. Default false.
  *     @type bool         $show_ui                         Whether to generate and allow a UI for managing this post type in the
  *                                                         admin. Default is value of $public.
  *     @type bool|string  $show_in_menu                    Where to show the post type in the admin menu. To work, $show_ui

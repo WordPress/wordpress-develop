@@ -1070,6 +1070,16 @@ class WP_Query {
 			$this->is_home = true;
 		}
 
+		// Show the latest posts of the chosen post type on the home page. Secondary queries are not changed.
+		if ( $this->is_home && $this->is_main_query() && empty( $query_vars['post_type'] ) && 'posts' === get_option( 'show_on_front' ) ) {
+			$home_post_type = get_option( 'show_archive_on_front', 'post' );
+
+			// Posts are the default, so the query var is only needed for other post types.
+			if ( 'post' !== $home_post_type && in_array( $home_post_type, get_home_page_post_types(), true ) ) {
+				$query_vars['post_type'] = $home_post_type;
+			}
+		}
+
 		// Correct `is_*` for 'page_on_front' and 'page_for_posts'.
 		if ( $this->is_home && 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) ) {
 			$_query = wp_parse_args( $this->query );

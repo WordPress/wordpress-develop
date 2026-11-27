@@ -137,6 +137,16 @@ final class WP_Post_Type {
 	public $randomable = null;
 
 	/**
+	 * Whether this post type can be shown on the home page in place of posts.
+	 *
+	 * Default false.
+	 *
+	 * @since 7.3.0
+	 * @var bool $show_in_home_page_list
+	 */
+	public $show_in_home_page_list = false;
+
+	/**
 	 * Whether to generate and allow a UI for managing this post type in the admin.
 	 *
 	 * Default is the value of $public.
@@ -560,6 +570,7 @@ final class WP_Post_Type {
 			'publicly_queryable'              => null,
 			'embeddable'                      => null,
 			'randomable'                      => null,
+			'show_in_home_page_list'          => false,
 			'show_ui'                         => null,
 			'show_in_menu'                    => null,
 			'show_in_nav_menus'               => null,
