@@ -55,9 +55,9 @@ add_action( 'wp_uninitialize_site', 'wp_uninitialize_site', 10, 1 );
 add_action( 'update_blog_public', 'wp_update_blog_public_option_on_site_update', 1, 2 );
 
 // Site meta.
-add_action( 'added_blog_meta', 'wp_cache_set_sites_last_changed' );
-add_action( 'updated_blog_meta', 'wp_cache_set_sites_last_changed' );
-add_action( 'deleted_blog_meta', 'wp_cache_set_sites_last_changed' );
+add_action( 'added_blog_meta', 'wp_cache_set_sites_meta_last_changed' );
+add_action( 'updated_blog_meta', 'wp_cache_set_sites_meta_last_changed' );
+add_action( 'deleted_blog_meta', 'wp_cache_set_sites_meta_last_changed' );
 add_filter( 'get_blog_metadata', 'wp_check_site_meta_support_prefilter' );
 add_filter( 'add_blog_metadata', 'wp_check_site_meta_support_prefilter' );
 add_filter( 'update_blog_metadata', 'wp_check_site_meta_support_prefilter' );
