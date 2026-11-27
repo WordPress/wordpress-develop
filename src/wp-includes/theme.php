@@ -388,7 +388,7 @@ function get_template_directory_uri() {
 function get_theme_roots() {
 	global $wp_theme_directories;
 
-	if ( ! is_array( $wp_theme_directories ) || count( $wp_theme_directories ) <= 1 ) {
+	if ( ! is_array( $wp_theme_directories ) || empty( $wp_theme_directories ) || array( WP_CONTENT_DIR . '/themes' ) === $wp_theme_directories ) {
 		return '/themes';
 	}
 
@@ -697,7 +697,7 @@ function get_theme_root_uri( $stylesheet_or_template = '', $theme_root = '' ) {
 function get_raw_theme_root( $stylesheet_or_template, $skip_cache = false ) {
 	global $wp_theme_directories;
 
-	if ( ! is_array( $wp_theme_directories ) || count( $wp_theme_directories ) <= 1 ) {
+	if ( ! is_array( $wp_theme_directories ) || empty( $wp_theme_directories ) || array( WP_CONTENT_DIR . '/themes' ) === $wp_theme_directories ) {
 		return '/themes';
 	}
 
