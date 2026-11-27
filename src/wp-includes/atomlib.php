@@ -207,7 +207,7 @@ class AtomParser {
             case $this->NS . ':entry':
                 $this->current = new AtomEntry();
                 break;
-        };
+        }
 
         $this->_p("start_element('$name')");
         #$this->_p(print_r($this->ns_contexts,true));
