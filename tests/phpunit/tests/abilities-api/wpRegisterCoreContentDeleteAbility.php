@@ -372,7 +372,7 @@ class Tests_Abilities_API_WpRegisterCoreContentDeleteAbility extends WP_Abilitie
 	 *
 	 * @param string $page The page, as a fixture name.
 	 */
-	public function test_site_administrator_trashes_special_pages_on_multisite( string $page ): void {
+	public function test_site_administrator_may_trash_special_pages_except_the_privacy_policy_page_on_multisite( string $page ): void {
 		$this->set_special_pages();
 		$post_id = self::$post_ids[ $page ];
 

@@ -347,6 +347,33 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Asserts that input validation rejects an input of an administrator and that nothing is
+	 * written.
+	 *
+	 * Registers the content abilities unless the test already did.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed    $input   The ability input.
+	 * @param int|null $post_id The ID of the post that should be left as it was, or null when
+	 *                          the call would create a post.
+	 * @param string   $context What the call was, for the assertion messages.
+	 */
+	protected function assert_invalid_input( $input, ?int $post_id, string $context ): void {
+		$this->login_as( 'administrator' );
+		if ( ! wp_has_ability( static::ABILITY ) ) {
+			$this->register_abilities();
+		}
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->run_ability( $input );
+
+		$this->assertWPError( $result, "{$context}: the call should fail." );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), "{$context}: the schema should reject the input." );
+		$this->assertSame( $before, $this->snapshot( $post_id ), "{$context}: nothing should be written." );
+	}
+
+	/**
 	 * Asserts that a result is the not-found error.
 	 *
 	 * @since 7.3.0
@@ -454,7 +481,8 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	abstract public static function data_inputs_refused_by_the_permission_callback(): array;
 
 	/**
-	 * The permission callback returns false for missing or malformed input.
+	 * The permission callback returns false for missing or malformed input, and for input that
+	 * names a post type that is not exposed to abilities.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_inputs_refused_by_the_permission_callback
@@ -462,7 +490,7 @@ abstract class WP_Abilities_Content_Write_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * @param mixed $input The input.
 	 */
-	public function test_permission_callback_returns_false_for_malformed_input( $input ): void {
+	public function test_permission_callback_returns_false_for_malformed_or_unexposed_input( $input ): void {
 		$this->login_as( 'administrator' );
 
 		$permission = $this->get_ability_callbacks()['permission_callback'];

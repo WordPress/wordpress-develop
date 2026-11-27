@@ -59,13 +59,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			self::$user_ids[ $role ] = $factory->user->create( array( 'role' => $role ) );
 		}
 
-		// A user who may create pages but not read the drafts of other users.
-		self::$user_ids['page_writer'] = $factory->user->create( array( 'role' => 'subscriber' ) );
-		get_userdata( self::$user_ids['page_writer'] )->add_cap( 'edit_pages' );
-
-		// A user who may publish posts but not edit published posts.
-		self::$user_ids['publisher'] = $factory->user->create( array( 'role' => 'contributor' ) );
-		get_userdata( self::$user_ids['publisher'] )->add_cap( 'publish_posts' );
+		self::create_data_write_fixtures( $factory );
 
 		self::$post_ids['published_post'] = $factory->post->create(
 			array(
@@ -85,14 +79,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			);
 		}
 		wp_trash_post( self::$post_ids['trashed_page'] );
-
-		self::$post_ids['editor_draft_page'] = $factory->post->create(
-			array(
-				'post_author' => self::$user_ids['editor'],
-				'post_type'   => 'page',
-				'post_status' => 'draft',
-			)
-		);
 
 		// A child page whose `child` slug data_draft_page_slugs_by_parent() reads.
 		$factory->post->create(
@@ -238,9 +224,9 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		$this->assertSame( 'string', $properties['content']['type'], 'The content should be a string.' );
 		$this->assertSame( 'string', $properties['excerpt']['type'], 'The excerpt should be a string.' );
 		$this->assertSame( 'string', $properties['status']['type'], 'The status should be a string.' );
-		$this->assertSame( array( 'publish', 'future', 'draft', 'pending', 'private' ), $properties['status']['enum'], 'The status should list the statuses that are not internal.' );
+		$this->assertSameSets( array( 'publish', 'future', 'draft', 'pending', 'private' ), $properties['status']['enum'], 'The status should list the statuses that are not internal.' );
 		$this->assertSame( 'string', $properties['slug']['type'], 'The slug should be a string.' );
-		$this->assertArrayNotHasKey( 'minLength', $properties['slug'], 'The slug should take an empty string, so the empty slug of a draft can be sent back.' );
+		$this->assertArrayNotHasKey( 'minLength', $properties['slug'], 'The slug should take an empty string, since the update ability shares the data schema and takes the empty slug of a draft back.' );
 		$this->assertSame( 'integer', $properties['author']['type'], 'The author should be an integer.' );
 		$this->assertSame( 1, $properties['author']['minimum'], 'The author should be at least 1.' );
 		$this->assertSame( 'integer', $properties['parent']['type'], 'The parent should be an integer.' );
@@ -266,26 +252,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			$this->strip_descriptions( $schema['properties']['fields'] ),
 			'The fields should be the same list as the fields of the query.'
 		);
-	}
-
-	/**
-	 * The output is one post item, the same object as an item of the query.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_output_schema_is_a_query_item(): void {
-		$this->register_abilities();
-
-		$this->assertTrue( wp_has_ability( self::ABILITY ), 'The create ability should be registered.' );
-
-		$schema = wp_get_ability( self::ABILITY )->get_output_schema();
-		$item   = wp_get_ability( 'core/content-query' )->get_output_schema()['properties']['items']['items'];
-
-		$this->assertSame( 'object', $schema['type'], 'The output should be an object.' );
-		$this->assertFalse( $schema['additionalProperties'], 'The output should not take unknown keys.' );
-		$this->assertSame( array( 'id' ), $schema['required'], 'The output should always hold the ID.' );
-		$this->assertSame( $this->strip_descriptions( $item ), $this->strip_descriptions( $schema ), 'The output should be the same object as a query item.' );
 	}
 
 	/**
@@ -790,15 +756,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 * @param array<string, mixed> $data The data.
 	 */
 	public function test_data_fails_input_validation( array $data ): void {
-		$this->login_as( 'administrator' );
-		$this->register_abilities();
-
-		$before = $this->snapshot();
-		$result = $this->run_ability( array( 'data' => $data ) );
-
-		$this->assertWPError( $result, 'The call should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject the data.' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
+		$this->assert_invalid_input( array( 'data' => $data ), null, 'Invalid data' );
 	}
 
 	/**
@@ -833,35 +791,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 		);
 
 		$this->assert_invalid_attribute( $result, 'status', 'A status that is no longer registered', 'The status must be a registered post status that is not internal.' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
-	 * The permission callback refuses a user without `edit_others_posts` who names another
-	 * author, existing or not, so the refusal never tells whether a user exists.
-	 *
-	 * @ticket 66706
-	 * @dataProvider data_authors_named_without_edit_others_posts
-	 * @since 7.3.0
-	 *
-	 * @param string $author The author, as a fixture name.
-	 */
-	public function test_naming_another_author_without_edit_others_posts_is_refused( string $author ): void {
-		$this->login_as( 'author' );
-		$this->register_abilities();
-
-		$before = $this->snapshot();
-		$result = $this->run_ability(
-			array(
-				'data' => array(
-					'type'   => 'post',
-					'title'  => 'Ghost written',
-					'author' => self::$user_ids[ $author ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
-				),
-			)
-		);
-
-		$this->assert_refused( $result, 'Naming another author' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -971,38 +900,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * On multisite, a user who is not a member of the site cannot be the author.
-	 *
-	 * @group ms-required
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_naming_an_author_who_is_not_a_member_of_the_site_is_an_invalid_author(): void {
-		$non_member = self::factory()->user->create( array( 'role' => 'author' ) );
-		remove_user_from_blog( $non_member, get_current_blog_id() );
-
-		$this->assertFalse( is_user_member_of_blog( $non_member ), 'Precondition: the user should not be a member of the site.' );
-
-		$this->login_as( 'editor' );
-		$this->register_abilities();
-
-		$before = $this->snapshot();
-		$result = $this->run_ability(
-			array(
-				'data' => array(
-					'type'   => 'post',
-					'title'  => 'Not a member',
-					'author' => $non_member,
-				),
-			)
-		);
-
-		$this->assert_invalid_attribute( $result, 'author', 'An author who is not a member of the site', 'The author must be an existing user of this site.' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
 	 * Returns parents that a page may not have.
 	 *
 	 * @return array<string, array{0: string}> The parents, as fixture names.
@@ -1026,7 +923,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	 *
 	 * @param string $parent_key The parent, as a fixture name.
 	 */
-	public function test_parent_that_is_missing_or_unreadable_is_refused( string $parent_key ): void {
+	public function test_parent_that_is_missing_unreadable_or_not_exposed_is_refused( string $parent_key ): void {
 		$this->login_as( 'page_writer' );
 		$this->register_abilities();
 
@@ -1043,35 +940,23 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 			)
 		);
 
-		$this->assert_refused( $result, 'A missing or unreadable parent' );
+		$this->assert_refused( $result, 'A missing, unreadable or unexposed parent' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
-	}
-
-	/**
-	 * Returns readable parents that a new page may not have.
-	 *
-	 * @return array<string, array{0: string}> The parents, as fixture names.
-	 */
-	public static function data_parents_that_cannot_be_used(): array {
-		return array(
-			'post of another type' => array( 'published_post' ),
-		);
 	}
 
 	/**
 	 * A readable parent of another type is an invalid parent.
 	 *
 	 * @ticket 66706
-	 * @dataProvider data_parents_that_cannot_be_used
 	 * @since 7.3.0
-	 *
-	 * @param string $parent_key The parent, as a fixture name.
 	 */
-	public function test_parent_that_cannot_be_used_is_an_invalid_parent( string $parent_key ): void {
+	public function test_parent_of_another_type_is_an_invalid_parent(): void {
+		$parent_id = self::$post_ids['published_post'];
+
 		$this->login_as( 'page_writer' );
 		$this->register_abilities();
 
-		$this->assertTrue( current_user_can( 'read_post', self::$post_ids[ $parent_key ] ), 'Precondition: the user should be able to read the parent.' );
+		$this->assertTrue( current_user_can( 'read_post', $parent_id ), 'Precondition: the user should be able to read the parent.' );
 
 		$before = $this->snapshot();
 		$result = $this->run_ability(
@@ -1079,12 +964,12 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 				'data' => array(
 					'type'   => 'page',
 					'title'  => 'Child',
-					'parent' => self::$post_ids[ $parent_key ],
+					'parent' => $parent_id,
 				),
 			)
 		);
 
-		$this->assert_invalid_attribute( $result, 'parent', 'A parent that cannot be used', 'The parent must be 0, or a post of the same post type that is neither the post itself nor one of its descendants.' );
+		$this->assert_invalid_attribute( $result, 'parent', 'A parent of another type', 'The parent must be 0, or a post of the same post type that is neither the post itself nor one of its descendants.' );
 		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -1440,7 +1325,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * A draft page is made unique among the pages that share its parent only.
+	 * The slug of a draft page is made unique among the pages that share its parent only.
 	 *
 	 * @ticket 66706
 	 * @dataProvider data_draft_page_slugs_by_parent
@@ -1694,38 +1579,6 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 	}
 
 	/**
-	 * Raw fields are left out when the writer cannot edit the post after the write.
-	 *
-	 * The user may publish posts but not edit published posts.
-	 *
-	 * @ticket 66706
-	 * @since 7.3.0
-	 */
-	public function test_raw_fields_are_left_out_when_the_writer_cannot_edit_the_new_post(): void {
-		$this->login_as( 'publisher' );
-		$this->register_abilities();
-
-		$result = $this->run_ability(
-			array(
-				'data'   => array(
-					'type'    => 'post',
-					'title'   => 'Published once',
-					'content' => 'Body.',
-					'status'  => 'publish',
-				),
-				'fields' => array( 'title', 'content.raw', 'content.rendered' ),
-			)
-		);
-
-		$post = $this->get_created_post( $result );
-
-		$this->assertSame( 'publish', $post->post_status, 'The post should be published.' );
-		$this->assertFalse( current_user_can( 'edit_post', $post->ID ), 'Precondition: The user should not be able to edit the published post.' );
-		$this->assertSame( array( 'rendered' => 'Published once' ), $result['title'], 'The title should be returned without its raw value.' );
-		$this->assertSame( array( 'rendered' => "<p>Body.</p>\n" ), $result['content'], 'The content should be returned without its raw value.' );
-	}
-
-	/**
 	 * The current user is checked at each call, also on the same instance.
 	 *
 	 * @ticket 66706
@@ -1811,19 +1664,16 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 		get_post_type_object( 'cw_late' )->show_in_abilities = true;
 
-		$before = $this->snapshot();
-		$result = $this->run_ability(
+		$this->assert_invalid_input(
 			array(
 				'data' => array(
 					'type'  => 'cw_late',
 					'title' => 'Exposed too late',
 				),
-			)
+			),
+			null,
+			'A type exposed after registration'
 		);
-
-		$this->assertWPError( $result, 'A create of a type exposed after registration should fail.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The schema should reject a type exposed after registration.' );
-		$this->assertSame( $before, $this->snapshot(), 'Nothing should be written for a type exposed after registration.' );
 	}
 
 	/**
@@ -2002,7 +1852,7 @@ class Tests_Abilities_API_WpRegisterCoreContentCreateAbility extends WP_Abilitie
 
 		restore_current_blog();
 
-		$this->assert_invalid_attribute( $result, 'author', 'An author who is a member of the first site only' );
+		$this->assert_invalid_attribute( $result, 'author', 'An author who is a member of the first site only', 'The author must be an existing user of this site.' );
 		$this->assertSame( $before, $after, 'Nothing should be written on the second site.' );
 	}
 

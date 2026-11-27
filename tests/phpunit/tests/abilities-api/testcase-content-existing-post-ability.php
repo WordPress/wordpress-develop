@@ -169,32 +169,6 @@ abstract class WP_Abilities_Content_Existing_Post_UnitTestCase extends WP_Abilit
 	}
 
 	/**
-	 * Asserts that input validation rejects an input of an administrator and that nothing is
-	 * written to the given post.
-	 *
-	 * Registers the content abilities unless the test already did.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param mixed  $input   The ability input.
-	 * @param int    $post_id The ID of the post that should be left as it was.
-	 * @param string $context What the call was, for the assertion messages.
-	 */
-	protected function assert_invalid_input( $input, int $post_id, string $context ): void {
-		$this->login_as( 'administrator' );
-		if ( ! wp_has_ability( static::ABILITY ) ) {
-			$this->register_abilities();
-		}
-
-		$before = $this->snapshot( $post_id );
-		$result = $this->run_ability( $input );
-
-		$this->assertWPError( $result, "{$context}: the call should fail." );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), "{$context}: the schema should reject the input." );
-		$this->assertSame( $before, $this->snapshot( $post_id ), "{$context}: nothing should be written." );
-	}
-
-	/**
 	 * Returns whether each role may edit and delete each matrix post.
 	 *
 	 * @return array<string, array{0: string, 1: string, 2: string, 3: bool}> The cases.
