@@ -12,6 +12,7 @@
 		context = {
 			userLogin: authApp.user_login,
 			successUrl: authApp.success,
+			successFormat: authApp.success_format,
 			rejectUrl: authApp.reject
 		};
 
@@ -48,8 +49,9 @@
 		 * @param {Object} request            The request data.
 		 * @param {Object} context            Context about the Application Password request.
 		 * @param {string} context.userLogin  The user's login username.
-		 * @param {string} context.successUrl The URL the user will be redirected to after approving the request.
-		 * @param {string} context.rejectUrl  The URL the user will be redirected to after rejecting the request.
+		 * @param {string} context.successUrl    The URL the user will be redirected to after approving the request.
+		 * @param {string} context.successFormat The transport used for the success payload.
+		 * @param {string} context.rejectUrl     The URL the user will be redirected to after rejecting the request.
 		 */
 		request = wp.hooks.applyFilters( 'wp_application_passwords_approve_app_request', request, context );
 
@@ -75,15 +77,27 @@
 			wp.hooks.doAction( 'wp_application_passwords_approve_app_request_success', response, textStatus, jqXHR );
 
 			var raw = authApp.success,
-				url, message, $notice;
+				url, message, $notice, $callbackForm;
 
 			if ( raw ) {
-				url = raw + ( -1 === raw.indexOf( '?' ) ? '?' : '&' ) +
-					'site_url=' + encodeURIComponent( authApp.site_url ) +
-					'&user_login=' + encodeURIComponent( authApp.user_login ) +
-					'&password=' + encodeURIComponent( response.password );
+				if ( 'form_post' === authApp.success_format ) {
+					$callbackForm = $( '<form>' )
+						.attr( 'method', 'post' )
+						.attr( 'action', raw )
+						.hide()
+						.append( $( '<input>' ).attr( 'type', 'hidden' ).attr( 'name', 'site_url' ).val( authApp.site_url ) )
+						.append( $( '<input>' ).attr( 'type', 'hidden' ).attr( 'name', 'user_login' ).val( authApp.user_login ) )
+						.append( $( '<input>' ).attr( 'type', 'hidden' ).attr( 'name', 'password' ).val( response.password ) );
+					$( document.body ).append( $callbackForm );
+					$callbackForm[0].submit();
+				} else {
+					url = raw + ( -1 === raw.indexOf( '?' ) ? '?' : '&' ) +
+						'site_url=' + encodeURIComponent( authApp.site_url ) +
+						'&user_login=' + encodeURIComponent( authApp.user_login ) +
+						'&password=' + encodeURIComponent( response.password );
 
-				window.location = url;
+					window.location = url;
+				}
 			} else {
 				message = wp.i18n.sprintf(
 					/* translators: %s: Application name. */
@@ -150,8 +164,9 @@
 		 *
 		 * @param {Object} context            Context about the Application Password request.
 		 * @param {string} context.userLogin  The user's login username.
-		 * @param {string} context.successUrl The URL the user will be redirected to after approving the request.
-		 * @param {string} context.rejectUrl  The URL the user will be redirected to after rejecting the request.
+		 * @param {string} context.successUrl    The URL the user will be redirected to after approving the request.
+		 * @param {string} context.successFormat The transport used for the success payload.
+		 * @param {string} context.rejectUrl     The URL the user will be redirected to after rejecting the request.
 		 */
 		wp.hooks.doAction( 'wp_application_passwords_reject_app', context );
 
