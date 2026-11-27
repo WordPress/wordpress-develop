@@ -138,6 +138,7 @@ function get_block_bindings_source( string $source_name ) {
  * @since 6.9.0
  * @since 7.1.0 Added support for the List Item block.
  * @since 7.2.0 Added support for the Icon block.
+ * @since 7.3.0 Added support for the inner blocks of the Group and Column blocks.
  *
  * @param string $block_type The block type whose supported attributes are being retrieved.
  * @return array The list of block attributes that are supported by block bindings.
@@ -153,6 +154,8 @@ function get_block_bindings_supported_attributes( $block_type ) {
 		'core/navigation-link'    => array( 'url' ),
 		'core/navigation-submenu' => array( 'url' ),
 		'core/icon'               => array( 'icon' ),
+		'core/group'              => array( 'innerBlocks' ),
+		'core/column'             => array( 'innerBlocks' ),
 	);
 
 	$supported_block_attributes =
