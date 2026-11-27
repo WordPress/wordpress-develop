@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!--
+	Self-tests of the invariant support code in ../includes/. They need the gameshark extension,
+	with GAMESHARK_INVARIANTS_FILE set to self-tests/gameshark.php, but not WordPress or a database.
+-->
+<phpunit
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
+		bootstrap="bootstrap.php"
+		backupGlobals="false"
+		colors="true"
+		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
+		failOnRisky="true"
+		convertErrorsToExceptions="true"
+		convertWarningsToExceptions="true"
+		convertNoticesToExceptions="true"
+		convertDeprecationsToExceptions="true"
+		>
+	<testsuites>
+		<testsuite name="invariant-self-tests">
+			<directory suffix=".php">tests</directory>
+		</testsuite>
+	</testsuites>
+	<extensions>
+		<extension class="WP_Invariant_PHPUnit_Extension">
+			<arguments>
+				<string>invariants-self-tests</string>
+			</arguments>
+		</extension>
+	</extensions>
+</phpunit>
