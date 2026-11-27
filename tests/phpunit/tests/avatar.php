@@ -292,4 +292,33 @@ class Tests_Avatar extends WP_UnitTestCase {
 		$this->assertFalse( is_avatar_comment_type( $comment_type ) );
 		$this->assertFalse( $actual_data['url'] );
 	}
+
+	/**
+	 * The `get_avatar_data()` function should hash the plain-text comment author email.
+	 *
+	 * The comment author email is stored with character references, such as `&amp;`.
+	 *
+	 * @ticket 66792
+	 */
+	public function test_get_avatar_data_should_hash_decoded_comment_author_email() {
+		$email      = 'tom&jerry@example.com';
+		$comment_id = wp_new_comment(
+			wp_slash(
+				array(
+					'comment_post_ID'      => self::factory()->post->create(),
+					'comment_author'       => 'Tom',
+					'comment_author_email' => $email,
+					'comment_author_url'   => '',
+					'comment_content'      => 'Comment content.',
+				)
+			)
+		);
+
+		$comment = get_comment( $comment_id );
+		$this->assertNotSame( $email, $comment->comment_author_email, 'The email should be stored with character references.' );
+
+		$actual_data = get_avatar_data( $comment );
+
+		$this->assertStringContainsString( '/avatar/' . hash( 'sha256', $email ) . '?', $actual_data['url'] );
+	}
 }

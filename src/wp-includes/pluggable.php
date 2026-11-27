@@ -1842,17 +1842,20 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		$comment_content = wp_specialchars_decode( $comment->comment_content );
 
 		/*
-		 * Line breaks in the comment author fields would end the header or line they
-		 * are placed in, letting the comment author add email headers or lines of their own.
+		 * The comment author fields are stored as HTML, with character references such as `&amp;`.
+		 * Decode them into plain text for emails, then remove line breaks, which would end the
+		 * header or line they are placed in, letting the comment author add email headers or
+		 * lines of their own. Decoding must come first, since character references such as
+		 * `&#10;` decode into line breaks.
 		 */
-		$isolate_header_value = static function ( $value ): string {
+		$isolate_header_value = static function ( $value, string $html_context = 'data' ): string {
 			$is_stringy = is_string( $value ) || ( is_object( $value ) && method_exists( $value, '__toString' ) );
-			$value      = $is_stringy ? (string) $value : '';
+			$value      = $is_stringy ? WP_HTML_Decoder::decode( $html_context, (string) $value ) : '';
 			return trim( (string) preg_replace( '/[\r\n]+/', ' ', $value ) );
 		};
 		$comment_author       = $isolate_header_value( $comment->comment_author );
 		$comment_author_email = $isolate_header_value( $comment->comment_author_email );
-		$comment_author_url   = $isolate_header_value( $comment->comment_author_url );
+		$comment_author_url   = $isolate_header_value( $comment->comment_author_url, 'attribute' );
 
 		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );
 
@@ -2073,17 +2076,20 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		$comment_content = wp_specialchars_decode( $comment->comment_content );
 
 		/*
-		 * Line breaks in the comment author fields would end the header or line they
-		 * are placed in, letting the comment author add email headers or lines of their own.
+		 * The comment author fields are stored as HTML, with character references such as `&amp;`.
+		 * Decode them into plain text for emails, then remove line breaks, which would end the
+		 * header or line they are placed in, letting the comment author add email headers or
+		 * lines of their own. Decoding must come first, since character references such as
+		 * `&#10;` decode into line breaks.
 		 */
-		$isolate_header_value = static function ( $value ): string {
+		$isolate_header_value = static function ( $value, string $html_context = 'data' ): string {
 			$is_stringy = is_string( $value ) || ( is_object( $value ) && method_exists( $value, '__toString' ) );
-			$value      = $is_stringy ? (string) $value : '';
+			$value      = $is_stringy ? WP_HTML_Decoder::decode( $html_context, (string) $value ) : '';
 			return trim( (string) preg_replace( '/[\r\n]+/', ' ', $value ) );
 		};
 		$comment_author       = $isolate_header_value( $comment->comment_author );
 		$comment_author_email = $isolate_header_value( $comment->comment_author_email );
-		$comment_author_url   = $isolate_header_value( $comment->comment_author_url );
+		$comment_author_url   = $isolate_header_value( $comment->comment_author_url, 'attribute' );
 
 		$message_headers = '';
 

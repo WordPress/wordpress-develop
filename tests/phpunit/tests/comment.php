@@ -1629,6 +1629,59 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that the comment author fields appear as plain text in the comment notifications.
+	 *
+	 * These fields are stored with character references, such as `&amp;`, which
+	 * have no meaning in plain-text emails and should be decoded.
+	 *
+	 * @ticket 66792
+	 *
+	 * @covers ::wp_notify_postauthor
+	 * @covers ::wp_notify_moderator
+	 */
+	public function test_comment_notifications_contain_plaintext_author_fields() {
+		$author = 'Tom & Jerry’s "Café"';
+		$email  = 'tom&jerry@example.com';
+		$url    = 'https://example.com/?a=1&b=2';
+
+		$comment_id = wp_new_comment(
+			wp_slash(
+				array(
+					'comment_post_ID'      => self::$post_id,
+					'comment_author'       => $author,
+					'comment_author_email' => $email,
+					'comment_author_url'   => $url,
+					'comment_content'      => 'Comment content.',
+				)
+			)
+		);
+
+		$this->assertIsInt( $comment_id, 'The comment should have been created.' );
+
+		$comment = get_comment( $comment_id );
+		$this->assertNotSame( $author, $comment->comment_author, 'The author name should be stored with character references.' );
+		$this->assertNotSame( $email, $comment->comment_author_email, 'The author email should be stored with character references.' );
+		$this->assertNotSame( $url, $comment->comment_author_url, 'The author URL should be stored with character references.' );
+
+		reset_phpmailer_instance();
+
+		$this->assertTrue( wp_notify_postauthor( $comment_id ), 'The post author notification should have been sent.' );
+		$this->assertTrue( wp_notify_moderator( $comment_id ), 'The moderator notification should have been sent.' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertGreaterThanOrEqual( 2, count( $mailer->mock_sent ), 'Both notifications should have been sent.' );
+
+		foreach ( $mailer->mock_sent as $sent ) {
+			$this->assertStringContainsString( "Author: {$author} (", $sent['body'], 'The author name should be decoded in the notification body.' );
+			$this->assertStringContainsString( "Email: {$email}", $sent['body'], 'The author email should be decoded in the notification body.' );
+			$this->assertStringContainsString( "URL: {$url}", $sent['body'], 'The author URL should be decoded in the notification body.' );
+		}
+
+		$this->assertMatchesRegularExpression( '/^Reply-To: .*<' . preg_quote( $email, '/' ) . '>\r?$/m', $mailer->mock_sent[0]['header'], 'The Reply-To header should use the decoded author email.' );
+	}
+
+	/**
 	 * @ticket 43805
 	 *
 	 * @covers ::wp_new_comment_notify_moderator

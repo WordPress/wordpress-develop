@@ -4571,7 +4571,8 @@ function get_avatar_data( $id_or_email, $args = null ) {
 			$user = get_user_by( 'id', (int) $id_or_email->user_id );
 		}
 		if ( ( ! $user || is_wp_error( $user ) ) && ! empty( $id_or_email->comment_author_email ) ) {
-			$email = $id_or_email->comment_author_email;
+			// The comment author email is stored as HTML text, e.g. `a&amp;b@example.com`, but is hashed as plain text.
+			$email = WP_HTML_Decoder::decode_text_node( $id_or_email->comment_author_email );
 		}
 	}
 
