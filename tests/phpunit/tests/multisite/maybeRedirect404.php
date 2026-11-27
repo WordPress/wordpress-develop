@@ -122,6 +122,13 @@ class Tests_Multisite_MaybeRedirect404 extends WP_UnitTestCase {
 	public function test_should_not_redirect_404_on_non_main_site() {
 		define( 'NOBLOGREDIRECT', 'https://example.com/no-blog/' );
 
+		/*
+		 * The isolated process runs from standard input, so SCRIPT_FILENAME is empty.
+		 * Creating a site calls wp_guess_url(), which passes dirname( SCRIPT_FILENAME )
+		 * to strpos() and triggers an "Empty needle" warning on PHP < 8.0.
+		 */
+		$_SERVER['SCRIPT_FILENAME'] = ABSPATH . 'index.php';
+
 		$site_id = self::factory()->blog->create();
 		switch_to_blog( $site_id );
 
