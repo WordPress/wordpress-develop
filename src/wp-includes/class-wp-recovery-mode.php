@@ -464,7 +464,7 @@ class WP_Recovery_Mode {
 
 		$scheme = is_ssl() ? 'https://' : 'http://';
 
-		$url = "{$scheme}{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+		$url = network_home_url( $_SERVER['REQUEST_URI'] );
 		wp_safe_redirect( $url );
 		exit;
 	}
