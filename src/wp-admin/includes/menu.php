@@ -214,8 +214,12 @@ unset( $id, $data, $subs, $first_sub );
  * @phpstan-return ( $classes is empty ? T : non-empty-string )
  */
 function add_cssclass( $class_to_add, $classes ) {
-	if ( empty( $classes ) ) {
+	if ( '' === $classes ) {
 		return $class_to_add;
+	}
+
+	if ( preg_match( '/(?>^|\s)' . preg_quote( $class_to_add, '/' ) . '(?>\s|$)/', $classes ) ) {
+		return $classes;
 	}
 
 	return $classes . ' ' . $class_to_add;
