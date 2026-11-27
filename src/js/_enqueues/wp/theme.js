@@ -1705,6 +1705,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 		this.uploader();
 
 		this.collection = new themes.Collection();
+		this.favoritesUser = $( '#wporg-username-input' ).val();
 
 		// Bump `collection.currentQuery.page` and request more themes if we hit the end of the page.
 		this.listenTo( this, 'theme:end', function() {
@@ -1766,6 +1767,8 @@ themes.view.Installer = themes.view.Appearance.extend({
 			// Get the themes by sending Ajax POST request to api.wordpress.org/themes
 			// or searching the local cache.
 			this.collection.query( { tag: 'full-site-editing' } );
+		} else if ( 'favorites' === section ) {
+			this.collection.query( this.favoritesRequest() );
 		} else {
 			this.collection.query( { browse: section } );
 		}
@@ -1890,7 +1893,6 @@ themes.view.Installer = themes.view.Appearance.extend({
 	saveUsername: function ( event ) {
 		var username = $( '#wporg-username-input' ).val(),
 			nonce = $( '#wporg-username-nonce' ).val(),
-			request = { browse: 'favorites', user: username },
 			that = this;
 
 		if ( event ) {
@@ -1910,9 +1912,21 @@ themes.view.Installer = themes.view.Appearance.extend({
 			success: function () {
 				// Get the themes by sending Ajax POST request to api.wordpress.org/themes
 				// or searching the local cache.
-				that.collection.query( request );
+				that.favoritesUser = username;
+				that.collection.query( that.favoritesRequest() );
 			}
 		} );
+	},
+
+	// Keyed by username so the query cache can't serve another user's favorites.
+	favoritesRequest: function() {
+		var request = { browse: 'favorites' };
+
+		if ( this.favoritesUser ) {
+			request.user = this.favoritesUser;
+		}
+
+		return request;
 	},
 
 	/**
