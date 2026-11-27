@@ -34,9 +34,23 @@
 			{
 				message: 'Punctuation.',
 				string: 'It\'s two three \u2026 4?',
-				words: 3,
+				words: 4,
 				characters_excluding_spaces: 15,
 				characters_including_spaces: 19
+			},
+			{
+				message: 'Numbers.',
+				string: 'Should be 4 words',
+				words: 4,
+				characters_excluding_spaces: 14,
+				characters_including_spaces: 17
+			},
+			{
+				message: 'Number formats.',
+				string: 'In 2026 we sold 1,500 units for $5 each',
+				words: 9,
+				characters_excluding_spaces: 31,
+				characters_including_spaces: 39
 			},
 			{
 				message: 'Em dash.',

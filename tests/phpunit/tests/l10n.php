@@ -127,6 +127,43 @@ class Tests_L10n extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Language packs from translate.wordpress.org carry the revision date as
+	 * `translation-revision-date`.
+	 *
+	 * @ticket 65809
+	 *
+	 * @covers ::wp_get_l10n_php_file_data
+	 */
+	public function test_wp_get_l10n_php_file_data_reads_translation_revision_date() {
+		$data = wp_get_l10n_php_file_data( DIR_TESTDATA . '/l10n/plural-complex.php' );
+
+		$this->assertSame( '2024-01-18 05:40:05+0000', $data['PO-Revision-Date'] );
+		$this->assertSame( 'GlotPress/4.0.0-beta.2', $data['X-Generator'] );
+	}
+
+	/**
+	 * Files converted from a PO or MO source carry it as `po-revision-date`,
+	 * which is the PO header name lowercased.
+	 *
+	 * @ticket 65809
+	 *
+	 * @covers ::wp_get_l10n_php_file_data
+	 */
+	public function test_wp_get_l10n_php_file_data_reads_po_revision_date() {
+		$php_file = wp_tempnam( 'example-simple.l10n.php' );
+		file_put_contents(
+			$php_file,
+			WP_Translation_File::transform( DIR_TESTDATA . '/l10n/example-simple.mo', 'php' )
+		);
+
+		$data = wp_get_l10n_php_file_data( $php_file );
+
+		unlink( $php_file );
+
+		$this->assertSame( '2016-01-05 18:45:32+1000', $data['PO-Revision-Date'] );
+	}
+
+	/**
 	 * @ticket 35284
 	 *
 	 * @covers ::wp_get_pomo_file_data
