@@ -163,6 +163,8 @@ parameters:
 		COOKIEHASH: 'string'
 		COOKIEPATH: 'string'
 		CUSTOM_TAGS: 'bool'
+		CUSTOM_USER_META_TABLE: 'non-empty-string'
+		CUSTOM_USER_TABLE: 'non-empty-string'
 		# Raw getenv() configs also yield false. Core treats any falsy value as empty.
 		DB_COLLATE: 'string'
 		# Also defined as 1, 'true', and getenv() strings. Core checks truthiness.
