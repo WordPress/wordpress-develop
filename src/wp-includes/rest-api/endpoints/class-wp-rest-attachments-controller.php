@@ -1005,6 +1005,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$attachment = get_post( $request['id'] );
+		$schema     = $this->get_item_schema();
 
 		$fields_update = $this->update_additional_fields_for_object( $attachment, $request );
 
