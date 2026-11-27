@@ -1141,6 +1141,7 @@ class wpdb {
 	 * @param int    $blog_id Optional. The blog_id to prefix. Used only when prefix is requested.
 	 *                        Defaults to `wpdb::$blogid`.
 	 * @return string[] Table names. When a prefix is requested, the key is the unprefixed table name.
+	 * @phpstan-return ( $prefix is true ? array<non-empty-string, non-empty-string> : list<non-empty-string> )
 	 */
 	public function tables( $scope = 'all', $prefix = true, $blog_id = 0 ) {
 		switch ( $scope ) {
