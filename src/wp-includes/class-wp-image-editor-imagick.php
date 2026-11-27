@@ -599,11 +599,11 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @param int    $dst_w       The destination width.
 	 * @param int    $dst_h       The destination height.
-	 * @param string $filter_name Optional. The Imagick filter to use when resizing. Default 'FILTER_TRIANGLE'.
+	 * @param string $filter_name Optional. The Imagick filter to use when resizing. Default 'FILTER_LANCZOS'.
 	 * @param bool   $strip_meta  Optional. Strip all profiles, excluding color profiles, from the image. Default true.
 	 * @return void|WP_Error
 	 */
-	protected function thumbnail_image( $dst_w, $dst_h, $filter_name = 'FILTER_TRIANGLE', $strip_meta = true ) {
+	public function thumbnail_image( $dst_w, $dst_h, $filter_name = 'FILTER_LANCZOS', $strip_meta = true ) {
 		$allowed_filters = array(
 			'FILTER_POINT',
 			'FILTER_BOX',
@@ -623,13 +623,24 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		);
 
 		/**
+		 * Filters the choice of Imagick resizing filter used.
+		 *
+		 * This filter only applies when resizing using the Imagick editor.
+		 *
+		 * @since 6.9
+		 *
+		 * @param string $filter_name Imagick resize filter constant.
+		 */
+		$filter_name = apply_filters( 'imagick_resize_filter', $filter_name );
+
+		/**
 		 * Set the filter value if '$filter_name' name is in the allowed list and the related
 		 * Imagick constant is defined or fall back to the default filter.
 		 */
 		if ( in_array( $filter_name, $allowed_filters, true ) && defined( 'Imagick::' . $filter_name ) ) {
 			$filter = constant( 'Imagick::' . $filter_name );
 		} else {
-			$filter = defined( 'Imagick::FILTER_TRIANGLE' ) ? Imagick::FILTER_TRIANGLE : false;
+			$filter = defined( 'Imagick::FILTER_LANCZOS' ) ? Imagick::FILTER_LANCZOS : false;
 		}
 
 		/**
@@ -722,7 +733,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			// Set appropriate quality settings after resizing.
 			if ( 'image/jpeg' === $this->mime_type ) {
 				if ( is_callable( array( $this->image, 'unsharpMaskImage' ) ) ) {
-					$this->image->unsharpMaskImage( 0.25, 0.25, 8, 0.065 );
+					$this->image->unsharpMaskImage( 1, 0.45, 3, 0 );
 				}
 
 				$this->image->setOption( 'jpeg:fancy-upsampling', 'off' );
