@@ -19,6 +19,13 @@ Twenty Twenty-One WordPress Theme, (C) 2020 WordPress.org
 Twenty Twenty-One is distributed under the terms of the GNU GPL.
 */
 
+/*
+ * IMPORTANT: This file is only served on the frontend when `SCRIPT_DEBUG` is enabled.
+ * In production, when `SCRIPT_DEBUG` is not enabled, the minified .css file will be served.
+ * This theme uses SCSS for styles. After making changes to SCSS files, run `npm run build`
+ * in the theme directory to compile SCSS to CSS and regenerate the minified version.
+ */
+
 /**
  * SETTINGS
  * File-header..........The file header for the themes style.css file.
