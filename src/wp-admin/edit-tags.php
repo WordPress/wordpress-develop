@@ -92,10 +92,16 @@ switch ( $wp_list_table->current_action() ) {
 		if ( $ret && ! is_wp_error( $ret ) ) {
 			$location = add_query_arg( 'message', 1, $referer );
 		} else {
+			if ( is_wp_error( $ret ) && 'empty_term_name' === $ret->get_error_code() ) {
+				wp_register_form_error( 'tag-name', $ret->get_error_message(), $ret->get_error_code() );
+				wp_save_form_errors();
+			}
+
 			$location = add_query_arg(
 				array(
-					'error'   => true,
-					'message' => 4,
+					'error'       => true,
+					'message'     => 4,
+					'form-errors' => true,
 				),
 				$referer
 			);
@@ -185,14 +191,21 @@ switch ( $wp_list_table->current_action() ) {
 		if ( $ret && ! is_wp_error( $ret ) ) {
 			$location = add_query_arg( 'message', 3, $referer );
 		} else {
+			if ( is_wp_error( $ret ) && 'empty_term_name' === $ret->get_error_code() ) {
+				wp_register_form_error( 'name', $ret->get_error_message(), $ret->get_error_code() );
+				wp_save_form_errors();
+			}
+
 			$location = add_query_arg(
 				array(
-					'error'   => true,
-					'message' => 5,
+					'error'       => true,
+					'message'     => 5,
+					'form-errors' => true,
 				),
 				$referer
 			);
 		}
+
 		break;
 	default:
 		if ( ! $wp_list_table->current_action() || ! isset( $_REQUEST['delete_tags'] ) ) {
@@ -460,10 +473,12 @@ if ( $can_edit_terms ) {
 <input type="hidden" name="post_type" value="<?php echo esc_attr( $post_type ); ?>" />
 	<?php wp_nonce_field( 'add-tag', '_wpnonce_add-tag' ); ?>
 
-<div class="form-field form-required term-name-wrap">
+	<?php $name_error = wp_get_form_error( 'tag-name' ); ?>
+<div class="form-field form-required term-name-wrap<?php echo $name_error ? ' form-invalid' : ''; ?>">
 	<label for="tag-name"><?php _ex( 'Name', 'term name' ); ?></label>
-	<input name="tag-name" id="tag-name" type="text" value="" size="40" aria-required="true" aria-describedby="name-description" />
+	<input name="tag-name" id="tag-name" type="text" value="" size="40" aria-required="true" aria-describedby="name-description<?php echo $name_error ? ' tag-name-error' : ''; ?>"<?php echo $name_error ? ' aria-invalid="true"' : ''; ?> />
 	<p id="name-description"><?php echo $tax->labels->name_field_description; ?></p>
+	<?php wp_render_form_error( 'tag-name' ); ?>
 </div>
 <div class="form-field term-slug-wrap">
 	<label for="tag-slug"><?php _e( 'Slug' ); ?></label>
