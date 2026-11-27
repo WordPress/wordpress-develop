@@ -35,6 +35,15 @@ class WP_Community_Events {
 	protected $user_location = false;
 
 	/**
+	 * Partially anonymized IP address of the user's network.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @var bool|string
+	 */
+	protected $unsafe_client_ip = false;
+
+	/**
 	 * Constructor for WP_Community_Events.
 	 *
 	 * @since 4.8.0
@@ -89,6 +98,13 @@ class WP_Community_Events {
 	 *                        success.
 	 */
 	public function get_events( $location_search = '', $timezone = '' ) {
+
+		$this->unsafe_client_ip = self::get_unsafe_client_ip();
+
+		if ( ! $this->user_location && $this->unsafe_client_ip ) {
+			$this->user_location = array( 'ip' => $this->unsafe_client_ip );
+		}
+
 		$cached_events = $this->get_cached_events();
 
 		if ( ! $location_search && $cached_events ) {
@@ -185,7 +201,7 @@ class WP_Community_Events {
 	protected function get_request_args( $search = '', $timezone = '' ) {
 		$args = array(
 			'number' => 5, // Get more than three in case some get trimmed out.
-			'ip'     => self::get_unsafe_client_ip(),
+			'ip'     => $this->unsafe_client_ip,
 		);
 
 		/*
