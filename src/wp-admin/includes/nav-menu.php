@@ -268,6 +268,8 @@ function wp_nav_menu_post_type_meta_boxes() {
 		 *
 		 * If a falsey value is returned instead of an object, the menu items
 		 * meta box for the current meta box object will not be added.
+		 * This filter is also applied to taxonomy objects when registering
+		 * taxonomy menu item meta boxes.
 		 *
 		 * @since 3.0.0
 		 *
@@ -864,11 +866,12 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 	$taxonomy_name = $box['args']->name;
 	$taxonomy      = get_taxonomy( $taxonomy_name );
 	$tab_name      = $taxonomy_name . '-tab';
+	$default_query = isset( $box['args']->_default_query ) ? (array) $box['args']->_default_query : array();
 
 	// Paginate browsing for large numbers of objects.
-	$per_page = 50;
+	$per_page = isset( $default_query['number'] ) ? (int) $default_query['number'] : 50;
 	$pagenum  = isset( $_REQUEST[ $tab_name ] ) && isset( $_REQUEST['paged'] ) ? absint( $_REQUEST['paged'] ) : 1;
-	$offset   = 0 < $pagenum ? $per_page * ( $pagenum - 1 ) : 0;
+	$offset   = 0 < $per_page && 0 < $pagenum ? $per_page * ( $pagenum - 1 ) : 0;
 
 	$args = array(
 		'taxonomy'     => $taxonomy_name,
@@ -883,6 +886,12 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 		'orderby'      => 'name',
 		'pad_counts'   => false,
 	);
+	$args = array_merge( $args, $default_query );
+
+	// WP_Term_Query uses 0 to return all terms, unlike WP_Query's -1.
+	if ( 0 > $per_page ) {
+		$args['number'] = 0;
+	}
 
 	$terms = get_terms( $args );
 
@@ -891,17 +900,20 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 		return;
 	}
 
-	$num_pages = (int) ceil(
-		(int) wp_count_terms(
-			array_merge(
-				$args,
-				array(
-					'number' => '',
-					'offset' => '',
+	$num_pages = 1;
+	if ( 0 < $per_page ) {
+		$num_pages = (int) ceil(
+			(int) wp_count_terms(
+				array_merge(
+					$args,
+					array(
+						'number' => '',
+						'offset' => '',
+					)
 				)
-			)
-		) / $per_page
-	);
+			) / $per_page
+		);
+	}
 
 	$page_links = paginate_links(
 		array(
@@ -1218,32 +1230,38 @@ function wp_save_nav_menu_items( $menu_id = 0, $menu_data = array() ) {
  */
 function _wp_nav_menu_meta_box_object( $data_object = null ) {
 	if ( isset( $data_object->name ) ) {
+		$default_query = array();
 
 		if ( 'page' === $data_object->name ) {
-			$data_object->_default_query = array(
+			$default_query = array(
 				'orderby'     => 'menu_order title',
 				'post_status' => 'publish',
 			);
 
 			// Posts should show only published items.
 		} elseif ( 'post' === $data_object->name ) {
-			$data_object->_default_query = array(
+			$default_query = array(
 				'post_status' => 'publish',
 			);
 
 			// Categories should be in reverse chronological order.
 		} elseif ( 'category' === $data_object->name ) {
-			$data_object->_default_query = array(
+			$default_query = array(
 				'orderby' => 'id',
 				'order'   => 'DESC',
 			);
 
 			// Custom post types should show only published items.
 		} else {
-			$data_object->_default_query = array(
+			$default_query = array(
 				'post_status' => 'publish',
 			);
 		}
+
+		$data_object->_default_query = array_merge(
+			$default_query,
+			(array) ( $data_object->_default_query ?? array() )
+		);
 	}
 
 	return $data_object;
