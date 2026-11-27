@@ -227,7 +227,7 @@ or, outside the Docker environment:
 composer phpstan:test
 ```
 
-They also run in CI, ahead of the analysis itself.
+They also run in CI, after the analysis of the whole codebase, so that a failing test does not keep its results from being reported.
 
 ## Ignoring and baselining errors
 
