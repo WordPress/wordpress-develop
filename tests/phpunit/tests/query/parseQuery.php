@@ -2,6 +2,8 @@
 
 /**
  * @group query
+ *
+ * @covers WP_Query::parse_query
  */
 class Tests_Query_ParseQuery extends WP_UnitTestCase {
 	/**

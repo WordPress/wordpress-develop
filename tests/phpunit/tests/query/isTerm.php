@@ -9,6 +9,8 @@
  * @group query
  * @group rewrite
  * @group taxonomy
+ *
+ * @covers WP_Query
  */
 class Tests_Query_IsTerm extends WP_UnitTestCase {
 	protected $tag_id;
