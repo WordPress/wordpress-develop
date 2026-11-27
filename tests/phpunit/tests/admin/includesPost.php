@@ -510,6 +510,92 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that unchecking the default category in Bulk Edit removes it from posts
+	 * that have no other category, rather than reassigning it.
+	 *
+	 * @ticket 59374
+	 *
+	 * @covers ::bulk_edit_posts
+	 */
+	public function test_bulk_edit_removing_default_category_from_posts_without_other_categories() {
+		wp_set_current_user( self::$admin_id );
+
+		$default_category = (int) get_option( 'default_category' );
+		$post_ids         = self::factory()->post->create_many( 2 );
+
+		$this->assertSame( array( $default_category ), wp_get_post_categories( $post_ids[0] ), 'Post 1 should start in the default category.' );
+		$this->assertSame( array( $default_category ), wp_get_post_categories( $post_ids[1] ), 'Post 2 should start in the default category.' );
+
+		// The Bulk Edit category checklist always submits a hidden value of 0.
+		$request = array(
+			'_status'       => -1,
+			'post'          => $post_ids,
+			'post_category' => array( '0' ),
+		);
+
+		bulk_edit_posts( $request );
+
+		$this->assertSame( array(), wp_get_post_categories( $post_ids[0] ), 'Post 1 should have no categories.' );
+		$this->assertSame( array(), wp_get_post_categories( $post_ids[1] ), 'Post 2 should have no categories.' );
+	}
+
+	/**
+	 * Tests that unchecking the default category in Bulk Edit keeps the other
+	 * (indeterminate) categories and removes the default category from all posts.
+	 *
+	 * @ticket 59374
+	 *
+	 * @covers ::bulk_edit_posts
+	 */
+	public function test_bulk_edit_removing_default_category_from_posts_with_mixed_categories() {
+		wp_set_current_user( self::$admin_id );
+
+		$default_category = (int) get_option( 'default_category' );
+		$term1            = wp_create_category( 'test1' );
+		$post_ids         = self::factory()->post->create_many( 2 );
+
+		wp_set_post_categories( $post_ids[1], array( $default_category, $term1 ) );
+
+		// The default category is checked for all posts, term 1 is indeterminate.
+		$request = array(
+			'_status'                     => -1,
+			'post'                        => $post_ids,
+			'post_category'               => array( '0' ),
+			'indeterminate_post_category' => array( (string) $term1 ),
+		);
+
+		bulk_edit_posts( $request );
+
+		$this->assertSame( array(), wp_get_post_categories( $post_ids[0] ), 'Post 1 should have no categories.' );
+		$this->assertSame( array( $term1 ), wp_get_post_categories( $post_ids[1] ), 'Post 2 should only have term 1.' );
+	}
+
+	/**
+	 * Tests that Bulk Edit keeps the default category when it stays checked.
+	 *
+	 * @ticket 59374
+	 *
+	 * @covers ::bulk_edit_posts
+	 */
+	public function test_bulk_edit_keeps_default_category_when_left_checked() {
+		wp_set_current_user( self::$admin_id );
+
+		$default_category = (int) get_option( 'default_category' );
+		$post_ids         = self::factory()->post->create_many( 2 );
+
+		$request = array(
+			'_status'       => -1,
+			'post'          => $post_ids,
+			'post_category' => array( '0', (string) $default_category ),
+		);
+
+		bulk_edit_posts( $request );
+
+		$this->assertSame( array( $default_category ), wp_get_post_categories( $post_ids[0] ), 'Post 1 should keep the default category.' );
+		$this->assertSame( array( $default_category ), wp_get_post_categories( $post_ids[1] ), 'Post 2 should keep the default category.' );
+	}
+
+	/**
 	 * Tests that `bulk_edit_posts()` fires the 'bulk_edit_posts' action.
 	 *
 	 * @ticket 28112

@@ -639,8 +639,9 @@ function bulk_edit_posts( $post_data = null ) {
 			continue;
 		}
 
-		$post      = get_post( $post_id );
-		$tax_names = get_object_taxonomies( $post );
+		$post                  = get_post( $post_id );
+		$tax_names             = get_object_taxonomies( $post );
+		$remove_all_categories = false;
 
 		foreach ( $tax_names as $tax_name ) {
 			$taxonomy_obj = get_taxonomy( $tax_name );
@@ -679,6 +680,13 @@ function bulk_edit_posts( $post_data = null ) {
 			$indeterminate_cats         = array_intersect( $cats, $indeterminate_post_category );
 			$determinate_cats           = array_diff( $new_cats, $indeterminate_post_category );
 			$post_data['post_category'] = array_unique( array_merge( $indeterminate_cats, $determinate_cats ) );
+
+			/*
+			 * Every category was unchecked for this post. wp_insert_post() would assign
+			 * the default category, so remove the categories after the post is updated.
+			 */
+			$remove_all_categories = ! array_filter( array_map( 'absint', $post_data['post_category'] ) )
+				&& current_user_can( get_taxonomy( 'category' )->cap->assign_terms );
 
 			unset( $post_data['tax_input']['category'] );
 		}
@@ -719,6 +727,10 @@ function bulk_edit_posts( $post_data = null ) {
 		$post_id = wp_update_post( $post_data );
 		update_post_meta( $post_id, '_edit_last', get_current_user_id() );
 		$updated[] = $post_id;
+
+		if ( $remove_all_categories && $post_id ) {
+			wp_set_object_terms( $post_id, array(), 'category' );
+		}
 
 		if ( isset( $post_data['sticky'] ) && current_user_can( $ptype->cap->edit_others_posts ) ) {
 			if ( 'sticky' === $post_data['sticky'] ) {

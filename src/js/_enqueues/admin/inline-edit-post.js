@@ -249,8 +249,21 @@ window.wp = window.wp || {};
 			} );
 		} );
 
+		var $bulkCategories = $( '#bulk-edit .inline-edit-categories input[name="post_category[]"]' );
+
+		/*
+		 * Reset category states left over from a previous Bulk Edit session.
+		 * Otherwise a category checked for a previous selection stays checked
+		 * and gets assigned to posts that are not in it.
+		 */
+		$bulkCategories
+			.prop( { checked: false, indeterminate: false } )
+			.removeAttr( 'aria-label' )
+			.off( 'change.inlineEditPost' );
+		$( '#bulk-edit .inline-edit-categories input[name="indeterminate_post_category[]"]' ).remove();
+
 		// Compute initial states.
-		$( '.inline-edit-categories input[name="post_category[]"]' ).each( function() {
+		$bulkCategories.each( function() {
 			if ( categories[ $( this ).val() ] == checkedPosts.length ) {
 				// If the number of checked categories matches the number of selected posts, then all posts are in this category.
 				$( this ).prop( 'checked', true );
@@ -266,13 +279,13 @@ window.wp = window.wp || {};
 			}
 		} );
 
-		$( '.inline-edit-categories input[name="post_category[]"]:indeterminate' ).on( 'change', function() {
+		$bulkCategories.filter( ':indeterminate' ).on( 'change.inlineEditPost', function() {
 			// Remove accessible label text. Remove the indeterminate flags as there was a specific state change.
 			$( this ).removeAttr( 'aria-label' ).parent().find( 'input[name="indeterminate_post_category[]"]' ).remove();
 		} );
 
-		$( '.inline-edit-save button' ).on( 'click', function() {
-			$( '.inline-edit-categories input[name="post_category[]"]' ).prop( 'indeterminate', false );
+		$( '#bulk-edit .inline-edit-save button' ).off( 'click.inlineEditPost' ).on( 'click.inlineEditPost', function() {
+			$bulkCategories.prop( 'indeterminate', false );
 		} );
 
 		/**
