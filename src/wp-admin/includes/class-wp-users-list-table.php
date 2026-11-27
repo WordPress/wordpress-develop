@@ -220,6 +220,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		);
 
 		foreach ( $wp_roles->get_names() as $this_role => $name ) {
+			$this_role = (string) $this_role;
 			if ( $count_users && ! isset( $avail_roles[ $this_role ] ) ) {
 				continue;
 			}
