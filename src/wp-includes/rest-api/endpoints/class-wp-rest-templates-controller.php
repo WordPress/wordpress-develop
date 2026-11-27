@@ -114,6 +114,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'id' => array(
 						'description'       => __( 'The id of a template' ),
 						'type'              => 'string',
+						'validate_callback' => 'rest_validate_request_arg',
 						'sanitize_callback' => array( $this, '_sanitize_template_id' ),
 					),
 				),

@@ -55,7 +55,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 							'type'              => 'object',
 							'default'           => array(),
 							'validate_callback' => static function ( $value, $request ) {
-								$block = WP_Block_Type_Registry::get_instance()->get_registered( $request['name'] );
+								$block = is_string( $request['name'] ) ? WP_Block_Type_Registry::get_instance()->get_registered( $request['name'] ) : null;
 
 								if ( ! $block ) {
 									// This will get rejected in ::get_item().
@@ -71,7 +71,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 								return rest_validate_value_from_schema( $value, $schema );
 							},
 							'sanitize_callback' => static function ( $value, $request ) {
-								$block = WP_Block_Type_Registry::get_instance()->get_registered( $request['name'] );
+								$block = is_string( $request['name'] ) ? WP_Block_Type_Registry::get_instance()->get_registered( $request['name'] ) : null;
 
 								if ( ! $block ) {
 									// This will get rejected in ::get_item().

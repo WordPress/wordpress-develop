@@ -79,6 +79,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 						'stylesheet' => array(
 							'description'       => __( 'The theme identifier' ),
 							'type'              => 'string',
+							'validate_callback' => 'rest_validate_request_arg',
 							'sanitize_callback' => array( $this, '_sanitize_global_styles_callback' ),
 						),
 					),
