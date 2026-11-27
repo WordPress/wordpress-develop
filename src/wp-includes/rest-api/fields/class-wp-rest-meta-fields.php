@@ -387,9 +387,7 @@ abstract class WP_REST_Meta_Fields {
 		$old_value = get_metadata_raw( $meta_type, $object_id, $meta_key );
 		$subtype   = get_object_subtype( $meta_type, $object_id );
 
-		if ( is_array( $old_value ) && 1 === count( $old_value )
-			&& $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $old_value[0], $value )
-		) {
+		if ( is_array( $old_value ) && $old_value && $this->are_all_stored_values_same( $meta_key, $subtype, $old_value, $value ) ) {
 			return true;
 		}
 
@@ -441,6 +439,29 @@ abstract class WP_REST_Meta_Fields {
 		}
 
 		return $sanitized === $stored_value;
+	}
+
+	/**
+	 * Checks whether every stored row of a meta key already holds the submitted value.
+	 *
+	 * Duplicate rows make update_metadata() fail without changing anything, so they must be treated as unchanged.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $meta_key      Key for the custom field.
+	 * @param string $subtype       Object subtype.
+	 * @param array  $stored_values Raw values stored for the key.
+	 * @param mixed  $user_value    Value submitted in the request.
+	 * @return bool True if every stored value matches the submitted value.
+	 */
+	protected function are_all_stored_values_same( $meta_key, $subtype, $stored_values, $user_value ) {
+		foreach ( $stored_values as $stored_value ) {
+			if ( ! $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $stored_value, $user_value ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
