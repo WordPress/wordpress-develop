@@ -261,6 +261,7 @@ class WP_Theme_JSON {
 	 *              Added `text-indent` property.
 	 * @since 7.1.0 Added `min-width` and `text-shadow`.
 	 * @since 7.2.0 Added `background-clip`.
+	 * @since 7.3.0 Added `text-wrap`.
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -327,6 +328,7 @@ class WP_Theme_JSON {
 		'text-shadow'                       => array( 'typography', 'textShadow' ),
 		'text-transform'                    => array( 'typography', 'textTransform' ),
 		'text-indent'                       => array( 'typography', 'textIndent' ),
+		'text-wrap'                         => array( 'typography', 'textWrap' ),
 		'filter'                            => array( 'filter', 'duotone' ),
 		'box-shadow'                        => array( 'shadow' ),
 		'height'                            => array( 'dimensions', 'height' ),
@@ -588,6 +590,7 @@ class WP_Theme_JSON {
 	 * @since 7.1.0 Added support for `background.gradient`,`dimensions.minWidth`,
 	 *              and `typography.textShadow`.
 	 * @since 7.2.0 Added support for `background.backgroundClip`.
+	 * @since 7.3.0 Added support for `typography.textWrap`.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
@@ -650,6 +653,7 @@ class WP_Theme_JSON {
 			'textIndent'     => null,
 			'textShadow'     => null,
 			'textTransform'  => null,
+			'textWrap'       => null,
 			'writingMode'    => null,
 		),
 		'css'        => null,

@@ -26,6 +26,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 64974
 	 * @ticket 65037
 	 * @ticket 66094
+	 * @ticket 66448
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -281,13 +282,14 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'textColumns'    => '2',
 						'textDecoration' => 'underline',
 						'textTransform'  => 'uppercase',
+						'textWrap'       => 'balance',
 						'letterSpacing'  => '2',
 						'writingMode'    => 'vertical-rl',
 					),
 				),
 				'options'         => null,
 				'expected_output' => array(
-					'css'          => 'font-size:clamp(2em, 2vw, 4em);font-family:Roboto,Oxygen-Sans,Ubuntu,sans-serif;font-style:italic;font-weight:800;line-height:1.3;column-count:2;text-decoration:underline;text-transform:uppercase;letter-spacing:2;writing-mode:vertical-rl;',
+					'css'          => 'font-size:clamp(2em, 2vw, 4em);font-family:Roboto,Oxygen-Sans,Ubuntu,sans-serif;font-style:italic;font-weight:800;line-height:1.3;column-count:2;text-decoration:underline;text-transform:uppercase;text-wrap:balance;letter-spacing:2;writing-mode:vertical-rl;',
 					'declarations' => array(
 						'font-size'       => 'clamp(2em, 2vw, 4em)',
 						'font-family'     => 'Roboto,Oxygen-Sans,Ubuntu,sans-serif',
@@ -297,6 +299,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'column-count'    => '2',
 						'text-decoration' => 'underline',
 						'text-transform'  => 'uppercase',
+						'text-wrap'       => 'balance',
 						'letter-spacing'  => '2',
 						'writing-mode'    => 'vertical-rl',
 					),
