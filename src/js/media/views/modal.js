@@ -110,6 +110,9 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 			this.attach();
 		}
 
+		// Match the DOM order to the visual order: place the close button after the frame title.
+		this.$( '.media-frame-title' ).first().after( this.$( '.media-modal' ).children( '.media-modal-close' ) );
+
 		// Disable page scrolling.
 		$( 'body' ).addClass( 'modal-open' );
 
