@@ -738,8 +738,8 @@ jQuery( function($) {
 		 * @return {void}
 		 */
 		updateVisibility = function() {
-			// Show sticky for public posts.
-			if ( $postVisibilitySelect.find('input:radio:checked').val() != 'public' ) {
+			// Show sticky for public and password protected posts.
+			if ( $postVisibilitySelect.find('input:radio:checked').val() == 'private' ) {
 				$('#sticky').prop('checked', false);
 				$('#sticky-span').hide();
 			} else {
@@ -907,7 +907,7 @@ jQuery( function($) {
 			$('#visibility .edit-visibility').show().trigger( 'focus' );
 			updateText();
 
-			if ( 'public' !== selectedVisibility ) {
+			if ( 'private' === selectedVisibility ) {
 				$('#sticky').prop('checked', false);
 			}
 
@@ -919,7 +919,7 @@ jQuery( function($) {
 					visibilityLabel = __( 'Private' );
 					break;
 				case 'password':
-					visibilityLabel = __( 'Password Protected' );
+					visibilityLabel = $( '#sticky' ).prop( 'checked' ) ? __( 'Password protected, Sticky' ) : __( 'Password Protected' );
 					break;
 			}
 
