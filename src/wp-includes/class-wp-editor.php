@@ -1878,7 +1878,7 @@ final class _WP_Editors {
 		<div id="wp-link-wrap" class="wp-core-ui" style="display: none" role="dialog" aria-labelledby="link-modal-title">
 		<form id="wp-link" tabindex="-1">
 		<?php wp_nonce_field( 'internal-linking', '_ajax_linking_nonce', false ); ?>
-		<h1 id="link-modal-title"><?php _e( 'Insert/edit link' ); ?></h1>
+		<div id="link-modal-title"><?php _e( 'Insert/edit link' ); ?></div>
 		<button type="button" id="wp-link-close"><span class="screen-reader-text">
 			<?php
 			/* translators: Hidden accessibility text. */
