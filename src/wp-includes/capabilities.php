@@ -34,6 +34,7 @@
  *              `edit_app_password`, `delete_app_passwords`, `delete_app_password`,
  *              and `update_https` capabilities.
  * @since 6.7.0 Added the `edit_block_binding` capability.
+ * @since 7.2.0 Added the `embed_url` capability.
  *
  * @global array $post_type_meta_caps Used to get post type meta capabilities.
  *
@@ -804,6 +805,17 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'delete_app_passwords':
 		case 'delete_app_password':
 			$caps = map_meta_cap( 'edit_user', $user_id, $args[0] );
+			break;
+		case 'embed_url':
+			/*
+			 * Embedding a URL in the context of a specific post requires being able
+			 * to edit that post. Without a post context, fall back to `edit_posts`.
+			 */
+			if ( isset( $args[0] ) ) {
+				$caps = map_meta_cap( 'edit_post', $user_id, $args[0] );
+			} else {
+				$caps[] = 'edit_posts';
+			}
 			break;
 		case 'edit_block_binding':
 			$block_editor_context = $args[0];
