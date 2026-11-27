@@ -699,7 +699,7 @@ if ( isset( $_GET['error'] ) ) {
 				'plugin'   => urlencode( $plugin ),
 				'_wpnonce' => urlencode( $_GET['_error_nonce'] ),
 			),
-			admin_url( 'plugins.php' )
+			self_admin_url( 'plugins.php' )
 		);
 
 		$errmsg .= '<iframe style="border:0" width="100%" height="70px" src="' . esc_url( $iframe_url ) . '"></iframe>';
