@@ -132,6 +132,13 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	private bool $in_wpdb = false;
 
 	/**
+	 * Whether the node being walked is in a namespace other than the global one.
+	 *
+	 * @var bool
+	 */
+	private bool $in_namespace = false;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -175,11 +182,18 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	 * @param list<array{ 0: list<Node>, 1: int }> $position Position of the statement the node is in.
 	 */
 	private function walk_node( Node $node, array $position ): void {
-		$shadowed = $this->shadowed;
-		$in_wpdb  = $this->in_wpdb;
+		$shadowed     = $this->shadowed;
+		$in_wpdb      = $this->in_wpdb;
+		$in_namespace = $this->in_namespace;
+		if ( $node instanceof Stmt\Namespace_ ) {
+			$this->in_namespace = null !== $node->name;
+		}
 		if ( $node instanceof ClassLike ) {
-			// Only `wpdb` itself, since a subclass, like one in a `db.php` drop-in, may override its methods.
-			$this->in_wpdb = $node instanceof Class_ && null !== $node->name && 'wpdb' === $node->name->toLowerString();
+			/*
+			 * Only `wpdb` itself, in the global namespace, since a subclass, like one in a `db.php` drop-in, may override
+			 * its methods. The namespace is tracked here since names are resolved after this has walked the file.
+			 */
+			$this->in_wpdb = ! $this->in_namespace && $node instanceof Class_ && null !== $node->name && 'wpdb' === $node->name->toLowerString();
 		}
 		if ( $node instanceof FunctionLike ) {
 			/*
@@ -215,8 +229,9 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 				$this->walk_node( $sub_node, $position );
 			}
 		}
-		$this->shadowed = $shadowed;
-		$this->in_wpdb  = $in_wpdb;
+		$this->shadowed     = $shadowed;
+		$this->in_wpdb      = $in_wpdb;
+		$this->in_namespace = $in_namespace;
 
 		if (
 			$node instanceof MethodCall

@@ -65,15 +65,6 @@ function wp_tests_wpdb_query( wpdb $wpdb, int $id, string $unknown ): void {
 }
 
 /**
- * In the `wpdb` class, `$this` is `wpdb`, though not in a subclass, which may override its methods.
- */
-class wpdb_tests_wpdb_this extends wpdb {
-	public function delete_post( int $id ): void {
-		assertType( 'bool|int<0, max>', $this->query( $this->prepare( "DELETE FROM $this->posts WHERE ID = %d", $id ) ) );
-	}
-}
-
-/**
  * An output format which is not one constant leaves the rows as declared.
  *
  * @param 'ARRAY_A'|'ARRAY_N' $array_output Either array format.
