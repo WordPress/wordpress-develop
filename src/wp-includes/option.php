@@ -1735,6 +1735,10 @@ function wp_user_settings() {
 		}
 	}
 
+	if ( '' === $settings ) {
+		$settings = ' ';
+	}
+
 	// The cookie is not set in the current browser or the saved value is newer.
 	$secure = ( 'https' === parse_url( admin_url(), PHP_URL_SCHEME ) );
 	setcookie( 'wp-settings-' . $user_id, $settings, time() + YEAR_IN_SECONDS, SITECOOKIEPATH, '', $secure );
