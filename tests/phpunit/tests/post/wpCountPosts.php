@@ -195,12 +195,127 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 		add_filter( 'pre_wp_count_posts', $filter );
 
 		$this->assertSame( 99, wp_count_posts()->publish, 'Expected the filtered count.' );
-		$this->assertFalse( wp_cache_get( _count_posts_cache_key( 'post' ), 'counts' ), 'Expected the filtered counts not to be cached.' );
+		$this->assertFalse( wp_cache_get_salted( _count_posts_cache_key( 'post' ), 'post-queries', wp_cache_get_last_changed( 'post_count' ) ), 'Expected the filtered counts not to be cached.' );
 
 		remove_filter( 'pre_wp_count_posts', $filter );
 		$start_num_queries = get_num_queries();
 
 		$this->assertSame( '3', wp_count_posts()->publish, 'Expected the real count once the filter is removed.' );
 		$this->assertGreaterThan( 0, get_num_queries() - $start_num_queries, 'Expected database queries since nothing should have been cached.' );
+	}
+
+	/**
+	 * @ticket 63945
+	 */
+	public function test_wp_count_posts_caches_result() {
+		self::factory()->post->create_many( 2 );
+
+		$expected = wp_count_posts();
+		$cached   = wp_cache_get_salted( _count_posts_cache_key( 'post' ), 'post-queries', wp_cache_get_last_changed( 'post_count' ) );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
+		$this->assertEquals( $expected, $cached, 'Counts should be stored in the post-queries cache group.' );
+
+		$start_num_queries = get_num_queries();
+		$this->assertSame( '2', wp_count_posts()->publish, 'Cached count should be returned.' );
+		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'A cached call should not query the database.' );
+	}
+
+	/**
+	 * @ticket 63945
+	 */
+	public function test_wp_count_posts_cache_is_keyed_by_type_and_perm() {
+		self::factory()->post->create();
+		self::factory()->post->create( array( 'post_type' => 'page' ) );
+		self::factory()->post->create( array( 'post_type' => 'page' ) );
+
+		$this->assertSame( '1', wp_count_posts( 'post' )->publish, 'Post count should not be polluted by pages.' );
+		$this->assertSame( '2', wp_count_posts( 'page' )->publish, 'Page count should be cached separately.' );
+		$this->assertNotSame( _count_posts_cache_key( 'post' ), _count_posts_cache_key( 'post', 'readable' ), 'perm should change the cache key.' );
+	}
+
+	/**
+	 * @ticket 63945
+	 *
+	 * @dataProvider data_cache_invalidating_actions
+	 *
+	 * @param callable $action Action receiving the factory-created post ID.
+	 * @param string   $status Status to check.
+	 * @param string   $expected Expected count after the action.
+	 */
+	public function test_wp_count_posts_cache_is_invalidated( $action, $status, $expected ) {
+		$post_id = self::factory()->post->create();
+		wp_count_posts();
+
+		$action( $post_id );
+
+		$this->assertSame( $expected, (string) wp_count_posts()->$status );
+	}
+
+	public static function data_cache_invalidating_actions(): array {
+		return array(
+			'new post'         => array(
+				static function () {
+					self::factory()->post->create();
+				},
+				'publish',
+				'2',
+			),
+			'status change'    => array(
+				static function ( $id ) {
+					wp_update_post(
+						array(
+							'ID'          => $id,
+							'post_status' => 'draft',
+						)
+					);
+				},
+				'draft',
+				'1',
+			),
+			'trash'            => array( 'wp_trash_post', 'trash', '1' ),
+			'permanent delete' => array(
+				static function ( $id ) {
+					wp_delete_post( $id, true );
+				},
+				'publish',
+				'0',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 63945
+	 */
+	public function test_wp_count_posts_other_post_type_does_not_invalidate_cache() {
+		self::factory()->post->create();
+		wp_count_posts();
+
+		self::factory()->post->create( array( 'post_type' => 'page' ) );
+
+		$start_num_queries = get_num_queries();
+		wp_count_posts();
+		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'Creating a page should not invalidate the post count cache.' );
+	}
+
+	/**
+	 * @ticket 63945
+	 */
+	public function test_wp_count_posts_adds_statuses_registered_after_caching() {
+		wp_count_posts();
+
+		register_post_status( 'late_status' );
+		$counts = wp_count_posts();
+		_unregister_post_status( 'late_status' );
+
+		$this->assertSame( 0, $counts->late_status );
+	}
+
+	/**
+	 * @ticket 63945
+	 */
+	public function test_wp_count_posts_unregistered_type_is_not_cached() {
+		$this->assertEmpty( (array) wp_count_posts( 'not_a_post_type' ) );
+		$this->assertFalse( wp_cache_get_salted( _count_posts_cache_key( 'not_a_post_type' ), 'post-queries', wp_cache_get_last_changed( 'not_a_post_type_count' ) ) );
 	}
 }
