@@ -40,8 +40,8 @@ function edit_user( $user_id = 0 ) {
 		$update = false;
 	}
 
-	if ( ! $update && isset( $_POST['user_login'] ) ) {
-		$user->user_login = sanitize_user( wp_unslash( $_POST['user_login'] ), true );
+	if ( ! $update ) {
+		$user->user_login = isset( $_POST['user_login'] ) ? sanitize_user( wp_unslash( $_POST['user_login'] ), true ) : '';
 	}
 
 	$errors = new WP_Error();
