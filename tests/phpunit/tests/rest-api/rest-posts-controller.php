@@ -2829,6 +2829,61 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->check_create_post_response( $response );
 	}
 
+	/**
+	 * Tests that creating a draft or pending post with a slug does not access
+	 * undefined properties when generating the unique slug.
+	 *
+	 * @ticket 64921
+	 *
+	 * @covers WP_REST_Posts_Controller::create_item
+	 *
+	 * @dataProvider data_create_item_with_slug_statuses
+	 *
+	 * @param string $status Post status.
+	 */
+	public function test_create_item_with_slug_and_unpublished_status( $status ) {
+		wp_set_current_user( self::$editor_id );
+
+		$caught = array();
+		set_error_handler(
+			static function ( $errno, $errstr ) use ( &$caught ) {
+				$caught[] = $errstr;
+				return true;
+			},
+			E_WARNING | E_NOTICE
+		);
+
+		try {
+			$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+			$request->set_body_params(
+				array(
+					'title'  => 'Unpublished post with a slug',
+					'status' => $status,
+					'slug'   => 'unpublished-post-with-a-slug',
+				)
+			);
+			$response = rest_get_server()->dispatch( $request );
+		} finally {
+			restore_error_handler();
+		}
+
+		$this->assertSame( array(), $caught, 'Creating the post should not trigger any warnings or notices.' );
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 'unpublished-post-with-a-slug', $response->get_data()['slug'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string }>
+	 */
+	public static function data_create_item_with_slug_statuses() {
+		return array(
+			'draft'   => array( 'draft' ),
+			'pending' => array( 'pending' ),
+		);
+	}
+
 	public static function data_post_dates() {
 		$all_statuses = array(
 			'draft',
