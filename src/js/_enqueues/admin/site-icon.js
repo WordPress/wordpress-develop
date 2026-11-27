@@ -22,11 +22,13 @@
 	 * Calculate image selection options based on the attachment dimensions.
 	 *
 	 * @since 6.5.0
+	 * @since 7.3.0 Added the `controller` parameter, to let square images skip cropping.
 	 *
 	 * @param {Object} attachment The attachment object representing the image.
+	 * @param {Object} controller The cropper controller.
 	 * @return {Object} The image selection options.
 	 */
-	function calculateImageSelectOptions( attachment ) {
+	function calculateImageSelectOptions( attachment, controller ) {
 		var realWidth = attachment.get( 'width' ),
 			realHeight = attachment.get( 'height' ),
 			xInit = 512,
@@ -37,6 +39,20 @@
 			x1,
 			y1,
 			imgSelectOptions;
+
+		/*
+		 * Square images can skip cropping. "Skip Cropping" still sends the whole
+		 * image through the crop request, so the site icon sizes are created.
+		 */
+		controller.set( 'hasRequiredAspectRatio', realWidth === realHeight );
+		controller.set( 'suggestedCropSize', {
+			width: realWidth,
+			height: realHeight,
+			x1: 0,
+			y1: 0,
+			x2: xInit,
+			y2: yInit,
+		} );
 
 		if ( realWidth / realHeight > ratio ) {
 			yInit = realHeight;
@@ -117,17 +133,37 @@
 		// When an image is selected, run a callback.
 		frame.on( 'select', function () {
 			// Grab the selected attachment.
-			var attachment = frame.state().get( 'selection' ).first();
+			var attachment = frame.state().get( 'selection' ).first(),
+				size = $el.data( 'size' );
 
 			if (
-				attachment.attributes.height === $el.data( 'size' ) &&
-				$el.data( 'size' ) === attachment.attributes.width
+				attachment.attributes.height === size &&
+				size === attachment.attributes.width
 			) {
-				switchToUpdate( attachment.attributes );
-				frame.close();
-
-				// Set the value of the hidden input to the attachment id.
-				$hiddenDataField.val( attachment.id );
+				/*
+				 * Since 7.3.0, an image that doesn't need cropping still goes through
+				 * the crop request, so that the site icon and its additional sizes are created.
+				 */
+				wp.ajax
+					.post( 'crop-image', {
+						nonce: attachment.get( 'nonces' ).edit,
+						id: attachment.id,
+						context: 'site-icon',
+						cropDetails: {
+							x1: 0,
+							y1: 0,
+							width: size,
+							height: size,
+							dst_width: size,
+							dst_height: size,
+						},
+					} )
+					.done( function ( croppedImage ) {
+						frame.trigger( 'cropped', croppedImage );
+					} )
+					.fail( function () {
+						frame.trigger( 'content:error:crop' );
+					} );
 			} else {
 				frame.setState( 'cropper' );
 			}
