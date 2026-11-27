@@ -590,6 +590,76 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `locate_template()` skips a template name containing a NUL byte.
+	 *
+	 * As of PHP 8.6, `file_exists()` throws a `ValueError` for such a path.
+	 *
+	 * @ticket 66800
+	 *
+	 * @covers ::locate_template
+	 */
+	public function test_locate_template_skips_template_name_containing_nul_byte() {
+		$this->assertSame( '', locate_template( array( "single-post-a\0b.php" ) ), 'A template name containing a NUL byte should not be located.' );
+
+		$this->assertSame(
+			locate_template( array( 'index.php' ) ),
+			locate_template( array( "single-post-a\0b.php", 'index.php' ) ),
+			'The next template name should be used.'
+		);
+	}
+
+	/**
+	 * Tests that a slug containing an encoded NUL byte does not break the template lookup.
+	 *
+	 * The template hierarchy adds a URL-decoded copy of the slug to the template names.
+	 *
+	 * @ticket 66800
+	 *
+	 * @dataProvider data_template_lookup_with_encoded_nul_byte_in_slug
+	 *
+	 * @covers ::locate_template
+	 *
+	 * @param string $object_type      Either 'post', 'page' or 'category'.
+	 * @param string $template_getter  Function that returns the template path.
+	 * @param string $fallback         Template name expected to be used instead.
+	 */
+	public function test_template_lookup_with_encoded_nul_byte_in_slug( $object_type, $template_getter, $fallback ) {
+		if ( 'category' === $object_type ) {
+			$term = self::factory()->category->create_and_get( array( 'slug' => 'nul%00byte' ) );
+			$slug = $term->slug;
+			$url  = get_term_link( $term );
+		} else {
+			$post = self::factory()->post->create_and_get(
+				array(
+					'post_type' => $object_type,
+					'post_name' => 'nul%00byte',
+				)
+			);
+			$slug = $post->post_name;
+			$url  = get_permalink( $post );
+		}
+
+		$this->assertSame( 'nul%00byte', $slug, 'The encoded NUL byte should be kept in the slug.' );
+
+		$this->go_to( $url );
+
+		$this->assertSame( locate_template( array( $fallback ) ), $template_getter() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_template_lookup_with_encoded_nul_byte_in_slug() {
+		return array(
+			'post'     => array( 'post', 'get_single_template', 'single.php' ),
+			'page'     => array( 'page', 'get_page_template', 'page.php' ),
+			'category' => array( 'category', 'get_category_template', 'category.php' ),
+		);
+	}
+
+	/**
 	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer in a block theme when no filters are present.
 	 *
 	 * @ticket 43258

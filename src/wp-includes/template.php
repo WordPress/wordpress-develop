@@ -795,6 +795,12 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		if ( ! $template_name ) {
 			continue;
 		}
+
+		// As of PHP 8.6, file_exists() throws a ValueError for a path containing a NUL byte.
+		if ( str_contains( $template_name, "\0" ) ) {
+			continue;
+		}
+
 		if ( file_exists( $wp_stylesheet_path . '/' . $template_name ) ) {
 			$candidate = $wp_stylesheet_path . '/' . $template_name;
 		} elseif ( $is_child_theme && file_exists( $wp_template_path . '/' . $template_name ) ) {
