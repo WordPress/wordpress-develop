@@ -21,9 +21,25 @@
  *                                   Default current comment.
  * @return string The comment author
  */
-function get_comment_author( $comment_id = 0 ) {
+/**
+ * Retrieves the author of the current comment.
+ *
+ * If the comment has an empty comment_author field, then 'Anonymous' person is
+ * assumed.
+ * If the commenter name has changed, both the new one and the old one are shown.
+ *
+ * @since 1.5.0
+ * @since 4.4.0 Added the ability for `$comment_id` to also accept a WP_Comment object.
+ * @since 5.0.0 Added `$before_alias` and `$after_alias` parameters to customize former commenter name.
+ *
+ * @param int|WP_Comment $comment_id   Optional. WP_Comment or the ID of the comment for which to retrieve the author.
+ *                                     Default current comment.
+ * @param string         $before_alias The custom text before the former author name.
+ * @param string         $after_alias  The custom text after the former author name.
+ * @return string The comment author
+ */
+function get_comment_author( $comment_id = 0, $before_alias = null, $after_alias = null ) {
 	$comment = get_comment( $comment_id );
-
 	if ( ! empty( $comment->comment_ID ) ) {
 		$comment_id = $comment->comment_ID;
 	} elseif ( is_scalar( $comment_id ) ) {
@@ -32,15 +48,22 @@ function get_comment_author( $comment_id = 0 ) {
 		$comment_id = '0';
 	}
 
-	if ( empty( $comment->comment_author ) ) {
-		$user = ! empty( $comment->user_id ) ? get_userdata( $comment->user_id ) : false;
-		if ( $user ) {
-			$comment_author = $user->display_name;
-		} else {
-			$comment_author = __( 'Anonymous' );
+	$author = __( 'Anonymous' );
+	$user = ! empty( $comment->user_id ) ? get_userdata( $comment->user_id ) : false;
+
+	if ( ! empty( $comment->comment_author ) ) {
+		$author = $comment->comment_author;
+		if ( $user && $author !== $user->display_name ) {
+			if ( is_null( $before_alias ) ) {
+				$before_alias = __( ' (Initially posted by ' );
+			}
+			if ( is_null( $after_alias ) ) {
+				$after_alias = __( ')' );
+			}
+			$author = $user->display_name . $before_alias . $author . $after_alias;
 		}
-	} else {
-		$comment_author = $comment->comment_author;
+	} elseif ( $user ) {
+		$author = $user->display_name;
 	}
 
 	/**
@@ -49,11 +72,11 @@ function get_comment_author( $comment_id = 0 ) {
 	 * @since 1.5.0
 	 * @since 4.1.0 The `$comment_id` and `$comment` parameters were added.
 	 *
-	 * @param string     $comment_author The comment author's username.
-	 * @param string     $comment_id     The comment ID as a numeric string.
-	 * @param WP_Comment $comment        The comment object.
+	 * @param string     $author      The comment author's username.
+	 * @param string     $comment_id  The comment ID as a numeric string.
+	 * @param WP_Comment $comment     The comment object.
 	 */
-	return apply_filters( 'get_comment_author', $comment_author, $comment_id, $comment );
+	return apply_filters( 'get_comment_author', $author, $comment_id, $comment );
 }
 
 /**
