@@ -1037,4 +1037,39 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$new_html = $this->interactivity->process_directives( $html );
 		$this->assertEqualHTML( '<button data-wp-bind--id="myPlugin::state.id" id="some-id">Text</button>', $new_html );
 	}
+
+	/**
+	 * Data provider for directive bindings.
+	 *
+	 * @return array<non-empty-string, array{ attribute: non-empty-string }> Data provider.
+	 */
+	public static function data_directive_bindings(): array {
+		return array(
+			'interactive directive'                     => array( 'attribute' => 'data-wp-bind--data-wp-interactive' ),
+			'context directive'                         => array( 'attribute' => 'data-wp-bind--data-wp-context' ),
+			'text directive'                            => array( 'attribute' => 'data-wp-bind--data-wp-text' ),
+			'bind directive'                            => array( 'attribute' => 'data-wp-bind--data-wp-bind--id' ),
+			'context directive with an empty unique ID' => array( 'attribute' => 'data-wp-bind--data-wp-context---' ),
+			'context directive with a unique ID'        => array( 'attribute' => 'data-wp-bind--data-wp-context---unique-id' ),
+		);
+	}
+
+	/**
+	 * Tests that `data-wp-bind` removes bindings to directive attributes.
+	 *
+	 * @ticket 66452
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_directive_bindings
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 *
+	 * @param non-empty-string $attribute Directive attribute name.
+	 */
+	public function test_wp_bind_removes_directive_bindings( string $attribute ): void {
+		$html     = "<button att-before {$attribute}=\"myPlugin::state.id\" att-after>Text</button>";
+		$new_html = $this->interactivity->process_directives( $html );
+		$this->assertEqualHTML( '<button att-before att-after>Text</button>', $new_html );
+	}
 }
