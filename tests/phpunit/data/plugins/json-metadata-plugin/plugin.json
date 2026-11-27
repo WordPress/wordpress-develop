@@ -1,0 +1,14 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/plugin.json",
+	"name": "JSON Metadata Plugin",
+	"uri": "https://example.com/json-metadata-plugin",
+	"description": "A plugin using JSON metadata",
+	"author": "Plugin Author",
+	"authorUri": "https://example.com/author",
+	"version": "1.0.0",
+	"textDomain": "json-metadata-plugin",
+	"requires": {
+		"wordpress": "6.0",
+		"php": "8.0"
+	}
+}
