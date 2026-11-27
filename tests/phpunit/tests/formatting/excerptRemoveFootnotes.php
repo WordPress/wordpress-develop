@@ -82,4 +82,3 @@ class Tests_Formatting_ExcerptRemoveFootnotes extends WP_UnitTestCase {
 		);
 	}
 }
-?>
