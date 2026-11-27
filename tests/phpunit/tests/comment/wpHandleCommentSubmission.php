@@ -181,6 +181,58 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 		$this->assertSame( $error, $comment->get_error_code() );
 	}
 
+
+	/**
+	 * @ticket 19739
+	 */
+	public function test_allow_comment_on_draft_filter_default_blocks_comment() {
+		$error = 'comment_on_draft';
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->assertSame( 0, did_action( $error ) );
+
+		$data    = array(
+			'comment_post_ID' => $post->ID,
+		);
+		$comment = wp_handle_comment_submission( $data );
+
+		$this->assertSame( 1, did_action( $error ) );
+		$this->assertWPError( $comment );
+		$this->assertSame( $error, $comment->get_error_code() );
+	}
+
+	/**
+	 * @ticket 19739
+	 */
+	public function test_allow_comment_on_draft_filter_allows_comment() {
+		add_filter( 'allow_comment_on_draft', '__return_true' );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+			)
+		);
+
+		$user = get_user_by( 'id', self::$author_id2 );
+		wp_set_current_user( $user->ID );
+
+		$data    = array(
+			'comment_post_ID' => $post->ID,
+			'comment'         => 'Test comment on draft post.',
+		);
+		$comment = wp_handle_comment_submission( $data );
+
+		remove_filter( 'allow_comment_on_draft', '__return_true' );
+
+		$this->assertNotWPError( $comment );
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+	}
+
 	public function test_submitting_comment_to_password_required_post_returns_error() {
 
 		$error = 'comment_on_password_protected';
