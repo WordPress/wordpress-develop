@@ -443,7 +443,7 @@ class WP_Embed {
 		// Replace line breaks from all HTML elements with placeholders.
 		$content = wp_replace_in_html_tags( $content, array( "\n" => '<!-- wp-line-break -->' ) );
 
-		if ( preg_match( '#(^|\s|>)https?://#i', $content ) ) {
+		if ( preg_match( '#(^|\s|\R|>)https?://#i', $content ) ) {
 			// Find URLs on their own line.
 			$content = preg_replace_callback( '|^(\s*)(https?://[^\s<>"]+)(\s*)$|im', array( $this, 'autoembed_callback' ), $content );
 			// Find URLs in their own paragraph.
