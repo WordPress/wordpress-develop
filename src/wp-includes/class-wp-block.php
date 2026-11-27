@@ -638,7 +638,9 @@ class WP_Block {
 	 *
 	 * A block fails when the `allowedBlocks` of this block's type or attributes
 	 * leaves it out, or when its own `parent` or `ancestor` leaves out this
-	 * block. Inner blocks of the supplied blocks are not checked.
+	 * block. HTML outside any block counts as a Classic block
+	 * (`core/freeform`), unless it is only whitespace. Inner blocks of the
+	 * supplied blocks are not checked.
 	 *
 	 * @since 7.3.0
 	 *
@@ -651,15 +653,16 @@ class WP_Block {
 			$this->attributes['allowedBlocks'] ?? null,
 		);
 		foreach ( $blocks as $block ) {
-			if ( null === $block['blockName'] ) {
+			$block_name = $block['blockName'] ?? 'core/freeform';
+			if ( null === $block['blockName'] && '' === trim( $block['innerHTML'] ) ) {
 				continue;
 			}
 			foreach ( $allowed_lists as $allowed_blocks ) {
-				if ( is_array( $allowed_blocks ) && ! in_array( $block['blockName'], $allowed_blocks, true ) ) {
+				if ( is_array( $allowed_blocks ) && ! in_array( $block_name, $allowed_blocks, true ) ) {
 					return false;
 				}
 			}
-			$block_type = $this->registry->get_registered( $block['blockName'] );
+			$block_type = $this->registry->get_registered( $block_name );
 			if ( ! $block_type ) {
 				continue;
 			}
