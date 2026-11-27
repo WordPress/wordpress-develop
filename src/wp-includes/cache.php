@@ -20,6 +20,8 @@ require_once ABSPATH . WPINC . '/class-wp-object-cache.php';
  */
 function wp_cache_init() {
 	$GLOBALS['wp_object_cache'] = new WP_Object_Cache();
+
+	wp_load_alloptions(); //load all the options into the cache
 }
 
 /**
@@ -40,6 +42,13 @@ function wp_cache_init() {
  */
 function wp_cache_add( $key, $data, $group = '', $expire = 0 ) {
 	global $wp_object_cache;
+
+	// Handle alloptions separately since it's a special case.
+	if ( 'alloptions' === $key ) {
+		foreach ( $data as $k => $v ) {
+			$wp_object_cache->add( $k, $v, $group, $expire );
+		}
+	}
 
 	return $wp_object_cache->add( $key, $data, $group, (int) $expire );
 }

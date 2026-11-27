@@ -161,6 +161,7 @@ function get_option( $option, $default_value = false ) {
 	$passed_default = func_num_args() > 1;
 
 	if ( ! wp_installing() ) {
+
 		$alloptions = wp_load_alloptions();
 		/*
 		 * When getting an option value, we check in the following order for performance:
