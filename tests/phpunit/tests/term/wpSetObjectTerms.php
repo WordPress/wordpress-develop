@@ -477,4 +477,76 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 			'empty array'  => array( array() ),
 		);
 	}
+
+	/**
+	 * Tests that a term added to a sorted taxonomy gets its `term_order` when
+	 * term counting is deferred and the object's terms are already cached.
+	 *
+	 * @ticket 66298
+	 */
+	public function test_term_order_with_deferred_term_counting() {
+		wp_defer_term_counting( true );
+
+		register_taxonomy( 'wptests_tax', 'post', array( 'sort' => true ) );
+
+		$post_id  = self::$post_ids[0];
+		$term_ids = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
+
+		wp_set_object_terms( $post_id, array( $term_ids[0], $term_ids[1] ), 'wptests_tax' );
+
+		wp_get_object_terms( $post_id, 'wptests_tax' );
+
+		wp_set_object_terms( $post_id, $term_ids, 'wptests_tax' );
+
+		$actual = wp_get_object_terms(
+			$post_id,
+			'wptests_tax',
+			array(
+				'fields'  => 'ids',
+				'orderby' => 'term_order',
+			)
+		);
+
+		// Teardown: Reset term counting before assertion.
+		wp_defer_term_counting( false );
+
+		$this->assertSame( $term_ids, $actual );
+	}
+
+	/**
+	 * Tests that a term added to a sorted taxonomy gets its `term_order` when
+	 * term counting is deferred and the taxonomy is queried by `term_order`.
+	 *
+	 * @ticket 66298
+	 */
+	public function test_term_order_with_deferred_term_counting_and_orderby_args() {
+		wp_defer_term_counting( true );
+
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'sort' => true,
+				'args' => array( 'orderby' => 'term_order' ),
+			)
+		);
+
+		$post_id  = self::$post_ids[0];
+		$term_ids = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
+
+		wp_set_object_terms( $post_id, array( $term_ids[0], $term_ids[1] ), 'wptests_tax' );
+
+		wp_set_object_terms( $post_id, $term_ids, 'wptests_tax' );
+
+		$actual = wp_get_object_terms(
+			$post_id,
+			'wptests_tax',
+			array( 'fields' => 'ids' )
+		);
+
+		// Teardown: Reset term counting before assertion.
+		wp_defer_term_counting( false );
+
+		$this->assertSame( $term_ids, $actual );
+	}
 }
