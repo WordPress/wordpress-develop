@@ -1352,7 +1352,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * block once. A block hooked as the first or last child of the post content has no anchor
 	 * block in the content, so no ignored hooked blocks are listed for it.
 	 *
-	 * @ticket TBD
+	 * @ticket 66847
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_hooked_block_positions
@@ -1394,7 +1394,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * The raw content is the stored content when no block is hooked to the post's blocks.
 	 *
-	 * @ticket TBD
+	 * @ticket 66847
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_content_without_hooked_blocks
@@ -1439,7 +1439,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * A hooked block that the post already lists as ignored, such as one removed from the
 	 * content, is not inserted into the raw or rendered content.
 	 *
-	 * @ticket TBD
+	 * @ticket 66847
 	 * @since 7.3.0
 	 *
 	 * @dataProvider data_posts_that_ignore_the_hooked_block
