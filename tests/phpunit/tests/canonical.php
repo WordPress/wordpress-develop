@@ -663,6 +663,43 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the feed of a term named "comments" is not redirected.
+	 *
+	 * @ticket 39535
+	 *
+	 * @dataProvider data_term_named_comments_feed_is_not_redirected
+	 *
+	 * @param string $taxonomy  Taxonomy of the term.
+	 * @param string $test_url  Requested URL.
+	 * @param string $expected  Expected canonical URL.
+	 */
+	public function test_term_named_comments_feed_is_not_redirected( $taxonomy, $test_url, $expected ) {
+		self::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy,
+				'slug'     => 'comments',
+				'name'     => 'Comments',
+			)
+		);
+
+		$this->assertCanonical( $test_url, $expected );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_term_named_comments_feed_is_not_redirected() {
+		return array(
+			'tag feed'              => array( 'post_tag', '/tag/comments/feed/', '/tag/comments/feed/' ),
+			'tag atom feed'         => array( 'post_tag', '/tag/comments/feed/atom/', '/tag/comments/feed/atom/' ),
+			'category feed'         => array( 'category', '/category/comments/feed/', '/category/comments/feed/' ),
+			'tag query-string feed' => array( 'post_tag', '/?tag=comments&feed=rss2', '/tag/comments/feed/' ),
+		);
+	}
+
+	/**
 	 * Test canonical redirects for attachment pages when the option is disabled.
 	 *
 	 * @ticket 57913
