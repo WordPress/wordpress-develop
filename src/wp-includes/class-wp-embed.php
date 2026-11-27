@@ -269,7 +269,7 @@ class WP_Embed {
 
 		$cached_recently = ( time() - $cache_time ) < $ttl;
 
-		if ( $this->usecache || $cached_recently ) {
+		if ( $this->usecache && $cached_recently ) {
 			// Failures are cached. Serve one if we're using the cache.
 			if ( '{{unknown}}' === $cache ) {
 				return $this->maybe_make_link( $url );
