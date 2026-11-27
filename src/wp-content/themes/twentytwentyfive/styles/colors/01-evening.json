@@ -4,6 +4,24 @@
 	"title": "Evening",
 	"settings": {
 		"color": {
+			"duotone": [
+				{
+					"colors": [
+						"#1B1B1B",
+						"#F0F0F0"
+					],
+					"name": "Evening Grayscale",
+					"slug": "evening-grayscale"
+				},
+				{
+					"colors": [
+						"#786D0A",
+						"#CBCBCB"
+					],
+					"name": "Evening Sepia",
+					"slug": "evening-sepia"
+				}
+			],
 			"palette": [
 				{
 					"color": "#1B1B1B",
