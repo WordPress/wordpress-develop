@@ -120,4 +120,35 @@ class Tests_Comment_wpCheckCommentDisallowedList extends WP_UnitTestCase {
 
 		$this->assertFalse( $result );
 	}
+
+	/**
+	 * @ticket 66459
+	 *
+	 * @dataProvider data_unicode_compatibility_characters
+	 *
+	 * @param string $comment Comment content using alternative Unicode characters.
+	 */
+	public function test_should_return_true_when_unicode_compatibility_characters_match_disallowed_keys( $comment ) {
+		if ( ! class_exists( 'Normalizer' ) ) {
+			$this->markTestSkipped( 'The intl extension is not available.' );
+		}
+
+		update_option( 'disallowed_keys', 'example.com' );
+
+		$result = wp_check_comment_disallowed_list( 'Author', 'author@test.org', '', $comment, '192.168.0.1', '' );
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_unicode_compatibility_characters() {
+		return array(
+			'mathematical bold' => array( '<a href="http://𝐞𝐱𝐚𝐦𝐩𝐥𝐞.𝐜𝐨𝐦/">Click me</a>' ),
+			'fullwidth'         => array( '<a href="http://ｅｘａｍｐｌｅ.ｃｏｍ/">Click me</a>' ),
+		);
+	}
 }
