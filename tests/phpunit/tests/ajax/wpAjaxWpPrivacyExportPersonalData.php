@@ -159,6 +159,7 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 	 */
 	public function tear_down() {
 		remove_filter( 'wp_privacy_personal_data_exporters', array( $this, 'filter_register_custom_personal_data_exporter' ) );
+		$this->restore_site_locale();
 
 		if ( is_multisite() ) {
 			revoke_super_admin( get_current_user_id() );
@@ -825,5 +826,119 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 		if ( $this->_last_response ) {
 			$this->_last_response_parsed = json_decode( $this->_last_response, true );
 		}
+	}
+
+	/**
+	 * The exporter callback should run in the requester's locale.
+	 *
+	 * @ticket 44084
+	 * @group l10n
+	 */
+	public function test_exporter_should_run_in_requester_locale() {
+		self::factory()->user->create(
+			array(
+				'user_email' => 'locale-requester@example.com',
+				'locale'     => 'es_ES',
+			)
+		);
+		$request_id = wp_create_user_request( 'locale-requester@example.com', 'export_personal_data' );
+
+		$this->_set_exporter_callback( array( $this, 'callback_record_locale' ) );
+
+		// The administrator uses a different locale than the requester.
+		update_user_meta( get_current_user_id(), 'locale', 'de_DE' );
+		$this->assertSame( 'de_DE', determine_locale(), 'The administrator locale should be active.' );
+
+		$this->_make_ajax_call(
+			array(
+				'id'       => $request_id,
+				'security' => wp_create_nonce( self::$action . '-' . $request_id ),
+			)
+		);
+
+		$this->assertTrue( $this->_last_response_parsed['success'] );
+		$this->assertSame( 'es_ES', $this->exporter_locale, 'The exporter should run in the requester locale.' );
+		$this->assertSame( 'de_DE', determine_locale(), 'The locale should be restored after the exporter has run.' );
+	}
+
+	/**
+	 * The exporter callback should run in the site's locale when the requester has no account.
+	 *
+	 * @ticket 44084
+	 * @group l10n
+	 */
+	public function test_exporter_should_run_in_site_locale_for_requester_without_account() {
+		$this->set_site_locale( 'es_ES' );
+
+		$this->_set_exporter_callback( array( $this, 'callback_record_locale' ) );
+
+		// The administrator uses a different locale than the site.
+		update_user_meta( get_current_user_id(), 'locale', 'de_DE' );
+		$this->assertSame( 'de_DE', determine_locale(), 'The administrator locale should be active.' );
+
+		$this->_make_ajax_call();
+
+		$this->assertTrue( $this->_last_response_parsed['success'] );
+		$this->assertSame( 'es_ES', $this->exporter_locale );
+	}
+
+	/**
+	 * Locale active while the exporter callback ran.
+	 *
+	 * @var string
+	 */
+	protected $exporter_locale = '';
+
+	/**
+	 * Exporter callback that records the active locale.
+	 *
+	 * @param string $email_address Email address.
+	 * @return array Export data response.
+	 */
+	public function callback_record_locale( $email_address ) {
+		$this->exporter_locale = determine_locale();
+
+		return array(
+			'data' => array(),
+			'done' => true,
+		);
+	}
+
+	/**
+	 * Original value of the cached site locale global, if it was changed by a test.
+	 *
+	 * @var string|null|false
+	 */
+	private $orig_site_locale = false;
+
+	/**
+	 * Sets the site's default locale and clears the locale cached by `get_locale()`.
+	 *
+	 * @param string $locale Site locale.
+	 */
+	private function set_site_locale( $locale ) {
+		$this->orig_site_locale = isset( $GLOBALS['locale'] ) ? $GLOBALS['locale'] : null;
+
+		update_option( 'WPLANG', $locale );
+		unset( $GLOBALS['locale'] );
+
+		$this->assertSame( $locale, get_locale(), 'The site locale should be updated.' );
+	}
+
+	/**
+	 * Restores the cached site locale global if it was changed by a test.
+	 */
+	private function restore_site_locale() {
+		if ( false === $this->orig_site_locale ) {
+			return;
+		}
+
+		if ( null === $this->orig_site_locale ) {
+			unset( $GLOBALS['locale'] );
+		} else {
+			$GLOBALS['locale'] = $this->orig_site_locale;
+		}
+
+		$this->orig_site_locale = false;
 	}
 }
