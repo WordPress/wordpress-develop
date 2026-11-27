@@ -328,6 +328,47 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64151
+	 */
+	public function test_replaces_hex_nbsp_entity() {
+		$this->assertSame( 'dont-break-the-space', sanitize_title_with_dashes( "don\u{2019}t&#xA0;break&#xA0;the&#xA0;space", '', 'save' ) );
+	}
+
+	/**
+	 * @ticket 64151
+	 */
+	public function test_replaces_hex_ndash_mdash_entities() {
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do &#x2013; the Dash', '', 'save' ) );
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do &#x2014; the Dash', '', 'save' ) );
+	}
+
+	/**
+	 * @ticket 64151
+	 */
+	public function test_replaces_hex_non_breaking_hyphen_entity() {
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do &#x2011; the Dash', '', 'save' ) );
+	}
+
+	/**
+	 * @ticket 64151
+	 */
+	public function test_replaces_additional_dash_punctuation() {
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( "Do \u{2012} the Dash", '', 'save' ) );
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( "Do \u{2015} the Dash", '', 'save' ) );
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( "Do \u{2010} the Dash", '', 'save' ) );
+	}
+
+	/**
+	 * @ticket 64151
+	 */
+	public function test_replaces_additional_space_separators() {
+		$this->assertSame( 'do-the-space', sanitize_title_with_dashes( "Do \u{1680} the Space", '', 'save' ) );
+		$this->assertSame( 'do-the-space', sanitize_title_with_dashes( "Do \u{205F} the Space", '', 'save' ) );
+		$this->assertSame( 'do-the-space', sanitize_title_with_dashes( "Do \u{205F} the Space", '', 'save' ) );
+		$this->assertSame( 'do-the-space', sanitize_title_with_dashes( "Do \u{3000} the Space", '', 'save' ) );
+	}
+
+	/**
 	 * @ticket 47912
 	 * @dataProvider data_non_visible_characters_with_width_to_hyphen_when_not_save
 	 *
