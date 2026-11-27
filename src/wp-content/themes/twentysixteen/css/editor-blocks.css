@@ -354,11 +354,6 @@ figure[class*="wp-block-"] > figcaption {
 	font-style: italic;
 }
 
-.wp-block-quote strong,
-.wp-block-quote b {
-	font-weight: 400;
-}
-
 .wp-block-quote > :last-child {
 	margin-bottom: 0;
 }
