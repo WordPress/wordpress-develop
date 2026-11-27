@@ -1,0 +1,24 @@
+# Configuration for ReflectionParserTest.
+#
+# This is the configuration core is analyzed with, so that the test runs against
+# what base.neon actually sets up rather than against a copy of it. Only the cache
+# directory, the excluded paths, and the file holding the function to reflect are
+# changed.
+
+includes:
+	- ../../../base.neon
+
+parameters:
+	# A directory of the test's own, so that the run neither reads nor writes the
+	# cache of the analysis of core.
+	tmpDir: %env.WP_PHPSTAN_TESTS_TMP_DIR%
+
+	level: 0
+
+	# base.neon excludes the fixtures from the analysis of core, these among them.
+	excludePaths!:
+		analyse: []
+		analyseAndScan: []
+
+	scanFiles:
+		- scanned.php
