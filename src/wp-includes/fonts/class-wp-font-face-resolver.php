@@ -80,15 +80,46 @@ class WP_Font_Face_Resolver {
 		$fonts = array();
 
 		foreach ( $settings['typography']['fontFamilies'] as $font_families ) {
+			if ( ! is_array( $font_families ) ) {
+				continue;
+			}
+
 			foreach ( $font_families as $definition ) {
+				if ( ! is_array( $definition ) ) {
+					continue;
+				}
 
 				// Skip if "fontFace" is not defined, meaning there are no variations.
 				if ( empty( $definition['fontFace'] ) ) {
 					continue;
 				}
 
+				if ( ! is_array( $definition['fontFace'] ) ) {
+					wp_trigger_error(
+						__METHOD__,
+						sprintf(
+							/* translators: 1: theme.json, 2: fontFace */
+							__( 'The %1$s %2$s definition must be an array.' ),
+							'theme.json',
+							'fontFace'
+						),
+						E_USER_NOTICE
+					);
+					continue;
+				}
+
 				// Skip if "fontFamily" is not defined.
-				if ( empty( $definition['fontFamily'] ) ) {
+				if ( empty( $definition['fontFamily'] ) || ! is_string( $definition['fontFamily'] ) ) {
+					wp_trigger_error(
+						__METHOD__,
+						sprintf(
+							/* translators: 1: theme.json, 2: fontFamily */
+							__( 'A font family definition in %1$s with "fontFace" must have a non-empty string "%2$s".' ),
+							'theme.json',
+							'fontFamily'
+						),
+						E_USER_NOTICE
+					);
 					continue;
 				}
 
@@ -96,6 +127,16 @@ class WP_Font_Face_Resolver {
 
 				// Skip if no font family is defined.
 				if ( empty( $font_family_name ) ) {
+					wp_trigger_error(
+						__METHOD__,
+						sprintf(
+							/* translators: 1: theme.json, 2: fontFamily */
+							__( 'A font family definition in %1$s with "fontFace" must have a non-empty string "%2$s".' ),
+							'theme.json',
+							'fontFamily'
+						),
+						E_USER_NOTICE
+					);
 					continue;
 				}
 
@@ -138,12 +179,38 @@ class WP_Font_Face_Resolver {
 		$converted_font_faces = array();
 
 		foreach ( $font_face_definition as $font_face ) {
+			if ( ! is_array( $font_face ) ) {
+				wp_trigger_error(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: theme.json, 2: fontFace */
+						__( 'Each item in the %1$s %2$s array must be an array of properties.' ),
+						'theme.json',
+						'fontFace'
+					),
+					E_USER_NOTICE
+				);
+				continue;
+			}
+
 			// Add the font-family property to the font-face.
 			$font_face['font-family'] = $font_family_property;
 
 			// Converts the "file:./" src placeholder into a theme font file URI.
 			if ( ! empty( $font_face['src'] ) ) {
 				$font_face['src'] = self::to_theme_file_uri( (array) $font_face['src'] );
+			} else {
+				wp_trigger_error(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: theme.json, 2: src, 3: Font family name. */
+						__( 'Font face for "%3$s" in %1$s is missing the required "%2$s" property.' ),
+						'theme.json',
+						'src',
+						$font_family_property
+					),
+					E_USER_NOTICE
+				);
 			}
 
 			// Convert camelCase properties into kebab-case.
@@ -172,11 +239,25 @@ class WP_Font_Face_Resolver {
 
 		foreach ( $src as $src_key => $src_url ) {
 			// Skip if the src doesn't start with the placeholder, as there's nothing to replace.
-			if ( ! str_starts_with( $src_url, $placeholder ) ) {
+			if ( ! is_string( $src_url ) || ! str_starts_with( $src_url, $placeholder ) ) {
 				continue;
 			}
 
-			$src_file        = str_replace( $placeholder, '', $src_url );
+			$src_file = str_replace( $placeholder, '', $src_url );
+
+			if ( WP_DEBUG && ! file_exists( get_theme_file_path( $src_file ) ) ) {
+				wp_trigger_error(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: theme.json, 2: Font file path. */
+						__( 'The font file "%2$s" referenced in %1$s does not exist.' ),
+						'theme.json',
+						$src_file
+					),
+					E_USER_NOTICE
+				);
+			}
+
 			$src[ $src_key ] = get_theme_file_uri( $src_file );
 		}
 
