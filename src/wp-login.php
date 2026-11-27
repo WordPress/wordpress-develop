@@ -212,14 +212,22 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	do_action( 'login_header' );
 	?>
 	<?php
-	if ( 'confirm_admin_email' !== $action && ! empty( $title ) ) :
+	$has_title_heading = 'confirm_admin_email' !== $action && ! empty( $title );
+
+	/*
+	 * The logo is the page's main heading only when there is no other h1.
+	 * The admin email confirmation screen outputs its own h1 in the form.
+	 */
+	$logo_heading_tag = ( $has_title_heading || 'confirm_admin_email' === $action ) ? 'h2' : 'h1';
+
+	if ( $has_title_heading ) :
 		?>
 		<h1 class="screen-reader-text"><?php echo $title; ?></h1>
 		<?php
 	endif;
 	?>
 	<div id="login">
-		<h1 role="presentation" class="wp-login-logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
+		<<?php echo $logo_heading_tag; ?><?php echo 'h2' === $logo_heading_tag ? ' role="presentation"' : ''; ?> class="wp-login-logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></<?php echo $logo_heading_tag; ?>>
 	<?php
 	/**
 	 * Filters the message to display above the login form.
