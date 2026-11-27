@@ -1205,7 +1205,14 @@ class WP_Query {
 			$tax_query = array();
 		}
 
-		if ( ! empty( $query_vars['taxonomy'] ) && ! empty( $query_vars['term'] ) ) {
+		/*
+		 * 'taxonomy' and 'term' each name a single taxonomy and term slug.
+		 * Ignore other types, such as arrays passed in the query string.
+		 */
+		if (
+			! empty( $query_vars['taxonomy'] ) && is_string( $query_vars['taxonomy'] )
+			&& ! empty( $query_vars['term'] ) && is_scalar( $query_vars['term'] )
+		) {
 			$tax_query[] = array(
 				'taxonomy' => $query_vars['taxonomy'],
 				'terms'    => array( $query_vars['term'] ),
