@@ -307,17 +307,17 @@ class Tests_Shortcode extends WP_UnitTestCase {
 	 */
 	public function test_tag_escaped() {
 		$out = do_shortcode( '[[footag]] [[bartag foo="bar"]]' );
-		$this->assertSame( '[footag] [bartag foo="bar"]', $out );
+		$this->assertSame( '&#091;footag&#093; &#091;bartag foo="bar"&#093;', $out );
 
 		$out = do_shortcode( '[[footag /]] [[bartag foo="bar" /]]' );
-		$this->assertSame( '[footag /] [bartag foo="bar" /]', $out );
+		$this->assertSame( '&#091;footag /&#093; &#091;bartag foo="bar" /&#093;', $out );
 
 		$out = do_shortcode( '[[baztag foo="bar"]the content[/baztag]]' );
-		$this->assertSame( '[baztag foo="bar"]the content[/baztag]', $out );
+		$this->assertSame( '&#091;baztag foo="bar"]the content[/baztag&#093;', $out );
 
 		// Double escaped.
 		$out = do_shortcode( '[[[footag]]] [[[bartag foo="bar"]]]' );
-		$this->assertSame( '[[footag]] [[bartag foo="bar"]]', $out );
+		$this->assertSame( '[&#091;footag&#093;] [&#091;bartag foo="bar"&#093;]', $out );
 	}
 
 	public function test_tag_not_escaped() {
@@ -441,6 +441,20 @@ EOF;
 			array( 'before  after', 'before [footag]content[/footag] after' ),
 			array( 'before  after', 'before [footag foo="123"]content[/footag] after' ),
 		);
+	}
+
+	/**
+	 * @ticket 26649
+	 */
+	public function test_escaped_shortcode_should_not_execute() {
+		add_shortcode(
+			'example',
+			function () {
+				return 'foo';
+			}
+		);
+
+		$this->assertSame( '&#091;example&#093;', do_shortcode( strip_shortcodes( '[[example]]' ) ) );
 	}
 
 	/**
@@ -575,11 +589,11 @@ EOF;
 			),
 			array(
 				'<div [[gallery]]>',
-				'<div [gallery]>',
+				'<div &#091;gallery&#093;>',
 			),
 			array(
 				'<[[gallery]]>',
-				'<[gallery]>',
+				'<&#091;gallery&#093;>',
 			),
 			array(
 				'<div style="selector:url([[gallery]])">',
