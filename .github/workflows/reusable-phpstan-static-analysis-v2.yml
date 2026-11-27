@@ -284,10 +284,12 @@ jobs:
       #
       # This runs after the results are reported and uploaded, so that a failing test
       # does not also keep the pull request from being annotated and commented on. It
-      # runs even when the analysis failed, since the two are independent. Both analyses
-      # load the same extensions, so the tests run in only one of them.
+      # runs even when the analysis failed, since the two are independent, but not when
+      # the analysis was skipped: that means a step setting up the job, such as installing
+      # the Composer dependencies, failed, and the tests could only fail along with it.
+      # Both analyses load the same extensions, so the tests run in only one of them.
       - name: Run the tests of the PHPStan extensions
-        if: ${{ !cancelled() && matrix.analysis == 'default' && hashFiles('tests/phpstan/phpunit.xml.dist') != '' }}
+        if: ${{ !cancelled() && steps.phpstan.outcome != 'skipped' && matrix.analysis == 'default' && hashFiles('tests/phpstan/phpunit.xml.dist') != '' }}
         run: composer run phpstan:test
 
       # Some errors cannot be ignored, so they cannot be reported as warnings either. Most often
