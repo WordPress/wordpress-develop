@@ -1127,6 +1127,8 @@ window.wp = window.wp || {};
 						return b.replace( /[\n\t ]+/, ' ' );
 					});
 
+					a = a.replace( /(<wp-temp-br[^>]*>)\s*\n\s*/g, '$1' );
+
 					return a.replace( /\s*\n\s*/g, '<wp-temp-br />' );
 				});
 			}
