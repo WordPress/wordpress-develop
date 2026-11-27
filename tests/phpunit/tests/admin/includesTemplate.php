@@ -168,6 +168,134 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::_list_meta_row
+	 */
+	public function test_list_meta_row_outputs_modern_custom_field_controls() {
+		$count = 0;
+		$row   = _list_meta_row(
+			array(
+				'meta_id'    => 123,
+				'meta_key'   => 'event_location',
+				'meta_value' => 'Marnixstraat 234, Haarlem 3459RD, The Netherlands',
+			),
+			$count
+		);
+
+		$this->assertStringContainsString( "id='meta-123' class='custom-field-row is-saved'", $row );
+		$this->assertStringContainsString( "class='custom-field-label' for='meta-123-key'", $row );
+		$this->assertStringContainsString( '>Name</label>', $row );
+		$this->assertStringContainsString( "class='custom-field-key regular-text'", $row );
+		$this->assertStringContainsString( "class='custom-field-value-field large-text'", $row );
+		$this->assertStringContainsString( "rows='1'", $row );
+		$this->assertStringNotContainsString( 'regular-text code', $row );
+		$this->assertStringNotContainsString( 'large-text code', $row );
+		$this->assertStringContainsString( 'custom-field-delete', $row );
+		$this->assertStringContainsString( '>Delete</button>', $row );
+		$this->assertStringNotContainsString( 'dashicons-trash', $row );
+		$this->assertStringContainsString( 'custom-field-update', $row );
+		$this->assertStringContainsString( 'button button-secondary updatemeta custom-field-update', $row );
+	}
+
+	/**
+	 * @covers ::meta_form
+	 */
+	public function test_meta_form_outputs_collapsible_add_custom_field_controls() {
+		$post = self::factory()->post->create_and_get();
+
+		add_filter(
+			'postmeta_form_keys',
+			static function () {
+				return array( 'event_location' );
+			}
+		);
+
+		ob_start();
+		meta_form( $post );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'id="newmeta" class="custom-field-row is-new"', $output );
+		$this->assertStringContainsString( 'class="custom-field-label" for="metakeyselect"', $output );
+		$this->assertStringContainsString( 'class="custom-field-key regular-text"', $output );
+		$this->assertStringContainsString( 'class="hidden custom-field-key regular-text"', $output );
+		$this->assertStringContainsString( 'class="custom-field-value-field large-text"', $output );
+		$this->assertStringContainsString( 'rows="1"', $output );
+		$this->assertStringContainsString( 'id="newmeta-button"', $output );
+		$this->assertStringContainsString( 'id="enternew"', $output );
+		$this->assertStringContainsString( 'id="cancelnew"', $output );
+		$this->assertStringContainsString( 'Use existing', $output );
+		$this->assertStringContainsString( 'id="newmeta-cancel"', $output );
+		$this->assertStringContainsString( 'class="button-link custom-field-cancel hide-if-no-js"', $output );
+		$this->assertStringContainsString( 'class="button button-primary"', $output );
+		$this->assertStringNotContainsString( 'dashicons-no-alt', $output );
+		$this->assertStringContainsString( '<p class="custom-field-add-heading"><strong>Add new custom field</strong></p>', $output );
+		$this->assertStringContainsString( 'class="submit add-custom-field custom-field-actions"', $output );
+		$this->assertStringContainsString( 'Save', $output );
+		$this->assertStringNotContainsString( 'Save field', $output );
+		$this->assertStringContainsString( 'Cancel', $output );
+		$this->assertStringContainsString( 'id="add-custom-field-button" class="button button-secondary custom-field-add-toggle hide-if-no-js"', $output );
+		$this->assertStringContainsString( 'Add new custom field', $output );
+		$this->assertStringNotContainsString( 'dashicons-plus-alt2', $output );
+	}
+
+	/**
+	 * @covers ::post_custom_meta_box
+	 */
+	public function test_post_custom_meta_box_outputs_custom_fields_notice_before_fields() {
+		$post = self::factory()->post->create_and_get();
+
+		require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
+
+		wp_set_current_user( self::$editor_id );
+
+		ob_start();
+		post_custom_meta_box( $post );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'id="custom-fields-notice"', $output );
+		$this->assertStringContainsString( 'class="custom-fields-notice notice notice-success is-dismissible hidden"', $output );
+		$this->assertStringContainsString( 'class="screen-reader-text">Dismiss this notice.</span>', $output );
+		$this->assertLessThan(
+			strpos( $output, 'id="postcustomstuff"' ),
+			strpos( $output, 'id="custom-fields-notice"' )
+		);
+		$this->assertLessThan(
+			strpos( $output, 'id="list-table"' ),
+			strpos( $output, 'id="custom-fields-notice"' )
+		);
+	}
+
+	/**
+	 * @covers ::list_meta
+	 */
+	public function test_list_meta_outputs_empty_state_class_when_there_are_no_custom_fields() {
+		ob_start();
+		list_meta( array() );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'id="list-table" class="custom-fields-list is-empty"', $output );
+	}
+
+	/**
+	 * @covers ::list_meta
+	 */
+	public function test_list_meta_outputs_has_fields_class_when_there_are_custom_fields() {
+		ob_start();
+		list_meta(
+			array(
+				array(
+					'meta_id'    => 123,
+					'meta_key'   => 'event_location',
+					'meta_value' => 'Marnixstraat 234, Haarlem 3459RD, The Netherlands',
+				),
+			)
+		);
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'id="list-table" class="custom-fields-list has-fields"', $output );
+		$this->assertStringContainsString( "id='meta-123' class='custom-field-row is-saved'", $output );
+	}
+
+	/**
 	 * @ticket 50019
 	 */
 	public function test_add_meta_box_with_previously_removed_box_and_sorted_priority() {
