@@ -266,7 +266,7 @@ class WP_Network {
 		}
 
 		$site = get_site();
-		if ( $site->domain === $this->domain && $site->path === $this->path ) {
+		if ( $site && $site->domain === $this->domain && $site->path === $this->path ) {
 			$main_site_id = (int) $site->id;
 		} else {
 

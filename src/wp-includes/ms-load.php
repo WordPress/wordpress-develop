@@ -91,6 +91,9 @@ function ms_site_check() {
 	}
 
 	$blog = get_site();
+	if ( ! $blog ) {
+		return true;
+	}
 
 	if ( '1' === $blog->deleted ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-deleted.php' ) ) {

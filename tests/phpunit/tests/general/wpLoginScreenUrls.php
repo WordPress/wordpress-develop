@@ -136,6 +136,28 @@ class Tests_General_WpLoginScreenUrls extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_lostpassword_url() does not emit a warning when get_site() returns null on multisite.
+	 *
+	 * @ticket 66760
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::wp_lostpassword_url
+	 */
+	public function test_wp_lostpassword_url_when_current_site_is_null() {
+		$original_blog_id = $GLOBALS['blog_id'];
+
+		try {
+			$GLOBALS['blog_id'] = 0;
+			$url                = wp_lostpassword_url();
+		} finally {
+			$GLOBALS['blog_id'] = $original_blog_id;
+		}
+
+		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/wp-login.php?action=lostpassword', $url );
+	}
+
+	/**
 	 * Tests the arguments and return value of the 'lostpassword_url' filter.
 	 *
 	 * @ticket 65819
