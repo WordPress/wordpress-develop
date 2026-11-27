@@ -223,7 +223,17 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 			$response->add_links( $links );
 		}
 
-		return $response;
+		/**
+		 * Filters the template revision data for a REST API response.
+		 * Allows modification of the template revision right before it is returned.
+		 *
+		 * @since 6.7.2
+		 *
+		 * @param WP_REST_Response  $response The response object.
+		 * @param WP_Post           $item     The original post revision object
+		 * @param WP_REST_Request   $request  Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_template_revision', $response, $item, $request );
 	}
 
 	/**
