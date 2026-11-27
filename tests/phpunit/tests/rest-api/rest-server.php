@@ -1715,6 +1715,92 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 	}
 
+	/**
+	 * Tests that a valid `_method` query parameter overrides the request method and an invalid one is rejected.
+	 *
+	 * @ticket 66385
+	 *
+	 * @covers WP_REST_Server::serve_request
+	 *
+	 * @dataProvider data_serve_request_validates_method_query_param
+	 *
+	 * @param string|array<string> $method_param    Value of the `_method` query parameter.
+	 * @param 200|400              $expected_status Expected response status.
+	 * @param non-empty-string     $expected_body   Expected response body.
+	 */
+	public function test_serve_request_validates_method_query_param( $method_param, int $expected_status, string $expected_body ): void {
+		$server = rest_get_server();
+		$this->assertInstanceOf( Spy_REST_Server::class, $server );
+
+		$server->register_route(
+			'test',
+			'/test/method',
+			array(
+				array(
+					'methods'             => array( 'GET', 'MY_CUSTOM-METHOD' ),
+					'callback'            => static function ( WP_REST_Request $request ) {
+						return new WP_REST_Response( $request->get_method() );
+					},
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_SERVER['HTTP_ORIGIN']    = 'http://example.org';
+		$_GET['_method']           = $method_param;
+
+		$server->serve_request( '/test/method' );
+
+		unset( $_SERVER['HTTP_ORIGIN'] );
+
+		$this->assertSame( $expected_status, $server->status, 'The response status is not as expected.' );
+		$this->assertSame( $expected_body, $server->sent_body, 'The response body is not as expected.' );
+		$this->assertArrayHasKey( 'Access-Control-Allow-Origin', $server->sent_headers, 'The CORS headers were not sent.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_serve_request_validates_method_query_param()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string|array<string>, 1: 200|400, 2: non-empty-string }>
+	 */
+	public static function data_serve_request_validates_method_query_param(): array {
+		$invalid_param_error = '{"code":"rest_invalid_param","message":"Invalid parameter(s): _method","data":{"status":400}}';
+
+		return array(
+			'custom method'    => array( 'My_Custom-Method', 200, '"MY_CUSTOM-METHOD"' ),
+			'trailing newline' => array( "POST\n", 400, $invalid_param_error ),
+			'list array'       => array( array( 'DELETE' ), 400, $invalid_param_error ),
+			'empty'            => array( '', 400, $invalid_param_error ),
+		);
+	}
+
+	/**
+	 * Tests that an invalid X-HTTP-Method-Override header is rejected with no-cache headers.
+	 *
+	 * @ticket 66385
+	 *
+	 * @covers WP_REST_Server::serve_request
+	 */
+	public function test_serve_request_rejects_invalid_method_override_header(): void {
+		$server = rest_get_server();
+		$this->assertInstanceOf( Spy_REST_Server::class, $server );
+
+		$_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] = 'GE.T';
+
+		$server->serve_request( '/' );
+
+		unset( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] );
+
+		$this->assertSame(
+			'{"code":"rest_invalid_param","message":"Invalid parameter(s): X-HTTP-Method-Override","data":{"status":400}}',
+			$server->sent_body,
+			'The response should be a 400 error naming the X-HTTP-Method-Override header.'
+		);
+		$this->assertArrayHasKey( 'Cache-Control', $server->sent_headers, 'The 400 response to an overridden method should send no-cache headers.' );
+		$this->assertNull( $server->last_request, 'The request should not be dispatched.' );
+	}
+
 	public function test_serve_request_url_params_are_unslashed() {
 
 		rest_get_server()->register_route(
