@@ -51,4 +51,18 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 		$this->assertMatchesRegularExpression( '#<strong>(<a [^>]+>)?&lt;svg onload=alert\(1\)&gt;#', $row, 'The escaped login should be shown in the username column.' );
 		$this->assertStringContainsString( 'Select &lt;svg onload=alert(1)&gt;', $row, 'The escaped login should be in the checkbox label.' );
 	}
+
+	/**
+	 * @ticket 54102
+	 * @covers WP_Users_List_Table::single_row
+	 */
+	public function test_single_row_displays_email_with_ampersand() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$user = get_userdata( self::factory()->user->create( array( 'user_email' => 'test&123@example.org' ) ) );
+
+		$row = $this->table->single_row( $user );
+
+		$this->assertStringContainsString( '>test&amp;123@example.org</a>', $row );
+		$this->assertStringNotContainsString( 'test&amp;amp;123@example.org', $row );
+	}
 }
