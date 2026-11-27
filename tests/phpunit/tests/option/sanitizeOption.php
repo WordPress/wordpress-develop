@@ -13,6 +13,51 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	public function test_sanitize_option( $option_name, $sanitized, $original ) {
 		$this->assertSame( $sanitized, sanitize_option( $option_name, $original ) );
 	}
+
+	/**
+	 * Tests that empty discussion settings, such as the null an unchecked checkbox submits, are sanitized to 'closed'.
+	 *
+	 * @ticket 66766
+	 *
+	 * @covers ::sanitize_option
+	 *
+	 * @dataProvider data_sanitize_option_discussion_status
+	 *
+	 * @param non-falsy-string $option_name Option name.
+	 * @param mixed            $value       Value to sanitize.
+	 * @param non-falsy-string $expected    Expected sanitized value.
+	 */
+	public function test_sanitize_option_discussion_status( string $option_name, $value, string $expected ) {
+		$this->assertSame( $expected, sanitize_option( $option_name, $value ) );
+	}
+
+	/**
+	 * Data provider for test_sanitize_option_discussion_status().
+	 *
+	 * @return array<non-falsy-string, array{ non-falsy-string, mixed, non-falsy-string }>
+	 */
+	public static function data_sanitize_option_discussion_status(): array {
+		$values = array(
+			'null'         => array( null, 'closed' ),
+			'false'        => array( false, 'closed' ),
+			'int 0'        => array( 0, 'closed' ),
+			'string 0'     => array( '0', 'closed' ),
+			'empty string' => array( '', 'closed' ),
+			'empty array'  => array( array(), 'closed' ),
+			'open'         => array( 'open', 'open' ),
+			'closed'       => array( 'closed', 'closed' ),
+		);
+
+		$data = array();
+		foreach ( array( 'default_comment_status', 'default_ping_status' ) as $option_name ) {
+			foreach ( $values as $label => list( $value, $expected ) ) {
+				$data[ "{$option_name}: {$label}" ] = array( $option_name, $value, $expected );
+			}
+		}
+
+		return $data;
+	}
+
 	/**
 	 * Data provider to test all of the sanitize_option() case
 	 *

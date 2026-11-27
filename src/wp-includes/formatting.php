@@ -5037,8 +5037,8 @@ function sanitize_option( $option, $value ) {
 
 		case 'default_ping_status':
 		case 'default_comment_status':
-			// Options that if not there have 0 value but need to be something like "closed".
-			if ( '0' === (string) $value || '' === $value ) {
+			// Empty values, such as the null an unchecked checkbox submits, mean "closed".
+			if ( empty( $value ) ) {
 				$value = 'closed';
 			}
 			break;
