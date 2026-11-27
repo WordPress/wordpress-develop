@@ -2155,8 +2155,38 @@ function wp_ajax_inline_save() {
 		$data['post_name']   = wp_unique_post_slug( $data['post_name'], $post['ID'], $post['post_status'], $post['post_type'], $post['post_parent'] );
 	}
 
+	/*
+	 * Determine whether all categories were unchecked in Quick Edit. The category
+	 * checklist always submits a hidden `post_category[]` value of 0, so a list
+	 * containing no other term IDs means the user deselected every category.
+	 */
+	$remove_all_categories = false;
+	if ( isset( $data['post_category'] ) && is_object_in_taxonomy( $post['post_type'], 'category' ) ) {
+		$category_object = get_taxonomy( 'category' );
+
+		/** This filter is documented in wp-admin/includes/class-wp-posts-list-table.php */
+		$show_categories = apply_filters( 'quick_edit_show_taxonomy', $category_object->show_in_quick_edit, 'category', $post['post_type'] );
+
+		if (
+			$show_categories
+			&& current_user_can( $category_object->cap->assign_terms )
+			&& ! array_filter( array_map( 'absint', (array) $data['post_category'] ) )
+		) {
+			$remove_all_categories = true;
+		}
+	}
+
 	// Update the post.
 	edit_post();
+
+	/*
+	 * wp_insert_post() assigns the default category to posts saved without one.
+	 * When every category was unchecked, remove the categories so Quick Edit
+	 * matches the block editor, which allows a post to have no categories.
+	 */
+	if ( $remove_all_categories ) {
+		wp_set_object_terms( $post_id, array(), 'category' );
+	}
 
 	$wp_list_table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => $_POST['screen'] ) );
 
