@@ -2369,9 +2369,9 @@ function excerpt_remove_blocks( $content ) {
  * @return string Given input HTML without the footnote references.
  */
 function excerpt_remove_footnotes( $content ) {
-	if ( ! str_contains( $content, 'data-fn' ) ) {
-		return $content;
-	}
+	if ( false === stripos( $content, 'data-fn' ) ) {
+    return $content;
+}
 
 	$processor = new class( $content ) extends WP_HTML_Tag_Processor {
 		public function is_whitespace_text_node(): bool {
