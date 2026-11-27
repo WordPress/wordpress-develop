@@ -31,6 +31,8 @@ $self = preg_replace( '|^.*/mu-plugins/|i', '', $self );
  */
 global $menu, $submenu, $parent_file, $submenu_file;
 
+get_admin_page_parent();
+
 /**
  * Filters the parent file of an admin menu sub-menu item.
  *
@@ -51,8 +53,6 @@ $parent_file = apply_filters( 'parent_file', $parent_file );
  * @param string $parent_file  The submenu item's parent file.
  */
 $submenu_file = apply_filters( 'submenu_file', $submenu_file, $parent_file );
-
-get_admin_page_parent();
 
 /**
  * Display menu.
