@@ -18,8 +18,9 @@ declare( strict_types = 1 );
  * edit, and the author's name and slug only for authors the current user may see.
  *
  * Also registers `core/content-create`, `core/content-update`, and `core/content-delete`,
- * which create, update, and trash or delete one post of such a post type, and return the
- * written post in the same shape as a `core/content-query` item.
+ * which create, update, and trash or delete one post of such a post type. Create and update
+ * return the written post in the same shape as a `core/content-query` item, and delete
+ * returns whether the post was trashed or deleted.
  *
  * Unlike the core abilities registered directly in wp_register_core_abilities() as
  * self-contained closures, the four content abilities live in one dedicated class because
@@ -425,7 +426,9 @@ final class WP_Abilities_Content {
 
 			/*
 			 * Intentionally strict: the save drops the slug of a pending post when the user
-			 * cannot publish it, so the slug is refused instead of being dropped without notice.
+			 * cannot publish it, so a changed slug is refused instead of being dropped without
+			 * notice. The stored slug sent back is accepted as unchanged, although the save
+			 * still drops it.
 			 */
 			if ( 'pending' === $status && ! $is_unchanged ) {
 				$can_publish = $post
@@ -1934,7 +1937,7 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Builds the schema of the `fields` input, shared by all content abilities.
+	 * Builds the schema of the `fields` input, shared by the query, create, and update abilities.
 	 *
 	 * @since 7.2.0
 	 *
@@ -2276,7 +2279,7 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Builds the output schema of a single post, shared by all content abilities.
+	 * Builds the output schema of a single post, shared by the query, create, and update abilities.
 	 *
 	 * Only `id` is required, because it is always returned. The other fields are optional
 	 * because the `fields` input lets the caller request any subset, and a field is only
