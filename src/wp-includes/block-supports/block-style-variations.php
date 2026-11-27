@@ -72,12 +72,14 @@ function wp_resolve_block_style_variation_ref_values( &$variation_data, $theme_j
  * different filter.
  *
  * @since 6.6.0
+ * @since 7.3.0 Added the `$source_block` parameter.
  * @access private
  *
- * @param array $parsed_block The parsed block.
+ * @param array      $parsed_block The parsed block.
+ * @param array|null $source_block Optional. The block before any `render_block_data` filter changed it. Default null.
  * @return array The parsed block with block style variation classname added.
  */
-function wp_render_block_style_variation_support_styles( $parsed_block ) {
+function wp_render_block_style_variation_support_styles( $parsed_block, $source_block = null ) {
 	$classes    = $parsed_block['attrs']['className'] ?? null;
 	$variations = wp_get_block_style_variation_name_from_class( $classes );
 
@@ -108,7 +110,15 @@ function wp_render_block_style_variation_support_styles( $parsed_block ) {
 	 */
 	wp_resolve_block_style_variation_ref_values( $variation_data, $theme_json );
 
-	$variation_instance = wp_unique_id( $variation . '--' );
+	/*
+	 * Count copies of the same block, not all blocks, so each instance keeps a
+	 * unique class that doesn't change when other blocks render before it, as
+	 * with client-side navigation. Hash the unfiltered block, because other
+	 * supports add counter-based classes in this filter.
+	 */
+	$variation_instance = wp_unique_prefixed_id(
+		wp_unique_id_from_values( $source_block ?? $parsed_block, $variation . '--' ) . '-'
+	);
 	$class_name         = "is-style-$variation_instance";
 	$updated_class_name = $parsed_block['attrs']['className'] . " $class_name";
 
@@ -228,9 +238,9 @@ function wp_render_block_style_variation_class_name( $block_content, $block ) {
 
 	/*
 	 * Matches a class prefixed by `is-style`, followed by the
-	 * variation slug, then `--`, and finally an instance number.
+	 * variation slug, then `--`, a hash, and finally an instance number.
 	 */
-	preg_match( '/\bis-style-(\S+?--\d+)\b/', $block_class_name, $matches );
+	preg_match( '/\bis-style-(\S+?--[0-9a-f]{8}-\d+)\b/', $block_class_name, $matches );
 
 	if ( empty( $matches ) ) {
 		return $block_content;
