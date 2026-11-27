@@ -124,6 +124,29 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
 		return true;
 	}
 
+	/**
+	 * Filters the post statuses that should use plain permalinks instead of pretty permalinks.
+	 *
+	 * By default, posts with 'draft', 'pending', 'auto-draft', and 'future' statuses
+	 * will use plain permalinks (e.g., /?p=123) for security and consistency reasons.
+	 *
+	 * To allow scheduled posts to use pretty permalinks, you can remove 'future' from this array:
+	 *
+	 * add_filter( 'wp_force_plain_post_permalink_statuses', function( $statuses ) {
+	 *     return array_diff( $statuses, [ 'future' ] );
+	 * });
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string[] $statuses Array of post status names that should use plain permalinks.
+	 * @param WP_Post  $post     The post object.
+	 */
+	$plain_permalink_statuses = apply_filters(
+		'wp_force_plain_post_permalink_statuses',
+		array( 'draft', 'pending', 'auto-draft', 'future' ),
+		$post
+	);
+
 	if (
 		// Publicly viewable links never have plain permalinks.
 		is_post_status_viewable( $post_status_obj ) ||
@@ -133,7 +156,9 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
 			current_user_can( 'read_post', $post->ID )
 		) ||
 		// Protected posts don't have plain links if getting a sample URL.
-		( $post_status_obj->protected && $sample )
+		( $post_status_obj->protected && $sample ) ||
+		// Allow customization of which post statuses should use plain permalinks.
+		! in_array( $post->post_status, $plain_permalink_statuses, true )
 	) {
 		return false;
 	}
