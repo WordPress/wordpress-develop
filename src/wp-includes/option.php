@@ -1677,6 +1677,7 @@ function delete_expired_transients( $force_db = false ) {
 				WHERE a.meta_key LIKE %s
 				AND a.meta_key NOT LIKE %s
 				AND b.meta_key = CONCAT( '_site_transient_timeout_', SUBSTRING( a.meta_key, 17 ) )
+				AND b.site_id = a.site_id
 				AND b.meta_value < %d",
 				$wpdb->esc_like( '_site_transient_' ) . '%',
 				$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
