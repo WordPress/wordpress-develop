@@ -164,18 +164,38 @@ function twenty_twenty_one_continue_reading_link_excerpt() {
 add_filter( 'excerpt_more', 'twenty_twenty_one_continue_reading_link_excerpt' );
 
 /**
+ * Checks whether the current post sets its own text for the more link.
+ *
+ * @return bool True if the post content has a `<!--more Custom text-->` tag.
+ */
+function twenty_twenty_one_has_custom_more_text() {
+	return 1 === preg_match( '/<!--more(.+?)-->/', (string) get_post_field( 'post_content', get_the_ID() ), $matches ) && '' !== trim( $matches[1] );
+}
+
+/**
  * Creates the continue reading link.
  *
  * @since Twenty Twenty-One 1.0
+ *
+ * @param string $more_link_element Read More link element.
+ * @param string $more_link_text    Read More text.
+ * @return string|void The link markup, or nothing in the admin.
  */
-function twenty_twenty_one_continue_reading_link() {
-	if ( ! is_admin() ) {
-		return '<div class="more-link-container"><a class="more-link" href="' . esc_url( get_permalink() ) . '#more-' . esc_attr( get_the_ID() ) . '">' . twenty_twenty_one_continue_reading_text() . '</a></div>';
+function twenty_twenty_one_continue_reading_link( $more_link_element = '', $more_link_text = '' ) {
+	if ( is_admin() ) {
+		return;
 	}
+
+	$link_text = twenty_twenty_one_continue_reading_text();
+	if ( twenty_twenty_one_has_custom_more_text() ) {
+		$link_text = esc_html( $more_link_text ) . the_title( ' <span class="screen-reader-text">', '</span>', false );
+	}
+
+	return '<div class="more-link-container"><a class="more-link" href="' . esc_url( get_permalink() ) . '#more-' . esc_attr( get_the_ID() ) . '">' . $link_text . '</a></div>';
 }
 
 // Filter the content more link.
-add_filter( 'the_content_more_link', 'twenty_twenty_one_continue_reading_link' );
+add_filter( 'the_content_more_link', 'twenty_twenty_one_continue_reading_link', 10, 2 );
 
 if ( ! function_exists( 'twenty_twenty_one_post_title' ) ) {
 	/**
