@@ -69,8 +69,8 @@ function wp_fix_server_vars() {
 				}
 			}
 
-			// Append the query string if it exists and isn't null.
-			if ( ! empty( $_SERVER['QUERY_STRING'] ) ) {
+			// Append the query string if it exists, isn't null, and isn't already part of the request URI.
+			if ( ! empty( $_SERVER['QUERY_STRING'] ) && ! str_contains( $_SERVER['REQUEST_URI'], '?' ) ) {
 				$_SERVER['REQUEST_URI'] .= '?' . $_SERVER['QUERY_STRING'];
 			}
 		}
