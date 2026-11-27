@@ -193,7 +193,9 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	 * Gets the type `query()` returns for a query, from the statement it begins with.
 	 *
 	 * For `CREATE`, `ALTER`, `TRUNCATE`, and `DROP`, `query()` returns the result of `mysqli_query()`, which is
-	 * true. For any other statement, it returns the number of rows affected or selected. On an error, it returns
+	 * true for these statements, other than for the few which give a result set, like `ALTER TABLE ... ANALYZE
+	 * PARTITION`, for which it is a `mysqli_result`. That is left out, as the declared `int|bool` leaves it out.
+	 * For any other statement, it returns the number of rows affected or selected. On an error, it returns
 	 * false before either. It tells the statements apart as this does, by the keyword at the start of the query.
 	 *
 	 * @param string $query Query, as reconstructed by `WpdbQueryVisitor`.
