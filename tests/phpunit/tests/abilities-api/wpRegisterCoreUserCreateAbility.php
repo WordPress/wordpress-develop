@@ -486,6 +486,8 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 			$message = $this->get_long_name_message( $this->create_input( 'uwtrefused', array( 'name' => str_repeat( 'a', 251 ) ) ) );
 		}
 
+		$this->create_target( 'uwtteamdesk', array( 'user_nicename' => 'team-desk' ) );
+
 		$before = $this->snapshot();
 
 		$this->watch_filter( 'pre_user_login' );
@@ -703,6 +705,33 @@ class Tests_Abilities_API_WpRegisterCoreUserCreateAbility extends WP_Abilities_U
 
 		$user_id = $this->assert_user_item( $result, $fields, 'Creating with quotes and backslashes' );
 		$this->assert_quoted_values_stored( $user_id, 'Creating with quotes and backslashes' );
+	}
+
+	/**
+	 * The slug is cleaned as a title before it is saved, so a slash becomes a hyphen.
+	 *
+	 * @ticket 66720
+	 * @since 7.3.0
+	 */
+	public function test_saves_a_slash_in_the_slug_as_a_hyphen(): void {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$this->login_as( 'manager' );
+		$this->register_abilities();
+
+		$fields = array( 'slug', 'link' );
+		$result = $this->run_ability(
+			array_merge(
+				$this->create_input( 'uwtslash', array( 'slug' => 'Team/Desk' ) ),
+				array( 'fields' => $fields )
+			)
+		);
+
+		$user_id = $this->assert_user_item( $result, $fields, 'Creating with a slash in the slug' );
+
+		$this->assertSame( 'team-desk', get_userdata( $user_id )->user_nicename, 'The slash should be stored as a hyphen.' );
+		$this->assertSame( 'team-desk', $result['slug'], 'The output should show the stored slug.' );
+		$this->assertSame( get_author_posts_url( $user_id, 'team-desk' ), $result['link'], 'The link should be the author URL of the stored slug.' );
 	}
 
 	/**

@@ -922,8 +922,13 @@ final class WP_Abilities_Users {
 		}
 
 		if ( array_key_exists( 'slug', $data ) ) {
+			/*
+			 * The slug is cleaned with sanitize_title() first, and the save receives that cleaned
+			 * value, so a character such as a slash is saved as a hyphen rather than removed.
+			 * The checks run on what the save stores from the cleaned value.
+			 */
 			/** This filter is documented in wp-includes/user.php */
-			$slug = (string) apply_filters( 'pre_user_nicename', sanitize_title( sanitize_user( wp_slash( $data['slug'] ), true ) ) );
+			$slug = (string) apply_filters( 'pre_user_nicename', sanitize_title( sanitize_user( wp_slash( sanitize_title( $data['slug'] ) ), true ) ) );
 			if ( '' === $slug ) {
 				return $this->invalid_attribute_error( 'data[slug]', __( 'Invalid slug.' ) );
 			}
@@ -935,7 +940,7 @@ final class WP_Abilities_Users {
 			// Intentionally strict: the slug of another user is refused rather than saved with a numeric suffix.
 			$slug_user = get_user_by( 'slug', $slug );
 			if ( $slug_user && ( ! $target || $slug_user->ID !== $target->ID ) ) {
-				return $this->invalid_attribute_error( 'data[slug]', __( 'Invalid slug.' ) );
+				return $this->invalid_attribute_error( 'data[slug]', __( 'Sorry, that slug is already used by another user.' ), 'user_exists' );
 			}
 		}
 
@@ -981,7 +986,8 @@ final class WP_Abilities_Users {
 	/**
 	 * Builds the user data for a save from the profile attributes, key by key.
 	 *
-	 * Values are slashed, since the saves expect slashed data.
+	 * Values are slashed, since the saves expect slashed data. The slug is cleaned with
+	 * sanitize_title() first, the same cleaned value its checks start from.
 	 *
 	 * @since 7.3.0
 	 *
@@ -994,6 +1000,10 @@ final class WP_Abilities_Users {
 			if ( array_key_exists( $name, $data ) ) {
 				$userdata[ $key ] = wp_slash( $data[ $name ] );
 			}
+		}
+
+		if ( array_key_exists( 'slug', $data ) ) {
+			$userdata['user_nicename'] = wp_slash( sanitize_title( $data['slug'] ) );
 		}
 
 		return $userdata;
@@ -2081,7 +2091,7 @@ final class WP_Abilities_Users {
 					 */
 					'type'        => array( 'integer', 'boolean' ),
 					'minimum'     => 1,
-					'description' => __( 'The ID of the user who takes over the content of the deleted user, or false to reassign nothing. True is not accepted.' ),
+					'description' => __( 'The ID of the user who takes over the content of the deleted user, or false when no user takes it over. With false on a single site, the content is deleted with the account: posts and pages go to the Trash where the site has one, and the rest is deleted permanently. On multisite, false leaves the content where it is. True is not accepted.' ),
 				),
 			),
 		);

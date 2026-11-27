@@ -902,7 +902,8 @@ abstract class WP_Abilities_User_Write_UnitTestCase extends WP_UnitTestCase {
 	 * Returns profile attributes that are refused, with the error each gets.
 	 *
 	 * The users of the shared fixtures have the username `uwt_<role>`, the email
-	 * `uwt-<role>@example.test` and the slug `uwt_<role>`.
+	 * `uwt-<role>@example.test` and the slug `uwt_<role>`. A test that uses these rows
+	 * also creates a user whose slug is `team-desk`.
 	 *
 	 * @return array<string, array{data: array<string, string>, code: string, param: string, message: string|null}>
 	 *         The `data`, the error code, the input path and the message, or null when
@@ -917,7 +918,8 @@ abstract class WP_Abilities_User_Write_UnitTestCase extends WP_UnitTestCase {
 			'name with nothing left after sanitizing' => array( array( 'name' => '<b></b>' ), 'user_invalid_attribute', 'data[name]', null ),
 			'nickname with nothing left'              => array( array( 'nickname' => '<i> </i>' ), 'user_invalid_attribute', 'data[nickname]', null ),
 			'slug with nothing left'                  => array( array( 'slug' => '!!!' ), 'user_invalid_attribute', 'data[slug]', 'Invalid slug.' ),
-			'slug of another user'                    => array( array( 'slug' => 'uwt_editor' ), 'user_invalid_attribute', 'data[slug]', 'Invalid slug.' ),
+			'slug of another user'                    => array( array( 'slug' => 'uwt_editor' ), 'user_exists', 'data[slug]', 'Sorry, that slug is already used by another user.' ),
+			'slug of another user once cleaned'       => array( array( 'slug' => 'Team/Desk' ), 'user_exists', 'data[slug]', 'Sorry, that slug is already used by another user.' ),
 			'slug of 51 characters'                   => array( array( 'slug' => str_repeat( 'a', 51 ) ), 'user_invalid_attribute', 'data[slug]', null ),
 			'url with nothing left'                   => array( array( 'url' => 'javascript:alert(1)' ), 'user_invalid_attribute', 'data[url]', null ),
 			'url of 101 characters'                   => array( array( 'url' => 'https://example.test/' . str_repeat( 'a', 80 ) ), 'user_invalid_attribute', 'data[url]', null ),

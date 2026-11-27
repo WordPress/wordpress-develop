@@ -692,6 +692,7 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 	 */
 	public function test_refuses_attributes( array $data, string $code, string $param, ?string $message ): void {
 		$user_id = $this->create_target( 'uwtrefused' );
+		$this->create_target( 'uwtteamdesk', array( 'user_nicename' => 'team-desk' ) );
 
 		$this->login_as( 'manager' );
 		$this->register_abilities();
@@ -858,6 +859,46 @@ class Tests_Abilities_API_WpRegisterCoreUserUpdateAbility extends WP_Abilities_U
 		$this->assertSame( $expected, $first, 'The first update should clear the URL and keep the slug.' );
 		$this->assertSame( $expected, $second, 'The same slug should be accepted a second time.' );
 		$this->assertSame( '', get_userdata( $user_id )->user_url, 'The URL should be cleared.' );
+	}
+
+	/**
+	 * The slug is cleaned as a title before it is saved, so a slash becomes a hyphen,
+	 * also when that gives the slug the user already has.
+	 *
+	 * @ticket 66720
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_slugs_before_a_slug_with_a_slash
+	 *
+	 * @param string $slug The slug of the user before the update.
+	 */
+	public function test_saves_a_slash_in_the_slug_as_a_hyphen( string $slug ): void {
+		$user_id = $this->create_target( 'uwtslash', array( 'user_nicename' => $slug ) );
+
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$this->login_as( 'manager' );
+		$this->register_abilities();
+
+		$fields = array( 'slug', 'link' );
+		$result = $this->run_ability( $this->update_input( $user_id, array( 'slug' => 'Team/Desk' ), $fields ) );
+
+		$this->assert_user_item( $result, $fields, 'Updating with a slash in the slug' );
+		$this->assertSame( 'team-desk', get_userdata( $user_id )->user_nicename, 'The slash should be stored as a hyphen.' );
+		$this->assertSame( 'team-desk', $result['slug'], 'The output should show the stored slug.' );
+		$this->assertSame( get_author_posts_url( $user_id, 'team-desk' ), $result['link'], 'The link should be the author URL of the stored slug.' );
+	}
+
+	/**
+	 * Returns the slugs a user has before `Team/Desk` is sent as the slug.
+	 *
+	 * @return array<string, array{slug: string}> The slugs.
+	 */
+	public static function data_slugs_before_a_slug_with_a_slash(): array {
+		return array(
+			'another slug'                      => array( 'uwtslash' ),
+			'the same slug in another spelling' => array( 'team-desk' ),
+		);
 	}
 
 	/**
