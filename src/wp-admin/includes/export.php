@@ -405,12 +405,17 @@ function export_wp( $args = array() ) {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param int[] $post_ids Optional. Array of post IDs to filter the query by.
+	 * @param int[]|null $post_ids Optional. Array of post IDs to filter the query by.
+	 *                             Null lists the authors of all posts; an empty array lists no authors.
 	 */
 	function wxr_authors_list( ?array $post_ids = null ) {
 		global $wpdb;
 
-		if ( ! empty( $post_ids ) ) {
+		if ( array() === $post_ids ) {
+			return;
+		}
+
+		if ( null !== $post_ids ) {
 			$post_ids       = array_map( 'absint', $post_ids );
 			$post_id_chunks = array_chunk( $post_ids, 20 );
 		} else {
