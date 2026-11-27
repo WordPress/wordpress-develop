@@ -135,6 +135,8 @@ class WP_Styles extends WP_Dependencies {
 	 *
 	 * @since 2.6.0
 	 * @since 5.5.0 Added the `$group` parameter.
+	 * @since 7.3.0 The attributes of the stylesheet link tags can be filtered with
+	 *              {@see 'wp_style_attributes'}.
 	 *
 	 * @see WP_Dependencies::do_item()
 	 *
@@ -178,7 +180,8 @@ class WP_Styles extends WP_Dependencies {
 			return true;
 		}
 
-		$href = $this->_css_href( $src, $obj->ver, $handle );
+		$raw_href = $this->get_src( $handle );
+		$href     = esc_url( $raw_href );
 		if ( ! $href ) {
 			return true;
 		}
@@ -186,14 +189,22 @@ class WP_Styles extends WP_Dependencies {
 		$rel   = isset( $obj->extra['alt'] ) && $obj->extra['alt'] ? 'alternate stylesheet' : 'stylesheet';
 		$title = $obj->extra['title'] ?? '';
 
-		$tag = sprintf(
-			"<link rel='%s' id='%s-css'%s href='%s' media='%s' />\n",
-			$rel,
-			esc_attr( $handle ),
-			$title ? sprintf( " title='%s'", esc_attr( $title ) ) : '',
-			$href,
-			esc_attr( $media )
+		/*
+		 * The title and media are cast to strings, as esc_attr() did when the tag was built as a
+		 * string, so that a value such as `true` is still printed as `'1'`, and an array passed by
+		 * mistake as `'Array'`, rather than as a boolean attribute or a fatal error.
+		 */
+		$attributes = array(
+			'rel' => $rel,
+			'id'  => "{$handle}-css",
 		);
+		if ( $title ) {
+			$attributes['title'] = (string) $title;
+		}
+		$attributes['href']  = $raw_href;
+		$attributes['media'] = (string) $media;
+
+		$tag = _wp_get_legacy_style_link_tag( $attributes, __METHOD__, array( 'href' => $href ) );
 
 		/**
 		 * Filters the HTML link tag of an enqueued style.
@@ -212,15 +223,16 @@ class WP_Styles extends WP_Dependencies {
 		$rtl_src = $this->get_rtl_src( $handle );
 
 		if ( null !== $rtl_src ) {
-			$rtl_href = esc_url( $rtl_src );
-			$rtl_tag  = sprintf(
-				"<link rel='%s' id='%s-rtl-css'%s href='%s' media='%s' />\n",
-				$rel,
-				esc_attr( $handle ),
-				$title ? sprintf( " title='%s'", esc_attr( $title ) ) : '',
-				$rtl_href,
-				esc_attr( $media )
+			$rtl_href       = esc_url( $rtl_src );
+			$rtl_attributes = array_merge(
+				$attributes,
+				array(
+					'id'   => "{$handle}-rtl-css",
+					'href' => $rtl_src,
+				)
 			);
+
+			$rtl_tag = _wp_get_legacy_style_link_tag( $rtl_attributes, __METHOD__, array( 'href' => $rtl_href ) );
 
 			/** This filter is documented in wp-includes/class-wp-styles.php */
 			$rtl_tag = apply_filters( 'style_loader_tag', $rtl_tag, $handle, $rtl_href, $media );
@@ -415,6 +427,9 @@ class WP_Styles extends WP_Dependencies {
 	 * Generates an enqueued style's fully-qualified URL.
 	 *
 	 * @since 2.6.0
+	 * @since 7.3.0 No longer used by WP_Styles::do_item(), which escapes the URL from
+	 *              WP_Styles::get_src() instead, so overriding this method in a subclass
+	 *              no longer changes the printed URL.
 	 *
 	 * @param string            $src    The source of the enqueued style.
 	 * @param string|false|null $ver    The version of the enqueued style.
