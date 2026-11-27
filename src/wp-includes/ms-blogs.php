@@ -496,8 +496,8 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
  * @global string          $table_prefix       The database table prefix.
  * @global WP_Object_Cache $wp_object_cache
  *
- * @param int|WP_Site $new_blog_id The ID of the blog, or its WP_Site object, to switch to. Default: current blog.
- * @param bool        $deprecated  Not used.
+ * @param int|string|WP_Site $new_blog_id The ID of the blog, or its WP_Site object, to switch to. Default: current blog.
+ * @param bool               $deprecated  Not used.
  * @return true Always returns true.
  *
  * @phpstan-param null $deprecated
