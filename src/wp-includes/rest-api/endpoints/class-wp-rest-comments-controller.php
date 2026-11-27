@@ -732,7 +732,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( 'note' === $request['type'] && $request['parent'] ) {
-			$parent_check = $this->check_note_parent( absint( $request['parent'] ), absint( $request['post'] ) );
+			$parent_check = $this->check_note_parent( $request['parent'], $request['post'] );
 
 			if ( is_wp_error( $parent_check ) ) {
 				return $parent_check;
@@ -854,7 +854,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			 */
 			$existing = get_comments(
 				array(
-					'post_id' => absint( $request['post'] ),
+					'post_id' => $request['post'],
 					'parent'  => $request['parent'],
 					'user_id' => get_current_user_id(),
 					'type'    => 'reaction',
@@ -1045,7 +1045,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( null !== $reaction_key ) {
 			$matching   = get_comments(
 				array(
-					'post_id' => absint( $request['post'] ),
+					'post_id' => $request['post'],
 					'parent'  => $request['parent'],
 					'user_id' => get_current_user_id(),
 					'type'    => 'reaction',
@@ -1245,8 +1245,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( 'note' === $comment->comment_type ) {
-			$post_id   = isset( $request['post'] ) ? absint( $request['post'] ) : (int) $comment->comment_post_ID;
-			$parent_id = isset( $request['parent'] ) ? absint( $request['parent'] ) : (int) $comment->comment_parent;
+			$post_id   = isset( $request['post'] ) ? $request['post'] : (int) $comment->comment_post_ID;
+			$parent_id = isset( $request['parent'] ) ? $request['parent'] : (int) $comment->comment_parent;
 			$is_moving = $post_id !== (int) $comment->comment_post_ID;
 
 			if ( $parent_id && ( $is_moving || $parent_id !== (int) $comment->comment_parent ) ) {
