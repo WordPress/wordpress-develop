@@ -114,7 +114,7 @@ class WP_REST_Abilities_V1_Categories_Controller extends WP_REST_Controller {
 
 		$query_params = $request->get_query_params();
 		$base         = add_query_arg(
-			urlencode_deep( $query_params ),
+			rest_urlencode_query_params( $query_params ),
 			rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) )
 		);
 
