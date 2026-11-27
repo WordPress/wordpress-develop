@@ -34,6 +34,7 @@ function _wp_post_revision_fields( $post = array(), $deprecated = false ) {
 			'post_title'   => __( 'Title' ),
 			'post_content' => __( 'Content' ),
 			'post_excerpt' => __( 'Excerpt' ),
+			'post_meta'    => __( 'Post Meta' ),
 		);
 	}
 
