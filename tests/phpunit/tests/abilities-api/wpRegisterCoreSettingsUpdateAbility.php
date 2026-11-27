@@ -298,18 +298,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * Asserts that a result is an error with the given code and status.
-	 *
-	 * @param mixed  $result The result of the ability.
-	 * @param string $code   The expected error code.
-	 * @param int    $status The expected status.
-	 */
-	private function assert_error( $result, string $code, int $status ): void {
-		$this->assert_error_code( $result, $code );
-		$this->assertSame( array( 'status' => $status ), $result->get_error_data(), 'The error data should hold only the expected status.' );
-	}
-
-	/**
 	 * Asserts that a result is the error for a value a setting cannot use, which names the setting.
 	 *
 	 * @param mixed  $result The result of the ability.
@@ -435,6 +423,79 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		);
 		$this->assertSame( array( 'string', 'null' ), $properties['default_ping_status']['type'], 'A setting that lists its allowed values should accept null too.' );
 		$this->assertSame( array( 'open', 'closed', null ), $properties['default_ping_status']['enum'], 'Null should be added to the allowed values.' );
+	}
+
+	/**
+	 * A setting whose schema lists its allowed schemas in a top-level `anyOf` or `oneOf` accepts
+	 * a value of one of them or null, and refuses any other value.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_combining_keywords
+	 *
+	 * @param string $keyword The keyword that lists the allowed schemas.
+	 */
+	public function test_setting_with_allowed_schemas_accepts_null( string $keyword ): void {
+		$option = 'settings_update_test_allowed_schemas';
+		$schema = array(
+			$keyword => array(
+				array(
+					'type' => 'string',
+					'enum' => array( 'a', 'b' ),
+				),
+				array(
+					'type'    => 'string',
+					'pattern' => '^x',
+				),
+			),
+		);
+
+		register_setting(
+			'general',
+			$option,
+			array(
+				'type'              => 'string',
+				'show_in_abilities' => array( 'schema' => $schema ),
+			)
+		);
+		$this->register_ability();
+		$this->become_admin();
+
+		$property = wp_get_ability( self::ABILITY )->get_input_schema()['properties']['data']['properties'][ $option ];
+		$value    = $this->update( array( $option => 'a' ) );
+		$stored   = $this->snapshot()[ $option ] ?? null;
+		$other    = $this->update( array( $option => 'c' ) );
+		$reset    = $this->update( array( $option => null ) );
+
+		$this->assertSame(
+			array(
+				'anyOf' => array(
+					array( 'type' => 'string' ) + $schema,
+					array( 'type' => 'null' ),
+				),
+			),
+			$property,
+			'The input should list the schema of the setting and a null schema.'
+		);
+		$this->assertSame( array( $option => 'a' ), $value, 'A value of an allowed schema should be saved.' );
+		$this->assertSame( 'a', $stored, 'The value should be stored.' );
+		$this->assert_error_code( $other, 'ability_invalid_input' );
+		$this->assertSame( array(), $reset, 'Null should delete the stored value of a setting without a default.' );
+		$this->assertArrayNotHasKey( $option, $this->snapshot(), 'The stored value should be deleted.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}> Keywords that list allowed schemas.
+	 */
+	public static function data_combining_keywords(): array {
+		return array(
+			'anyOf' => array( 'anyOf' ),
+			'oneOf' => array( 'oneOf' ),
+		);
 	}
 
 	/**
@@ -667,15 +728,16 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$this->become_admin();
 		$this->deny_privacy_capability();
 		$before = $this->snapshot();
-
-		$result = $this->update(
-			array(
-				'title'                   => 'Changed title',
-				'page_for_privacy_policy' => null === $kind ? null : self::$fixture_ids[ $kind ],
-			)
+		$data   = array(
+			'title'                   => 'Changed title',
+			'page_for_privacy_policy' => null === $kind ? null : self::$fixture_ids[ $kind ],
 		);
 
-		$this->assert_error( $result, 'settings_cannot_manage_privacy_options', 403 );
+		$permission = wp_get_ability( self::ABILITY )->check_permissions( array( 'data' => $data ) );
+		$result     = $this->update( $data );
+
+		$this->assertFalse( $permission, 'The permission check should refuse the call.' );
+		$this->assert_error_code( $result, 'ability_invalid_permissions' );
 		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
 	}
 
@@ -714,8 +776,80 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		$result = $this->update( array( 'settings_update_test_privacy_page' => self::$fixture_ids['page'] ) );
 
-		$this->assert_error( $result, 'settings_cannot_manage_privacy_options', 403 );
+		$this->assert_error_code( $result, 'ability_invalid_permissions' );
 		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * A `wp_ability_permission_result` filter that grants the call lets a user without
+	 * `manage_options` update settings.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_permission_filter_grants_the_update(): void {
+		wp_set_current_user( self::$user_ids['subscriber'] );
+		add_filter( 'wp_ability_permission_result', '__return_true' );
+		$expected             = $this->snapshot();
+		$expected['blogname'] = 'Granted title';
+
+		$result = $this->update( array( 'title' => 'Granted title' ) );
+
+		$this->assertSame( array( 'title' => 'Granted title' ), $result, 'The output should show the saved value.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'The setting should be stored.' );
+	}
+
+	/**
+	 * A `wp_ability_permission_result` filter that grants the call lets a user without
+	 * `manage_privacy_options` set the privacy policy page.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_permission_filter_grants_the_privacy_policy_page(): void {
+		$this->become_admin();
+		$this->deny_privacy_capability();
+		add_filter( 'wp_ability_permission_result', '__return_true' );
+		$page_id = self::$fixture_ids['page'];
+
+		$result = $this->update( array( 'page_for_privacy_policy' => $page_id ) );
+
+		$this->assertSame( array( 'page_for_privacy_policy' => $page_id ), $result, 'The output should show the saved page.' );
+		$this->assertSame( (string) $page_id, $this->snapshot()['wp_page_for_privacy_policy'], 'The page should be stored.' );
+	}
+
+	/**
+	 * The permission check accepts input that was not prepared, as a direct call to
+	 * check_permissions() may pass, and leaves the refusal of invalid input to execute().
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_unprepared_input
+	 *
+	 * @param mixed $input The input.
+	 */
+	public function test_permission_check_accepts_unprepared_input( $input ): void {
+		$this->become_admin();
+
+		$this->assertTrue( wp_get_ability( self::ABILITY )->check_permissions( $input ), 'The permission check should allow an administrator.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: mixed}> Inputs that were not prepared.
+	 */
+	public static function data_unprepared_input(): array {
+		return array(
+			'no input'          => array( null ),
+			'a string input'    => array( 'title' ),
+			'a string for data' => array( array( 'data' => 'title' ) ),
+			'an object input'   => array( (object) array( 'data' => (object) array( 'title' => 'x' ) ) ),
+		);
 	}
 
 	/**
@@ -850,27 +984,53 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * The read-only rule holds when the option is exposed under another name.
+	 * The read-only rule holds for each read-only option, also when a plugin exposes it under
+	 * another name, or registers its name with surrounding spaces, which the options API trims.
 	 *
 	 * @ticket 64616
 	 *
 	 * @since 7.3.0
+	 *
+	 * @dataProvider data_read_only_options
+	 *
+	 * @param string $option The name the option is registered with.
 	 */
-	public function test_read_only_rule_follows_the_option_under_another_name(): void {
-		$name = 'settings_update_test_site_address';
+	public function test_read_only_rule_follows_the_option_under_another_name( string $option ): void {
+		$name = 'settings_update_test_read_only_option';
 
 		register_setting(
 			'general',
-			'siteurl',
+			$option,
 			array(
 				'type'              => 'string',
 				'show_in_abilities' => array( 'name' => $name ),
 			)
 		);
 		$this->register_ability();
+		$this->become_admin();
+		$before = $this->snapshot();
+
+		$result = $this->update( array( $name => 'https://acme.example' ) );
 
 		$this->assertArrayNotHasKey( $name, wp_get_ability( self::ABILITY )->get_input_schema()['properties']['data']['properties'], 'The option should not be writable under another name.' );
 		$this->assertArrayHasKey( $name, wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'], 'The option should still be read under another name.' );
+		$this->assert_error_code( $result, 'ability_invalid_input' );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}> Names that read-only options are registered with.
+	 */
+	public static function data_read_only_options(): array {
+		return array(
+			'the WordPress address'                => array( 'siteurl' ),
+			'the site address'                     => array( 'home' ),
+			'the administration email address'     => array( 'admin_email' ),
+			'the WordPress address with spaces'    => array( ' siteurl ' ),
+			'the site address with a trailing tab' => array( "home\t" ),
+		);
 	}
 
 	/**
@@ -1083,7 +1243,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'a UTC offset as the timezone'              => array( 'timezone', 'UTC+2' ),
 			'a language that is not installed'          => array( 'language', 'xx_XX' ),
 			'an unknown post format'                    => array( 'default_post_format', 'banana' ),
-			'an empty post format'                      => array( 'default_post_format', '' ),
 			'a front page that does not exist'          => array( 'page_on_front', 999999 ),
 			'a negative front page'                     => array( 'page_on_front', -1 ),
 			'a page for posts that does not exist'      => array( 'page_for_posts', 999999 ),
@@ -1278,6 +1437,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'a timezone under an old name' => array( 'timezone', 'timezone_string', 'Europe/Lisbon', 'US/Pacific' ),
 			'no default post format'       => array( 'default_post_format', 'default_post_format', 'aside', '0' ),
 			'the standard post format'     => array( 'default_post_format', 'default_post_format', 'aside', 'standard' ),
+			'an empty default post format' => array( 'default_post_format', 'default_post_format', 'aside', '' ),
 			'no front page'                => array( 'page_on_front', 'page_on_front', '5', 0 ),
 			'no page for posts'            => array( 'page_for_posts', 'page_for_posts', '5', 0 ),
 			'no privacy policy page'       => array( 'page_for_privacy_policy', 'wp_page_for_privacy_policy', '5', 0 ),
@@ -1396,8 +1556,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * A null value for a setting without a default is refused when the stored value does not
-	 * match the schema of the setting, and nothing is deleted. The error names the setting.
+	 * A null value is refused when the stored value does not match the schema of the setting,
+	 * with or without a default, and nothing is replaced or deleted. The error names the setting.
 	 *
 	 * @ticket 64616
 	 *
@@ -1417,11 +1577,11 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$result = $this->update( array( $name => null ) );
 
 		$this->assert_refused_setting_error( $result, 'settings_invalid_stored_value', 500, $name );
-		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be deleted.' );
+		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be replaced or deleted.' );
 	}
 
 	/**
-	 * Every setting whose stored value a null value cannot delete is reported.
+	 * Every setting whose stored value a null value cannot replace or delete is reported.
 	 *
 	 * @ticket 64616
 	 *
@@ -1450,7 +1610,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: string, 1: string, 2: mixed}> Stored values that a null value cannot delete.
+	 * @return array<string, array{0: string, 1: string, 2: mixed}> Stored values that a null value cannot replace or delete.
 	 */
 	public static function data_invalid_stored_values(): array {
 		return array(
@@ -1460,13 +1620,14 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'an empty string for an enum'          => array( 'default_ping_status', 'default_ping_status', '' ),
 			'an empty string for an email address' => array( 'settings_update_test_email', 'settings_update_test_email_option', '' ),
 			'an array for a string'                => array( 'title', 'blogname', array( 'A sneaky array!' ) ),
+			'a word for an integer with a default' => array( 'posts_per_page', 'posts_per_page', 'ten' ),
+			'a word for a boolean with a default'  => array( 'use_smilies', 'use_smilies', 'maybe' ),
 		);
 	}
 
 	/**
 	 * A null value resets a stored value that matches the schema of the setting, including the
-	 * forms in which a boolean is stored, any stored value of a setting with a default, and a
-	 * setting with no stored value.
+	 * forms in which a boolean is stored, and a setting with no stored value.
 	 *
 	 * @ticket 64616
 	 *
@@ -1504,7 +1665,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 			'"0" for a boolean'                       => array( 'use_smilies', 'use_smilies', '0', '{"use_smilies":true}' ),
 			'"1" for a boolean'                       => array( 'use_smilies', 'use_smilies', '1', '{"use_smilies":true}' ),
 			'no value for a boolean'                  => array( 'use_smilies', 'use_smilies', null, '{"use_smilies":true}' ),
-			'a word for an integer with a default'    => array( 'posts_per_page', 'posts_per_page', 'ten', '{"posts_per_page":10}' ),
 			'no value for an integer with a default'  => array( 'posts_per_page', 'posts_per_page', null, '{"posts_per_page":10}' ),
 			'no value for the language'               => array( 'language', 'WPLANG', null, '{"language":""}' ),
 			'no value for a string without a default' => array( 'title', 'blogname', null, '[]' ),

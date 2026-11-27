@@ -48,13 +48,13 @@ final class WP_Abilities_Settings {
 	/**
 	 * Options that `core/settings-update` cannot write, whatever name exposes them.
 	 *
-	 * The site address and the administration email address are left to Settings > General, which
-	 * confirms a new administration email address before it is used.
+	 * The WordPress address, the site address and the administration email address are left to
+	 * Settings > General, which confirms a new administration email address before it is used.
 	 *
 	 * @since 7.3.0
 	 * @var string[]
 	 */
-	private const READ_ONLY_OPTIONS = array( 'siteurl', 'admin_email' );
+	private const READ_ONLY_OPTIONS = array( 'siteurl', 'home', 'admin_email' );
 
 	/**
 	 * Settings exposed through the Abilities API, computed once at registration.
@@ -167,6 +167,9 @@ final class WP_Abilities_Settings {
 				'execute_callback'      => function ( $input ) {
 					return $this->execute_settings_update( $input );
 				},
+				'permission_callback'   => function ( $input = array() ): bool {
+					return $this->check_settings_update_permission( $input );
+				},
 				'required_capabilities' => array( 'manage_options' ),
 				'meta'                  => array(
 					'annotations' => array(
@@ -209,41 +212,56 @@ final class WP_Abilities_Settings {
 	}
 
 	/**
-	 * Executes the `core/settings-update` ability.
+	 * Checks the permission of the current user to update the settings named in a
+	 * `core/settings-update` call.
 	 *
-	 * Every check runs before the first write, so a call that ends in an error changes nothing.
-	 * The output holds only the settings named in the call, read the same way as for
-	 * `core/settings-get`.
+	 * The `manage_options` capability is checked before, as a required capability of the ability.
+	 * Setting or resetting the privacy policy page also requires the `manage_privacy_options`
+	 * capability.
+	 *
+	 * Intentionally strict: the whole call is refused, instead of leaving this one setting out
+	 * of the update. The rule belongs to the option, whatever name exposes it.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param array{data: array<int|string, mixed>} $input The ability input, as prepared by WP_Ability::execute().
+	 * @param mixed $input Optional. The ability input, which a direct call to
+	 *                     WP_Ability::check_permissions() may pass unprepared. Default empty array.
+	 * @return bool Whether the current user can update the named settings.
+	 */
+	private function check_settings_update_permission( $input = array() ): bool {
+		$input = rest_sanitize_object( $input );
+		$named = array_intersect_key( $this->writable_settings, rest_sanitize_object( $input['data'] ?? array() ) );
+
+		return ! in_array( 'wp_page_for_privacy_policy', array_column( $named, 'option' ), true )
+			|| current_user_can( 'manage_privacy_options' );
+	}
+
+	/**
+	 * Executes the `core/settings-update` ability.
+	 *
+	 * The checks of the ability run before the first write, so a call they refuse changes nothing.
+	 * A callback that runs while a value is saved, such as the sanitize callback of a setting, can
+	 * still stop the call after the settings before it are saved. The output holds only the
+	 * settings named in the call, read the same way as for `core/settings-get`.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $input The ability input, as prepared by WP_Ability::execute().
 	 * @return array<string, mixed>|WP_Error Map of the named setting names to their values after the update,
 	 *                                       or an error when the update is refused.
 	 */
-	private function execute_settings_update( array $input ) {
-		$data  = $input['data'];
+	private function execute_settings_update( $input ) {
+		$input = rest_sanitize_object( $input );
+		$data  = rest_sanitize_object( $input['data'] ?? array() );
 		$named = array_intersect_key( $this->writable_settings, $data );
 
 		/*
-		 * Intentionally strict: the whole call is refused, instead of leaving this one setting out
-		 * of the update. The rule belongs to the option, whatever name exposes it.
-		 */
-		if ( in_array( 'wp_page_for_privacy_policy', array_column( $named, 'option' ), true ) && ! current_user_can( 'manage_privacy_options' ) ) {
-			return new WP_Error(
-				'settings_cannot_manage_privacy_options',
-				__( 'Sorry, you are not allowed to manage privacy options on this site.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		/*
-		 * Intentionally strict: every value is checked before the first write, so a refused call
-		 * changes nothing. A value is refused when the setting cannot use it, instead of being
-		 * saved as sent or silently replaced with the stored value. A null value for a setting
-		 * without a default is refused while it has a stored value that `core/settings-get` leaves
-		 * out, because the value does not match the setting's schema: the caller cannot see what
-		 * would be deleted. Unusable values are reported first.
+		 * Intentionally strict: every value is checked before the first write, so a call refused
+		 * here changes nothing. A value is refused when the setting cannot use it, instead of being
+		 * saved as sent or silently replaced with the stored value. A null value is refused while
+		 * the setting has a stored value that `core/settings-get` leaves out, because the value does
+		 * not match the setting's schema: the caller cannot see what would be replaced or deleted.
+		 * Unusable values are reported first.
 		 *
 		 * Intentional: a null value stores the default of a setting that has one, and deletes the
 		 * stored value of a setting without one. A registered default only applies in requests that
@@ -271,9 +289,8 @@ final class WP_Abilities_Settings {
 					$invalid_params[ "data[{$exposed_name}]" ] = $message;
 				}
 			} elseif (
-				null === $value
-				// The stored value reads as null when there is none, and then there is nothing to delete.
-				&& null !== get_option( $setting['option'], null )
+				// The stored value reads as null when there is none, and then there is nothing to replace.
+				null !== get_option( $setting['option'], null )
 				&& array() === $this->get_setting_values( array( $exposed_name => $setting ) )
 			) {
 				$invalid_stored[ "data[{$exposed_name}]" ] = sprintf(
@@ -352,7 +369,7 @@ final class WP_Abilities_Settings {
 	 * Checks a value that matches its schema against what the option can use.
 	 *
 	 * The rules belong to the option, whatever name exposes it: a timezone and a language must be
-	 * empty or known to the site, a default post format must be `0` or a post format, a page
+	 * empty or known to the site, a default post format must be `0`, empty or a post format, a page
 	 * setting must be 0 or the ID of a page that is not in the trash or an auto-draft, and the
 	 * default category must be the ID of a category.
 	 *
@@ -377,7 +394,8 @@ final class WP_Abilities_Settings {
 				break;
 
 			case 'default_post_format':
-				if ( '0' !== $value && ! in_array( $value, get_post_format_slugs(), true ) ) {
+				// An empty value is the standard format, as `0` is.
+				if ( '0' !== $value && '' !== $value && ! in_array( $value, get_post_format_slugs(), true ) ) {
 					return __( 'Invalid post format.' );
 				}
 				break;
@@ -385,7 +403,14 @@ final class WP_Abilities_Settings {
 			case 'page_on_front':
 			case 'page_for_posts':
 			case 'wp_page_for_privacy_policy':
-				// The Settings screens never offer a page that is in the trash or an auto-draft.
+				/*
+				 * The Settings screens never offer a page that is in the trash or an auto-draft.
+				 *
+				 * Known gap: a page in any other status is accepted, such as a draft, pending, private
+				 * or scheduled page, which logged-out visitors cannot see. Settings > Reading offers only
+				 * published pages for the front page and the page for posts, but only in its form: the
+				 * Settings API has no rule for the status of these pages yet.
+				 */
 				if (
 					0 !== $value
 					&& (
@@ -522,7 +547,9 @@ final class WP_Abilities_Settings {
 	/**
 	 * Allows null in a setting's value schema.
 	 *
-	 * Adds `null` to the type, and to the allowed values when the schema lists them. Removes
+	 * Adds `null` to the type, and to the allowed values when the schema lists them. A schema
+	 * with a top-level `anyOf` or `oneOf` is kept as is and listed with a null schema in an
+	 * `anyOf` instead, because a null type would still be refused by its subschemas. Removes
 	 * the default, which is for reading a setting: a client that fills in defaults would
 	 * otherwise write it on every call. Nested schemas are not changed.
 	 *
@@ -530,13 +557,37 @@ final class WP_Abilities_Settings {
 	 *
 	 * @param array<string, mixed> $schema The value JSON Schema.
 	 * @return array<string, mixed> The value JSON Schema that also accepts null.
+	 *
+	 * @phpstan-param array{
+	 *     type: non-empty-string|non-empty-string[],
+	 *     enum?: mixed[],
+	 *     default?: mixed,
+	 *     ...
+	 * } $schema
+	 * @phpstan-return array{
+	 *     type: non-empty-string[],
+	 *     enum?: mixed[],
+	 *     ...
+	 * }|array{
+	 *     anyOf: array{ array<string, mixed>, array{ type: 'null' } },
+	 * }
 	 */
 	private function nullable_schema( array $schema ): array {
-		$schema['type'] = array( $schema['type'], 'null' );
+		unset( $schema['default'] );
+
+		if ( isset( $schema['anyOf'] ) || isset( $schema['oneOf'] ) ) {
+			return array(
+				'anyOf' => array(
+					$schema,
+					array( 'type' => 'null' ),
+				),
+			);
+		}
+
+		$schema['type'] = array_merge( (array) $schema['type'], array( 'null' ) );
 		if ( isset( $schema['enum'] ) ) {
 			$schema['enum'][] = null;
 		}
-		unset( $schema['default'] );
 
 		return $schema;
 	}
@@ -618,7 +669,8 @@ final class WP_Abilities_Settings {
 			 * overrides the registered default.
 			 */
 			$settings[ $exposed_name ] = array(
-				'option'  => $option_name,
+				// The options API trims the name, so the rules that name an option compare the trimmed name.
+				'option'  => trim( $option_name ),
 				'group'   => $args['group'] ?? '',
 				'default' => array_key_exists( 'default', $schema ) ? $schema['default'] : ( $args['default'] ?? null ),
 				'schema'  => $schema,

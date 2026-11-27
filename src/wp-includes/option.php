@@ -3039,7 +3039,8 @@ function _wp_register_initial_settings_for_abilities(): void {
  *              Please consider writing more inclusive code.
  * @since 6.6.0 Added the `label` argument.
  * @since 7.2.0 Added the `show_in_abilities` argument.
- * @since 7.3.0 Settings exposed with the `show_in_abilities` argument can be updated through the Abilities API.
+ * @since 7.3.0 Settings exposed with the `show_in_abilities` argument can be updated through the Abilities API,
+ *              including settings exposed before, unless their schema sets 'readonly' to true.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
