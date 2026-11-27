@@ -137,3 +137,45 @@ function options_reading_blog_charset() {
 	echo '<input name="blog_charset" type="text" id="blog_charset" value="' . esc_attr( get_option( 'blog_charset' ) ) . '" class="regular-text" />';
 	echo '<p class="description">' . __( 'The <a href="https://wordpress.org/documentation/article/wordpress-glossary/#character-set">character encoding</a> of your site (UTF-8 is recommended)' ) . '</p>';
 }
+
+/**
+ * Updates the date and time formats after the site language changes.
+ *
+ * A format is only updated when it still matches the default format of the
+ * previous locale, so formats chosen by the user are kept.
+ *
+ * @since 7.3.0
+ *
+ * @param string $old_locale The site locale before the change.
+ * @param string $new_locale The site locale after the change.
+ */
+function wp_update_date_time_formats_on_locale_change( $old_locale, $new_locale ) {
+	if ( $old_locale === $new_locale ) {
+		return;
+	}
+
+	/*
+	 * Load the translations directly, as switch_to_locale() does not know
+	 * about language packs installed during the current request.
+	 */
+	load_default_textdomain( $old_locale );
+	$old_formats = array(
+		'date_format' => __( 'F j, Y' ),
+		'time_format' => __( 'g:i a' ),
+	);
+
+	load_default_textdomain( $new_locale );
+	$new_formats = array(
+		'date_format' => __( 'F j, Y' ),
+		'time_format' => __( 'g:i a' ),
+	);
+
+	// Restore the translations for the current user.
+	load_default_textdomain();
+
+	foreach ( $old_formats as $option => $old_format ) {
+		if ( get_option( $option ) === $old_format ) {
+			update_option( $option, $new_formats[ $option ] );
+		}
+	}
+}

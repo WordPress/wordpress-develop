@@ -62,3 +62,13 @@ msgstr "[%1$s] Confirmar la acción: %2$s"
 msgid "[%s] Erasure Request Fulfilled"
 msgstr "[%s] Solicitud de borrado completada"
 
+
+#. translators: Default date format, see https://www.php.net/manual/datetime.format.php
+#: wp-admin/includes/schema.php:436
+msgid "F j, Y"
+msgstr "j \\d\\e F \\d\\e Y"
+
+#. translators: Default time format, see https://www.php.net/manual/datetime.format.php
+#: wp-admin/includes/schema.php:438
+msgid "g:i a"
+msgstr "H:i"
