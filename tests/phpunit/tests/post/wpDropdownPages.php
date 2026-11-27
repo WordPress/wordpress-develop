@@ -219,4 +219,43 @@ NO;
 
 		$this->assertMatchesRegularExpression( '/<select[^>]+class=\'bar\'/', $found );
 	}
+
+	/**
+	 * @ticket 20810
+	 */
+	public function test_disabled_true_should_add_disabled_attribute() {
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		$found = wp_dropdown_pages(
+			array(
+				'echo'     => 0,
+				'disabled' => true,
+			)
+		);
+
+		$this->assertMatchesRegularExpression( '/<select[^>]+disabled/', $found );
+	}
+
+	/**
+	 * @ticket 20810
+	 */
+	public function test_disabled_should_default_to_false() {
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+
+		$found = wp_dropdown_pages(
+			array(
+				'echo' => 0,
+			)
+		);
+
+		$this->assertDoesNotMatchRegularExpression( '/<select[^>]+disabled/', $found );
+	}
 }
