@@ -3654,7 +3654,14 @@ function wp_ajax_query_themes() {
 	$api = themes_api( 'query_themes', $args );
 
 	if ( is_wp_error( $api ) ) {
-		wp_send_json_error();
+		$error_data = $api->get_error_data();
+		$response   = array();
+
+		if ( is_string( $error_data ) && '' !== trim( $error_data ) ) {
+			$response['errorData'] = wp_strip_all_tags( $error_data );
+		}
+
+		wp_send_json_error( $response );
 	}
 
 	$update_php = network_admin_url( 'update.php?action=install-theme' );
