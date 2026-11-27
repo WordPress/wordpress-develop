@@ -30,7 +30,8 @@ if ( ! defined( 'BLOGUPLOADDIR' ) ) {
 	die( '500 &#8212; Directory not configured.' );
 }
 
-if ( ! isset( $_GET['file'] ) || ! is_string( $_GET['file'] ) ) {
+// As of PHP 8.6, is_file() throws a ValueError for a path containing a NUL byte.
+if ( ! isset( $_GET['file'] ) || ! is_string( $_GET['file'] ) || str_contains( $_GET['file'], "\0" ) ) {
 	status_header( 404 );
 	die( '404 &#8212; File not found.' );
 }
