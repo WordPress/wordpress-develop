@@ -15,15 +15,16 @@ parameters:
 		max: 80600
 	treatPhpDocTypesAsCertain: false
 
-	# The hook functions are reflected from core itself, so the tests see the same
-	# signatures the analysis does. The helpers are declared for the fixtures that
-	# pass a filtered value through another call.
+	# The hook functions and wpdb are reflected from core itself, so the tests see
+	# the same signatures the analysis does. The helpers are declared for the
+	# fixtures that pass a filtered value through another call.
 	#
 	# These are loaded rather than scanned because the test harness replaces the
 	# source locator that `scanFiles` feeds, and reflects only what is autoloadable
 	# or already declared in the process.
 	bootstrapFiles:
 		- ../../../src/wp-includes/plugin.php
+		- ../../../src/wp-includes/class-wpdb.php
 		- data/functions.php
 		- data/hash-notation.php
 
@@ -54,3 +55,13 @@ services:
 		class: WordPress\PHPStan\ApplyFiltersDynamicFunctionReturnTypeExtension
 		tags:
 			- phpstan.broker.dynamicFunctionReturnTypeExtension
+
+	-
+		class: WordPress\PHPStan\WpdbQueryVisitor
+		tags:
+			- phpstan.parser.richParserNodeVisitor
+
+	-
+		class: WordPress\PHPStan\WpdbQueryDynamicMethodReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicMethodReturnTypeExtension
