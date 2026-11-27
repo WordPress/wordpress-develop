@@ -33,6 +33,15 @@ class WP_Users_List_Table extends WP_List_Table {
 	public $is_site_users;
 
 	/**
+	 * IDs of users on the current page whose email address is also used by another
+	 * user, ignoring letter case.
+	 *
+	 * @since 7.3.0
+	 * @var list<int>
+	 */
+	protected $duplicate_email_user_ids = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 3.1.0
@@ -411,6 +420,15 @@ class WP_Users_List_Table extends WP_List_Table {
 			$post_counts = count_many_users_posts( array_keys( $this->items ) );
 		}
 
+		/*
+		 * On multisite the users table is shared by the whole network, so a site admin
+		 * could be warned about an account on another site they cannot see or manage.
+		 * There the network Users screen shows the warning instead.
+		 */
+		if ( ! is_multisite() ) {
+			$this->duplicate_email_user_ids = _wp_get_duplicate_email_user_ids( $this->items );
+		}
+
 		foreach ( $this->items as $userid => $user_object ) {
 			echo "\n\t" . $this->single_row( $user_object, '', '', isset( $post_counts ) ? $post_counts[ $userid ] : 0 );
 		}
@@ -599,6 +617,12 @@ class WP_Users_List_Table extends WP_List_Table {
 						break;
 					case 'email':
 						$row .= "<a href='" . esc_url( "mailto:$email" ) . "'>$email</a>";
+						if ( in_array( $user_object->ID, $this->duplicate_email_user_ids, true ) ) {
+							$row .= sprintf(
+								'<p class="duplicate-email"><span class="dashicons dashicons-warning" aria-hidden="true"></span> %s</p>',
+								__( 'Another user has this email address, possibly with different letter case.' )
+							);
+						}
 						break;
 					case 'role':
 						$row .= esc_html( $roles_list );
