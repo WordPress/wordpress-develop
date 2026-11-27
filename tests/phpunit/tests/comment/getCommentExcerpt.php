@@ -43,4 +43,52 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		return 10;
 	}
+
+	/**
+	 * @ticket 43792
+	 *
+	 * @dataProvider data_get_comment_excerpt_is_trimmed
+	 *
+	 * @param string $content  Comment content.
+	 * @param int    $length   Excerpt length in words.
+	 * @param bool   $expected Expected value of the `$is_trimmed` filter argument.
+	 */
+	public function test_get_comment_excerpt_filter_receives_is_trimmed( $content, $length, $expected ) {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_content' => $content,
+			)
+		);
+
+		$is_trimmed = null;
+		add_filter(
+			'get_comment_excerpt',
+			static function ( $excerpt, $id, $comment, $trimmed ) use ( &$is_trimmed ) {
+				$is_trimmed = $trimmed;
+				return $excerpt;
+			},
+			10,
+			4
+		);
+		add_filter(
+			'comment_excerpt_length',
+			static function () use ( $length ) {
+				return $length;
+			}
+		);
+
+		get_comment_excerpt( $comment_id );
+
+		$this->assertSame( $expected, $is_trimmed );
+	}
+
+	public function data_get_comment_excerpt_is_trimmed() {
+		return array(
+			'long comment'                        => array( self::$bacon_comment, 20, true ),
+			'short comment'                       => array( 'Short comment.', 20, false ),
+			'word count equals the limit'         => array( 'one two three four five', 5, false ),
+			'word count exceeds the limit'        => array( 'one two three four five six', 5, true ),
+			'short comment ending in an ellipsis' => array( 'Wait for it&hellip;', 20, false ),
+		);
+	}
 }
