@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 if ( class_exists( 'SimplePie', false ) ) {
 	return;
 }
