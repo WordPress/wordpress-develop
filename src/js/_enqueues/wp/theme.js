@@ -1783,6 +1783,8 @@ themes.view.Installer = themes.view.Appearance.extend({
 
 		// Bail if this is already active.
 		if ( $el.hasClass( this.activeClass ) ) {
+			// The filters closed without a new query, so bring back the count.
+			this.restoreThemeCount();
 			return;
 		}
 
@@ -1908,6 +1910,24 @@ themes.view.Installer = themes.view.Appearance.extend({
 				username: username
 			},
 			success: function () {
+				var queries = that.collection.queries;
+
+				/*
+				 * Drop cached favorites results, such as the empty one from before a
+				 * username was saved, so they are not served for the previous username.
+				 */
+				that.collection.queries = _.reject( queries, function( query ) {
+					return 'favorites' === query.request.browse;
+				} );
+
+				/*
+				 * The Favorites tab queries without a user (the server uses the saved
+				 * one), so use the same request to share its cache entry.
+				 */
+				if ( username ) {
+					request = { browse: 'favorites' };
+				}
+
 				// Get the themes by sending Ajax POST request to api.wordpress.org/themes
 				// or searching the local cache.
 				that.collection.query( request );
@@ -1959,10 +1979,25 @@ themes.view.Installer = themes.view.Appearance.extend({
 		});
 	},
 
+	/**
+	 * Restores the theme count that was reset when the filters were opened.
+	 *
+	 * Used when the filters close without a new query, so the results
+	 * that are shown again keep their count.
+	 */
+	restoreThemeCount: function() {
+		var $count = $( '.wrap .theme-count' );
+
+		if ( undefined !== $count.data( 'previous-count' ) ) {
+			$count.text( $count.data( 'previous-count' ) ).removeData( 'previous-count' );
+		}
+	},
+
 	// Toggle the full filters navigation.
 	moreFilters: function( event ) {
 		var $body = $( 'body' ),
-			$toggleButton = $( '.drawer-toggle' );
+			$toggleButton = $( '.drawer-toggle' ),
+			$count = $( '.wrap .theme-count' );
 
 		event.preventDefault();
 
@@ -1975,6 +2010,19 @@ themes.view.Installer = themes.view.Appearance.extend({
 		themes.router.navigate( themes.router.baseUrl( '' ) );
 		// Toggle the feature filters view.
 		$body.toggleClass( 'show-filters' );
+
+		/*
+		 * Opening the filters hides the previous section's results, so drop its stale
+		 * message and reset the theme count. Closing them without applying a filter
+		 * shows those results again, so restore the count.
+		 */
+		if ( $body.hasClass( 'show-filters' ) ) {
+			$body.removeClass( 'no-results' );
+			$count.data( 'previous-count', $count.text() ).text( 0 );
+		} else {
+			this.restoreThemeCount();
+		}
+
 		// Toggle the `aria-expanded` button attribute.
 		$toggleButton.attr( 'aria-expanded', $body.hasClass( 'show-filters' ) );
 	},
