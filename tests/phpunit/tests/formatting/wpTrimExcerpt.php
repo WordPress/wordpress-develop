@@ -96,6 +96,75 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 52820
+	 */
+	public function test_wp_trim_excerpt_filter_should_receive_generated_excerpt_before_trimming() {
+		$post_content     = $this->generate_words( 60 );
+		$expected_excerpt = $this->generate_words( 55 ) . ' [&hellip;]';
+
+		$post = self::factory()->post->create(
+			array(
+				'post_content' => $post_content,
+			)
+		);
+
+		$captured_excerpt     = null;
+		$captured_raw_excerpt = null;
+		$filter               = static function ( $excerpt, $raw_excerpt ) use ( &$captured_excerpt, &$captured_raw_excerpt ) {
+			$captured_excerpt     = $excerpt;
+			$captured_raw_excerpt = $raw_excerpt;
+
+			return $excerpt;
+		};
+
+		add_filter( 'wp_trim_excerpt', $filter, 10, 2 );
+
+		try {
+			$excerpt = wp_trim_excerpt( '', $post );
+		} finally {
+			remove_filter( 'wp_trim_excerpt', $filter, 10 );
+		}
+
+		$this->assertSame( $expected_excerpt, $excerpt );
+		$this->assertSame( $expected_excerpt, $captured_excerpt );
+		$this->assertSame( wpautop( $post_content ), $captured_raw_excerpt );
+	}
+
+	/**
+	 * @ticket 52820
+	 */
+	public function test_wp_trim_excerpt_filter_should_receive_manual_excerpt_before_trimming() {
+		$manual_excerpt = $this->generate_words( 60 );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_content' => 'Post content',
+			)
+		);
+
+		$captured_excerpt     = null;
+		$captured_raw_excerpt = null;
+		$filter               = static function ( $excerpt, $raw_excerpt ) use ( &$captured_excerpt, &$captured_raw_excerpt ) {
+			$captured_excerpt     = $excerpt;
+			$captured_raw_excerpt = $raw_excerpt;
+
+			return $excerpt;
+		};
+
+		add_filter( 'wp_trim_excerpt', $filter, 10, 2 );
+
+		try {
+			$excerpt = wp_trim_excerpt( $manual_excerpt, $post );
+		} finally {
+			remove_filter( 'wp_trim_excerpt', $filter, 10 );
+		}
+
+		$this->assertSame( $manual_excerpt, $excerpt );
+		$this->assertSame( $manual_excerpt, $captured_excerpt );
+		$this->assertSame( $manual_excerpt, $captured_raw_excerpt );
+	}
+
+	/**
 	 * Tests that `wp_trim_excerpt()` unhooks `wp_filter_content_tags()` from 'the_content' filter.
 	 *
 	 * @ticket 56588
@@ -222,5 +291,21 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 
 		// Assert that the filter callback was not restored after running 'the_content'.
 		$this->assertFalse( has_filter( 'the_content', 'do_blocks' ) );
+	}
+
+	/**
+	 * Generates a string with a specific number of words.
+	 *
+	 * @param int $count Number of words to generate.
+	 * @return string Generated string.
+	 */
+	private function generate_words( $count ) {
+		$words = array();
+
+		for ( $i = 1; $i <= $count; $i++ ) {
+			$words[] = "word{$i}";
+		}
+
+		return implode( ' ', $words );
 	}
 }
