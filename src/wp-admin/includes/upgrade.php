@@ -655,9 +655,14 @@ if ( ! function_exists( 'wp_upgrade' ) ) :
 	 * Upgrades the database if needed during a site update.
 	 *
 	 * @since 2.1.0
+	 * @since 7.3.0 Returns a `WP_Error` object, and leaves the database version unchanged,
+	 *              if database queries failed during the upgrade.
 	 *
 	 * @global int $wp_current_db_version The old (current) database version.
 	 * @global int $wp_db_version         The new database version.
+	 *
+	 * @return true|WP_Error True if the database was upgraded or no upgrade was needed,
+	 *                       WP_Error if database queries failed during the upgrade.
 	 */
 	function wp_upgrade() {
 		global $wp_current_db_version, $wp_db_version;
@@ -666,15 +671,21 @@ if ( ! function_exists( 'wp_upgrade' ) ) :
 
 		// We are up to date. Nothing to do.
 		if ( $wp_db_version === $wp_current_db_version ) {
-			return;
+			return true;
 		}
 
 		if ( ! is_blog_installed() ) {
-			return;
+			return true;
 		}
+
+		$old_db_version = $wp_current_db_version;
 
 		wp_check_mysql_version();
 		wp_cache_flush();
+
+		// Start keeping track of database errors, so a failed upgrade can be detected.
+		_wp_upgrade_db_errors( true );
+
 		pre_schema_upgrade();
 		make_db_current_silent();
 		upgrade_all();
@@ -682,6 +693,31 @@ if ( ! function_exists( 'wp_upgrade' ) ) :
 			upgrade_network();
 		}
 		wp_cache_flush();
+
+		$db_errors = _wp_upgrade_db_errors();
+
+		if ( $db_errors ) {
+			/*
+			 * The network upgrade runs after upgrade_all(), which may have already
+			 * recorded the new database version. Make sure the upgrade runs again.
+			 */
+			if ( (int) __get_option( 'db_version' ) === $wp_db_version ) {
+				update_option( 'db_version', $old_db_version );
+				update_option( 'db_upgraded', false );
+				wp_cache_flush();
+			}
+
+			$error = new WP_Error(
+				'db_upgrade_failed',
+				__( 'The database could not be updated because one or more database queries failed.' )
+			);
+
+			foreach ( $db_errors as $db_error ) {
+				$error->add( 'db_upgrade_error', $db_error['error_str'], $db_error );
+			}
+
+			return $error;
+		}
 
 		if ( is_multisite() ) {
 			update_site_meta( get_current_blog_id(), 'db_version', $wp_db_version );
@@ -699,8 +735,61 @@ if ( ! function_exists( 'wp_upgrade' ) ) :
 		 * @param int $wp_current_db_version The old (current) $wp_db_version.
 		 */
 		do_action( 'wp_upgrade', $wp_db_version, $wp_current_db_version );
+
+		return true;
 	}
 endif;
+
+/**
+ * Tracks the database errors that occur while the database is being upgraded.
+ *
+ * Errors raised while error suppression is turned on via wpdb::suppress_errors()
+ * are expected failures, for example dropping a column that may already be gone,
+ * and are not reported.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @global array $EZSQL_ERROR Stores error information of query and error string.
+ *
+ * @param bool $start Optional. Whether to start tracking errors from this point on.
+ *                    Default false.
+ * @return array[] {
+ *     Database errors recorded since tracking started. An empty array when
+ *     tracking has not been started.
+ *
+ *     @type array ...$0 {
+ *         @type string $query      The query that failed.
+ *         @type string $error_str  The error message.
+ *         @type bool   $suppressed Whether errors were suppressed. Always false here.
+ *     }
+ * }
+ */
+function _wp_upgrade_db_errors( $start = false ) {
+	global $EZSQL_ERROR;
+	static $offset = null;
+
+	$errors = is_array( $EZSQL_ERROR ) ? $EZSQL_ERROR : array();
+
+	if ( $start ) {
+		$offset = count( $errors );
+		return array();
+	}
+
+	if ( null === $offset ) {
+		return array();
+	}
+
+	$errors = array_slice( $errors, $offset );
+
+	foreach ( $errors as $key => $error ) {
+		if ( ! empty( $error['suppressed'] ) ) {
+			unset( $errors[ $key ] );
+		}
+	}
+
+	return array_values( $errors );
+}
 
 /**
  * Functions to be called in installation and upgrade scripts.
@@ -895,6 +984,14 @@ function upgrade_all() {
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
+
+	/*
+	 * If any of the database queries failed, leave the database version alone,
+	 * so the upgrade runs again once the cause of the failure is resolved.
+	 */
+	if ( _wp_upgrade_db_errors() ) {
+		return;
+	}
 
 	update_option( 'db_version', $wp_db_version );
 	update_option( 'db_upgraded', true );
@@ -1212,11 +1309,11 @@ function upgrade_160() {
 
 	endforeach;
 	$old_user_fields = array( 'user_firstname', 'user_lastname', 'user_icq', 'user_aim', 'user_msn', 'user_yim', 'user_idmode', 'user_ip', 'user_domain', 'user_browser', 'user_description', 'user_nickname', 'user_level' );
-	$wpdb->hide_errors();
+	$suppress        = $wpdb->suppress_errors();
 	foreach ( $old_user_fields as $old ) {
 		$wpdb->query( "ALTER TABLE $wpdb->users DROP $old" );
 	}
-	$wpdb->show_errors();
+	$wpdb->suppress_errors( $suppress );
 
 	// Populate comment_count field of posts table.
 	$comments = $wpdb->get_results( "SELECT comment_post_ID, COUNT(*) as c FROM $wpdb->comments WHERE comment_approved = '1' GROUP BY comment_post_ID" );
@@ -1541,11 +1638,11 @@ function upgrade_230() {
 function upgrade_230_options_table() {
 	global $wpdb;
 	$old_options_fields = array( 'option_can_override', 'option_type', 'option_width', 'option_height', 'option_description', 'option_admin_level' );
-	$wpdb->hide_errors();
+	$suppress           = $wpdb->suppress_errors();
 	foreach ( $old_options_fields as $old ) {
 		$wpdb->query( "ALTER TABLE $wpdb->options DROP $old" );
 	}
-	$wpdb->show_errors();
+	$wpdb->suppress_errors( $suppress );
 }
 
 /**
@@ -1848,15 +1945,15 @@ function upgrade_340() {
 	global $wp_current_db_version, $wpdb;
 
 	if ( $wp_current_db_version < 19798 ) {
-		$wpdb->hide_errors();
+		$suppress = $wpdb->suppress_errors();
 		$wpdb->query( "ALTER TABLE $wpdb->options DROP COLUMN blog_id" );
-		$wpdb->show_errors();
+		$wpdb->suppress_errors( $suppress );
 	}
 
 	if ( $wp_current_db_version < 19799 ) {
-		$wpdb->hide_errors();
+		$suppress = $wpdb->suppress_errors();
 		$wpdb->query( "ALTER TABLE $wpdb->comments DROP INDEX comment_approved" );
-		$wpdb->show_errors();
+		$wpdb->suppress_errors( $suppress );
 	}
 
 	if ( $wp_current_db_version < 20022 && wp_should_upgrade_global_tables() ) {
@@ -2713,7 +2810,7 @@ function maybe_create_table( $table_name, $create_ddl ) {
 function drop_index( $table, $index ) {
 	global $wpdb;
 
-	$wpdb->hide_errors();
+	$suppress = $wpdb->suppress_errors();
 
 	$wpdb->query( "ALTER TABLE `$table` DROP INDEX `$index`" );
 
@@ -2722,7 +2819,7 @@ function drop_index( $table, $index ) {
 		$wpdb->query( "ALTER TABLE `$table` DROP INDEX `{$index}_$i`" );
 	}
 
-	$wpdb->show_errors();
+	$wpdb->suppress_errors( $suppress );
 
 	return true;
 }
