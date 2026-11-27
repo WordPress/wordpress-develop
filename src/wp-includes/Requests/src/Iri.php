@@ -725,9 +725,9 @@ class Iri {
 		$array_props = array( 'normalization' );
 		foreach ( $class_props as $prop => $default_value ) {
 			if ( in_array( $prop, $string_props, true ) && ! is_string( $this->$prop ) ) {
-				throw new UnexpectedValueException();
+				throw new \UnexpectedValueException();
 			} elseif ( in_array( $prop, $array_props, true ) && ! is_array( $this->$prop ) ) {
-				throw new UnexpectedValueException();
+				throw new \UnexpectedValueException();
 			}
 			$this->$prop = null;
 		}
