@@ -153,8 +153,9 @@ class WP_Media_List_Table extends WP_List_Table {
 		$filter = empty( $_GET['attachment-filter'] ) ? '' : $_GET['attachment-filter'];
 
 		$type_links['all'] = sprintf(
-			'<option value=""%s>%s</option>',
+			'<option value=""%s>%s%s</option>',
 			selected( $filter, true, false ),
+			'<span class="dashicons dashicons-format-gallery"></span> ',
 			__( 'All media items' )
 		);
 
@@ -170,26 +171,31 @@ class WP_Media_List_Table extends WP_List_Table {
 				false
 			);
 
+			$dashicon = ! empty( $label[3] ) ? "<span class='dashicons dashicons-$label[3]'></span> " : '';
+
 			$type_links[ $mime_type ] = sprintf(
-				'<option value="post_mime_type:%s"%s>%s</option>',
+				'<option value="post_mime_type:%s"%s>%s%s</option>',
 				esc_attr( $mime_type ),
 				$selected,
+				$dashicon,
 				$label[0]
 			);
 		}
 
-		$type_links['detached'] = '<option value="detached"' . ( $this->detached ? ' selected="selected"' : '' ) . '>' . _x( 'Unattached', 'media items' ) . '</option>';
+		$type_links['detached'] = '<option value="detached"' . ( $this->detached ? ' selected="selected"' : '' ) . '><span class="dashicons dashicons-no"></span> ' . _x( 'Unattached', 'media items' ) . '</option>';
 
 		$type_links['mine'] = sprintf(
-			'<option value="mine"%s>%s</option>',
+			'<option value="mine"%s>%s%s</option>',
 			selected( 'mine' === $filter, true, false ),
+			'<span class="dashicons dashicons-admin-users"></span> ',
 			_x( 'Mine', 'media items' )
 		);
 
 		if ( $this->is_trash || ( defined( 'MEDIA_TRASH' ) && MEDIA_TRASH ) ) {
 			$type_links['trash'] = sprintf(
-				'<option value="trash"%s>%s</option>',
+				'<option value="trash"%s>%s%s</option>',
 				selected( 'trash' === $filter, true, false ),
+				'<span class="dashicons dashicons-trash"></span> ',
 				_x( 'Trash', 'attachment filter' )
 			);
 		}
@@ -316,6 +322,9 @@ class WP_Media_List_Table extends WP_List_Table {
 					?>
 				</label>
 				<select class="attachment-filters" name="attachment-filter" id="attachment-filter">
+					<button>
+						<selectedcontent></selectedcontent>
+					</button>
 					<?php
 					if ( ! empty( $views ) ) {
 						foreach ( $views as $class => $view ) {
