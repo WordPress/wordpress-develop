@@ -1,5 +1,10 @@
 <?php
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+    die( '-1' );
+}
+
 if (class_exists('ParagonIE_Sodium_Core_AES_Expanded', false)) {
     return;
 }

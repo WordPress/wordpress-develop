@@ -9,6 +9,11 @@ namespace SimplePie\Cache;
 
 use InvalidArgumentException;
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+    die( '-1' );
+}
+
 /**
  * Adapter for deprecated \SimplePie\Cache\Base implementations
  *
