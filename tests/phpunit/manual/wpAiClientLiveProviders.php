@@ -68,7 +68,7 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 			'answer'   => 'Pacific/Chatham',
 		),
 		'core/users-query'          => array(
-			'question' => 'What is the display name of the user with the username "live_provider_editor"?',
+			'question' => 'What is the name of the user with the username "live_provider_editor"?',
 			'answer'   => 'Marigold Featherstone',
 		),
 		'core/content-query'        => array(
