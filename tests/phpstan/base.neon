@@ -91,6 +91,7 @@ services:
 	# point. Should a future release rename either, this definition stops being wired
 	# into anything and the behavior above returns; the errors it prevents are all of
 	# the quiet sort, so check this first when a hash notation type looks wrong.
+	# Tests/ReflectionParserTest.php fails when that happens.
 	#
 	# `arguments!` replaces the inherited arguments rather than merging with them.
 	# Without the `!`, the original `wrappedParser` argument survives and the container

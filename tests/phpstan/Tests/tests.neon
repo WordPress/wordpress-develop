@@ -8,6 +8,13 @@
 # core.
 
 parameters:
+	# The parameters of base.neon that change what type PHPStan infers, kept the
+	# same here, so that a fixture's types are the ones the analysis of core sees.
+	phpVersion:
+		min: 70400
+		max: 80600
+	treatPhpDocTypesAsCertain: false
+
 	# The hook functions are reflected from core itself, so the tests see the same
 	# signatures the analysis does. The helpers are declared for the fixtures that
 	# pass a filtered value through another call.
