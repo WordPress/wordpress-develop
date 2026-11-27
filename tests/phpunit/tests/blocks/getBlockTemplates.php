@@ -276,6 +276,33 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Plugin-registered templates must be merged into a list so that callers
+	 * can reliably access the first result by index.
+	 *
+	 * @ticket 64216
+	 *
+	 * @covers ::get_block_templates
+	 */
+	public function test_get_block_templates_should_return_a_list_when_a_plugin_registered_template_is_included() {
+		$template_name = 'test-plugin//single-post-64216';
+		$template_args = array(
+			'content'     => 'Template content',
+			'title'       => 'Test Template',
+			'description' => 'Description of test template',
+			'post_types'  => array( 'post' ),
+		);
+		register_block_template( $template_name, $template_args );
+
+		$templates = get_block_templates( array( 'slug__in' => array( 'single-post-64216' ) ) );
+
+		$this->assertTrue( array_is_list( $templates ) );
+		$this->assertCount( 1, $templates );
+		$this->assertSame( 'single-post-64216', $templates[0]->slug );
+
+		unregister_block_template( $template_name );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * Make sure that plugin-registered templates with default post type slugs (ie: `single` or `page`)
