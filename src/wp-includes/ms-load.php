@@ -53,6 +53,15 @@ function wp_get_active_network_plugins() {
 		}
 	}
 
+	/**
+	 * Filters the list of network plugins to load.
+	 *
+	 * @since x.y
+	 *
+	 * @var string[] Array of absolute plugin file paths to include.
+	 */
+	$plugins = apply_filters( 'wp_get_active_network_plugins', $plugins );
+
 	return $plugins;
 }
 
