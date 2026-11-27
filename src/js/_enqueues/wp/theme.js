@@ -2006,6 +2006,10 @@ themes.view.Installer = themes.view.Appearance.extend({
 
 	clearSearch: function() {
 		$( '#wp-filter-search-input').val( '' );
+
+		if ( this.SearchView ) {
+			this.SearchView.terms = '';
+		}
 	}
 });
 
