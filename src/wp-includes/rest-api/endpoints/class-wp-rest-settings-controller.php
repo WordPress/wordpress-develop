@@ -102,6 +102,17 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 				$response[ $name ] = get_option( $args['option_name'], $args['schema']['default'] );
 			}
 
+			/**
+			 * Ensure the 'timezone' setting returns a proper timezone string.
+			 *
+			 * If a manual offset (e.g., "UTC-12") is selected from Settings > General > Timezone,
+			 * the 'timezone_string' option may be empty. In such cases, we fallback to
+			 * wp_timezone_string() to return a valid timezone string for the REST API response.
+			 */
+			if ( 'timezone' === $name && empty( $response[ $name ] ) ) {
+				$response[ $name ] = wp_timezone_string();
+			}
+
 			/*
 			 * Because get_option() is lossy, we have to
 			 * cast values to the type they are registered with.
