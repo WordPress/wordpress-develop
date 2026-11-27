@@ -10,13 +10,16 @@ declare(strict_types=1);
 namespace WordPress\PHPStan\Tests;
 
 use PhpParser\Comment\Doc;
+use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitorAbstract;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use WordPress\PHPStan\HookDocsVisitor;
 
 /**
@@ -103,24 +106,50 @@ final class HookDocsVisitorTest extends TestCase {
 
 	/**
 	 * Tests that state does not leak from one traversal into the next.
+	 *
+	 * A traversal that runs to completion leaves no state behind, since every node
+	 * entered is also left. So the first traversal is aborted inside a documented
+	 * statement, as when another visitor throws, leaving that statement's docblock
+	 * current. The second traverses a bare call, with no statement around it to
+	 * start an undocumented scope, so only the reset at the start of a traversal
+	 * keeps that docblock from being attached to it.
 	 */
 	public function test_state_is_reset_between_traversals(): void {
-		$parser    = ( new ParserFactory() )->createForHostVersion();
-		$visitor   = new HookDocsVisitor();
+		$parser  = ( new ParserFactory() )->createForHostVersion();
+		$visitor = new HookDocsVisitor();
+
+		$aborting = new NodeTraverser();
+		$aborting->addVisitor( $visitor );
+		$aborting->addVisitor(
+			new class() extends NodeVisitorAbstract {
+				public function enterNode( Node $node ): ?Node {
+					if ( $node instanceof FuncCall ) {
+						throw new RuntimeException( 'Aborted.' );
+					}
+					return null;
+				}
+			}
+		);
+
+		$documented = $parser->parse( "<?php\n/**\n * Docblock.\n */\nwp_tests_fn( 1 );" );
+		$this->assertNotNull( $documented );
+		try {
+			$aborting->traverse( $documented );
+			$this->fail( 'The traversal was not aborted.' );
+		} catch ( RuntimeException $e ) {
+			$this->assertSame( 'Aborted.', $e->getMessage() );
+		}
+
+		$undocumented = $parser->parse( "<?php\napply_filters( 'b', 1 );" );
+		$this->assertNotNull( $undocumented );
+		$call = ( new NodeFinder() )->findFirstInstanceOf( $undocumented, FuncCall::class );
+		$this->assertInstanceOf( FuncCall::class, $call );
+
 		$traverser = new NodeTraverser();
 		$traverser->addVisitor( $visitor );
+		$traverser->traverse( array( $call ) );
 
-		$documented = $parser->parse( "<?php\n/**\n * Docblock.\n */\nwp_tests_fn( apply_filters( 'a', 1 ) );" );
-		$this->assertNotNull( $documented );
-		$traverser->traverse( $documented );
-
-		$undocumented = $parser->parse( "<?php\n\$value = apply_filters( 'b', 1 );" );
-		$this->assertNotNull( $undocumented );
-		$traverser->traverse( $undocumented );
-
-		$calls = ( new NodeFinder() )->findInstanceOf( $undocumented, FuncCall::class );
-		$this->assertCount( 1, $calls );
-		$this->assertNull( $calls[0]->getAttribute( 'latestDocComment' ) );
+		$this->assertNull( $call->getAttribute( 'latestDocComment' ) );
 	}
 
 	/**
