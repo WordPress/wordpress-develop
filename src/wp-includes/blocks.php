@@ -2370,8 +2370,8 @@ function excerpt_remove_blocks( $content ) {
  */
 function excerpt_remove_footnotes( $content ) {
 	if ( false === stripos( $content, 'data-fn' ) ) {
-    return $content;
-}
+		return $content;
+	}
 
 	$processor = new class( $content ) extends WP_HTML_Tag_Processor {
 		public function is_whitespace_text_node(): bool {
