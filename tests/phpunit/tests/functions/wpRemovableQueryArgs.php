@@ -14,6 +14,7 @@ class Tests_Functions_WpRemovableQueryArgs extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 * @ticket 66300
+	 * @ticket 42281
 	 */
 	public function test_returns_default_removable_query_args() {
 		$args = wp_removable_query_args();
@@ -26,6 +27,7 @@ class Tests_Functions_WpRemovableQueryArgs extends WP_UnitTestCase {
 		$this->assertContains( 'doing_wp_cron', $args );
 		$this->assertContains( 'wp-post-new-reload', $args );
 		$this->assertContains( 'network_admin_email_updated', $args );
+		$this->assertContains( 'translation_updates', $args );
 	}
 
 	/**
