@@ -329,6 +329,107 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 37812
+	 */
+	public function test_numeric_slugs_should_be_suffixed_when_postname_follows_category() {
+		$this->set_permalink_structure( '/%category%/%postname%/' );
+
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'post',
+				'post_name' => 'foo',
+			)
+		);
+
+		$found = wp_unique_post_slug( '12345', $p, 'publish', 'post', 0 );
+		$this->assertSame( '12345-2', $found );
+	}
+
+	/**
+	 * @ticket 37812
+	 */
+	public function test_numeric_slugs_should_not_be_suffixed_when_postname_does_not_follow_category() {
+		$this->set_permalink_structure( '/%category%/%post_id%/%postname%/' );
+
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'post',
+				'post_name' => 'foo',
+			)
+		);
+
+		$found = wp_unique_post_slug( '12345', $p, 'publish', 'post', 0 );
+		$this->assertSame( '12345', $found );
+	}
+
+	/**
+	 * @ticket 37812
+	 */
+	public function test_non_numeric_slugs_should_not_be_suffixed_when_postname_follows_category() {
+		$this->set_permalink_structure( '/%category%/%postname%/' );
+
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'post',
+				'post_name' => 'foo',
+			)
+		);
+
+		$found = wp_unique_post_slug( '12345abc', $p, 'publish', 'post', 0 );
+		$this->assertSame( '12345abc', $found );
+	}
+
+	/**
+	 * @ticket 37812
+	 */
+	public function test_numeric_slugs_should_not_be_suffixed_for_existing_posts_when_postname_follows_category() {
+		global $wpdb;
+
+		$this->set_permalink_structure( '/%category%/%postname%/' );
+
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'post',
+				'post_name' => 'foo',
+			)
+		);
+		$wpdb->update( $wpdb->posts, array( 'post_name' => '12345' ), array( 'ID' => $p ) );
+		clean_post_cache( $p );
+
+		$found = wp_unique_post_slug( '12345', $p, 'publish', 'post', 0 );
+		$this->assertSame( '12345', $found );
+	}
+
+	/**
+	 * @ticket 37812
+	 */
+	public function test_post_with_numeric_title_in_child_category_should_be_reachable() {
+		$this->set_permalink_structure( '/%category%/%postname%/' );
+
+		$parent_id = self::factory()->category->create( array( 'slug' => 'parent' ) );
+		$child_id  = self::factory()->category->create(
+			array(
+				'slug'   => 'child',
+				'parent' => $parent_id,
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'     => 'post',
+				'post_status'   => 'publish',
+				'post_title'    => '12345',
+				'post_category' => array( $child_id ),
+			)
+		);
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$this->assertQueryTrue( 'is_single', 'is_singular' );
+		$this->assertSame( $post_id, get_queried_object_id() );
+	}
+
+	/**
 	 * @ticket 34971
 	 */
 	public function test_embed_slug_should_be_suffixed_for_posts() {
