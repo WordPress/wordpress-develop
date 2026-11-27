@@ -289,7 +289,7 @@ final class WP_Abilities_Settings {
 			 * English is stored as an empty string. `en_US` is what the language reads as when
 			 * none is stored, and sanitize_option() would replace it with the stored value.
 			 */
-			if ( 'WPLANG' === $setting['option'] && 'en_US' === $value ) {
+			if ( 'wplang' === strtolower( $setting['option'] ) && 'en_US' === $value ) {
 				$value = '';
 			}
 
@@ -394,7 +394,7 @@ final class WP_Abilities_Settings {
 	 * The rules belong to the option, whatever name exposes it: a timezone and a language must be
 	 * empty or known to the site, a default post format must be `0`, empty or a post format, a page
 	 * setting must be 0 or the ID of a page that is not in the trash or an auto-draft, and the
-	 * default category must be the ID of a category.
+	 * default category must be the ID of a category. The option name is compared in lower case.
 	 *
 	 * @since 7.3.0
 	 *
@@ -404,14 +404,14 @@ final class WP_Abilities_Settings {
 	 * @return string|null The error message when the option cannot use the value, null otherwise.
 	 */
 	private function get_invalid_value_message( string $option, $value, string $param ): ?string {
-		switch ( $option ) {
+		switch ( strtolower( $option ) ) {
 			case 'timezone_string':
 				if ( '' !== $value && ! in_array( $value, timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true ) ) {
 					return __( 'The timezone you have entered is not valid. Please select a valid timezone.' );
 				}
 				break;
 
-			case 'WPLANG':
+			case 'wplang':
 				$languages = get_available_languages();
 				if ( '' !== $value && ! in_array( $value, $languages, true ) ) {
 					/* translators: 1: Parameter, 2: List of valid values. */

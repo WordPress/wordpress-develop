@@ -1503,20 +1503,27 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * The value rules hold when the option is exposed under another name.
+	 * The value rules hold when the option is exposed under another name, also when its name is
+	 * registered in another case, which the database ignores.
 	 *
 	 * @ticket 64616
 	 *
 	 * @since 7.3.0
+	 *
+	 * @dataProvider data_value_rule_options
+	 *
+	 * @param string     $option The name the option is registered with.
+	 * @param string     $type   The type the option is registered with.
+	 * @param string|int $value  A value the option cannot use.
 	 */
-	public function test_value_rule_follows_the_option_under_another_name(): void {
-		$name = 'settings_update_test_timezone';
+	public function test_value_rule_follows_the_option_under_another_name( string $option, string $type, $value ): void {
+		$name = 'settings_update_test_value_rule_option';
 
 		register_setting(
 			'general',
-			'timezone_string',
+			$option,
 			array(
-				'type'              => 'string',
+				'type'              => $type,
 				'show_in_abilities' => array( 'name' => $name ),
 			)
 		);
@@ -1524,10 +1531,56 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		$this->become_admin();
 		$before = $this->snapshot();
 
-		$result = $this->update( array( $name => 'Mars/Olympus' ) );
+		$result = $this->update( array( $name => $value ) );
 
 		$this->assert_invalid_value_error( $result, $name );
 		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string|int}> Names and types that options with value rules are registered with, and values they cannot use.
+	 */
+	public static function data_value_rule_options(): array {
+		return array(
+			'the timezone'                   => array( 'timezone_string', 'string', 'Mars/Olympus' ),
+			'the timezone in another case'   => array( 'TimeZone_String', 'string', 'Mars/Olympus' ),
+			'the language in lower case'     => array( 'wplang', 'string', 'xx_XX' ),
+			'the post format in upper case'  => array( 'DEFAULT_POST_FORMAT', 'string', 'banana' ),
+			'the front page in another case' => array( 'Page_On_Front', 'integer', 999999 ),
+			'the category in upper case'     => array( 'DEFAULT_CATEGORY', 'integer', 999999 ),
+		);
+	}
+
+	/**
+	 * `en_US` is saved as English when the language option is registered in another case.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_en_us_rule_follows_the_option_in_another_case(): void {
+		$name = 'settings_update_test_language';
+
+		register_setting(
+			'general',
+			'wplang',
+			array(
+				'type'              => 'string',
+				'show_in_abilities' => array( 'name' => $name ),
+			)
+		);
+		$this->register_ability();
+		$this->store_raw( 'WPLANG', 'de_DE' );
+		$this->become_admin();
+		$expected           = $this->snapshot();
+		$expected['WPLANG'] = '';
+
+		$result = $this->update( array( $name => 'en_US' ) );
+
+		$this->assertSame( array( $name => '' ), $result, 'en_US should be saved as English.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'English should be stored as an empty string.' );
 	}
 
 	/**
@@ -1827,35 +1880,9 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * The default is stored when it is written to a setting that has no stored value, so requests
-	 * that do not register the setting read it too.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 */
-	public function test_default_is_stored_without_a_stored_value(): void {
-		$this->store_raw( 'use_smilies', null );
-		$this->store_raw( 'posts_per_page', null );
-		$this->become_admin();
-		$expected                   = $this->snapshot();
-		$expected['use_smilies']    = '1';
-		$expected['posts_per_page'] = '10';
-
-		$result = $this->update(
-			array(
-				'use_smilies'    => true,
-				'posts_per_page' => 10,
-			)
-		);
-
-		$this->assertNotWPError( $result, 'The defaults should be written.' );
-		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'The defaults should be stored.' );
-	}
-
-	/**
-	 * A value equal to the default that get_option() reads is stored when the setting has no
-	 * stored value, also when the setting is exposed with another default or has none.
+	 * A value equal to the default that get_option() reads, or sanitized to it, is stored when the
+	 * setting has no stored value, so requests that do not register the setting read it too. This
+	 * also holds when the setting is exposed with another default or has none.
 	 *
 	 * @ticket 64616
 	 *
@@ -1863,31 +1890,41 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 *
 	 * @dataProvider data_values_equal_to_the_read_default
 	 *
-	 * @param array<string, mixed> $args   The setting registration arguments.
-	 * @param mixed                $value  The value to write.
-	 * @param string               $output The expected output value as JSON.
-	 * @param string               $raw    The expected raw stored value.
+	 * @param string                    $option The option name, which is also the exposed setting name.
+	 * @param array<string, mixed>|null $args   The setting registration arguments, or null for a core setting.
+	 * @param mixed                     $value  The value to write.
+	 * @param string                    $output The expected output value as JSON.
+	 * @param string                    $raw    The expected raw stored value.
 	 */
-	public function test_value_equal_to_the_read_default_is_stored( array $args, $value, string $output, string $raw ): void {
-		$option = 'settings_update_test_read_default';
-		register_setting( 'general', $option, $args );
-		$this->register_ability();
+	public function test_value_equal_to_the_read_default_is_stored( string $option, ?array $args, $value, string $output, string $raw ): void {
+		if ( null === $args ) {
+			$this->store_raw( $option, null );
+		} else {
+			register_setting( 'general', $option, $args );
+			$this->register_ability();
+		}
 		$this->become_admin();
+		$expected            = $this->snapshot();
+		$expected[ $option ] = $raw;
 
 		$result = $this->update( array( $option => $value ) );
 
 		$this->assertSame( '{"' . $option . '":' . $output . '}', wp_json_encode( $result ), 'The output should show the written value.' );
-		$this->assertSame( $raw, $this->snapshot()[ $option ] ?? null, 'The value should be stored.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'Only the option of the named setting should hold the value.' );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: array<string, mixed>, 1: mixed, 2: string, 3: string}> Settings and a value equal to the default get_option() reads.
+	 * @return array<string, array{0: string, 1: array<string, mixed>|null, 2: mixed, 3: string, 4: string}> Settings and a value equal to the default get_option() reads.
 	 */
 	public static function data_values_equal_to_the_read_default(): array {
 		return array(
+			'the default of a core boolean'         => array( 'use_smilies', null, true, 'true', '1' ),
+			'the default of a core integer'         => array( 'posts_per_page', null, 10, '10', '10' ),
+			'a core value sanitized to the default' => array( 'posts_per_page', null, -10, '10', '10' ),
 			'the registered default under another exposed default' => array(
+				'settings_update_test_read_default',
 				array(
 					'type'              => 'string',
 					'default'           => 'Registered',
@@ -1900,6 +1937,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 				'Registered',
 			),
 			'false for a boolean without a default' => array(
+				'settings_update_test_read_default',
 				array(
 					'type'              => 'boolean',
 					'show_in_abilities' => true,
@@ -1909,6 +1947,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 				'',
 			),
 			'a value sanitized to the default'      => array(
+				'settings_update_test_read_default',
 				array(
 					'type'              => 'string',
 					'default'           => 'Registered',
@@ -1920,25 +1959,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 				'Registered',
 			),
 		);
-	}
-
-	/**
-	 * A core value that is sanitized to the default is stored when the setting has no stored value.
-	 *
-	 * @ticket 64616
-	 *
-	 * @since 7.3.0
-	 */
-	public function test_value_sanitized_to_the_default_is_stored(): void {
-		$this->store_raw( 'posts_per_page', null );
-		$this->become_admin();
-		$expected                   = $this->snapshot();
-		$expected['posts_per_page'] = '10';
-
-		$result = $this->update( array( 'posts_per_page' => -10 ) );
-
-		$this->assertSame( array( 'posts_per_page' => 10 ), $result, 'The output should show the sanitized value.' );
-		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'The sanitized value should be stored.' );
 	}
 
 	/**
