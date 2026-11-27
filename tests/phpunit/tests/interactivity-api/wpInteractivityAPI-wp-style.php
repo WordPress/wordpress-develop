@@ -107,6 +107,66 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `merge_style_property` preserves values containing a colon.
+	 *
+	 * Only the first colon in a declaration separates the property name from its
+	 * value, so a value may legitimately contain more of them.
+	 *
+	 * @ticket 63899
+	 *
+	 * @covers ::merge_style_property
+	 */
+	public function test_merge_style_property_preserves_values_containing_colons() {
+		// Keeps an untouched property whose value contains a URL.
+		$result = $this->merge_style_property( 'background-image:url(https://example.com/a.png)', 'color', 'green' );
+		$this->assertSame( 'background-image:url(https://example.com/a.png);color:green;', $result );
+
+		// Replaces a property whose previous value contained a URL.
+		$result = $this->merge_style_property( 'background-image:url(https://example.com/a.png)', 'background-image', 'none' );
+		$this->assertSame( 'background-image:none;', $result );
+
+		// Keeps every colon after the first, not only the second.
+		$result = $this->merge_style_property( '--fallback:url(https://a.test/x.png), url(https://b.test/y.png);', 'color', 'green' );
+		$this->assertSame( '--fallback:url(https://a.test/x.png), url(https://b.test/y.png);color:green;', $result );
+	}
+
+	/**
+	 * Tests that `merge_style_property` preserves values containing a semicolon.
+	 *
+	 * Declarations are separated on semicolons, so a semicolon inside a quoted
+	 * string or a `url()` splits a value across two segments. The segments must
+	 * re-join to the original value.
+	 *
+	 * @ticket 63899
+	 *
+	 * @covers ::merge_style_property
+	 */
+	public function test_merge_style_property_preserves_values_containing_semicolons() {
+		// Keeps a quoted value containing a semicolon.
+		$result = $this->merge_style_property( 'font-family:"Foo;Bar",serif', 'color', 'green' );
+		$this->assertSame( 'font-family:"Foo;Bar",serif;color:green;', $result );
+
+		// Keeps a data URI, which contains both a colon and a semicolon.
+		$result = $this->merge_style_property( 'background-image:url(data:image/gif;base64,R0lGODlhAQ)', 'color', 'green' );
+		$this->assertSame( 'background-image:url(data:image/gif;base64,R0lGODlhAQ);color:green;', $result );
+	}
+
+	/**
+	 * Tests that `merge_style_property` handles segments that contain no colon.
+	 *
+	 * Malformed input previously raised "Undefined array key 1" and a `trim()`
+	 * deprecation notice, and emitted a stray colon into the result.
+	 *
+	 * @ticket 63899
+	 *
+	 * @covers ::merge_style_property
+	 */
+	public function test_merge_style_property_handles_segments_without_a_colon() {
+		$result = $this->merge_style_property( 'translate:none;translate3d(0px, 0px, 0px);', 'color', 'green' );
+		$this->assertSame( 'translate:none;translate3d(0px, 0px, 0px);color:green;', $result );
+	}
+
+	/**
 	 * Tests that `merge_style_property` works correctly with falsy values,
 	 * removing or ignoring them as appropriate.
 	 *
@@ -232,6 +292,20 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 		$html    = '<div style="padding:10px;" data-wp-style--color="myPlugin::state.green">Text</div>';
 		list($p) = $this->process_directives( $html );
 		$this->assertSame( 'padding:10px;color:green;', $p->get_attribute( 'style' ) );
+	}
+
+	/**
+	 * Tests that the `data-wp-style` directive leaves an existing style attribute
+	 * intact when one of its values contains a colon.
+	 *
+	 * @ticket 63899
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_style_preserves_existing_style_attribute_containing_a_url() {
+		$html    = '<div style="background-image:url(https://example.com/a.png)" data-wp-style--color="myPlugin::state.green">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'background-image:url(https://example.com/a.png);color:green;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
