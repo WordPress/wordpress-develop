@@ -1113,7 +1113,7 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * @param bool $secure  Whether the cookie should only be sent over HTTPS.
 		 * @param int  $user_id User ID.
 		 */
-		$secure = apply_filters( 'secure_auth_cookie', $secure, $user_id );
+		$secure = (bool) apply_filters( 'secure_auth_cookie', $secure, $user_id );
 
 		/**
 		 * Filters whether the logged in cookie should only be sent over HTTPS.
@@ -1124,7 +1124,7 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * @param int  $user_id                 User ID.
 		 * @param bool $secure                  Whether the auth cookie should only be sent over HTTPS.
 		 */
-		$secure_logged_in_cookie = apply_filters( 'secure_logged_in_cookie', $secure_logged_in_cookie, $user_id, $secure );
+		$secure_logged_in_cookie = (bool) apply_filters( 'secure_logged_in_cookie', $secure_logged_in_cookie, $user_id, $secure );
 
 		if ( $secure ) {
 			$auth_cookie_name = SECURE_AUTH_COOKIE;
@@ -1179,6 +1179,8 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		/**
 		 * Allows preventing auth cookies from actually being sent to the client.
 		 *
+		 * See also the {@see 'send_cookie'} filter.
+		 *
 		 * @since 4.7.4
 		 * @since 6.2.0 The `$expire`, `$expiration`, `$user_id`, `$scheme`, and `$token` parameters were added.
 		 *
@@ -1196,11 +1198,51 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 			return;
 		}
 
-		setcookie( $auth_cookie_name, $auth_cookie, $expire, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN, $secure, true );
-		setcookie( $auth_cookie_name, $auth_cookie, $expire, ADMIN_COOKIE_PATH, COOKIE_DOMAIN, $secure, true );
-		setcookie( LOGGED_IN_COOKIE, $logged_in_cookie, $expire, COOKIEPATH, COOKIE_DOMAIN, $secure_logged_in_cookie, true );
+		wp_set_cookie(
+			$auth_cookie_name,
+			$auth_cookie,
+			array(
+				'expires'  => $expire,
+				'path'     => PLUGINS_COOKIE_PATH,
+				'domain'   => COOKIE_DOMAIN,
+				'secure'   => $secure,
+				'httponly' => true,
+			)
+		);
+		wp_set_cookie(
+			$auth_cookie_name,
+			$auth_cookie,
+			array(
+				'expires'  => $expire,
+				'path'     => ADMIN_COOKIE_PATH,
+				'domain'   => COOKIE_DOMAIN,
+				'secure'   => $secure,
+				'httponly' => true,
+			)
+		);
+		wp_set_cookie(
+			LOGGED_IN_COOKIE,
+			$logged_in_cookie,
+			array(
+				'expires'  => $expire,
+				'path'     => COOKIEPATH,
+				'domain'   => COOKIE_DOMAIN,
+				'secure'   => $secure_logged_in_cookie,
+				'httponly' => true,
+			)
+		);
 		if ( COOKIEPATH !== SITECOOKIEPATH ) {
-			setcookie( LOGGED_IN_COOKIE, $logged_in_cookie, $expire, SITECOOKIEPATH, COOKIE_DOMAIN, $secure_logged_in_cookie, true );
+			wp_set_cookie(
+				LOGGED_IN_COOKIE,
+				$logged_in_cookie,
+				array(
+					'expires'  => $expire,
+					'path'     => SITECOOKIEPATH,
+					'domain'   => COOKIE_DOMAIN,
+					'secure'   => $secure_logged_in_cookie,
+					'httponly' => true,
+				)
+			);
 		}
 	}
 endif;
@@ -1225,31 +1267,131 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		}
 
 		// Auth cookies.
-		setcookie( AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, ADMIN_COOKIE_PATH, COOKIE_DOMAIN );
-		setcookie( SECURE_AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, ADMIN_COOKIE_PATH, COOKIE_DOMAIN );
-		setcookie( AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN );
-		setcookie( SECURE_AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, PLUGINS_COOKIE_PATH, COOKIE_DOMAIN );
-		setcookie( LOGGED_IN_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
-		setcookie( LOGGED_IN_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
+		wp_remove_cookie(
+			AUTH_COOKIE,
+			array(
+				'path'   => ADMIN_COOKIE_PATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_remove_cookie(
+			SECURE_AUTH_COOKIE,
+			array(
+				'path'   => ADMIN_COOKIE_PATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_remove_cookie(
+			AUTH_COOKIE,
+			array(
+				'path'   => PLUGINS_COOKIE_PATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_remove_cookie(
+			SECURE_AUTH_COOKIE,
+			array(
+				'path'   => PLUGINS_COOKIE_PATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_remove_cookie(
+			LOGGED_IN_COOKIE,
+			array(
+				'path'   => COOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_remove_cookie(
+			LOGGED_IN_COOKIE,
+			array(
+				'path'   => SITECOOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
 
 		// Settings cookies.
-		setcookie( 'wp-settings-' . get_current_user_id(), ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
-		setcookie( 'wp-settings-time-' . get_current_user_id(), ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
+		wp_remove_cookie(
+			'wp-settings-' . get_current_user_id(),
+			array(
+				'path' => SITECOOKIEPATH,
+			)
+		);
+		wp_remove_cookie(
+			'wp-settings-time-' . get_current_user_id(),
+			array(
+				'path' => SITECOOKIEPATH,
+			)
+		);
 
 		// Old cookies.
-		setcookie( AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
-		setcookie( AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
-		setcookie( SECURE_AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
-		setcookie( SECURE_AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
+		wp_remove_cookie(
+			AUTH_COOKIE,
+			array(
+				'path'   => COOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_remove_cookie(
+			AUTH_COOKIE,
+			array(
+				'path'   => SITECOOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_remove_cookie(
+			SECURE_AUTH_COOKIE,
+			array(
+				'path'   => COOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_remove_cookie(
+			SECURE_AUTH_COOKIE,
+			array(
+				'path'   => SITECOOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
 
 		// Even older cookies.
-		setcookie( USER_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
-		setcookie( PASS_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
-		setcookie( USER_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
-		setcookie( PASS_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
+		wp_remove_cookie(
+			USER_COOKIE,
+			array(
+				'path'   => COOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_remove_cookie(
+			PASS_COOKIE,
+			array(
+				'path'   => COOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_remove_cookie(
+			USER_COOKIE,
+			array(
+				'path'   => SITECOOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
+		wp_remove_cookie(
+			PASS_COOKIE,
+			array(
+				'path'   => SITECOOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
 
 		// Post password cookie.
-		setcookie( 'wp-postpass_' . COOKIEHASH, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+		wp_remove_cookie(
+			'wp-postpass_' . COOKIEHASH,
+			array(
+				'path'   => COOKIEPATH,
+				'domain' => COOKIE_DOMAIN,
+			)
+		);
 	}
 endif;
 
