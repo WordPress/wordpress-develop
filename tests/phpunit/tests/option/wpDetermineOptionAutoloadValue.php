@@ -28,47 +28,47 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 		return array(
 			'yes'      => array(
 				'autoload' => 'yes',
-				'expected' => 'on',
+				'expected' => WP_Option_Autoload::ON,
 			),
 			'on'       => array(
-				'autoload' => 'on',
-				'expected' => 'on',
+				'autoload' => WP_Option_Autoload::ON,
+				'expected' => WP_Option_Autoload::ON,
 			),
 			'true'     => array(
 				'autoload' => true,
-				'expected' => 'on',
+				'expected' => WP_Option_Autoload::ON,
 			),
 			'no'       => array(
 				'autoload' => 'no',
-				'expected' => 'off',
+				'expected' => WP_Option_Autoload::OFF,
 			),
 			'off'      => array(
-				'autoload' => 'off',
-				'expected' => 'off',
+				'autoload' => WP_Option_Autoload::OFF,
+				'expected' => WP_Option_Autoload::OFF,
 			),
 			'false'    => array(
 				'autoload' => false,
-				'expected' => 'off',
+				'expected' => WP_Option_Autoload::OFF,
 			),
 			'invalid'  => array(
 				'autoload' => 'foo',
-				'expected' => 'auto',
+				'expected' => WP_Option_Autoload::AUTO,
 			),
 			'null'     => array(
 				'autoload' => null,
-				'expected' => 'auto',
+				'expected' => WP_Option_Autoload::AUTO,
 			),
 			'auto'     => array(
-				'autoload' => 'auto',
-				'expected' => 'auto',
+				'autoload' => WP_Option_Autoload::AUTO,
+				'expected' => WP_Option_Autoload::AUTO,
 			),
 			'auto-on'  => array(
-				'autoload' => 'auto-on',
-				'expected' => 'auto',
+				'autoload' => WP_Option_Autoload::AUTO_ON,
+				'expected' => WP_Option_Autoload::AUTO,
 			),
 			'auto-off' => array(
-				'autoload' => 'auto-off',
-				'expected' => 'auto',
+				'autoload' => WP_Option_Autoload::AUTO_OFF,
+				'expected' => WP_Option_Autoload::AUTO,
 			),
 		);
 	}
@@ -78,7 +78,7 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	 */
 	public function test_small_option() {
 		$test = wp_determine_option_autoload_value( 'foo', 'bar', 'bar', null );
-		$this->assertSame( 'auto', $test );
+		$this->assertSame( WP_Option_Autoload::AUTO, $test );
 	}
 
 	/**
@@ -88,7 +88,7 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 		$value            = file( DIR_TESTDATA . '/formatting/entities.txt' );
 		$serialized_value = maybe_serialize( $value );
 		$test             = wp_determine_option_autoload_value( 'foo', $value, $serialized_value, null );
-		$this->assertSame( 'auto-off', $test );
+		$this->assertSame( WP_Option_Autoload::AUTO_OFF, $test );
 	}
 
 	/**
@@ -98,7 +98,7 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 		$value            = file( DIR_TESTDATA . '/themedir1/block-theme/theme.json' );
 		$serialized_value = maybe_serialize( $value );
 		$test             = wp_determine_option_autoload_value( 'foo', $value, $serialized_value, null );
-		$this->assertSame( 'auto-off', $test );
+		$this->assertSame( WP_Option_Autoload::AUTO_OFF, $test );
 	}
 
 	public function filter_max_option_size( $current ) {
