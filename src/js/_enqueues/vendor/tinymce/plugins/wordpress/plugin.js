@@ -608,13 +608,31 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 	});
 
 	editor.on( 'preInit', function() {
-		var validElementsSetting = '@[id|accesskey|class|dir|lang|style|tabindex|' +
+		var iframeRule,
+			validElementsSetting = '@[id|accesskey|class|dir|lang|style|tabindex|' +
 			'title|contenteditable|draggable|dropzone|hidden|spellcheck|translate],' + // Global attributes.
 			'i,' + // Don't replace <i> with <em> and <b> with <strong> and don't remove them when empty.
 			'b,' +
 			'script[src|async|defer|type|charset|crossorigin|integrity]'; // Add support for <script>.
 
 		editor.schema.addValidElements( validElementsSetting );
+
+		/*
+		 * Keep the iframe attributes that current embed codes (YouTube, Vimeo, Google Maps)
+		 * use, which TinyMCE's HTML5 schema doesn't know and would strip on every save.
+		 * The existing rule is extended rather than replaced, so iframe attributes added
+		 * through `extended_valid_elements` are kept.
+		 */
+		iframeRule = editor.schema.getElementRule( 'iframe' );
+
+		if ( iframeRule ) {
+			each( [ 'allow', 'referrerpolicy', 'loading' ], function( attributeName ) {
+				if ( ! iframeRule.attributes[ attributeName ] ) {
+					iframeRule.attributes[ attributeName ] = {};
+					iframeRule.attributesOrder.push( attributeName );
+				}
+			} );
+		}
 
 		if ( tinymce.Env.iOS ) {
 			editor.settings.height = 300;
