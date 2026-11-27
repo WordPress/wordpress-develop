@@ -10,6 +10,7 @@
  * Retrieves bookmark data.
  *
  * @since 2.1.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @global object $link Current link object.
  * @global wpdb   $wpdb WordPress database abstraction object.
@@ -29,6 +30,8 @@
  * )
  */
 function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	global $wpdb;
 
 	if ( empty( $bookmark ) ) {
@@ -76,6 +79,7 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
  * Retrieves single bookmark data item or field.
  *
  * @since 2.3.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param string $field    The name of the data field to return.
  * @param int    $bookmark The bookmark ID to get field.
@@ -86,6 +90,8 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
  * @phpstan-return ( $field is 'link_category' ? array<int, non-negative-int>|'' : ( $field is 'link_id'|'link_rating' ? int|'' : mixed ) )
  */
 function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	$bookmark = (int) $bookmark;
 	$bookmark = get_bookmark( $bookmark );
 
@@ -108,6 +114,7 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
  * results will be stored to the cache.
  *
  * @since 2.1.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -141,6 +148,8 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
  * @return object[] List of bookmark row objects.
  */
 function get_bookmarks( $args = '' ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	global $wpdb;
 
 	$defaults = array(
@@ -333,12 +342,15 @@ function get_bookmarks( $args = '' ) {
  * Sanitizes all bookmark fields.
  *
  * @since 2.3.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param stdClass|array $bookmark Bookmark row.
  * @param string         $context  Optional. How to filter the fields. Default 'display'.
  * @return stdClass|array Same type as $bookmark but with fields sanitized.
  */
 function sanitize_bookmark( $bookmark, $context = 'display' ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	$fields = array(
 		'link_id',
 		'link_url',
@@ -395,6 +407,7 @@ function sanitize_bookmark( $bookmark, $context = 'display' ) {
  * and is passed the `$value`, `$bookmark_id`, and `$context`, respectively.
  *
  * @since 2.3.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param string $field       The bookmark field.
  * @param mixed  $value       The bookmark field value.
@@ -407,6 +420,8 @@ function sanitize_bookmark( $bookmark, $context = 'display' ) {
  * @phpstan-return ($field is 'link_category' ? array<int, non-negative-int> : ($field is 'link_id'|'link_rating' ? int : mixed))
  */
 function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	$int_fields = array( 'link_id', 'link_rating' );
 	if ( in_array( $field, $int_fields, true ) ) {
 		$value = (int) $value;
@@ -471,10 +486,13 @@ function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
  * Deletes the bookmark cache.
  *
  * @since 2.7.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param int $bookmark_id Bookmark ID.
  */
 function clean_bookmark_cache( $bookmark_id ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	wp_cache_delete( $bookmark_id, 'bookmark' );
 	wp_cache_delete( 'get_bookmarks', 'bookmark' );
 	clean_object_term_cache( $bookmark_id, 'link' );

@@ -20,8 +20,11 @@ class WP_Widget_Links extends WP_Widget {
 	 * Sets up a new Links widget instance.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
 	 */
 	public function __construct() {
+		_deprecated_class( __CLASS__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 		$widget_ops = array(
 			'description'                 => __( 'Your blogroll' ),
 			'customize_selective_refresh' => true,
