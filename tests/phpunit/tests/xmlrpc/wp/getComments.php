@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::wp_getComments
  */
 class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 	public $post_id;

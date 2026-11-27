@@ -3,6 +3,8 @@
 /**
  * @group xmlrpc
  * @requires function imagejpeg
+ *
+ * @covers wp_xmlrpc_server::mw_newMediaObject
  */
 class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 

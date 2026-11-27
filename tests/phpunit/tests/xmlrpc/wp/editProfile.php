@@ -3,6 +3,8 @@
 /**
  * @group xmlrpc
  * @group user
+ *
+ * @covers wp_xmlrpc_server::wp_editProfile
  */
 class Tests_XMLRPC_wp_editProfile extends WP_XMLRPC_UnitTestCase {
 

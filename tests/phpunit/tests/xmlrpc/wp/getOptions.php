@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::wp_getOptions
  */
 class Tests_XMLRPC_wp_getOptions extends WP_XMLRPC_UnitTestCase {
 

@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::wp_deletePost
  */
 class Tests_XMLRPC_wp_deletePost extends WP_XMLRPC_UnitTestCase {
 

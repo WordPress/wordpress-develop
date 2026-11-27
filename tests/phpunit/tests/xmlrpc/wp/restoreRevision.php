@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::wp_restoreRevision
  */
 class Tests_XMLRPC_wp_restoreRevision extends WP_XMLRPC_UnitTestCase {
 	public $post_id;
