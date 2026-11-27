@@ -95,8 +95,12 @@ wp_dropdown_categories(
 </td>
 </tr>
 <?php
-$post_formats = get_post_format_strings();
-unset( $post_formats['standard'] );
+$supported_formats = get_theme_support( 'post-formats' );
+if ( is_array( $supported_formats ) && isset( $supported_formats[0] ) ) {
+	$post_formats = array_intersect_key( get_post_format_strings(), array_flip( $supported_formats[0] ) );
+} else {
+	$post_formats = array();
+}
 ?>
 <tr>
 <th scope="row"><label for="default_post_format"><?php _e( 'Default Post Format' ); ?></label></th>
