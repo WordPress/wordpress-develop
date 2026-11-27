@@ -504,6 +504,72 @@ class Tests_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertTrue( _oembed_rest_pre_serve_request( true, $response, $request, rest_get_server() ) );
 	}
 
+	/**
+	 * Ensures XML is served for every spelling of the embed route that the
+	 * REST server dispatches to the oEmbed controller.
+	 *
+	 * @ticket 66723
+	 *
+	 * @covers ::_oembed_rest_pre_serve_request
+	 *
+	 * @dataProvider data_embed_route_spellings
+	 *
+	 * @param non-falsy-string $route Requested embed route.
+	 */
+	public function test_rest_pre_serve_request_serves_xml_for_every_route_spelling( string $route ): void {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Hello World',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', $route );
+		$request->set_param( 'url', get_permalink( $post->ID ) );
+		$request->set_param( 'format', 'xml' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'The oEmbed controller should handle the request.' );
+
+		$output = get_echo( '_oembed_rest_pre_serve_request', array( false, $response, $request, rest_get_server() ) );
+		$xml    = simplexml_load_string( $output );
+
+		$this->assertInstanceOf( 'SimpleXMLElement', $xml, 'The response should be served as XML.' );
+		$this->assertSame( 'Hello World', (string) $xml->title, 'The XML should contain the embedded post title.' );
+	}
+
+	/**
+	 * Data provider for spellings of the embed route that the REST server
+	 * dispatches to the oEmbed controller.
+	 *
+	 * @return array<non-falsy-string, array{ non-falsy-string }> Test cases.
+	 */
+	public static function data_embed_route_spellings(): array {
+		return array(
+			'lowercase'        => array( '/oembed/1.0/embed' ),
+			'mixed case'       => array( '/oEmbed/1.0/embed' ),
+			'uppercase'        => array( '/OEMBED/1.0/EMBED' ),
+			'trailing newline' => array( "/oembed/1.0/embed\n" ),
+		);
+	}
+
+	/**
+	 * Ensures XML is not served for other oEmbed routes.
+	 *
+	 * @ticket 66723
+	 *
+	 * @covers ::_oembed_rest_pre_serve_request
+	 */
+	public function test_rest_pre_serve_request_ignores_other_routes(): void {
+		$request = new WP_REST_Request( 'GET', '/oEmbed/1.0/proxy' );
+		$request->set_param( 'format', 'xml' );
+
+		$response = new WP_REST_Response( array( 'title' => 'Hello World' ) );
+		$output   = get_echo( '_oembed_rest_pre_serve_request', array( false, $response, $request, rest_get_server() ) );
+
+		$this->assertSame( '', $output, 'XML should not be served for other routes.' );
+	}
+
 	public function test_get_oembed_endpoint_url() {
 		$this->set_permalink_structure( '' );
 
