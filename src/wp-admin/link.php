@@ -117,7 +117,7 @@ switch ( $action ) {
 
 		$link = get_link_to_edit( $link_id );
 		if ( ! $link ) {
-			wp_die( __( 'Link not found.' ) );
+			wp_die( __( 'Link not found.' ), 404 );
 		}
 
 		require ABSPATH . 'wp-admin/edit-link-form.php';
