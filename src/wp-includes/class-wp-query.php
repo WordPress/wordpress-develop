@@ -3615,8 +3615,18 @@ class WP_Query {
 				$sticky_posts = array_diff( $sticky_posts, $query_vars['post__not_in'] );
 			}
 
+			/*
+			 * Only fetch the remaining sticky posts if published posts were requested.
+			 * The sticky posts query is limited to the 'publish' status, so adding its
+			 * results to a query for other statuses (e.g. drafts) would return posts
+			 * that do not match the requested 'post_status'.
+			 */
+			$include_published_stickies = empty( $q_status )
+				|| in_array( 'publish', $q_status, true )
+				|| in_array( 'any', $q_status, true );
+
 			// Fetch sticky posts that weren't in the query results.
-			if ( ! empty( $sticky_posts ) ) {
+			if ( ! empty( $sticky_posts ) && $include_published_stickies ) {
 				$stickies = get_posts(
 					array(
 						'post__in'               => $sticky_posts,

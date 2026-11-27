@@ -157,4 +157,69 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 
 		$this->assertSame( $sticky_query_vars['posts_per_page'], $sticky_count );
 	}
+
+	/**
+	 * @ticket 55207
+	 */
+	public function test_published_stickies_should_not_be_included_when_querying_other_statuses() {
+		$draft = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+
+		$q = new WP_Query( array( 'post_status' => 'draft' ) );
+
+		$this->assertTrue( $q->is_home, 'The query is expected to be treated as the home query.' );
+		$this->assertSame( array( $draft ), wp_list_pluck( $q->posts, 'ID' ) );
+	}
+
+	/**
+	 * @ticket 55207
+	 */
+	public function test_sticky_drafts_should_be_moved_to_the_top_when_querying_drafts() {
+		$post_date = gmdate( 'Y-m-d H:i:s', time() - 10000 );
+		$draft_1   = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		$draft_2   = self::factory()->post->create(
+			array(
+				'post_status' => 'draft',
+				'post_date'   => $post_date,
+			)
+		);
+		stick_post( $draft_2 );
+
+		$q = new WP_Query( array( 'post_status' => 'draft' ) );
+
+		$this->assertSame( array( $draft_2, $draft_1 ), wp_list_pluck( $q->posts, 'ID' ) );
+	}
+
+	/**
+	 * @ticket 55207
+	 *
+	 * @dataProvider data_post_statuses_including_publish
+	 *
+	 * @param string|string[] $post_status The requested post status.
+	 */
+	public function test_published_stickies_should_be_included_when_publish_status_is_requested( $post_status ) {
+		self::factory()->post->create( array( 'post_status' => 'draft' ) );
+
+		$q = new WP_Query( array( 'post_status' => $post_status ) );
+
+		$found = wp_list_pluck( $q->posts, 'ID' );
+
+		$this->assertSame( self::$posts[2], $found[0] );
+		$this->assertSame( self::$posts[8], $found[1] );
+		$this->assertSame( self::$posts[14], $found[2] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_post_statuses_including_publish() {
+		return array(
+			'publish'             => array( 'publish' ),
+			'array with draft'    => array( array( 'draft', 'publish' ) ),
+			'comma separated'     => array( 'draft,publish' ),
+			'any'                 => array( 'any' ),
+			'default (no status)' => array( '' ),
+		);
+	}
 }
