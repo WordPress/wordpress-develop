@@ -465,6 +465,41 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	}
 
 	/**
+	 * A setting marked read only in its `show_in_abilities` array can still be read.
+	 *
+	 * @ticket 66844
+	 * @since 7.3.0
+	 */
+	public function test_core_settings_get_exposes_a_read_only_setting(): void {
+		$option = 'core_settings_get_ability_read_only_test_option';
+
+		register_setting(
+			'general',
+			$option,
+			array(
+				'type'              => 'string',
+				'show_in_abilities' => array(
+					'name'     => 'read_only_test_setting',
+					'readonly' => true,
+				),
+			)
+		);
+		update_option( $option, 'value' );
+
+		try {
+			$this->register_ability();
+			$this->become_admin();
+
+			$result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( 'read_only_test_setting' ) ) );
+		} finally {
+			unregister_setting( 'general', $option );
+			$this->register_ability();
+		}
+
+		$this->assertSame( array( 'read_only_test_setting' => 'value' ), $result, 'A read only setting should be returned under its exposed name.' );
+	}
+
+	/**
 	 * A setting shown in the REST API without `show_in_abilities` is not exposed.
 	 *
 	 * @ticket 64605

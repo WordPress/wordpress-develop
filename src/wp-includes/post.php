@@ -1706,6 +1706,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  * @since 5.3.0 The `supports` argument will now accept an array of arguments for a feature.
  * @since 5.9.0 The `rest_namespace` argument was added.
  * @since 7.2.0 The `show_in_abilities` argument was added.
+ * @since 7.3.0 The `show_in_abilities` argument accepts an array with a `readonly` key.
  *
  * @global array $wp_post_types List of post types.
  *
@@ -1754,9 +1755,10 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         of $show_in_menu.
  *     @type bool         $show_in_rest                    Whether to include the post type in the REST API. Set this to true
  *                                                         for the post type to be available in the block editor.
- *     @type bool         $show_in_abilities               Whether to expose this post type through the Abilities API, so the
+ *     @type bool|array   $show_in_abilities               Whether to expose this post type through the Abilities API, so the
  *                                                         core content abilities can access its posts, subject to the current
- *                                                         user's capabilities. Default false.
+ *                                                         user's capabilities. Pass `array( 'readonly' => true )` to let
+ *                                                         abilities read the posts but not write them. Default false.
  *     @type string       $rest_base                       To change the base URL of REST API route. Default is $post_type.
  *     @type string       $rest_namespace                  To change the namespace URL of REST API route. Default is wp/v2.
  *     @type string       $rest_controller_class           REST API controller class name. Default is 'WP_REST_Posts_Controller'.

@@ -938,38 +938,119 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns `show_in_abilities` values other than `true`.
+	 * Returns `show_in_abilities` arrays that expose a post type, and the value the post type
+	 * object holds.
 	 *
-	 * @return array<string, array{value: mixed}> Non-boolean `show_in_abilities` test cases.
+	 * @return array<string, array{value: array<mixed>, expected: array{readonly: bool}}> `show_in_abilities` array test cases.
 	 */
-	public static function data_show_in_abilities_values_other_than_true(): array {
+	public static function data_show_in_abilities_arrays(): array {
 		return array(
-			'false'               => array(
+			'read only'                 => array(
+				'value'    => array( 'readonly' => true ),
+				'expected' => array( 'readonly' => true ),
+			),
+			'not read only'             => array(
+				'value'    => array( 'readonly' => false ),
+				'expected' => array( 'readonly' => false ),
+			),
+			'read only with other keys' => array(
+				'value'    => array(
+					'readonly' => true,
+					'create'   => true,
+				),
+				'expected' => array( 'readonly' => true ),
+			),
+		);
+	}
+
+	/**
+	 * A post type exposed with a `show_in_abilities` array, read only or not, can be queried.
+	 *
+	 * @ticket 66844
+	 * @dataProvider data_show_in_abilities_arrays
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed>           $value    The `show_in_abilities` value to register the post type with.
+	 * @param array{readonly: bool} $expected The value the post type object should hold.
+	 */
+	public function test_exposes_a_post_type_with_a_show_in_abilities_array( array $value, array $expected ): void {
+		register_post_type(
+			'content_cpt',
+			array(
+				'public'            => true,
+				'show_in_abilities' => $value,
+			)
+		);
+
+		$this->assertSame( $expected, get_post_type_object( 'content_cpt' )->show_in_abilities, 'The post type object should hold only the readonly key.' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'content_cpt',
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		// The `type` enum of `where` lists the exposed post types.
+		$enum = wp_get_ability( 'core/content-query' )->get_input_schema()['properties']['where']['properties']['type']['enum'];
+		$this->assertContains( 'content_cpt', $enum, 'The post type should appear in the post type enum.' );
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where' => array(
+					'type' => 'content_cpt',
+					'ids'  => array( $post_id ),
+				),
+			)
+		);
+		$this->assertNotWPError( $result, 'A query of the post type should succeed.' );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $result['items'], 'id' ), 'The post should be readable by ID.' );
+	}
+
+	/**
+	 * Returns `show_in_abilities` values that do not expose a post type.
+	 *
+	 * @return array<string, array{value: mixed}> Unsupported `show_in_abilities` test cases.
+	 */
+	public static function data_unsupported_show_in_abilities_values(): array {
+		return array(
+			'false'                => array(
 				'value' => false,
 			),
-			'array of operations' => array(
+			'array of operations'  => array(
 				'value' => array( 'create' ),
 			),
-			'string "false"'      => array(
+			'non-boolean readonly' => array(
+				'value' => array( 'readonly' => 'true' ),
+			),
+			'empty array'          => array(
+				'value' => array(),
+			),
+			'string "false"'       => array(
 				'value' => 'false',
 			),
-			'integer 1'           => array(
+			'integer 1'            => array(
 				'value' => 1,
 			),
 		);
 	}
 
 	/**
-	 * Only a `show_in_abilities` value of `true` exposes a post type, so other values, such as
-	 * arrays, can be given a meaning later.
+	 * Only `true` and an array with a boolean `readonly` key expose a post type, so other
+	 * values can be given a meaning later.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_show_in_abilities_values_other_than_true
+	 * @ticket 66844
+	 * @dataProvider data_unsupported_show_in_abilities_values
 	 * @since 7.2.0
+	 * @since 7.3.0 An array with a boolean `readonly` key exposes the post type.
 	 *
 	 * @param mixed $value The `show_in_abilities` value to register the post type with.
 	 */
-	public function test_does_not_expose_a_post_type_with_a_show_in_abilities_value_other_than_true( $value ): void {
+	public function test_does_not_expose_a_post_type_with_an_unsupported_show_in_abilities_value( $value ): void {
 		register_post_type(
 			'content_cpt',
 			array(

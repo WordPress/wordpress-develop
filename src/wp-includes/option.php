@@ -3039,6 +3039,7 @@ function _wp_register_initial_settings_for_abilities(): void {
  *              Please consider writing more inclusive code.
  * @since 6.6.0 Added the `label` argument.
  * @since 7.2.0 Added the `show_in_abilities` argument.
+ * @since 7.3.0 The `show_in_abilities` array accepts a `readonly` key.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
@@ -3064,7 +3065,8 @@ function _wp_register_initial_settings_for_abilities(): void {
  *     @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API.
  *                                            When true, it uses the same name and schema as `$show_in_rest`.
  *                                            It may also be an array with 'name' and 'schema' keys, used instead of
- *                                            `$show_in_rest` rather than merged with it.
+ *                                            `$show_in_rest` rather than merged with it, and a 'readonly' key
+ *                                            that, when true, lets abilities read the setting but not write it.
  *                                            Settings registered after abilities initialize are not exposed.
  *     @type mixed         $default           Default value when calling `get_option()`.
  * }
@@ -3294,7 +3296,9 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  *         @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API.
  *                                                When true, it uses the same name and schema as `$show_in_rest`.
  *                                                It may also be an array with 'name' and 'schema' keys, used
- *                                                instead of `$show_in_rest` rather than merged with it.
+ *                                                instead of `$show_in_rest` rather than merged with it, and a
+ *                                                'readonly' key that, when true, lets abilities read the setting
+ *                                                but not write it.
  *         @type mixed         $default           Default value when calling `get_option()`. Only present when the
  *                                                setting was registered with a default.
  *     }
