@@ -341,6 +341,22 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Tests that a URL-encoded body containing a NUL byte is read up to that byte.
+	 *
+	 * @ticket 66785
+	 *
+	 * @dataProvider data_non_post_body_parameters
+	 */
+	public function test_non_post_body_parameters_with_nul_byte( $request_method ) {
+		$this->request->set_method( $request_method );
+		$this->request->set_body_params( array() );
+		$this->request->set_body( "foo=bar\0baz&other=value" );
+
+		$this->assertSame( 'bar', $this->request->get_param( 'foo' ), 'The value should be read up to the NUL byte.' );
+		$this->assertNull( $this->request->get_param( 'other' ), 'Nothing after the NUL byte should be read.' );
+	}
+
 	public static function data_non_post_body_parameters() {
 		return array(
 			array( 'PUT' ),
