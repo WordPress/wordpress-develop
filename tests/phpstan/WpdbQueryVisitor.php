@@ -18,12 +18,14 @@ use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\AssignOp;
 use PhpParser\Node\Expr\AssignRef;
 use PhpParser\Node\Expr\BinaryOp\Concat;
+use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\InterpolatedStringPart;
+use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\InterpolatedString;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt;
@@ -48,6 +50,9 @@ use PhpParser\NodeVisitorAbstract;
  * - `$wpdb->prepare( $query, ... )` is replaced by its query, with the
  *   placeholder `{value}` for each of its placeholders, like `%d` or `%i`, and
  *   `%` for each `%%`.
+ * - `sprintf( $format, ... )` is replaced by its format, with the placeholder
+ *   `{?}` for each of its conversions, like `%s`, since the text inserted is
+ *   neither quoted nor known, and `%` for each `%%`.
  * - In the `wpdb` class itself, `$this` is taken as `$wpdb`, so that its own
  *   queries, like those of `wpdb::update()`, are read too.
  * - A variable is replaced by the value assigned to it by the nearest preceding
@@ -261,6 +266,24 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 			return (string) preg_replace_callback(
 				'/%(?:%|(?:\d+\$)?[-+0 ]*(?:\'.)?\d*(?:\.\d+)?[dfFsi])/',
 				static fn ( array $matches ): string => '%%' === $matches[0] ? '%' : self::VALUE,
+				$this->evaluate( $expr->args[0]->value, $position, $depth )
+			);
+		}
+
+		if (
+			$expr instanceof FuncCall
+			&& $expr->name instanceof Name
+			&& 'sprintf' === $expr->name->toLowerString()
+			&& isset( $expr->args[0] )
+			&& $expr->args[0] instanceof Arg
+		) {
+			/*
+			 * Each conversion is text which is not known. Unlike a placeholder of `prepare()`, it is not quoted,
+			 * so it may be any number of values, like the list in `IN (%s)`.
+			 */
+			return (string) preg_replace_callback(
+				'/%(?:%|(?:\d+\$)?[-+ 0]*(?:\'.)?[-+ 0]*\d*(?:\.\d+)?[bcdeEfFgGhHosuxX])/',
+				static fn ( array $matches ): string => '%%' === $matches[0] ? '%' : self::UNKNOWN,
 				$this->evaluate( $expr->args[0]->value, $position, $depth )
 			);
 		}

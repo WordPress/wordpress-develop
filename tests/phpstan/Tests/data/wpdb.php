@@ -156,6 +156,12 @@ function wp_tests_wpdb_unknown( wpdb $wpdb, string $unknown ): void {
 	assertType( 'array<mixed>|null', $wpdb->get_row( "SELECT '$unknown', ID FROM $wpdb->posts", ARRAY_A ) );
 	assertType( 'list<stdClass>|null', $wpdb->get_results( $unknown ) );
 
+	// A `sprintf()` conversion is unknown text, which may be any number of values.
+	assertType( '(list<object{ID: decimal-int-string, post_parent: decimal-int-string}&stdClass>)|null', $wpdb->get_results( sprintf( "SELECT $wpdb->posts.ID, $wpdb->posts.post_parent FROM $wpdb->posts WHERE ID IN (%s)", $unknown ) ) );
+	assertType( 'list<array{option_name: string, option_value: string}>|null', $wpdb->get_results( $wpdb->prepare( sprintf( "SELECT option_name, option_value FROM $wpdb->options WHERE option_name IN (%s)", $unknown ), 'a' ), ARRAY_A ) );
+	assertType( 'list<stdClass>|null', $wpdb->get_results( sprintf( "SELECT ID, %s FROM $wpdb->posts", $unknown ) ) );
+	assertType( '(object{ID: decimal-int-string, 100%: string|null}&stdClass)|null', $wpdb->get_row( sprintf( "SELECT ID, '100%%' FROM $wpdb->posts" ) ) );
+
 	// A `prepare()` placeholder is a single unknown value.
 	assertType( '(object{ID: decimal-int-string, x: string|null}&stdClass)|null', $wpdb->get_row( $wpdb->prepare( "SELECT ID, %s AS x FROM $wpdb->posts WHERE post_title LIKE '100%%'", 'a' ) ) );
 	assertType( 'array{decimal-int-string, string|null, string|null}|null', $wpdb->get_row( $wpdb->prepare( "SELECT ID, %d x, %s FROM $wpdb->posts", 1, 'a' ), ARRAY_N ) );

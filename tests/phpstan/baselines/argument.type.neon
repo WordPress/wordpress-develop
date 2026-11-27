@@ -849,7 +849,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/comment.php
 		-
-			message: '#^Parameter \#1 \$comments of function update_comment_cache expects array\<WP_Comment\>, list\<stdClass\>\|null given\.$#'
+			message: '#^Parameter \#1 \$comments of function update_comment_cache expects array\<WP_Comment\>, \(list\<object\{comment_ID\: string, comment_post_ID\: string, comment_author\: string, comment_author_email\: string, comment_author_url\: string, comment_author_IP\: string, comment_date\: string, comment_date_gmt\: string, comment_content\: string, comment_karma\: string, comment_approved\: string, comment_agent\: string, comment_type\: string, comment_parent\: string, user_id\: string\}&stdClass\>\)\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/comment.php
@@ -1114,7 +1114,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/post.php
 		-
-			message: '#^Parameter \#1 \$posts of function update_post_cache expects array\<WP_Post\>, list\<stdClass\> given\.$#'
+			message: '#^Parameter \#1 \$posts of function update_post_cache expects array\<WP_Post\>, list\<object\{ID\: string, post_author\: string, post_date\: string, post_date_gmt\: string, post_content\: string, post_title\: string, post_excerpt\: string, post_status\: string, comment_status\: string, ping_status\: string, post_password\: string, post_name\: string, to_ping\: string, pinged\: string, post_modified\: string, post_modified_gmt\: string, post_content_filtered\: string, post_parent\: string, guid\: string, menu_order\: string, post_type\: string, post_mime_type\: string, comment_count\: string\}&stdClass\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/post.php
@@ -1264,7 +1264,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
 		-
-			message: '#^Parameter \#1 \$terms of function update_term_cache expects array\<WP_Term\>, list\<stdClass\>\|null given\.$#'
+			message: '#^Parameter \#1 \$terms of function update_term_cache expects array\<WP_Term\>, \(list\<object\{term_id\: string, name\: string, slug\: string, term_group\: string, term_taxonomy_id\: string, taxonomy\: string, description\: string, parent\: string, count\: string\}&stdClass\>\)\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
