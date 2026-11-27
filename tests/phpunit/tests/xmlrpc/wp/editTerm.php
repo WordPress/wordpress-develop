@@ -348,4 +348,50 @@ class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 		$found = get_term_meta( $t, 'foo' );
 		$this->assertSame( array(), $found );
 	}
+
+	public function test_protected_term_meta_requires_key_specific_capability() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		register_term_meta(
+			'wptests_tax',
+			'_protected',
+			array(
+				'auth_callback' => '__return_false',
+			)
+		);
+
+		$t       = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$meta_id = add_term_meta( $t, '_protected', 'bar' );
+
+		$this->make_user_by_role( 'editor' );
+		$this->assertFalse( current_user_can( 'edit_term_meta', $t, '_protected' ) );
+
+		$result = $this->myxmlrpcserver->wp_editTerm(
+			array(
+				1,
+				'editor',
+				'editor',
+				$t,
+				array(
+					'taxonomy'      => 'wptests_tax',
+					'custom_fields' => array(
+						array(
+							'id'    => $meta_id,
+							'key'   => '_protected',
+							'value' => 'changed',
+						),
+						array(
+							'id' => $meta_id,
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( 'bar', get_term_meta( $t, '_protected', true ) );
+	}
 }
