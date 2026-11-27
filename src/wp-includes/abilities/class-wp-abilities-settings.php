@@ -101,18 +101,15 @@ final class WP_Abilities_Settings {
 
 		/*
 		 * Intentional: every exposed setting can be updated, including the settings exposed
-		 * before `core/settings-update` existed, except the options in READ_ONLY_OPTIONS. A
-		 * setting that must stay read-only sets `readonly` to true in its schema.
-		 *
-		 * Intentionally strict: a setting whose schema is read-only cannot be updated, so naming
-		 * it is refused like any unknown name. Only `readonly` at the top level of the schema
-		 * counts: a read-only property inside an object setting is written with the rest of
-		 * the object.
+		 * before `core/settings-update` existed, except the options in READ_ONLY_OPTIONS and the
+		 * settings whose schema sets `readonly` to true. Naming one of those is refused like any
+		 * unknown name. Only `readonly` at the top level of the schema counts: a read-only
+		 * property inside an object setting is written with the rest of the object.
 		 */
 		$this->writable_settings = array_filter(
 			$this->exposed_settings,
 			static fn( array $setting ): bool => empty( $setting['schema']['readonly'] )
-				&& ! in_array( $setting['option'], self::READ_ONLY_OPTIONS, true )
+				&& ! in_array( strtolower( $setting['option'] ), self::READ_ONLY_OPTIONS, true )
 		);
 
 		$this->register_settings_get();
@@ -172,7 +169,7 @@ final class WP_Abilities_Settings {
 			'core/settings-update',
 			array(
 				'label'                 => __( 'Update Settings' ),
-				'description'           => __( 'Updates WordPress settings and returns the saved values of the settings named in the call. A null value resets a setting to its default, or deletes its stored value when it has no default, except for the date format, the time format and the default category, which cannot be reset. Read-only settings, such as the site address and the administration email address, cannot be updated. Requires an authenticated user who can manage options, and who can also manage privacy options to set the privacy policy page.' ),
+				'description'           => __( 'Updates WordPress settings and returns the saved values of the settings named in the call. A null value resets a setting to its default, or deletes its stored value when it has no default, except for the date format, the time format and the default category, which cannot be reset. Read-only settings, such as the WordPress address and the administration email address, cannot be updated. Requires an authenticated user who can manage options, and who can also manage privacy options to set the privacy policy page.' ),
 				'category'              => self::CATEGORY,
 				'input_schema'          => $this->get_settings_update_input_schema(),
 				'output_schema'         => $this->get_settings_output_schema( $this->writable_settings, __( 'A map of setting name to its value after the update.' ) ),
@@ -244,7 +241,7 @@ final class WP_Abilities_Settings {
 		$input = rest_sanitize_object( $input );
 		$named = array_intersect_key( $this->writable_settings, rest_sanitize_object( $input['data'] ?? array() ) );
 
-		return ! in_array( 'wp_page_for_privacy_policy', array_column( $named, 'option' ), true )
+		return ! in_array( 'wp_page_for_privacy_policy', array_map( 'strtolower', array_column( $named, 'option' ) ), true )
 			|| current_user_can( 'manage_privacy_options' );
 	}
 
@@ -297,7 +294,7 @@ final class WP_Abilities_Settings {
 			}
 
 			if ( null !== $data[ $exposed_name ] ) {
-				$message = $this->get_invalid_value_message( $setting['option'], $value );
+				$message = $this->get_invalid_value_message( $setting['option'], $value, "data[{$exposed_name}]" );
 				if ( null !== $message ) {
 					$invalid_params[ "data[{$exposed_name}]" ] = $message;
 				}
@@ -317,11 +314,23 @@ final class WP_Abilities_Settings {
 		}
 
 		if ( ! empty( $invalid_params ) ) {
-			return $this->get_refused_settings_error( 'settings_invalid_value', $invalid_params, 400 );
+			return $this->get_refused_settings_error(
+				'settings_invalid_value',
+				$invalid_params,
+				400,
+				/* translators: %s: List of invalid parameters. */
+				__( 'Invalid parameter(s): %s' )
+			);
 		}
 
 		if ( ! empty( $invalid_stored ) ) {
-			return $this->get_refused_settings_error( 'settings_invalid_stored_value', $invalid_stored, 500 );
+			return $this->get_refused_settings_error(
+				'settings_invalid_stored_value',
+				$invalid_stored,
+				500,
+				/* translators: %s: List of parameters. */
+				__( 'These parameters have an invalid stored value, and cannot be updated to null: %s' )
+			);
 		}
 
 		foreach ( $values as $exposed_name => $value ) {
@@ -355,17 +364,18 @@ final class WP_Abilities_Settings {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param string                $code   The error code.
-	 * @param array<string, string> $params Messages keyed by the input path of each refused setting.
-	 * @param int                   $status The HTTP status code.
+	 * @param string                $code             The error code.
+	 * @param array<string, string> $params           Messages keyed by the input path of each refused setting.
+	 * @param int                   $status           The HTTP status code.
+	 * @param string                $multiple_message The message when several settings are refused, with
+	 *                                                a placeholder for the list of their input paths.
 	 * @return WP_Error The error.
 	 */
-	private function get_refused_settings_error( string $code, array $params, int $status ): WP_Error {
+	private function get_refused_settings_error( string $code, array $params, int $status, string $multiple_message ): WP_Error {
 		if ( 1 === count( $params ) ) {
 			$message = reset( $params );
 		} else {
-			/* translators: %s: List of invalid parameters. */
-			$message = sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $params ) ) );
+			$message = sprintf( $multiple_message, implode( ', ', array_keys( $params ) ) );
 		}
 
 		return new WP_Error(
@@ -390,9 +400,10 @@ final class WP_Abilities_Settings {
 	 *
 	 * @param string $option The option name.
 	 * @param mixed  $value  The value to save, which is not null.
+	 * @param string $param  The input path of the setting, used in the message.
 	 * @return string|null The error message when the option cannot use the value, null otherwise.
 	 */
-	private function get_invalid_value_message( string $option, $value ): ?string {
+	private function get_invalid_value_message( string $option, $value, string $param ): ?string {
 		switch ( $option ) {
 			case 'timezone_string':
 				if ( '' !== $value && ! in_array( $value, timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true ) ) {
@@ -401,8 +412,10 @@ final class WP_Abilities_Settings {
 				break;
 
 			case 'WPLANG':
-				if ( '' !== $value && ! in_array( $value, get_available_languages(), true ) ) {
-					return __( 'The language is not installed.' );
+				$languages = get_available_languages();
+				if ( '' !== $value && ! in_array( $value, $languages, true ) ) {
+					/* translators: 1: Parameter, 2: List of valid values. */
+					return wp_sprintf( __( '%1$s is not one of %2$l.' ), $param, array_merge( array( 'en_US' ), $languages ) );
 				}
 				break;
 
@@ -432,7 +445,7 @@ final class WP_Abilities_Settings {
 						|| in_array( get_post_status( $value ), array( 'trash', 'auto-draft' ), true )
 					)
 				) {
-					return __( 'Invalid page ID.' );
+					return __( 'Invalid post ID.' );
 				}
 				break;
 
@@ -572,7 +585,7 @@ final class WP_Abilities_Settings {
 	 * @phpstan-param array{
 	 *     option: string,
 	 *     schema: array{
-	 *         type: non-empty-string|non-empty-string[],
+	 *         type: non-empty-string,
 	 *         enum?: mixed[],
 	 *         default?: mixed,
 	 *         ...
@@ -584,13 +597,14 @@ final class WP_Abilities_Settings {
 		$schema = $setting['schema'];
 		unset( $schema['default'] );
 
-		return in_array( $setting['option'], self::NON_RESETTABLE_OPTIONS, true ) ? $schema : $this->nullable_schema( $schema );
+		return in_array( strtolower( $setting['option'] ), self::NON_RESETTABLE_OPTIONS, true ) ? $schema : $this->nullable_schema( $schema );
 	}
 
 	/**
 	 * Allows null in a setting's value schema.
 	 *
-	 * Adds `null` to the type, and to the allowed values when the schema lists them. A schema
+	 * Adds `null` to the type, and to the allowed values when the schema lists them. The type is
+	 * a single type: get_exposed_settings() leaves out a setting whose type is a list. A schema
 	 * with a top-level `anyOf` or `oneOf` is kept as is and listed with a null schema in an
 	 * `anyOf` instead, because a null type would still be refused by its subschemas. Nested
 	 * schemas are not changed.
@@ -601,12 +615,12 @@ final class WP_Abilities_Settings {
 	 * @return array<string, mixed> The value JSON Schema that also accepts null.
 	 *
 	 * @phpstan-param array{
-	 *     type: non-empty-string|non-empty-string[],
+	 *     type: non-empty-string,
 	 *     enum?: mixed[],
 	 *     ...
 	 * } $schema
 	 * @phpstan-return array{
-	 *     type: non-empty-string[],
+	 *     type: array{ non-empty-string, 'null' },
 	 *     enum?: mixed[],
 	 *     ...
 	 * }|array{
@@ -623,7 +637,7 @@ final class WP_Abilities_Settings {
 			);
 		}
 
-		$schema['type'] = array_merge( (array) $schema['type'], array( 'null' ) );
+		$schema['type'] = array( $schema['type'], 'null' );
 		if ( isset( $schema['enum'] ) ) {
 			$schema['enum'][] = null;
 		}
@@ -708,7 +722,10 @@ final class WP_Abilities_Settings {
 			 * overrides the registered default.
 			 */
 			$settings[ $exposed_name ] = array(
-				// The options API trims the name, so the rules that name an option compare the trimmed name.
+				/*
+				 * The options API trims the name and the database ignores its case, so the rules
+				 * that name an option compare the trimmed name in lower case.
+				 */
 				'option'  => trim( $option_name ),
 				'group'   => $args['group'] ?? '',
 				'default' => array_key_exists( 'default', $schema ) ? $schema['default'] : ( $args['default'] ?? null ),

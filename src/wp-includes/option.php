@@ -3066,9 +3066,8 @@ function _wp_register_initial_settings_for_abilities(): void {
  *     @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API,
  *                                            where users who can manage options can read and update it.
  *                                            The WordPress address, the site address and the administration
- *                                            email address can be read but not updated, and the date format,
- *                                            the time format and the default category cannot be reset with
- *                                            a null value.
+ *                                            email address cannot be updated, and the date format, the time
+ *                                            format and the default category cannot be reset with a null value.
  *                                            When true, it uses the same name and schema as `$show_in_rest`.
  *                                            It may also be an array with 'name' and 'schema' keys, used instead of
  *                                            `$show_in_rest` rather than merged with it.

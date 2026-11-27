@@ -761,16 +761,21 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * The privacy policy page rule holds when the option is exposed under another name.
+	 * The privacy policy page rule holds when the option is exposed under another name, also
+	 * when its name is registered in another case, which the database ignores.
 	 *
 	 * @ticket 64616
 	 *
 	 * @since 7.3.0
+	 *
+	 * @dataProvider data_privacy_policy_page_options
+	 *
+	 * @param string $option The name the option is registered with.
 	 */
-	public function test_privacy_rule_follows_the_option_under_another_name(): void {
+	public function test_privacy_rule_follows_the_option_under_another_name( string $option ): void {
 		register_setting(
 			'reading',
-			'wp_page_for_privacy_policy',
+			$option,
 			array(
 				'type'              => 'integer',
 				'show_in_abilities' => array( 'name' => 'settings_update_test_privacy_page' ),
@@ -785,6 +790,18 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 		$this->assert_error_code( $result, 'ability_invalid_permissions' );
 		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}> Names that the privacy policy page option is registered with.
+	 */
+	public static function data_privacy_policy_page_options(): array {
+		return array(
+			'the option name'          => array( 'wp_page_for_privacy_policy' ),
+			'the option in upper case' => array( 'WP_PAGE_FOR_PRIVACY_POLICY' ),
+		);
 	}
 
 	/**
@@ -950,7 +967,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	}
 
 	/**
-	 * The site address and the administration email address cannot be updated. On single site
+	 * The WordPress address and the administration email address cannot be updated. On single site
 	 * core/settings-get still reads them, and on multisite they are not exposed.
 	 *
 	 * @ticket 64616
@@ -992,7 +1009,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 
 	/**
 	 * The read-only rule holds for each read-only option, also when a plugin exposes it under
-	 * another name, or registers its name with surrounding spaces, which the options API trims.
+	 * another name, or registers its name with surrounding spaces, which the options API trims,
+	 * or in another case, which the database ignores.
 	 *
 	 * @ticket 64616
 	 *
@@ -1032,11 +1050,13 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 */
 	public static function data_read_only_options(): array {
 		return array(
-			'the WordPress address'                => array( 'siteurl' ),
-			'the site address'                     => array( 'home' ),
-			'the administration email address'     => array( 'admin_email' ),
-			'the WordPress address with spaces'    => array( ' siteurl ' ),
-			'the site address with a trailing tab' => array( "home\t" ),
+			'the WordPress address'                 => array( 'siteurl' ),
+			'the site address'                      => array( 'home' ),
+			'the administration email address'      => array( 'admin_email' ),
+			'the WordPress address with spaces'     => array( ' siteurl ' ),
+			'the site address with a trailing tab'  => array( "home\t" ),
+			'the WordPress address in another case' => array( 'SiteURL' ),
+			'the administration email address in another case' => array( ' Admin_Email ' ),
 		);
 	}
 
@@ -1218,7 +1238,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	/**
 	 * The reset rule holds for each option that cannot be reset, also when a plugin exposes it
 	 * under another name, or registers its name with surrounding spaces, which the options API
-	 * trims.
+	 * trims, or in another case, which the database ignores.
 	 *
 	 * @ticket 64616
 	 *
@@ -1257,10 +1277,12 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 	 */
 	public static function data_non_resettable_options(): array {
 		return array(
-			'the date format'             => array( 'date_format', 'string' ),
-			'the time format'             => array( 'time_format', 'string' ),
-			'the default category'        => array( 'default_category', 'integer' ),
-			'the date format with spaces' => array( ' date_format ', 'string' ),
+			'the date format'                    => array( 'date_format', 'string' ),
+			'the time format'                    => array( 'time_format', 'string' ),
+			'the default category'               => array( 'default_category', 'integer' ),
+			'the date format with spaces'        => array( ' date_format ', 'string' ),
+			'the date format in another case'    => array( 'Date_Format', 'string' ),
+			'the default category in upper case' => array( 'DEFAULT_CATEGORY', 'integer' ),
 		);
 	}
 
@@ -1710,7 +1732,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 		);
 
 		$this->assert_error_code( $result, 'settings_invalid_stored_value' );
-		$this->assertSame( 'Invalid parameter(s): data[start_of_week], data[default_ping_status]', $result->get_error_message(), 'The message should name every refused setting.' );
+		$this->assertSame( 'These parameters have an invalid stored value, and cannot be updated to null: data[start_of_week], data[default_ping_status]', $result->get_error_message(), 'The message should name every refused setting.' );
 		$this->assertSame( 500, $result->get_error_data()['status'], 'The error should be a server error.' );
 		$this->assertSameSets( array( 'data[start_of_week]', 'data[default_ping_status]' ), array_keys( $result->get_error_data()['params'] ), 'The error data should name every refused setting.' );
 		$this->assertSameSetsWithIndex( $before, $this->snapshot(), 'Nothing should be deleted.' );

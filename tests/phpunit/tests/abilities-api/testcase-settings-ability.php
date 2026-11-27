@@ -43,7 +43,14 @@ abstract class WP_Abilities_Settings_UnitTestCase extends WP_UnitTestCase {
 	private static $class_allowed_options;
 
 	/**
-	 * Registers the core abilities before the class.
+	 * The administrator that become_admin() logs in as.
+	 *
+	 * @var int
+	 */
+	protected static $admin_id;
+
+	/**
+	 * Registers the core abilities and creates the administrator before the class.
 	 *
 	 * The abilities are registered with no settings registered yet and `rest_api_init` never
 	 * fired, as on cron, WP-CLI, or any request that uses the Abilities API before the REST
@@ -88,6 +95,8 @@ abstract class WP_Abilities_Settings_UnitTestCase extends WP_UnitTestCase {
 
 		self::$class_registered_settings = $wp_registered_settings;
 		self::$class_allowed_options     = $new_allowed_options;
+
+		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
 	/**
@@ -163,6 +172,6 @@ abstract class WP_Abilities_Settings_UnitTestCase extends WP_UnitTestCase {
 	 * @since 7.3.0
 	 */
 	protected function become_admin(): void {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_id );
 	}
 }
