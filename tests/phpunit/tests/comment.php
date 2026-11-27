@@ -177,6 +177,78 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57979
+	 *
+	 * @covers ::wp_update_comment
+	 */
+	public function test_update_comment_allows_images_in_admin_by_privileged_user() {
+		wp_set_current_user( self::$user_id );
+
+		$comment_id = wp_new_comment(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => 'Author',
+				'comment_author_url'   => 'http://example.localhost/',
+				'comment_author_email' => 'author@example.com',
+				'user_id'              => self::$user_id,
+				'comment_content'      => '<a href="http://example.localhost/something.html">click</a>',
+			)
+		);
+
+		wp_set_current_user( 0 );
+
+		$admin_id = self::factory()->user->create(
+			array(
+				'role'       => 'administrator',
+				'user_login' => 'test_wp_admin_get',
+				'user_pass'  => 'password',
+				'user_email' => 'testadmin@example.com',
+			)
+		);
+
+		wp_set_current_user( $admin_id );
+
+		// Simulate admin context.
+		set_current_screen( 'edit-comments' );
+
+		wp_update_comment(
+			array(
+				'comment_ID'      => $comment_id,
+				'comment_content' => '<img src="http://example.localhost/image.jpg" alt="Test image" width="100" height="50">',
+			)
+		);
+
+		// Reset current screen.
+		set_current_screen( 'front' );
+
+		wp_set_current_user( 0 );
+
+		$comment = get_comment( $comment_id );
+		$this->assertStringContainsString( '<img', $comment->comment_content );
+		$this->assertStringContainsString( 'src="http://example.localhost/image.jpg"', $comment->comment_content );
+		$this->assertStringContainsString( 'alt="Test image"', $comment->comment_content );
+
+		// Verify that malicious attributes are still stripped by KSES.
+		wp_set_current_user( $admin_id );
+		set_current_screen( 'edit-comments' );
+
+		wp_update_comment(
+			array(
+				'comment_ID'      => $comment_id,
+				'comment_content' => '<img src="x.jpg" onerror="alert(1)">',
+			)
+		);
+
+		set_current_screen( 'front' );
+		wp_set_current_user( 0 );
+
+		$comment = get_comment( $comment_id );
+		$this->assertStringContainsString( '<img', $comment->comment_content );
+		$this->assertStringNotContainsString( 'onerror', $comment->comment_content );
+		$this->assertStringNotContainsString( 'alert', $comment->comment_content );
+	}
+
+	/**
 	 * @ticket 30627
 	 *
 	 * @covers ::wp_update_comment
