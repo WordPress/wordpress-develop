@@ -3040,7 +3040,7 @@ function _wp_register_initial_settings_for_abilities(): void {
  * @since 6.6.0 Added the `label` argument.
  * @since 7.2.0 Added the `show_in_abilities` argument.
  * @since 7.3.0 Settings exposed with the `show_in_abilities` argument can be updated through the Abilities API,
- *              including settings exposed before, unless their schema sets 'readonly' to true.
+ *              unless their schema sets 'readonly' to true.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
@@ -3065,6 +3065,10 @@ function _wp_register_initial_settings_for_abilities(): void {
  *                                            optionally be an array with a 'schema' key.
  *     @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API,
  *                                            where users who can manage options can read and update it.
+ *                                            The WordPress address, the site address and the administration
+ *                                            email address can be read but not updated, and the date format,
+ *                                            the time format and the default category cannot be reset with
+ *                                            a null value.
  *                                            When true, it uses the same name and schema as `$show_in_rest`.
  *                                            It may also be an array with 'name' and 'schema' keys, used instead of
  *                                            `$show_in_rest` rather than merged with it.

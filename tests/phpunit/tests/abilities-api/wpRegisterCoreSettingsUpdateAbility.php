@@ -1886,7 +1886,37 @@ class Tests_Abilities_API_WpRegisterCoreSettingsUpdateAbility extends WP_Abiliti
 				'false',
 				'',
 			),
+			'a value sanitized to the default'      => array(
+				array(
+					'type'              => 'string',
+					'default'           => 'Registered',
+					'sanitize_callback' => 'trim',
+					'show_in_abilities' => true,
+				),
+				' Registered ',
+				'"Registered"',
+				'Registered',
+			),
 		);
+	}
+
+	/**
+	 * A core value that is sanitized to the default is stored when the setting has no stored value.
+	 *
+	 * @ticket 64616
+	 *
+	 * @since 7.3.0
+	 */
+	public function test_value_sanitized_to_the_default_is_stored(): void {
+		$this->store_raw( 'posts_per_page', null );
+		$this->become_admin();
+		$expected                   = $this->snapshot();
+		$expected['posts_per_page'] = '10';
+
+		$result = $this->update( array( 'posts_per_page' => -10 ) );
+
+		$this->assertSame( array( 'posts_per_page' => 10 ), $result, 'The output should show the sanitized value.' );
+		$this->assertSameSetsWithIndex( $expected, $this->snapshot(), 'The sanitized value should be stored.' );
 	}
 
 	/**

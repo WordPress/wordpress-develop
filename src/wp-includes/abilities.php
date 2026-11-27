@@ -372,7 +372,7 @@ function wp_register_core_abilities(): void {
 		)
 	);
 
-	// Register the settings abilities (get and update).
+	// Register the settings abilities (`core/settings-get` and `core/settings-update`).
 	( new WP_Abilities_Settings() )->register();
 
 	// Register the user abilities (currently the read-only `core/users-query`).

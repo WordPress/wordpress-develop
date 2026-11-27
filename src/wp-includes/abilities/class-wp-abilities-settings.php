@@ -282,6 +282,7 @@ final class WP_Abilities_Settings {
 		 * default then has no value, and is left out of the output and of `core/settings-get`,
 		 * until a value is written again.
 		 */
+		$values         = array();
 		$invalid_params = array();
 		$invalid_stored = array();
 		foreach ( $named as $exposed_name => $setting ) {
@@ -312,7 +313,7 @@ final class WP_Abilities_Settings {
 				);
 			}
 
-			$data[ $exposed_name ] = $value;
+			$values[ $exposed_name ] = $value;
 		}
 
 		if ( ! empty( $invalid_params ) ) {
@@ -323,22 +324,22 @@ final class WP_Abilities_Settings {
 			return $this->get_refused_settings_error( 'settings_invalid_stored_value', $invalid_stored, 500 );
 		}
 
-		foreach ( $named as $exposed_name => $setting ) {
-			$value = $data[ $exposed_name ];
+		foreach ( $values as $exposed_name => $value ) {
+			$option = $named[ $exposed_name ]['option'];
 			if ( null === $value ) {
-				delete_option( $setting['option'] );
+				delete_option( $option );
 				continue;
 			}
 
-			update_option( $setting['option'], $value );
+			update_option( $option, $value );
 
 			/*
-			 * update_option() stores nothing when no value is stored and the value matches the default
-			 * get_option() reads. The stored value reads as null when there is none, while a stored
-			 * false reads as false.
+			 * update_option() stores nothing when no value is stored and the sanitized value matches
+			 * the default get_option() reads, so store that default. The stored value reads as null
+			 * when there is none, while a stored false reads as false.
 			 */
-			if ( null === get_option( $setting['option'], null ) && get_option( $setting['option'] ) === $value ) {
-				add_option( $setting['option'], $value );
+			if ( null === get_option( $option, null ) ) {
+				add_option( $option, get_option( $option ) );
 			}
 		}
 
@@ -559,8 +560,9 @@ final class WP_Abilities_Settings {
 	/**
 	 * Returns the input schema of a writable setting.
 	 *
-	 * Allows null, unless the option is one of NON_RESETTABLE_OPTIONS, and removes the default,
-	 * see nullable_schema().
+	 * Removes the default, which is for reading a setting: a client that fills in defaults would
+	 * otherwise write it on every call. Allows null, unless the option is one of
+	 * NON_RESETTABLE_OPTIONS, see nullable_schema().
 	 *
 	 * @since 7.3.0
 	 *
@@ -579,14 +581,10 @@ final class WP_Abilities_Settings {
 	 * } $setting
 	 */
 	private function get_update_value_schema( array $setting ): array {
-		if ( in_array( $setting['option'], self::NON_RESETTABLE_OPTIONS, true ) ) {
-			$schema = $setting['schema'];
-			unset( $schema['default'] );
+		$schema = $setting['schema'];
+		unset( $schema['default'] );
 
-			return $schema;
-		}
-
-		return $this->nullable_schema( $setting['schema'] );
+		return in_array( $setting['option'], self::NON_RESETTABLE_OPTIONS, true ) ? $schema : $this->nullable_schema( $schema );
 	}
 
 	/**
@@ -594,19 +592,17 @@ final class WP_Abilities_Settings {
 	 *
 	 * Adds `null` to the type, and to the allowed values when the schema lists them. A schema
 	 * with a top-level `anyOf` or `oneOf` is kept as is and listed with a null schema in an
-	 * `anyOf` instead, because a null type would still be refused by its subschemas. Removes
-	 * the default, which is for reading a setting: a client that fills in defaults would
-	 * otherwise write it on every call. Nested schemas are not changed.
+	 * `anyOf` instead, because a null type would still be refused by its subschemas. Nested
+	 * schemas are not changed.
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param array<string, mixed> $schema The value JSON Schema.
+	 * @param array<string, mixed> $schema The value JSON Schema, without a default.
 	 * @return array<string, mixed> The value JSON Schema that also accepts null.
 	 *
 	 * @phpstan-param array{
 	 *     type: non-empty-string|non-empty-string[],
 	 *     enum?: mixed[],
-	 *     default?: mixed,
 	 *     ...
 	 * } $schema
 	 * @phpstan-return array{
@@ -618,8 +614,6 @@ final class WP_Abilities_Settings {
 	 * }
 	 */
 	private function nullable_schema( array $schema ): array {
-		unset( $schema['default'] );
-
 		if ( isset( $schema['anyOf'] ) || isset( $schema['oneOf'] ) ) {
 			return array(
 				'anyOf' => array(
