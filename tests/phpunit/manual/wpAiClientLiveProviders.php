@@ -221,6 +221,12 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 		if ( ! $api_key ) {
 			$this->markTestSkipped( "The $key_name environment variable or constant is not set." );
 		}
+
+		// PHPUnit may run from a PHAR, which does not load the Composer autoloader of the checkout.
+		$autoloader = dirname( __DIR__, 3 ) . '/vendor/autoload.php';
+		if ( ! class_exists( $provider_class ) && file_exists( $autoloader ) ) {
+			require_once $autoloader;
+		}
 		if ( ! class_exists( $provider_class ) ) {
 			$this->markTestSkipped( 'The AI provider packages are not installed. Run `composer update`, or `npm run env:composer -- update` in the local Docker environment.' );
 		}
