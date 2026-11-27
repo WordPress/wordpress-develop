@@ -88,11 +88,16 @@ final class ReflectionParserTest extends TestCase {
 		$env                             = getenv();
 		$env['WP_PHPSTAN_TESTS_TMP_DIR'] = $this->tmp_dir;
 
+		// Standard error goes to a file rather than a second pipe. Reading one pipe to
+		// its end while the other fills up would leave both processes waiting on each
+		// other, should PHPStan ever write more to standard error than a pipe holds.
+		$errors_file = $this->tmp_dir . '/stderr.log';
+
 		$process = proc_open(
 			$command,
 			array(
 				1 => array( 'pipe', 'w' ),
-				2 => array( 'pipe', 'w' ),
+				2 => array( 'file', $errors_file, 'w' ),
 			),
 			$pipes,
 			null,
@@ -101,10 +106,9 @@ final class ReflectionParserTest extends TestCase {
 		$this->assertIsResource( $process );
 
 		$output = (string) stream_get_contents( $pipes[1] );
-		$errors = (string) stream_get_contents( $pipes[2] );
 		fclose( $pipes[1] );
-		fclose( $pipes[2] );
 		$status = proc_close( $process );
+		$errors = (string) file_get_contents( $errors_file );
 
 		// PHPStan exits 1 when it reports errors, as it does for the dumped type.
 		$this->assertSame( 1, $status, "PHPStan did not complete.\n" . $output . $errors );
