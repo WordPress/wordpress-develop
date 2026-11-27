@@ -820,6 +820,56 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an explicitly set quality is used when converting a JPEG to WebP.
+	 *
+	 * @ticket 66705
+	 *
+	 * @covers WP_Image_Editor_GD::set_quality
+	 * @covers WP_Image_Editor_GD::save
+	 */
+	public function test_set_quality_is_kept_when_converting_to_webp() {
+		if ( ! WP_Image_Editor_GD::supports_mime_type( 'image/webp' ) ) {
+			$this->markTestSkipped( 'This GD build does not support WebP.' );
+		}
+
+		$filesizes = array();
+
+		foreach ( array( 20, 80 ) as $quality ) {
+			$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/canola.jpg' );
+			$gd_image_editor->load();
+			$gd_image_editor->set_quality( $quality );
+
+			$save_to_file = get_temp_dir() . wp_unique_filename( get_temp_dir(), "quality-{$quality}.webp" );
+			$saved        = $gd_image_editor->save( $save_to_file, 'image/webp' );
+
+			$this->assertNotWPError( $saved, 'Saving the image as WebP should not fail.' );
+			$this->assertSame( $quality, $gd_image_editor->get_quality(), 'The explicit quality should be kept after converting to WebP.' );
+
+			$filesizes[ $quality ] = filesize( $saved['path'] );
+			unlink( $saved['path'] );
+		}
+
+		$this->assertLessThan( $filesizes[80], $filesizes[20], 'A lower quality should produce a smaller WebP file.' );
+	}
+
+	/**
+	 * Tests that an explicitly set quality is kept when the image is resized.
+	 *
+	 * @ticket 66705
+	 *
+	 * @covers WP_Image_Editor_GD::set_quality
+	 * @covers WP_Image_Editor_GD::resize
+	 */
+	public function test_set_quality_is_kept_after_resize() {
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/canola.jpg' );
+		$gd_image_editor->load();
+		$gd_image_editor->set_quality( 20 );
+
+		$this->assertTrue( $gd_image_editor->resize( 100, 100 ), 'Resizing the image should not fail.' );
+		$this->assertSame( 20, $gd_image_editor->get_quality(), 'The explicit quality should be kept after resizing.' );
+	}
+
+	/**
 	 * Tests that a flipped palette image can be saved as WebP.
 	 *
 	 * imagewebp() rejects palette images with a warning and writes an empty file,

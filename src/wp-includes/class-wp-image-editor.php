@@ -20,6 +20,14 @@ abstract class WP_Image_Editor {
 	protected $default_mime_type = 'image/jpeg';
 	protected $quality           = false;
 
+	/**
+	 * Compression quality set explicitly via set_quality().
+	 *
+	 * @since 7.3.0
+	 * @var int|null
+	 */
+	protected $explicit_quality = null;
+
 	// Deprecated since 5.8.1. See get_default_quality() below.
 	protected $default_quality = 82;
 
@@ -233,13 +241,22 @@ abstract class WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 * @since 6.8.0 The `$dims` parameter was added.
+	 * @since 7.3.0 An explicitly set quality is now kept when the image is resized
+	 *              or converted to a different output format.
 	 *
 	 * @param int   $quality Compression Quality. Range: [1,100]
 	 * @param array $dims    Optional. Image dimensions array with 'width' and 'height' keys.
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
-
 	 */
 	public function set_quality( $quality = null, $dims = array() ) {
+		$is_explicit = null !== $quality;
+
+		// Keep an explicitly set quality when the quality is re-evaluated, e.g. on resize or format conversion.
+		if ( ! $is_explicit && null !== $this->explicit_quality ) {
+			$this->quality = $this->explicit_quality;
+			return true;
+		}
+
 		// Use the output mime type if present. If not, fall back to the input/initial mime type.
 		$mime_type = ! empty( $this->output_mime_type ) ? $this->output_mime_type : $this->mime_type;
 		// Get the default quality setting for the mime type.
@@ -250,7 +267,7 @@ abstract class WP_Image_Editor {
 			 * Filters the default image compression quality setting.
 			 *
 			 * Applies only during initial editor instantiation, or when set_quality() is run
-			 * manually without the `$quality` argument.
+			 * manually without the `$quality` argument and no quality was set explicitly before.
 			 *
 			 * The WP_Image_Editor::set_quality() method has priority over the filter.
 			 *
@@ -273,7 +290,7 @@ abstract class WP_Image_Editor {
 				 * Filters the JPEG compression quality for backward-compatibility.
 				 *
 				 * Applies only during initial editor instantiation, or when set_quality() is run
-				 * manually without the `$quality` argument.
+				 * manually without the `$quality` argument and no quality was set explicitly before.
 				 *
 				 * The WP_Image_Editor::set_quality() method has priority over the filter.
 				 *
@@ -300,6 +317,11 @@ abstract class WP_Image_Editor {
 
 		if ( ( $quality >= 1 ) && ( $quality <= 100 ) ) {
 			$this->quality = $quality;
+
+			if ( $is_explicit ) {
+				$this->explicit_quality = $quality;
+			}
+
 			return true;
 		} else {
 			return new WP_Error( 'invalid_image_quality', __( 'Attempted to set image quality outside of the range [1,100].' ) );
