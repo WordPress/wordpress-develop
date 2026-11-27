@@ -49,8 +49,8 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 */
 	public function __construct( $parent_post_type ) {
 		parent::__construct( $parent_post_type );
-		$post_type_object       = get_post_type_object( $parent_post_type );
-		$parent_controller      = $post_type_object->get_rest_controller();
+		$post_type_object  = get_post_type_object( $parent_post_type );
+		$parent_controller = $post_type_object->get_rest_controller();
 
 		if ( ! $parent_controller ) {
 			$parent_controller = new WP_REST_Templates_Controller( $parent_post_type );
