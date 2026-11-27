@@ -36,6 +36,7 @@ class Tests_iis7_rewrite_rule_exists extends WP_UnitTestCase {
 	 * Tests that iis7_rewrite_rule_exists() correctly identifies the existence of rules.
 	 *
 	 * @ticket 65148
+	 * @ticket 45970
 	 *
 	 * @dataProvider data_iis7_rewrite_rule_exists
 	 *
@@ -77,6 +78,14 @@ class Tests_iis7_rewrite_rule_exists extends WP_UnitTestCase {
 			'Rule does not exist'               => array(
 				'expected' => false,
 				'content'  => '<configuration><system.webServer><rewrite><rules><rule name="other-rule" /></rules></rewrite></system.webServer></configuration>',
+			),
+			'Rule exists in configuration with default namespace' => array(
+				'expected' => true,
+				'content'  => '<configuration xmlns="http://schemas.microsoft.com/.NetConfiguration/v2.0"><system.webServer><rewrite><rules><rule name="wordpress" /></rules></rewrite></system.webServer></configuration>',
+			),
+			'Rule does not exist in configuration with default namespace' => array(
+				'expected' => false,
+				'content'  => '<configuration xmlns="http://schemas.microsoft.com/.NetConfiguration/v2.0"><system.webServer><rewrite><rules><rule name="other-rule" /></rules></rewrite></system.webServer></configuration>',
 			),
 			'Empty configuration'               => array(
 				'expected' => false,
