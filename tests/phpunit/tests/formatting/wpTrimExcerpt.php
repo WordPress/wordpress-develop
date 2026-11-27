@@ -223,4 +223,22 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 		// Assert that the filter callback was not restored after running 'the_content'.
 		$this->assertFalse( has_filter( 'the_content', 'do_blocks' ) );
 	}
+
+	/**
+	 * Generated excerpts should treat `<br>` as word separators so stripping HTML does not join words.
+	 */
+	public function test_wp_trim_excerpt_replaces_line_break_tags_with_spaces_in_generated_excerpt() {
+		$post = self::factory()->post->create(
+			array(
+				'post_content' =>
+					'<!-- wp:paragraph --><p>Line one<br>line two line three</p><!-- /wp:paragraph -->' .
+					'<!-- wp:verse --><pre class="wp-block-verse">First line<br>second line<br>third line</pre><!-- /wp:verse -->',
+			)
+		);
+
+		$this->assertSame(
+			'Line one line two line three First line second line third line',
+			wp_trim_excerpt( '', $post )
+		);
+	}
 }
