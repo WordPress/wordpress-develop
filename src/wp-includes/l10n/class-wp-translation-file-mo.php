@@ -158,7 +158,7 @@ class WP_Translation_File_MO extends WP_Translation_File {
 						continue;
 					}
 
-					list( $name, $value ) = array_map( 'trim', explode( ':', $meta_line, 2 ) );
+					list( $name, $value ) = array_map( 'trim', array_pad( explode( ':', $meta_line, 2 ), 2, '' ) );
 
 					$this->headers[ strtolower( $name ) ] = $value;
 				}
