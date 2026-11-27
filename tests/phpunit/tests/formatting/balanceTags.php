@@ -286,6 +286,23 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			array( 'details' ),
 			array( 'div' ),
 			array( 'figure' ),
+			array( 'maction' ),
+			array( 'menclose' ),
+			array( 'merror' ),
+			array( 'mfrac' ),
+			array( 'mmultiscripts' ),
+			array( 'mover' ),
+			array( 'mpadded' ),
+			array( 'mphantom' ),
+			array( 'mroot' ),
+			array( 'mrow' ),
+			array( 'msqrt' ),
+			array( 'mstyle' ),
+			array( 'msub' ),
+			array( 'msubsup' ),
+			array( 'msup' ),
+			array( 'munder' ),
+			array( 'munderover' ),
 			array( 'object' ),
 			array( 'q' ),
 			array( 'section' ),
@@ -313,6 +330,59 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	public function test_allows_immediately_nested_object_tags() {
 		$object = '<object id="obj1"><param name="param1"/><object id="obj2"><param name="param2"/></object></object>';
 		$this->assertSame( $object, balanceTags( $object, true ) );
+	}
+
+	/**
+	 * MathML elements nest within themselves: an `mrow` inside an `mrow`, a fraction inside
+	 * a fraction. The rule that closes a non-nestable tag when the same tag is opened again
+	 * must not apply to them, or the markup the Math block saves is corrupted.
+	 *
+	 * @ticket 66398
+	 * @dataProvider data_nested_mathml_elements
+	 */
+	public function test_allows_nested_mathml_elements( $input ) {
+		$this->assertSame( $input, balanceTags( $input, true ) );
+	}
+
+	public static function data_nested_mathml_elements() {
+		return array(
+			'mrow in mrow'         => array( '<math display="block"><semantics><mrow><mi>y</mi><mo>=</mo><mfrac><mrow><mrow><mi mathvariant="normal">Δ</mi></mrow><mi>x</mi></mrow><mi>t</mi></mfrac><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">y = \frac{\Delta x}{t} + 1</annotation></semantics></math>' ),
+			'mfrac in mfrac'       => array( '<math><mfrac><mfrac><mi>a</mi><mi>b</mi></mfrac><mi>c</mi></mfrac></math>' ),
+			'msub in msub'         => array( '<math><msub><msub><mi>x</mi><mi>i</mi></msub><mi>j</mi></msub></math>' ),
+			'mstyle in mstyle'     => array( '<math><mstyle displaystyle="true"><mstyle mathsize="0.9em"><mi>x</mi></mstyle></mstyle></math>' ),
+			'within other content' => array( '<p>Power is</p><div class="wp-block-math"><math><mrow><mrow><mi>P</mi></mrow></mrow></math></div><p>as shown.</p>' ),
+		);
+	}
+
+	/**
+	 * The balancer still closes MathML elements that were left open.
+	 *
+	 * @ticket 66398
+	 */
+	public function test_balances_unclosed_mathml_elements() {
+		$this->assertSame(
+			'<math><mrow><mrow><mi>x</mi></mrow></mrow></math>',
+			balanceTags( '<math><mrow><mrow><mi>x</mi>', true )
+		);
+	}
+
+	/**
+	 * A `math` element cannot contain another, and the token elements such as `mi` hold
+	 * text rather than elements, so opening one of them again still closes the previous one.
+	 *
+	 * @ticket 66398
+	 * @dataProvider data_mathml_elements_that_cannot_contain_themselves
+	 */
+	public function test_closes_mathml_elements_that_cannot_contain_themselves( $input, $expected ) {
+		$this->assertSame( $expected, balanceTags( $input, true ) );
+	}
+
+	public static function data_mathml_elements_that_cannot_contain_themselves() {
+		return array(
+			'math in math' => array( '<math><mi>a</mi><math><mi>b</mi></math>', '<math><mi>a</mi></math><math><mi>b</mi></math>' ),
+			'mi in mi'     => array( '<math><mi>x<mi>y</math>', '<math><mi>x</mi><mi>y</mi></math>' ),
+			'mo in mo'     => array( '<math><mrow><mo>+<mo>-</mrow></math>', '<math><mrow><mo>+</mo><mo>-</mo></mrow></math>' ),
+		);
 	}
 
 	public function test_balances_nested_non_nestable_tags() {
