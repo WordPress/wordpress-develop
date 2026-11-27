@@ -389,6 +389,11 @@ function wp_theme_has_theme_json() {
 
 	$path = get_theme_file_path( 'theme.json' );
 
+	if ( ! $path ) {
+		$theme_has_support[ $stylesheet ] = false;
+		return false;
+	}
+
 	$theme_has_support[ $stylesheet ] = file_exists( $path );
 
 	return $theme_has_support[ $stylesheet ];
