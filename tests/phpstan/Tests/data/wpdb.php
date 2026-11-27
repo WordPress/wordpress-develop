@@ -52,10 +52,10 @@ function wp_tests_wpdb_query( wpdb $wpdb, int $id, string $unknown ): void {
 	assertType( 'int<0, max>|false', $wpdb->query( "/* comment */ DROP TABLE $unknown" ) );
 
 	// Unknown text which could begin the query, or complete a keyword.
-	assertType( 'bool|int', $wpdb->query( $unknown ) );
-	assertType( 'bool|int', $wpdb->query( "$unknown FROM $wpdb->posts" ) );
-	assertType( 'bool|int', $wpdb->query( "DRO$unknown" ) );
-	assertType( 'bool|int', $wpdb->query( "DROP$unknown" ) );
+	assertType( 'bool|int<0, max>',$wpdb->query( $unknown ) );
+	assertType( 'bool|int<0, max>',$wpdb->query( "$unknown FROM $wpdb->posts" ) );
+	assertType( 'bool|int<0, max>',$wpdb->query( "DRO$unknown" ) );
+	assertType( 'bool|int<0, max>',$wpdb->query( "DROP$unknown" ) );
 	assertType( 'int<0, max>|false', $wpdb->query( "DROPS$unknown" ) );
 
 	// Built up in a variable.

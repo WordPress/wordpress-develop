@@ -19,6 +19,7 @@ use PHPStan\Type\Accessory\AccessoryArrayListType;
 use PHPStan\Type\Accessory\AccessoryNonEmptyStringType;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\Constant\ConstantArrayTypeBuilder;
+use PHPStan\Type\Constant\ConstantBooleanType;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\Constant\ConstantStringType;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
@@ -147,8 +148,15 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 		}
 
 		if ( 'query' === strtolower( $methodReflection->getName() ) ) {
-			$type = self::get_query_return_type( $query );
-			return null !== $type ? $this->resolve_type( $type ) : null;
+			$is_ddl = self::is_ddl_query( $query );
+			if ( null === $is_ddl ) {
+				return null;
+			}
+
+			// The declared type is narrowed to the true or the number of rows, either of which can be false instead.
+			$declared = ParametersAcceptorSelector::selectFromArgs( $scope, $args, $methodReflection->getVariants() )->getReturnType();
+			$narrowed = TypeCombinator::remove( $declared, $is_ddl ? new IntegerType() : new ConstantBooleanType( true ) );
+			return $narrowed->equals( $declared ) ? null : $narrowed;
 		}
 
 		$result = $this->parser->parse( $query );
@@ -190,18 +198,19 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	}
 
 	/**
-	 * Gets the type `query()` returns for a query, from the statement it begins with.
+	 * Determines whether `query()` returns true for a query, rather than the number of rows, from the statement it
+	 * begins with.
 	 *
 	 * For `CREATE`, `ALTER`, `TRUNCATE`, and `DROP`, `query()` returns the result of `mysqli_query()`, which is
 	 * true for these statements, other than for the few which give a result set, like `ALTER TABLE ... ANALYZE
-	 * PARTITION`, for which it is a `mysqli_result`. That is left out, as the declared `int|bool` leaves it out.
+	 * PARTITION`, for which it is a `mysqli_result`. That is left out, as the declared type leaves it out.
 	 * For any other statement, it returns the number of rows affected or selected. On an error, it returns
 	 * false before either. It tells the statements apart as this does, by the keyword at the start of the query.
 	 *
 	 * @param string $query Query, as reconstructed by `WpdbQueryVisitor`.
-	 * @return non-empty-string|null PHPDoc type, or null if the start of the query is unknown.
+	 * @return bool|null Whether the query is one of those statements, or null if the start of the query is unknown.
 	 */
-	private static function get_query_return_type( string $query ): ?string {
+	private static function is_ddl_query( string $query ): ?bool {
 		$ddl_keywords = array( 'create', 'alter', 'truncate', 'drop' );
 
 		// The text before the first placeholder, which is all that is known of the start of the query.
@@ -209,7 +218,7 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 		$known    = (string) preg_replace( '/^\s*/', '', false === $position ? $query : substr( $query, 0, $position ) );
 
 		if ( preg_match( '/^(?:' . implode( '|', $ddl_keywords ) . ')\s/i', $known ) ) {
-			return 'bool';
+			return true;
 		}
 
 		// Unknown text could begin the query, or complete one of the keywords, as in `DROP{?}`.
@@ -224,7 +233,7 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 			}
 		}
 
-		return 'int<0, max>|false';
+		return false;
 	}
 
 	/**
