@@ -367,43 +367,71 @@ function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
  */
 function twenty_twenty_one_print_first_instance_of_block( $block_name, $content = null, $instances = 1 ) {
 	$instances_count = 0;
-	$blocks_content  = '';
+	$blocks_content = '';
 
 	if ( ! $content ) {
 		$content = get_the_content();
 	}
 
-	// Parse blocks in the content.
-	$blocks = parse_blocks( $content );
+	// Loop over top-level blocks.
+	if ( class_exists( '\WP_Block_Processor' ) && function_exists( '\str_starts_with' ) ) {
+		// Scan for blocks whose block type matches the prefix, if provided a wildcard.
+		$match_text  = rtrim( $block_name, '*' );
+		$match_fully = $match_text === $block_name;
+		$processor   = new WP_Block_Processor( $content );
 
-	// Loop blocks.
-	foreach ( $blocks as $block ) {
+		while ( $instances_count < $instances && $processor->next_block() ) {
+			if ( 1 !== $processor->get_depth() ) {
+				continue;
+			}
 
-		// Confidence check.
-		if ( ! isset( $block['blockName'] ) ) {
-			continue;
+			if (
+				/*
+				 * Prefix matches with a wildcard require printing the block name,
+				 * while full block-type matching can be delegated to the processor.
+				 * In each case, the condition only holds when the match is successful.
+				 */
+				$match_fully
+					? $processor->is_block_type( $match_text )
+					: str_starts_with( $processor->get_printable_block_type(), $match_text )
+			) {
+				$blocks_content .= render_block( $processor->extract_full_block_and_advance() );
+				++$instances_count;
+			}
 		}
+	} else {
+		// Parse blocks in the content.
+		$blocks = parse_blocks( $content );
 
-		// Check if this the block matches the $block_name.
-		$is_matching_block = false;
+		// Loop blocks.
+		foreach ( $blocks as $block ) {
 
-		// If the block ends with *, try to match the first portion.
-		if ( '*' === $block_name[-1] ) {
-			$is_matching_block = 0 === strpos( $block['blockName'], rtrim( $block_name, '*' ) );
-		} else {
-			$is_matching_block = $block_name === $block['blockName'];
-		}
+			// Confidence check.
+			if ( ! isset( $block['blockName'] ) ) {
+				continue;
+			}
 
-		if ( $is_matching_block ) {
-			// Increment count.
-			++$instances_count;
+			// Check if this the block matches the $block_name.
+			$is_matching_block = false;
 
-			// Add the block HTML.
-			$blocks_content .= render_block( $block );
+			// If the block ends with *, try to match the first portion.
+			if ( '*' === $block_name[-1] ) {
+				$is_matching_block = 0 === strpos( $block['blockName'], rtrim( $block_name, '*' ) );
+			} else {
+				$is_matching_block = $block_name === $block['blockName'];
+			}
 
-			// Break the loop if the $instances count was reached.
-			if ( $instances_count >= $instances ) {
-				break;
+			if ( $is_matching_block ) {
+				// Increment count.
+				++$instances_count;
+
+				// Add the block HTML.
+				$blocks_content .= render_block( $block );
+
+				// Break the loop if the $instances count was reached.
+				if ( $instances_count >= $instances ) {
+					break;
+				}
 			}
 		}
 	}
