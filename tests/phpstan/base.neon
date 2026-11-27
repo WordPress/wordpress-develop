@@ -45,6 +45,20 @@ services:
 		tags:
 			- phpstan.broker.dynamicFunctionReturnTypeExtension
 
+	# Reconstructs the text of the query passed to each wpdb query method, following
+	# the variables it is built up in. See tests/phpstan/WpdbQueryVisitor.php.
+	-
+		class: WordPress\PHPStan\WpdbQueryVisitor
+		tags:
+			- phpstan.parser.richParserNodeVisitor
+
+	# Types the results of wpdb::get_var(), get_row(), get_col() and get_results()
+	# from the columns their query selects, typed from the core database schema.
+	-
+		class: WordPress\PHPStan\WpdbQueryDynamicMethodReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicMethodReturnTypeExtension
+
 	# Enforces that every hook invocation is preceded by a documenting docblock or
 	# a valid "This filter is documented in <file>" reference comment.
 	-
@@ -307,6 +321,10 @@ parameters:
 		- HookDocumentationRule.php
 		- HookParamCountRule.php
 		- Tests
+		- WpdbQueryDynamicMethodReturnTypeExtension.php
+		- WpdbQueryVisitor.php
+		- WpdbSchema.php
+		- WpdbSelectParser.php
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:
