@@ -1,48 +1,84 @@
+
 <?php
+
 /**
+ * Tests for excerpt_remove_footnotes().
+ *
  * @group formatting
- * @ticket 58805
+ * @group blocks
  *
  * @covers ::excerpt_remove_footnotes
  */
-
 class Tests_Formatting_ExcerptRemoveFootnotes extends WP_UnitTestCase {
+
 	/**
-	 * @ticket 58805
+	 * Footnote markup should be removed regardless of tag and attribute name casing.
 	 *
-	 * @dataProvider data_remove_footnotes
+	 * @ticket 66839
 	 *
-	 * @param string $expected Expected output.
-	 * @param string $content  Content to run strip_shortcodes() on.
+	 * @dataProvider data_footnotes_with_any_casing
+	 *
+	 * @param string $content  Content containing footnote markup.
+	 * @param string $expected Content with the footnotes removed.
 	 */
-	public function test_remove_footnotes( $expected, $content ) {
-		$this->assertEqualHTML( $expected, excerpt_remove_footnotes( $content ) );
+	public function test_removes_footnotes_regardless_of_casing( $content, $expected ) {
+		$this->assertSame( $expected, excerpt_remove_footnotes( $content ) );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
-	public static function data_remove_footnotes() {
+	public function data_footnotes_with_any_casing() {
 		return array(
-			'no footnote'                         => array(
-				'expected' => '<p>This is a paragraph<sup class="fn" id="1"><a href="#1" id="1a">1</a></sup>.</p>',
-				'content'  => '<p>This is a paragraph<sup class="fn" id="1"><a href="#1" id="1a">1</a></sup>.</p>',
+			'lowercase (baseline)'                 => array(
+				'content'  => '<p>Never say never<sup data-fn="abc-123" class="fn"><a href="#abc-123" id="abc-123-link">1</a></sup>.</p>',
+				'expected' => '<p>Never say never.</p>',
 			),
-			'one footnote'                        => array(
-				'expected' => '<p>This is a <a href="https://wordpress.org" data-type="URL" data-id="https://wordpress.org">paragraph</a>.</p>',
-				'content'  => '<p>This is a <a href="https://wordpress.org" data-type="URL" data-id="https://wordpress.org">paragraph</a><sup data-fn="d3b825b6-1890-4cb3-b276-002137515e99" class="fn"><a href="#d3b825b6-1890-4cb3-b276-002137515e99" id="d3b825b6-1890-4cb3-b276-002137515e99-link">1</a></sup>.</p>',
+			'uppercase tags and attributes'        => array(
+				'content'  => '<p>Never say never<SUP DATA-FN="abc-123" CLASS="fn"><A HREF="#abc-123" ID="abc-123-link">1</A></SUP>.</p>',
+				'expected' => '<p>Never say never.</p>',
+			),
+			'mixed-case attribute names'           => array(
+				'content'  => '<p>Never say never<sup Data-Fn="abc-123" Class="fn"><a href="#abc-123" id="abc-123-link">1</a></sup>.</p>',
+				'expected' => '<p>Never say never.</p>',
+			),
+			'uppercase attribute on lowercase tag' => array(
+				'content'  => '<p>Never say never<sup DATA-FN="abc-123" class="fn"><a href="#abc-123" id="abc-123-link">1</a></sup>.</p>',
+				'expected' => '<p>Never say never.</p>',
+			),
+			'multiple footnotes, none lowercase'   => array(
+				'content'  => '<p>One<SUP DATA-FN="a-1" CLASS="fn"><A HREF="#a-1" ID="a-1-link">1</A></SUP> and two<sup Data-Fn="b-2" class="fn"><a href="#b-2" id="b-2-link">2</a></sup>.</p>',
+				'expected' => '<p>One and two.</p>',
+			),
+		);
+	}
 
-			),
-			'multiple footnotes in block content' => array(
-				'expected' => '<!-- wp:list --><ul><!-- wp:list-item --><li><strong>This</strong><em><strong><sup></sup></strong></em><strong> is a list</strong></li><!-- /wp:list-item --></ul><!-- /wp:list -->',
-				'content'  => '<!-- wp:list --><ul><!-- wp:list-item --><li><strong>This</strong><em><strong><sup><sup data-fn="e2fce624-74a5-4068-a20c-6ef793f1644c" class="fn"><a href="#e2fce624-74a5-4068-a20c-6ef793f1644c" id="e2fce624-74a5-4068-a20c-6ef793f1644c-link">2</a></sup></sup></strong></em><strong> is a list</strong><sup data-fn="ea7e892e-7bc2-424b-936b-36ec64f1c2fc" class="fn"><a href="#ea7e892e-7bc2-424b-936b-36ec64f1c2fc" id="ea7e892e-7bc2-424b-936b-36ec64f1c2fc-link">3</a></sup></li><!-- /wp:list-item --></ul><!-- /wp:list -->',
-			),
-			'footnotes around non-latin script'   => array(
-				'expected' => '<h2 class="wp-block-heading has-background" style="background-color:#f93b3b">これは見出しです</h2>',
-				'content'  => '<h2 class="wp-block-heading has-background" style="background-color:#f93b3b">これは<sup data-fn="382b3e39-4b0d-4b83-8461-c13f82fdbcfb" class="fn"><a href="#382b3e39-4b0d-4b83-8461-c13f82fdbcfb" id="382b3e39-4b0d-4b83-8461-c13f82fdbcfb-link">1</a></sup>見出しです<sup data-fn="addb0459-a048-453a-9101-dba64f63a630" class="fn"><a href="#addb0459-a048-453a-9101-dba64f63a630" id="addb0459-a048-453a-9101-dba64f63a630-link">2</a></sup></h2>',
-			),
+	/**
+	 * Content that mentions "data-fn" without containing a footnote should be left unchanged.
+	 *
+	 * @ticket 66839
+	 *
+	 * @dataProvider data_content_without_footnotes
+	 *
+	 * @param string $content Content without footnote markup.
+	 */
+	public function test_leaves_non_footnote_content_unchanged( $content ) {
+		$this->assertSame( $content, excerpt_remove_footnotes( $content ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_content_without_footnotes() {
+		return array(
+			'lowercase mention in prose'     => array( '<p>The data-fn attribute marks a footnote.</p>' ),
+			'uppercase mention in prose'     => array( '<p>The DATA-FN attribute marks a footnote.</p>' ),
+			'escaped markup in a code block' => array( '<pre><code>&lt;sup DATA-FN="x"&gt;1&lt;/sup&gt;</code></pre>' ),
+			'data-fn on a non-sup element'   => array( '<p>Text<span DATA-FN="x">1</span>.</p>' ),
 		);
 	}
 }
