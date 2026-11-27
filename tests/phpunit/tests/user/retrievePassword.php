@@ -45,6 +45,16 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The function should not error when the email was sent.
+	 * Passing just the WP_User object
+	 *
+	 * @ticket 56028
+	 */
+	public function test_retrieve_password_reset_notification_email_with_wp_user() {
+		$message = 'Sending password reset notification email with WP_User object.';
+		$this->assertNotWPError( retrieve_password( $this->user ), $message );
+	}
+	/**
 	 * The function should error when the email was not sent.
 	 *
 	 * @ticket 54690
