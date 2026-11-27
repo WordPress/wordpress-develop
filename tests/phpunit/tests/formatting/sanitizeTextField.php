@@ -165,4 +165,12 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 		$this->assertSame( 'example', sanitize_textarea_field( 'example' ) );
 		$this->assertSame( 1, $filter->get_call_count(), 'The sanitize_textarea_field filter was not called.' );
 	}
+
+	/**
+	 * @ticket 66335
+	 */
+	public function test_sanitize_text_field_encodes_only_the_lone_less_than_sign() {
+		$this->assertSame( 'I\'m &lt;3 & "q"', sanitize_text_field( 'I\'m <3 & "q"' ) );
+		$this->assertSame( 'I\'m &lt;3 & "q"', sanitize_textarea_field( 'I\'m <3 & "q"' ) );
+	}
 }
