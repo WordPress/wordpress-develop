@@ -480,8 +480,8 @@ window.wp = window.wp || {};
 		'IO_ERROR':               pluploadL10n.io_error,
 		'SECURITY_ERROR':         pluploadL10n.security_error,
 
-		'FILE_SIZE_ERROR': function( file ) {
-			return pluploadL10n.file_exceeds_size_limit.replace( '%s', file.name );
+		'FILE_SIZE_ERROR': function() {
+			return pluploadL10n.file_size_exceeded;
 		},
 
 		'HTTP_ERROR': function( file ) {
