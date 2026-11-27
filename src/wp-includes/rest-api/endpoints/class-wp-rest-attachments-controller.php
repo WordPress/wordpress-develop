@@ -2867,9 +2867,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * The server writes sub-sizes in the attachment's output format without
 		 * checking it against the network's allowed upload file types, so a
 		 * sideload in that format is exempt from them too. Resolved before the
-		 * output format filter below is added.
+		 * output format filter below is added. When the filter leaves the format
+		 * unchanged, as for a main file the server already converted, that is the
+		 * attachment's own format.
 		 */
-		$output_format     = wp_attachment_is_image( $post ) ? $this->get_image_output_format( $post ) : null;
+		$output_format     = wp_attachment_is_image( $post ) ? ( $this->get_image_output_format( $post ) ?? get_post_mime_type( $post ) ) : null;
 		$output_extensions = null !== $output_format ? array_search( $output_format, wp_get_mime_types(), true ) : false;
 		$filter_filetypes  = null;
 
