@@ -89,7 +89,9 @@ if ( $doaction ) {
 
 	if ( 'delete_all' === $doaction ) {
 		// Prepare for deletion of all posts with a specified post status (i.e. Empty Trash).
-		$post_status = preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['post_status'] );
+		$post_status = isset( $_REQUEST['post_status'] ) && is_string( $_REQUEST['post_status'] )
+			? preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['post_status'] )
+			: '';
 		// Validate the post status exists.
 		if ( get_post_status_object( $post_status ) ) {
 			/**
@@ -102,10 +104,15 @@ if ( $doaction ) {
 		$doaction = 'delete';
 	} elseif ( isset( $_REQUEST['media'] ) ) {
 		$post_ids = $_REQUEST['media'];
-	} elseif ( isset( $_REQUEST['ids'] ) ) {
+	} elseif ( isset( $_REQUEST['ids'] ) && is_string( $_REQUEST['ids'] ) ) {
 		$post_ids = explode( ',', $_REQUEST['ids'] );
 	} elseif ( ! empty( $_REQUEST['post'] ) ) {
-		$post_ids = array_map( 'intval', $_REQUEST['post'] );
+		$post_ids = array_map(
+			static function ( $post_id ): int {
+				return is_numeric( $post_id ) ? (int) $post_id : 0;
+			},
+			(array) $_REQUEST['post']
+		);
 	}
 
 	if ( empty( $post_ids ) ) {
@@ -422,7 +429,7 @@ if ( current_user_can( $post_type_object->cap->create_posts ) ) {
 	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new_item ) . '</a>';
 }
 
-if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
+if ( isset( $_REQUEST['s'] ) && is_string( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 	echo '<span class="subtitle">';
 	printf(
 		/* translators: %s: Search query. */
@@ -489,10 +496,10 @@ $_SERVER['REQUEST_URI'] = remove_query_arg( array( 'locked', 'skipped', 'updated
 
 <?php $wp_list_table->search_box( $post_type_object->labels->search_items, 'post' ); ?>
 
-<input type="hidden" name="post_status" class="post_status_page" value="<?php echo ! empty( $_REQUEST['post_status'] ) ? esc_attr( $_REQUEST['post_status'] ) : 'all'; ?>" />
+<input type="hidden" name="post_status" class="post_status_page" value="<?php echo ! empty( $_REQUEST['post_status'] ) && is_string( $_REQUEST['post_status'] ) ? esc_attr( $_REQUEST['post_status'] ) : 'all'; ?>" />
 <input type="hidden" name="post_type" class="post_type_page" value="<?php echo esc_attr( $post_type ); ?>" />
 
-<?php if ( ! empty( $_REQUEST['author'] ) ) { ?>
+<?php if ( ! empty( $_REQUEST['author'] ) && is_string( $_REQUEST['author'] ) ) { ?>
 <input type="hidden" name="author" value="<?php echo esc_attr( $_REQUEST['author'] ); ?>" />
 <?php } ?>
 

@@ -107,7 +107,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$comment_type = '';
 
-		if ( ! empty( $_REQUEST['comment_type'] ) && ! in_array( $_REQUEST['comment_type'], array( 'note', 'reaction' ), true ) ) {
+		if ( ! empty( $_REQUEST['comment_type'] ) && is_string( $_REQUEST['comment_type'] ) && ! in_array( $_REQUEST['comment_type'], array( 'note', 'reaction' ), true ) ) {
 			$comment_type = $_REQUEST['comment_type'];
 		}
 
@@ -132,14 +132,14 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$page = $this->get_pagenum();
 
-		if ( isset( $_REQUEST['start'] ) ) {
-			$start = $_REQUEST['start'];
+		if ( isset( $_REQUEST['start'] ) && is_numeric( $_REQUEST['start'] ) ) {
+			$start = (int) $_REQUEST['start'];
 		} else {
 			$start = ( $page - 1 ) * $comments_per_page;
 		}
 
-		if ( $doing_ajax && isset( $_REQUEST['offset'] ) ) {
-			$start += $_REQUEST['offset'];
+		if ( $doing_ajax && isset( $_REQUEST['offset'] ) && is_numeric( $_REQUEST['offset'] ) ) {
+			$start += (int) $_REQUEST['offset'];
 		}
 
 		$status_map = array(

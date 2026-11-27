@@ -993,6 +993,10 @@ class WP_User_Query {
 	protected function parse_orderby( $orderby ) {
 		global $wpdb;
 
+		if ( ! is_string( $orderby ) ) {
+			return '';
+		}
+
 		$meta_query_clauses = $this->meta_query->get_clauses();
 
 		$_orderby = '';
