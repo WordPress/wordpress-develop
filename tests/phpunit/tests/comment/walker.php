@@ -54,6 +54,81 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 			array( $comment_child, $comment_parent )
 		);
 	}
+
+	/**
+	 * @ticket 56539
+	 */
+	public function test_start_lvl_with_empty_args_should_not_produce_warnings() {
+		$walker = new Walker_Comment();
+		$output = '';
+
+		$walker->start_lvl( $output, 0, array() );
+
+		$this->assertStringContainsString( '<ul class="children">', $output );
+	}
+
+	/**
+	 * @ticket 56539
+	 */
+	public function test_end_lvl_with_empty_args_should_not_produce_warnings() {
+		$walker = new Walker_Comment();
+		$output = '';
+
+		$walker->end_lvl( $output, 0, array() );
+
+		$this->assertStringContainsString( '</ul>', $output );
+	}
+
+	/**
+	 * @ticket 56539
+	 */
+	public function test_end_el_with_empty_args_should_not_produce_warnings() {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $this->post_id ) );
+		$comment    = get_comment( $comment_id );
+		$walker     = new Walker_Comment();
+		$output     = '';
+
+		$walker->end_el( $output, $comment, 0, array() );
+
+		$this->assertStringContainsString( '</li>', $output );
+	}
+
+	/**
+	 * @ticket 56539
+	 */
+	public function test_start_el_with_empty_args_should_not_produce_warnings() {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $this->post_id,
+				'comment_type'    => 'comment',
+			)
+		);
+		$comment    = get_comment( $comment_id );
+		$walker     = new Walker_Comment();
+		$output     = '';
+
+		$walker->start_el( $output, $comment, 0, array() );
+
+		$this->assertNotEmpty( $output );
+	}
+
+	/**
+	 * @ticket 56539
+	 */
+	public function test_walk_with_empty_args_should_not_produce_warnings() {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $this->post_id,
+				'comment_type'    => 'comment',
+			)
+		);
+		$comments   = array( get_comment( $comment_id ) );
+		$walker     = new Walker_Comment();
+
+		$output = $walker->walk( $comments, -1, array() );
+
+		$this->assertNotEmpty( $output );
+	}
 }
 
 class Comment_Callback_Test_Helper {
