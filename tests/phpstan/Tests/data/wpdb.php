@@ -33,6 +33,37 @@ function wp_tests_wpdb_methods( wpdb $wpdb, int $id ): void {
 }
 
 /**
+ * `query()` gives true for a few statements, and the number of rows otherwise.
+ */
+function wp_tests_wpdb_query( wpdb $wpdb, int $id, string $unknown ): void {
+	assertType( 'bool', $wpdb->query( "CREATE TABLE {$wpdb->prefix}custom ( id bigint(20) )" ) );
+	assertType( 'bool', $wpdb->query( "  alter TABLE $wpdb->posts ADD extra text" ) );
+	assertType( 'bool', $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}custom" ) );
+	assertType( 'bool', $wpdb->query( "DROP TABLE IF EXISTS $unknown" ) );
+	assertType( 'int<0, max>|false', $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE post_id = %d", $id ) ) );
+	assertType( 'int<0, max>|false', $wpdb->query( "UPDATE $wpdb->posts SET post_status = 'draft'" ) );
+	assertType( 'int<0, max>|false', $wpdb->query( "SELECT ID FROM $wpdb->posts" ) );
+	assertType( 'int<0, max>|false', $wpdb->query( "SHOW TABLES LIKE '$unknown'" ) );
+	assertType( 'int<0, max>|false', $wpdb->query( 'START TRANSACTION' ) );
+
+	// Statements told apart by `query()` only by a keyword followed by whitespace.
+	assertType( 'int<0, max>|false', $wpdb->query( 'DROP' ) );
+	assertType( 'int<0, max>|false', $wpdb->query( "/* comment */ DROP TABLE $unknown" ) );
+
+	// Unknown text which could begin the query, or complete a keyword.
+	assertType( 'bool|int', $wpdb->query( $unknown ) );
+	assertType( 'bool|int', $wpdb->query( "$unknown FROM $wpdb->posts" ) );
+	assertType( 'bool|int', $wpdb->query( "DRO$unknown" ) );
+	assertType( 'bool|int', $wpdb->query( "DROP$unknown" ) );
+	assertType( 'int<0, max>|false', $wpdb->query( "DROPS$unknown" ) );
+
+	// Built up in a variable.
+	$query  = "DELETE FROM $wpdb->posts";
+	$query .= $wpdb->prepare( ' WHERE ID = %d', $id );
+	assertType( 'int<0, max>|false', $wpdb->query( $query ) );
+}
+
+/**
  * An output format which is not one constant leaves the rows as declared.
  *
  * @param 'ARRAY_A'|'ARRAY_N' $array_output Either array format.

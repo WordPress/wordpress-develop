@@ -34,7 +34,8 @@ use PHPStan\Type\TypeTraverser;
 
 /**
  * Types the results of `wpdb::get_var()`, `get_row()`, `get_col()`, and
- * `get_results()` from the columns their query selects.
+ * `get_results()` from the columns their query selects, and the result of
+ * `query()` from the statement its query begins with.
  *
  * For example, given:
  *
@@ -110,8 +111,9 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	}
 
 	/**
-	 * Types the result of a query method call from its query's columns.
+	 * Types the result of a query method call from its query.
 	 *
+	 * @link https://developer.wordpress.org/reference/classes/wpdb/query/
 	 * @link https://developer.wordpress.org/reference/classes/wpdb/get_var/
 	 * @link https://developer.wordpress.org/reference/classes/wpdb/get_row/
 	 * @link https://developer.wordpress.org/reference/classes/wpdb/get_col/
@@ -140,6 +142,11 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 		}
 		if ( null === $query ) {
 			return null;
+		}
+
+		if ( 'query' === strtolower( $methodReflection->getName() ) ) {
+			$type = self::get_query_return_type( $query );
+			return null !== $type ? $this->resolve_type( $type ) : null;
 		}
 
 		$result = $this->parser->parse( $query );
@@ -178,6 +185,42 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 				$refined  = $this->refine_rows( $declared, $columns, $result['complete'] );
 				return $refined->equals( $declared ) ? null : $refined;
 		}
+	}
+
+	/**
+	 * Gets the type `query()` returns for a query, from the statement it begins with.
+	 *
+	 * For `CREATE`, `ALTER`, `TRUNCATE`, and `DROP`, `query()` returns the result of `mysqli_query()`, which is
+	 * true. For any other statement, it returns the number of rows affected or selected. On an error, it returns
+	 * false before either. It tells the statements apart as this does, by the keyword at the start of the query.
+	 *
+	 * @param string $query Query, as reconstructed by `WpdbQueryVisitor`.
+	 * @return non-empty-string|null PHPDoc type, or null if the start of the query is unknown.
+	 */
+	private static function get_query_return_type( string $query ): ?string {
+		$ddl_keywords = array( 'create', 'alter', 'truncate', 'drop' );
+
+		// The text before the first placeholder, which is all that is known of the start of the query.
+		$position = strpos( $query, '{' );
+		$known    = (string) preg_replace( '/^\s*/', '', false === $position ? $query : substr( $query, 0, $position ) );
+
+		if ( preg_match( '/^(?:' . implode( '|', $ddl_keywords ) . ')\s/i', $known ) ) {
+			return 'bool';
+		}
+
+		// Unknown text could begin the query, or complete one of the keywords, as in `DROP{?}`.
+		if ( false !== $position ) {
+			if ( '' === $known ) {
+				return null;
+			}
+			foreach ( $ddl_keywords as $keyword ) {
+				if ( 0 === stripos( $keyword, $known ) ) {
+					return null;
+				}
+			}
+		}
+
+		return 'int<0, max>|false';
 	}
 
 	/**

@@ -32,7 +32,7 @@ use PhpParser\NodeVisitorAbstract;
 
 /**
  * Attaches the text of the SQL query passed to `wpdb::get_var()`, `get_row()`,
- * `get_col()`, and `get_results()` to the method call node.
+ * `get_col()`, `get_results()`, and `query()` to the method call node.
  *
  * The type of a query is rarely a constant string, since it almost always
  * interpolates a table name like `$wpdb->posts`, so the query text cannot be
@@ -62,7 +62,8 @@ use PhpParser\NodeVisitorAbstract;
  * the query, which holds its select list, stays known.
  *
  * The text is only used to read the select list and the tables in the query,
- * so an unknown part elsewhere, like in the `WHERE` clause, does no harm.
+ * or the statement it begins with, so an unknown part elsewhere, like in the
+ * `WHERE` clause, does no harm.
  *
  * Registered as `phpstan.parser.richParserNodeVisitor` in `base.neon`.
  */
@@ -86,7 +87,7 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	/**
 	 * Methods of `wpdb` whose first parameter is a query to reconstruct.
 	 */
-	public const METHODS = array( 'get_var', 'get_row', 'get_col', 'get_results' );
+	public const METHODS = array( 'get_var', 'get_row', 'get_col', 'get_results', 'query' );
 
 	/**
 	 * Maximum number of variables followed in reconstructing one query.

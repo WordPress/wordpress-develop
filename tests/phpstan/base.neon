@@ -53,7 +53,8 @@ services:
 			- phpstan.parser.richParserNodeVisitor
 
 	# Types the results of wpdb::get_var(), get_row(), get_col(), and get_results()
-	# from the columns their query selects, typed from the core database schema.
+	# from the columns their query selects, typed from the core database schema, and
+	# the result of wpdb::query() from the statement its query begins with.
 	-
 		class: WordPress\PHPStan\WpdbQueryDynamicMethodReturnTypeExtension
 		tags:
