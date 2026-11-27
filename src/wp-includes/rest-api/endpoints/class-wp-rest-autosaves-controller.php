@@ -297,8 +297,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			);
 		}
 
-		$response = $this->prepare_item_for_response( $autosave, $request );
-		return $response;
+		return $this->prepare_item_for_response( $autosave, $request );
 	}
 
 	/**
@@ -434,7 +433,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			$revision_id = _wp_put_post_revision( $post_data, true );
 		}
 
-		if ( is_wp_error( $revision_id ) || 0 === $revision_id ) {
+		if ( 0 === $revision_id || is_wp_error( $revision_id ) ) {
 			return $revision_id;
 		}
 

@@ -526,10 +526,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return $user;
 		}
 
-		$user     = $this->prepare_item_for_response( $user, $request );
-		$response = rest_ensure_response( $user );
+		$user = $this->prepare_item_for_response( $user, $request );
 
-		return $response;
+		return rest_ensure_response( $user );
 	}
 
 	/**
@@ -553,9 +552,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$user     = wp_get_current_user();
 		$response = $this->prepare_item_for_response( $user, $request );
-		$response = rest_ensure_response( $response );
 
-		return $response;
+		return rest_ensure_response( $response );
 	}
 
 	/**
@@ -858,9 +856,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		do_action( 'rest_after_insert_user', $user, $request, false );
 
 		$response = $this->prepare_item_for_response( $user, $request );
-		$response = rest_ensure_response( $response );
 
-		return $response;
+		return rest_ensure_response( $response );
 	}
 
 	/**
