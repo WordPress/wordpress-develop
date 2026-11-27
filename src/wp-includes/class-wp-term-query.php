@@ -938,6 +938,10 @@ class WP_Term_Query {
 	 * @return string|false Value to used in the ORDER clause. False otherwise.
 	 */
 	protected function parse_orderby( $orderby_raw ) {
+		if ( ! is_string( $orderby_raw ) ) {
+			$orderby_raw = '';
+		}
+
 		$_orderby           = strtolower( $orderby_raw );
 		$maybe_orderby_meta = false;
 
