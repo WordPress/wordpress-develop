@@ -306,7 +306,20 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 				}
 
 				if ( $resolver->has_ability_calls( $message ) ) {
-					$messages[] = $resolver->execute_abilities( $message );
+					$response_message = $resolver->execute_abilities( $message );
+
+					// The model could retry after an error and still answer, so an error fails the test.
+					foreach ( $response_message->getParts() as $part ) {
+						$function_response = $part->getFunctionResponse();
+						$response          = $function_response ? $function_response->getResponse() : null;
+
+						if ( is_array( $response ) && isset( $response['error'], $response['code'] ) ) {
+							$ability_name = WP_AI_Client_Ability_Function_Resolver::function_name_to_ability_name( (string) $function_response->getName() );
+							$this->fail( "The $ability_name ability returned an error: {$response['error']} ({$response['code']})" );
+						}
+					}
+
+					$messages[] = $response_message;
 					$has_calls  = true;
 				}
 			}
