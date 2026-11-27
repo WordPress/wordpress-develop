@@ -322,11 +322,15 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	}
 
 	$result = $wpdb->update( $table, $data, $where );
-	if ( ! $result ) {
+	if ( false === $result ) {
 		return false;
 	}
 
+	// The database value may already match while the cached value is stale.
 	wp_cache_delete( $object_id, $meta_type . '_meta' );
+	if ( 0 === $result ) {
+		return false;
+	}
 
 	foreach ( $meta_ids as $meta_id ) {
 		/**
