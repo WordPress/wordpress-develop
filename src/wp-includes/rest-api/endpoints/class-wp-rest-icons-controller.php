@@ -165,18 +165,30 @@ class WP_REST_Icons_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$response = array();
-		$search   = $request->get_param( 'search' );
-		$icons    = WP_Icons_Registry::get_instance()->get_registered_icons( $search );
+		$public_collections = array();
+		foreach ( $collections_registry->get_all_registered() as $registered ) {
+			if ( $registered['public'] ) {
+				$public_collections[ $registered['slug'] ] = true;
+			}
+		}
 
-		foreach ( $icons as $icon ) {
-			if ( null !== $collection && ( ! isset( $icon['collection'] ) || $icon['collection'] !== $collection ) ) {
+		$response       = array();
+		$search         = $request->get_param( 'search' );
+		$icons_registry = WP_Icons_Registry::get_instance();
+
+		/*
+		 * Filter by name before retrieving each icon, so that content is only
+		 * loaded for the icons included in the response.
+		 */
+		foreach ( $icons_registry->get_registered_icon_names( $search ) as $icon_name ) {
+			$icon_collection = strstr( $icon_name, '/', true );
+			if ( null !== $collection && $icon_collection !== $collection ) {
 				continue;
 			}
-			$icon_collection = isset( $icon['collection'] ) ? $collections_registry->get_registered( $icon['collection'] ) : null;
-			if ( null === $icon_collection || ! $icon_collection['public'] ) {
+			if ( ! isset( $public_collections[ $icon_collection ] ) ) {
 				continue;
 			}
+			$icon          = $icons_registry->get_registered_icon( $icon_name );
 			$prepared_icon = $this->prepare_item_for_response( $icon, $request );
 			$response[]    = $this->prepare_response_for_collection( $prepared_icon );
 		}

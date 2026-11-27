@@ -156,6 +156,7 @@ class WP_Icon_Collections_Registry {
 	 * Any icons registered under the given collection are also unregistered.
 	 *
 	 * @since 7.1.0
+	 * @since 7.3.0 Unregistering the collection's icons no longer loads their content.
 	 *
 	 * @param string $collection_slug Icon collection slug.
 	 * @return bool True if the collection was unregistered successfully, false otherwise.
@@ -174,10 +175,14 @@ class WP_Icon_Collections_Registry {
 			return false;
 		}
 
+		/*
+		 * Match on the name prefix rather than using get_registered_icons(), which
+		 * would read every file-based icon from disk just to unregister it.
+		 */
 		$icons_registry = WP_Icons_Registry::get_instance();
-		foreach ( $icons_registry->get_registered_icons() as $icon ) {
-			if ( isset( $icon['collection'] ) && $icon['collection'] === $collection_slug ) {
-				$icons_registry->unregister( $icon['name'] );
+		foreach ( $icons_registry->get_registered_icon_names() as $icon_name ) {
+			if ( str_starts_with( $icon_name, $collection_slug . '/' ) ) {
+				$icons_registry->unregister( $icon_name );
 			}
 		}
 

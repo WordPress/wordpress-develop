@@ -804,4 +804,81 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 			'array'                        => array( array( 'dashicons-admin-post' ) ),
 		);
 	}
+
+	/**
+	 * Should return the names of all registered icons without loading their content.
+	 *
+	 * @ticket 66710
+	 *
+	 * @covers ::get_registered_icon_names
+	 */
+	public function test_get_registered_icon_names_does_not_load_icon_content() {
+		$this->registry->register(
+			'test-collection/inline',
+			array(
+				'label'   => 'Inline',
+				'content' => '<svg><path d="M0 0"/></svg>',
+			)
+		);
+		$this->registry->register(
+			'test-collection/missing-file',
+			array(
+				'label'     => 'Missing File',
+				'file_path' => $this->create_temp_icon_file( null ),
+			)
+		);
+
+		$error_action = new MockAction();
+		add_action( 'wp_trigger_error_always_run', array( $error_action, 'action' ) );
+		add_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+
+		$this->assertSame(
+			array( 'test-collection/inline', 'test-collection/missing-file' ),
+			$this->registry->get_registered_icon_names(),
+			'All registered icon names should be returned.'
+		);
+		$this->assertSame( 0, $error_action->get_call_count(), 'Icon content should not be loaded.' );
+	}
+
+	/**
+	 * Should only return the names of icons matching the search term.
+	 *
+	 * @ticket 66710
+	 *
+	 * @covers ::get_registered_icon_names
+	 */
+	public function test_get_registered_icon_names_filters_by_search() {
+		$this->registry->register(
+			'test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg><path d="M0 0"/></svg>',
+				'keywords' => array( 'peace' ),
+			)
+		);
+		$this->registry->register(
+			'test-collection/arrow',
+			array(
+				'label'   => 'Pointer',
+				'content' => '<svg><path d="M0 0"/></svg>',
+			)
+		);
+		$this->registry->register(
+			'test-collection/missing-file',
+			array(
+				'label'     => 'Missing File',
+				'file_path' => $this->create_temp_icon_file( null ),
+			)
+		);
+
+		$error_action = new MockAction();
+		add_action( 'wp_trigger_error_always_run', array( $error_action, 'action' ) );
+		add_filter( 'wp_trigger_error_trigger_error', '__return_false' );
+
+		$this->assertSame( array( 'test-collection/dove' ), $this->registry->get_registered_icon_names( 'PEACE' ), 'Keywords should match case-insensitively.' );
+		$this->assertSame( array( 'test-collection/arrow' ), $this->registry->get_registered_icon_names( 'point' ), 'Labels should match.' );
+		$this->assertSame( array( 'test-collection/missing-file' ), $this->registry->get_registered_icon_names( 'missing-file' ), 'Names should match.' );
+		$this->assertSame( array(), $this->registry->get_registered_icon_names( 'nothing-matches' ), 'No names should be returned without a match.' );
+		$this->assertSame( 0, $error_action->get_call_count(), 'Icon content should not be loaded.' );
+	}
 }
