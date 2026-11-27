@@ -45,6 +45,52 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	/**
+	 * Test fields displayed for the post type.
+	 *
+	 * @ticket 50012
+	 * @ticket 61477
+	 */
+	public function test_get_items_with_filtered_fields_for_post_type() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/types' );
+		$request->set_param( '_fields', 'rest_base,description' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'rest_base', $data['post'] );
+		$this->assertSame( 'posts', $data['post']['rest_base'] );
+		$this->assertArrayHasKey( 'description', $data['post'] );
+		$this->assertEmpty( $data['post']['description'] );
+		$this->assertFalse( array_key_exists( 'taxonomies', $data['post'] ) );
+	}
+
+	/**
+	 * Test that an edited description field for the post type is displayed.
+	 *
+	 * @ticket 50012
+	 */
+	public function test_get_items_with_filtered_fields_with_description_for_post() {
+		$filter_callback = function ( $response, $post_type ) {
+			if ( 'post' === $post_type->name ) {
+				$data                = $response->get_data();
+				$data['description'] = 'Example';
+				$response->set_data( $data );
+			}
+			return $response;
+		};
+
+		add_filter( 'rest_prepare_post_type', $filter_callback, 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/types' );
+		$request->set_param( '_fields', 'description' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		remove_filter( 'rest_prepare_post_type', $filter_callback, 10 );
+
+		$this->assertSame( 'Example', $data['post']['description'] );
+	}
+
+	/**
 	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
 	 *
