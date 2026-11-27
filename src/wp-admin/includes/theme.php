@@ -594,7 +594,7 @@ function themes_api( $action, $args = array() ) {
 				);
 			}
 
-			if ( isset( $res->error ) ) {
+			if ( isset( $res->error ) && 'closed' !== $res->error ) {
 				$res = new WP_Error( 'themes_api_failed', $res->error );
 			}
 		}
@@ -668,8 +668,8 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		}
 	}
 
-	$updates    = array();
-	$no_updates = array();
+	$updates           = array();
+	$no_updates        = array();
 	if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 		$updates_transient = get_site_transient( 'update_themes' );
 		if ( isset( $updates_transient->response ) ) {
@@ -679,6 +679,10 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			$no_updates = $updates_transient->no_update;
 		}
 	}
+
+	$all_themes_transient = get_site_transient( 'update_themes' );
+	$all_themes_response  = ( is_object( $all_themes_transient ) && isset( $all_themes_transient->response ) && is_array( $all_themes_transient->response ) ) ? $all_themes_transient->response : array();
+	$all_themes_no_update = ( is_object( $all_themes_transient ) && isset( $all_themes_transient->no_update ) && is_array( $all_themes_transient->no_update ) ) ? $all_themes_transient->no_update : array();
 
 	WP_Theme::sort_by_name( $themes );
 
@@ -751,6 +755,19 @@ function wp_prepare_themes_for_js( $themes = null ) {
 
 		$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, $auto_update_filter_payload );
 
+		$theme_status_data = $all_themes_response[ $slug ] ?? ( $all_themes_no_update[ $slug ] ?? array() );
+		if ( is_object( $theme_status_data ) ) {
+			$theme_status_data = (array) $theme_status_data;
+		}
+
+		$is_theme_closed    = ! empty( $theme_status_data['closed'] ) || ! empty( $theme_status_data['is_closed'] ) || 'suspend' === ( $theme_status_data['status'] ?? '' );
+		$is_theme_suspended = ! empty( $theme_status_data['is_suspended'] ) || 'suspend' === ( $theme_status_data['status'] ?? '' );
+		$is_theme_security  = ! empty( $theme_status_data['is_security'] ) || 'security-issue' === ( $theme_status_data['reason'] ?? '' ) || 'security-issue' === ( $theme_status_data['closed_reason'] ?? '' );
+		$is_theme_outdated  = ! empty( $theme_status_data['is_outdated'] );
+		$theme_closed_date  = $theme_status_data['closed_date'] ?? '';
+		$theme_reason       = $theme_status_data['reason_text'] ?? ( $theme_status_data['reason'] ?? '' );
+		$theme_outdated_msg = $theme_status_data['outdated_notice'] ?? '';
+
 		$prepared_themes[ $slug ] = array(
 			'id'             => $slug,
 			'name'           => $theme->display( 'Name' ),
@@ -771,6 +788,13 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			'hasUpdate'      => isset( $updates[ $slug ] ),
 			'hasPackage'     => isset( $updates[ $slug ] ) && ! empty( $updates[ $slug ]['package'] ),
 			'update'         => get_theme_update_available( $theme ),
+			'closed'         => $is_theme_closed,
+			'is_suspended'   => $is_theme_suspended,
+			'is_security'    => $is_theme_security,
+			'is_outdated'    => $is_theme_outdated,
+			'closedDate'     => $theme_closed_date,
+			'closedReason'   => $theme_reason,
+			'outdatedNotice' => $theme_outdated_msg,
 			'autoupdate'     => array(
 				'enabled'   => $auto_update || $auto_update_forced,
 				'supported' => $auto_update_supported,

@@ -259,6 +259,148 @@ function install_theme_information() {
 
 	$theme = themes_api( 'theme_information', array( 'slug' => wp_unslash( $_REQUEST['theme'] ) ) );
 
+	$is_closed = false;
+	if ( is_object( $theme ) && (
+		( isset( $theme->error ) && 'closed' === $theme->error )
+		|| ! empty( $theme->closed )
+		|| ! empty( $theme->is_closed )
+		|| ! empty( $theme->is_suspended )
+		|| ( isset( $theme->status ) && in_array( $theme->status, array( 'closed', 'suspend', 'disabled' ), true ) )
+	) ) {
+		$is_closed = true;
+	} elseif ( is_wp_error( $theme ) && 'closed' === $theme->get_error_code() ) {
+		$is_closed  = true;
+		$error_data = $theme->get_error_data();
+		if ( is_array( $error_data ) || is_object( $error_data ) ) {
+			$theme = (object) $error_data;
+		} else {
+			$theme = (object) array(
+				'error'       => 'closed',
+				'name'        => sanitize_text_field( wp_unslash( $_REQUEST['theme'] ) ),
+				'slug'        => sanitize_text_field( wp_unslash( $_REQUEST['theme'] ) ),
+				'description' => $theme->get_error_message(),
+			);
+		}
+	}
+
+	if ( $is_closed ) {
+		iframe_header( __( 'Theme Installation' ) );
+
+		$themes_allowedtags = array(
+			'a'       => array(
+				'href'   => array(),
+				'title'  => array(),
+				'target' => array(),
+			),
+			'abbr'    => array( 'title' => array() ),
+			'acronym' => array( 'title' => array() ),
+			'code'    => array(),
+			'pre'     => array(),
+			'em'      => array(),
+			'strong'  => array(),
+			'div'     => array( 'class' => array() ),
+			'span'    => array( 'class' => array() ),
+			'p'       => array(),
+			'br'      => array(),
+			'ul'      => array(),
+			'ol'      => array(),
+			'li'      => array(),
+			'h1'      => array(),
+			'h2'      => array(),
+			'h3'      => array(),
+			'h4'      => array(),
+			'h5'      => array(),
+			'h6'      => array(),
+		);
+
+		$theme_name  = ! empty( $theme->name ) ? wp_kses( $theme->name, $themes_allowedtags ) : sanitize_text_field( wp_unslash( $_REQUEST['theme'] ) );
+		$is_security = ! empty( $theme->is_security ) || 'security-issue' === ( $theme->reason ?? '' ) || 'security-issue' === ( $theme->closed_reason ?? '' );
+		$closed_date = '';
+		if ( ! empty( $theme->closed_date ) ) {
+			$closed_timestamp = strtotime( $theme->closed_date );
+			$closed_date      = $closed_timestamp ? wp_date( get_option( 'date_format' ), $closed_timestamp ) : $theme->closed_date;
+		}
+		$reason      = $theme->reason_text ?? ( $theme->closed_reason ?? ( $theme->reason ?? '' ) );
+		$description = ! empty( $theme->description ) ? wp_kses( $theme->description, $themes_allowedtags ) : '';
+
+		echo '<div id="theme-information" class="theme-information-closed-panel" style="padding: 20px;">';
+		echo '<h2>' . esc_html( $theme_name ) . '</h2>';
+
+		if ( $is_security ) {
+			if ( $closed_date ) {
+				/* translators: %s: Theme closure date. */
+				$message = sprintf( __( 'Warning: This theme was closed on %s due to a security issue and is no longer available for download. It should be uninstalled or replaced immediately.' ), esc_html( $closed_date ) );
+			} else {
+				$message = __( 'Warning: This theme was closed due to a security issue and is no longer available for download. It should be uninstalled or replaced immediately.' );
+			}
+			wp_admin_notice(
+				$message,
+				array(
+					'type'               => 'error',
+					'additional_classes' => array( 'notice-alt' ),
+					'paragraph_wrap'     => true,
+				)
+			);
+		} else {
+			if ( $closed_date && $reason ) {
+				/* translators: 1: Theme closure date, 2: Theme closure reason. */
+				$message = sprintf( __( 'Notice: This theme was closed on %1$s (%2$s) and is no longer available for download.' ), esc_html( $closed_date ), esc_html( $reason ) );
+			} elseif ( $closed_date ) {
+				/* translators: %s: Theme closure date. */
+				$message = sprintf( __( 'Notice: This theme was closed on %s and is no longer available for download.' ), esc_html( $closed_date ) );
+			} elseif ( $reason ) {
+				/* translators: %s: Theme closure reason. */
+				$message = sprintf( __( 'Notice: This theme was closed (%s) and is no longer available for download.' ), esc_html( $reason ) );
+			} else {
+				$message = __( 'Notice: This theme was closed and is no longer available for download.' );
+			}
+			wp_admin_notice(
+				$message,
+				array(
+					'type'               => 'warning',
+					'additional_classes' => array( 'notice-alt' ),
+					'paragraph_wrap'     => true,
+				)
+			);
+		}
+
+		if ( ! empty( $theme->is_outdated ) ) {
+			$outdated_msg = ! empty( $theme->outdated_notice ) ? $theme->outdated_notice : __( 'This theme has not been updated in over 2 years and may no longer be maintained.' );
+			wp_admin_notice(
+				$outdated_msg,
+				array(
+					'type'               => 'warning',
+					'additional_classes' => array( 'notice-alt' ),
+					'paragraph_wrap'     => true,
+				)
+			);
+		}
+
+		if ( $description ) {
+			echo '<div class="theme-closure-description" style="margin-top: 20px;">' . $description . '</div>';
+		}
+
+		echo '<ul class="theme-closure-meta" style="margin-top: 20px; list-style: disc; padding-left: 20px;">';
+		if ( $closed_date ) {
+			/* translators: %s: Theme closure date. */
+			echo '<li>' . sprintf( __( 'Closed Date: %s' ), '<strong>' . esc_html( $closed_date ) . '</strong>' ) . '</li>';
+		}
+		if ( $reason ) {
+			/* translators: %s: Theme closure reason. */
+			echo '<li>' . sprintf( __( 'Reason: %s' ), '<strong>' . esc_html( $reason ) . '</strong>' ) . '</li>';
+		}
+		if ( ! empty( $theme->slug ) ) {
+			/* translators: %s: Theme slug. */
+			echo '<li>' . sprintf( __( 'Slug: %s' ), '<code>' . esc_html( $theme->slug ) . '</code>' ) . '</li>';
+		}
+		echo '</ul>';
+
+		echo '</div>';
+
+		iframe_footer();
+		exit;
+	}
+
 	if ( is_wp_error( $theme ) ) {
 		wp_die( $theme );
 	}
