@@ -79,9 +79,41 @@ class Tests_Formatting_wpRelUgc extends WP_UnitTestCase {
 	}
 
 	public function test_append_ugc_with_valueless_attribute() {
-
 		$content  = '<p>This is some cool <a href="demo.com" download rel="hola">Code</a></p>';
 		$expected = '<p>This is some cool <a href="demo.com" download rel="hola nofollow ugc">Code</a></p>';
 		$this->assertEqualHTML( $expected, stripslashes( wp_rel_ugc( $content ) ) );
+	}
+
+	/**
+	 * @ticket 65984
+	 */
+	public function test_wp_rel_ugc_ignores_links_in_comments() {
+		$content = '<!-- <a href="https://wordpress.org">Commented link</a> -->';
+		$this->assertSame( $content, stripslashes( wp_rel_ugc( $content ) ) );
+	}
+
+	/**
+	 * @ticket 65984
+	 */
+	public function test_wp_rel_ugc_ignores_links_in_script_and_style() {
+		$content = '<script>var a = "<a href=\"https://wordpress.org\">JS link</a>";</script>';
+		$this->assertSame( $content, stripslashes( wp_rel_ugc( wp_slash( $content ) ) ) );
+	}
+
+	/**
+	 * @ticket 65984
+	 */
+	public function test_wp_rel_ugc_handles_multiline_and_case() {
+		$content  = "<A\n\thref=\"https://wordpress.org\"\n\tclass=\"btn\">Caps and Multiline</A>";
+		$expected = '<a class="btn" href="https://wordpress.org" rel="nofollow ugc">Caps and Multiline</a>';
+		$this->assertEqualHTML( $expected, stripslashes( wp_rel_ugc( $content ) ) );
+	}
+
+	/**
+	 * @ticket 65984
+	 */
+	public function test_wp_rel_ugc_handles_empty_or_non_link_content() {
+		$this->assertSame( '', wp_rel_ugc( '' ) );
+		$this->assertSame( 'Just plain text', stripslashes( wp_rel_ugc( 'Just plain text' ) ) );
 	}
 }

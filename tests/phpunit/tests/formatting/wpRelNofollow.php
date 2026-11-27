@@ -83,4 +83,51 @@ class Tests_Formatting_wpRelNofollow extends WP_UnitTestCase {
 		$expected = '<p>This is some cool <a href="demo.com" download rel="hola nofollow">Code</a></p>';
 		$this->assertEqualHTML( $expected, stripslashes( wp_rel_nofollow( $content ) ) );
 	}
+
+	/**
+	 * @ticket 65984
+	 */
+	public function test_wp_rel_nofollow_ignores_links_in_comments() {
+		$content = '<!-- <a href="https://wordpress.org">Commented link</a> -->';
+		$this->assertSame( $content, stripslashes( wp_rel_nofollow( $content ) ) );
+	}
+
+	/**
+	 * @ticket 65984
+	 */
+	public function test_wp_rel_nofollow_ignores_links_in_script_and_style() {
+		$content = '<script>var a = "<a href=\"https://wordpress.org\">JS link</a>";</script>';
+		$this->assertSame( $content, stripslashes( wp_rel_nofollow( wp_slash( $content ) ) ) );
+	}
+
+	/**
+	 * @ticket 65984
+	 */
+	public function test_wp_rel_nofollow_handles_multiline_and_case() {
+		$content  = "<A\n\thref=\"https://wordpress.org\"\n\tclass=\"btn\">Caps and Multiline</A>";
+		$expected = '<a class="btn" href="https://wordpress.org" rel="nofollow">Caps and Multiline</a>';
+		$this->assertEqualHTML( $expected, stripslashes( wp_rel_nofollow( $content ) ) );
+	}
+
+	/**
+	 * @ticket 65984
+	 */
+	public function test_wp_rel_nofollow_handles_empty_or_non_link_content() {
+		$this->assertSame( '', wp_rel_nofollow( '' ) );
+		$this->assertSame( 'Just plain text', stripslashes( wp_rel_nofollow( 'Just plain text' ) ) );
+	}
+
+	/**
+	 * @ticket 65984
+	 * @covers ::wp_rel_callback
+	 */
+	public function test_wp_rel_callback_back_compat() {
+		$matches  = array(
+			'<a href="https://wordpress.org" class="btn">',
+			'href="https://wordpress.org" class="btn"',
+		);
+		$result   = wp_rel_callback( $matches, 'nofollow' );
+		$expected = '<a href="https://wordpress.org" class="btn" rel="nofollow">';
+		$this->assertEqualHTML( $expected, $result );
+	}
 }
