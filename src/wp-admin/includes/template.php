@@ -970,10 +970,12 @@ function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post
  *
  * @since 2.1.0
  * @since 7.0.0 Added $editable_roles parameter.
+ * @since 7.2.0 Added support for an array of $selected roles.
  *
- * @param string $selected       Slug for the role that should be already selected.
- * @param array  $editable_roles Array of roles to include in the dropdown. Defaults to all
- *                               roles the current user is allowed to edit.
+ * @param string|array $selected       Slug for the role that should be already selected, or an array of
+ *                                     role slugs to preselect multiple roles. Default empty string.
+ * @param array        $editable_roles Array of roles to include in the dropdown. Defaults to all
+ *                                     roles the current user is allowed to edit.
  */
 function wp_dropdown_roles( $selected = '', $editable_roles = null ) {
 	$r = '';
@@ -982,10 +984,14 @@ function wp_dropdown_roles( $selected = '', $editable_roles = null ) {
 		$editable_roles = array_reverse( get_editable_roles() );
 	}
 
+	if ( ! is_array( $selected ) ) {
+		$selected = array( $selected );
+	}
+
 	foreach ( $editable_roles as $role => $details ) {
 		$name = translate_user_role( $details['name'] );
-		// Preselect specified role.
-		if ( $selected === $role ) {
+		// Preselect specified role(s).
+		if ( in_array( $role, $selected, true ) ) {
 			$r .= "\n\t<option selected='selected' value='" . esc_attr( $role ) . "'>$name</option>";
 		} else {
 			$r .= "\n\t<option value='" . esc_attr( $role ) . "'>$name</option>";
