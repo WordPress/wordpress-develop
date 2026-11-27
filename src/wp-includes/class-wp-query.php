@@ -1813,9 +1813,14 @@ class WP_Query {
 				break;
 			case 'post_name__in':
 				if ( ! empty( $this->query_vars['post_name__in'] ) ) {
-					$post_name__in        = array_map( 'sanitize_title_for_query', $this->query_vars['post_name__in'] );
-					$post_name__in_string = "'" . implode( "','", $post_name__in ) . "'";
-					$orderby_clause       = "FIELD( {$wpdb->posts}.post_name," . $post_name__in_string . ' )';
+					$post_name__in = array_map( 'sanitize_title_for_query', $this->query_vars['post_name__in'] );
+					// Placeholder escapes are removed so that filters see the same SQL for slugs with percent-encoded characters.
+					$orderby_clause = $wpdb->remove_placeholder_escape(
+						$wpdb->prepare(
+							"FIELD( {$wpdb->posts}.post_name," . implode( ',', array_fill( 0, count( $post_name__in ), '%s' ) ) . ' )',
+							$post_name__in
+						)
+					);
 				}
 				break;
 			default:
@@ -2191,7 +2196,8 @@ class WP_Query {
 		// Parameters related to 'post_name'.
 		if ( '' !== $query_vars['name'] ) {
 			$query_vars['name'] = sanitize_title_for_query( $query_vars['name'] );
-			$where             .= " AND {$wpdb->posts}.post_name = '" . $query_vars['name'] . "'";
+			// Placeholder escapes are removed so that filters see the same SQL for slugs with percent-encoded characters.
+			$where .= $wpdb->remove_placeholder_escape( $wpdb->prepare( " AND {$wpdb->posts}.post_name = %s", $query_vars['name'] ) );
 		} elseif ( '' !== $query_vars['pagename'] ) {
 			if ( isset( $this->queried_object_id ) ) {
 				$reqpage = $this->queried_object_id;
@@ -2237,14 +2243,20 @@ class WP_Query {
 		} elseif ( '' !== $query_vars['attachment'] ) {
 			$query_vars['attachment'] = sanitize_title_for_query( wp_basename( $query_vars['attachment'] ) );
 			$query_vars['name']       = $query_vars['attachment'];
-			$where                   .= " AND {$wpdb->posts}.post_name = '" . $query_vars['attachment'] . "'";
+			// Placeholder escapes are removed so that filters see the same SQL for slugs with percent-encoded characters.
+			$where .= $wpdb->remove_placeholder_escape( $wpdb->prepare( " AND {$wpdb->posts}.post_name = %s", $query_vars['attachment'] ) );
 		} elseif ( is_array( $query_vars['post_name__in'] ) && ! empty( $query_vars['post_name__in'] ) ) {
 			$query_vars['post_name__in'] = array_map( 'sanitize_title_for_query', $query_vars['post_name__in'] );
 			// Duplicate array before sorting to allow for the orderby clause.
 			$post_name__in_for_where = array_unique( $query_vars['post_name__in'] );
 			sort( $post_name__in_for_where );
-			$post_name__in = "'" . implode( "','", $post_name__in_for_where ) . "'";
-			$where        .= " AND {$wpdb->posts}.post_name IN ($post_name__in)";
+			// Placeholder escapes are removed so that filters see the same SQL for slugs with percent-encoded characters.
+			$where .= $wpdb->remove_placeholder_escape(
+				$wpdb->prepare(
+					" AND {$wpdb->posts}.post_name IN (" . implode( ',', array_fill( 0, count( $post_name__in_for_where ), '%s' ) ) . ')',
+					$post_name__in_for_where
+				)
+			);
 		}
 
 		// If an attachment is requested by number, let it supersede any post number.
