@@ -317,9 +317,7 @@ class WP_oEmbed {
 
 		$provider = false;
 
-		if ( ! isset( $args['discover'] ) ) {
-			$args['discover'] = true;
-		}
+		$args['discover'] ??= true;
 
 		foreach ( $this->providers as $match_mask => $data ) {
 			$provider_data = $this->sanitize_provider( $match_mask, $data );

@@ -8383,9 +8383,7 @@ function wp_unique_prefixed_id( $prefix = '' ) {
 		$prefix = '';
 	}
 
-	if ( ! isset( $id_counters[ $prefix ] ) ) {
-		$id_counters[ $prefix ] = 0;
-	}
+	$id_counters[ $prefix ] ??= 0;
 
 	$id = ++$id_counters[ $prefix ];
 
