@@ -17,6 +17,7 @@ require_once ABSPATH . 'wp-admin/includes/class-walker-nav-menu-checklist.php';
  * Prints the appropriate response to a menu quick search.
  *
  * @since 3.0.0
+ * @since 7.2.0 Results now include an exact post/term slug match, if any, ranked first.
  *
  * @param array $request The unsanitized request values.
  */
@@ -116,14 +117,33 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 				$args = array_merge( $args, (array) $post_type_obj->_default_query );
 			}
 
+			$exact_match_post = null;
+			if ( '' !== trim( $query ) ) {
+				$exact_match_post = get_page_by_path( trim( $query ), OBJECT, array( $matches[2] ) );
+				if ( $exact_match_post && 'publish' !== $exact_match_post->post_status ) {
+					$exact_match_post = null;
+				}
+			}
+
+			if ( $exact_match_post && isset( $args['posts_per_page'] ) && $args['posts_per_page'] > 0 ) {
+				--$args['posts_per_page'];
+			}
+
 			$search_results_query = new WP_Query( $args );
-			if ( ! $search_results_query->have_posts() ) {
+
+			$posts = $exact_match_post ? array( $exact_match_post ) : array();
+			while ( $search_results_query->have_posts() ) {
+				$post = $search_results_query->next_post();
+				if ( ! $exact_match_post || $post->ID !== $exact_match_post->ID ) {
+					$posts[] = $post;
+				}
+			}
+
+			if ( ! $posts ) {
 				return;
 			}
 
-			while ( $search_results_query->have_posts() ) {
-				$post = $search_results_query->next_post();
-
+			foreach ( $posts as $post ) {
 				if ( 'markup' === $response_format ) {
 					$var_by_ref = $post->ID;
 					echo walk_nav_menu_tree(
@@ -143,20 +163,44 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 				}
 			}
 		} elseif ( 'taxonomy' === $matches[1] ) {
+			$exact_match_term = null;
+			if ( '' !== trim( $query ) ) {
+				$exact_match_terms = get_terms(
+					array(
+						'taxonomy'   => array( $matches[2] ),
+						'slug'       => trim( $query ),
+						'number'     => 1,
+						'hide_empty' => false,
+					)
+				);
+				if ( ! is_wp_error( $exact_match_terms ) && ! empty( $exact_match_terms ) ) {
+					$exact_match_term = reset( $exact_match_terms );
+				}
+			}
+
 			$terms = get_terms(
 				array(
 					'taxonomy'   => $matches[2],
 					'name__like' => $query,
-					'number'     => 10,
+					'number'     => $exact_match_term ? 9 : 10,
 					'hide_empty' => false,
 				)
 			);
 
-			if ( empty( $terms ) || is_wp_error( $terms ) ) {
+			$all_terms = $exact_match_term ? array( $exact_match_term ) : array();
+			if ( ! is_wp_error( $terms ) ) {
+				foreach ( (array) $terms as $term ) {
+					if ( ! $exact_match_term || $term->term_id !== $exact_match_term->term_id ) {
+						$all_terms[] = $term;
+					}
+				}
+			}
+
+			if ( ! $all_terms ) {
 				return;
 			}
 
-			foreach ( (array) $terms as $term ) {
+			foreach ( $all_terms as $term ) {
 				if ( 'markup' === $response_format ) {
 					echo walk_nav_menu_tree(
 						array_map( 'wp_setup_nav_menu_item', array( $term ) ),
@@ -397,6 +441,7 @@ function wp_nav_menu_item_link_meta_box() {
  * Displays a meta box for a post type menu item.
  *
  * @since 3.0.0
+ * @since 7.2.0 The search tab now includes an exact slug match, if any, ranked first.
  *
  * @global int        $_nav_menu_placeholder
  * @global int|string $nav_menu_selected_id
@@ -680,15 +725,35 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 		>
 			<?php
 			if ( isset( $_REQUEST[ "quick-search-posttype-{$post_type_name}" ] ) ) {
-				$searched       = esc_attr( $_REQUEST[ "quick-search-posttype-{$post_type_name}" ] );
+				$searched         = esc_attr( $_REQUEST[ "quick-search-posttype-{$post_type_name}" ] );
+				$exact_match_post = null;
+
+				if ( '' !== trim( $searched ) ) {
+					$exact_match_post = get_page_by_path( trim( $searched ), OBJECT, array( $post_type_name ) );
+					if ( $exact_match_post && 'publish' !== $exact_match_post->post_status ) {
+						$exact_match_post = null;
+					}
+				}
+
 				$search_results = get_posts(
 					array(
-						's'         => $searched,
-						'post_type' => $post_type_name,
-						'fields'    => 'all',
-						'order'     => 'DESC',
+						's'           => $searched,
+						'post_type'   => $post_type_name,
+						'fields'      => 'all',
+						'order'       => 'DESC',
+						'numberposts' => $exact_match_post ? 4 : 5,
 					)
 				);
+
+				if ( $exact_match_post ) {
+					$search_results = array_filter(
+						$search_results,
+						static function ( $post ) use ( $exact_match_post ) {
+							return $post->ID !== $exact_match_post->ID;
+						}
+					);
+					array_unshift( $search_results, $exact_match_post );
+				}
 			} else {
 				$searched       = '';
 				$search_results = array();
@@ -845,6 +910,7 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
  * Displays a meta box for a taxonomy menu item.
  *
  * @since 3.0.0
+ * @since 7.2.0 The search tab now includes an exact slug match, if any, ranked first.
  *
  * @global int|string $nav_menu_selected_id
  *
@@ -1054,7 +1120,23 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 			role="region" aria-label="<?php echo esc_attr( $taxonomy->labels->search_items ); ?>" tabindex="0">
 			<?php
 			if ( isset( $_REQUEST[ "quick-search-taxonomy-{$taxonomy_name}" ] ) ) {
-				$searched       = esc_attr( $_REQUEST[ "quick-search-taxonomy-{$taxonomy_name}" ] );
+				$searched         = esc_attr( $_REQUEST[ "quick-search-taxonomy-{$taxonomy_name}" ] );
+				$exact_match_term = null;
+
+				if ( '' !== trim( $searched ) ) {
+					$exact_match_terms = get_terms(
+						array(
+							'taxonomy'   => array( $taxonomy_name ),
+							'slug'       => trim( $searched ),
+							'number'     => 1,
+							'hide_empty' => false,
+						)
+					);
+					if ( ! is_wp_error( $exact_match_terms ) && ! empty( $exact_match_terms ) ) {
+						$exact_match_term = reset( $exact_match_terms );
+					}
+				}
+
 				$search_results = get_terms(
 					array(
 						'taxonomy'     => $taxonomy_name,
@@ -1065,6 +1147,16 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 						'hierarchical' => false,
 					)
 				);
+
+				if ( $exact_match_term && ! is_wp_error( $search_results ) ) {
+					$search_results = array_filter(
+						$search_results,
+						static function ( $term ) use ( $exact_match_term ) {
+							return $term->term_id !== $exact_match_term->term_id;
+						}
+					);
+					array_unshift( $search_results, $exact_match_term );
+				}
 			} else {
 				$searched       = '';
 				$search_results = array();
