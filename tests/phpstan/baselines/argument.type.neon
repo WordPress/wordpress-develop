@@ -1184,11 +1184,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
 		-
-			message: '#^Parameter \#1 \$terms of function update_term_cache expects array\<WP_Term\>, list\<stdClass\>\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/taxonomy.php
-		-
 			message: '#^Parameter \#1 \$terms of function wp_update_term_count expects array\|int, null given\.$#'
 			identifier: argument.type
 			count: 1
