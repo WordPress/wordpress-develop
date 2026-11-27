@@ -303,6 +303,7 @@ class wpdb {
 	 *
 	 * @see wpdb::tables()
 	 * @var string[]
+	 * @phpstan-var list<non-empty-string>
 	 */
 	public $tables = array(
 		'posts',
@@ -326,6 +327,7 @@ class wpdb {
 	 *
 	 * @see wpdb::tables()
 	 * @var string[]
+	 * @phpstan-var list<non-empty-string>
 	 */
 	public $old_tables = array( 'categories', 'post2cat', 'link2cat' );
 
@@ -336,6 +338,7 @@ class wpdb {
 	 *
 	 * @see wpdb::tables()
 	 * @var string[]
+	 * @phpstan-var list<non-empty-string>
 	 */
 	public $global_tables = array( 'users', 'usermeta' );
 
@@ -346,6 +349,7 @@ class wpdb {
 	 *
 	 * @see wpdb::tables()
 	 * @var string[]
+	 * @phpstan-var list<non-empty-string>
 	 */
 	public $ms_global_tables = array(
 		'blogs',
@@ -363,6 +367,7 @@ class wpdb {
 	 *
 	 * @see wpdb::tables()
 	 * @var string[]
+	 * @phpstan-var list<non-empty-string>
 	 */
 	public $old_ms_global_tables = array( 'sitecategories' );
 
