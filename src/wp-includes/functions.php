@@ -5080,7 +5080,7 @@ function smilies_init() {
 		// New subpattern?
 		if ( $firstchar !== $subchar ) {
 			if ( '' !== $subchar ) {
-				$wp_smiliessearch .= ')(?=' . $spaces . '|$)';  // End previous "subpattern".
+				$wp_smiliessearch .= ')(?=[^a-zA-Z0-9\:]|$)';  // End previous "subpattern".
 				$wp_smiliessearch .= '|(?<=' . $spaces . '|^)'; // Begin another "subpattern".
 			}
 
