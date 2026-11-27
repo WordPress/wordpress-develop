@@ -27,6 +27,8 @@ use PhpParser\Node\InterpolatedStringPart;
 use PhpParser\Node\Scalar\InterpolatedString;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\NodeFinder;
 use PhpParser\NodeVisitorAbstract;
 
@@ -46,6 +48,8 @@ use PhpParser\NodeVisitorAbstract;
  * - `$wpdb->prepare( $query, ... )` is replaced by its query, with the
  *   placeholder `{value}` for each of its placeholders, like `%d` or `%i`, and
  *   `%` for each `%%`.
+ * - In the `wpdb` class itself, `$this` is taken as `$wpdb`, so that its own
+ *   queries, like those of `wpdb::update()`, are read too.
  * - A variable is replaced by the value assigned to it by the nearest preceding
  *   `$var = ...;` statement, followed by any `$var .= ...;` statements after it.
  *   The search walks back through the preceding statements, out through the
@@ -109,6 +113,13 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	private array $shadowed = array();
 
 	/**
+	 * Whether the node being walked is in the `wpdb` class, in which `$this` is `wpdb`.
+	 *
+	 * @var bool
+	 */
+	private bool $in_wpdb = false;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -153,6 +164,11 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	 */
 	private function walk_node( Node $node, array $position ): void {
 		$shadowed = $this->shadowed;
+		$in_wpdb  = $this->in_wpdb;
+		if ( $node instanceof ClassLike ) {
+			// Only `wpdb` itself, since a subclass, like one in a `db.php` drop-in, may override its methods.
+			$this->in_wpdb = $node instanceof Class_ && null !== $node->name && 'wpdb' === $node->name->toLowerString();
+		}
 		if ( $node instanceof FunctionLike ) {
 			/*
 			 * An arrow function has no statements of its own, so the variables in it are followed outside it, except
@@ -188,6 +204,7 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 			}
 		}
 		$this->shadowed = $shadowed;
+		$this->in_wpdb  = $in_wpdb;
 
 		if (
 			$node instanceof MethodCall
@@ -422,12 +439,12 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	}
 
 	/**
-	 * Determines whether an expression is the `$wpdb` global.
+	 * Determines whether an expression is the `$wpdb` global, or `$this` in the `wpdb` class.
 	 *
 	 * @param Expr $expr Expression.
 	 * @return bool
 	 */
 	private function is_wpdb( Expr $expr ): bool {
-		return $this->is_variable( $expr, 'wpdb' );
+		return $this->is_variable( $expr, 'wpdb' ) || ( $this->in_wpdb && $this->is_variable( $expr, 'this' ) );
 	}
 }
