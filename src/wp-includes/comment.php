@@ -784,9 +784,23 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 			wp_unslash( $commentdata['comment_author_email'] )
 		);
 	}
+	$comment_content = wp_unslash( $commentdata['comment_content'] );
+
+	/*
+	 * Compare against the value that would actually be stored. When the column cannot
+	 * hold four-byte characters, such as emoji in a `utf8` column, they are stripped
+	 * on insert. Comparing the unstripped string would cause a database error
+	 * on a `utf8mb4` connection and would never match the stored comment.
+	 */
+	$stripped_content = $wpdb->strip_invalid_text_for_column( $wpdb->comments, 'comment_content', $comment_content );
+
+	if ( is_string( $stripped_content ) ) {
+		$comment_content = $stripped_content;
+	}
+
 	$dupe .= $wpdb->prepare(
 		') AND comment_content = %s LIMIT 1',
-		wp_unslash( $commentdata['comment_content'] )
+		$comment_content
 	);
 
 	$dupe_id = $wpdb->get_var( $dupe );
