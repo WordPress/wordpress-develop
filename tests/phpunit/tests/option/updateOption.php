@@ -220,6 +220,188 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 21989
+	 *
+	 * @covers ::update_option
+	 * @covers ::add_filter
+	 * @covers ::remove_filter
+	 */
+	public function test_update_option_sanitized_callback_runs_once_when_creating_new_option() {
+		$option_name    = 'test_21989_non_idempotent_create';
+		$sanitize_count = 0;
+
+		$callback = function ( $value ) use ( &$sanitize_count ) {
+			++$sanitize_count;
+			return $value . '_y';
+		};
+
+		add_filter( "sanitize_option_{$option_name}", $callback );
+
+		// Ensure the option does not exist.
+		delete_option( $option_name );
+		$this->assertFalse( get_option( $option_name ) );
+
+		$result = update_option( $option_name, 'x' );
+		remove_filter( "sanitize_option_{$option_name}", $callback );
+
+		$this->assertTrue( $result );
+		$this->assertSame( 1, $sanitize_count, 'Sanitize callback must run exactly once.' );
+		$this->assertSame( 'x_y', get_option( $option_name ), 'Stored value must reflect a single sanitization pass.' );
+
+		// Clean up.
+		delete_option( $option_name );
+	}
+
+	/**
+	 * @ticket 21989
+	 *
+	 * @covers ::add_option
+	 * @covers ::add_filter
+	 * @covers ::remove_filter
+	 */
+	public function test_add_option_sanitized_callback_runs_once_for_direct_call() {
+		$option_name    = 'test_21989_direct_add';
+		$sanitize_count = 0;
+
+		$callback = function ( $value ) use ( &$sanitize_count ) {
+			++$sanitize_count;
+			return $value . '_y';
+		};
+
+		add_filter( "sanitize_option_{$option_name}", $callback );
+
+		// Ensure the option does not exist.
+		delete_option( $option_name );
+		$this->assertFalse( get_option( $option_name ) );
+
+		$result = add_option( $option_name, 'x' );
+		remove_filter( "sanitize_option_{$option_name}", $callback );
+
+		$this->assertTrue( $result );
+		$this->assertSame( 1, $sanitize_count, 'Direct add_option() must sanitize exactly once.' );
+		$this->assertSame( 'x_y', get_option( $option_name ) );
+
+		// Clean up.
+		delete_option( $option_name );
+	}
+
+	/**
+	 * @ticket 21989
+	 *
+	 * @covers ::update_option
+	 * @covers ::add_filter
+	 * @covers ::remove_filter
+	 */
+	public function test_update_option_sanitized_callback_runs_once_for_existing_option() {
+		$option_name    = 'test_21989_existing_update';
+		$sanitize_count = 0;
+
+		$callback = function ( $value ) use ( &$sanitize_count ) {
+			++$sanitize_count;
+			return $value . '_y';
+		};
+
+		add_filter( "sanitize_option_{$option_name}", $callback );
+
+		// Create the option first.
+		delete_option( $option_name );
+		add_option( $option_name, 'initial' );
+		$this->assertSame( 'initial', get_option( $option_name ) );
+
+		// Reset counter after the add_option() call.
+		$sanitize_count = 0;
+
+		$result = update_option( $option_name, 'x' );
+		remove_filter( "sanitize_option_{$option_name}", $callback );
+
+		$this->assertTrue( $result );
+		$this->assertSame( 1, $sanitize_count, 'Updating an existing option must sanitize exactly once.' );
+		$this->assertSame( 'x_y', get_option( $option_name ) );
+
+		// Clean up.
+		delete_option( $option_name );
+	}
+
+	/**
+	 * @ticket 21989
+	 *
+	 * @covers ::update_option
+	 * @covers ::add_filter
+	 * @covers ::remove_filter
+	 */
+	public function test_pre_update_option_filter_fires_on_new_option_path() {
+		$option_name        = 'test_21989_pre_update_fires';
+		$filter_fired       = false;
+		$captured_value     = null;
+		$captured_old_value = null;
+
+		$callback = function ( $value, $old_value, $option ) use ( &$filter_fired, &$captured_value, &$captured_old_value, $option_name ) {
+			$filter_fired       = true;
+			$captured_value     = $value;
+			$captured_old_value = $old_value;
+			$this->assertSame( $option_name, $option );
+			return $value;
+		};
+
+		add_filter( "pre_update_option_{$option_name}", $callback, 10, 3 );
+
+		// Ensure the option does not exist.
+		delete_option( $option_name );
+		$this->assertFalse( get_option( $option_name ) );
+
+		$result = update_option( $option_name, 'bar' );
+		remove_filter( "pre_update_option_{$option_name}", $callback, 10, 3 );
+
+		$this->assertTrue( $result );
+		$this->assertTrue( $filter_fired, 'pre_update_option_{$option} must fire on the new-option path.' );
+		$this->assertSame( 'bar', $captured_value );
+		$this->assertFalse( $captured_old_value, 'Old value must be false for a non-existent option.' );
+
+		// Clean up.
+		delete_option( $option_name );
+	}
+
+	/**
+	 * @ticket 21989
+	 *
+	 * @covers ::add_option
+	 * @covers ::update_option
+	 * @covers ::add_filter
+	 * @covers ::remove_filter
+	 */
+	public function test_sanitize_flag_does_not_leak_to_subsequent_add_option() {
+		$updated_option = 'test_21989_leak_source';
+		$added_option   = 'test_21989_leak_target';
+		$sanitize_count = 0;
+
+		$callback = function ( $value ) use ( &$sanitize_count ) {
+			++$sanitize_count;
+			return $value . '_y';
+		};
+
+		add_filter( "sanitize_option_{$added_option}", $callback );
+
+		// Make sure neither option exists before the calls under test.
+		delete_option( $updated_option );
+		delete_option( $added_option );
+
+		$this->assertTrue( update_option( $updated_option, 'x' ) );
+
+		// The flag must have been consumed by that update_option() call, so this
+		// direct add_option() of an unrelated option still sanitizes exactly once.
+		$this->assertTrue( add_option( $added_option, 'x' ) );
+
+		remove_filter( "sanitize_option_{$added_option}", $callback );
+
+		$this->assertSame( 1, $sanitize_count, 'Sanitize callback must run exactly once for the later add_option() call.' );
+		$this->assertSame( 'x_y', get_option( $added_option ) );
+
+		// Clean up.
+		delete_option( $updated_option );
+		delete_option( $added_option );
+	}
+
+	/**
 	 * `add_filter()` callback for test_should_respect_default_option_filter_when_option_does_not_yet_exist_in_database().
 	 */
 	public function __return_foo() {
