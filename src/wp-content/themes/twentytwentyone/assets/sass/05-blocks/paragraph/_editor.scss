@@ -4,4 +4,8 @@ p {
 	&.has-background {
 		padding: var(--global--spacing-unit);
 	}
+
+	&.has-text-color:not(.has-link-color) a {
+		color: currentColor;
+	}
 }
