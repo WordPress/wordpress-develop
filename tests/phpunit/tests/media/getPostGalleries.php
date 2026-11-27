@@ -1077,4 +1077,65 @@ BLOB;
 			'The src key of the first gallery is empty.'
 		);
 	}
+
+	/**
+	 * Tests that `get_post_galleries()` ignores `data-src`, HTML comments,
+	 * and `src=` text in attributes or captions for block galleries.
+	 *
+	 * @ticket 65984
+	 */
+	public function test_ignores_data_src_comments_and_caption_text_in_block_gallery() {
+		$image_url = _upload_get_url( 'test.jpg' );
+
+		$blob = <<<BLOB
+<!-- wp:gallery -->
+<ul class="wp-block-gallery columns-2 is-cropped"><li class="blocks-gallery-item">
+<figure>
+<img data-src="https://example.org/placeholder.jpg" src="$image_url" alt=' Example src="https://example.org/alt.jpg" ' />
+<figcaption>See src="https://example.org/caption.jpg"</figcaption>
+<!-- <img src="https://example.org/commented.jpg" /> -->
+</figure>
+</li>
+</ul>
+<!-- /wp:gallery -->
+BLOB;
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => $blob,
+			)
+		);
+
+		$galleries = get_post_galleries( $post_id, false );
+
+		$this->assertSame( array( $image_url ), $galleries[0]['src'] );
+	}
+
+	/**
+	 * Tests that `get_post_galleries()` ignores `data-src`, text nodes, and handles
+	 * uppercase or spaced `src` attributes in shortcode galleries.
+	 *
+	 * @ticket 65984
+	 */
+	public function test_ignores_data_src_and_handles_spaced_attributes_in_shortcode_gallery() {
+		$image_url = _upload_get_url( 'test.jpg' );
+
+		$callback = static function () use ( $image_url ) {
+			return '<div class="gallery"><img data-src="https://example.org/lazy.jpg" SRC = "' . esc_url( $image_url ) . '"><p>src="https://example.org/text.jpg"</p></div>';
+		};
+
+		add_filter( 'post_gallery', $callback );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => '[gallery]',
+			)
+		);
+
+		$galleries = get_post_galleries( $post_id, false );
+
+		remove_filter( 'post_gallery', $callback );
+
+		$this->assertSame( array( $image_url ), $galleries[0]['src'] );
+	}
 }

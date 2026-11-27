@@ -5459,17 +5459,18 @@ function get_post_galleries( $post, $html = true ) {
 				if ( $html ) {
 					$galleries[] = $gallery;
 				} else {
-					preg_match_all( '#src=([\'"])(.+?)\1#is', $gallery, $src, PREG_SET_ORDER );
-					if ( ! empty( $src ) ) {
-						foreach ( $src as $s ) {
-							$srcs[] = $s[2];
+					$processor = new WP_HTML_Tag_Processor( $gallery );
+					while ( $processor->next_tag( 'IMG' ) ) {
+						$src = $processor->get_attribute( 'src' );
+						if ( is_string( $src ) && '' !== $src && ! in_array( $src, $srcs, true ) ) {
+							$srcs[] = $src;
 						}
 					}
 
 					$galleries[] = array_merge(
 						$shortcode_attrs,
 						array(
-							'src' => array_values( array_unique( $srcs ) ),
+							'src' => $srcs,
 						)
 					);
 				}
@@ -5555,13 +5556,11 @@ function get_post_galleries( $post, $html = true ) {
 			}
 
 			// Otherwise, extract srcs from the innerHTML.
-			preg_match_all( '#src=([\'"])(.+?)\1#is', $block['innerHTML'], $found_srcs, PREG_SET_ORDER );
-
-			if ( ! empty( $found_srcs[0] ) ) {
-				foreach ( $found_srcs as $src ) {
-					if ( isset( $src[2] ) && ! in_array( $src[2], $srcs, true ) ) {
-						$srcs[] = $src[2];
-					}
+			$processor = new WP_HTML_Tag_Processor( $block['innerHTML'] );
+			while ( $processor->next_tag( 'IMG' ) ) {
+				$src = $processor->get_attribute( 'src' );
+				if ( is_string( $src ) && '' !== $src && ! in_array( $src, $srcs, true ) ) {
+					$srcs[] = $src;
 				}
 			}
 
