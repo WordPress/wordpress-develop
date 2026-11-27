@@ -92,6 +92,14 @@
 		<script src="../../build/wp-admin/js/dashboard.js"></script>
 		<script src="../../build/wp-admin/js/password-strength-meter.js"></script>
 		<script src="../../build/wp-admin/js/postbox.js"></script>
+		<script>
+			window._wpThemeSettings = {"themes":[],"settings":{"isInstall":true,"adminUrl":"\/wp-admin\/"},"l10n":{},"installedThemes":[]};
+		</script>
+		<script src="../../build/wp-admin/js/theme.js"></script>
+		<script>
+			// Prevent the theme screens from booting on DOM ready; the tests exercise the views directly.
+			wp.themes.Run.init = wp.themes.RunInstaller.init = function() {};
+		</script>
 		<script src="../../build/wp-includes/js/dist/vendor/moment.js"></script>
 		<script src="../../build/wp-includes/js/dist/date.js"></script>
 		<script src="../../build/wp-includes/js/dist/i18n.js"></script>
