@@ -768,7 +768,14 @@ window.wp = window.wp || {};
 	// The revision meta 'from' view.
 	revisions.view.MetaFrom = revisions.view.Meta.extend({
 		className: 'diff-meta diff-meta-from',
-		type: 'from'
+		type: 'from',
+
+		render: function() {
+			wp.Backbone.View.prototype.render.apply( this, arguments );
+			this.$el.toggle( !! this.model.get( 'from' ) );
+
+			return this;
+		}
 	});
 
 	// The revision meta 'to' view.
@@ -967,15 +974,23 @@ window.wp = window.wp || {};
 		},
 
 		accessibilityHelper: function() {
-			var handles = $( '.ui-slider-handle' );
-			handles.first().attr( {
+			var handles    = this.$( '.ui-slider-handle' ),
+				fromHandle = handles.first(),
+				toHandle   = handles.last();
+
+			if ( isRtl ) {
+				fromHandle = handles.last();
+				toHandle   = handles.first();
+			}
+
+			fromHandle.attr( {
 					role: 'button',
-					'aria-labelledby': 'diff-title-from diff-title-author',
+					'aria-labelledby': 'diff-title-from diff-title-author-from',
 					'aria-describedby': 'revisions-slider-hidden-help',
 			} );
-			handles.last().attr( {
+			toHandle.attr( {
 					role: 'button',
-					'aria-labelledby': 'diff-title-to diff-title-author',
+					'aria-labelledby': 'diff-title-to diff-title-author-to',
 					'aria-describedby': 'revisions-slider-hidden-help',
 			} );
 		},
