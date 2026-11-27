@@ -42,6 +42,7 @@ final class WP_Block_Bindings_Registry {
 		'label',
 		'get_value_callback',
 		'uses_context',
+		'args',
 	);
 
 	/**
