@@ -1,7 +1,7 @@
 ##
 # A reusable workflow that runs PHP Static Analysis tests.
 #
-# This workflow is used by `trunk` and branches >= 7.0.
+# This workflow is used by branches 7.0 and 7.1.
 ##
 name: PHP Static Analysis
 
@@ -30,7 +30,6 @@ jobs:
   # - Logs debug information.
   # - Installs Composer dependencies.
   # - Make Composer packages available globally.
-  # - Runs the tests of the WordPress-specific PHPStan extensions.
   # - Builds WordPress.
   # - Configures caching for PHPStan static analysis scans.
   # - Runs PHPStan static analysis.
@@ -75,13 +74,6 @@ jobs:
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> "$GITHUB_PATH"
-
-      # The extensions in `tests/phpstan` are tested against fixtures rather than against
-      # core, so a defect in one is reported here as a failing test rather than as a
-      # change in what the analysis below reports.
-      - name: Run the tests of the PHPStan extensions
-        if: ${{ hashFiles('tests/phpstan/phpunit.xml.dist') != '' }}
-        run: composer run phpstan:test
 
       # The directory holds more than the analysis results. PHPStan also stores what it read out of
       # each source file there, the docblocks and signatures it found, keyed by that file's contents
@@ -291,9 +283,9 @@ jobs:
           composer phpstan:fix
           ```
 
-          That runs PHPStan with `--fix`, which lowers the counts in the files under [`tests/phpstan/baselines`][baselines], removes the entries that no longer match, and removes any `@phpstan-ignore` annotation in the code that no longer ignores anything. It then deletes any baseline left with no entries, and updates the list of them in `phpstan.neon.dist`.
+          That runs PHPStan with `--fix`, which lowers the counts in the files under [`tests/phpstan/baselines`][baselines], removes the entries that no longer match, and removes any `@phpstan-ignore` annotation in the code that no longer ignores anything. It then deletes any baseline left with no entries.
 
-          Alternatively, regenerate the baselines with `npm run typecheck:php:baselines` or `composer phpstan:baselines`. That also deletes any baseline whose errors are now all fixed, and updates the list of them in `phpstan.neon.dist`, but it does not clear an `@phpstan-ignore` annotation.
+          Alternatively, regenerate the baselines with `npm run typecheck:php:baselines` or `composer phpstan:baselines`. That also deletes any baseline whose errors are now all fixed, but it does not clear an `@phpstan-ignore` annotation.
 
           See [`tests/phpstan/README.md`][readme] for details.
 

@@ -54,7 +54,7 @@ class Tests_Media_wpEnqueueMediaNewUpload extends WP_UnitTestCase {
 		$this->original_wp_scripts = $wp_scripts;
 		$wp_scripts                = new WP_Scripts();
 
-		// The screen was cross-origin isolated, as wp_set_up_cross_origin_isolation() records.
+		// The screen was cross-origin isolated, as wp_send_document_isolation_policy_header() records.
 		$GLOBALS['_wp_cross_origin_isolated'] = true;
 	}
 
