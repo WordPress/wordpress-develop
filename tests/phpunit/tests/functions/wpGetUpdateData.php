@@ -328,6 +328,28 @@ class Tests_Functions_WpGetUpdateData extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that translation updates across all update transients are counted together.
+	 *
+	 * @ticket 66806
+	 */
+	public function test_should_count_translation_updates_across_transients() {
+		wp_set_current_user( self::$admin_id );
+
+		foreach ( self::$transients as $transient ) {
+			set_site_transient(
+				$transient,
+				(object) array(
+					'translations' => array(
+						array( 'language' => 'de_DE' ),
+					),
+				)
+			);
+		}
+
+		$this->assertSame( 3, wp_get_update_data()['counts']['translations'] );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
