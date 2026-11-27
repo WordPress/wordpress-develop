@@ -179,6 +179,13 @@
 							if ( figcaption ) {
 								figcaption.addClass( 'below-entry-meta' );
 							}
+
+							let $isResized = $( '.is-resized' );
+
+							if ($isResized.hasClass( 'alignleft' ) || $isResized.hasClass('alignright') || $isResized.hasClass('aligncenter')) {
+								element.removeClass('below-entry-meta');
+								figcaption.removeClass('below-entry-meta');
+							}
 						}
 					} );
 				} else {
