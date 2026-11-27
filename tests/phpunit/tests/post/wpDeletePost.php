@@ -206,4 +206,29 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 
 		$this->assertSame( $parent_post_id, get_post( $attachment_id )->post_parent );
 	}
+
+	/**
+	 * Tests that wp_delete_post() does not trigger a warning when the post is deleted
+	 * by another process while it is being deleted.
+	 *
+	 * The concurrent delete is simulated by deleting the post from a `before_delete_post`
+	 * callback that runs before `_reset_front_page_settings_for_post()`.
+	 *
+	 * @ticket 66684
+	 *
+	 * @covers ::_reset_front_page_settings_for_post
+	 */
+	public function test_wp_delete_post_handles_post_deleted_concurrently() {
+		$post_id = self::factory()->post->create();
+
+		$delete_concurrently = static function ( $post_id_being_deleted ) use ( &$delete_concurrently ) {
+			remove_action( 'before_delete_post', $delete_concurrently, 1 );
+			wp_delete_post( $post_id_being_deleted, true );
+		};
+		add_action( 'before_delete_post', $delete_concurrently, 1 );
+
+		wp_delete_post( $post_id, true );
+
+		$this->assertNull( get_post( $post_id ) );
+	}
 }

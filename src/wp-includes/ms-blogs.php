@@ -872,6 +872,10 @@ function _update_blog_date_on_post_publish( $new_status, $old_status, $post ) {
 function _update_blog_date_on_post_delete( $post_id ) {
 	$post = get_post( $post_id );
 
+	if ( ! $post ) {
+		return;
+	}
+
 	$post_type_obj = get_post_type_object( $post->post_type );
 	if ( ! $post_type_obj || ! $post_type_obj->public ) {
 		return;
