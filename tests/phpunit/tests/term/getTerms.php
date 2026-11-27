@@ -545,6 +545,71 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the 'search' and 'name__like' arguments match term names containing
+	 * characters that are stored as HTML entities.
+	 *
+	 * @ticket 66279
+	 *
+	 * @dataProvider data_get_terms_search_special_characters
+	 *
+	 * @param string   $arg      Query argument to test. Either 'search' or 'name__like'.
+	 * @param string   $search   Search string.
+	 * @param string[] $expected Names of the terms expected to match.
+	 */
+	public function test_get_terms_search_special_characters( $arg, $search, $expected ) {
+		$names    = array( 'Tour & Travel', 'Tour Travel', 'Less < More', "Rock 'n' Roll" );
+		$term_ids = array();
+		foreach ( $names as $name ) {
+			$term_ids[ $name ] = self::factory()->tag->create( array( 'name' => $name ) );
+		}
+
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'post_tag',
+				'hide_empty' => false,
+				$arg         => $search,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertSameSets( array_values( array_intersect_key( $term_ids, array_flip( $expected ) ) ), $terms );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_terms_search_special_characters() {
+		$cases = array(
+			'ampersand followed by a space'     => array( 'Tour & ', array( 'Tour & Travel' ) ),
+			'ampersand followed by a word'      => array( 'Tour & T', array( 'Tour & Travel' ) ),
+			'leading ampersand'                 => array( '& Travel', array( 'Tour & Travel' ) ),
+			'full name with an ampersand'       => array( 'Tour & Travel', array( 'Tour & Travel' ) ),
+			'different case'                    => array( 'tour & travel', array( 'Tour & Travel' ) ),
+			'already encoded ampersand'         => array( 'Tour &amp; T', array( 'Tour & Travel' ) ),
+			'decimal entity ampersand'          => array( 'Tour &#38; T', array( 'Tour & Travel' ) ),
+			'padded decimal entity ampersand'   => array( 'Tour &#038; T', array( 'Tour & Travel' ) ),
+			'hex entity ampersand'              => array( 'Tour &#x26; T', array( 'Tour & Travel' ) ),
+			'less-than sign followed by a word' => array( 'Less < M', array( 'Less < More' ) ),
+			'leading less-than sign'            => array( '< More', array( 'Less < More' ) ),
+			'quotes are not encoded'            => array( "Rock 'n", array( "Rock 'n' Roll" ) ),
+			'no special characters'             => array( 'Tour Travel', array( 'Tour Travel' ) ),
+			'invalid UTF-8 does not match all'  => array( "&\xff", array() ),
+			'ampersand with no matching term'   => array( 'Tour & Tea', array() ),
+		);
+
+		$data = array();
+		foreach ( array( 'search', 'name__like' ) as $arg ) {
+			foreach ( $cases as $label => $case ) {
+				$data[ "$arg: $label" ] = array_merge( array( $arg ), $case );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
 	 * @ticket 26903
 	 */
 	public function test_get_terms_parent_zero() {
