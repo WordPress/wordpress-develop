@@ -3166,6 +3166,12 @@ mockedApiResponse.Schema = {
                             "format": "uri",
                             "description": "URL of an external image to sideload into the media library, instead of uploading a file.",
                             "required": false
+                        },
+                        "parent_image": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "ID of the attachment the uploaded image was edited from. Recorded in the new attachment's metadata, as the edit endpoint does.",
+                            "required": false
                         }
                     }
                 }
