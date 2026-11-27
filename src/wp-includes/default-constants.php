@@ -385,7 +385,8 @@ function wp_functionality_constants() {
 	 * @since 2.9.0
 	 */
 	if ( ! defined( 'EMPTY_TRASH_DAYS' ) ) {
-		define( 'EMPTY_TRASH_DAYS', 30 );
+		// Assigning the user selected value as the constant value, 30 if the option doesn't exist.
+		define( 'EMPTY_TRASH_DAYS', absint( get_option( 'empty_trash_days', 30 ) ) );
 	}
 
 	if ( ! defined( 'WP_POST_REVISIONS' ) ) {
