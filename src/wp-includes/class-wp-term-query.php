@@ -92,6 +92,8 @@ class WP_Term_Query {
 	 * @since 5.1.0 Introduced the 'meta_compare_key' parameter.
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 * @since 6.4.0 Introduced the 'cache_results' parameter.
+	 * @since 7.3.0 Added support for multiple fields in 'orderby', as an array
+	 *              or a space-separated list.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of term query parameters. Default empty.
@@ -100,7 +102,11 @@ class WP_Term_Query {
 	 *                                                   should be limited.
 	 *     @type int|int[]       $object_ids             Object ID, or array of object IDs. Results will be
 	 *                                                   limited to terms associated with these objects.
-	 *     @type string          $orderby                Field(s) to order terms by. Accepts:
+	 *     @type string|array    $orderby                Field(s) to order terms by. Accepts a single field, a
+	 *                                                   space-separated list of fields, or an array of
+	 *                                                   field => order pairs, e.g. `array( 'count' => 'DESC',
+	 *                                                   'name' => 'ASC' )`. Fields in a string use `$order`.
+	 *                                                   Accepted fields:
 	 *                                                   - Term fields ('name', 'slug', 'term_group', 'term_id', 'id',
 	 *                                                     'description', 'parent', 'term_order'). Unless `$object_ids`
 	 *                                                     is not empty, 'term_order' is treated the same as 'term_id'.
@@ -115,7 +121,8 @@ class WP_Term_Query {
 	 *                                                   Default 'name'.
 	 *     @type string          $order                  Whether to order terms in ascending or descending order.
 	 *                                                   Accepts 'ASC' (ascending) or 'DESC' (descending).
-	 *                                                   Default 'ASC'.
+	 *                                                   Ignored for fields passed as an array of field => order
+	 *                                                   pairs in `$orderby`. Default 'ASC'.
 	 *     @type bool|int        $hide_empty             Whether to hide terms not assigned to any posts. Accepts
 	 *                                                   1|true or 0|false. Default 1|true.
 	 *     @type int[]|string    $include                Array or comma/space-separated string of term IDs to include.
@@ -457,19 +464,70 @@ class WP_Term_Query {
 			}
 		}
 
-		// 'term_order' is a legal sort order only when joining the relationship table.
 		$_orderby = $this->query_vars['orderby'];
-		if ( 'term_order' === $_orderby && empty( $this->query_vars['object_ids'] ) ) {
-			$_orderby = 'term_id';
+		$_order   = $this->query_vars['order'];
+
+		if ( is_array( $_orderby ) ) {
+			$orderby_fields = array();
+			foreach ( $_orderby as $field => $field_order ) {
+				// Allow a plain list of fields, which use the 'order' query var.
+				if ( is_int( $field ) ) {
+					$orderby_fields[ (string) $field_order ] = $_order;
+				} else {
+					$orderby_fields[ $field ] = $field_order;
+				}
+			}
+		} else {
+			// A space-separated list of fields, which all use the 'order' query var.
+			$fields         = preg_split( '/\s+/', trim( (string) $_orderby ), -1, PREG_SPLIT_NO_EMPTY );
+			$orderby_fields = array_fill_keys( $fields, $_order );
 		}
 
-		$orderby = $this->parse_orderby( $_orderby );
-
-		if ( $orderby ) {
-			$orderby = "ORDER BY $orderby";
+		// An empty value falls back to ordering by term ID, as before.
+		if ( ! $orderby_fields ) {
+			$orderby_fields = array( '' => $_order );
 		}
 
-		$order = $this->parse_order( $this->query_vars['order'] );
+		$orderby_clauses = array();
+		foreach ( $orderby_fields as $field => $field_order ) {
+			$field = (string) $field;
+
+			// 'term_order' is a legal sort order only when joining the relationship table.
+			if ( 'term_order' === $field && empty( $this->query_vars['object_ids'] ) ) {
+				$field = 'term_id';
+			}
+
+			$parsed = $this->parse_orderby( $field );
+
+			// Skip empty values ('none') and fields that resolve to an expression already in use.
+			if ( ! $parsed || isset( $orderby_clauses[ $parsed ] ) ) {
+				continue;
+			}
+
+			$orderby_clauses[ $parsed ] = $this->parse_order( $field_order );
+		}
+
+		$orderby = '';
+		$order   = $this->parse_order( $_order );
+
+		if ( $orderby_clauses ) {
+			/*
+			 * For backward compatibility, the direction of the last field is kept in
+			 * the separate ORDER clause, so that a single field results in the same
+			 * 'orderby' and 'order' clauses as before multiple fields were supported.
+			 */
+			$order = end( $orderby_clauses );
+			$last  = key( $orderby_clauses );
+			array_pop( $orderby_clauses );
+
+			$orderby_sql = array();
+			foreach ( $orderby_clauses as $expression => $direction ) {
+				$orderby_sql[] = "$expression $direction";
+			}
+			$orderby_sql[] = $last;
+
+			$orderby = 'ORDER BY ' . implode( ', ', $orderby_sql );
+		}
 
 		if ( $taxonomies ) {
 			$this->sql_clauses['where']['taxonomy'] =
