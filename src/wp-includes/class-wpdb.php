@@ -2540,6 +2540,7 @@ class wpdb {
 	 *                                If omitted, all values in `$data` will be treated as strings unless otherwise
 	 *                                specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows inserted, or false on error.
+	 * @phpstan-return int<0, max>|false
 	 */
 	public function insert( $table, $data, $format = null ) {
 		return $this->_insert_replace_helper( $table, $data, $format, 'INSERT' );
@@ -2593,6 +2594,7 @@ class wpdb {
 	 *                                If omitted, all values in `$data` will be treated as strings unless otherwise
 	 *                                specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows affected, or false on error.
+	 * @phpstan-return int<0, max>|false
 	 */
 	public function replace( $table, $data, $format = null ) {
 		return $this->_insert_replace_helper( $table, $data, $format, 'REPLACE' );
@@ -2622,6 +2624,7 @@ class wpdb {
 	 * @param string          $type   Optional. Type of operation. Either 'INSERT' or 'REPLACE'.
 	 *                                Default 'INSERT'.
 	 * @return int|false The number of rows affected, or false on error.
+	 * @phpstan-return int<0, max>|false
 	 */
 	public function _insert_replace_helper( $table, $data, $format = null, $type = 'INSERT' ) {
 		$this->insert_id = 0;
@@ -2716,6 +2719,7 @@ class wpdb {
 	 *                                      If omitted, all values in $where will be treated as strings unless otherwise
 	 *                                      specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows updated, or false on error.
+	 * @phpstan-return int<0, max>|false
 	 */
 	public function update( $table, $data, $where, $format = null, $where_format = null ) {
 		if ( ! is_array( $data ) || ! is_array( $where ) ) {
@@ -2801,6 +2805,7 @@ class wpdb {
 	 *                                      If omitted, all values in $where will be treated as strings unless otherwise
 	 *                                      specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows deleted, or false on error.
+	 * @phpstan-return int<0, max>|false
 	 */
 	public function delete( $table, $where, $where_format = null ) {
 		if ( ! is_array( $where ) ) {
