@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace WordPress\PHPStan\Tests;
 
-use PHPStan\Analyser\Error;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 use WordPress\PHPStan\HookDocBlock;
