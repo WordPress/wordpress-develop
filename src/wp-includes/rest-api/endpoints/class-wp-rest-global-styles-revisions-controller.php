@@ -196,6 +196,9 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 				$query_args['update_post_meta_cache'] = false;
 			}
 
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+			$query_args = apply_filters( 'rest_global_styles_revision_query', $query_args, $request );
+
 			$revisions_query = new WP_Query();
 			$revisions       = $revisions_query->query( $query_args );
 			$offset          = isset( $query_args['offset'] ) ? (int) $query_args['offset'] : 0;
@@ -373,7 +376,18 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 			);
 		}
 
-		return $response;
+		/**
+		 * Filters a global styles revision returned from the REST API.
+		 *
+		 * Allows modification of the global styles revision right before it is returned.
+		 *
+		 * @since 6.7.2
+		 *
+		 * @param WP_REST_Response $response The response object.
+		 * @param WP_Post          $post     Post revision object.
+		 * @param WP_REST_Request  $request  Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_global_styles_revision', $response, $post, $request );
 	}
 
 	/**
