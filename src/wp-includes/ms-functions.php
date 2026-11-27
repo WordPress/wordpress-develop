@@ -139,11 +139,28 @@ function get_blog_count( $network_id = null ) {
  * @return WP_Post|null WP_Post object on success, null on failure
  */
 function get_blog_post( $blog_id, $post_id ) {
-	switch_to_blog( $blog_id );
-	$post = get_post( $post_id );
-	restore_current_blog();
+	global $wpdb;
 
-	return $post;
+	$blog_id = (int) $blog_id;
+	$post_id = (int) $post_id;
+
+	if ( get_current_blog_id() === $blog_id ) {
+		return get_post( $post_id );
+	}
+
+	$table = $wpdb->get_blog_prefix( $blog_id ) . 'posts';
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table is built from $wpdb->get_blog_prefix().
+	$post = $wpdb->get_row(
+		$wpdb->prepare( "SELECT * FROM `{$table}` WHERE ID = %d LIMIT 1", $post_id )
+	);
+	// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+	if ( ! $post ) {
+		return null;
+	}
+
+	// Sanitize to match get_post() return type.
+	return sanitize_post( new WP_Post( $post ), 'raw' );
 }
 
 /**
