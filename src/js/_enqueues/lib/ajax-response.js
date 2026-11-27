@@ -1,10 +1,37 @@
 /**
+ * Handles and displays the responses of admin Ajax requests.
+ *
+ * Parses the XML responses created by the WP_Ajax_Response PHP class and
+ * provides basic form validation helpers.
+ *
+ * @since 2.5.0
+ *
  * @output wp-includes/js/wp-ajax-response.js
  */
 
  /* global wpAjax */
 
+/**
+ * Helper functions to handle the responses of admin Ajax requests.
+ *
+ * The `noPerm` and `broken` error messages are localized from PHP.
+ *
+ * @since 2.5.0
+ *
+ * @namespace wpAjax
+ */
 window.wpAjax = jQuery.extend( {
+	/**
+	 * Converts a query string into an object of key/value pairs.
+	 *
+	 * If a full URL is passed, only the part after the question mark is used.
+	 * Neither the keys nor values are URL-decoded.
+	 *
+	 * @since 2.5.0
+	 *
+	 * @param {string} s The query string or URL to convert.
+	 * @return {Object} The key/value pairs of the query string.
+	 */
 	unserialize: function( s ) {
 		var r = {}, q, pp, i, p;
 		if ( !s ) { return r; }
@@ -17,7 +44,25 @@ window.wpAjax = jQuery.extend( {
 		}
 		return r;
 	},
-	parseAjaxResponse: function( x, r, e ) { // 1 = good, 0 = strange (bad data?), -1 = you lack permission.
+	/**
+	 * Parses the response of an admin Ajax request and displays its messages.
+	 *
+	 * An XML response created by the WP_Ajax_Response PHP class is parsed into
+	 * an object. Its error or notice messages are shown in the response element
+	 * and announced to screen readers. A numeric response of -1 means the user
+	 * lacks permission, and 0 means the request failed. Any other non-numeric
+	 * response is shown as an error message.
+	 *
+	 * @since 2.5.0
+	 *
+	 * @param {(XMLDocument|string|number)} x   The response of the Ajax request.
+	 * @param {string}                      r   The ID of the element where the messages are displayed.
+	 * @param {string}                      [e] Optional. The ID of the element containing the fields
+	 *                                          to mark as invalid when the response contains errors.
+	 * @return {(Object|boolean)} The parsed response for an XML response. For other responses,
+	 *                            false when an error was displayed, true otherwise.
+	 */
+	parseAjaxResponse: function( x, r, e ) {
 		var parsed = {}, re = jQuery('#' + r).empty(), err = '', noticeMessage = '';
 
 		if ( x && typeof x === 'object' && x.getElementsByTagName('wp_ajax') ) {
@@ -76,9 +121,31 @@ window.wpAjax = jQuery.extend( {
 		}
 		return true;
 	},
+	/**
+	 * Marks form fields as invalid.
+	 *
+	 * Adds the `form-invalid` class to the matched elements. The class is
+	 * removed as soon as one of their inputs changes.
+	 *
+	 * @since 2.5.0
+	 *
+	 * @param {(string|jQuery)} selector The form fields to mark as invalid.
+	 * @return {jQuery} The inputs inside the invalid form fields.
+	 */
 	invalidateForm: function ( selector ) {
 		return jQuery( selector ).addClass( 'form-invalid' ).find('input').one( 'change wp-check-valid-field', function() { jQuery(this).closest('.form-invalid').removeClass( 'form-invalid' ); } );
 	},
+	/**
+	 * Validates the required fields of a form.
+	 *
+	 * Field wrappers with the `form-required` class whose first visible input is
+	 * empty are marked as invalid.
+	 *
+	 * @since 2.5.0
+	 *
+	 * @param {(string|jQuery)} selector The form to validate.
+	 * @return {boolean} True if all the required fields have a value, false otherwise.
+	 */
 	validateForm: function( selector ) {
 		selector = jQuery( selector );
 		return !wpAjax.invalidateForm( selector.find('.form-required').filter( function() { return jQuery('input:visible', this).val() === ''; } ) ).length;
