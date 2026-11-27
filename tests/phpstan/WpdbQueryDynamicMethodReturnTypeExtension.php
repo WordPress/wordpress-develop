@@ -56,7 +56,9 @@ use PHPStan\Type\TypeTraverser;
  * is left as declared.
  *
  * This assumes `wpdb` itself, with mysqli, which returns every value as a
- * string or null. A drop-in replacing it could return other types.
+ * string or null. A drop-in replacing it could return other types. It also
+ * assumes that the query is run as written, which a callback on the `query`
+ * filter, which `wpdb::query()` applies to every query, could change.
  */
 class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTypeExtension {
 

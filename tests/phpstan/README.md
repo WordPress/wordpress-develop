@@ -227,7 +227,7 @@ is typed `(object{ID: decimal-int-string, post_title: string}&stdClass)|null` ra
 
 Where the columns cannot be determined, such as for `SELECT *` from a table that is not a core table, for a select list holding a variable, or for a query that is not `SELECT`, the method's declared return type is used as before. The cases in which a method returns null or an empty array are as declared either way, since they depend on its arguments rather than the query.
 
-These types assume `wpdb` itself. A `db.php` drop-in that replaces it could return values of other types.
+These types assume `wpdb` itself. A `db.php` drop-in that replaces it could return values of other types. They also assume that a query is run as written, which a callback on the `query` filter could change, since `wpdb::query()` applies it to every query, including those of the other methods.
 
 Since the schema is read from `schema.php` rather than through PHPStan's reflection, PHPStan does not know that the files with queries depend on it. After changing a column in `schema.php`, [clear the cache](#clear-the-cache-after-changing-anything-in-this-directory) so that the queries are analyzed again.
 
