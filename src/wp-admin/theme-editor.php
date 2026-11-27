@@ -389,6 +389,7 @@ else :
 				endif;
 				?>
 			</div>
+			<p class="save-shortcut-note"> <?php esc_html_e( 'Tip: You can also use Ctrl+S (Cmd+S on Mac) to save changes.' ); ?> </p>
 			<?php
 			if ( is_writable( $file ) ) {
 				?>
