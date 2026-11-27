@@ -17,21 +17,10 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		}
 	}
 
-	public static function wpTearDownAfterClass() {
-		unregister_taxonomy( 'wptests_tax' );
-	}
-
 	public function set_up() {
 		parent::set_up();
 
 		self::register_custom_taxonomy();
-	}
-
-	public function tear_down() {
-		unregister_taxonomy( 'wptests_tax' );
-		unregister_taxonomy( 'wptests_tax2' );
-
-		parent::tear_down();
 	}
 
 	/**
@@ -205,8 +194,6 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 			)
 		);
 
-		flush_rewrite_rules();
-
 		$t1 = self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax2',
@@ -239,8 +226,6 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 				),
 			)
 		);
-
-		flush_rewrite_rules();
 
 		$t1 = self::factory()->term->create(
 			array(

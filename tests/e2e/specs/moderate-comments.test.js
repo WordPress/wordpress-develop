@@ -1,11 +1,15 @@
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../fixtures';
+import {
+	bulkActionApply,
+	bulkActionSelect,
+	commentRow,
+} from '../utils/admin';
 
 /** The comment content used across tests. */
 const COMMENT_CONTENT = 'A comment awaiting moderation.';
-const postIds = [];
 
 /**
  * Creates a post with a comment in the given moderation status.
@@ -14,22 +18,23 @@ const postIds = [];
  * them automatically), then moved to the requested status so each test
  * starts from a known moderation state.
  *
+ * @param {Object}                                                      postFactory  The post factory fixture.
  * @param {import('@wordpress/e2e-test-utils-playwright').RequestUtils} requestUtils The request utils fixture.
  * @param {string}                                                      status       Comment status: 'approved' or 'hold'.
  * @param {string}                                                      [content]    Comment content.
  * @return {Promise<{post: Object, comment: Object}>} The created records.
  */
 async function createPostWithComment(
+	postFactory,
 	requestUtils,
 	status,
 	content = COMMENT_CONTENT
 ) {
-	const post = await requestUtils.createPost( {
+	const post = await postFactory.create( {
 		title: 'Post with comments',
 		content: '<p>Comment target.</p>',
 		status: 'publish',
 	} );
-	postIds.push( post.id );
 	const comment = await requestUtils.createComment( {
 		post: post.id,
 		content,
@@ -62,30 +67,24 @@ async function getCommentStatus( requestUtils, commentId ) {
 }
 
 test.describe( 'Moderate Comments', () => {
-	test.afterEach( async ( { requestUtils } ) => {
-		// Deleting each fixture post also deletes its comments, including replies.
-		for ( const id of postIds.splice( 0 ) ) {
-			await requestUtils.rest( {
-				method: 'DELETE',
-				path: `/wp/v2/posts/${ id }`,
-				params: { force: true },
-			} );
-		}
-	} );
-
 	test( 'approves a pending comment', async ( {
 		admin,
 		page,
+		postFactory,
 		requestUtils,
 	} ) => {
-		const { comment } = await createPostWithComment( requestUtils, 'hold' );
+		const { post, comment } = await createPostWithComment(
+			postFactory,
+			requestUtils,
+			'hold'
+		);
 
 		await admin.visitAdminPage(
 			'/edit-comments.php',
-			'comment_status=moderated'
+			`comment_status=moderated&p=${ post.id }`
 		);
 
-		const row = page.locator( `#comment-${ comment.id }` );
+		const row = commentRow( page, comment.id );
 		await expect( row ).toBeVisible();
 
 		// Row actions appear on hover.
@@ -105,7 +104,7 @@ test.describe( 'Moderate Comments', () => {
 		await expect( row ).toBeHidden();
 		await admin.visitAdminPage(
 			'/edit-comments.php',
-			'comment_status=approved'
+			`comment_status=approved&p=${ post.id }`
 		);
 		await expect( row ).toBeVisible();
 	} );
@@ -113,16 +112,18 @@ test.describe( 'Moderate Comments', () => {
 	test( 'marks a comment as spam', async ( {
 		admin,
 		page,
+		postFactory,
 		requestUtils,
 	} ) => {
-		const { comment } = await createPostWithComment(
+		const { post, comment } = await createPostWithComment(
+			postFactory,
 			requestUtils,
 			'approved'
 		);
 
-		await admin.visitAdminPage( '/edit-comments.php' );
+		await admin.visitAdminPage( '/edit-comments.php', `p=${ post.id }` );
 
-		const row = page.locator( `#comment-${ comment.id }` );
+		const row = commentRow( page, comment.id );
 		await expect( row ).toBeVisible();
 
 		await row.hover();
@@ -146,16 +147,18 @@ test.describe( 'Moderate Comments', () => {
 	test( 'replies to a comment from the admin', async ( {
 		admin,
 		page,
+		postFactory,
 		requestUtils,
 	} ) => {
 		const { post, comment } = await createPostWithComment(
+			postFactory,
 			requestUtils,
 			'approved'
 		);
 
-		await admin.visitAdminPage( '/edit-comments.php' );
+		await admin.visitAdminPage( '/edit-comments.php', `p=${ post.id }` );
 
-		const row = page.locator( `#comment-${ comment.id }` );
+		const row = commentRow( page, comment.id );
 		await expect( row ).toBeVisible();
 
 		await row.hover();
@@ -216,8 +219,7 @@ test.describe( 'Moderate Comments', () => {
 				status: 'approved',
 			} );
 		await expect(
-			page
-				.locator( `#comment-${ replyId }` )
+			commentRow( page, replyId )
 				.getByRole( 'paragraph' )
 				.filter( { hasText: /^An admin reply\.$/ } )
 		).toBeVisible();
@@ -227,9 +229,11 @@ test.describe( 'Moderate Comments', () => {
 	test( 'moves multiple comments to spam with a bulk action', async ( {
 		admin,
 		page,
+		postFactory,
 		requestUtils,
 	} ) => {
 		const { post, comment } = await createPostWithComment(
+			postFactory,
 			requestUtils,
 			'hold'
 		);
@@ -245,17 +249,15 @@ test.describe( 'Moderate Comments', () => {
 
 		await admin.visitAdminPage(
 			'/edit-comments.php',
-			'comment_status=moderated'
+			`comment_status=moderated&p=${ post.id }`
 		);
 
-		const firstRow = page.locator( `#comment-${ comment.id }` );
-		const secondRow = page.locator( `#comment-${ secondComment.id }` );
+		const firstRow = commentRow( page, comment.id );
+		const secondRow = commentRow( page, secondComment.id );
 		await firstRow.getByRole( 'checkbox' ).check();
 		await secondRow.getByRole( 'checkbox' ).check();
-		await page
-			.locator( '#bulk-action-selector-top' )
-			.selectOption( 'spam' );
-		await page.locator( '#doaction' ).click();
+		await bulkActionSelect( page ).selectOption( 'spam' );
+		await bulkActionApply( page ).click();
 
 		await expect
 			.poll( () => getCommentStatus( requestUtils, comment.id ), {
@@ -271,7 +273,7 @@ test.describe( 'Moderate Comments', () => {
 		await expect( secondRow ).toBeHidden();
 		await admin.visitAdminPage(
 			'/edit-comments.php',
-			'comment_status=spam'
+			`comment_status=spam&p=${ post.id }`
 		);
 		await expect( firstRow ).toBeVisible();
 		await expect( secondRow ).toBeVisible();
@@ -280,9 +282,11 @@ test.describe( 'Moderate Comments', () => {
 	test( 'quick edits a comment and persists its content', async ( {
 		admin,
 		page,
+		postFactory,
 		requestUtils,
 	} ) => {
 		const { post, comment } = await createPostWithComment(
+			postFactory,
 			requestUtils,
 			'approved'
 		);
@@ -291,7 +295,7 @@ test.describe( 'Moderate Comments', () => {
 			`p=${ post.id }`
 		);
 
-		const row = page.locator( `#comment-${ comment.id }` );
+		const row = commentRow( page, comment.id );
 		await row.hover();
 		await row
 			.getByRole( 'button', { name: 'Quick edit this comment inline' } )

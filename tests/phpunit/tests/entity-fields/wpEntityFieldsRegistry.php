@@ -43,6 +43,42 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	}
 
 	/**
+	 * Firing the action again once the registry has been read does not reopen
+	 * it: the registrations, updates, and unregistrations made then are
+	 * refused.
+	 *
+	 * @ticket 66229
+	 */
+	public function test_firing_the_action_again_does_not_reopen_the_registry() {
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::update' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::unregister' );
+		$fields = wp_get_registered_entity_fields( 'postType', 'page' );
+		add_action(
+			'wp_entity_fields_api_init',
+			function () {
+				wp_register_entity_fields( 'test-plugin', 'postType', 'page', array( $this->field( 'late' ) ) );
+				wp_update_entity_fields(
+					'test-plugin',
+					'postType',
+					'page',
+					array(
+						array(
+							'id'    => 'author',
+							'label' => 'Late',
+						),
+					)
+				);
+				wp_unregister_entity_fields( 'postType', 'page', array( 'date' ) );
+			}
+		);
+
+		do_action( 'wp_entity_fields_api_init' );
+
+		$this->assertSame( $fields, wp_get_registered_entity_fields( 'postType', 'page' ) );
+	}
+
+	/**
 	 * A plugin hooking the action at the default priority sees the fields
 	 * registered at an earlier priority: it can update a field, or remove it.
 	 *
@@ -546,6 +582,39 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 			$results
 		);
 		$this->assertContains( 'author', array_column( wp_get_registered_entity_fields( 'postType', 'page' ), 'id' ), 'The default field is kept.' );
+	}
+
+	/**
+	 * Reading with an entity kind or name that is not a non-empty string
+	 * returns empty lists with a notice rather than a fatal error.
+	 *
+	 * @ticket 66229
+	 *
+	 * @dataProvider data_invalid_entities
+	 *
+	 * @param mixed $kind The entity kind.
+	 * @param mixed $name The entity name.
+	 */
+	public function test_reading_with_an_invalid_entity_returns_empty_lists( $kind, $name ) {
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::get_registered' );
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::get_registered_field_modules' );
+
+		$this->assertSame( array(), wp_get_registered_entity_fields( $kind, $name ), 'No fields should be returned.' );
+		$this->assertSame( array(), wp_get_registered_entity_field_modules( $kind, $name ), 'No script modules should be returned.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: mixed, 1: mixed}> The entity kind and name.
+	 */
+	public static function data_invalid_entities() {
+		return array(
+			'an array kind'   => array( array(), 'page' ),
+			'an array name'   => array( 'postType', array() ),
+			'an empty kind'   => array( '', 'page' ),
+			'an integer name' => array( 'postType', 1 ),
+		);
 	}
 
 	/**

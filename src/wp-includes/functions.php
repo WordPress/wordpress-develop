@@ -258,6 +258,11 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 	}
 
 	$datetime = date_create( '@' . $timestamp );
+
+	if ( false === $datetime ) {
+		return false;
+	}
+
 	$datetime->setTimezone( $timezone );
 
 	if ( empty( $wp_locale->month ) || empty( $wp_locale->weekday ) ) {
@@ -269,7 +274,7 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 		$new_format    = '';
 		$format_length = strlen( $format );
 		$month         = $wp_locale->get_month( $datetime->format( 'm' ) );
-		$weekday       = $wp_locale->get_weekday( $datetime->format( 'w' ) );
+		$weekday       = $wp_locale->get_weekday( (int) $datetime->format( 'w' ) );
 
 		for ( $i = 0; $i < $format_length; $i++ ) {
 			switch ( $format[ $i ] ) {
@@ -1036,6 +1041,8 @@ function wp_get_http_headers( $url, $deprecated = false ) {
  * @global string $previousday The day of the previous post in the loop.
  *
  * @return int 1 when new day, 0 if not a new day.
+ *
+ * @phpstan-return 0|1
  */
 function is_new_day() {
 	global $currentday, $previousday;
@@ -2572,7 +2579,7 @@ function _wp_upload_dir( $time = null ) {
 			 *
 			 * Rather than UPLOADS, we actually use BLOGUPLOADDIR if it is set, as it is absolute.
 			 * (And it will be set, see ms_upload_constants().) Otherwise, UPLOADS can be used, as
-			 * as it is relative to ABSPATH. For the final piece: when UPLOADS is used with ms-files
+			 * it is relative to ABSPATH. For the final piece: when UPLOADS is used with ms-files
 			 * rewriting in multisite, the resulting URL is /files. (#WP22702 for background.)
 			 */
 
@@ -3306,8 +3313,24 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			 * and some media files are commonly named with the wrong extension (.mov instead of .mp4)
 			 */
 			if ( substr( $real_mime, 0, strcspn( $real_mime, '/' ) ) !== substr( $type, 0, strcspn( $type, '/' ) ) ) {
-				$type = false;
-				$ext  = false;
+				/*
+				 * Audio stored in an MP4/ISO-BMFF container (such as .m4a and .m4b, and
+				 * some .mp3 files produced by mobile recorders) is frequently detected as
+				 * video/mp4. Allow these known audio-in-video-container confusions rather
+				 * than rejecting a legitimate audio file whose major types don't match.
+				 * Also allow `video/3gpp`, as a RFC 3839 specification-compliant container
+				 * for audio-only content.
+				 */
+				$cross_container_types = array(
+					'audio/mpeg' => array( 'video/mp4', 'video/3gpp' ),
+				);
+
+				if ( empty( $cross_container_types[ $type ] )
+					|| ! in_array( $real_mime, $cross_container_types[ $type ], true )
+				) {
+					$type = false;
+					$ext  = false;
+				}
 			}
 		} elseif ( 'text/plain' === $real_mime ) {
 			// A few common file types are occasionally detected as text/plain; allow those.
@@ -3354,6 +3377,19 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				true
 			)
 			) {
+				$type = false;
+				$ext  = false;
+			}
+		} elseif ( in_array( $real_mime, array( 'font/ttf', 'font/sfnt' ), true ) ) {
+			/*
+			 * libmagic 5.47 changed the type reported for TrueType fonts from font/sfnt to the
+			 * canonical font/ttf. PHP 8.6 bundles a libmagic version with this change, but PHP
+			 * builds that use the system libmagic can report either type, so both are accepted
+			 * for TrueType fonts.
+			 *
+			 * @link https://github.com/file/file/commit/6481672a8eb64c2758bf6429d9a76ee5a22174e9
+			 */
+			if ( ! in_array( $type, array( 'font/ttf', 'font/sfnt' ), true ) ) {
 				$type = false;
 				$ext  = false;
 			}
@@ -4491,6 +4527,7 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  *                     greater than 0. Default 512.
  * @return string|false The JSON encoded string, or false if it cannot be encoded.
  *
+ * @phpstan-param positive-int $depth
  * @phpstan-return non-empty-string|false
  */
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
@@ -4773,13 +4810,13 @@ function wp_check_jsonp_callback( $callback ) {
  * }
  *
  * @return mixed Returns the value encoded in JSON in appropriate PHP type.
- *               `null` is returned if the file is not found, or its content can't be decoded.
+ *               `null` is returned if the file is not found, is not a readable file,
+ *               or its content can't be decoded.
  */
 function wp_json_file_decode( $filename, $options = array() ) {
-	$result   = null;
-	$filename = wp_normalize_path( realpath( $filename ) );
+	$normalized_filename = wp_normalize_path( realpath( $filename ) );
 
-	if ( ! $filename ) {
+	if ( ! $normalized_filename ) {
 		wp_trigger_error(
 			__FUNCTION__,
 			sprintf(
@@ -4788,11 +4825,22 @@ function wp_json_file_decode( $filename, $options = array() ) {
 				$filename
 			)
 		);
-		return $result;
+		return null;
+	}
+	if ( ! is_file( $normalized_filename ) || ! is_readable( $normalized_filename ) ) {
+		wp_trigger_error(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: Path to the JSON file. */
+				__( '%s is not a readable file.' ),
+				$filename
+			)
+		);
+		return null;
 	}
 
 	$options      = wp_parse_args( $options, array( 'associative' => false ) );
-	$decoded_file = json_decode( file_get_contents( $filename ), $options['associative'] );
+	$decoded_file = json_decode( file_get_contents( $normalized_filename ), $options['associative'] );
 
 	if ( JSON_ERROR_NONE !== json_last_error() ) {
 		wp_trigger_error(
@@ -4804,7 +4852,7 @@ function wp_json_file_decode( $filename, $options = array() ) {
 				json_last_error_msg()
 			)
 		);
-		return $result;
+		return null;
 	}
 
 	return $decoded_file;
@@ -6269,6 +6317,8 @@ function _doing_it_wrong( $function_name, $message, $version ) {
  *                              before passing to this function to avoid being stripped {@see wp_kses()}.
  * @param int    $error_level   Optional. The designated error type for this error.
  *                              Only works with E_USER family of constants. Default E_USER_NOTICE.
+ *
+ * @phpstan-param E_USER_ERROR|E_USER_WARNING|E_USER_NOTICE|E_USER_DEPRECATED $error_level
  */
 function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTICE ) {
 	/**
@@ -6705,6 +6755,8 @@ function is_main_network( $network_id = null ) {
  * @since 4.3.0
  *
  * @return int The ID of the main network.
+ *
+ * @phpstan-return non-negative-int
  */
 function get_main_network_id() {
 	if ( ! is_multisite() ) {
@@ -6734,6 +6786,8 @@ function get_main_network_id() {
 	 * @since 4.3.0
 	 *
 	 * @param int $main_network_id The ID of the main network.
+	 *
+	 * @phpstan-param non-negative-int $main_network_id
 	 */
 	return (int) apply_filters( 'get_main_network_id', $main_network_id );
 }
@@ -6890,7 +6944,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 			1 => ! empty( $zone[1] ),
 			2 => ! empty( $zone[2] ),
 		);
-		$exists[3] = ( $exists[0] && 'Etc' !== $zone[0] );
+		$exists[3] = $exists[0];
 		$exists[4] = ( $exists[1] && $exists[3] );
 		$exists[5] = ( $exists[2] && $exists[3] );
 
@@ -7216,6 +7270,8 @@ function __return_false() { // phpcs:ignore WordPress.NamingConventions.ValidFun
  * @since 3.0.0
  *
  * @return int 0.
+ *
+ * @phpstan-return 0
  */
 function __return_zero() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return 0;
@@ -7229,6 +7285,8 @@ function __return_zero() { // phpcs:ignore WordPress.NamingConventions.ValidFunc
  * @since 3.0.0
  *
  * @return array Empty array.
+ *
+ * @phpstan-return array{}
  */
 function __return_empty_array() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return array();
@@ -7257,6 +7315,8 @@ function __return_null() { // phpcs:ignore WordPress.NamingConventions.ValidFunc
  * @see __return_null()
  *
  * @return string Empty string.
+ *
+ * @phpstan-return ''
  */
 function __return_empty_string() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	return '';
@@ -8345,6 +8405,7 @@ function wp_unique_prefixed_id( $prefix = '' ) {
  * @param string $prefix Optional. A prefix to prepend to the generated ID. Default empty string.
  * @return string The generated unique ID for the array.
  *
+ * @phpstan-param non-empty-array $data
  * @phpstan-return ( $prefix is lowercase-string ? lowercase-string&non-falsy-string : non-falsy-string )
  */
 function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
@@ -9556,6 +9617,8 @@ function wp_verify_fast_hash(
 /**
  * Sends an email to the user when a new application password is created.
  *
+ * Hooked to the {@see 'wp_create_application_password'} action.
+ *
  * @since 7.2.0
  *
  * @param int   $user_id  The user ID.
@@ -9585,15 +9648,27 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param bool    $send  Whether to send the email notification.
-	 * @param WP_User $user  The user object.
-	 * @param array   $new_item The application password details.
+	 * @param bool    $send     Whether to send the email notification.
+	 * @param WP_User $user     The user object.
+	 * @param array   $new_item {
+	 *     The details about the created password.
+	 *
+	 *     @type string $uuid      The unique identifier for the application password.
+	 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
+	 *     @type string $name      The name of the application password.
+	 *     @type string $password  A one-way hash of the password.
+	 *     @type int    $created   Unix timestamp of when the password was created.
+	 *     @type null   $last_used Null.
+	 *     @type null   $last_ip   Null.
+	 * }
 	 */
 	$send = apply_filters( 'wp_send_application_password_created_email', $send, $user, $new_item );
 
 	if ( ! $send ) {
 		return;
 	}
+
+	$switched_locale = switch_to_user_locale( $user->ID );
 
 	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, ADMIN_EMAIL, SITENAME, SITEURL, EMAIL: those are placeholders. */
 	$application_password_create_text = __(
@@ -9648,7 +9723,17 @@ All at ###SITENAME###
 	 *     @type string $headers Headers.
 	 * }
 	 * @param WP_User $user     The user object.
-	 * @param array   $new_item The application password details.
+	 * @param array   $new_item {
+	 *     The details about the created password.
+	 *
+	 *     @type string $uuid      The unique identifier for the application password.
+	 *     @type string $app_id    A UUID provided by the application to uniquely identify it.
+	 *     @type string $name      The name of the application password.
+	 *     @type string $password  A one-way hash of the password.
+	 *     @type int    $created   Unix timestamp of when the password was created.
+	 *     @type null   $last_used Null.
+	 *     @type null   $last_ip   Null.
+	 * }
 	 */
 	$email = apply_filters( 'wp_application_password_created_email', $email, $user, $new_item );
 
@@ -9668,4 +9753,8 @@ All at ###SITENAME###
 		$email['message'],
 		$email['headers']
 	);
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 }

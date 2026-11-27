@@ -79,6 +79,24 @@ class Tests_Functions_wpApplicationPasswordCreatedNotification extends WP_UnitTe
 	}
 
 	/**
+	 * Ensures the slashed application password name is unslashed in the email.
+	 *
+	 * @ticket 63927
+	 */
+	public function test_email_contains_unslashed_application_password_name() {
+		$created = WP_Application_Passwords::create_new_application_password(
+			self::$user->ID,
+			wp_slash( array( 'name' => 'Bob\'s "Tool" \\ Backslash' ) )
+		);
+
+		$this->assertNotWPError( $created, 'The application password should be created.' );
+
+		$body = tests_retrieve_phpmailer_instance()->get_sent()->body;
+
+		$this->assertStringContainsString( 'Application password name: Bob\'s "Tool" \\ Backslash', $body );
+	}
+
+	/**
 	 * @ticket 63927
 	 */
 	public function test_does_not_send_email_when_disabled_by_filter() {
@@ -183,5 +201,28 @@ class Tests_Functions_wpApplicationPasswordCreatedNotification extends WP_UnitTe
 		wp_application_password_created_notification( $user_id, array( 'name' => 'My App' ) );
 
 		$this->assertEmpty( tests_retrieve_phpmailer_instance()->mock_sent );
+	}
+
+	/**
+	 * Tests that the email is built in the recipient's locale, and the locale is restored after.
+	 *
+	 * @ticket 63927
+	 */
+	public function test_email_uses_the_user_locale() {
+		update_user_meta( self::$user->ID, 'locale', 'de_DE' );
+
+		$email_locale = null;
+		add_filter(
+			'wp_application_password_created_email',
+			static function ( $email ) use ( &$email_locale ) {
+				$email_locale = get_locale();
+				return $email;
+			}
+		);
+
+		WP_Application_Passwords::create_new_application_password( self::$user->ID, array( 'name' => 'My App' ) );
+
+		$this->assertSame( 'de_DE', $email_locale, 'The email should be built in the user locale.' );
+		$this->assertFalse( is_locale_switched(), 'The previous locale should be restored after the email is sent.' );
 	}
 }

@@ -15,12 +15,6 @@
  */
 class Tests_Widgets_wpWidgetTagCloud extends WP_UnitTestCase {
 
-	public function tear_down() {
-		unregister_taxonomy( 'wptests_tax' );
-
-		parent::tear_down();
-	}
-
 	/**
 	 * Default widget arguments.
 	 *

@@ -1103,6 +1103,112 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests decoding a non-existent file.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_non_existent_file() {
+		$non_existent_file = DIR_TESTDATA . '/non-existent.json';
+
+		list( $result, $messages ) = $this->wp_json_file_decode_and_capture_errors( $non_existent_file );
+
+		$this->assertNull( $result );
+		$this->assertSame( array( "File {$non_existent_file} doesn't exist!" ), $messages );
+	}
+
+	/**
+	 * Tests decoding an unreadable file.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_unreadable_file() {
+		if ( ! function_exists( 'posix_getpwuid' ) || ! function_exists( 'posix_geteuid' ) ) {
+			$this->markTestSkipped( 'The POSIX extension is not available.' );
+		}
+
+		$pwuid = posix_getpwuid( posix_geteuid() );
+		if ( is_array( $pwuid ) && isset( $pwuid['name'] ) && 'root' === $pwuid['name'] ) {
+			$this->markTestSkipped( 'Cannot test unreadable file permissions when running as root.' );
+		}
+
+		$unreadable_file = tempnam( sys_get_temp_dir(), 'unreadable-json' );
+		chmod( $unreadable_file, 0000 );
+		try {
+			list( $result, $messages ) = $this->wp_json_file_decode_and_capture_errors( $unreadable_file );
+		} finally {
+			chmod( $unreadable_file, 0644 );
+			unlink( $unreadable_file );
+		}
+
+		$this->assertNull( $result );
+		$this->assertSame( array( "{$unreadable_file} is not a readable file." ), $messages );
+	}
+
+	/**
+	 * Tests decoding a directory instead of a file.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_directory() {
+		$directory = DIR_TESTDATA . '/themedir1/block-theme';
+
+		list( $result, $messages ) = $this->wp_json_file_decode_and_capture_errors( $directory );
+
+		$this->assertNull( $result );
+		$this->assertSame( array( "{$directory} is not a readable file." ), $messages );
+	}
+
+	/**
+	 * Tests decoding a file with invalid JSON.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_invalid_json() {
+		$invalid_json_file = tempnam( sys_get_temp_dir(), 'invalid-json' );
+		file_put_contents( $invalid_json_file, '{ invalid json }' );
+		try {
+			list( $result, $messages ) = $this->wp_json_file_decode_and_capture_errors( $invalid_json_file );
+		} finally {
+			unlink( $invalid_json_file );
+		}
+
+		// The error message varies between PHP versions, e.g. PHP 8.6 appends the error location.
+		json_decode( '{ invalid json }' );
+		$expected_message = "Error when decoding a JSON file at path {$invalid_json_file}: " . json_last_error_msg();
+
+		$this->assertNull( $result );
+		$this->assertSame( array( $expected_message ), $messages );
+	}
+
+	/**
+	 * Calls wp_json_file_decode() and captures the messages passed to wp_trigger_error().
+	 *
+	 * The errors are not triggered, so the test can assert the return value.
+	 *
+	 * @param string $filename Path to the JSON file.
+	 * @return array {
+	 *     @type mixed    $0 The value returned by wp_json_file_decode().
+	 *     @type string[] $1 The messages passed to wp_trigger_error().
+	 * }
+	 */
+	private function wp_json_file_decode_and_capture_errors( $filename ) {
+		$messages = array();
+		add_filter(
+			'wp_trigger_error_trigger_error',
+			static function ( $trigger, $function_name, $message ) use ( &$messages ) {
+				$messages[] = $message;
+				return false;
+			},
+			10,
+			3
+		);
+
+		$result = wp_json_file_decode( $filename );
+
+		return array( $result, $messages );
+	}
+
+	/**
 	 * @ticket 36054
 	 * @dataProvider data_mysql_to_rfc3339
 	 */
@@ -1761,6 +1867,34 @@ class Tests_Functions extends WP_UnitTestCase {
 							'proper_filename' => false,
 						),
 					),
+					/*
+					 * Audio wrapped in an MP4/ISO-BMFF container (e.g. .m4a from a phone
+					 * recorder) is detected by fileinfo as video/mp4, while the extension
+					 * maps to audio/mpeg. The differing major types must not cause a rejection.
+					 */
+					array(
+						DIR_TESTDATA . '/uploads/audio-in-video-container.m4a',
+						'audio-in-video-container.m4a',
+						array(
+							'ext'             => 'm4a',
+							'type'            => 'audio/mpeg',
+							'proper_filename' => false,
+						),
+					),
+					/*
+					 * Audio wrapped in an 3GPP TS 26.244 container (e.g. .m4a from a phone
+					 * recorder) is detected by fileinfo as video/3gpp, while the extension
+					 * maps to audio/mpeg. The differing major types must not cause a rejection.
+					 */
+					array(
+						DIR_TESTDATA . '/uploads/audio-only-3gp4.m4a',
+						'audio-only-3gp4.m4a',
+						array(
+							'ext'             => 'm4a',
+							'type'            => 'audio/mpeg',
+							'proper_filename' => false,
+						),
+					),
 					// Assorted text/* sample files
 					array(
 						DIR_TESTDATA . '/uploads/test.vtt',
@@ -1859,6 +1993,86 @@ class Tests_Functions extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+	}
+
+	/**
+	 * Tests that TrueType fonts are accepted whether font/ttf or font/sfnt is expected.
+	 *
+	 * libmagic 5.47 changed the type reported for TrueType fonts from font/sfnt to font/ttf.
+	 * Expecting each type in turn ensures that whichever one libmagic reports, a file is also
+	 * accepted when the other is expected.
+	 *
+	 * @ticket 66419
+	 * @group ms-excluded
+	 * @requires extension fileinfo
+	 *
+	 * @dataProvider data_wp_check_filetype_and_ext_with_ttf_mime_types
+	 *
+	 * @covers ::wp_check_filetype_and_ext
+	 *
+	 * @param string $mime_type The mime type expected for TTF files.
+	 */
+	public function test_wp_check_filetype_and_ext_accepts_either_ttf_mime_type( $mime_type ) {
+		$file     = DIR_TESTDATA . '/fonts/OpenSans-Regular.ttf';
+		$filename = 'OpenSans-Regular.ttf';
+
+		$filter = static function ( $mimes ) use ( $mime_type ) {
+			$mimes['ttf'] = $mime_type;
+			return $mimes;
+		};
+		add_filter( 'upload_mimes', $filter );
+
+		$expected = array(
+			'ext'             => 'ttf',
+			'type'            => $mime_type,
+			'proper_filename' => false,
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+
+		remove_filter( 'upload_mimes', $filter );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_check_filetype_and_ext_with_ttf_mime_types() {
+		return array(
+			'font/ttf'  => array( 'font/ttf' ),
+			'font/sfnt' => array( 'font/sfnt' ),
+		);
+	}
+
+	/**
+	 * Tests that a font file of another format is rejected when named with a .ttf extension.
+	 *
+	 * @ticket 66419
+	 * @group ms-excluded
+	 * @requires extension fileinfo
+	 *
+	 * @covers ::wp_check_filetype_and_ext
+	 */
+	public function test_wp_check_filetype_and_ext_rejects_other_font_formats_as_ttf() {
+		$file     = DIR_TESTDATA . '/fonts/OpenSans-Regular.woff';
+		$filename = 'OpenSans-Regular.ttf';
+
+		$filter = static function ( $mimes ) {
+			$mimes['ttf'] = 'font/ttf';
+			return $mimes;
+		};
+		add_filter( 'upload_mimes', $filter );
+
+		$expected = array(
+			'ext'             => false,
+			'type'            => false,
+			'proper_filename' => false,
+		);
+
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+
+		remove_filter( 'upload_mimes', $filter );
 	}
 
 	/**

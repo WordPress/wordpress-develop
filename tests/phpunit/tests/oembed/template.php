@@ -21,13 +21,11 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		unregister_post_type( 'not_embeddable' );
-		unregister_post_type( 'embeddable' );
-
 		parent::tear_down();
 
-		global $wp_scripts;
+		global $wp_scripts, $wp_styles;
 		$wp_scripts = null;
+		$wp_styles  = null;
 	}
 
 	/**
