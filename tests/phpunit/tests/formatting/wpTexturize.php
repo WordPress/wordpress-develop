@@ -1081,6 +1081,34 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	public static function data_cockney(): array {
 		return array(
 			array(
+				"word 'emulate' word",
+				'word &#8216;emulate&#8217; word',
+			),
+			array(
+				"word 'emergency' word",
+				'word &#8216;emergency&#8217; word',
+			),
+			array(
+				"word 'tissue' word",
+				'word &#8216;tissue&#8217; word',
+			),
+			array(
+				"word 'roundtable' word",
+				'word &#8216;roundtable&#8217; word',
+			),
+			array(
+				"word 'causes' word",
+				'word &#8216;causes&#8217; word',
+			),
+			array(
+				"word 'tilt' word",
+				'word &#8216;tilt&#8217; word',
+			),
+			array(
+				"word 'bouts' word",
+				'word &#8216;bouts&#8217; word',
+			),
+			array(
 				"word 'tain't word",
 				'word &#8217;tain&#8217;t word',
 			),

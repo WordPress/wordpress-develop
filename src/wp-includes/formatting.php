@@ -133,8 +133,8 @@ function wptexturize( $text, $reset = false ) {
 			);
 		}
 
-		$static_characters   = array_merge( array( '...', '``', '\'\'', ' (tm)' ), $cockney );
-		$static_replacements = array_merge( array( '&#8230;', $opening_quote, $closing_quote, ' &#8482;' ), $cockneyreplace );
+		$static_characters   = array( '...', '``', '\'\'', ' (tm)' );
+		$static_replacements = array( '&#8230;', $opening_quote, $closing_quote, ' &#8482;' );
 
 		/*
 		 * Pattern-based replacements of characters.
@@ -152,6 +152,10 @@ function wptexturize( $text, $reset = false ) {
 		);
 		$dynamic              = array();
 		$spaces               = wp_spaces_regexp();
+
+		foreach ( $cockney as $i => $word ) {
+			$dynamic[ '/(?<!\w)' . preg_quote( $word, '/' ) . '(?!\w)/' ] = $cockneyreplace[ $i ];
+		}
 
 		// '99' and '99" are ambiguous among other patterns; assume it's an abbreviated year at the end of a quotation.
 		if ( "'" !== $apos || "'" !== $closing_single_quote ) {
