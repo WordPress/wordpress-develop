@@ -1,0 +1,218 @@
+# Compares HTML API parsing performance and support, and wp_kses() performance, with and without a pull request, using
+# documents from CommonCrawl.
+#
+# This takes tens of minutes, so it only runs on request: either by adding the `html-api-commoncrawl` label to a pull
+# request, which is removed again as soon as it is added, or by running this workflow manually with a pull request
+# number. The report is left as a comment on the pull request by `html-api-commoncrawl-comment.yml`.
+name: HTML API CommonCrawl Analysis
+
+on:
+  # The HTML Processor was introduced in WordPress 6.4.
+  pull_request:
+    types: [ 'labeled' ]
+    branches:
+      - trunk
+      - '6.[4-9]'
+      - '[7-9].[0-9]'
+    paths:
+      - 'src/wp-includes/html-api/**'
+      - 'src/wp-includes/class-wp-token-map.php'
+      - 'src/wp-includes/kses.php'
+      - 'tools/html-api-commoncrawl/**'
+      - '.github/workflows/html-api-commoncrawl.yml'
+      - '.github/workflows/html-api-commoncrawl-comment.yml'
+  workflow_dispatch:
+    inputs:
+      pull-request:
+        description: 'Pull request number to analyze'
+        required: true
+        type: number
+      warcs:
+        description: 'How many WARC files to download from CommonCrawl, each with around 20,000 HTML documents'
+        required: false
+        type: number
+        default: 1
+      seed:
+        description: 'Picks the WARC files: leave empty for a new random choice, or give the seed from an earlier report to analyze the same documents again'
+        required: false
+        type: string
+        default: ''
+      crawl:
+        description: 'CommonCrawl crawl to read, e.g. CC-MAIN-2026-43, or latest'
+        required: false
+        type: string
+        default: 'latest'
+      fetch-duration:
+        description: 'Longest time to spend fetching documents, e.g. 90s, 30m, 1h'
+        required: false
+        type: string
+        default: '30m'
+      rounds:
+        description: 'How many times to time each document with each checkout. Two processes per round run at once on each pair of vCPUs'
+        required: false
+        type: number
+        default: 2
+      small-max-bytes:
+        description: 'Documents smaller than this many bytes are small'
+        required: false
+        type: number
+        default: 32768
+      large-min-bytes:
+        description: 'Documents at least this many bytes are large'
+        required: false
+        type: number
+        default: 262144
+
+# Cancels all previous workflow runs for the same pull request that have not completed.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || inputs.pull-request }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+env:
+  # The analysis keeps every HTML document in this many WARC files, unless the fetch duration passes first.
+  HTML_API_BENCH_WARCS: ${{ inputs.warcs || 1 }}
+  HTML_API_BENCH_SEED: ${{ inputs.seed || '' }}
+  HTML_API_BENCH_CRAWL: ${{ inputs.crawl || 'latest' }}
+  HTML_API_BENCH_FETCH_DURATION: ${{ inputs.fetch-duration || '30m' }}
+  HTML_API_BENCH_ROUNDS: ${{ inputs.rounds || 2 }}
+  HTML_API_BENCH_SMALL_MAX_BYTES: ${{ inputs.small-max-bytes || 32768 }}
+  HTML_API_BENCH_LARGE_MIN_BYTES: ${{ inputs.large-min-bytes || 262144 }}
+
+jobs:
+  # Runs the analysis and uploads the report for html-api-commoncrawl-comment.yml to post.
+  #
+  # Performs the following steps:
+  # - Checks out the pull request merged into its target branch, and the target branch beside it.
+  # - Sets up PHP.
+  # - Fetches every HTML document in WARC files picked at random from the latest CommonCrawl crawl.
+  # - Times the Tag Processor, the HTML Processor, and wp_kses() on each document with both checkouts, running the rounds
+  #   of both checkouts at the same time, one per vCPU, so that both share the same load.
+  # - Records which documents each checkout supports, and why the others are unsupported, with both checkouts at once.
+  # - Writes the report.
+  # - Uploads the report and the pull request number.
+  analyze:
+    name: Analyze HTML API changes against CommonCrawl
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 90
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.label.name == 'html-api-commoncrawl' }}
+    env:
+      CC_ANALYZER: merge/tools/html-api-commoncrawl/cc-analyzer.phar
+      SCRIPTS: merge/tools/html-api-commoncrawl
+    steps:
+      - name: Checkout the pull request merged into its target branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format( 'refs/pull/{0}/merge', inputs.pull-request ) || '' }}
+          path: merge
+          fetch-depth: 2
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      # The merge commit's first parent is the target branch commit which the pull request is merged into.
+      - name: Checkout the target branch
+        id: checkouts
+        run: |
+          git -C merge worktree add --detach ../base HEAD^1
+          echo "base-sha=$( git -C base rev-parse HEAD )" >> "$GITHUB_OUTPUT"
+          echo "merge-sha=$( git -C merge rev-parse HEAD )" >> "$GITHUB_OUTPUT"
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+          extensions: curl, mbstring, pdo_sqlite, zlib
+          ini-values: memory_limit=1G
+
+      # Streams whole WARC files, a handful of requests in all: CommonCrawl blocks runners which send many requests, such as
+      # one per record. Every HTML document in them is kept; the number of files only bounds the download. The files are
+      # picked at random from the crawl's whole list, around 100,000 files fetched over a couple of weeks, so that each run
+      # sees a different part of the web. The seed is reported, and running the workflow again with it reads the same files. When CommonCrawl
+      # asks to slow down, with HTTP 429 or 503, no request is sent until its Retry-After or the backoff has passed. A download
+      # which still fails is listed, and the analysis runs on the documents already fetched. The cache limit is raised so
+      # that pruning never runs during the fetch.
+      - name: Fetch documents from CommonCrawl
+        id: fetch
+        run: |
+          seed="${HTML_API_BENCH_SEED:-$(( (RANDOM << 15) | RANDOM ))}"
+          echo "seed=$seed" >> "$GITHUB_OUTPUT"
+          php "$CC_ANALYZER" --workspace "$RUNNER_TEMP/cc-analyzer" batch fetch corpus \
+            --crawl "$HTML_API_BENCH_CRAWL" \
+            --warc-order random \
+            --seed "$seed" \
+            --resource-types html \
+            --limit all \
+            --limit-warcs "$HTML_API_BENCH_WARCS" \
+            --max-jobs "$HTML_API_BENCH_WARCS" \
+            --http-retries 6 \
+            --cache-max-bytes 17179869184 \
+            --duration "$HTML_API_BENCH_FETCH_DURATION" \
+            --progress text
+
+      # Each round runs one process for each checkout, and as many rounds run at once as there are pairs of vCPUs: two on
+      # the standard runner. Both checkouts are timed under the same load, as on a busy server, and the step takes about
+      # as long as one round would on its own. Each process replays the batch separately, so the documents' times are
+      # independent. If one process fails, the others are stopped and the step fails.
+      - name: Time parsing with both checkouts
+        run: |
+          trap 'kill $( jobs -p ) 2> /dev/null || true' EXIT
+          rounds_at_once=$(( $( nproc ) / 2 ))
+          (( rounds_at_once > 0 )) || rounds_at_once=1
+          for (( first = 1; first <= HTML_API_BENCH_ROUNDS; first += rounds_at_once )); do
+            last=$(( first + rounds_at_once - 1 ))
+            (( last <= HTML_API_BENCH_ROUNDS )) || last=$HTML_API_BENCH_ROUNDS
+            echo "Rounds ${first} to ${last}: base and merge, $(( 2 * ( last - first + 1 ) )) processes at once"
+            pids=()
+            for round in $( seq "$first" "$last" ); do
+              for checkout in base merge; do
+                HTML_API_BENCH_WP_SRC="$GITHUB_WORKSPACE/$checkout/src" \
+                CC_ANALYZER_OUTPUT_DIR="$RUNNER_TEMP/results/$checkout/round-$round" \
+                  php "$CC_ANALYZER" --workspace "$RUNNER_TEMP/cc-analyzer" batch run corpus "$SCRIPTS/benchmark.php" &
+                pids+=( "$!" )
+              done
+            done
+            for pid in "${pids[@]}"; do
+              wait "$pid"
+            done
+          done
+
+      # Nothing is timed here, so both checkouts run at once.
+      - name: Record support with both checkouts
+        run: |
+          trap 'kill $( jobs -p ) 2> /dev/null || true' EXIT
+          pids=()
+          for checkout in base merge; do
+            HTML_API_BENCH_WP_SRC="$GITHUB_WORKSPACE/$checkout/src" \
+            CC_ANALYZER_OUTPUT_DIR="$RUNNER_TEMP/results/$checkout/analysis" \
+              php "$CC_ANALYZER" --workspace "$RUNNER_TEMP/cc-analyzer" batch run corpus "$SCRIPTS/analysis.php" &
+            pids+=( "$!" )
+          done
+          for pid in "${pids[@]}"; do
+            wait "$pid"
+          done
+
+      - name: Write the report
+        run: |
+          mkdir "$RUNNER_TEMP/comment"
+          echo "$PR_NUMBER" > "$RUNNER_TEMP/comment/NR"
+          php "$SCRIPTS/report.php" "$RUNNER_TEMP/results/base" "$RUNNER_TEMP/results/merge" > "$RUNNER_TEMP/comment/report.md"
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pull-request }}
+          HTML_API_BENCH_BASE_SHA: ${{ steps.checkouts.outputs.base-sha }}
+          HTML_API_BENCH_MERGE_SHA: ${{ steps.checkouts.outputs.merge-sha }}
+          HTML_API_BENCH_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          HTML_API_BENCH_SEED: ${{ steps.fetch.outputs.seed }}
+
+      - name: Upload the report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: html-api-commoncrawl-comment
+          path: ${{ runner.temp }}/comment/
+          if-no-files-found: error
+          retention-days: 1
