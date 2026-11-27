@@ -250,6 +250,14 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			$data['show_in_list'] = (bool) $status->show_in_admin_all_list;
 		}
 
+		if ( in_array( 'show_in_admin_status_list', $fields, true ) ) {
+			$data['show_in_admin_status_list'] = (bool) $status->show_in_admin_status_list;
+		}
+
+		if ( in_array( 'description', $fields, true ) ) {
+			$data['description'] = ! empty( $status->description ) ? $status->description : '';
+		}
+
 		if ( in_array( 'slug', $fields, true ) ) {
 			$data['slug'] = $status->name;
 		}
@@ -302,49 +310,61 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			'title'      => 'status',
 			'type'       => 'object',
 			'properties' => array(
-				'name'          => array(
+				'name'                      => array(
 					'description' => __( 'The title for the status.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'private'       => array(
+				'private'                   => array(
 					'description' => __( 'Whether posts with this status should be private.' ),
 					'type'        => 'boolean',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
-				'protected'     => array(
+				'protected'                 => array(
 					'description' => __( 'Whether posts with this status should be protected.' ),
 					'type'        => 'boolean',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
-				'public'        => array(
+				'public'                    => array(
 					'description' => __( 'Whether posts of this status should be shown in the front end of the site.' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'queryable'     => array(
+				'queryable'                 => array(
 					'description' => __( 'Whether posts with this status should be publicly-queryable.' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'show_in_list'  => array(
+				'show_in_list'              => array(
 					'description' => __( 'Whether to include posts in the edit listing for their post type.' ),
 					'type'        => 'boolean',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
-				'slug'          => array(
+				'show_in_admin_status_list' => array(
+					'description' => __( 'Whether to show the status in admin status lists.' ),
+					'type'        => 'boolean',
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'description'               => array(
+					'description' => __( 'A description of what the status is for.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'slug'                      => array(
 					'description' => __( 'An alphanumeric identifier for the status.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'date_floating' => array(
+				'date_floating'             => array(
 					'description' => __( 'Whether posts of this status may have floating published dates.' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view', 'edit' ),

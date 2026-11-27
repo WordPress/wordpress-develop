@@ -151,13 +151,15 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 8, $properties );
+		$this->assertCount( 10, $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'private', $properties );
 		$this->assertArrayHasKey( 'protected', $properties );
 		$this->assertArrayHasKey( 'public', $properties );
 		$this->assertArrayHasKey( 'queryable', $properties );
 		$this->assertArrayHasKey( 'show_in_list', $properties );
+		$this->assertArrayHasKey( 'show_in_admin_status_list', $properties );
+		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'date_floating', $properties );
 	}
@@ -209,6 +211,8 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$this->assertSame( $status_obj->public, $data['public'] );
 		$this->assertSame( $status_obj->publicly_queryable, $data['queryable'] );
 		$this->assertSame( $status_obj->show_in_admin_all_list, $data['show_in_list'] );
+		$this->assertSame( $status_obj->show_in_admin_status_list, $data['show_in_admin_status_list'] );
+		$this->assertSame( $status_obj->description, $data['description'] );
 		$this->assertSame( $status_obj->name, $data['slug'] );
 		$this->assertSameSets(
 			array(
