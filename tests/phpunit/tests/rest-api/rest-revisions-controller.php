@@ -1767,4 +1767,53 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 		return rest_get_server()->dispatch( $request );
 	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_item_returns_blocks_when_requested_in_edit_context(): void {
+		wp_set_current_user( self::$editor_id );
+		wp_update_post(
+			array(
+				'ID'           => self::$post_id,
+				'post_content' => '<!-- wp:paragraph --><p>Revised</p><!-- /wp:paragraph -->',
+			)
+		);
+		$revisions = wp_get_post_revisions( self::$post_id );
+		$revision  = reset( $revisions );
+		$this->assertInstanceOf( WP_Post::class, $revision );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $revision->ID );
+		$request->set_query_params(
+			array(
+				'context' => 'edit',
+				'_fields' => 'content.blocks',
+			)
+		);
+		$data = rest_get_server()->response_to_data( rest_get_server()->dispatch( $request ), false );
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['content'] );
+		$blocks = $data['content']['blocks'];
+
+		$this->assertIsArray( $blocks );
+		$this->assertCount( 1, $blocks );
+		$this->assertIsArray( $blocks[0] );
+		$this->assertSame( 'core/paragraph', $blocks[0]['name'] );
+		$this->assertSame( '<p>Revised</p>', $blocks[0]['inner_html'] );
+	}
+
+	/**
+	 * @ticket 53603
+	 */
+	public function test_get_item_does_not_return_blocks_unless_requested(): void {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+		$data = rest_get_server()->response_to_data( rest_get_server()->dispatch( $request ), false );
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $data['content'] );
+
+		$this->assertArrayNotHasKey( 'blocks', $data['content'] );
+	}
 }
