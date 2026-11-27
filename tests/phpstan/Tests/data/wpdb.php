@@ -220,6 +220,43 @@ function wp_tests_wpdb_variables( wpdb $wpdb, int $id, string $unknown, bool $fl
 }
 
 /**
+ * A variable is not followed past a write which is not an assignment.
+ *
+ * @param array<string, string> $values Variables to extract.
+ */
+function wp_tests_wpdb_indirect_writes( wpdb $wpdb, string $unknown, array $values ): void {
+	$query = "SELECT ID FROM $wpdb->posts";
+	preg_match( '/x/', $unknown, $query );
+	assertType( 'non-empty-string|null', $wpdb->get_var( $query ) );
+
+	$query     = "SELECT ID FROM $wpdb->posts";
+	$reference = &$query;
+	$reference = $unknown;
+	assertType( 'non-empty-string|null', $wpdb->get_var( $query ) );
+
+	$query   = "SELECT ID FROM $wpdb->posts";
+	$closure = function () use ( &$query ): void {};
+	assertType( 'non-empty-string|null', $wpdb->get_var( $query ) );
+
+	$query = "SELECT ID FROM $wpdb->posts";
+	extract( $values );
+	assertType( 'non-empty-string|null', $wpdb->get_var( $query ) );
+
+	$query     = "SELECT ID FROM $wpdb->posts";
+	$$unknown  = $unknown;
+	assertType( 'non-empty-string|null', $wpdb->get_var( $query ) );
+
+	$query = "SELECT ID FROM $wpdb->posts";
+	include $unknown;
+	assertType( 'non-empty-string|null', $wpdb->get_var( $query ) );
+
+	// A call which only reads the variable.
+	$query = "SELECT ID FROM $wpdb->posts";
+	$key   = md5( $query );
+	assertType( 'decimal-int-string|null', $wpdb->get_var( $query ) );
+}
+
+/**
  * An arrow function parameter is not the variable of the same name outside it.
  */
 function wp_tests_wpdb_arrow_function( wpdb $wpdb ): void {

@@ -18,7 +18,9 @@ use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\AssignOp;
 use PhpParser\Node\Expr\AssignRef;
 use PhpParser\Node\Expr\BinaryOp\Concat;
+use PhpParser\Node\ClosureUse;
 use PhpParser\Node\Expr\FuncCall;
+use PhpParser\Node\Expr\Include_;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
@@ -97,6 +99,11 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	 * Methods of `wpdb` whose first parameter is a query to reconstruct.
 	 */
 	public const METHODS = array( 'get_var', 'get_row', 'get_col', 'get_results', 'query' );
+
+	/**
+	 * PHP functions with a by-reference parameter which may be given a string, which may replace it.
+	 */
+	private const BY_REFERENCE_FUNCTIONS = array( 'mb_parse_str', 'parse_str', 'preg_match', 'preg_match_all', 'settype', 'sscanf' );
 
 	/**
 	 * Maximum number of variables followed in reconstructing one query.
@@ -402,7 +409,9 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 	/**
 	 * Determines whether a node may write to a variable.
 	 *
-	 * Writes through a reference, like a by-reference argument, are not detected.
+	 * Besides assignments, a write may be made through a reference to the variable, a variable variable, `extract()`,
+	 * an included file, or a by-reference argument of one of `BY_REFERENCE_FUNCTIONS`. A by-reference argument of
+	 * any other function is not detected, since which parameters are by reference is not known before analysis.
 	 *
 	 * @param Node   $node            Node to search.
 	 * @param string $name            Variable name.
@@ -413,8 +422,32 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 		$found = $this->node_finder->findFirst(
 			$node,
 			function ( Node $node ) use ( $name, $ignore_appends ): bool {
-				if ( $node instanceof Assign || $node instanceof AssignRef ) {
+				if ( $node instanceof Assign ) {
 					return $this->contains_variable( $node->var, $name );
+				}
+				// A reference to the variable, on either side, lets it be written through the other.
+				if ( $node instanceof AssignRef ) {
+					return $this->contains_variable( $node->var, $name ) || $this->contains_variable( $node->expr, $name );
+				}
+				if ( $node instanceof ClosureUse ) {
+					return $node->byRef && $this->is_variable( $node->var, $name );
+				}
+				// A variable variable, or an included file, may write to any variable.
+				if ( ( $node instanceof Variable && ! is_string( $node->name ) ) || $node instanceof Include_ ) {
+					return true;
+				}
+				if ( $node instanceof FuncCall && $node->name instanceof Name ) {
+					$function = $node->name->toLowerString();
+					if ( 'extract' === $function ) {
+						return true;
+					}
+					if ( in_array( $function, self::BY_REFERENCE_FUNCTIONS, true ) ) {
+						foreach ( $node->getArgs() as $arg ) {
+							if ( $this->is_variable( $arg->value, $name ) ) {
+								return true;
+							}
+						}
+					}
 				}
 				if ( $node instanceof AssignOp ) {
 					return ! ( $ignore_appends && $node instanceof AssignOp\Concat ) && $this->contains_variable( $node->var, $name );
