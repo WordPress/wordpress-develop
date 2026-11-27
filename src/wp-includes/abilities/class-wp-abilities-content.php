@@ -223,7 +223,7 @@ final class WP_Abilities_Content {
 					return $this->execute_content_update( $input );
 				},
 				'permission_callback' => function ( $input ): bool {
-					return $this->check_update_permission( $input );
+					return $this->check_post_permission( $input, 'edit_post' );
 				},
 				'meta'                => array(
 					'annotations' => array(
@@ -327,33 +327,6 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Permission callback for the `core/content-update` ability.
-	 *
-	 * Requires what {@see self::check_post_permission()} requires for `edit_post`, and the
-	 * capabilities that the sent attributes need, see {@see self::can_set_attributes()}.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param mixed $input The ability input, which is not prepared when
-	 *                     WP_Ability::check_permissions() is called directly.
-	 * @return bool True if the request may proceed, false otherwise.
-	 */
-	private function check_update_permission( $input ): bool {
-		$input = rest_sanitize_object( $input );
-		if ( ! $this->check_post_permission( $input, 'edit_post' ) ) {
-			return false;
-		}
-
-		$post = $this->get_requested_post( $this->get_input_object( $input, 'where' ) ?? array() );
-		if ( ! $post ) {
-			return true;
-		}
-
-		// get_requested_post() only returns posts of an exposed post type.
-		return $this->can_set_attributes( $this->get_input_object( $input, 'data' ) ?? array(), get_post_type_object( $post->post_type ), $post );
-	}
-
-	/**
 	 * Checks the capabilities that the sent `status`, `author`, `parent` and `slug` need.
 	 *
 	 * A status that makes the post visible needs the capability to publish posts of the type,
@@ -444,19 +417,20 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Permission callback for the `core/content-delete` ability, also used by the one of
-	 * `core/content-update`.
+	 * Permission callback for the `core/content-update` and `core/content-delete` abilities.
 	 *
 	 * Requires a logged-in user, a `where.type` that is exposed to abilities, and the given
-	 * capability on the post that `where` names. When `where` names no post of that type,
-	 * such as a missing ID or the ID of a post of another type, the request is let through
-	 * so that the execute callback can report it as not found.
+	 * capability on the post that `where` names. An update with `edit_post` also requires the
+	 * capabilities that the sent attributes need, see {@see self::can_set_attributes()}. When
+	 * `where` names no post of that type, such as a missing ID or the ID of a post of another
+	 * type, the request is let through so that the execute callback can report it as not found.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @param mixed  $input      The ability input, which is not prepared when
 	 *                           WP_Ability::check_permissions() is called directly.
-	 * @param string $capability The capability required on the post: `edit_post` or `delete_post`.
+	 * @param string $capability The capability required on the post: `edit_post` for an
+	 *                           update, or `delete_post` for a delete.
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
 	private function check_post_permission( $input, string $capability ): bool {
@@ -464,14 +438,24 @@ final class WP_Abilities_Content {
 			return false;
 		}
 
-		$where = $this->get_input_object( rest_sanitize_object( $input ), 'where' ) ?? array();
+		$input = rest_sanitize_object( $input );
+		$where = $this->get_input_object( $input, 'where' ) ?? array();
 		if ( ! $this->get_exposed_post_type( $where['type'] ?? null ) ) {
 			return false;
 		}
 
 		$post = $this->get_requested_post( $where );
+		if ( ! $post ) {
+			return true;
+		}
 
-		return ! $post || current_user_can( $capability, $post->ID );
+		if ( ! current_user_can( $capability, $post->ID ) ) {
+			return false;
+		}
+
+		// get_requested_post() only returns posts of an exposed post type.
+		return 'edit_post' !== $capability
+			|| $this->can_set_attributes( $this->get_input_object( $input, 'data' ) ?? array(), get_post_type_object( $post->post_type ), $post );
 	}
 
 	/**
@@ -998,7 +982,7 @@ final class WP_Abilities_Content {
 	 *
 	 * The post is looked up first, then every attribute rule, and only then is the post
 	 * saved, so a rejected call writes nothing. The capabilities are checked by
-	 * {@see self::check_update_permission()}.
+	 * {@see self::check_post_permission()}.
 	 *
 	 * @since 7.3.0
 	 *
@@ -1139,42 +1123,32 @@ final class WP_Abilities_Content {
 			}
 		}
 
-		$status = $this->prepare_status( $data, $post );
-		if ( is_wp_error( $status ) ) {
-			return $status;
-		}
-		if ( null !== $status ) {
-			$postarr['post_status'] = $status;
-		}
+		/*
+		 * Each step returns the post fields to save, or the error of its first rule that fails.
+		 * The date reads the status that is set, and the slug the status and parent the post
+		 * will have, so they run after the steps that set them.
+		 */
+		$steps = array(
+			fn( array $postarr ) => $this->prepare_status( $data, $post ),
+			fn( array $postarr ) => $this->prepare_author( $data, $post ),
+			fn( array $postarr ) => $this->prepare_parent( $data, $post_type, $post ),
+			fn( array $postarr ) => $this->prepare_date( $data, $post, $postarr['post_status'] ?? null ),
+			// Without a sent status, the save keeps the stored status, or defaults to `draft`.
+			fn( array $postarr ) => $this->prepare_slug(
+				$data,
+				$post_type_object,
+				$post,
+				$postarr['post_status'] ?? ( $post ? $post->post_status : 'draft' ),
+				$postarr['post_parent'] ?? ( $post ? $post->post_parent : 0 )
+			),
+		);
 
-		$author = $this->prepare_author( $data, $post );
-		if ( is_wp_error( $author ) ) {
-			return $author;
-		}
-		if ( null !== $author ) {
-			$postarr['post_author'] = $author;
-		}
-
-		$parent = $this->prepare_parent( $data, $post_type, $post );
-		if ( is_wp_error( $parent ) ) {
-			return $parent;
-		}
-		if ( null !== $parent ) {
-			$postarr['post_parent'] = $parent;
-		}
-
-		$postarr = array_merge( $postarr, $this->prepare_date( $data, $post, $status ) );
-
-		// Without a sent status, the save defaults to `draft`.
-		$final_status = $postarr['post_status'] ?? $post->post_status ?? 'draft';
-		$final_parent = $postarr['post_parent'] ?? $post->post_parent ?? 0;
-
-		$slug = $this->prepare_slug( $data, $post_type_object, $post, $final_status, $final_parent );
-		if ( is_wp_error( $slug ) ) {
-			return $slug;
-		}
-		if ( null !== $slug ) {
-			$postarr['post_name'] = $slug;
+		foreach ( $steps as $step ) {
+			$fields = $step( $postarr );
+			if ( is_wp_error( $fields ) ) {
+				return $fields;
+			}
+			$postarr = array_merge( $postarr, $fields );
 		}
 
 		if ( $post ) {
@@ -1227,17 +1201,17 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Checks the sent `status`.
+	 * Checks the sent `status` and returns the field to save.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @param array<mixed> $data The `data` input.
 	 * @param WP_Post|null $post The stored post on update, or null on create.
-	 * @return string|WP_Error|null The status, null when none is sent or it is unchanged, or a WP_Error.
+	 * @return array<string, string>|WP_Error The status field, empty when no status is sent or it is unchanged, or a WP_Error.
 	 */
 	private function prepare_status( array $data, ?WP_Post $post ) {
 		if ( ! array_key_exists( 'status', $data ) ) {
-			return null;
+			return array();
 		}
 
 		$status        = $data['status'];
@@ -1254,14 +1228,14 @@ final class WP_Abilities_Content {
 
 		// Keeping the stored status changes nothing.
 		if ( $post && $post->post_status === $status ) {
-			return null;
+			return array();
 		}
 
-		return $status;
+		return array( 'post_status' => $status );
 	}
 
 	/**
-	 * Checks the sent `author`.
+	 * Checks the sent `author` and returns the field to save.
 	 *
 	 * The capability to name another user is checked by the permission callbacks, so only
 	 * users who may name any user learn whether a user ID exists.
@@ -1270,22 +1244,22 @@ final class WP_Abilities_Content {
 	 *
 	 * @param array<mixed> $data The `data` input.
 	 * @param WP_Post|null $post The stored post on update, or null on create.
-	 * @return int|WP_Error|null The author ID, null when none is sent or it is unchanged, or a WP_Error.
+	 * @return array<string, int>|WP_Error The author field, empty when no author is sent or it is unchanged, or a WP_Error.
 	 */
 	private function prepare_author( array $data, ?WP_Post $post ) {
 		if ( ! array_key_exists( 'author', $data ) ) {
-			return null;
+			return array();
 		}
 
 		$author_id = $data['author'];
 
 		// Keeping the stored author changes nothing.
 		if ( $post && (int) $post->post_author === $author_id ) {
-			return null;
+			return array();
 		}
 
 		if ( get_current_user_id() === $author_id ) {
-			return $author_id;
+			return array( 'post_author' => $author_id );
 		}
 
 		// Intentionally strict: the author must be an existing user who belongs to this site.
@@ -1293,11 +1267,11 @@ final class WP_Abilities_Content {
 			return $this->invalid_attribute_error( 'data[author]', __( 'The author must be an existing user of this site.' ) );
 		}
 
-		return $author_id;
+		return array( 'post_author' => $author_id );
 	}
 
 	/**
-	 * Checks the sent `parent`.
+	 * Checks the sent `parent` and returns the field to save.
 	 *
 	 * The permission callbacks refuse a parent that is missing or that the current user cannot
 	 * read, so the errors here never tell whether a post ID exists.
@@ -1307,22 +1281,22 @@ final class WP_Abilities_Content {
 	 * @param array<mixed> $data      The `data` input.
 	 * @param string       $post_type The post type name.
 	 * @param WP_Post|null $post      The stored post on update, or null on create.
-	 * @return int|WP_Error|null The parent ID, null when none is sent or it is unchanged, or a WP_Error.
+	 * @return array<string, int>|WP_Error The parent field, empty when no parent is sent or it is unchanged, or a WP_Error.
 	 */
 	private function prepare_parent( array $data, string $post_type, ?WP_Post $post ) {
 		if ( ! array_key_exists( 'parent', $data ) ) {
-			return null;
+			return array();
 		}
 
 		$parent_id = $data['parent'];
 
 		// Keeping the stored parent changes nothing.
 		if ( $post && (int) $post->post_parent === $parent_id ) {
-			return null;
+			return array();
 		}
 
 		if ( 0 === $parent_id ) {
-			return 0;
+			return array( 'post_parent' => 0 );
 		}
 
 		$reason = __( 'The parent must be 0, or a post of the same post type that is neither the post itself nor one of its descendants.' );
@@ -1340,7 +1314,7 @@ final class WP_Abilities_Content {
 			return $this->invalid_attribute_error( 'data[parent]', $reason );
 		}
 
-		return $parent_id;
+		return array( 'post_parent' => $parent_id );
 	}
 
 	/**
@@ -1404,7 +1378,7 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Checks the sent `slug` and returns the slug to save.
+	 * Checks the sent `slug` and returns the field to save.
 	 *
 	 * @since 7.3.0
 	 *
@@ -1413,16 +1387,16 @@ final class WP_Abilities_Content {
 	 * @param WP_Post|null $post             The stored post on update, or null on create.
 	 * @param string       $status           The status the post will have.
 	 * @param int          $parent_id        The parent ID the post will have.
-	 * @return string|WP_Error|null The slug, null when none is sent or it is unchanged, or a WP_Error.
+	 * @return array<string, string>|WP_Error The slug field, empty when no slug is sent or it is unchanged, or a WP_Error.
 	 */
 	private function prepare_slug( array $data, WP_Post_Type $post_type_object, ?WP_Post $post, string $status, int $parent_id ) {
 		if ( ! array_key_exists( 'slug', $data ) ) {
-			return null;
+			return array();
 		}
 
 		// Keeping the stored slug changes nothing, also the empty slug of a draft.
 		if ( $post && $post->post_name === $data['slug'] ) {
-			return null;
+			return array();
 		}
 
 		$slug = sanitize_title( $data['slug'] );
@@ -1441,7 +1415,7 @@ final class WP_Abilities_Content {
 			$slug = wp_unique_post_slug( $slug, $post ? $post->ID : 0, 'publish', $post_type_object->name, $parent_id );
 		}
 
-		return $slug;
+		return array( 'post_name' => $slug );
 	}
 
 	/**
