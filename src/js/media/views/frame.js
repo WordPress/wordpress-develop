@@ -86,6 +86,23 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 		this.states.invoke( 'trigger', 'reset' );
 		return this;
 	},
+
+	/**
+	 * Deactivates the current state before removing the frame and its views.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return {wp.media.view.Frame} The removed frame.
+	 */
+	remove: function() {
+		var state = this.state();
+
+		if ( state && state.active ) {
+			state.trigger( 'deactivate' );
+		}
+
+		return wp.media.View.prototype.remove.apply( this, arguments );
+	},
 	/**
 	 * Map activeMode collection events to the frame.
 	 *

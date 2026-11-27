@@ -40,7 +40,7 @@ UploaderWindow = wp.media.View.extend(/** @lends wp.media.view.UploaderWindow.pr
 			uploader.dropzone = $( uploader.dropzone );
 		}
 
-		this.controller.on( 'activate', this.refresh, this );
+		this.controller.on( 'activate change:library', this.refresh, this );
 
 		this.controller.on( 'detach', function() {
 			this.$browser.remove();
@@ -49,7 +49,60 @@ UploaderWindow = wp.media.View.extend(/** @lends wp.media.view.UploaderWindow.pr
 
 	refresh: function() {
 		if ( this.uploader ) {
+			this.updateUploadFilters();
 			this.uploader.refresh();
+		}
+	},
+
+	/**
+	 * Restricts uploads to the active library's media types.
+	 *
+	 * @since 7.2.0
+	 */
+	updateUploadFilters: function() {
+		var uploader = this.uploader.uploader,
+			state = this.controller.state(),
+			library = state && state.get( 'library' ),
+			types = library && library.props.get( 'type' ),
+			extensions = null;
+
+		if ( this._uploadLibrary !== library ) {
+			if ( this._uploadLibrary ) {
+				this.stopListening( this._uploadLibrary.props );
+			}
+			this._uploadLibrary = library;
+			if ( library ) {
+				this.listenTo( library.props, 'change:type', this.refresh );
+			}
+		}
+
+		types = _.chain( _.isArray( types ) ? types : [ types ] )
+			.map( function( type ) { return type ? type.split( ',' ) : []; } )
+			.flatten()
+			.map( function( type ) { return type.trim().toLowerCase(); } )
+			.compact()
+			.value();
+
+		if ( types.length && ! _.contains( types, '*' ) && wp.Uploader.mimeTypes ) {
+			extensions = [];
+			_.each( wp.Uploader.mimeTypes, function( mime, pattern ) {
+				var matches;
+
+				mime = mime.toLowerCase();
+				matches = _.some( types, function( type ) {
+					return type === mime || type === mime.split( '/' )[0] || type === mime.split( '/' )[0] + '/*';
+				} );
+
+				if ( matches ) {
+					extensions = extensions.concat( pattern.toLowerCase().split( '|' ) );
+				}
+			} );
+			extensions = _.uniq( extensions );
+		}
+
+		// Context is independent of plugin-owned filters, including identical MIME lists.
+		if ( ! _.isEqual( extensions, uploader.getOption( 'context_extensions' ) ) ) {
+			uploader.setOption( 'context_extensions', extensions );
 		}
 	},
 
@@ -66,6 +119,7 @@ UploaderWindow = wp.media.View.extend(/** @lends wp.media.view.UploaderWindow.pr
 			this.options.uploader.params.post_id = postId;
 		}
 		this.uploader = new wp.Uploader( this.options.uploader );
+		this.refresh();
 
 		dropzone = this.uploader.dropzone;
 		dropzone.on( 'dropzone:enter', _.bind( this.show, this ) );

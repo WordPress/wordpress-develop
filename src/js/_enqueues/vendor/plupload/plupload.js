@@ -679,6 +679,20 @@ plupload.addFileFilter('mime_types', function(filters, file, cb) {
 });
 
 
+plupload.addFileFilter('context_extensions', function(extensions, file, cb) {
+	if (plupload.inArray(o.Mime.getFileExtension(file.name), extensions) === -1) {
+		this.trigger('Error', {
+			code: plupload.FILE_EXTENSION_ERROR,
+			message: plupload.translate('File extension error.'),
+			file: file
+		});
+		cb(false);
+	} else {
+		cb(true);
+	}
+});
+
+
 plupload.addFileFilter('max_file_size', function(maxSize, file, cb) {
 	var undef;
 
@@ -730,6 +744,7 @@ plupload.addFileFilter('prevent_duplicates', function(value, file, cb) {
 	@param {String|DOMElement} [settings.container] id of the DOM element or DOM element itself that will be used to wrap uploader structures. Defaults to immediate parent of the `browse_button` element.
 	@param {String|DOMElement} [settings.drop_element] id of the DOM element or DOM element itself to use as a drop zone for Drag-n-Drop.
 	@param {String} [settings.file_data_name="file"] Name for the file field in Multipart formated message.
+	@param {Array|null} [settings.context_extensions=null] Additional allowed extensions for the current context. An empty array rejects all types.
 	@param {Object} [settings.filters={}] Set of file type filters.
 		@param {Array} [settings.filters.mime_types=[]] List of file types to accept, each one defined by title and list of extensions. `e.g. {title : "Image files", extensions : "jpg,jpeg,gif,png"}`. Dispatches `plupload.FILE_EXTENSION_ERROR`
 		@param {String|Number} [settings.filters.max_file_size=0] Maximum file size that the user can pick, in bytes. Optionally supports b, kb, mb, gb, tb suffixes. `e.g. "10mb" or "1gb"`. By default - not set. Dispatches `plupload.FILE_SIZE_ERROR`.
@@ -1041,6 +1056,41 @@ plupload.Uploader = function(options) {
 	}
 
 
+	// Native accept attributes must follow the current extension filters, even for custom MIME types.
+	function updateFileInputFilters() {
+		var types = settings.filters.mime_types || [],
+			context = settings.context_extensions,
+			extensions = [], unrestricted = false;
+
+		if (context) {
+			plupload.each(context, function(extension) {
+				if (!types.length || types.regexp.test('file.' + extension)) {
+					extensions.push('.' + extension);
+				}
+			});
+		} else {
+			plupload.each(types, function(filter) {
+				plupload.each(filter.extensions.split(/\s*,\s*/), function(extension) {
+					if (extension === '*') {
+						unrestricted = true;
+					} else if (extension) {
+						extensions.push('.' + extension);
+					}
+				});
+			});
+		}
+
+		plupload.each(fileInputs, function(fileInput) {
+			var container = plupload.get(fileInput.shimid);
+			if (container) {
+				plupload.each(container.getElementsByTagName('input'), function(input) {
+					input.setAttribute('accept', unrestricted ? '' : extensions.join(','));
+				});
+			}
+		});
+	}
+
+
 	function initControls(settings, cb) {
 		var self = this, inited = 0, queue = [];
 
@@ -1082,6 +1132,7 @@ plupload.Uploader = function(options) {
 
 						inited++;
 						fileInputs.push(this);
+						updateFileInputFilters();
 						cb();
 					};
 
@@ -1238,6 +1289,11 @@ plupload.Uploader = function(options) {
 					}
 					break;
 
+				case 'context_extensions':
+					settings.context_extensions = value;
+					updateFileInputFilters();
+					break;
+
 				case 'filters':
 					// for sake of backward compatibility
 					if (plupload.typeOf(value) === 'array') {
@@ -1270,6 +1326,7 @@ plupload.Uploader = function(options) {
 							return new RegExp('(' + extensionsRegExp.join('|') + ')$', 'i');
 						}(settings.filters.mime_types));
 					}
+					updateFileInputFilters();
 					break;
 	
 				case 'resize':
@@ -1659,6 +1716,7 @@ plupload.Uploader = function(options) {
 		multipart: true,
 		multi_selection: true,
 		file_data_name: 'file',
+		context_extensions: null,
 		filters: {
 			mime_types: [],
 			prevent_duplicates: false,
@@ -1845,6 +1903,7 @@ plupload.Uploader = function(options) {
 		 */
 		refresh : function() {
 			if (fileInputs.length) {
+				updateFileInputFilters();
 				plupload.each(fileInputs, function(fileInput) {
 					fileInput.trigger('Refresh');
 				});
@@ -1932,8 +1991,13 @@ plupload.Uploader = function(options) {
 			;
 
 			function filterFile(file, cb) {
-				var queue = [];
-				o.each(self.settings.filters, function(rule, name) {
+				var queue = [], filters = plupload.extend({}, self.settings.filters);
+
+				// Keep context restrictions separate from plugin-owned filters.
+				if (self.settings.context_extensions) {
+					filters.context_extensions = self.settings.context_extensions;
+				}
+				o.each(filters, function(rule, name) {
 					if (fileFilters[name]) {
 						queue.push(function(cb) {
 							fileFilters[name].call(self, rule, file, function(res) {

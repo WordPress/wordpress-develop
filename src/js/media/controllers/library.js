@@ -265,7 +265,13 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 * @param {wp.media.model.Attachment} attachment The attachment that was uploaded.
 	 */
 	uploading: function( attachment ) {
-		var content = this.frame.content;
+		var content = this.frame.content,
+			uploader = this.frame.uploader && this.frame.uploader.uploader;
+
+		// The shared queue can contain uploads from a different media context.
+		if ( uploader && ! uploader.isFileTypeSupported( attachment.get( 'file' ) || { name: attachment.get( 'filename' ) } ) ) {
+			return;
+		}
 
 		if ( 'upload' === content.mode() ) {
 			this.frame.content.mode('browse');

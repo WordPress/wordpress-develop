@@ -8011,6 +8011,39 @@ EOF;
 		$this->assertArrayHasKey( 'existing', $result, 'Existing array keys are expected to be preserved.' );
 		$this->assertSame( 'value', $result['existing'], 'Existing array values are expected to remain unmodified.' );
 	}
+
+	/**
+	 * The uploader needs the filtered MIME mapping to restrict uploads by context.
+	 *
+	 * @ticket 48710
+	 * @covers ::wp_plupload_default_settings
+	 */
+	public function test_wp_plupload_default_settings_exposes_filtered_mime_types() {
+		$scripts       = wp_scripts();
+		$previous_data = $scripts->registered['wp-plupload']->extra;
+		$custom_mime   = static function ( $mimes ) {
+			$mimes['example'] = 'image/x-example';
+			unset( $mimes['pdf'] );
+			return $mimes;
+		};
+
+		add_filter( 'upload_mimes', $custom_mime );
+		$scripts->add_data( 'wp-plupload', 'data', '' );
+
+		try {
+			wp_plupload_default_settings();
+			$data     = $scripts->get_data( 'wp-plupload', 'data' );
+			$settings = json_decode( substr( $data, strlen( 'var _wpPluploadSettings = ' ), -1 ), true );
+
+			$this->assertArrayHasKey( 'mimeTypes', $settings );
+			$this->assertSame( get_allowed_mime_types(), $settings['mimeTypes'] );
+			$this->assertSame( 'image/x-example', $settings['mimeTypes']['example'] );
+			$this->assertArrayNotHasKey( 'pdf', $settings['mimeTypes'] );
+		} finally {
+			remove_filter( 'upload_mimes', $custom_mime );
+			$scripts->registered['wp-plupload']->extra = $previous_data;
+		}
+	}
 }
 
 /**
