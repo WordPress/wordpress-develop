@@ -106,9 +106,13 @@ input#link_url {
 #comment-link-box {
 	line-height: 1.84615384;
 	min-height: 25px;
-	margin-top: 5px;
+	margin: 5px 0;
 	padding: 0 10px;
 	color: #646970;
+}
+
+#edit-slug-box .button.save {
+	vertical-align: middle;
 }
 
 #sample-permalink {
@@ -120,11 +124,6 @@ input#link_url {
 #edit-slug-box .cancel {
 	margin-right: 10px;
 	padding: 0;
-}
-
-#comment-link-box {
-	margin: 5px 0;
-	padding: 0 5px;
 }
 
 #editable-post-name-full {
@@ -141,6 +140,7 @@ input#link_url {
 	min-height: 32px;
 	margin: 0;
 	width: 16em;
+	vertical-align: middle;
 }
 
 .postarea h3 label {
