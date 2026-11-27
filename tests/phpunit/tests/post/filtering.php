@@ -55,6 +55,48 @@ EOF;
 		$this->assertEqualHTML( $expected, $post->post_content );
 	}
 
+	/**
+	 * @ticket 6297
+	 */
+	public function test_post_content_balances_tags_across_nextpage() {
+		$content  = '<em>first page<!--nextpage-->second page</em>';
+		$expected = '<em>first page</em><!--nextpage-->second page';
+
+		$post_id = self::factory()->post->create(
+			array( 'post_content' => $content )
+		);
+
+		$this->assertSame( $expected, get_post( $post_id )->post_content );
+	}
+
+	/**
+	 * @ticket 6297
+	 */
+	public function test_post_content_preserves_nextpage_block_delimiter() {
+		$delimiter = "<!-- wp:nextpage -->\n<!--nextpage-->\n<!-- /wp:nextpage -->";
+		$content   = '<em>first page' . $delimiter . 'second page</em>';
+		$expected  = '<em>first page</em>' . $delimiter . 'second page';
+
+		$post_id = self::factory()->post->create(
+			array( 'post_content' => $content )
+		);
+
+		$this->assertSame( $expected, get_post( $post_id )->post_content );
+	}
+
+	/**
+	 * @ticket 6297
+	 */
+	public function test_post_content_does_not_balance_at_more_boundary() {
+		$content = '<blockquote>Above<!--more-->Below</blockquote>';
+
+		$post_id = self::factory()->post->create(
+			array( 'post_content' => $content )
+		);
+
+		$this->assertSame( $content, get_post( $post_id )->post_content );
+	}
+
 	// Test KSES filtering of disallowed attribute.
 	public function test_post_content_disallowed_attr() {
 
