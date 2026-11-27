@@ -120,6 +120,14 @@ class WP_Dependencies {
 	private $dependencies_with_missing_dependencies = array();
 
 	/**
+	 * Handles whose dependencies are currently being resolved by all_deps(), used to detect circular dependencies.
+	 *
+	 * @since 7.3.0
+	 * @var array<string, true>
+	 */
+	private $handles_being_resolved = array();
+
+	/**
 	 * Processes the items and dependencies.
 	 *
 	 * Processes the items passed to it or the queue, and their dependencies.
@@ -179,11 +187,13 @@ class WP_Dependencies {
 	 * Determines dependencies.
 	 *
 	 * Recursively builds an array of items to process taking
-	 * dependencies into account. Does NOT catch infinite loops.
+	 * dependencies into account. Circular dependencies are tolerated: a handle that
+	 * appears again in its own dependency chain is treated as already resolved.
 	 *
 	 * @since 2.1.0
 	 * @since 2.6.0 Moved from `WP_Scripts`.
 	 * @since 2.8.0 Added the `$group` parameter.
+	 * @since 7.3.0 Circular dependencies no longer cause infinite recursion.
 	 *
 	 * @param string|string[] $handles   Item handle (string) or item handles (array of strings).
 	 * @param bool            $recursion Optional. Internal flag that function is calling itself.
@@ -207,12 +217,18 @@ class WP_Dependencies {
 				continue;
 			}
 
+			if ( isset( $this->handles_being_resolved[ $handle ] ) ) { // Circular dependency, resolved further up the stack.
+				continue;
+			}
+
 			$moved     = $this->set_group( $handle, $recursion, $group );
 			$new_group = $this->groups[ $handle ];
 
 			if ( $queued && ! $moved ) { // Already queued and in the right group.
 				continue;
 			}
+
+			$this->handles_being_resolved[ $handle ] = true;
 
 			$keep_going           = true;
 			$missing_dependencies = array();
@@ -234,6 +250,8 @@ class WP_Dependencies {
 			} elseif ( $this->registered[ $handle ]->deps && ! $this->all_deps( $this->registered[ $handle ]->deps, true, $new_group ) ) {
 				$keep_going = false; // Item requires dependencies that don't exist.
 			}
+
+			unset( $this->handles_being_resolved[ $handle ] );
 
 			if ( ! $keep_going ) { // Either item or its dependencies don't exist.
 				if ( $recursion ) {

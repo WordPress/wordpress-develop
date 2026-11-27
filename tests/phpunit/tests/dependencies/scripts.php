@@ -2775,6 +2775,42 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that setting translations on `wp-i18n` does not make it depend on itself recursively.
+	 *
+	 * @ticket 46089
+	 *
+	 * @covers ::wp_set_script_translations
+	 */
+	public function test_wp_set_script_translations_on_wp_i18n_does_not_recurse_infinitely() {
+		wp_register_script( 'wp-i18n', '/wp-i18n.js', array(), null );
+		wp_set_script_translations( 'wp-i18n' );
+		wp_enqueue_script( 'wp-i18n' );
+
+		$output = get_echo( 'wp_print_scripts' );
+
+		$this->assertSame( 1, substr_count( $output, '<script id="wp-i18n-js" src="/wp-i18n.js"></script>' ) );
+	}
+
+	/**
+	 * Tests that a dependency cycle created through `wp-i18n` does not recurse infinitely.
+	 *
+	 * @ticket 46089
+	 *
+	 * @covers ::wp_set_script_translations
+	 */
+	public function test_wp_set_script_translations_with_dependency_cycle_through_wp_i18n() {
+		wp_register_script( 'wp-hooks', '/wp-hooks.js', array(), null );
+		wp_register_script( 'wp-i18n', '/wp-i18n.js', array( 'wp-hooks' ), null );
+		wp_set_script_translations( 'wp-hooks' );
+		wp_enqueue_script( 'wp-hooks' );
+
+		$output = get_echo( 'wp_print_scripts' );
+
+		$this->assertSame( 1, substr_count( $output, '<script id="wp-hooks-js" src="/wp-hooks.js"></script>' ) );
+		$this->assertSame( 1, substr_count( $output, '<script id="wp-i18n-js" src="/wp-i18n.js"></script>' ) );
+	}
+
+	/**
 	 * @ticket 63944
 	 */
 	public function test_wp_set_script_translations_uses_registered_domainpath_for_plugin() {
