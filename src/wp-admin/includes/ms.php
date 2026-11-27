@@ -256,7 +256,12 @@ function display_space_usage() {
 	$space_allowed = get_space_allowed();
 	$space_used    = get_space_used();
 
-	$percent_used = ( $space_used / $space_allowed ) * 100;
+	if ( $space_allowed > 0 ) {
+		$percent_used = ( $space_used / $space_allowed ) * 100;
+	} else {
+		// No space is allowed, so none is left.
+		$percent_used = 100;
+	}
 
 	$space = size_format( $space_allowed * MB_IN_BYTES );
 	?>
@@ -297,7 +302,7 @@ function upload_space_setting( $id ) {
 	$quota = get_option( 'blog_upload_space' );
 	restore_current_blog();
 
-	if ( ! $quota ) {
+	if ( ! is_numeric( $quota ) ) {
 		$quota = '';
 	}
 
