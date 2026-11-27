@@ -13,7 +13,8 @@ use function PHPStan\Testing\assertType;
  * The query methods, with each output format.
  *
  * `get_var()` gives null for an empty string, and `get_col()` gets each value
- * with `get_var()`, so neither gives an empty string.
+ * with `get_var()`, so neither gives an empty string. Each assertion is of a
+ * column which is never empty, so that it differs from the declared type.
  */
 function wp_tests_wpdb_methods( wpdb $wpdb, int $id ): void {
 	assertType( '(object{ID: decimal-int-string, post_title: string}&stdClass)|null', $wpdb->get_row( $wpdb->prepare( "SELECT ID, post_title FROM $wpdb->posts WHERE ID = %d", $id ) ) );
@@ -23,12 +24,12 @@ function wp_tests_wpdb_methods( wpdb $wpdb, int $id ): void {
 	assertType( 'list<array{option_name: string, option_value: string}>', $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options", ARRAY_A ) );
 	assertType( 'list<array{string, string}>', $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options", ARRAY_N ) );
 	assertType( 'array<int, object{ID: decimal-int-string, post_name: string}&stdClass>', $wpdb->get_results( "SELECT ID, post_name FROM $wpdb->posts", OBJECT_K ) );
-	assertType( 'non-empty-string|null', $wpdb->get_var( "SELECT post_title FROM $wpdb->posts" ) );
-	assertType( 'non-empty-string|null', $wpdb->get_var( "SELECT ID, post_title FROM $wpdb->posts", 1 ) );
+	assertType( 'non-falsy-string|null', $wpdb->get_var( "SELECT post_date FROM $wpdb->posts" ) );
+	assertType( 'decimal-int-string|null', $wpdb->get_var( "SELECT post_title, ID FROM $wpdb->posts", 1 ) );
 	assertType( 'null', $wpdb->get_var( "SELECT ID, post_title FROM $wpdb->posts", 2 ) );
-	assertType( 'non-empty-string|null', $wpdb->get_var( "SELECT ID, post_title FROM $wpdb->posts", $id ) );
-	assertType( 'list<non-empty-string|null>', $wpdb->get_col( "SELECT meta_value FROM $wpdb->postmeta" ) );
-	assertType( 'list<non-empty-string|null>', $wpdb->get_col( "SELECT post_id, meta_key FROM $wpdb->postmeta", 1 ) );
+	assertType( 'decimal-int-string|non-falsy-string|null', $wpdb->get_var( "SELECT ID, post_date FROM $wpdb->posts", $id ) );
+	assertType( 'list<decimal-int-string>', $wpdb->get_col( "SELECT post_id FROM $wpdb->postmeta" ) );
+	assertType( 'list<non-falsy-string>', $wpdb->get_col( "SELECT post_title, post_date FROM $wpdb->posts", 1 ) );
 	assertType( 'list<decimal-int-string|null>', $wpdb->get_col( "SELECT ID, post_parent FROM $wpdb->posts", $id ) );
 }
 
