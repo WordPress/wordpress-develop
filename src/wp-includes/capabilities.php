@@ -1155,6 +1155,7 @@ function remove_role( $role ) {
  * Retrieves a list of super admins.
  *
  * @since 3.0.0
+ * @since 7.2.0 The `site_admins` site option no longer defaults to `array( 'admin' )`.
  *
  * @global array $super_admins
  *
@@ -1163,7 +1164,7 @@ function remove_role( $role ) {
 function get_super_admins() {
 	global $super_admins;
 
-	return $super_admins ?? get_site_option( 'site_admins', array( 'admin' ) );
+	return $super_admins ?? get_site_option( 'site_admins', array() );
 }
 
 /**
@@ -1224,7 +1225,7 @@ function grant_super_admin( $user_id ) {
 	do_action( 'grant_super_admin', $user_id );
 
 	// Directly fetch site_admins instead of using get_super_admins().
-	$super_admins = get_site_option( 'site_admins', array( 'admin' ) );
+	$super_admins = get_site_option( 'site_admins', array() );
 
 	$user = get_userdata( $user_id );
 	if ( $user && ! in_array( $user->user_login, $super_admins, true ) ) {
@@ -1272,7 +1273,7 @@ function revoke_super_admin( $user_id ) {
 	do_action( 'revoke_super_admin', $user_id );
 
 	// Directly fetch site_admins instead of using get_super_admins().
-	$super_admins = get_site_option( 'site_admins', array( 'admin' ) );
+	$super_admins = get_site_option( 'site_admins', array() );
 
 	$user = get_userdata( $user_id );
 	if ( $user ) {
