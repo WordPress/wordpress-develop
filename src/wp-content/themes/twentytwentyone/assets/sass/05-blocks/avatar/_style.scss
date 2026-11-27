@@ -1,0 +1,26 @@
+.wp-block-avatar {
+	:where([style*=border-width]),
+	:where(.has-border-color) {
+		border-style: solid;
+	}
+
+	:where([style*="border-top-width"]),
+	:where([style*="border-top-color"]) {
+		border-top-style: solid;
+	}
+
+	:where([style*="border-right-width"]),
+	:where([style*="border-right-color"]) {
+		border-right-style: solid;
+	}
+
+	:where([style*="border-bottom-width"]),
+	:where([style*="border-bottom-color"]) {
+		border-bottom-style: solid;
+	}
+
+	:where([style*="border-left-width"]),
+	:where([style*="border-left-color"]) {
+		border-left-style: solid;
+	}
+}
