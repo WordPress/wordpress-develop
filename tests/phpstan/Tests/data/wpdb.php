@@ -72,6 +72,12 @@ function wp_tests_wpdb_expressions( wpdb $wpdb ): void {
 	assertType( "array{'COUNT(*)': decimal-int-string, total: numeric-string|null, 'AVG(menu_order)': numeric-string|null, 'MIN(post_date)': non-falsy-string|null, 'MAX(post_parent)': decimal-int-string|null}|null", $wpdb->get_row( "SELECT COUNT(*), SUM(comment_count) AS total, AVG(menu_order), MIN(post_date), MAX(post_parent) FROM $wpdb->posts", ARRAY_A ) );
 	assertType( '(object{term_id: decimal-int-string, name: string, slug: string, term_group: decimal-int-string, tax: string}&stdClass)|null', $wpdb->get_row( "SELECT t.*, tt.taxonomy tax FROM $wpdb->terms AS t INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id" ) );
 
+	// Date functions, which give NULL only for a value which is not a date or time.
+	assertType( "array{year: decimal-int-string, month: decimal-int-string, 'DAYOFMONTH(post_date_gmt)': decimal-int-string, 'HOUR(post_modified)': decimal-int-string}|null", $wpdb->get_row( "SELECT YEAR(post_date) AS `year`, MONTH( post_date ) AS month, DAYOFMONTH(post_date_gmt), HOUR(post_modified) FROM $wpdb->posts", ARRAY_A ) );
+	assertType( "array{'YEAR(post_title)': decimal-int-string|null, 'YEAR(NOW())': decimal-int-string|null, 'MONTH(foo)': decimal-int-string|null}|null", $wpdb->get_row( "SELECT YEAR(post_title), YEAR(NOW()), MONTH(foo) FROM $wpdb->posts", ARRAY_A ) );
+	assertType( "array{'YEAR(p.post_date)': decimal-int-string, 'MONTH(c.comment_date)': decimal-int-string|null}|null", $wpdb->get_row( "SELECT YEAR(p.post_date), MONTH(c.comment_date) FROM $wpdb->posts p LEFT JOIN $wpdb->comments c ON c.comment_post_ID = p.ID", ARRAY_A ) );
+	assertType( "array{'DAYOFWEEK(post_date)': string|null}|null", $wpdb->get_row( "SELECT DAYOFWEEK(post_date) FROM $wpdb->posts", ARRAY_A ) );
+
 	// Quoted aliases.
 	assertType( 'array{id: decimal-int-string, title: string, name: string}|null', $wpdb->get_row( "SELECT ID AS 'id', post_title \"title\", post_name `name` FROM $wpdb->posts", ARRAY_A ) );
 

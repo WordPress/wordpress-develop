@@ -26,6 +26,9 @@ namespace WordPress\PHPStan;
  * - `COUNT()` is a `decimal-int-string`, `SUM()` and `AVG()` are a
  *   `numeric-string` or null, and `MIN()` and `MAX()` of a core column are the
  *   column's type or null.
+ * - `YEAR()`, `MONTH()`, `DAY()`, `DAYOFMONTH()`, `HOUR()`, `MINUTE()`, and
+ *   `SECOND()` are a `decimal-int-string`, or null as well unless of a date or
+ *   time column which is `NOT NULL`.
  * - A number or string literal is that constant string.
  * - Anything else is `string|null`, which is every value `wpdb` can return.
  *
@@ -455,6 +458,24 @@ final class WpdbSelectParser {
 						return self::add_null( $column['type'] );
 					}
 					return 'string|null';
+				case 'YEAR':
+				case 'MONTH':
+				case 'DAY':
+				case 'DAYOFMONTH':
+				case 'HOUR':
+				case 'MINUTE':
+				case 'SECOND':
+					/*
+					 * These give an integer for any date or time, including 0 for the zero date, like
+					 * '0000-00-00 00:00:00'. Others, like `DAYOFWEEK()`, give NULL for it. For a value
+					 * which is not a date or time, they give NULL.
+					 */
+					$column_ref = self::get_column_reference( $arguments );
+					$column     = null !== $column_ref ? $this->find_column( $tables, $column_ref[0], $column_ref[1] ) : null;
+					if ( null !== $column && 'non-falsy-string' === $column['type'] ) {
+						return 'decimal-int-string';
+					}
+					return 'decimal-int-string|null';
 			}
 		}
 

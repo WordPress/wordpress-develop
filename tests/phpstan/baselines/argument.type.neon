@@ -64,7 +64,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/edit.php
 		-
-			message: '#^Parameter \#1 \$number of function zeroise expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$number of function zeroise expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/export.php
@@ -219,7 +219,7 @@ parameters:
 			count: 3
 			path: ../../../src/wp-admin/includes/media.php
 		-
-			message: '#^Parameter \#1 \$number of function zeroise expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$number of function zeroise expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/media.php
@@ -949,12 +949,12 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/general-template.php
 		-
-			message: '#^Parameter \#1 \$year of function get_month_link expects int\|false, string\|null given\.$#'
+			message: '#^Parameter \#1 \$year of function get_month_link expects int\|false, decimal\-int\-string given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/general-template.php
 		-
-			message: '#^Parameter \#2 \$month of function get_month_link expects int\|false, string\|null given\.$#'
+			message: '#^Parameter \#2 \$month of function get_month_link expects int\|false, decimal\-int\-string given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/general-template.php
