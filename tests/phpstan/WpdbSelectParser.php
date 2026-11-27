@@ -29,6 +29,8 @@ namespace WordPress\PHPStan;
  * - `YEAR()`, `MONTH()`, `DAY()`, `DAYOFMONTH()`, `HOUR()`, `MINUTE()`, and
  *   `SECOND()` are a `decimal-int-string`, or null as well unless of a date or
  *   time column which is `NOT NULL`.
+ * - With `WITH ROLLUP`, every column is nullable as well, since the subtotal
+ *   rows it adds have NULL for the columns grouped by.
  * - A number or string literal is that constant string.
  * - Anything else is `string|null`, which is every value `wpdb` can return.
  *
@@ -172,23 +174,36 @@ final class WpdbSelectParser {
 			return null;
 		}
 
-		$columns = array();
+		// The rows `WITH ROLLUP` adds for the subtotals have NULL for the columns grouped by, which may be any of them.
+		$rollup = false;
+		$depth  = 0;
+		for ( $j = $i; $j < $count; $j++ ) {
+			$depth += self::get_depth_change( $tokens[ $j ]['text'] );
+			if ( 0 === $depth && 'ROLLUP' === strtoupper( $tokens[ $j ]['text'] ) ) {
+				$rollup = true;
+				break;
+			}
+		}
+
+		$columns  = array();
+		$complete = true;
 		foreach ( $items as $item ) {
 			$item_columns = $this->get_item_columns( $item, $tables, $query );
 			if ( null === $item_columns ) {
-				return array(
-					'columns'  => $columns,
-					'complete' => false,
-				);
+				$complete = false;
+				break;
 			}
 			foreach ( $item_columns as $column ) {
+				if ( $rollup ) {
+					$column['type'] = self::add_null( $column['type'] );
+				}
 				$columns[] = $column;
 			}
 		}
 
 		return array(
 			'columns'  => $columns,
-			'complete' => true,
+			'complete' => $complete,
 		);
 	}
 

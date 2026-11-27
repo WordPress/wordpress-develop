@@ -125,6 +125,9 @@ function wp_tests_wpdb_expressions( wpdb $wpdb ): void {
 	assertType( "array{'YEAR(p.post_date)': decimal-int-string, 'MONTH(c.comment_date)': decimal-int-string|null}|null", $wpdb->get_row( "SELECT YEAR(p.post_date), MONTH(c.comment_date) FROM $wpdb->posts p LEFT JOIN $wpdb->comments c ON c.comment_post_ID = p.ID", ARRAY_A ) );
 	assertType( "array{'DAYOFWEEK(post_date)': string|null}|null", $wpdb->get_row( "SELECT DAYOFWEEK(post_date) FROM $wpdb->posts", ARRAY_A ) );
 
+	// The subtotal rows of `WITH ROLLUP` have NULL for the columns grouped by.
+	assertType( 'array{post_type: string|null, c: decimal-int-string|null}|null', $wpdb->get_row( "SELECT post_type, COUNT(*) AS c FROM $wpdb->posts GROUP BY post_type WITH ROLLUP", ARRAY_A ) );
+
 	// Quoted aliases.
 	assertType( 'array{id: decimal-int-string, title: string, name: string}|null', $wpdb->get_row( "SELECT ID AS 'id', post_title \"title\", post_name `name` FROM $wpdb->posts", ARRAY_A ) );
 
