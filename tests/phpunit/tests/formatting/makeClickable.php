@@ -456,6 +456,35 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a URL inside an existing link is not linked a second time.
+	 *
+	 * @ticket 50514
+	 * @dataProvider data_url_inside_existing_link
+	 *
+	 * @param string $html Content that already contains a link.
+	 */
+	public function test_url_inside_existing_link_is_not_nested( $html ) {
+		$this->assertSame( $html, make_clickable( $html ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_url_inside_existing_link() {
+		return array(
+			'link text is only the URL'     => array( '<a href="https://w.org">https://w.org</a>' ),
+			'space before the URL'          => array( '<a href="https://w.org"> https://w.org</a>' ),
+			'space after the URL'           => array( '<a href="https://w.org">https://w.org </a>' ),
+			'text before and after the URL' => array( '<a href="https://w.org">Visit https://w.org now</a>' ),
+			'newline before the URL'        => array( "<a href=\"https://w.org\">\nhttps://w.org</a>" ),
+			'two adjacent links'            => array( '<a href="http://example.com/">http://example.com/</a><a href="http://example.com/">http://example.com/</a>' ),
+			'two links separated by text'   => array( '<a href="http://example.com/a">http://example.com/a</a> and <a href="http://example.com/b">http://example.com/b</a>' ),
+		);
+	}
+
+	/**
 	 * @ticket 30162
 	 * @dataProvider data_script_and_style_tags
 	 */
