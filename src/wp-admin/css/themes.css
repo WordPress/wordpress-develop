@@ -46,6 +46,12 @@ body.js .theme-browser.search-loading {
 	position: absolute;
 	right: 0;
 	top: 0;
+	/*
+	 * The message is a band pinned to the card's edges, not a box of its own.
+	 * The card already clips it to the card's own corner radius, so a radius
+	 * here would only pull the band away from that corner.
+	 */
+	border-radius: 0;
 }
 
 /**

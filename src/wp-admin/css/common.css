@@ -1499,13 +1499,25 @@ th.action-links {
   4.0 - Notifications
 ------------------------------------------------------------------------------*/
 
+/*
+ * Tone is carried by the surface, a full hairline border and the text colour.
+ * Padding, paragraph margins and the dismiss button's position are unchanged:
+ * plugins position their own elements against the inside of this box, so only
+ * its paint may change here.
+ *
+ * Paint comes from design system tokens, so a notice follows the theme the
+ * tokens resolve to. Geometry stays in literal values for the same reason the
+ * box may not move. The tokens are defined by the wp-theme stylesheet, which
+ * this one depends on, so no var() fallbacks are needed.
+ */
 .notice,
 div.updated,
 div.error {
-	background: #fff;
-	border: none;
-	border-left: 4px solid #c3c4c7;
+	background: var(--wpds-color-background-surface-neutral-weak);
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-lg);
 	box-shadow: none;
+	color: var(--wpds-color-foreground-content-neutral);
 	margin: 5px 15px 2px;
 	padding: 8px 12px;
 }
@@ -1523,7 +1535,7 @@ div.error p,
 	padding: 0;
 	font-size: 13px;
 	line-height: 1.54;
-	color: #1e1e1e;
+	color: inherit;
 }
 
 div.notice a,
@@ -1557,7 +1569,7 @@ div.updated a:focus {
 
 .notice-title {
 	display: inline-block;
-	color: #1d2327;
+	color: inherit;
 	font-size: 18px;
 }
 
@@ -1574,19 +1586,26 @@ div.updated a:focus {
 	margin: 0;
 	padding: 0;
 	background: none;
-	color: #1e1e1e;
+	/* Takes the notice's tone. */
+	color: inherit;
 	cursor: pointer;
 	width: 24px;
 	height: 24px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 2px;
+	/* A compact control inside the notice, so it takes the small radius rather than the notice's own container radius. */
+	border-radius: var(--wpds-border-radius-sm);
+}
+
+/* The glyph follows the button, so a plugin that colours the button colours the icon. */
+.notice-dismiss::before {
+	color: inherit;
 }
 
 .notice-dismiss:hover::before,
 .notice-dismiss:active::before {
-	color: #1e1e1e;
+	color: inherit;
 	opacity: 0.7;
 }
 
@@ -1597,47 +1616,51 @@ div.updated a:focus {
 }
 
 .notice-dismiss:focus::before {
-	color: #1e1e1e;
+	color: inherit;
 }
 
 .notice-success,
 div.updated {
-	border-left-color: #4ab866;
-	background-color: #eff9f1;
+	border-color: var(--wpds-color-stroke-surface-success);
+	background-color: var(--wpds-color-background-surface-success-weak);
+	color: var(--wpds-color-foreground-content-success);
 }
 
 .notice-success.notice-alt,
 div.updated.notice-alt {
-	background-color: #eff9f1;
+	background-color: var(--wpds-color-background-surface-success-weak);
 }
 
 .notice-warning {
-	border-left-color: #f0b849;
-	background-color: #fef8ee;
+	border-color: var(--wpds-color-stroke-surface-warning);
+	background-color: var(--wpds-color-background-surface-warning-weak);
+	color: var(--wpds-color-foreground-content-warning);
 }
 
 .notice-warning.notice-alt {
-	background-color: #fef8ee;
+	background-color: var(--wpds-color-background-surface-warning-weak);
 }
 
 .notice-error,
 div.error {
-	border-left-color: #cc1818;
-	background-color: #fcf0f0;
+	border-color: var(--wpds-color-stroke-surface-error);
+	background-color: var(--wpds-color-background-surface-error-weak);
+	color: var(--wpds-color-foreground-content-error);
 }
 
 .notice-error.notice-alt,
 div.error.notice-alt {
-	background-color: #fcf0f0;
+	background-color: var(--wpds-color-background-surface-error-weak);
 }
 
 .notice-info {
-	border-left-color: #3858e9;
-	background-color: #fff;
+	border-color: var(--wpds-color-stroke-surface-info);
+	background-color: var(--wpds-color-background-surface-info-weak);
+	color: var(--wpds-color-foreground-content-info);
 }
 
 .notice-info.notice-alt {
-	background-color: #fff;
+	background-color: var(--wpds-color-background-surface-info-weak);
 }
 
 #plugin-information-footer .update-now:not(.button-disabled)::before {

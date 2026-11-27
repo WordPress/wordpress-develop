@@ -39,15 +39,23 @@ p {
 	line-height: 1.5;
 }
 
+/*
+ * The login screen renders its messages through wp_admin_notice(), so the markup
+ * is the admin's. It does not load common.css, so the notice paint is repeated
+ * here; both stylesheets read the same tokens, which is what keeps the two in
+ * agreement. Padding and margins are unchanged, so only the paint moves.
+ */
 .login .message,
 .login .notice,
 .login .success {
-	border-left: 4px solid #3858e9;
+	background: var(--wpds-color-background-surface-neutral-weak);
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-lg);
+	color: var(--wpds-color-foreground-content-neutral);
 	padding: 8px 12px;
 	margin-top: 0;
 	margin-left: 0;
 	margin-bottom: 20px;
-	background-color: #fff;
 	word-wrap: break-word;
 }
 
@@ -59,15 +67,31 @@ p {
 	margin: 0.5em 0;
 }
 
-.login .success {
-	border-left-color: #4ab866;
-	background-color: #eff9f1;
+/* An instructional message is rendered as an info notice, so it takes that tone. */
+.login .message,
+.login .notice-info {
+	border-color: var(--wpds-color-stroke-surface-info);
+	background-color: var(--wpds-color-background-surface-info-weak);
+	color: var(--wpds-color-foreground-content-info);
 }
 
-/* Match border color from common.css */
+.login .success,
+.login .notice-success {
+	border-color: var(--wpds-color-stroke-surface-success);
+	background-color: var(--wpds-color-background-surface-success-weak);
+	color: var(--wpds-color-foreground-content-success);
+}
+
+.login .notice-warning {
+	border-color: var(--wpds-color-stroke-surface-warning);
+	background-color: var(--wpds-color-background-surface-warning-weak);
+	color: var(--wpds-color-foreground-content-warning);
+}
+
 .login .notice-error {
-	border-left-color: #cc1818;
-	background-color: #fcf0f0;
+	border-color: var(--wpds-color-stroke-surface-error);
+	background-color: var(--wpds-color-background-surface-error-weak);
+	color: var(--wpds-color-foreground-content-error);
 }
 
 .login .login-error-list {
