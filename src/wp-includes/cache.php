@@ -8,6 +8,11 @@
  * @subpackage Cache
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /** WP_Object_Cache class */
 require_once ABSPATH . WPINC . '/class-wp-object-cache.php';
 
