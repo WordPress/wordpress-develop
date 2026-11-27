@@ -9,6 +9,11 @@
  *
  *     WP_TESTS_AI_ANTHROPIC_API_KEY=your-key vendor/bin/phpunit --group external-http --test-suffix .php tests/phpunit/manual
  *
+ * In the local Docker environment, set them in the `.env` file and run the command below. They are
+ * passed to the PHP container, which also serves the local site, but only these tests read them:
+ *
+ *     npm run test:php -- --group external-http --test-suffix .php tests/phpunit/manual
+ *
  * A provider uses its default model, unless its `WP_TESTS_AI_*_MODEL` environment variable or
  * constant, such as `WP_TESTS_AI_GOOGLE_MODEL`, names another one.
  *
@@ -85,12 +90,15 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	private static $admin_id;
 
 	/**
-	 * Creates the users, the post and the option the questions are about, and registers the core abilities.
+	 * Loads the provider packages, creates the users, the post and the option the questions are about,
+	 * and registers the core abilities.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory instance.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
 		global $wp_current_filter;
+
+		self::register_provider_autoloaders();
 
 		self::$admin_id = $factory->user->create(
 			array(
@@ -209,8 +217,7 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	 * Asks a provider a question and runs the abilities the model calls until it answers.
 	 *
 	 * The test is skipped when the provider has no API key, its package is not installed or it is
-	 * unavailable: it limits the requests, has a server error or cannot be reached. Every other
-	 * error fails the test.
+	 * rate limited, returns a server error or cannot be reached. Every other error fails the test.
 	 *
 	 * @param string   $provider  Provider ID.
 	 * @param string[] $abilities Names of the abilities given to the model.
@@ -230,23 +237,6 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 			$this->markTestSkipped( "The $key_var environment variable or constant is not set." );
 		}
 
-		/*
-		 * PHPUnit may run from a PHAR, which does not load the Composer autoloader of the checkout.
-		 * That autoloader would also load the PHPUnit classes of the checkout, so only the classes
-		 * of the provider package are loaded, from its `src` directory.
-		 */
-		$namespace   = strstr( $provider_class, '\\Provider\\', true ) . '\\';
-		$package_dir = dirname( __DIR__, 3 ) . "/vendor/wordpress/ai-provider-for-$provider/src/";
-		if ( ! class_exists( $provider_class ) && is_dir( $package_dir ) ) {
-			spl_autoload_register(
-				static function ( string $class_name ) use ( $namespace, $package_dir ) {
-					$file = $package_dir . str_replace( '\\', '/', substr( $class_name, strlen( $namespace ) ) ) . '.php';
-					if ( str_starts_with( $class_name, $namespace ) && file_exists( $file ) ) {
-						require $file;
-					}
-				}
-			);
-		}
 		if ( ! class_exists( $provider_class ) ) {
 			$this->markTestSkipped( 'The AI provider packages are not installed. Run `composer update`, or `npm run env:composer -- update` in the local Docker environment.' );
 		}
@@ -348,21 +338,47 @@ class Tests_AI_Client_LiveProviders extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Gets a setting from an environment variable or, when that is empty or not set, a constant.
+	 * Loads the classes of each installed provider package that the Composer autoloader does not load.
 	 *
-	 * The AI Client reads the environment variable first too, so an empty constant in
-	 * `wp-tests-config.php` does not hide a value in the environment.
+	 * PHPUnit may run from a PHAR, which does not load the Composer autoloader of the checkout.
+	 * That autoloader would also load the PHPUnit classes of the checkout, so only the classes
+	 * of the provider packages are loaded, from their `src` directories.
+	 */
+	private static function register_provider_autoloaders(): void {
+		foreach ( self::PROVIDERS as $provider => $provider_class ) {
+			$namespace   = strstr( $provider_class, '\\Provider\\', true ) . '\\';
+			$package_dir = dirname( __DIR__, 3 ) . "/vendor/wordpress/ai-provider-for-$provider/src/";
+
+			if ( class_exists( $provider_class ) || ! is_dir( $package_dir ) ) {
+				continue;
+			}
+
+			spl_autoload_register(
+				static function ( string $class_name ) use ( $namespace, $package_dir ) {
+					if ( ! str_starts_with( $class_name, $namespace ) ) {
+						return;
+					}
+
+					$file = $package_dir . str_replace( '\\', '/', substr( $class_name, strlen( $namespace ) ) ) . '.php';
+					if ( file_exists( $file ) ) {
+						require $file;
+					}
+				}
+			);
+		}
+	}
+
+	/**
+	 * Gets a setting from an environment variable or, when that is empty or not set, a constant.
 	 *
 	 * @param string $name Name of the environment variable and the constant.
 	 * @return string The value, or an empty string when neither is set.
 	 */
 	private static function get_setting( string $name ): string {
 		$value = getenv( $name );
-
-		if ( false === $value || '' === $value ) {
-			$value = defined( $name ) ? constant( $name ) : '';
+		if ( ! $value && defined( $name ) ) {
+			$value = constant( $name );
 		}
-
 		return (string) $value;
 	}
 }
