@@ -1103,6 +1103,112 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests decoding a non-existent file.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_non_existent_file() {
+		$non_existent_file = DIR_TESTDATA . '/non-existent.json';
+
+		list( $result, $messages ) = $this->wp_json_file_decode_and_capture_errors( $non_existent_file );
+
+		$this->assertNull( $result );
+		$this->assertSame( array( "File {$non_existent_file} doesn't exist!" ), $messages );
+	}
+
+	/**
+	 * Tests decoding an unreadable file.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_unreadable_file() {
+		if ( ! function_exists( 'posix_getpwuid' ) || ! function_exists( 'posix_geteuid' ) ) {
+			$this->markTestSkipped( 'The POSIX extension is not available.' );
+		}
+
+		$pwuid = posix_getpwuid( posix_geteuid() );
+		if ( is_array( $pwuid ) && isset( $pwuid['name'] ) && 'root' === $pwuid['name'] ) {
+			$this->markTestSkipped( 'Cannot test unreadable file permissions when running as root.' );
+		}
+
+		$unreadable_file = tempnam( sys_get_temp_dir(), 'unreadable-json' );
+		chmod( $unreadable_file, 0000 );
+		try {
+			list( $result, $messages ) = $this->wp_json_file_decode_and_capture_errors( $unreadable_file );
+		} finally {
+			chmod( $unreadable_file, 0644 );
+			unlink( $unreadable_file );
+		}
+
+		$this->assertNull( $result );
+		$this->assertSame( array( "{$unreadable_file} is not a readable file." ), $messages );
+	}
+
+	/**
+	 * Tests decoding a directory instead of a file.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_directory() {
+		$directory = DIR_TESTDATA . '/themedir1/block-theme';
+
+		list( $result, $messages ) = $this->wp_json_file_decode_and_capture_errors( $directory );
+
+		$this->assertNull( $result );
+		$this->assertSame( array( "{$directory} is not a readable file." ), $messages );
+	}
+
+	/**
+	 * Tests decoding a file with invalid JSON.
+	 *
+	 * @ticket 64620
+	 */
+	public function test_wp_json_file_decode_with_invalid_json() {
+		$invalid_json_file = tempnam( sys_get_temp_dir(), 'invalid-json' );
+		file_put_contents( $invalid_json_file, '{ invalid json }' );
+		try {
+			list( $result, $messages ) = $this->wp_json_file_decode_and_capture_errors( $invalid_json_file );
+		} finally {
+			unlink( $invalid_json_file );
+		}
+
+		// The error message varies between PHP versions, e.g. PHP 8.6 appends the error location.
+		json_decode( '{ invalid json }' );
+		$expected_message = "Error when decoding a JSON file at path {$invalid_json_file}: " . json_last_error_msg();
+
+		$this->assertNull( $result );
+		$this->assertSame( array( $expected_message ), $messages );
+	}
+
+	/**
+	 * Calls wp_json_file_decode() and captures the messages passed to wp_trigger_error().
+	 *
+	 * The errors are not triggered, so the test can assert the return value.
+	 *
+	 * @param string $filename Path to the JSON file.
+	 * @return array {
+	 *     @type mixed    $0 The value returned by wp_json_file_decode().
+	 *     @type string[] $1 The messages passed to wp_trigger_error().
+	 * }
+	 */
+	private function wp_json_file_decode_and_capture_errors( $filename ) {
+		$messages = array();
+		add_filter(
+			'wp_trigger_error_trigger_error',
+			static function ( $trigger, $function_name, $message ) use ( &$messages ) {
+				$messages[] = $message;
+				return false;
+			},
+			10,
+			3
+		);
+
+		$result = wp_json_file_decode( $filename );
+
+		return array( $result, $messages );
+	}
+
+	/**
 	 * @ticket 36054
 	 * @dataProvider data_mysql_to_rfc3339
 	 */
