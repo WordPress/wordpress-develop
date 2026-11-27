@@ -332,6 +332,30 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
 		}
 
+		/*
+		 * When hierarchical comments are requested, paginate over the top-level comments
+		 * (or the direct children of a single requested parent) and append all of their
+		 * descendants as a flat list. The `parent` field of each comment can be used
+		 * to rebuild the tree on the client.
+		 */
+		if ( isset( $registered['hierarchical'] ) && ! empty( $request['hierarchical'] ) ) {
+			$parents = isset( $prepared_args['parent__in'] ) ? array_unique( array_map( 'absint', (array) $prepared_args['parent__in'] ) ) : array();
+
+			if ( count( $parents ) > 1 ) {
+				return new WP_Error(
+					'rest_invalid_param',
+					/* translators: 1: hierarchical, 2: parent */
+					sprintf( __( 'The %1$s parameter can only be combined with a single %2$s ID.' ), 'hierarchical', 'parent' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			unset( $prepared_args['parent__in'] );
+
+			$prepared_args['parent']       = $parents ? reset( $parents ) : 0;
+			$prepared_args['hierarchical'] = 'flat';
+		}
+
 		$is_head_request = $request->is_method( 'HEAD' );
 		if ( $is_head_request ) {
 			// Force the 'fields' argument. For HEAD requests, only post IDs are required to calculate pagination.
@@ -2190,6 +2214,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'type' => 'integer',
 			),
 			'default'     => array(),
+		);
+
+		$query_params['hierarchical'] = array(
+			'description' => __( 'Whether to include comment descendants in the results. Pagination applies to the top-level comments (or the direct children of the requested parent) and their descendants are appended to the results as a flat list.' ),
+			'type'        => 'boolean',
+			'default'     => false,
 		);
 
 		$query_params['include'] = array(

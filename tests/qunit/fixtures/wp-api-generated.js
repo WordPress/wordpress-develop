@@ -10554,6 +10554,12 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "hierarchical": {
+                            "description": "Whether to include comment descendants in the results. Pagination applies to the top-level comments (or the direct children of the requested parent) and their descendants are appended to the results as a flat list.",
+                            "type": "boolean",
+                            "default": false,
+                            "required": false
+                        },
                         "include": {
                             "description": "Limit result set to specific IDs.",
                             "type": "array",

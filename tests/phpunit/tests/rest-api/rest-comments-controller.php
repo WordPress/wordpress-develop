@@ -213,6 +213,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'before',
 				'context',
 				'exclude',
+				'hierarchical',
 				'include',
 				'offset',
 				'order',
@@ -946,6 +947,312 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'parent_exclude', 'invalid' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Creates a comment tree on a dedicated post for the hierarchical tests.
+	 *
+	 * Structure (oldest first):
+	 *
+	 *     top_1
+	 *     ├── child_1
+	 *     │   └── grandchild_1
+	 *     └── child_2 (unapproved)
+	 *         └── grandchild_2
+	 *     top_2
+	 *     └── child_3
+	 *
+	 * @return array<string, int> Map of comment names to comment IDs, plus the post ID under `post`.
+	 */
+	private function create_comment_tree() {
+		$post_id = self::factory()->post->create();
+		$ids     = array( 'post' => $post_id );
+		$time    = strtotime( '2024-01-01 00:00:00' );
+
+		$tree = array(
+			'top_1'        => array( '', 1 ),
+			'child_1'      => array( 'top_1', 1 ),
+			'grandchild_1' => array( 'child_1', 1 ),
+			'child_2'      => array( 'top_1', 0 ),
+			'grandchild_2' => array( 'child_2', 1 ),
+			'top_2'        => array( '', 1 ),
+			'child_3'      => array( 'top_2', 1 ),
+		);
+
+		$i = 0;
+		foreach ( $tree as $name => list( $parent, $approved ) ) {
+			$date         = gmdate( 'Y-m-d H:i:s', $time + ( ++$i * MINUTE_IN_SECONDS ) );
+			$ids[ $name ] = self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => $post_id,
+					'comment_parent'   => $parent ? $ids[ $parent ] : 0,
+					'comment_approved' => $approved,
+					'comment_date'     => $date,
+					'comment_date_gmt' => $date,
+				)
+			);
+		}
+
+		return $ids;
+	}
+
+	/**
+	 * @ticket 41821
+	 */
+	public function test_get_items_hierarchical_defaults_to_false() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 'boolean', $data['endpoints'][0]['args']['hierarchical']['type'] );
+		$this->assertFalse( $data['endpoints'][0]['args']['hierarchical']['default'] );
+	}
+
+	/**
+	 * @ticket 41821
+	 */
+	public function test_get_items_without_hierarchical_returns_all_levels_without_overflow() {
+		$ids = $this->create_comment_tree();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $ids['post'] );
+		$request->set_param( 'per_page', 2 );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 2, $response->get_data(), 'Non-hierarchical requests should respect per_page.' );
+
+		$headers = $response->get_headers();
+		$this->assertSame( '6', $headers['X-WP-Total'], 'All approved comments should be counted, regardless of depth or parent status.' );
+	}
+
+	/**
+	 * @ticket 41821
+	 */
+	public function test_get_items_hierarchical_includes_descendants() {
+		$ids = $this->create_comment_tree();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $ids['post'] );
+		$request->set_param( 'hierarchical', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEqualSets(
+			array( $ids['top_1'], $ids['child_1'], $ids['grandchild_1'], $ids['top_2'], $ids['child_3'] ),
+			wp_list_pluck( $data, 'id' )
+		);
+
+		// The response is a flat list: each item carries its parent ID to rebuild the tree.
+		$parents = wp_list_pluck( $data, 'parent', 'id' );
+		$this->assertSame( 0, $parents[ $ids['top_1'] ] );
+		$this->assertSame( $ids['top_1'], $parents[ $ids['child_1'] ] );
+		$this->assertSame( $ids['child_1'], $parents[ $ids['grandchild_1'] ] );
+		$this->assertSame( $ids['top_2'], $parents[ $ids['child_3'] ] );
+		$this->assertArrayNotHasKey( 'children', $data[0], 'Descendants should not be nested.' );
+
+		$headers = $response->get_headers();
+		$this->assertSame( '2', $headers['X-WP-Total'], 'Only top-level comments should be counted.' );
+		$this->assertSame( '1', $headers['X-WP-TotalPages'] );
+	}
+
+	/**
+	 * @ticket 41821
+	 */
+	public function test_get_items_hierarchical_lists_top_level_comments_first() {
+		$ids = $this->create_comment_tree();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $ids['post'] );
+		$request->set_param( 'hierarchical', true );
+		$request->set_param( 'order', 'asc' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$found = wp_list_pluck( $response->get_data(), 'id' );
+		$this->assertSame( array( $ids['top_1'], $ids['top_2'] ), array_slice( $found, 0, 2 ) );
+	}
+
+	/**
+	 * @ticket 41821
+	 */
+	public function test_get_items_hierarchical_paginates_top_level_comments() {
+		$ids = $this->create_comment_tree();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $ids['post'] );
+		$request->set_param( 'hierarchical', true );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'per_page', 1 );
+
+		$response = rest_get_server()->dispatch( $request );
+		$headers  = $response->get_headers();
+
+		$this->assertSame(
+			array( $ids['top_1'], $ids['child_1'], $ids['grandchild_1'] ),
+			wp_list_pluck( $response->get_data(), 'id' ),
+			'The first page should contain the first top-level comment and its descendants, overflowing per_page.'
+		);
+		$this->assertSame( '2', $headers['X-WP-Total'] );
+		$this->assertSame( '2', $headers['X-WP-TotalPages'] );
+		$this->assertStringContainsString( 'page=2', $headers['Link'] );
+
+		$request->set_param( 'page', 2 );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame(
+			array( $ids['top_2'], $ids['child_3'] ),
+			wp_list_pluck( $response->get_data(), 'id' ),
+			'The second page should contain the second top-level comment and its descendants.'
+		);
+	}
+
+	/**
+	 * @ticket 41821
+	 */
+	public function test_get_items_hierarchical_out_of_bounds_page_counts_top_level_comments() {
+		$ids = $this->create_comment_tree();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $ids['post'] );
+		$request->set_param( 'hierarchical', true );
+		$request->set_param( 'per_page', 1 );
+		$request->set_param( 'page', 5 );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( array(), $response->get_data() );
+
+		$headers = $response->get_headers();
+		$this->assertSame( '2', $headers['X-WP-Total'] );
+		$this->assertSame( '2', $headers['X-WP-TotalPages'] );
+	}
+
+	/**
+	 * @ticket 41821
+	 */
+	public function test_get_items_hierarchical_with_parent() {
+		$ids = $this->create_comment_tree();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $ids['post'] );
+		$request->set_param( 'hierarchical', true );
+		$request->set_param( 'parent', $ids['top_1'] );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEqualSets(
+			array( $ids['child_1'], $ids['grandchild_1'] ),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+
+		$headers = $response->get_headers();
+		$this->assertSame( '1', $headers['X-WP-Total'], 'Only direct children of the parent should be counted.' );
+	}
+
+	/**
+	 * @ticket 41821
+	 */
+	public function test_get_items_hierarchical_with_multiple_parents_is_invalid() {
+		$ids = $this->create_comment_tree();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'hierarchical', true );
+		$request->set_param( 'parent', array( $ids['top_1'], $ids['top_2'] ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Unapproved descendants (and their replies) are hidden from users who
+	 * cannot see them, but returned to users who request them.
+	 *
+	 * @ticket 41821
+	 */
+	public function test_get_items_hierarchical_respects_comment_status() {
+		$ids = $this->create_comment_tree();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $ids['post'] );
+		$request->set_param( 'hierarchical', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$found = wp_list_pluck( $response->get_data(), 'id' );
+		$this->assertNotContains( $ids['child_2'], $found, 'Unapproved descendants should not be returned.' );
+		$this->assertNotContains( $ids['grandchild_2'], $found, 'Replies to unapproved descendants should not be returned.' );
+
+		wp_set_current_user( self::$admin_id );
+		$request->set_param( 'status', 'all' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$found = wp_list_pluck( $response->get_data(), 'id' );
+		$this->assertContains( $ids['child_2'], $found );
+		$this->assertContains( $ids['grandchild_2'], $found );
+	}
+
+	/**
+	 * @ticket 41821
+	 */
+	public function test_get_items_hierarchical_respects_fields_param() {
+		$ids = $this->create_comment_tree();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $ids['post'] );
+		$request->set_param( 'hierarchical', true );
+		$request->set_param( '_fields', 'id,parent' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$data = rest_get_server()->response_to_data( $response, false );
+		$this->assertCount( 5, $data );
+
+		foreach ( $data as $comment ) {
+			$this->assertSame( array( 'id', 'parent' ), array_keys( $comment ) );
+		}
+	}
+
+	/**
+	 * @ticket 41821
+	 */
+	public function test_get_items_hierarchical_head_request_counts_top_level_comments() {
+		$ids = $this->create_comment_tree();
+
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/comments' );
+		$request->set_param( 'post', $ids['post'] );
+		$request->set_param( 'hierarchical', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array(), $response->get_data() );
+
+		$headers = $response->get_headers();
+		$this->assertSame( '2', $headers['X-WP-Total'] );
+		$this->assertSame( '1', $headers['X-WP-TotalPages'] );
+	}
+
+	/**
+	 * @ticket 41821
+	 */
+	public function test_get_items_hierarchical_passes_flat_mode_to_comment_query() {
+		$ids  = $this->create_comment_tree();
+		$args = array();
+
+		add_filter(
+			'rest_comment_query',
+			static function ( $prepared_args ) use ( &$args ) {
+				$args = $prepared_args;
+				return $prepared_args;
+			}
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $ids['post'] );
+		$request->set_param( 'hierarchical', true );
+		rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 'flat', $args['hierarchical'] );
+		$this->assertSame( 0, $args['parent'] );
+		$this->assertArrayNotHasKey( 'parent__in', $args );
 	}
 
 	public function test_get_items_search_query() {
