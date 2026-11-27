@@ -71,7 +71,7 @@ class WP_Comment_Query {
 	/**
 	 * Date query container
 	 *
-	 * This is false unless the query has a `date_query` argument.
+	 * This is false until a query with a `date_query` argument runs.
 	 *
 	 * @since 3.7.0
 	 * @var WP_Date_Query|false A date query instance.
