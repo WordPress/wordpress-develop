@@ -591,6 +591,10 @@ function wpautop( $text, $br = true ) {
 	$text = preg_replace( '!<br />(\s*</?(?:p|li|div|dl|dd|dt|th|pre|td|ul|ol)[^>]*>)!', '$1', $text );
 	$text = preg_replace( "|\n</p>$|", '</p>', $text );
 
+	// If a link's opening or closing tag is wrapped in a <p> because it contains block elements, unwrap it.
+	$text = preg_replace( '!<p>\s*(<a(?:\s[^>]*)?>)\s*</p>(\s*<' . $allblocks . '[\s/>])!', '$1$2', $text );
+	$text = preg_replace( '!(</' . $allblocks . '>\s*)<p>\s*(</a>)\s*</p>!', '$1$2', $text );
+
 	// Replace placeholder <pre> tags with their original content.
 	if ( ! empty( $pre_tags ) ) {
 		$text = str_replace( array_keys( $pre_tags ), array_values( $pre_tags ), $text );
