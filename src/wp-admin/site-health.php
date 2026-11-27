@@ -232,6 +232,21 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 	?>
 
 <div class="health-check-body health-check-status-tab hide-if-no-js">
+	<div class="theme-check">
+		<h2>
+			<?php _e( 'Theme Status' ); ?>
+		</h2>
+
+		<?php
+		$active_theme = wp_get_theme();
+
+		if ( method_exists( $active_theme, 'is_block_theme' ) && $active_theme->is_block_theme() ) {
+			printf( esc_html__( 'The active theme is a block based theme.' ) );
+		} else {
+			printf( esc_html__( 'The active theme is not a block based theme.' ) );
+		}
+		?>
+	</div>
 	<div class="site-status-all-clear hide">
 		<p class="icon">
 			<span class="dashicons dashicons-smiley" aria-hidden="true"></span>
