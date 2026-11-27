@@ -967,6 +967,63 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test filtering abilities by the `open_world` annotation.
+	 *
+	 * The value is passed as a string, the way it arrives over the query string, so
+	 * this confirms the meta schema coerces it to a boolean before matching. An
+	 * ability that does not declare the annotation matches neither value.
+	 *
+	 * @ticket 66799
+	 */
+	public function test_filter_by_open_world_annotation(): void {
+		$abilities = array(
+			'test/open-world'    => true,
+			'test/bounded-world' => false,
+			'test/undeclared'    => null,
+		);
+
+		foreach ( $abilities as $name => $open_world ) {
+			$meta = array( 'show_in_rest' => true );
+			if ( null !== $open_world ) {
+				$meta['annotations'] = array( 'open_world' => $open_world );
+			}
+
+			$this->register_test_ability(
+				$name,
+				array(
+					'label'               => $name,
+					'description'         => 'Used to test filtering by the open world annotation.',
+					'category'            => 'general',
+					'execute_callback'    => '__return_true',
+					'permission_callback' => '__return_true',
+					'meta'                => $meta,
+				)
+			);
+		}
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'meta', array( 'annotations' => array( 'open_world' => 'true' ) ) );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/open-world', $names, 'An open world ability should match "true".' );
+		$this->assertNotContains( 'test/bounded-world', $names, 'A bounded ability should not match "true".' );
+		$this->assertNotContains( 'test/undeclared', $names, 'An ability without the annotation should not match "true".' );
+
+		$request->set_param( 'meta', array( 'annotations' => array( 'open_world' => 'false' ) ) );
+		$response = $this->server->dispatch( $request );
+		$names    = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/bounded-world', $names, 'A bounded ability should match "false".' );
+		$this->assertNotContains( 'test/open-world', $names, 'An open world ability should not match "false".' );
+		$this->assertNotContains( 'test/undeclared', $names, 'An ability without the annotation should not match "false".' );
+	}
+
+	/**
 	 * Test filtering abilities by several meta conditions at once.
 	 *
 	 * All conditions must match (AND logic).

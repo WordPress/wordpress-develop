@@ -251,6 +251,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `meta.public` property.
 	 * @since 7.2.0 Added the `required_capabilities` property.
+	 * @since 7.3.0 Added the `meta.annotations.open_world` property.
 	 *
 	 * @return array<string, mixed> Item schema data.
 	 */
@@ -325,6 +326,10 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 									'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
 									'type'        => array( 'boolean', 'null' ),
 								),
+								'open_world'  => array(
+									'description' => __( 'Whether the ability may interact with systems outside of the site, such as remote HTTP services or email recipients.' ),
+									'type'        => array( 'boolean', 'null' ),
+								),
 							),
 							'additionalProperties' => true,
 						),
@@ -348,6 +353,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `namespace` and `meta` parameters and the `rest_abilities_collection_params` filter.
 	 * @since 7.2.0 Added the `has_required_capabilities` parameter.
+	 * @since 7.3.0 Added the `open_world` annotation filter.
 	 *
 	 * @return array<string, mixed> Collection parameters.
 	 */
@@ -398,6 +404,10 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 							),
 							'idempotent'  => array(
 								'description' => __( 'Whether repeated calls with the same arguments have no additional effect.' ),
+								'type'        => array( 'boolean', 'null' ),
+							),
+							'open_world'  => array(
+								'description' => __( 'Whether the ability may interact with systems outside of the site, such as remote HTTP services or email recipients.' ),
 								'type'        => array( 'boolean', 'null' ),
 							),
 						),

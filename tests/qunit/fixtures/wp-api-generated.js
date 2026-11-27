@@ -12787,6 +12787,13 @@ mockedApiResponse.Schema = {
                                                 "boolean",
                                                 "null"
                                             ]
+                                        },
+                                        "open_world": {
+                                            "description": "Whether the ability may interact with systems outside of the site, such as remote HTTP services or email recipients.",
+                                            "type": [
+                                                "boolean",
+                                                "null"
+                                            ]
                                         }
                                     },
                                     "additionalProperties": true
