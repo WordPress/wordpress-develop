@@ -28,6 +28,61 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that a CDATA section at an integration point serializes as escaped text.
+	 *
+	 * At an integration point the NULL bytes of a CDATA section are removed,
+	 * which can leave a `]]>` in its text. Serializing that text in the CDATA
+	 * form would close the section early and turn the rest of the text into
+	 * markup when the output is parsed again.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_cdata_section_at_integration_point_serializes_as_escaped_text() {
+		$html       = "<svg><title><![CDATA[]]\0><b>bold</b>]]></title></svg>";
+		$normalized = WP_HTML_Processor::normalize( $html );
+
+		$this->assertSame(
+			'<svg><title>]]&gt;&lt;b&gt;bold&lt;/b&gt;</title></svg>',
+			$normalized,
+			'Should have serialized the CDATA section text as escaped text.'
+		);
+
+		$processor = WP_HTML_Processor::create_fragment( $normalized );
+		$tokens    = array();
+		while ( $processor->next_token() ) {
+			$tokens[] = array( $processor->get_token_name(), $processor->get_modifiable_text() );
+		}
+
+		$this->assertNull( $processor->get_last_error(), 'Should have parsed the serialized output without error.' );
+		$this->assertSame(
+			array(
+				array( 'SVG', '' ),
+				array( 'TITLE', '' ),
+				array( '#text', ']]><b>bold</b>' ),
+				array( 'TITLE', '' ),
+				array( 'SVG', '' ),
+			),
+			$tokens,
+			'Should have parsed the serialized CDATA text as one text node with no markup.'
+		);
+	}
+
+	/**
+	 * Ensures that a CDATA section in foreign content keeps its CDATA form when serialized.
+	 *
+	 * NULL bytes in foreign content become U+FFFD, so the closer cannot form in the text.
+	 *
+	 * @ticket 65967
+	 */
+	public function test_cdata_section_in_foreign_content_serializes_as_cdata() {
+		$this->assertSame(
+			"<svg><![CDATA[]]\u{FFFD}><b>bold</b>]]></svg>",
+			WP_HTML_Processor::normalize( "<svg><![CDATA[]]\0><b>bold</b>]]></svg>" ),
+			'Should have kept the CDATA form for a CDATA section in foreign content.'
+		);
+	}
+
+	/**
 	 * Ensures that unclosed elements are explicitly closed to ensure proper HTML isolation.
 	 *
 	 * When thinking about embedding HTML fragments into others, it's important that unclosed
