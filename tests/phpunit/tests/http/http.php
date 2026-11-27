@@ -433,6 +433,9 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				'url'           => 'https://example.com:81/caniload.php',
 				'cb_safe_ports' => 'callback_custom_safe_ports',
 			),
+			'a webcal url'                      => array(
+				'url' => 'webcal://example.com/caniload.php',
+			),
 		);
 	}
 
@@ -558,6 +561,103 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	public function callback_remove_safe_ports( $ports ) {
 		return array();
+	}
+
+	/**
+	 * @ticket 49385
+	 *
+	 * @covers ::wp_http_normalize_url
+	 */
+	public function test_wp_http_normalize_url_rewrites_webcal_to_https() {
+		$this->assertSame(
+			'https://example.com/feed.ics',
+			wp_http_normalize_url( 'webcal://example.com/feed.ics' )
+		);
+		$this->assertSame(
+			'https://example.com/feed.ics',
+			wp_http_normalize_url( 'WEBCAL://example.com/feed.ics' )
+		);
+		$this->assertSame(
+			'https://example.com/feed.ics',
+			wp_http_normalize_url( 'webcals://example.com/feed.ics' )
+		);
+	}
+
+	/**
+	 * @ticket 49385
+	 *
+	 * @covers ::wp_http_validate_url
+	 */
+	public function test_wp_http_validate_url_accepts_webcal_url() {
+		$url = 'webcal://example.com/caniload.php';
+		$this->assertSame( $url, wp_http_validate_url( $url ) );
+	}
+
+	/**
+	 * @ticket 49385
+	 *
+	 * @covers ::wp_http_validate_url
+	 */
+	public function test_wp_http_validate_url_still_rejects_ftp() {
+		$this->assertFalse( wp_http_validate_url( 'ftp://example.com/caniload.php' ) );
+	}
+
+	/**
+	 * @ticket 49385
+	 *
+	 * @covers ::wp_http_validate_url
+	 */
+	public function test_http_allowed_protocols_filter_runs_in_validate_url() {
+		$filter_ran = false;
+
+		add_filter(
+			'http_allowed_protocols',
+			function ( $protocols, $url ) use ( &$filter_ran ) {
+				$filter_ran = true;
+				$this->assertSame( 'http://example.com/caniload.php', $url );
+				return $protocols;
+			},
+			10,
+			2
+		);
+
+		wp_http_validate_url( 'http://example.com/caniload.php' );
+
+		$this->assertTrue( $filter_ran );
+	}
+
+	/**
+	 * @ticket 49385
+	 *
+	 * @covers ::wp_remote_get
+	 * @covers ::wp_http_normalize_url
+	 */
+	public function test_wp_remote_get_normalizes_webcal_url_before_request() {
+		$request_url = null;
+
+		add_filter(
+			'pre_http_request',
+			function ( $response, $parsed_args, $url ) use ( &$request_url ) {
+				$request_url = $url;
+				return array(
+					'headers'  => array(),
+					'body'     => '',
+					'response' => array(
+						'code'    => 200,
+						'message' => 'OK',
+					),
+					'cookies'  => array(),
+					'filename' => null,
+				);
+			},
+			10,
+			3
+		);
+
+		$result = wp_remote_get( 'webcal://example.com/feed.ics' );
+
+		$this->assertNotWPError( $result );
+		$this->assertSame( 'https://example.com/feed.ics', $request_url );
 	}
 
 	/**
