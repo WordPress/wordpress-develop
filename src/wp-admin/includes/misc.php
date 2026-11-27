@@ -1505,6 +1505,24 @@ function wp_page_reload_on_back_button_js() {
 }
 
 /**
+ * Prints font-face styles for theme fonts and style variation fonts on block editor screens.
+ *
+ * Other admin screens get no font-face styles.
+ *
+ * @since 7.3.0
+ */
+function wp_print_admin_block_editor_font_faces() {
+	$current_screen = get_current_screen();
+
+	if ( ! $current_screen || ! $current_screen->is_block_editor() ) {
+		return;
+	}
+
+	wp_print_font_faces();
+	wp_print_font_faces_from_style_variations();
+}
+
+/**
  * Sends a confirmation request email when a change of site admin email address is attempted.
  *
  * The new site admin address will not become active until confirmed.
