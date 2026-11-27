@@ -297,6 +297,14 @@ final class WpdbSelectParser {
 				continue;
 			}
 
+			// Unknown text outside any parentheses may join more tables, whose columns are not known.
+			if ( 0 === $depth && WpdbQueryVisitor::UNKNOWN === $text ) {
+				$tables[ WpdbQueryVisitor::UNKNOWN ] = array(
+					'name'     => null,
+					'nullable' => false,
+				);
+			}
+
 			$depth += self::get_depth_change( $text );
 		}
 
@@ -560,8 +568,9 @@ final class WpdbSelectParser {
 	/**
 	 * Splits a query into tokens, leaving out whitespace and comments.
 	 *
-	 * A table placeholder with name characters on either side of it, as in `{wpdb:posts}_archive`, is one token with
-	 * them, since together they name some other table.
+	 * A table placeholder with name characters or other placeholders on either side of it, as in
+	 * `{wpdb:posts}_archive` or `{wpdb:posts}{?}`, is one token with them, since together they may name some other
+	 * table.
 	 *
 	 * A literal is one token, including a number like `0x41` or `1e3`, and a string with a prefix, like `x'41'` or
 	 * `_utf8mb4'text'`. A name may start with digits, as in `1st`, but not be all digits.
@@ -572,7 +581,7 @@ final class WpdbSelectParser {
 	 */
 	private static function tokenize( string $query ): array {
 		preg_match_all(
-			'/\s+|--[^\n]*|\/\*.*?\*\/|\'(?:[^\'\\\\]|\\\\.|\'\')*\'|"(?:[^"\\\\]|\\\\.|"")*"|`[^`]*`|[\w$]*\{wpdb:\w+\}[\w$]*|\{[^{}]*\}|(?:[xXbBnN]|_[A-Za-z0-9]+)\'(?:[^\'\\\\]|\\\\.|\'\')*\'|0x[0-9a-fA-F]+(?![\w$])|\d+(?:\.\d+)?(?:[eE][-+]?\d+)?(?![\w$])|[\w$]+|<=>|[<>!]=|<>|\|\||&&|./s',
+			'/\s+|--[^\n]*|\/\*.*?\*\/|\'(?:[^\'\\\\]|\\\\.|\'\')*\'|"(?:[^"\\\\]|\\\\.|"")*"|`[^`]*`|(?:[\w$]|\{[^{}]*\})*\{wpdb:\w+\}(?:[\w$]|\{[^{}]*\})*|\{[^{}]*\}|(?:[xXbBnN]|_[A-Za-z0-9]+)\'(?:[^\'\\\\]|\\\\.|\'\')*\'|0x[0-9a-fA-F]+(?![\w$])|\d+(?:\.\d+)?(?:[eE][-+]?\d+)?(?![\w$])|[\w$]+|<=>|[<>!]=|<>|\|\||&&|./s',
 			$query,
 			$matches,
 			PREG_OFFSET_CAPTURE

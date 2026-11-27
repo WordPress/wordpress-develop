@@ -88,7 +88,7 @@ function wp_tests_wpdb_output( wpdb $wpdb, string $array_output, string $output 
 /**
  * The columns of core tables are typed from the schema.
  */
-function wp_tests_wpdb_schema( wpdb $wpdb ): void {
+function wp_tests_wpdb_schema( wpdb $wpdb, string $unknown ): void {
 	// Every column of the table, with those without `NOT NULL` nullable.
 	assertType( '(object{signup_id: decimal-int-string, domain: string, path: string, title: string, user_login: string, user_email: string, registered: non-falsy-string, activated: non-falsy-string, active: decimal-int-string, activation_key: string, meta: string|null}&stdClass)|null', $wpdb->get_row( "SELECT * FROM $wpdb->signups" ) );
 
@@ -103,6 +103,12 @@ function wp_tests_wpdb_schema( wpdb $wpdb ): void {
 
 	// A core table name extended by more text is another table.
 	assertType( '(object{ID: string|null, extra: string|null}&stdClass)|null', $wpdb->get_row( "SELECT ID, extra FROM {$wpdb->posts}_archive" ) );
+	assertType( '(object{ID: string|null}&stdClass)|null', $wpdb->get_row( "SELECT ID FROM {$wpdb->posts}{$unknown}" ) );
+
+	// Unknown text in the `FROM` clause may join more tables, whose columns `*` would include.
+	assertType( 'array<mixed>|null', $wpdb->get_row( "SELECT * FROM $wpdb->terms $unknown WHERE 1=1", ARRAY_A ) );
+	assertType( 'array{term_id: decimal-int-string, name: string, slug: string, term_group: decimal-int-string}|null', $wpdb->get_row( "SELECT t.* FROM $wpdb->terms t $unknown WHERE 1=1", ARRAY_A ) );
+	assertType( 'array{name: string}|null', $wpdb->get_row( "SELECT name FROM $wpdb->terms $unknown WHERE 1=1", ARRAY_A ) );
 }
 
 /**
