@@ -81,7 +81,10 @@ if ( ! isset( $current_site ) || ! isset( $current_blog ) ) {
 	} elseif ( false === $bootstrap_result ) {
 		ms_not_installed( $domain, $path );
 	} else {
-		header( 'Location: ' . $bootstrap_result );
+		// Headers may already be sent, e.g. by wp-cron.php calling fastcgi_finish_request().
+		if ( ! headers_sent() ) {
+			header( 'Location: ' . $bootstrap_result );
+		}
 		exit;
 	}
 	unset( $bootstrap_result );
