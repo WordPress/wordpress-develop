@@ -465,6 +465,9 @@ function wp_deregister_script( $handle ) {
  *                                       in the footer. A script that is not deferred should import them once
  *                                       the document has been parsed, so that their translations are available.
  * }
+ * @param array            $attr   Optional. Custom attributes to add to the script tag. Allowed attributes:
+ *                                 'async', 'crossorigin', 'defer', 'integrity', 'nonce', 'referrerpolicy', 'type'.
+ *                                 Default empty array.
  *
  * @phpstan-param non-empty-string $handle
  * @phpstan-param string $src
@@ -476,7 +479,7 @@ function wp_deregister_script( $handle ) {
  *     module_dependencies?: array<non-empty-string|array{ id: non-empty-string, ... }>,
  * }|bool $args
  */
-function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array() ) {
+function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array(), $attr = array() ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
 	$wp_scripts = wp_scripts();
@@ -491,7 +494,7 @@ function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $
 		}
 
 		if ( $src ) {
-			$wp_scripts->add( $_handle[0], $src, $deps, $ver );
+			$wp_scripts->add( $_handle[0], $src, $deps, $ver, null, $attr );
 		}
 		if ( ! empty( $args ) ) {
 			_wp_scripts_add_args_data( $wp_scripts, $_handle[0], $args );
