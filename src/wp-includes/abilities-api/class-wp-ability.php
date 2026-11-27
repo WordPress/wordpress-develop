@@ -936,15 +936,23 @@ class WP_Ability {
 	}
 
 	/**
-	 * Validates output data against the output schema.
+	 * Validates output data against the output schema after execution.
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `wp_ability_validate_output` filter.
+	 * @since 7.3.0 Clarifies that execution completed when output validation fails.
 	 *
 	 * @param mixed $output The output data to validate.
 	 * @return true|WP_Error Returns true if valid, or a WP_Error object if validation fails.
 	 */
 	protected function validate_output( $output ) {
+		$annotations = $this->get_meta_item( 'annotations' );
+		$message     = is_array( $annotations ) && true === ( $annotations['readonly'] ?? null )
+			/* translators: 1: Ability name, 2: Output validation error. */
+			? __( 'Ability "%1$s" returned a result that failed validation. Reason: %2$s' )
+			/* translators: 1: Ability name, 2: Output validation error. */
+			: __( 'Ability "%1$s" ran, but its result failed validation. The requested action may already have taken effect. Check the outcome before retrying. Reason: %2$s' );
+
 		$output_schema = $this->get_output_schema();
 		if ( empty( $output_schema ) ) {
 			$is_valid = true;
@@ -952,10 +960,9 @@ class WP_Ability {
 			$valid_output = rest_validate_value_from_schema( $output, $output_schema, 'output' );
 			if ( is_wp_error( $valid_output ) ) {
 				$is_valid = new WP_Error(
-					'ability_invalid_output',
+					'ability_output_schema_mismatch',
 					sprintf(
-						/* translators: %1$s ability name, %2$s error message. */
-						__( 'Ability "%1$s" has invalid output. Reason: %2$s' ),
+						$message,
 						$this->name,
 						$valid_output->get_error_message()
 					)
@@ -974,6 +981,10 @@ class WP_Ability {
 		 * override it. If default validation passed, the filter can add additional
 		 * validation checks and return a WP_Error if those checks fail.
 		 *
+		 * Schema errors use the `ability_output_schema_mismatch` code and include execution context.
+		 * A filter returning false uses `ability_output_rejected`. For abilities that are not read-only,
+		 * both errors include retry guidance. Custom errors returned by the filter are passed through unchanged.
+		 *
 		 * @since 7.1.0
 		 *
 		 * @param true|WP_Error $is_valid     The validation result from default validation.
@@ -982,7 +993,10 @@ class WP_Ability {
 		 */
 		$validity = apply_filters( 'wp_ability_validate_output', $is_valid, $output, $this->name );
 		if ( false === $validity ) {
-			return new WP_Error( 'ability_invalid_output', __( 'Invalid output.' ) );
+			return new WP_Error(
+				'ability_output_rejected',
+				sprintf( $message, $this->name, __( 'Not specified.' ) )
+			);
 		}
 		if ( is_wp_error( $validity ) && $validity->has_errors() ) {
 			return $validity;

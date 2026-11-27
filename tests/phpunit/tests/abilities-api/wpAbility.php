@@ -1829,12 +1829,13 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests wp_ability_validate_output filter receives WP_Error on validation failure.
+	 * Tests wp_ability_validate_output filter receives execution context on validation failure.
 	 *
 	 * @ticket 64311
 	 */
 	public function test_validate_output_filter_receives_error_on_invalid_output() {
-		$error_code = null;
+		$received_error   = null;
+		$received_message = null;
 
 		$args = array_merge(
 			self::$test_ability_properties,
@@ -1851,45 +1852,10 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_ability_validate_output',
-			static function ( $is_valid ) use ( &$error_code ) {
-				if ( is_wp_error( $is_valid ) ) {
-					$error_code = $is_valid->get_error_code();
-				}
+			static function ( $is_valid ) use ( &$received_error, &$received_message ) {
+				$received_error   = $is_valid;
+				$received_message = $is_valid->get_error_message();
 				return $is_valid;
-			},
-			10,
-			1
-		);
-
-		$ability = new WP_Ability( self::$test_ability_name, $args );
-		$ability->execute();
-
-		$this->assertSame( 'ability_invalid_output', $error_code );
-	}
-
-	/**
-	 * Tests wp_ability_validate_output filter can replace error with custom error.
-	 *
-	 * @ticket 64311
-	 */
-	public function test_validate_output_filter_replaces_error_with_custom() {
-		$args = array_merge(
-			self::$test_ability_properties,
-			array(
-				'output_schema'    => array(
-					'type'        => 'string',
-					'description' => 'The result string.',
-				),
-				'execute_callback' => static function (): int {
-					return 42;
-				},
-			)
-		);
-
-		add_filter(
-			'wp_ability_validate_output',
-			static function () {
-				return new WP_Error( 'custom_output_error', 'Custom output message.' );
 			},
 			10,
 			1
@@ -1898,8 +1864,32 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
 
-		$this->assertWPError( $result );
-		$this->assertSame( 'custom_output_error', $result->get_error_code() );
+		$this->assertWPError( $received_error );
+		$this->assertSame( 'ability_output_schema_mismatch', $received_error->get_error_code() );
+		$this->assertSame( 'Ability "test/calculator" returned a result that failed validation. Reason: output is not of type string.', $received_message );
+		$this->assertSame( $received_error, $result );
+	}
+
+	/**
+	 * Custom output errors are returned unchanged.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_output_filter_replaces_error_with_custom() {
+		$original = new WP_Error( 'custom_output_error', 'Rejected.', array( 'status' => 422 ) );
+		add_filter(
+			'wp_ability_validate_output',
+			static function () use ( $original ) {
+				return $original;
+			}
+		);
+
+		$args                          = self::$test_ability_properties;
+		$args['output_schema']['type'] = 'string';
+		$ability                       = new WP_Ability( self::$test_ability_name, $args );
+		$result                        = $ability->execute();
+
+		$this->assertSame( $original, $result );
 	}
 
 	/**
@@ -2917,5 +2907,41 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability = $this->create_custom_class_ability( $this->get_properties_with_required_capabilities( array( 'manage_options' ) ) );
 
 		$this->assertTrue( $ability->check_permissions() );
+	}
+
+	/**
+	 * A filter rejection includes retry guidance unless the ability is explicitly read-only.
+	 *
+	 * @ticket 66433
+	 * @dataProvider data_output_retry_guidance
+	 *
+	 * @param bool|null $is_readonly The normalized read-only annotation.
+	 * @param string    $expected    Expected error message.
+	 */
+	public function test_output_retry_guidance( $is_readonly, $expected ) {
+		add_filter( 'wp_ability_validate_output', '__return_false' );
+		$args                                    = self::$test_ability_properties;
+		$args['meta']['annotations']['readonly'] = $is_readonly;
+		$ability                                 = new WP_Ability( self::$test_ability_name, $args );
+
+		$result = $ability->execute();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_output_rejected', $result->get_error_code() );
+		$this->assertSame( $expected, $result->get_error_message() );
+	}
+
+	/**
+	 * @return array[] Read-only annotations and their expected messages.
+	 */
+	public static function data_output_retry_guidance() {
+		$readonly_message = 'Ability "test/calculator" returned a result that failed validation. Reason: Not specified.';
+		$write_message    = 'Ability "test/calculator" ran, but its result failed validation. The requested action may already have taken effect. Check the outcome before retrying. Reason: Not specified.';
+
+		return array(
+			'read-only'     => array( true, $readonly_message ),
+			'not read-only' => array( false, $write_message ),
+			'default'       => array( null, $write_message ),
+		);
 	}
 }
