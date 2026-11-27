@@ -1602,43 +1602,6 @@ div.action-links,
 
 .plugin-card .notice.plugin-dependencies {
 	margin: auto 20px 20px;
-	padding: 15px;
-}
-
-.plugin-card .plugin-dependencies-explainer-text {
-	margin-block: 0;
-}
-
-.plugin-card .plugin-dependency {
-	align-items: center;
-	display: flex;
-	flex-wrap: wrap;
-	margin-top: 0.5em;
-	column-gap: 1%;
-	row-gap: 0.5em;
-}
-
-.plugin-card .plugin-dependency:nth-child(2),
-.plugin-card .plugin-dependency:last-child {
-	margin-top: 1em;
-}
-
-.plugin-card .plugin-dependency-name {
-	flex-basis: 74%;
-}
-
-.plugin-card .plugin-dependency .more-details-link {
-	margin-left: auto;
-}
-
-.rtl .plugin-card .plugin-dependency .more-details-link {
-	margin-right: auto;
-}
-
-@media (max-width: 939px) {
-	.plugin-card .plugin-dependency-name {
-		flex-basis: 69%;
-	}
 }
 
 .plugins #the-list .required-by,
