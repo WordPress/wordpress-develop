@@ -170,15 +170,6 @@ switch ( $action ) {
 			do_action( 'edit_user_profile_update', $user_id );
 		}
 
-		// Update the email address in signups, if present.
-		if ( is_multisite() ) {
-			$user = get_userdata( $user_id );
-
-			if ( $user->user_login && isset( $_POST['email'] ) && is_email( $_POST['email'] ) && $wpdb->get_var( $wpdb->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", $user->user_login ) ) ) {
-				$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $_POST['email'], $user_login ) );
-			}
-		}
-
 		// Update the user.
 		$errors = edit_user( $user_id );
 
@@ -191,6 +182,13 @@ switch ( $action ) {
 		}
 
 		if ( ! is_wp_error( $errors ) ) {
+			// Update the email address in signups, if present.
+			if ( is_multisite() ) {
+				$user = get_userdata( $user_id );
+
+				$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $user->user_email, $user->user_login ) );
+			}
+
 			$redirect = add_query_arg( 'updated', true, get_edit_user_link( $user_id ) );
 			if ( $wp_http_referer ) {
 				$redirect = add_query_arg( 'wp_http_referer', urlencode( $wp_http_referer ), $redirect );
