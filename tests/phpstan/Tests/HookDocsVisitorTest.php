@@ -11,6 +11,7 @@ namespace WordPress\PHPStan\Tests;
 
 use PhpParser\Comment\Doc;
 use PhpParser\Node\Expr\FuncCall;
+use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
@@ -77,6 +78,8 @@ final class HookDocsVisitorTest extends TestCase {
 
 		/** This filter is documented in wp-includes/canonical.php */
 		$value = apply_filters( 'referenced', $value );
+
+		$callback( 'dynamic_call', $value );
 		PHP;
 
 		$this->assertSame(
@@ -92,6 +95,7 @@ final class HookDocsVisitorTest extends TestCase {
 				'in_argument'         => 'Inner argument docblock.',
 				'sibling_argument'    => 'Argument docblock.',
 				'referenced'          => 'This filter is documented in wp-includes/canonical.php',
+				'dynamic_call'        => null,
 			),
 			self::attached_docblocks( $code )
 		);
@@ -137,7 +141,7 @@ final class HookDocsVisitorTest extends TestCase {
 		$result = array();
 		foreach ( ( new NodeFinder() )->findInstanceOf( $stmts, FuncCall::class ) as $call ) {
 			$args = $call->getArgs();
-			if ( ! isset( $args[0] ) || ! $args[0]->value instanceof String_ || 'wp_tests_fn' === (string) $call->name ) {
+			if ( ! isset( $args[0] ) || ! $args[0]->value instanceof String_ || ( $call->name instanceof Name && 'wp_tests_fn' === $call->name->toString() ) ) {
 				continue;
 			}
 
