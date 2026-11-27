@@ -1,7 +1,7 @@
 <?php
 /**
  * The plugin API is located in this file, which allows for creating actions
- * and filters and hooking functions, and methods. The functions or methods will
+ * and filters and hooking functionsand methods. The functions or methods will
  * then be run when the action or filter is called.
  *
  * The API callback examples reference functions, but can be methods of classes.
