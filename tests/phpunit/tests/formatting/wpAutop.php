@@ -660,4 +660,71 @@ line 2<br/>
 
 		$this->assertSameIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
+
+	/**
+	 * wpautop() should not wrap a paragraph that is only an HTML comment.
+	 *
+	 * @ticket 2691
+	 * @dataProvider data_html_comments
+	 *
+	 * @param string $input    Content to pass to wpautop().
+	 * @param string $expected Expected output.
+	 */
+	public function test_html_comments( $input, $expected ) {
+		$this->assertSame( $expected, wpautop( $input ) );
+	}
+
+	/**
+	 * Data provider for test_html_comments().
+	 *
+	 * @return array[]
+	 */
+	public static function data_html_comments() {
+		return array(
+			'standalone comment'                        => array(
+				"foo\n\n<!-- comment -->\n\nbar",
+				"<p>foo</p>\n<!-- comment -->\n<p>bar</p>\n",
+			),
+			'standalone multi-line comment'             => array(
+				"foo\n\n<!-- multi\nline\ncomment -->\n\nbar",
+				"<p>foo</p>\n<!-- multi\nline\ncomment -->\n<p>bar</p>\n",
+			),
+			'comment only'                              => array(
+				'<!-- comment -->',
+				"<!-- comment -->\n",
+			),
+			'two standalone comments'                   => array(
+				"<!-- one -->\n\n<!-- two -->",
+				"<!-- one -->\n<!-- two -->\n",
+			),
+			'CDATA-like comment'                        => array(
+				"foo\n\n<!--[CDATA[ data ]]-->\n\nbar",
+				"<p>foo</p>\n<!--[CDATA[ data ]]-->\n<p>bar</p>\n",
+			),
+			'more tag'                                  => array(
+				"foo\n\n<!--more-->\n\nbar",
+				"<p>foo</p>\n<!--more-->\n<p>bar</p>\n",
+			),
+			'text between two comments'                 => array(
+				'<!-- one --> text <!-- two -->',
+				"<p><!-- one --> text <!-- two --></p>\n",
+			),
+			'two adjacent comments'                     => array(
+				'<!-- one --><!-- two -->',
+				"<p><!-- one --><!-- two --></p>\n",
+			),
+			'comment followed by text on the next line' => array(
+				"<!-- comment -->\ntext",
+				"<p><!-- comment --><br />\ntext</p>\n",
+			),
+			'inline comment'                            => array(
+				"foo\n<!-- comment -->\nbar",
+				"<p>foo<br />\n<!-- comment --><br />\nbar</p>\n",
+			),
+			'comment inside existing paragraph'         => array(
+				'<p><!-- comment -->text</p>',
+				"<p><!-- comment -->text</p>\n",
+			),
+		);
+	}
 }

@@ -544,7 +544,19 @@ function wpautop( $text, $br = true ) {
 
 	// Rebuild the content as a string, wrapping every bit with a <p>.
 	foreach ( $paragraphs as $paragraph ) {
-		$text .= '<p>' . trim( $paragraph, "\n" ) . "</p>\n";
+		$paragraph = trim( $paragraph, "\n" );
+
+		// Newlines inside comments are placeholders at this point, put them back to check the comment.
+		$unescaped = trim( str_replace( array( ' <!-- wpnl --> ', '<!-- wpnl -->' ), "\n", $paragraph ) );
+
+		// Leave paragraphs that are a single HTML comment unwrapped.
+		if ( str_starts_with( $unescaped, '<!--' ) && strpos( $unescaped, '-->' ) === strlen( $unescaped ) - 3 ) {
+			// The placeholder keeps the trailing newline from being turned into a <br />.
+			$text .= $paragraph . '<!-- wpnl -->';
+			continue;
+		}
+
+		$text .= '<p>' . $paragraph . "</p>\n";
 	}
 
 	// Under certain strange conditions it could create a P of entirely whitespace.
