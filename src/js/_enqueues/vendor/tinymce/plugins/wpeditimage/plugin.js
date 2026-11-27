@@ -193,6 +193,20 @@ tinymce.PluginManager.add( 'wpeditimage', function( editor ) {
 				width = c.match( /width="([0-9]*)"/ );
 				width = ( width && width[1] ) ? width[1] : '';
 
+				if ( ! width ) {
+					width = b.match( /style="[^"]*width:\s*([0-9]+)px/ );
+
+					if ( width && width[1] ) {
+						width = parseInt( width[1], 10 );
+
+						if ( ! editor.getParam( 'wpeditimage_html5_captions' ) ) {
+							width -= 10;
+						}
+
+						width = width > 0 ? width : '';
+					}
+				}
+
 				classes = b.match( /class="([^"]*)"/ );
 				classes = ( classes && classes[1] ) ? classes[1] : '';
 				align = classes.match( /align[a-z]+/i ) || 'alignnone';
