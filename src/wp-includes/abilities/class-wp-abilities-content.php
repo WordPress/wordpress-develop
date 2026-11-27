@@ -334,8 +334,9 @@ final class WP_Abilities_Content {
 	 * others. A parent must be a post the current user can read, of a type exposed to
 	 * abilities; a missing post is refused the same way, so the refusal never tells whether a
 	 * post exists. The slug of a post that will be pending needs the capability to publish the
-	 * post. A value that keeps the stored one needs none of these. Every other rule on these
-	 * attributes is checked by the execute callbacks.
+	 * post. A value that keeps the stored one needs none of these, see
+	 * {@see self::get_changed_data()}. Every other rule on these attributes is checked by the
+	 * execute callbacks.
 	 *
 	 * @since 7.3.0
 	 *
@@ -345,6 +346,8 @@ final class WP_Abilities_Content {
 	 * @return bool True if the user may set the sent attributes, false otherwise.
 	 */
 	private function can_set_attributes( array $data, WP_Post_Type $post_type_object, ?WP_Post $post ): bool {
+		$data = $this->get_changed_data( $data, $post );
+
 		if ( array_key_exists( 'status', $data ) ) {
 			$status = $data['status'];
 			if ( ! is_string( $status ) ) {
@@ -358,8 +361,7 @@ final class WP_Abilities_Content {
 			$status_object = get_post_status_object( $status );
 			$makes_visible = $status_object instanceof stdClass
 				&& ( 'future' === $status || ! empty( $status_object->public ) || ! empty( $status_object->private ) || is_post_status_viewable( $status_object ) );
-			$is_unchanged  = $post && $post->post_status === $status;
-			if ( $makes_visible && ! $is_unchanged && ! current_user_can( $post_type_object->cap->publish_posts ) ) {
+			if ( $makes_visible && ! current_user_can( $post_type_object->cap->publish_posts ) ) {
 				return false;
 			}
 		}
@@ -370,8 +372,7 @@ final class WP_Abilities_Content {
 				return false;
 			}
 
-			$is_unchanged = $post && (int) $post->post_author === $author_id;
-			if ( ! $is_unchanged && get_current_user_id() !== $author_id && ! current_user_can( $post_type_object->cap->edit_others_posts ) ) {
+			if ( get_current_user_id() !== $author_id && ! current_user_can( $post_type_object->cap->edit_others_posts ) ) {
 				return false;
 			}
 		}
@@ -383,8 +384,7 @@ final class WP_Abilities_Content {
 				return false;
 			}
 
-			$is_unchanged = $post && (int) $post->post_parent === $parent_id;
-			if ( ! $is_unchanged && 0 !== $parent_id ) {
+			if ( 0 !== $parent_id ) {
 				$parent = get_post( $parent_id );
 				if ( ! $parent instanceof WP_Post || ! $this->check_read_permission( $parent ) ) {
 					return false;
@@ -393,9 +393,8 @@ final class WP_Abilities_Content {
 		}
 
 		if ( array_key_exists( 'slug', $data ) ) {
-			// Without a sent status, the save keeps the stored status, or defaults to `draft`.
-			$status       = $data['status'] ?? ( $post ? $post->post_status : 'draft' );
-			$is_unchanged = $post && $post->post_name === $data['slug'];
+			// Without a changed status, the save keeps the stored status, or defaults to `draft`.
+			$status = $data['status'] ?? ( $post ? $post->post_status : 'draft' );
 
 			/*
 			 * Intentionally strict: the save drops the slug of a pending post when the user
@@ -403,7 +402,7 @@ final class WP_Abilities_Content {
 			 * notice. The stored slug sent back is accepted as unchanged, although the save
 			 * still drops it.
 			 */
-			if ( 'pending' === $status && ! $is_unchanged ) {
+			if ( 'pending' === $status ) {
 				$can_publish = $post
 					? current_user_can( 'publish_post', $post->ID )
 					: current_user_can( $post_type_object->cap->publish_posts );
@@ -414,6 +413,47 @@ final class WP_Abilities_Content {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Removes the sent `status`, `author`, `parent` and `slug` that keep their stored values.
+	 *
+	 * Keeping a stored value, also the empty slug of a draft, changes nothing, so it needs no
+	 * capability and is not checked or saved again. The IDs are read with
+	 * {@see self::parse_filter_int()}, as the permission callbacks read them. On create,
+	 * nothing is stored, so the data is returned as given.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $data The `data` input.
+	 * @param WP_Post|null $post The stored post on update, or null on create.
+	 * @return array<mixed> The `data` input without the attributes that keep their stored values.
+	 */
+	private function get_changed_data( array $data, ?WP_Post $post ): array {
+		if ( ! $post ) {
+			return $data;
+		}
+
+		$stored = array(
+			'status' => $post->post_status,
+			'author' => (int) $post->post_author,
+			'parent' => (int) $post->post_parent,
+			'slug'   => $post->post_name,
+		);
+
+		foreach ( $stored as $attribute => $stored_value ) {
+			if ( ! array_key_exists( $attribute, $data ) ) {
+				continue;
+			}
+
+			// An author ID is at least 1, a parent ID at least 0.
+			$value = is_int( $stored_value ) ? $this->parse_filter_int( $data[ $attribute ], 'author' === $attribute ? 1 : 0 ) : $data[ $attribute ];
+			if ( $stored_value === $value ) {
+				unset( $data[ $attribute ] );
+			}
+		}
+
+		return $data;
 	}
 
 	/**
@@ -1105,37 +1145,31 @@ final class WP_Abilities_Content {
 	private function prepare_post_data( array $data, WP_Post_Type $post_type_object, ?WP_Post $post ) {
 		$post_type = $post_type_object->name;
 
+		// Checked first, since an attribute that cannot be stored is refused even when unchanged.
 		$error = $this->check_supported_attributes( $data, $post_type );
 		if ( $error ) {
 			return $error;
 		}
 
-		$postarr     = array();
-		$text_fields = array(
-			'title'   => 'post_title',
-			'content' => 'post_content',
-			'excerpt' => 'post_excerpt',
-		);
-
-		foreach ( $text_fields as $attribute => $field ) {
-			if ( array_key_exists( $attribute, $data ) ) {
-				$postarr[ $field ] = $data[ $attribute ];
-			}
-		}
+		$data = $this->get_changed_data( $data, $post );
 
 		/*
-		 * Each step returns the post fields to save, or the error of its first rule that fails.
-		 * The date reads the status that is set, and the slug the status and parent the post
-		 * will have, so they run after the steps that set them.
+		 * Each step runs only for a sent attribute, and returns the post fields to save, or
+		 * the error of its first rule that fails. The date reads the status that is set, and
+		 * the slug the status and parent the post will have, so they run after the steps that
+		 * set them.
 		 */
 		$steps = array(
-			fn( array $postarr ) => $this->prepare_status( $data, $post ),
-			fn( array $postarr ) => $this->prepare_author( $data, $post ),
-			fn( array $postarr ) => $this->prepare_parent( $data, $post_type, $post ),
-			fn( array $postarr ) => $this->prepare_date( $data, $post, $postarr['post_status'] ?? null ),
-			// Without a sent status, the save keeps the stored status, or defaults to `draft`.
-			fn( array $postarr ) => $this->prepare_slug(
-				$data,
+			'title'   => fn() => array( 'post_title' => $data['title'] ),
+			'content' => fn() => array( 'post_content' => $data['content'] ),
+			'excerpt' => fn() => array( 'post_excerpt' => $data['excerpt'] ),
+			'status'  => fn() => array( 'post_status' => $data['status'] ),
+			'author'  => fn() => $this->prepare_author( $data['author'] ),
+			'parent'  => fn() => $this->prepare_parent( $data['parent'], $post_type, $post ),
+			'date'    => fn( array $postarr ) => $this->prepare_date( $data['date'], $post, $postarr['post_status'] ?? null ),
+			// Without a changed status, the save keeps the stored status, or defaults to `draft`.
+			'slug'    => fn( array $postarr ) => $this->prepare_slug(
+				$data['slug'],
 				$post_type_object,
 				$post,
 				$postarr['post_status'] ?? ( $post ? $post->post_status : 'draft' ),
@@ -1143,7 +1177,12 @@ final class WP_Abilities_Content {
 			),
 		);
 
-		foreach ( $steps as $step ) {
+		$postarr = array();
+		foreach ( $steps as $attribute => $step ) {
+			if ( ! array_key_exists( $attribute, $data ) ) {
+				continue;
+			}
+
 			$fields = $step( $postarr );
 			if ( is_wp_error( $fields ) ) {
 				return $fields;
@@ -1164,13 +1203,16 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Rejects the sent attributes that the post type does not support.
+	 * Rejects the sent attributes that cannot be stored.
+	 *
+	 * These are the attributes that the post type does not support, and a status that is not
+	 * registered or is internal.
 	 *
 	 * @since 7.3.0
 	 *
 	 * @param array<mixed> $data      The `data` input.
 	 * @param string       $post_type The post type name.
-	 * @return WP_Error|null The error for the first unsupported attribute, or null.
+	 * @return WP_Error|null The error for the first attribute that cannot be stored, or null.
 	 */
 	private function check_supported_attributes( array $data, string $post_type ): ?WP_Error {
 		/*
@@ -1197,41 +1239,19 @@ final class WP_Abilities_Content {
 			return $this->invalid_attribute_error( 'data[parent]', __( 'The parent attribute is only supported for hierarchical post types.' ) );
 		}
 
-		return null;
-	}
-
-	/**
-	 * Checks the sent `status` and returns the field to save.
-	 *
-	 * @since 7.3.0
-	 *
-	 * @param array<mixed> $data The `data` input.
-	 * @param WP_Post|null $post The stored post on update, or null on create.
-	 * @return array<string, string>|WP_Error The status field, empty when no status is sent or it is unchanged, or a WP_Error.
-	 */
-	private function prepare_status( array $data, ?WP_Post $post ) {
-		if ( ! array_key_exists( 'status', $data ) ) {
-			return array();
-		}
-
-		$status        = $data['status'];
-		$status_object = get_post_status_object( $status );
-
 		/*
 		 * Intentionally strict: a status that is not registered is an error and is never
 		 * replaced by another status. Internal statuses, such as `trash`, can never be set,
 		 * not even when the post already has them.
 		 */
-		if ( ! $status_object instanceof stdClass || ! empty( $status_object->internal ) ) {
-			return $this->invalid_attribute_error( 'data[status]', __( 'The status must be a registered post status that is not internal.' ) );
+		if ( array_key_exists( 'status', $data ) ) {
+			$status_object = get_post_status_object( $data['status'] );
+			if ( ! $status_object instanceof stdClass || ! empty( $status_object->internal ) ) {
+				return $this->invalid_attribute_error( 'data[status]', __( 'The status must be a registered post status that is not internal.' ) );
+			}
 		}
 
-		// Keeping the stored status changes nothing.
-		if ( $post && $post->post_status === $status ) {
-			return array();
-		}
-
-		return array( 'post_status' => $status );
+		return null;
 	}
 
 	/**
@@ -1242,22 +1262,10 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param array<mixed> $data The `data` input.
-	 * @param WP_Post|null $post The stored post on update, or null on create.
-	 * @return array<string, int>|WP_Error The author field, empty when no author is sent or it is unchanged, or a WP_Error.
+	 * @param int $author_id The sent `author`, which differs from the stored one.
+	 * @return array<string, int>|WP_Error The author field, or a WP_Error.
 	 */
-	private function prepare_author( array $data, ?WP_Post $post ) {
-		if ( ! array_key_exists( 'author', $data ) ) {
-			return array();
-		}
-
-		$author_id = $data['author'];
-
-		// Keeping the stored author changes nothing.
-		if ( $post && (int) $post->post_author === $author_id ) {
-			return array();
-		}
-
+	private function prepare_author( $author_id ) {
 		if ( get_current_user_id() === $author_id ) {
 			return array( 'post_author' => $author_id );
 		}
@@ -1278,23 +1286,12 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param array<mixed> $data      The `data` input.
+	 * @param int          $parent_id The sent `parent`, which differs from the stored one.
 	 * @param string       $post_type The post type name.
 	 * @param WP_Post|null $post      The stored post on update, or null on create.
-	 * @return array<string, int>|WP_Error The parent field, empty when no parent is sent or it is unchanged, or a WP_Error.
+	 * @return array<string, int>|WP_Error The parent field, or a WP_Error.
 	 */
-	private function prepare_parent( array $data, string $post_type, ?WP_Post $post ) {
-		if ( ! array_key_exists( 'parent', $data ) ) {
-			return array();
-		}
-
-		$parent_id = $data['parent'];
-
-		// Keeping the stored parent changes nothing.
-		if ( $post && (int) $post->post_parent === $parent_id ) {
-			return array();
-		}
-
+	private function prepare_parent( $parent_id, string $post_type, ?WP_Post $post ) {
 		if ( 0 === $parent_id ) {
 			return array( 'post_parent' => 0 );
 		}
@@ -1327,17 +1324,12 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param array<mixed> $data   The `data` input.
+	 * @param array<mixed> $date   The sent `date`.
 	 * @param WP_Post|null $post   The stored post on update, or null on create.
 	 * @param string|null  $status The status to set, or null when none is sent or it is unchanged.
 	 * @return array<string, mixed> The date fields to save, empty for none.
 	 */
-	private function prepare_date( array $data, ?WP_Post $post, ?string $status ): array {
-		if ( ! array_key_exists( 'date', $data ) ) {
-			return array();
-		}
-
-		$date  = $data['date'];
+	private function prepare_date( array $date, ?WP_Post $post, ?string $status ): array {
 		$dates = isset( $date['site'] ) ? rest_get_date_with_gmt( $date['site'] ) : rest_get_date_with_gmt( $date['gmt'], true );
 
 		$fields = array(
@@ -1382,24 +1374,15 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.3.0
 	 *
-	 * @param array<mixed> $data             The `data` input.
+	 * @param string       $slug             The sent `slug`, which differs from the stored one.
 	 * @param WP_Post_Type $post_type_object The post type of the post being written.
 	 * @param WP_Post|null $post             The stored post on update, or null on create.
 	 * @param string       $status           The status the post will have.
 	 * @param int          $parent_id        The parent ID the post will have.
-	 * @return array<string, string>|WP_Error The slug field, empty when no slug is sent or it is unchanged, or a WP_Error.
+	 * @return array<string, string>|WP_Error The slug field, or a WP_Error.
 	 */
-	private function prepare_slug( array $data, WP_Post_Type $post_type_object, ?WP_Post $post, string $status, int $parent_id ) {
-		if ( ! array_key_exists( 'slug', $data ) ) {
-			return array();
-		}
-
-		// Keeping the stored slug changes nothing, also the empty slug of a draft.
-		if ( $post && $post->post_name === $data['slug'] ) {
-			return array();
-		}
-
-		$slug = sanitize_title( $data['slug'] );
+	private function prepare_slug( $slug, WP_Post_Type $post_type_object, ?WP_Post $post, string $status, int $parent_id ) {
+		$slug = sanitize_title( $slug );
 
 		// Intentionally strict: a slug that sanitizes to nothing is an error.
 		if ( '' === $slug ) {
