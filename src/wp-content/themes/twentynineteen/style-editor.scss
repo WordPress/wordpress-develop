@@ -696,6 +696,12 @@ figcaption,
 
 /** === Separator === */
 
+// Keep the wrapper of a center-aligned separator on the text column.
+.wp-block[data-align="center"]:has(> .wp-block-separator) {
+	margin-left: auto;
+	margin-right: auto;
+}
+
 .wp-block-separator {
 
 	&:not(.is-style-dots) {
@@ -706,6 +712,14 @@ figcaption,
 	&:not(.is-style-wide):not(.is-style-dots) {
 		width: $font__size-xl;
 		margin-left: 0;
+
+		&.aligncenter,
+		.wp-block[data-align="center"] > &,
+		.wp-block[data-align="wide"] > &,
+		.wp-block[data-align="full"] > & {
+			margin-left: auto;
+			margin-right: auto;
+		}
 	}
 
 	&.is-style-dots {
