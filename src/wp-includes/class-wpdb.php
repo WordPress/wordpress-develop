@@ -1816,6 +1816,7 @@ class wpdb {
 	 *                     should have no extra or deleted slashes.
 	 * @return string Text in the form of a LIKE phrase. The output is not SQL safe.
 	 *                Call wpdb::prepare() or wpdb::_real_escape() next.
+	 * @phpstan-return ( $text is non-empty-string ? non-empty-string : string )
 	 */
 	public function esc_like( $text ) {
 		return addcslashes( $text, '_%\\' );
