@@ -831,6 +831,22 @@ function create_initial_post_types() {
 			'exclude_from_search' => false,
 		)
 	);
+
+	register_post_status(
+		'request-archived',
+		array(
+			'label'               => _x( 'Archived', 'request status' ),
+			'internal'            => true,
+			'_builtin'            => true, /* internal use only. */
+			/* translators: %s: Number of archived requests. */
+			'label_count'         => _n_noop(
+				'Archived <span class="count">(%s)</span>',
+				'Archived <span class="count">(%s)</span>'
+			),
+			// Archived requests are kept out of the "All" view, the same way as trashed posts.
+			'exclude_from_search' => true,
+		)
+	);
 }
 
 /**
@@ -1400,6 +1416,7 @@ function get_page_statuses() {
  * Returns statuses for privacy requests.
  *
  * @since 4.9.6
+ * @since 7.3.0 Added the `request-archived` status.
  * @access private
  *
  * @return string[] Array of privacy request status labels keyed by their status.
@@ -1410,6 +1427,7 @@ function _wp_privacy_statuses() {
 		'request-confirmed' => _x( 'Confirmed', 'request status' ),    // User has confirmed the action.
 		'request-failed'    => _x( 'Failed', 'request status' ),       // User failed to confirm the action.
 		'request-completed' => _x( 'Completed', 'request status' ),    // Admin has handled the request.
+		'request-archived'  => _x( 'Archived', 'request status' ),     // Admin has archived a handled request.
 	);
 }
 
