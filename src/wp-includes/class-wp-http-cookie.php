@@ -128,8 +128,21 @@ class WP_Http_Cookie {
 			$pairs = explode( ';', $data );
 
 			// Special handling for first pair; name=value. Also be careful of "=" in value.
-			$name        = trim( substr( $pairs[0], 0, strpos( $pairs[0], '=' ) ) );
-			$value       = substr( $pairs[0], strpos( $pairs[0], '=' ) + 1 );
+			$separator = strpos( $pairs[0], '=' );
+			if ( false === $separator ) {
+				// Per RFC 6265bis, a pair lacking "=" has an empty name, with the whole pair as its value.
+				$name  = '';
+				$value = $pairs[0];
+			} else {
+				$name  = trim( substr( $pairs[0], 0, $separator ) );
+				$value = substr( $pairs[0], $separator + 1 );
+			}
+
+			// Ignore a cookie with neither a name nor a value, per RFC 6265bis, leaving both unset.
+			if ( '' === $name && '' === trim( $value ) ) {
+				return;
+			}
+
 			$this->name  = $name;
 			$this->value = urldecode( $value );
 
@@ -147,6 +160,12 @@ class WP_Http_Cookie {
 
 				list( $key, $val ) = strpos( $pair, '=' ) ? explode( '=', $pair ) : array( $pair, '' );
 				$key               = strtolower( trim( $key ) );
+
+				// The name and value come only from the first pair, so ignore attributes that would overwrite them.
+				if ( 'name' === $key || 'value' === $key ) {
+					continue;
+				}
+
 				if ( 'expires' === $key ) {
 					$val = strtotime( $val );
 				}
@@ -155,6 +174,11 @@ class WP_Http_Cookie {
 		} else {
 			if ( ! isset( $data['name'] ) ) {
 				return;
+			}
+
+			// Trim the name as is done for a header string, so a whitespace-only name is treated as empty.
+			if ( is_string( $data['name'] ) ) {
+				$data['name'] = trim( $data['name'] );
 			}
 
 			// Set properties based directly on parameters.
@@ -183,7 +207,7 @@ class WP_Http_Cookie {
 	 * @return bool true if allowed, false otherwise.
 	 */
 	public function test( $url ) {
-		if ( is_null( $this->name ) ) {
+		if ( null === $this->get_sendable_name() ) {
 			return false;
 		}
 
@@ -232,7 +256,8 @@ class WP_Http_Cookie {
 	 * @return string Header encoded cookie name and value.
 	 */
 	public function getHeaderValue() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
-		if ( ! isset( $this->name ) || ! isset( $this->value ) ) {
+		$name = $this->get_sendable_name();
+		if ( null === $name || ! isset( $this->value ) ) {
 			return '';
 		}
 
@@ -244,7 +269,31 @@ class WP_Http_Cookie {
 		 * @param string $value The cookie value.
 		 * @param string $name  The cookie name.
 		 */
-		return $this->name . '=' . apply_filters( 'wp_http_cookie_value', $this->value, $this->name );
+		$value = apply_filters( 'wp_http_cookie_value', $this->value, $name );
+
+		// A value that is neither scalar nor stringable cannot be represented, as in WP_Http::normalize_cookies().
+		if ( ! is_scalar( $value ) && ! ( is_object( $value ) && method_exists( $value, '__toString' ) ) ) {
+			return '';
+		}
+
+		return $name . '=' . $value;
+	}
+
+	/**
+	 * Retrieves the cookie name to send, with surrounding whitespace trimmed.
+	 *
+	 * An empty name is valid, per RFC 6265bis.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string|null The trimmed cookie name, or null if the name is missing or not a scalar.
+	 */
+	public function get_sendable_name(): ?string {
+		if ( ! is_scalar( $this->name ) ) {
+			return null;
+		}
+
+		return trim( (string) $this->name );
 	}
 
 	/**
