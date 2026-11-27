@@ -223,4 +223,82 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 		// Assert that the filter callback was not restored after running 'the_content'.
 		$this->assertFalse( has_filter( 'the_content', 'do_blocks' ) );
 	}
+
+	/**
+	 * Tests that by default all HTML is stripped from the excerpt.
+	 *
+	 * @ticket 12084
+	 */
+	public function test_excerpt_allowed_tags_default_strips_all_html() {
+		$post = self::factory()->post->create(
+			array(
+				'post_content' => '<p>Hello <strong>world</strong>.</p>',
+			)
+		);
+
+		$excerpt = wp_trim_excerpt( '', $post );
+
+		$this->assertStringNotContainsString( '<', $excerpt, 'Default excerpt should contain no HTML tags.' );
+	}
+
+	/**
+	 * Tests that the excerpt_allowed_tags filter preserves specified tags
+	 * and strips disallowed ones while keeping their inner text.
+	 *
+	 * @ticket 12084
+	 */
+	public function test_excerpt_allowed_tags_preserves_specified_tags() {
+		$post = self::factory()->post->create(
+			array(
+				'post_content' => '<p>Hello <strong>bold</strong> and <em>italic</em> text.</p>',
+			)
+		);
+
+		add_filter(
+			'excerpt_allowed_tags',
+			static function () {
+				return '<strong><em>';
+			}
+		);
+
+		$excerpt = wp_trim_excerpt( '', $post );
+
+		remove_all_filters( 'excerpt_allowed_tags' );
+
+		$this->assertStringContainsString( '<strong>bold</strong>', $excerpt, 'Allowed tag should be preserved.' );
+		$this->assertStringNotContainsString( '<p>', $excerpt, 'Disallowed tag should be stripped.' );
+		$this->assertStringContainsString( 'Hello', $excerpt, 'Inner text of stripped tags should be kept.' );
+	}
+
+	/**
+	 * Tests that tags are balanced after truncation when allowed tags are set.
+	 *
+	 * @ticket 12084
+	 */
+	public function test_excerpt_allowed_tags_balances_tags_after_truncation() {
+		$long_content = '<strong>' . implode( ' ', range( 1, 60 ) ) . '</strong>';
+
+		$post = self::factory()->post->create(
+			array(
+				'post_content' => $long_content,
+			)
+		);
+
+		add_filter(
+			'excerpt_allowed_tags',
+			static function () {
+				return '<strong>';
+			}
+		);
+
+		$excerpt = wp_trim_excerpt( '', $post );
+
+		remove_all_filters( 'excerpt_allowed_tags' );
+
+		$this->assertSame(
+			substr_count( $excerpt, '<strong>' ),
+			substr_count( $excerpt, '</strong>' ),
+			'Tags should be balanced after truncation.'
+		);
+	}
 }
