@@ -398,8 +398,8 @@ final class WpdbSelectParser {
 			return $columns;
 		}
 
-		// A column reference.
-		$column_ref = self::get_column_reference( $texts );
+		// A column reference, which MySQL names by the column even in parentheses, as in `DISTINCT(post_author)`.
+		$column_ref = self::get_column_reference( self::strip_parentheses( $texts ) );
 		if ( null !== $column_ref ) {
 			list( $qualifier, $name ) = $column_ref;
 			$column                   = $this->find_column( $tables, $qualifier, $name );
@@ -560,6 +560,28 @@ final class WpdbSelectParser {
 	 */
 	private static function add_null( string $type ): string {
 		return '|null' === substr( $type, -5 ) ? $type : $type . '|null';
+	}
+
+	/**
+	 * Removes the parentheses around an expression, as in `(ID)` or `((ID))`.
+	 *
+	 * @param list<string> $texts Tokens of an expression.
+	 * @return list<string> Tokens of the expression in the parentheses.
+	 */
+	private static function strip_parentheses( array $texts ): array {
+		while ( count( $texts ) >= 3 && '(' === $texts[0] && ')' === $texts[ count( $texts ) - 1 ] ) {
+			// The parentheses must be a pair, not those of `(a) + (b)`.
+			$depth = 0;
+			$last  = count( $texts ) - 1;
+			for ( $i = 0; $i < $last; $i++ ) {
+				$depth += self::get_depth_change( $texts[ $i ] );
+				if ( 0 === $depth ) {
+					return $texts;
+				}
+			}
+			$texts = array_slice( $texts, 1, -1 );
+		}
+		return $texts;
 	}
 
 	/**
