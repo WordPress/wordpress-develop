@@ -464,7 +464,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return $post_id;
 		}
 		$posts = get_block_templates( array( 'wp_id' => $post_id ), $this->post_type );
-		if ( ! count( $posts ) ) {
+		if ( array() === $posts ) {
 			return new WP_Error( 'rest_template_insert_error', __( 'No templates exist with that id.' ), array( 'status' => 400 ) );
 		}
 		$id            = $posts[0]->id;
