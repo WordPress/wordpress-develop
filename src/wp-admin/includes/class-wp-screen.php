@@ -251,7 +251,10 @@ final class WP_Screen {
 				$in_admin = 'user';
 			}
 
-			$id = sanitize_key( $id );
+			// Registered taxonomy names can contain characters removed by sanitize_key().
+			if ( ! str_starts_with( $id, 'edit-' ) || ! taxonomy_exists( substr( $id, 5 ) ) ) {
+				$id = sanitize_key( $id );
+			}
 			if ( 'edit-comments' !== $id && 'edit-tags' !== $id && str_starts_with( $id, 'edit-' ) ) {
 				$maybe = substr( $id, 5 );
 				if ( taxonomy_exists( $maybe ) ) {
