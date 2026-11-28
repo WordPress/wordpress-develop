@@ -75,7 +75,7 @@ do_action( 'rss_tag_pre', 'atom' );
 			?>
 		</author>
 
-		<title type="<?php html_type_rss(); ?>"><![CDATA[<?php the_title_rss(); ?>]]></title>
+		<title type="html"><![CDATA[<?php the_title_rss(); ?>]]></title>
 		<link rel="alternate" type="<?php bloginfo_rss( 'html_type' ); ?>" href="<?php the_permalink_rss(); ?>" />
 
 		<id><?php the_guid(); ?></id>
@@ -83,10 +83,10 @@ do_action( 'rss_tag_pre', 'atom' );
 		<published><?php echo get_post_time( 'Y-m-d\TH:i:s\Z', true ); ?></published>
 		<?php the_category_rss( 'atom' ); ?>
 
-		<summary type="<?php html_type_rss(); ?>"><![CDATA[<?php the_excerpt_rss(); ?>]]></summary>
+		<summary type="html"><![CDATA[<?php the_excerpt_rss(); ?>]]></summary>
 
 		<?php if ( ! get_option( 'rss_use_excerpt' ) ) : ?>
-			<content type="<?php html_type_rss(); ?>" xml:base="<?php the_permalink_rss(); ?>"><![CDATA[<?php the_content_feed( 'atom' ); ?>]]></content>
+			<content type="html" xml:base="<?php the_permalink_rss(); ?>"><![CDATA[<?php the_content_feed( 'atom' ); ?>]]></content>
 		<?php endif; ?>
 
 		<?php

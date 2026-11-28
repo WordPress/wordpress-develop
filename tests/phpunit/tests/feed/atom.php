@@ -219,6 +219,72 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Entry text constructs contain HTML regardless of the site's HTML MIME type.
+	 *
+	 * @ticket 14363
+	 * @dataProvider data_entry_html_content_types
+	 *
+	 * @param string $html_type    Site HTML MIME type.
+	 * @param bool   $excerpt_only Whether to omit the full post content.
+	 */
+	public function test_entry_html_content_types( $html_type, $excerpt_only ) {
+		update_option( 'html_type', $html_type );
+		update_option( 'rss_use_excerpt', $excerpt_only );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_author'  => self::$user_id,
+				'post_title'   => 'Atom & title',
+				'post_content' => '<p>Content with <strong>markup</strong>.</p>',
+				'post_excerpt' => '<p>Summary with <em>markup</em>.</p>',
+			)
+		);
+
+		$this->go_to( '/?feed=atom&p=' . $post->ID );
+		$xml     = xml_to_array( $this->do_atom() );
+		$entries = xml_find( $xml, 'feed', 'entry' );
+
+		$this->assertCount( 1, $entries );
+
+		$expected = array(
+			'title'   => get_the_title_rss( $post ),
+			'summary' => $post->post_excerpt,
+		);
+		if ( ! $excerpt_only ) {
+			$expected['content'] = $post->post_content;
+		}
+
+		foreach ( $expected as $element => $content ) {
+			$nodes = xml_find( $entries[0]['child'], $element );
+			$this->assertCount( 1, $nodes );
+			$this->assertSame( 'html', $nodes[0]['attributes']['type'], "The {$element} type should match its HTML serialization." );
+			$this->assertSame( $content, trim( $nodes[0]['content'] ), "The {$element} content should be preserved." );
+		}
+
+		$content = xml_find( $entries[0]['child'], 'content' );
+		$this->assertCount( $excerpt_only ? 0 : 1, $content );
+
+		foreach ( array( xml_find( $xml, 'feed', 'link' ), xml_find( $entries[0]['child'], 'link' ) ) as $links ) {
+			$this->assertSame( 'alternate', $links[0]['attributes']['rel'] );
+			$this->assertSame( $html_type, $links[0]['attributes']['type'], 'Alternate links should retain the site HTML MIME type.' );
+		}
+	}
+
+	/**
+	 * Data provider for HTML MIME types and feed excerpt settings.
+	 *
+	 * @return array[]
+	 */
+	public static function data_entry_html_content_types() {
+		return array(
+			'html, full content'  => array( 'text/html', false ),
+			'html, excerpt only'  => array( 'text/html', true ),
+			'xhtml, full content' => array( 'application/xhtml+xml', false ),
+			'xhtml, excerpt only' => array( 'application/xhtml+xml', true ),
+		);
+	}
+
+	/**
 	 * @ticket 33591
 	 */
 	public function test_atom_enclosure_with_extended_url_length_type_parsing() {
