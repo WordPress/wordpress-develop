@@ -9,6 +9,7 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 		remove_all_filters( 'translation_file_format' );
 		unload_textdomain( 'wp-tests-domain' );
 		unload_textdomain( 'internationalized-plugin' );
+		unset( $GLOBALS['l10n_unloaded']['wp-tests-domain'], $GLOBALS['l10n_unloaded']['internationalized-plugin'] );
 
 		parent::tear_down();
 	}
