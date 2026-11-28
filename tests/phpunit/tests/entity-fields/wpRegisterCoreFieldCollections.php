@@ -149,6 +149,9 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 * @ticket 66229
 	 */
 	public function test_the_script_modules_of_the_core_fields_are_registered() {
+		// Setting up the scripts fires `wp_default_scripts`, which registers the default script modules.
+		wp_scripts();
+
 		foreach ( wp_get_all_registered_entity_field_modules() as $kind => $entities ) {
 			foreach ( $entities as $name => $modules ) {
 				foreach ( $modules as $module ) {
