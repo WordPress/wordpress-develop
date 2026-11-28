@@ -1228,6 +1228,322 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertEmpty( $meta );
 	}
 
+	/**
+	 * Registers the nullable color field used by the REST request regressions.
+	 *
+	 * @param string|string[] $schema_type REST schema type.
+	 * @param bool            $single      Whether the field has a single value.
+	 * @param string|null     $default_value Optional explicit storage default.
+	 */
+	protected function register_nullable_color_meta( $schema_type = array( 'string', 'null' ), $single = true, $default_value = null ) {
+		$args = array(
+			'type'         => 'string',
+			'single'       => $single,
+			'show_in_rest' => array(
+				'schema' => array(
+					'type'   => $schema_type,
+					'format' => 'hex-color',
+				),
+			),
+		);
+		if ( null !== $default_value ) {
+			$args['default'] = $default_value;
+		}
+		$this->assertTrue( register_post_meta( 'post', 'nullable_color', $args ) );
+		$this->refresh_nullable_meta_rest_server();
+	}
+
+	/**
+	 * Refreshes routes and the post controller's cached schema after registration.
+	 */
+	protected function refresh_nullable_meta_rest_server() {
+		get_post_type_object( 'post' )->rest_controller = null;
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server();
+		do_action( 'rest_api_init', $wp_rest_server );
+	}
+
+	/**
+	 * @ticket 53828
+	 * @dataProvider data_nullable_meta_schema_types
+	 *
+	 * @param string|string[] $schema_type REST schema type.
+	 */
+	public function test_nullable_meta_is_exposed_in_schema( $schema_type ) {
+		$this->register_nullable_color_meta( $schema_type );
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$properties = $response->get_data()['schema']['properties']['meta']['properties'];
+
+		$this->assertArrayHasKey( 'nullable_color', $properties );
+		$this->assertSame( $schema_type, $properties['nullable_color']['type'] );
+		$this->assertSame( 'hex-color', $properties['nullable_color']['format'] );
+		if ( is_array( $schema_type ) ) {
+			$this->assertNull( $properties['nullable_color']['default'] );
+		}
+	}
+
+	/**
+	 * @ticket 53828
+	 * @dataProvider data_nullable_meta_schema_types
+	 *
+	 * @param string|string[] $schema_type REST schema type.
+	 */
+	public function test_nullable_meta_returns_stored_value( $schema_type ) {
+		$this->register_nullable_color_meta( $schema_type );
+		add_post_meta( self::$post_id, 'nullable_color', '#123abc' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$meta = $response->get_data()['meta'];
+
+		$this->assertArrayHasKey( 'nullable_color', $meta );
+		$this->assertSame( '#123abc', $meta['nullable_color'] );
+		$this->assertSame( 'string', get_registered_meta_keys( 'post', 'post' )['nullable_color']['type'] );
+	}
+
+	/**
+	 * @return array[] Schema types, including the unchanged scalar control.
+	 */
+	public static function data_nullable_meta_schema_types() {
+		return array(
+			'string and null' => array( array( 'string', 'null' ) ),
+			'null and string' => array( array( 'null', 'string' ) ),
+			'scalar control'  => array( 'string' ),
+		);
+	}
+
+	/**
+	 * @ticket 53828
+	 */
+	public function test_nullable_meta_updates_valid_formatted_value() {
+		$this->grant_write_permission();
+		$this->register_nullable_color_meta();
+		add_post_meta( self::$post_id, 'nullable_color', '#111111' );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/posts/' . self::$post_id );
+		$request->set_body_params( array( 'meta' => array( 'nullable_color' => '#123abc' ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '#123abc', get_post_meta( self::$post_id, 'nullable_color', true ) );
+		$this->assertSame( '#123abc', $response->get_data()['meta']['nullable_color'] );
+	}
+
+	/**
+	 * @ticket 53828
+	 */
+	public function test_nullable_meta_rejects_invalid_formatted_value() {
+		$this->grant_write_permission();
+		$this->register_nullable_color_meta();
+		add_post_meta( self::$post_id, 'nullable_color', '#111111' );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/posts/' . self::$post_id );
+		$request->set_body_params( array( 'meta' => array( 'nullable_color' => 'not-a-color' ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_hex_color', $response, 400 );
+		$this->assertSame( '#111111', get_post_meta( self::$post_id, 'nullable_color', true ) );
+	}
+
+	/**
+	 * @ticket 53828
+	 */
+	public function test_nullable_meta_null_deletes_stored_value_and_restores_default() {
+		$this->grant_write_permission();
+		$this->register_nullable_color_meta( array( 'string', 'null' ), true, '#ffffff' );
+		add_post_meta( self::$post_id, 'nullable_color', '#111111' );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/posts/' . self::$post_id );
+		$request->set_body_params( array( 'meta' => array( 'nullable_color' => null ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertFalse( metadata_exists( 'post', self::$post_id, 'nullable_color' ) );
+		$this->assertSame( '#ffffff', get_post_meta( self::$post_id, 'nullable_color', true ) );
+		$this->assertSame( '#ffffff', $response->get_data()['meta']['nullable_color'] );
+	}
+
+	/**
+	 * @ticket 53828
+	 */
+	public function test_nullable_meta_multi_value_schema_and_updates() {
+		$this->grant_write_permission();
+		$this->register_nullable_color_meta( array( 'string', 'null' ), false );
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
+		$response = rest_get_server()->dispatch( $request );
+		$fields   = $response->get_data()['schema']['properties']['meta']['properties'];
+		$this->assertArrayHasKey( 'nullable_color', $fields );
+		$this->assertSame( 'array', $fields['nullable_color']['type'] );
+		$this->assertSame( array( 'string', 'null' ), $fields['nullable_color']['items']['type'] );
+		add_post_meta( self::$post_id, 'nullable_color', '#111111' );
+		add_post_meta( self::$post_id, 'nullable_color', '#222222' );
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id ) );
+		$this->assertSame( array( '#111111', '#222222' ), $response->get_data()['meta']['nullable_color'] );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/posts/' . self::$post_id );
+		$request->set_body_params( array( 'meta' => array( 'nullable_color' => array( '#333333', '#444444' ) ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( '#333333', '#444444' ), get_post_meta( self::$post_id, 'nullable_color' ) );
+		$this->assertSame( array( '#333333', '#444444' ), $response->get_data()['meta']['nullable_color'] );
+	}
+
+	/**
+	 * @ticket 53828
+	 */
+	public function test_nullable_meta_multi_value_null_resets_all_values() {
+		$this->grant_write_permission();
+		$this->register_nullable_color_meta( array( 'string', 'null' ), false );
+		add_post_meta( self::$post_id, 'nullable_color', '#111111' );
+		add_post_meta( self::$post_id, 'nullable_color', '#222222' );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/posts/' . self::$post_id );
+		$request->set_body_params( array( 'meta' => array( 'nullable_color' => null ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertFalse( metadata_exists( 'post', self::$post_id, 'nullable_color' ) );
+		$this->assertSame( array(), $response->get_data()['meta']['nullable_color'] );
+	}
+
+	/**
+	 * @ticket 53828
+	 */
+	public function test_nullable_meta_multi_value_null_item_is_not_stored() {
+		$this->grant_write_permission();
+		$this->register_nullable_color_meta( array( 'string', 'null' ), false );
+		add_post_meta( self::$post_id, 'nullable_color', '#111111' );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/posts/' . self::$post_id );
+		$request->set_body_params( array( 'meta' => array( 'nullable_color' => array( null ) ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_stored_value', $response, 500 );
+		$this->assertSame( array( '#111111' ), get_post_meta( self::$post_id, 'nullable_color' ) );
+	}
+
+	/**
+	 * @ticket 53828
+	 * @dataProvider data_nullable_meta_empty_scalar_values
+	 *
+	 * @param string   $type        Registered storage type.
+	 * @param string[] $schema_type REST schema type.
+	 * @param mixed    $expected    Expected prepared value.
+	 */
+	public function test_nullable_meta_preserves_empty_scalar_casting( $type, $schema_type, $expected ) {
+		register_post_meta(
+			'post',
+			'nullable_scalar',
+			array(
+				'type'         => $type,
+				'single'       => true,
+				'show_in_rest' => array( 'schema' => array( 'type' => $schema_type ) ),
+			)
+		);
+		$this->refresh_nullable_meta_rest_server();
+		add_post_meta( self::$post_id, 'nullable_scalar', '' );
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id ) );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'nullable_scalar', $response->get_data()['meta'] );
+		$this->assertSame( $expected, $response->get_data()['meta']['nullable_scalar'] );
+	}
+
+	/**
+	 * @return array[] Empty-string scalar compatibility cases.
+	 */
+	public static function data_nullable_meta_empty_scalar_values() {
+		return array(
+			'boolean then null' => array( 'boolean', array( 'boolean', 'null' ), false ),
+			'null then boolean' => array( 'boolean', array( 'null', 'boolean' ), false ),
+			'integer then null' => array( 'integer', array( 'integer', 'null' ), 0 ),
+			'null then integer' => array( 'integer', array( 'null', 'integer' ), 0 ),
+			'number then null'  => array( 'number', array( 'number', 'null' ), 0.0 ),
+			'null then number'  => array( 'number', array( 'null', 'number' ), 0.0 ),
+		);
+	}
+
+	/**
+	 * @ticket 53828
+	 * @dataProvider data_nullable_meta_registered_types
+	 *
+	 * @param string $type     Registered storage type.
+	 * @param array  $schema   Nullable REST schema.
+	 * @param mixed  $stored   Stored metadata value.
+	 * @param mixed  $expected Expected REST response value.
+	 */
+	public function test_nullable_meta_supports_registered_value_types( $type, $schema, $stored, $expected ) {
+		$this->assertTrue(
+			register_post_meta(
+				'post',
+				'nullable_value',
+				array(
+					'type'         => $type,
+					'single'       => true,
+					'show_in_rest' => array( 'schema' => $schema ),
+				)
+			)
+		);
+		$this->refresh_nullable_meta_rest_server();
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
+		$fields   = $response->get_data()['schema']['properties']['meta']['properties'];
+		$this->assertArrayHasKey( 'nullable_value', $fields );
+		$this->assertSame( $schema['type'], $fields['nullable_value']['type'] );
+		add_post_meta( self::$post_id, 'nullable_value', $stored );
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $expected, $response->get_data()['meta']['nullable_value'] );
+		$this->assertSame( $type, get_registered_meta_keys( 'post', 'post' )['nullable_value']['type'] );
+	}
+
+	/**
+	 * @return array[] Each supported storage type with both nullable type orders.
+	 */
+	public static function data_nullable_meta_registered_types() {
+		$types = array(
+			'string'  => array( 'value', 'value', array() ),
+			'boolean' => array( true, true, array() ),
+			'integer' => array( 42, 42, array() ),
+			'number'  => array( 1.5, 1.5, array() ),
+			'array'   => array( array( 'value' ), array( 'value' ), array( 'items' => array( 'type' => 'string' ) ) ),
+			'object'  => array( array( 'label' => 'value' ), array( 'label' => 'value' ), array( 'properties' => array( 'label' => array( 'type' => 'string' ) ) ) ),
+		);
+		$cases = array();
+		foreach ( $types as $type => $values ) {
+			foreach ( array( array( $type, 'null' ), array( 'null', $type ) ) as $order => $schema_type ) {
+				$cases[ $type . ' type order ' . $order ] = array(
+					$type,
+					array_merge( array( 'type' => $schema_type ), $values[2] ),
+					$values[0],
+					$values[1],
+				);
+			}
+		}
+		return $cases;
+	}
+
+	/**
+	 * @ticket 53828
+	 * @dataProvider data_nullable_meta_unsupported_unions
+	 *
+	 * @param string[] $schema_type Unsupported REST schema union.
+	 */
+	public function test_nullable_meta_does_not_expose_unsupported_unions( $schema_type ) {
+		$this->register_nullable_color_meta( $schema_type );
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
+		$fields   = $response->get_data()['schema']['properties']['meta']['properties'];
+		$this->assertArrayNotHasKey( 'nullable_color', $fields );
+	}
+
+	/**
+	 * @return array[] Unions outside the nullable single-base-type scope.
+	 */
+	public static function data_nullable_meta_unsupported_unions() {
+		return array(
+			'multiple non-null types' => array( array( 'string', 'integer' ) ),
+			'unknown type'            => array( array( 'string', 'unknown' ) ),
+			'null alone'              => array( array( 'null' ) ),
+			'broader nullable union'  => array( array( 'string', 'null', 'integer' ) ),
+		);
+	}
+
 	public function test_get_schema() {
 		$request  = new WP_REST_Request( 'OPTIONS', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$response = rest_get_server()->dispatch( $request );
