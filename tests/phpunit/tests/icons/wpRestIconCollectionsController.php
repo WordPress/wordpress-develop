@@ -48,10 +48,6 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 			}
 		}
 
-		if ( post_type_exists( 'rest_icon_cpt' ) ) {
-			unregister_post_type( 'rest_icon_cpt' );
-		}
-
 		parent::tear_down();
 	}
 
