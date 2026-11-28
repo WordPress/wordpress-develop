@@ -266,8 +266,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 
 		wp.media.mixin.removeAllPlayers();
 		this.$( 'audio, video' ).each( function (i, elem) {
-			var el = wp.media.view.MediaDetails.prepareSrc( elem );
-			new window.MediaElementPlayer( el, wp.media.mixin.mejsSettings );
+			new window.MediaElementPlayer( elem, wp.media.mixin.mejsSettings );
 		} );
 	}
 });
