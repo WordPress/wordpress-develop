@@ -60,6 +60,51 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 46042
+	 */
+	public function test_wp_nav_menu_empty_page_fallback_without_container() {
+		$args = array(
+			'theme_location' => 'top',
+			'container'      => false,
+			'echo'           => false,
+		);
+
+		$this->assertSame( '', wp_nav_menu( $args ) );
+
+		$args['echo'] = true;
+		$this->expectOutputString( '' );
+		wp_nav_menu( $args );
+	}
+
+	/**
+	 * @ticket 46042
+	 */
+	public function test_wp_nav_menu_empty_page_fallback_keeps_default_container() {
+		$this->assertSame( '<div class="menu"></div>' . "\n", wp_nav_menu( array( 'echo' => false ) ) );
+	}
+
+	/**
+	 * @ticket 46042
+	 */
+	public function test_wp_nav_menu_filters_empty_page_fallback_without_container() {
+		add_filter(
+			'wp_page_menu',
+			static function ( $menu ) {
+				return $menu . '<p>Menu unavailable.</p>';
+			}
+		);
+
+		$menu = wp_nav_menu(
+			array(
+				'container' => false,
+				'echo'      => false,
+			)
+		);
+
+		$this->assertSame( '<p>Menu unavailable.</p>', $menu );
+	}
+
+	/**
 	 * @ticket 32464
 	 */
 	public function test_wp_nav_menu_empty_container() {

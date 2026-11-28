@@ -32,6 +32,7 @@ require_once ABSPATH . WPINC . '/class-walker-nav-menu.php';
  *     @type string             $menu_id              The ID that is applied to the ul element which forms the menu.
  *                                                    Default is the menu slug, incremented.
  *     @type string|false       $container            Whether to wrap the ul, and what to wrap it with.
+ *                                                    False also omits the wrapper when the default fallback has no items.
  *                                                    Default 'div'.
  *     @type string             $container_class      Class that is applied to the container.
  *                                                    Default 'menu-{menu slug}-container'.
