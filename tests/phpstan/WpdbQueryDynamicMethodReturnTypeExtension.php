@@ -65,6 +65,13 @@ use PHPStan\Type\TypeTraverser;
  * with the `wpdbTablesMatchSchema` parameter, since a plugin may have added
  * columns to the table on a site. It is true for core, which is analyzed
  * against its own schema.
+ *
+ * The `wpdbTables` parameter declares the column types of other tables, like
+ * those of plugins and themes, and of columns they add to core tables, such
+ * as the `term_order` column which ordering plugins add to `terms`. A table
+ * is named by its `wpdb` property or by its name after the prefix. A `*`
+ * over a declared table is expanded to the columns declared, so each must be
+ * declared, in order.
  */
 class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTypeExtension {
 
@@ -92,14 +99,19 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	/**
 	 * Constructor.
 	 *
-	 * @param TypeStringResolver $type_string_resolver Resolver for PHPDoc type strings.
-	 * @param bool               $tables_match_schema  Whether the core tables have only the columns of the core schema,
-	 *                                                 so that a `*` over one of them can be expanded. True for core
-	 *                                                 itself, but not where plugins may have added columns.
+	 * @param TypeStringResolver                   $type_string_resolver Resolver for PHPDoc type strings.
+	 * @param bool                                 $tables_match_schema  Whether the core tables have only the columns
+	 *                                                                   of the core schema, so that a `*` over one of
+	 *                                                                   them can be expanded. True for core itself,
+	 *                                                                   but not where plugins may have added columns.
+	 * @param array<string, array<string, string>> $tables               Tables of plugins and themes, and columns they
+	 *                                                                   add to core tables, keyed by table name
+	 *                                                                   without the prefix, each with the PHPDoc type
+	 *                                                                   of each column, in order.
 	 */
-	public function __construct( TypeStringResolver $type_string_resolver, bool $tables_match_schema ) {
+	public function __construct( TypeStringResolver $type_string_resolver, bool $tables_match_schema, array $tables ) {
 		$this->type_string_resolver = $type_string_resolver;
-		$this->parser               = new WpdbSelectParser( new WpdbSchema(), $tables_match_schema );
+		$this->parser               = new WpdbSelectParser( new WpdbSchema( null, $tables ), $tables_match_schema );
 	}
 
 	/**

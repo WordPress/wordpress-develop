@@ -104,6 +104,49 @@ final class WpdbSchemaTest extends TestCase {
 	}
 
 	/**
+	 * Tests that declared columns are added to a table of the schema, after its own or in place of one, and that a
+	 * declared table is known but not a table of the schema.
+	 */
+	public function test_declared_tables(): void {
+		$schema = new WpdbSchema(
+			__DIR__ . '/data/wpdb-schema.php',
+			array(
+				'things'  => array(
+					'thing_order' => 'decimal-int-string|null',
+					'THING_note'  => 'non-empty-string',
+					'thing_empty' => '',
+				),
+				'widgets' => array(
+					'widget_id' => 'decimal-int-string',
+				),
+			)
+		);
+
+		$this->assertSame(
+			array( 'thing_ID', 'thing_name', 'THING_note', 'thing_score', 'thing_date', 'thing_order' ),
+			array_column( $schema->get_columns( 'things' ), 'name' ),
+			'A declared column should come after those of the schema, or replace the one of the same name in place.'
+		);
+		$this->assertSame(
+			array(
+				'name'     => 'thing_order',
+				'type'     => 'decimal-int-string|null',
+				'optional' => false,
+			),
+			$schema->get_column( 'things', 'thing_order' )
+		);
+		$this->assertSame( 'non-empty-string', $schema->get_column( 'things', 'thing_note' )['type'] ?? null );
+		$this->assertNull( $schema->get_column( 'things', 'thing_empty' ), 'A column without a type should be ignored.' );
+
+		$this->assertTrue( $schema->has_table( 'widgets' ) );
+		$this->assertSame( 'decimal-int-string', $schema->get_column( 'widgets', 'WIDGET_ID' )['type'] ?? null );
+
+		$this->assertTrue( $schema->is_core_table( 'things' ) );
+		$this->assertFalse( $schema->is_core_table( 'widgets' ) );
+		$this->assertFalse( $schema->is_core_table( 'missing' ) );
+	}
+
+	/**
 	 * Tests that a schema file which cannot be read has no tables.
 	 */
 	public function test_missing_schema_file(): void {

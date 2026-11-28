@@ -231,6 +231,19 @@ These types assume `wpdb` itself. A `db.php` drop-in that replaces it could retu
 
 A `*` over a core table is expanded to the columns `schema.php` gives it, which assumes that the table has no others. That holds for core, but a plugin may add columns to a core table on a site, and a query of `*` there returns those too. So the expansion is controlled by the `wpdbTablesMatchSchema` parameter in `base.neon`, which is `true` for core. Where the extension is used for plugins or themes, it would be `false`: a `*` over a core table is then left as declared, as over any other table, while named columns, which return only themselves, are still typed from the schema.
 
+Tables that the core schema does not have can be declared with the `wpdbTables` parameter, which is empty for core. Each table is keyed by its name without the prefix and lists the PHPDoc type of each of its columns, in order. A declared table is recognized by its `wpdb` property, as `$wpdb->wc_orders`, or by its name after the prefix, as `{$wpdb->prefix}wc_orders` or `{$wpdb->base_prefix}wc_orders`, and a `*` over it is expanded to the declared columns, so all of them must be listed. A plugin or theme would declare its own tables there, and any columns that plugins add to core tables, such as the `term_order` column that many term-ordering plugins add to `terms`. A declared column of a core table comes after its own columns, or replaces the one of the same name. A `*` over a core table still follows `wpdbTablesMatchSchema`, since other plugins may add other columns.
+
+```neon
+parameters:
+	wpdbTablesMatchSchema: false
+	wpdbTables:
+		terms:
+			term_order: 'decimal-int-string|null'
+		wc_orders:
+			id: decimal-int-string
+			status: 'string|null'
+```
+
 Since the schema is read from `schema.php` rather than through PHPStan's reflection, PHPStan does not know that the files with queries depend on it. After changing a column in `schema.php`, [clear the cache](#clear-the-cache-after-changing-anything-in-this-directory) so that the queries are analyzed again.
 
 ### Testing the extensions

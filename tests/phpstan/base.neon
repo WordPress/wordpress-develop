@@ -59,6 +59,7 @@ services:
 		class: WordPress\PHPStan\WpdbQueryDynamicMethodReturnTypeExtension
 		arguments:
 			tables_match_schema: %wpdbTablesMatchSchema%
+			tables: %wpdbTables%
 		tags:
 			- phpstan.broker.dynamicMethodReturnTypeExtension
 
@@ -121,6 +122,7 @@ services:
 
 parametersSchema:
 	wpdbTablesMatchSchema: bool()
+	wpdbTables: arrayOf(arrayOf(string(), string()), string())
 
 parameters:
 	# Whether the core tables have only the columns of the core schema, so that the
@@ -128,6 +130,19 @@ parameters:
 	# core, though not for plugins and themes, which run on sites where other plugins
 	# may have added columns.
 	wpdbTablesMatchSchema: true
+
+	# The column types of tables the core schema does not have, for the wpdb query
+	# types, keyed by table name without the prefix, with the PHPDoc type of each
+	# column in order. Core has none, but a plugin or theme would declare its own
+	# tables here, and the columns plugins add to core tables, for example:
+	#
+	#     wpdbTables:
+	#         terms:
+	#             term_order: 'decimal-int-string|null'
+	#         wc_orders:
+	#             id: decimal-int-string
+	#             status: 'string|null'
+	wpdbTables: []
 
 	# Cache is stored locally, so it's available for CI.
 	tmpDir: ../../.cache

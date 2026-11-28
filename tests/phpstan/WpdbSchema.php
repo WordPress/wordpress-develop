@@ -25,6 +25,11 @@ namespace WordPress\PHPStan;
  * first definition, plus those which only a later one adds (`spam` and
  * `deleted`, which only the multisite flavor of `users` has) as optional.
  *
+ * More tables and columns can be declared with their types, for the tables of
+ * plugins and themes, and the columns they add to core tables. A declared
+ * column of a core table comes after its own columns, or replaces the one of
+ * the same name in place.
+ *
  * @phpstan-type Column array{ name: non-empty-string, type: non-empty-string, optional: bool }
  */
 final class WpdbSchema {
@@ -45,22 +50,53 @@ final class WpdbSchema {
 	private string $schema_file;
 
 	/**
+	 * Declared tables, keyed by table name without the prefix, each with the PHPDoc type of each column, in order.
+	 *
+	 * @var array<string, array<string, string>>
+	 */
+	private array $declared_tables;
+
+	/**
+	 * Names of the core tables, as keys.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $core_tables = array();
+
+	/**
 	 * Constructor.
 	 *
-	 * @param string|null $schema_file Optional. Path to `schema.php`. Defaults to the one in `src/`.
+	 * @param string|null                          $schema_file     Optional. Path to `schema.php`. Defaults to the one
+	 *                                                              in `src/`.
+	 * @param array<string, array<string, string>> $declared_tables Optional. More tables, and more columns of core
+	 *                                                              tables, keyed by table name without the prefix, each
+	 *                                                              with the PHPDoc type of each column, in order.
+	 *                                                              Default empty array.
 	 */
-	public function __construct( ?string $schema_file = null ) {
-		$this->schema_file = $schema_file ?? dirname( __DIR__, 2 ) . '/src/wp-admin/includes/schema.php';
+	public function __construct( ?string $schema_file = null, array $declared_tables = array() ) {
+		$this->schema_file     = $schema_file ?? dirname( __DIR__, 2 ) . '/src/wp-admin/includes/schema.php';
+		$this->declared_tables = $declared_tables;
 	}
 
 	/**
-	 * Determines whether a table is a core table.
+	 * Determines whether a table is known, as a core table or a declared one.
 	 *
 	 * @param string $table Table, by its `wpdb` property name, like `posts`.
 	 * @return bool
 	 */
 	public function has_table( string $table ): bool {
 		return isset( $this->get_tables()[ $table ] );
+	}
+
+	/**
+	 * Determines whether a table is a core table, rather than only declared.
+	 *
+	 * @param string $table Table, by its `wpdb` property name, like `posts`.
+	 * @return bool
+	 */
+	public function is_core_table( string $table ): bool {
+		$this->get_tables();
+		return isset( $this->core_tables[ $table ] );
 	}
 
 	/**
@@ -88,7 +124,7 @@ final class WpdbSchema {
 	}
 
 	/**
-	 * Reads the tables from `schema.php`, once.
+	 * Reads the tables from `schema.php`, and adds the declared ones, once.
 	 *
 	 * @return array<string, array<string, array{ name: non-empty-string, type: non-empty-string, optional: bool }>>
 	 * @phpstan-return array<string, array<string, Column>>
@@ -98,17 +134,41 @@ final class WpdbSchema {
 			return $this->tables;
 		}
 
-		$this->tables = array();
+		$source            = file_get_contents( $this->schema_file );
+		$tables            = false !== $source ? self::read_schema( $source ) : array();
+		$this->core_tables = array_fill_keys( array_keys( $tables ), true );
 
-		$source = file_get_contents( $this->schema_file );
-		if ( false === $source ) {
-			return $this->tables;
+		foreach ( $this->declared_tables as $table => $columns ) {
+			foreach ( $columns as $name => $type ) {
+				if ( '' === $name || '' === $type ) {
+					continue;
+				}
+				$tables[ $table ][ strtolower( $name ) ] = array(
+					'name'     => $name,
+					'type'     => $type,
+					'optional' => false,
+				);
+			}
 		}
+
+		$this->tables = $tables;
+		return $tables;
+	}
+
+	/**
+	 * Reads the tables from the `CREATE TABLE` statements in the source of `schema.php`.
+	 *
+	 * @param string $source Source of `schema.php`.
+	 * @return array<string, array<string, array{ name: non-empty-string, type: non-empty-string, optional: bool }>>
+	 * @phpstan-return array<string, array<string, Column>>
+	 */
+	private static function read_schema( string $source ): array {
+		$tables = array();
 
 		preg_match_all( '/CREATE TABLE \$wpdb->(\w+) \((.*?)\n\) \$charset_collate;/s', $source, $matches, PREG_SET_ORDER );
 		foreach ( $matches as $match ) {
 			$table       = $match[1];
-			$is_redefine = isset( $this->tables[ $table ] );
+			$is_redefine = isset( $tables[ $table ] );
 
 			foreach ( explode( "\n", $match[2] ) as $line ) {
 				if ( ! preg_match( '/^\s*(\w+)\s+(\w+)(.*)$/', $line, $column_match ) ) {
@@ -120,7 +180,7 @@ final class WpdbSchema {
 				}
 
 				$key = strtolower( $name );
-				if ( $is_redefine && isset( $this->tables[ $table ][ $key ] ) ) {
+				if ( $is_redefine && isset( $tables[ $table ][ $key ] ) ) {
 					continue;
 				}
 
@@ -129,7 +189,7 @@ final class WpdbSchema {
 					$type .= '|null';
 				}
 
-				$this->tables[ $table ][ $key ] = array(
+				$tables[ $table ][ $key ] = array(
 					'name'     => $name,
 					'type'     => $type,
 					'optional' => $is_redefine,
@@ -137,7 +197,7 @@ final class WpdbSchema {
 			}
 		}
 
-		return $this->tables;
+		return $tables;
 	}
 
 	/**

@@ -9,6 +9,7 @@
 
 parametersSchema:
 	wpdbTablesMatchSchema: bool()
+	wpdbTables: arrayOf(arrayOf(string(), string()), string())
 
 parameters:
 	# The parameters of base.neon that change what type PHPStan infers, kept the
@@ -18,6 +19,7 @@ parameters:
 		max: 80600
 	treatPhpDocTypesAsCertain: false
 	wpdbTablesMatchSchema: true
+	wpdbTables: []
 
 	# The hook functions and wpdb are reflected from core itself, so the tests see
 	# the same signatures the analysis does. The helpers are declared for the
@@ -69,5 +71,6 @@ services:
 		class: WordPress\PHPStan\WpdbQueryDynamicMethodReturnTypeExtension
 		arguments:
 			tables_match_schema: %wpdbTablesMatchSchema%
+			tables: %wpdbTables%
 		tags:
 			- phpstan.broker.dynamicMethodReturnTypeExtension

@@ -18,9 +18,13 @@ namespace WordPress\PHPStan;
  * core table is `{wpdb:<table>}`, an unknown part is `{?}`, and an unknown
  * single value, from a placeholder, is `{value}`.
  *
+ * A known table is a core table, or one declared to `WpdbSchema`, named by its
+ * `wpdb` property, as `{wpdb:<table>}`, or by its name after the prefix, as
+ * `{wpdb:prefix}<table>` or `{wpdb:base_prefix}<table>`.
+ *
  * Each column is typed as follows:
  *
- * - A column of a core table, including each one a `*` or `alias.*` expands
+ * - A column of a known table, including each one a `*` or `alias.*` expands
  *   to, has the type `WpdbSchema` gives it, or null as well for a table on the
  *   outer side of a `LEFT JOIN` or `RIGHT JOIN`, which has no row to match.
  * - `COUNT()` is a `decimal-int-string`, `SUM()` and `AVG()` are a
@@ -39,8 +43,8 @@ namespace WordPress\PHPStan;
  * whose text is not known is itself unknown.
  *
  * The columns are incomplete from the first one whose count is not known: a
- * `*` over a table that is not a core table, or over any table unless the
- * core tables are taken to have only the columns of the core schema, or a
+ * `*` over a table that is not known, or over a core table unless the core
+ * tables are taken to have only the columns of the schema, or a
  * select expression with an unknown part outside any parentheses, since that
  * part could hold several columns.
  *
@@ -293,9 +297,15 @@ final class WpdbSelectParser {
 					$key = '';
 				} else {
 					$name = null;
-					// A core table, which may be quoted, as in `` `{wpdb:options}` ``.
-					if ( preg_match( '/^\{wpdb:(\w+)\}$/', self::unquote( $text ), $match ) && $this->schema->has_table( $match[1] ) ) {
-						$name = $match[1];
+					/*
+					 * A known table, by its `wpdb` property, or by its name after the prefix, as in
+					 * `{wpdb:prefix}wc_orders`. Either may be quoted, as in `` `{wpdb:options}` ``.
+					 */
+					if ( preg_match( '/^(?:\{wpdb:(\w+)\}|\{wpdb:(?:base_)?prefix\}(\w+))$/', self::unquote( $text ), $match ) ) {
+						$table = $match[1] . ( $match[2] ?? '' );
+						if ( $this->schema->has_table( $table ) ) {
+							$name = $table;
+						}
 					}
 					$key = strtolower( self::unquote( $text ) );
 				}
@@ -401,7 +411,8 @@ final class WpdbSelectParser {
 			}
 			$columns = array();
 			foreach ( $star_tables as $table ) {
-				if ( null === $table || null === $table['name'] || ! $this->tables_match_schema ) {
+				// A declared table has only the columns declared, but a core table may have others added to it.
+				if ( null === $table || null === $table['name'] || ( ! $this->tables_match_schema && $this->schema->is_core_table( $table['name'] ) ) ) {
 					return null;
 				}
 				foreach ( $this->schema->get_columns( $table['name'] ) as $column ) {
@@ -519,7 +530,7 @@ final class WpdbSelectParser {
 	}
 
 	/**
-	 * Finds a column of a core table.
+	 * Finds a column of a known table.
 	 *
 	 * @param array<string, array{ name: string|null, nullable: bool }> $tables    Tables in the `FROM` clause.
 	 * @param string|null                                               $qualifier Lowercase alias or name of the table,
@@ -671,7 +682,8 @@ final class WpdbSelectParser {
 	}
 
 	/**
-	 * Determines whether a token is an identifier: a name, a backtick-quoted name, or a core table.
+	 * Determines whether a token is an identifier: a name, a backtick-quoted name, a `wpdb` property, or a name after
+	 * the prefix, like `{wpdb:prefix}wc_orders`.
 	 *
 	 * The unknown placeholder `{?}` is not one.
 	 *
@@ -679,7 +691,7 @@ final class WpdbSelectParser {
 	 * @return bool
 	 */
 	private static function is_identifier( string $text ): bool {
-		return (bool) preg_match( '/^(?:[A-Za-z_$][\w$]*|`[^`]+`|\{wpdb:\w+\})$/', $text );
+		return (bool) preg_match( '/^(?:[A-Za-z_$][\w$]*|`[^`]+`|\{wpdb:\w+\}|\{wpdb:(?:base_)?prefix\}\w+)$/', $text );
 	}
 
 	/**
