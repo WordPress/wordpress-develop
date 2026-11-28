@@ -12,6 +12,15 @@ declare( strict_types=1 );
 class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 	/**
+	 * The content abilities, which every test unregisters before and after it runs.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var list<string>
+	 */
+	private const CONTENT_ABILITIES = array( 'core/content-query', 'core/content-create', 'core/content-update', 'core/content-delete' );
+
+	/**
 	 * Globals that rendering a post changes: the global post and the globals that
 	 * setup_postdata() populates.
 	 *
@@ -142,8 +151,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		if ( wp_has_ability( 'core/content-query' ) ) {
-			wp_unregister_ability( 'core/content-query' );
+		foreach ( self::CONTENT_ABILITIES as $ability_name ) {
+			if ( wp_has_ability( $ability_name ) ) {
+				wp_unregister_ability( $ability_name );
+			}
 		}
 
 		if ( ! wp_has_ability_category( 'content' ) ) {
@@ -160,13 +171,15 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Removes the ability and its category, and resets the post types, after each test.
+	 * Removes the content abilities and their category, and resets the post types, after each test.
 	 *
 	 * @since 7.2.0
 	 */
 	public function tear_down(): void {
-		if ( wp_has_ability( 'core/content-query' ) ) {
-			wp_unregister_ability( 'core/content-query' );
+		foreach ( self::CONTENT_ABILITIES as $ability_name ) {
+			if ( wp_has_ability( $ability_name ) ) {
+				wp_unregister_ability( $ability_name );
+			}
 		}
 
 		if ( wp_has_ability_category( 'content' ) ) {
@@ -186,7 +199,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Registers the core/content-query ability inside a faked init action.
+	 * Registers the content abilities inside a faked init action.
 	 *
 	 * @since 7.2.0
 	 */
@@ -197,7 +210,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Registers the core/content-query ability and returns the callbacks it was registered with.
+	 * Registers the content abilities and returns the callbacks core/content-query was
+	 * registered with.
 	 *
 	 * The callbacks call private methods, so tests that skip input validation or the
 	 * permission check capture them from the registration arguments.
@@ -356,7 +370,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertTrue( $status['uniqueItems'], 'The status filter should reject duplicate statuses.' );
 		$this->assertSame( 1, $status['minItems'], 'The status filter should require at least one status.' );
 		$this->assertSame( 'string', $status['items']['type'], 'The status filter should contain status names.' );
-		$this->assertSameSets( array_values( get_post_stati( array( 'internal' => false ) ) ), $status['items']['enum'], 'The status filter should expose the statuses that are not internal.' );
+		$this->assertSame( array_merge( array_values( get_post_stati( array( 'internal' => false ) ) ), array( 'trash' ) ), $status['items']['enum'], 'The status filter should expose the statuses that are not internal, then trash.' );
 
 		$author = $where['properties']['author'];
 
@@ -3564,46 +3578,71 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A query by ID without a status does not cover the internal `trash` status, even for a
-	 * role that can edit the trashed post.
+	 * Returns how a query without a status names a trashed post, by ID or by slug, and a role
+	 * that can edit that post.
 	 *
-	 * The default statuses with IDs are the statuses that are not internal, so the query
-	 * neither returns nor counts the trashed post. The post is named by ID, since trashing a
-	 * post renames its slug.
+	 * @return array<string, array{filter: string, role: string}> Query test cases.
+	 */
+	public static function data_queries_without_a_status(): array {
+		return array(
+			'IDs, administrator'   => array(
+				'filter' => 'ids',
+				'role'   => 'administrator',
+			),
+			'IDs, editor'          => array(
+				'filter' => 'ids',
+				'role'   => 'editor',
+			),
+			'slugs, administrator' => array(
+				'filter' => 'slugs',
+				'role'   => 'administrator',
+			),
+			'slugs, editor'        => array(
+				'filter' => 'slugs',
+				'role'   => 'editor',
+			),
+		);
+	}
+
+	/**
+	 * A query without a status that lists IDs or slugs does not cover the internal `trash`
+	 * status, even for a role that can edit the trashed post.
+	 *
+	 * The default statuses with IDs or slugs are the statuses that are not internal, so the query
+	 * neither returns nor counts the trashed post.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_roles_with_edit_access_to_other_users_posts
+	 * @ticket 66706
+	 * @dataProvider data_queries_without_a_status
 	 * @since 7.2.0
+	 * @since 7.3.0 Covers queries by slug.
 	 *
-	 * @param string $role The role to query as.
+	 * @param string $filter The filter that names the trashed post, `ids` or `slugs`.
+	 * @param string $role   The role to query as.
 	 */
-	public function test_ids_without_a_status_do_not_cover_trashed_posts( string $role ): void {
-		$post_id = self::factory()->post->create(
-			array(
-				'post_author' => self::$user_ids['author'],
-				'post_status' => 'publish',
-			)
-		);
-		wp_trash_post( $post_id );
-
-		$this->assertSame( 'trash', get_post_status( $post_id ), 'Precondition: the post should be in the trash.' );
+	public function test_query_without_a_status_does_not_cover_trashed_posts( string $filter, string $role ): void {
+		$post_id = $this->create_trashed_post();
 
 		$this->login_as( $role );
 		$this->register_ability();
 
 		$this->assertTrue( current_user_can( 'edit_post', $post_id ), 'Precondition: the role should be able to edit the trashed post.' );
 
+		$where = array( 'type' => 'post' );
+		if ( 'ids' === $filter ) {
+			$where['ids'] = array( $post_id );
+		} else {
+			$where['slugs'] = array( get_post( $post_id )->post_name );
+		}
+
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
-				'where'  => array(
-					'type' => 'post',
-					'ids'  => array( $post_id ),
-				),
+				'where'  => $where,
 				'fields' => array( 'id' ),
 			)
 		);
 
-		$this->assertSame( self::EMPTY_RESULT, $result, 'A query by ID without a status should neither return nor count a trashed post.' );
+		$this->assertSame( self::EMPTY_RESULT, $result, "A query by {$filter} without a status should neither return nor count a trashed post." );
 	}
 
 	/**
@@ -6183,76 +6222,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns `where.ids` values that hold no valid ID: no item is a whole number of at least
-	 * 1 within the integer range.
-	 *
-	 * @return array<string, array{ids: mixed}> The `where.ids` values.
-	 */
-	public static function data_ids_with_no_valid_ids(): array {
-		return array(
-			'zero'                     => array(
-				'ids' => array( 0 ),
-			),
-			'fraction'                 => array(
-				'ids' => array( 2.5 ),
-			),
-			'negative number'          => array(
-				'ids' => array( -5 ),
-			),
-			'non-numeric string'       => array(
-				'ids' => 'abc',
-			),
-			'beyond the integer range' => array(
-				'ids' => array( 2 ** 64 + self::ALIASED_POST_ID ),
-			),
-		);
-	}
-
-	/**
-	 * An ids filter that parses to no valid IDs is rejected rather than returning an
-	 * unrestricted result set.
-	 *
-	 * WP_Query ignores an empty `post__in`, so an ids list with no valid IDs would otherwise
-	 * return every post of the type — the opposite of the caller's intent. The filter must
-	 * fail closed instead, and an ID beyond the integer range must not wrap around onto the
-	 * published post whose ID it aliases.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_ids_with_no_valid_ids
-	 * @since 7.2.0
-	 *
-	 * @param mixed $ids The `where.ids` value to send.
-	 */
-	public function test_execute_callback_rejects_ids_with_no_valid_ids( $ids ): void {
-		$this->login_as( 'administrator' );
-
-		self::factory()->post->create(
-			array(
-				'import_id'   => self::ALIASED_POST_ID,
-				'post_status' => 'publish',
-			)
-		);
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$result = $execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'ids'  => $ids,
-				),
-			)
-		);
-
-		$this->assertWPError( $result, 'An ids filter with no valid IDs must not fall through to an unrestricted query.' );
-		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An empty-after-parsing ids filter should fail closed as an invalid filter.' );
-		$this->assertSame(
-			array( 'where[ids]' => $result->get_error_message() ),
-			$result->get_error_data()['params'],
-			'The error data should map the ids filter to the error message.'
-		);
-	}
-
-	/**
 	 * Called directly, an item of `where.ids` that is not a valid ID is dropped, while the
 	 * other IDs still apply.
 	 *
@@ -6395,12 +6364,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'type'   => 'post',
 					'ids'    => array( self::IMPORTED_POST_ID ),
 					'status' => array( 'unregistered_status' ),
-				),
-			),
-			'trash'                               => array(
-				'where' => array(
-					'type'   => 'post',
-					'status' => array( 'trash' ),
 				),
 			),
 			'inherit'                             => array(
@@ -6827,5 +6790,244 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( array( $post_id ), wp_list_pluck( $by_slug['items'], 'id' ), 'The slug should return the author\'s posts on the site.' );
 		$this->assertIsArray( $by_id, 'An author with published posts on the site should be filterable by ID without being a member.' );
 		$this->assertSame( array( $post_id ), wp_list_pluck( $by_id['items'], 'id' ), 'The ID should return the author\'s posts on the site.' );
+	}
+
+	/**
+	 * Creates a post of the shared author in the Trash.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return int The post ID.
+	 */
+	private function create_trashed_post(): int {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['author'],
+				'post_status' => 'publish',
+			)
+		);
+		wp_trash_post( $post_id );
+
+		$this->assertSame( 'trash', get_post_status( $post_id ), 'Precondition: the post should be in the Trash.' );
+
+		return $post_id;
+	}
+
+	/**
+	 * Runs a query and returns the IDs of the items.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $where The `where` filters.
+	 * @return list<int> The IDs of the returned items.
+	 */
+	private function query_ids( array $where ): array {
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => $where,
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The query should succeed.' );
+
+		return wp_list_pluck( $result['items'], 'id' );
+	}
+
+	/**
+	 * `trash` requested by name returns the trashed posts to roles that may edit them.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_roles_with_edit_access_to_other_users_posts
+	 * @since 7.3.0
+	 *
+	 * @param string $role The role to query as.
+	 */
+	public function test_trash_requested_by_name_returns_trashed_posts( string $role ): void {
+		$post_id = $this->create_trashed_post();
+
+		$this->login_as( $role );
+		$this->register_ability();
+
+		$this->assertSame(
+			array( $post_id ),
+			$this->query_ids(
+				array(
+					'type'   => 'post',
+					'status' => array( 'trash' ),
+				)
+			),
+			'The trashed post should be returned.'
+		);
+	}
+
+	/**
+	 * `trash` can be requested next to another status.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_trash_can_be_requested_next_to_another_status(): void {
+		$post_id = $this->create_trashed_post();
+
+		$this->login_as( 'editor' );
+		$this->register_ability();
+
+		$this->assertSameSets(
+			array( $post_id, self::$post_ids['published'] ),
+			$this->query_ids(
+				array(
+					'type'   => 'post',
+					'ids'    => array( $post_id, self::$post_ids['published'] ),
+					'status' => array( 'publish', 'trash' ),
+				)
+			),
+			'The trashed and the published post should be returned.'
+		);
+	}
+
+	/**
+	 * Querying `trash` needs `edit_posts`.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_trash_needs_edit_posts(): void {
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 'trash' ),
+				),
+			)
+		);
+
+		$this->assertWPError( $result, 'A subscriber should not be able to query the Trash.' );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'The permission callback should refuse a subscriber.' );
+	}
+
+	/**
+	 * Returns roles that may query the Trash but only edit their own posts.
+	 *
+	 * @return array<string, array{role: string}> The roles.
+	 */
+	public static function data_roles_that_edit_only_their_own_trashed_posts(): array {
+		return array(
+			'secondary author' => array( 'role' => 'author_secondary' ),
+			'contributor'      => array( 'role' => 'contributor' ),
+		);
+	}
+
+	/**
+	 * Trashed rows pass the per-post read check: a role that edits only its own posts gets its
+	 * own trashed post and not the trashed post of another user.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_roles_that_edit_only_their_own_trashed_posts
+	 * @since 7.3.0
+	 *
+	 * @param string $role The role to query as.
+	 */
+	public function test_trash_returns_only_the_trashed_posts_the_user_may_read( string $role ): void {
+		$own_id   = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids[ $role ],
+				'post_status' => 'draft',
+			)
+		);
+		$other_id = $this->create_trashed_post();
+		wp_trash_post( $own_id );
+
+		$this->login_as( $role );
+		$this->register_ability();
+
+		$this->assertSame(
+			array( $own_id ),
+			$this->query_ids(
+				array(
+					'type'   => 'post',
+					'ids'    => array( $own_id, $other_id ),
+					'status' => array( 'trash' ),
+				)
+			),
+			'Only the own trashed post should be returned.'
+		);
+	}
+
+	/**
+	 * Returns `where.ids` values that hold no valid ID: no item is a whole number of at least
+	 * 1 within the integer range.
+	 *
+	 * @return array<string, array{ids: mixed}> The `where.ids` values.
+	 */
+	public static function data_ids_with_no_valid_ids(): array {
+		return array(
+			'zero'                     => array(
+				'ids' => array( 0 ),
+			),
+			'fraction'                 => array(
+				'ids' => array( 2.5 ),
+			),
+			'negative number'          => array(
+				'ids' => array( -5 ),
+			),
+			'non-numeric string'       => array(
+				'ids' => 'abc',
+			),
+			'beyond the integer range' => array(
+				'ids' => array( 2 ** 64 + self::ALIASED_POST_ID ),
+			),
+		);
+	}
+
+	/**
+	 * An ids filter that parses to no valid IDs is rejected rather than returning an
+	 * unrestricted result set.
+	 *
+	 * WP_Query ignores an empty `post__in`, so an ids list with no valid IDs would otherwise
+	 * return every post of the type — the opposite of the caller's intent. The filter must
+	 * fail closed instead, and an ID beyond the integer range must not wrap around onto the
+	 * published post whose ID it aliases.
+	 *
+	 * Keep this test last in the class: the post it creates sets the next post ID above
+	 * ALIASED_POST_ID, so the fewer tests run after it, the fewer post IDs later test classes
+	 * see shifted.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_ids_with_no_valid_ids
+	 * @since 7.2.0
+	 *
+	 * @param mixed $ids The `where.ids` value to send.
+	 */
+	public function test_execute_callback_rejects_ids_with_no_valid_ids( $ids ): void {
+		$this->login_as( 'administrator' );
+
+		self::factory()->post->create(
+			array(
+				'import_id'   => self::ALIASED_POST_ID,
+				'post_status' => 'publish',
+			)
+		);
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute(
+			array(
+				'where' => array(
+					'type' => 'post',
+					'ids'  => $ids,
+				),
+			)
+		);
+
+		$this->assertWPError( $result, 'An ids filter with no valid IDs must not fall through to an unrestricted query.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An empty-after-parsing ids filter should fail closed as an invalid filter.' );
+		$this->assertSame(
+			array( 'where[ids]' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the ids filter to the error message.'
+		);
 	}
 }

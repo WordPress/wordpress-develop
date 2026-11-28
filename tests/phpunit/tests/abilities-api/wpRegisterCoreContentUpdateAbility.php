@@ -1,0 +1,2332 @@
+<?php
+
+declare( strict_types=1 );
+
+require_once __DIR__ . '/testcase-content-existing-post-ability.php';
+require_once __DIR__ . '/trait-content-data-write-tests.php';
+
+/**
+ * Tests for the core/content-update ability shipped with the Abilities API.
+ *
+ * @covers WP_Abilities_Content
+ *
+ * @group abilities-api
+ */
+class Tests_Abilities_API_WpRegisterCoreContentUpdateAbility extends WP_Abilities_Content_Existing_Post_UnitTestCase {
+
+	use WP_Abilities_Content_Data_Write_Tests;
+
+	/**
+	 * The name of the ability under test.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	protected const ABILITY = 'core/content-update';
+
+	/**
+	 * The label of the ability under test.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	protected const LABEL = 'Update Content';
+
+	/**
+	 * The annotations of the ability under test.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var array<string, bool>
+	 */
+	protected const ANNOTATIONS = array(
+		'readonly'    => false,
+		'destructive' => false,
+		'idempotent'  => true,
+	);
+
+	/**
+	 * The input that the shared tests send next to `where`.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var array<string, mixed>
+	 */
+	protected const OTHER_INPUT = array( 'data' => array( 'title' => 'x' ) );
+
+	/**
+	 * Creates shared users and posts.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param WP_UnitTest_Factory $factory The unit test factory.
+	 */
+	public static function wpSetUpBeforeClass( $factory ): void {
+		self::create_shared_fixtures( $factory );
+		self::create_data_write_fixtures( $factory );
+
+		self::$post_ids['publisher:draft'] = $factory->post->create(
+			array(
+				'post_author'  => self::$user_ids['publisher'],
+				'post_status'  => 'draft',
+				'post_title'   => 'Publisher draft',
+				'post_content' => 'Draft body.',
+			)
+		);
+
+		self::$post_ids['writer_page'] = $factory->post->create(
+			array(
+				'post_author' => self::$user_ids['page_writer'],
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+				'post_title'  => 'Writer page',
+			)
+		);
+
+		self::$post_ids['writer_child'] = $factory->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_parent' => self::$post_ids['writer_page'],
+			)
+		);
+
+		self::$post_ids['writer_grandchild'] = $factory->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_parent' => self::$post_ids['writer_child'],
+			)
+		);
+
+		// A page of the writer whose stored parent the writer may not read.
+		self::$post_ids['writer_page_with_hidden_parent'] = $factory->post->create(
+			array(
+				'post_author' => self::$user_ids['page_writer'],
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+				'post_title'  => 'Hidden parent',
+				'post_parent' => self::$post_ids['editor_draft_page'],
+			)
+		);
+
+		// An author whose role grants publish_posts, denied it for this user.
+		self::$user_ids['restricted_author'] = $factory->user->create( array( 'role' => 'author' ) );
+		get_userdata( self::$user_ids['restricted_author'] )->add_cap( 'publish_posts', false );
+
+		self::$post_ids['restricted_author:draft'] = $factory->post->create(
+			array(
+				'post_author' => self::$user_ids['restricted_author'],
+				'post_status' => 'draft',
+			)
+		);
+	}
+
+	/**
+	 * Builds the input that updates a post with the given data.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int                  $post_id The post ID.
+	 * @param array<string, mixed> $data    The data.
+	 * @param list<string>|null    $fields  Optional. The fields, or null for the default. Default null.
+	 * @return array<string, mixed> The input.
+	 */
+	private function update_input( int $post_id, array $data, ?array $fields = null ): array {
+		$input = array(
+			'where' => $this->build_where( $post_id ),
+			'data'  => $data,
+		);
+		if ( null !== $fields ) {
+			$input['fields'] = $fields;
+		}
+
+		return $input;
+	}
+
+	/**
+	 * Runs the update ability on a post with the given data.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int                  $post_id The post ID.
+	 * @param array<string, mixed> $data    The data.
+	 * @param list<string>|null    $fields  Optional. The fields, or null for the default. Default null.
+	 * @return mixed The ability result.
+	 */
+	private function update_post( int $post_id, array $data, ?array $fields = null ) {
+		return $this->run_ability( $this->update_input( $post_id, $data, $fields ) );
+	}
+
+	/**
+	 * Asserts that a result is the post item of a successful update and returns the stored post.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $result  The ability result.
+	 * @param int   $post_id The ID of the updated post.
+	 * @return WP_Post The stored post.
+	 */
+	private function assert_updated( $result, int $post_id ): WP_Post {
+		$this->assertIsArray( $result, 'The update should succeed.' );
+		$this->assertSame( $post_id, $result['id'] ?? null, 'The updated post should be returned with its ID.' );
+
+		clean_post_cache( $post_id );
+
+		return get_post( $post_id );
+	}
+
+	/**
+	 * Returns the draft of the role, which the shared tests update.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $role The role, as a fixture name.
+	 * @return int The post ID.
+	 */
+	protected function get_write_post_id( string $role ): int {
+		return self::$post_ids[ "{$role}:draft" ];
+	}
+
+	/**
+	 * Builds the input that updates a post with the given data.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int|null             $post_id The post ID.
+	 * @param array<string, mixed> $data    The data.
+	 * @param list<string>|null    $fields  Optional. The fields, or null for the default. Default null.
+	 * @return array<string, mixed> The input.
+	 */
+	protected function build_write_input( ?int $post_id, array $data, ?array $fields = null ): array {
+		return $this->update_input( (int) $post_id, $data, $fields );
+	}
+
+	/**
+	 * Asserts that a result is the post item of a successful update and returns the stored post.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed    $result  The ability result.
+	 * @param int|null $post_id The ID of the updated post.
+	 * @return WP_Post The stored post.
+	 */
+	protected function assert_data_written( $result, ?int $post_id ): WP_Post {
+		return $this->assert_updated( $result, (int) $post_id );
+	}
+
+	/**
+	 * Creates a draft with a floating date, stored in the site's timezone with no GMT date.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $local The local date, as `Y-m-d H:i:s`.
+	 * @return int The post ID.
+	 */
+	private function create_floating_draft( string $local ): int {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['editor'],
+				'post_status' => 'draft',
+				'post_title'  => 'Floating',
+				'post_date'   => $local,
+			)
+		);
+
+		$this->assertSame( '0000-00-00 00:00:00', get_post( $post_id )->post_date_gmt, 'Precondition: the draft should have a floating date.' );
+
+		return $post_id;
+	}
+
+	/**
+	 * Asserts that a stored GMT date is the current time, give or take a minute.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $gmt     The stored GMT date.
+	 * @param string $context What the date is, for the assertion message.
+	 */
+	private function assert_is_now( string $gmt, string $context ): void {
+		$this->assertEqualsWithDelta( time(), strtotime( $gmt . ' UTC' ), 60, "{$context} should be the current time." );
+	}
+
+	/**
+	 * The input schema takes `where`, with the post type and ID, `data`, with at least one
+	 * attribute, and `fields`.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_input_schema(): void {
+		$this->register_abilities();
+
+		$this->assertTrue( wp_has_ability( self::ABILITY ), 'The update ability should be registered.' );
+
+		$schema = wp_get_ability( self::ABILITY )->get_input_schema();
+
+		$this->assertSame( 'object', $schema['type'], 'The input should be an object.' );
+		$this->assertFalse( $schema['additionalProperties'], 'The input should reject unknown keys.' );
+		$this->assertSame( array( 'where', 'data' ), $schema['required'], 'The input should require where and data.' );
+		$this->assertSame( array( 'where', 'data', 'fields' ), array_keys( $schema['properties'] ), 'The input should take where, data and fields.' );
+
+		$where = $schema['properties']['where'];
+
+		$this->assertSame( 'object', $where['type'], 'The where should be an object.' );
+		$this->assertFalse( $where['additionalProperties'], 'The where should reject unknown keys.' );
+		$this->assertSame( array( 'type', 'id' ), $where['required'], 'The where should require the type and the ID.' );
+		$this->assertSame( array( 'type', 'id' ), array_keys( $where['properties'] ), 'The where should take the type and the ID.' );
+		$this->assertSame( 'string', $where['properties']['type']['type'], 'The type should be a string.' );
+		$this->assertSameSets( array( 'post', 'page' ), $where['properties']['type']['enum'], 'The type should list the exposed post types.' );
+		$this->assertSame( 'integer', $where['properties']['id']['type'], 'The ID should be an integer.' );
+		$this->assertSame( 1, $where['properties']['id']['minimum'], 'The ID should be at least 1.' );
+
+		$data = $schema['properties']['data'];
+
+		$this->assertSame( 'object', $data['type'], 'The data should be an object.' );
+		$this->assertFalse( $data['additionalProperties'], 'The data should reject unknown keys.' );
+		$this->assertSame( 1, $data['minProperties'], 'The data should hold at least one attribute.' );
+		$this->assertArrayNotHasKey( 'required', $data, 'The data should require no attribute.' );
+		$this->assertSame( array( 'title', 'content', 'excerpt', 'status', 'slug', 'date', 'author', 'parent' ), array_keys( $data['properties'] ), 'The data should take the allowed attributes and no post type.' );
+		$this->assertSameSets( array( 'publish', 'future', 'draft', 'pending', 'private' ), $data['properties']['status']['enum'], 'The status should list the statuses that are not internal.' );
+		$this->assertArrayNotHasKey( 'minLength', $data['properties']['slug'], 'The slug should take an empty string, so the empty slug of a draft can be sent back.' );
+		$this->assertSame( 1, $data['properties']['author']['minimum'], 'The author should be at least 1.' );
+		$this->assertSame( 0, $data['properties']['parent']['minimum'], 'The parent should be at least 0.' );
+		$this->assertSame( 1, $data['properties']['date']['minProperties'], 'The date should hold at least one value.' );
+		$this->assertSame( array( 'site', 'gmt' ), array_keys( $data['properties']['date']['properties'] ), 'The date should take a site and a GMT value.' );
+
+		$create_schema = wp_get_ability( 'core/content-create' )->get_input_schema();
+		$create_data   = $create_schema['properties']['data']['properties'];
+		unset( $create_data['type'] );
+
+		$this->assertSame( $this->strip_descriptions( $create_data ), $this->strip_descriptions( $data['properties'] ), 'The attributes should have the same schemas as on create.' );
+
+		$query_schema = wp_get_ability( 'core/content-query' )->get_input_schema();
+
+		$this->assertSame(
+			$this->strip_descriptions( $query_schema['properties']['fields'] ),
+			$this->strip_descriptions( $schema['properties']['fields'] ),
+			'The fields should be the same list as the fields of the query.'
+		);
+	}
+
+	/**
+	 * A new title and excerpt are stored, and the post is returned in the chosen fields.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_updates_the_title_and_excerpt(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_status' => 'draft',
+				'post_title'  => 'Launch notes',
+			)
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_abilities();
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'title'   => 'Launch notes, updated',
+				'excerpt' => 'What shipped and what is next.',
+			),
+			array( 'modified', 'title', 'excerpt' )
+		);
+
+		$this->assert_updated( $result, $post_id );
+
+		$this->assertSameSets( array( 'id', 'modified', 'title', 'excerpt' ), array_keys( $result ), 'The ID and the chosen fields should be returned.' );
+		$this->assertSameSets( array( 'site', 'gmt' ), array_keys( $result['modified'] ), 'The modified date should be given in site time and GMT.' );
+		$this->assertNotFalse( rest_parse_date( $result['modified']['gmt'] ), 'The modified GMT date should be a date-time.' );
+		$this->assertSame(
+			array(
+				'raw'      => 'Launch notes, updated',
+				'rendered' => 'Launch notes, updated',
+			),
+			$result['title'],
+			'The new title should be returned raw and rendered.'
+		);
+		$this->assertSame(
+			array(
+				'raw'       => 'What shipped and what is next.',
+				'rendered'  => "<p>What shipped and what is next.</p>\n",
+				'protected' => false,
+			),
+			$result['excerpt'],
+			'The new excerpt should be returned raw, rendered and unprotected.'
+		);
+	}
+
+	/**
+	 * A draft is published by setting its status.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_publishes_the_draft(): void {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_status' => 'draft',
+				'post_title'  => 'Launch notes, updated',
+			)
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_abilities();
+
+		$result = $this->update_post( $post_id, array( 'status' => 'publish' ), array( 'status', 'slug', 'link' ) );
+
+		$this->assertSame(
+			array(
+				'id'     => $post_id,
+				'status' => 'publish',
+				'slug'   => 'launch-notes-updated',
+				'link'   => home_url( '/launch-notes-updated/' ),
+			),
+			$result,
+			'The published post should be returned in the chosen fields.'
+		);
+	}
+
+	/**
+	 * The lookup comes before everything else: a missing post with invalid data is not found.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_lookup_comes_before_the_attribute_rules(): void {
+		$this->login_as( 'subscriber' );
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$input         = $this->build_post_input( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, 'post' );
+		$input['data'] = array(
+			'status' => 'trash',
+			'parent' => 1,
+			'title'  => array( 'x' ),
+		);
+
+		$before = $this->snapshot( self::$post_ids['administrator:draft'] );
+		$result = $execute( $input );
+
+		$this->assert_not_found( $result, 'A missing post with invalid data' );
+		$this->assertSame( $before, $this->snapshot( self::$post_ids['administrator:draft'] ), 'Nothing should be written for a missing post.' );
+	}
+
+	/**
+	 * Each role may update the posts it may edit, in any status, and is refused for the others,
+	 * whatever their status.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_capability_matrix
+	 * @since 7.3.0
+	 *
+	 * @param string $role    The role to update as.
+	 * @param string $owner   The role of the author of the post, or `other`.
+	 * @param string $status  The matrix status of the post.
+	 * @param bool   $allowed Whether the update is allowed.
+	 */
+	public function test_update_matrix( string $role, string $owner, string $status, bool $allowed ): void {
+		$post_id       = self::$post_ids[ "{$owner}:{$status}" ];
+		$stored_status = get_post_status( $post_id );
+
+		$this->login_as( $role );
+		$this->register_abilities();
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, array( 'title' => 'Matrix update' ), array( 'status', 'title.rendered' ) );
+
+		if ( ! $allowed ) {
+			$this->assert_refused( $result, 'Updating a post the role may not edit' );
+			$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+			return;
+		}
+
+		$post = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( 'Matrix update', $post->post_title, 'The title should be stored.' );
+		$this->assertSame( $stored_status, $post->post_status, 'The status should not change.' );
+		$this->assertSame( $stored_status, $result['status'], 'The stored status should be returned.' );
+		$this->assertSame( array( 'rendered' => 'Matrix update' ), $result['title'], 'The new title should be returned.' );
+	}
+
+	/**
+	 * Returns keys that are not part of the input, and where they are sent.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: mixed}> The cases.
+	 */
+	public static function data_keys_outside_the_allow_list(): array {
+		return array(
+			'data ID'                => array( 'data', 'ID', 1 ),
+			'data type'              => array( 'data', 'type', 'page' ),
+			'data post_type'         => array( 'data', 'post_type', 'page' ),
+			'data post_password'     => array( 'data', 'post_password', 'secret' ),
+			'data meta_input'        => array( 'data', 'meta_input', array( 'cw_key' => 'value' ) ),
+			'data tax_input'         => array( 'data', 'tax_input', array( 'category' => array( 1 ) ) ),
+			'data comment_status'    => array( 'data', 'comment_status', 'closed' ),
+			'data post_author'       => array( 'data', 'post_author', 1 ),
+			'data import_id'         => array( 'data', 'import_id', 7654321 ),
+			'data guid'              => array( 'data', 'guid', 'https://example.org/forged' ),
+			'data page_template'     => array( 'data', 'page_template', 'cw-template.php' ),
+			'data modified'          => array( 'data', 'modified', '2001-01-01T00:00:00' ),
+			'data post_modified'     => array( 'data', 'post_modified', '2001-01-01 00:00:00' ),
+			'data post_modified_gmt' => array( 'data', 'post_modified_gmt', '2001-01-01 00:00:00' ),
+			'data sticky'            => array( 'data', 'sticky', true ),
+			'data tags_input'        => array( 'data', 'tags_input', array( 'cw-tag' ) ),
+			'data post_category'     => array( 'data', 'post_category', array( 2 ) ),
+			'data menu_order'        => array( 'data', 'menu_order', 5 ),
+			'data post_mime_type'    => array( 'data', 'post_mime_type', 'image/jpeg' ),
+			'where status'           => array( 'where', 'status', 'draft' ),
+			'where ID'               => array( 'where', 'ID', 1 ),
+		);
+	}
+
+	/**
+	 * An internal or unregistered status fails input validation.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_statuses_that_can_never_be_set
+	 * @since 7.3.0
+	 *
+	 * @param string $status The status.
+	 */
+	public function test_status_that_can_never_be_set_fails_input_validation( string $status ): void {
+		$post_id = self::$post_ids['administrator:draft'];
+
+		$this->assert_invalid_input( $this->update_input( $post_id, array( 'status' => $status ) ), $post_id, 'A status that can never be set' );
+	}
+
+	/**
+	 * Returns status changes that a contributor, and an author denied `publish_posts`, may not
+	 * make on their own draft.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2?: string}> The cases.
+	 */
+	public static function data_status_changes_without_publish_posts(): array {
+		return array(
+			'publish by a contributor'                  => array( 'contributor', 'publish' ),
+			'future by a contributor'                   => array( 'contributor', 'future' ),
+			'private by a contributor'                  => array( 'contributor', 'private' ),
+			'publish by an author denied publish_posts' => array( 'restricted_author', 'publish' ),
+			'future by an author denied publish_posts'  => array( 'restricted_author', 'future' ),
+			'private by an author denied publish_posts' => array( 'restricted_author', 'private' ),
+			'publish from the Trash by a contributor'   => array( 'contributor', 'publish', 'trash_draft' ),
+		);
+	}
+
+	/**
+	 * A status that makes a post visible needs `publish_posts`, also to move a post out of the
+	 * Trash.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_status_changes_without_publish_posts
+	 * @since 7.3.0
+	 *
+	 * @param string $role   The role or fixture name of the user, who owns the post.
+	 * @param string $status The status.
+	 * @param string $stored Optional. The matrix status of the post. Default 'draft'.
+	 */
+	public function test_status_that_makes_a_post_visible_needs_publish_posts( string $role, string $status, string $stored = 'draft' ): void {
+		$post_id = self::$post_ids[ "{$role}:{$stored}" ];
+
+		$this->login_as( $role );
+		$this->register_abilities();
+
+		$this->assertFalse( current_user_can( 'publish_posts' ), 'Precondition: the user should not be able to publish posts.' );
+
+		$data = array( 'status' => $status );
+		if ( 'future' === $status ) {
+			$data['date'] = array( 'gmt' => self::FUTURE_GMT );
+		}
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, $data );
+
+		$this->assert_refused( $result, 'A status that makes a post visible without publish_posts' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Returns `data` values with a `status` or an `author` of the wrong type.
+	 *
+	 * @return array<string, array{0: array<string, mixed>}> The data.
+	 */
+	public static function data_malformed_status_or_author(): array {
+		return array(
+			'status that is a list' => array( array( 'status' => array( 'draft' ) ) ),
+			'author that is a word' => array( array( 'author' => 'admin' ) ),
+		);
+	}
+
+	/**
+	 * The permission callback returns false for a `status` or an `author` of the wrong type,
+	 * which only a direct call can send.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_malformed_status_or_author
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $data The data.
+	 */
+	public function test_permission_callback_returns_false_for_a_malformed_status_or_author( array $data ): void {
+		$this->login_as( 'administrator' );
+
+		$permission = $this->get_ability_callbacks()['permission_callback'];
+
+		$this->assertFalse( $permission( $this->update_input( self::$post_ids['admin_post'], $data ) ), 'The permission callback should return false.' );
+	}
+
+	/**
+	 * A status equal to the stored status changes nothing and passes with no check.
+	 *
+	 * A contributor may edit their own private post, but may not make a post private.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_status_equal_to_the_stored_status_passes_with_no_check(): void {
+		$post_id = self::$post_ids['contributor:private'];
+
+		$this->login_as( 'contributor' );
+		$this->register_abilities();
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'status' => 'private',
+				'title'  => 'Still private',
+			)
+		);
+
+		$post = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( 'private', $post->post_status, 'The post should stay private.' );
+		$this->assertSame( 'Still private', $post->post_title, 'The title should be stored.' );
+	}
+
+	/**
+	 * A draft is scheduled with `future` and a date in the future.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_schedules_a_draft(): void {
+		$post_id = self::$post_ids['author:draft'];
+
+		$this->login_as( 'author' );
+		$this->register_abilities();
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'status' => 'future',
+				'date'   => array( 'gmt' => self::FUTURE_GMT ),
+			),
+			array( 'status', 'date' )
+		);
+
+		$post = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( 'future', $post->post_status, 'The post should be scheduled.' );
+		$this->assertSame( str_replace( 'T', ' ', self::FUTURE_GMT ), $post->post_date_gmt, 'The post should be scheduled for the sent date.' );
+		$this->assertSame( 'future', $result['status'], 'The scheduled status should be returned.' );
+	}
+
+	/**
+	 * Returns status changes that unpublish a post or move a post out of the Trash.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string}> The role, which owns the post,
+	 *                                                               the matrix status of the post,
+	 *                                                               and the sent status.
+	 */
+	public static function data_status_changes(): array {
+		return array(
+			'draft from publish by an editor'       => array( 'editor', 'publish', 'draft' ),
+			'pending from publish by an editor'     => array( 'editor', 'publish', 'pending' ),
+			'draft from the Trash by a contributor' => array( 'contributor', 'trash_draft', 'draft' ),
+			'pending from the Trash by an author'   => array( 'author', 'trash_draft', 'pending' ),
+			'publish from the Trash by an author'   => array( 'author', 'trash_draft', 'publish' ),
+		);
+	}
+
+	/**
+	 * A published post can be unpublished, and sending a status moves a post out of the Trash
+	 * through a plain update.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_status_changes
+	 * @since 7.3.0
+	 *
+	 * @param string $role   The role, which owns the post.
+	 * @param string $stored The matrix status of the post.
+	 * @param string $status The sent status.
+	 */
+	public function test_status_change_is_stored( string $role, string $stored, string $status ): void {
+		$post_id = self::$post_ids[ "{$role}:{$stored}" ];
+
+		$this->login_as( $role );
+		$this->register_abilities();
+
+		$result = $this->update_post( $post_id, array( 'status' => $status ), array( 'status' ) );
+
+		$this->assertSame( $status, $this->assert_updated( $result, $post_id )->post_status, 'The post should be stored in the sent status.' );
+		$this->assertSame( $status, $result['status'], 'The new status should be returned.' );
+	}
+
+	/**
+	 * A user with `edit_others_posts` may change the author of a post.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_changes_the_author(): void {
+		$post_id = self::$post_ids['editor:draft'];
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$result = $this->update_post( $post_id, array( 'author' => self::$user_ids['author'] ), array( 'author.id' ) );
+
+		$this->assertSame( self::$user_ids['author'], (int) $this->assert_updated( $result, $post_id )->post_author, 'The new author should be stored.' );
+		$this->assertSame( array( 'id' => self::$user_ids['author'] ), $result['author'], 'The new author should be returned.' );
+	}
+
+	/**
+	 * An author equal to the stored author changes nothing and passes with no check, even when
+	 * that user no longer exists.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_author_equal_to_the_stored_author_passes_with_no_check(): void {
+		global $wpdb;
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['editor'],
+				'post_status' => 'draft',
+			)
+		);
+		$wpdb->update( $wpdb->posts, array( 'post_author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ), array( 'ID' => $post_id ) );
+		clean_post_cache( $post_id );
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+				'title'  => 'Orphan',
+			)
+		);
+
+		$post = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( 'Orphan', $post->post_title, 'The title should be stored.' );
+		$this->assertSame( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, (int) $post->post_author, 'The stored author should not change.' );
+	}
+
+	/**
+	 * Returns attributes that are invalid for the user or after sanitization: the role, the data,
+	 * the invalid attribute and the expected error message. The post is the draft of the role.
+	 *
+	 * @return array<string, array{0: string, 1: array<string, mixed>, 2: string, 3: string}> The cases.
+	 */
+	public static function data_invalid_attributes(): array {
+		return array(
+			'missing author named with edit_others_posts' => array(
+				'editor',
+				array( 'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
+				'author',
+				'The author must be an existing user of this site.',
+			),
+			'slug that sanitizes to nothing'              => array(
+				'administrator',
+				array( 'slug' => '!!!' ),
+				'slug',
+				'The slug must contain characters that are valid in a slug.',
+			),
+		);
+	}
+
+	/**
+	 * A missing author named by a user with `edit_others_posts` and a slug that sanitizes to
+	 * nothing are invalid attributes.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_invalid_attributes
+	 * @since 7.3.0
+	 *
+	 * @param string               $role      The role to update as.
+	 * @param array<string, mixed> $data      The `data` input.
+	 * @param string               $attribute The invalid attribute.
+	 * @param string               $message   The expected error message.
+	 */
+	public function test_invalid_attribute_is_rejected( string $role, array $data, string $attribute, string $message ): void {
+		$post_id = self::$post_ids[ "{$role}:draft" ];
+
+		$this->login_as( $role );
+		$this->register_abilities();
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, $data );
+
+		$this->assert_invalid_attribute( $result, $attribute, "An invalid {$attribute}", $message );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Returns parents that a page may not have.
+	 *
+	 * @return array<string, array{0: string}> The parents, as fixture names.
+	 */
+	public static function data_parents_refused_by_the_permission_callback(): array {
+		return array(
+			'missing post'               => array( 'missing' ),
+			'page the user may not read' => array( 'editor_draft_page' ),
+			'revision of a post'         => array( 'revision' ),
+		);
+	}
+
+	/**
+	 * A missing parent, a parent the user may not read and a revision, whose type is not exposed
+	 * to abilities, are refused by the permission callback, so the refusal never tells whether a
+	 * post exists.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_parents_refused_by_the_permission_callback
+	 * @since 7.3.0
+	 *
+	 * @param string $parent_key The parent, as a fixture name.
+	 */
+	public function test_parent_that_is_missing_unreadable_or_not_exposed_is_refused( string $parent_key ): void {
+		$post_id = self::$post_ids['writer_page'];
+
+		$this->login_as( 'page_writer' );
+		$this->register_abilities();
+
+		$this->assertTrue( current_user_can( 'edit_post', $post_id ), 'Precondition: the user should be able to edit the page.' );
+		$this->assertFalse( current_user_can( 'read_post', self::$post_ids['editor_draft_page'] ), 'Precondition: the user should not be able to read the draft page of the editor.' );
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, array( 'parent' => self::$post_ids[ $parent_key ] ?? REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
+
+		$this->assert_refused( $result, 'A missing, unreadable or unexposed parent' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Returns readable parents that a page may not have.
+	 *
+	 * @return array<string, array{0: string}> The parents, as fixture names.
+	 */
+	public static function data_parents_that_cannot_be_used(): array {
+		return array(
+			'post of another type' => array( 'admin_post' ),
+			'the page itself'      => array( 'writer_page' ),
+			'a child'              => array( 'writer_child' ),
+			'a grandchild'         => array( 'writer_grandchild' ),
+		);
+	}
+
+	/**
+	 * A readable parent of another type and a parent that would make a loop are invalid parents
+	 * with one identical error.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_parents_that_cannot_be_used
+	 * @since 7.3.0
+	 *
+	 * @param string $parent_key The parent, as a fixture name.
+	 */
+	public function test_parent_that_cannot_be_used_is_an_invalid_parent( string $parent_key ): void {
+		$post_id = self::$post_ids['writer_page'];
+
+		$this->login_as( 'page_writer' );
+		$this->register_abilities();
+
+		$this->assertTrue( current_user_can( 'edit_post', $post_id ), 'Precondition: the user should be able to edit the page.' );
+		$this->assertTrue( current_user_can( 'read_post', self::$post_ids[ $parent_key ] ), 'Precondition: the user should be able to read the parent.' );
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, array( 'parent' => self::$post_ids[ $parent_key ] ) );
+
+		$this->assert_invalid_attribute( $result, 'parent', 'A parent that cannot be used', 'The parent must be 0, or a post of the same post type that is neither the post itself nor one of its descendants.' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * A parent equal to the stored parent changes nothing and passes with no check, even when the
+	 * user may not read it.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_parent_equal_to_the_stored_parent_passes_with_no_check(): void {
+		$post_id = self::$post_ids['writer_page_with_hidden_parent'];
+
+		$this->login_as( 'page_writer' );
+		$this->register_abilities();
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'parent' => self::$post_ids['editor_draft_page'],
+				'title'  => 'Same parent',
+			)
+		);
+
+		$post = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( 'Same parent', $post->post_title, 'The title should be stored.' );
+		$this->assertSame( self::$post_ids['editor_draft_page'], $post->post_parent, 'The stored parent should not change.' );
+	}
+
+	/**
+	 * Returns parents a page may be moved to.
+	 *
+	 * @return array<string, array{0: string|null}> The parents, as fixture names, or null for 0.
+	 */
+	public static function data_parents_that_can_be_used(): array {
+		return array(
+			'readable page' => array( 'admin_page' ),
+			'top level'     => array( null ),
+		);
+	}
+
+	/**
+	 * A readable page of the same type can be the parent, and `0` makes the page a top-level page.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_parents_that_can_be_used
+	 * @since 7.3.0
+	 *
+	 * @param string|null $parent_key The parent, as a fixture name, or null for 0.
+	 */
+	public function test_moves_a_page_to_another_parent( ?string $parent_key ): void {
+		$post_id   = self::$post_ids['writer_page_with_hidden_parent'];
+		$parent_id = null === $parent_key ? 0 : self::$post_ids[ $parent_key ];
+
+		$this->login_as( 'page_writer' );
+		$this->register_abilities();
+
+		$result = $this->update_post( $post_id, array( 'parent' => $parent_id ), array( 'parent' ) );
+
+		$this->assertSame( $parent_id, $this->assert_updated( $result, $post_id )->post_parent, 'The new parent should be stored.' );
+		$this->assertSame( $parent_id, $result['parent'], 'The new parent should be returned.' );
+	}
+
+	/**
+	 * Returns attributes that a post type does not support.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: mixed}> The cases.
+	 */
+	public static function data_unsupported_attributes(): array {
+		return array(
+			'excerpt of a page'  => array( 'admin_page', 'excerpt', 'An excerpt' ),
+			'parent of a post'   => array( 'admin_post', 'parent', 1 ),
+			'parent 0 of a post' => array( 'admin_post', 'parent', 0 ),
+		);
+	}
+
+	/**
+	 * An attribute the post type does not support is rejected, even when it would change nothing.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_unsupported_attributes
+	 * @since 7.3.0
+	 *
+	 * @param string $post      The post, as a fixture name.
+	 * @param string $attribute The attribute.
+	 * @param mixed  $value     The value.
+	 */
+	public function test_unsupported_attribute_is_rejected( string $post, string $attribute, $value ): void {
+		$post_id = self::$post_ids[ $post ];
+
+		$this->login_as( 'administrator' );
+		$this->register_abilities();
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, array( $attribute => $value ) );
+
+		$this->assert_invalid_attribute( $result, $attribute, 'An unsupported attribute' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Returns attribute values of the wrong type.
+	 *
+	 * @return array<string, array{0: string, 1: mixed}> The cases.
+	 */
+	public static function data_values_of_the_wrong_type(): array {
+		return array(
+			'title that is a number'       => array( 'title', 123 ),
+			'content that is null'         => array( 'content', null ),
+			'status that is a list'        => array( 'status', array( 'draft' ) ),
+			'date that is a string'        => array( 'date', '2016-12-12T14:00:00' ),
+			'date that cannot be parsed'   => array( 'date', array( 'site' => 'not a date' ) ),
+			'date that is not a date-time' => array( 'date', array( 'gmt' => '2010-60-01T02:00:00Z' ) ),
+			'author that is a fraction'    => array( 'author', 1.5 ),
+			'author that is text'          => array( 'author', '1abc' ),
+		);
+	}
+
+	/**
+	 * A value of the wrong type fails input validation.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_values_of_the_wrong_type
+	 * @since 7.3.0
+	 *
+	 * @param string $attribute The attribute.
+	 * @param mixed  $value     The value.
+	 */
+	public function test_value_of_the_wrong_type_fails_input_validation( string $attribute, $value ): void {
+		$post_id = self::$post_ids['administrator:draft'];
+
+		$this->assert_invalid_input( $this->update_input( $post_id, array( $attribute => $value ) ), $post_id, 'A value of the wrong type' );
+	}
+
+	/**
+	 * Attributes that were not sent keep their stored values.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_attributes_not_sent_keep_their_stored_values(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'  => self::$user_ids['author'],
+				'post_status'  => 'publish',
+				'post_title'   => 'Kept title',
+				'post_content' => 'Kept content.',
+				'post_excerpt' => 'Kept excerpt.',
+				'post_name'    => 'kept-slug',
+				'post_date'    => '2016-12-12 14:00:00',
+			)
+		);
+		$stored  = get_post( $post_id );
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$post = $this->assert_updated( $this->update_post( $post_id, array( 'content' => 'New content.' ) ), $post_id );
+
+		$this->assertSame( 'New content.', $post->post_content, 'The content should be stored.' );
+		$this->assertSame( $stored->post_title, $post->post_title, 'The title should be kept.' );
+		$this->assertSame( $stored->post_excerpt, $post->post_excerpt, 'The excerpt should be kept.' );
+		$this->assertSame( $stored->post_name, $post->post_name, 'The slug should be kept.' );
+		$this->assertSame( $stored->post_status, $post->post_status, 'The status should be kept.' );
+		$this->assertSame( $stored->post_author, $post->post_author, 'The author should be kept.' );
+		$this->assertSame( $stored->post_date_gmt, $post->post_date_gmt, 'The date should be kept.' );
+	}
+
+	/**
+	 * Returns updates that send a slug for a post that is, or becomes, pending.
+	 *
+	 * @return array<string, array{0: string, 1: array<string, string>}> The posts, as fixture names, and the data.
+	 */
+	public static function data_slugs_of_pending_posts(): array {
+		return array(
+			'draft moved to pending' => array(
+				'contributor:draft',
+				array(
+					'status' => 'pending',
+					'slug'   => 'pending-slug',
+				),
+			),
+			'pending post'           => array( 'contributor:pending', array( 'slug' => 'pending-slug' ) ),
+		);
+	}
+
+	/**
+	 * Returns posts with an empty slug and the role of their author.
+	 *
+	 * @return array<string, array{0: string, 1: string}> The role and the post, as a fixture name.
+	 */
+	public static function data_posts_with_an_empty_slug(): array {
+		return array(
+			'draft'        => array( 'author', 'author:draft' ),
+			'pending post' => array( 'contributor', 'contributor:pending' ),
+		);
+	}
+
+	/**
+	 * The empty slug of a draft or a pending post, as the query returns it, can be sent back,
+	 * also by a user who may not publish the post.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_posts_with_an_empty_slug
+	 * @since 7.3.0
+	 *
+	 * @param string $role The role of the author of the post.
+	 * @param string $post The post, as a fixture name.
+	 */
+	public function test_empty_slug_of_a_post_without_a_slug_can_be_sent_back( string $role, string $post ): void {
+		$post_id = self::$post_ids[ $post ];
+
+		$this->assertSame( '', get_post( $post_id )->post_name, 'Precondition: the post should have no slug.' );
+
+		$this->login_as( $role );
+		$this->register_abilities();
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'title' => 'Round trip',
+				'slug'  => '',
+			),
+			array( 'slug' )
+		);
+
+		$stored = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( 'Round trip', $stored->post_title, 'The title should be stored.' );
+		$this->assertSame( '', $stored->post_name, 'The post should still have no slug.' );
+		$this->assertSame( '', $result['slug'], 'The empty slug should be returned.' );
+	}
+
+	/**
+	 * An empty slug sent for a post that has a slug is an invalid slug.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_empty_slug_of_a_post_with_a_slug_is_an_invalid_slug(): void {
+		$post_id = self::$post_ids['author:publish'];
+
+		$this->assertNotSame( '', get_post( $post_id )->post_name, 'Precondition: the post should have a slug.' );
+
+		$this->login_as( 'author' );
+		$this->register_abilities();
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, array( 'slug' => '' ) );
+
+		$this->assert_invalid_attribute( $result, 'slug', 'An empty slug', 'The slug must contain characters that are valid in a slug.' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * A user who may not publish the post cannot set the slug of a pending post.
+	 *
+	 * Intentionally strict: the save would drop the slug, so the call is refused instead of the
+	 * slug being dropped without notice.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_slugs_of_pending_posts
+	 * @since 7.3.0
+	 *
+	 * @param string                $post The post, as a fixture name.
+	 * @param array<string, string> $data The `data` input.
+	 */
+	public function test_slug_of_a_pending_post_is_refused_without_publish_posts( string $post, array $data ): void {
+		$post_id = self::$post_ids[ $post ];
+
+		$this->login_as( 'contributor' );
+		$this->register_abilities();
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, $data );
+
+		$this->assert_refused( $result, 'A slug on a pending post without publish_posts' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written for a slug that cannot be stored.' );
+	}
+
+	/**
+	 * A user who may publish the post sets the slug of a pending post.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_slugs_of_pending_posts
+	 * @since 7.3.0
+	 *
+	 * @param string                $post The post, as a fixture name.
+	 * @param array<string, string> $data The `data` input.
+	 */
+	public function test_slug_of_a_pending_post_is_stored_with_publish_posts( string $post, array $data ): void {
+		$post_id = self::$post_ids[ $post ];
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$stored = $this->assert_updated( $this->update_post( $post_id, $data ), $post_id );
+
+		$this->assertSame( 'pending', $stored->post_status, 'The post should be pending.' );
+		$this->assertSame( 'pending-slug', $stored->post_name, 'The slug of the pending post should be stored.' );
+	}
+
+	/**
+	 * Returns posts that take the slug of another post.
+	 *
+	 * @return array<string, array{0: string, 1: string|null}> The cases.
+	 */
+	public static function data_posts_taking_a_used_slug(): array {
+		return array(
+			'stored draft'       => array( 'administrator:draft', null ),
+			'stored pending'     => array( 'administrator:pending', null ),
+			'draft from publish' => array( 'administrator:publish', 'draft' ),
+			'published post'     => array( 'administrator:publish', null ),
+		);
+	}
+
+	/**
+	 * A post never takes the slug of another post, also as a draft or a pending post.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_posts_taking_a_used_slug
+	 * @since 7.3.0
+	 *
+	 * @param string      $post   The post, as a fixture name.
+	 * @param string|null $status The status sent next to the slug, or null to send none.
+	 */
+	public function test_slug_of_another_post_is_made_unique( string $post, ?string $status ): void {
+		$post_id = self::$post_ids[ $post ];
+
+		$this->login_as( 'administrator' );
+		$this->register_abilities();
+
+		$data = array( 'slug' => 'Shared Slug' );
+		if ( null !== $status ) {
+			$data['status'] = $status;
+		}
+
+		$result = $this->update_post( $post_id, $data, array( 'slug' ) );
+
+		$this->assertSame( 'shared-slug-2', $this->assert_updated( $result, $post_id )->post_name, 'The sanitized slug should be made unique.' );
+	}
+
+	/**
+	 * Returns parents for a draft page that takes the slug of an existing child page.
+	 *
+	 * @return array<string, array{0: string, 1: string}> The cases.
+	 */
+	public static function data_draft_page_slugs_by_parent(): array {
+		return array(
+			'shared parent sent'    => array( 'writer_page', 'writer-child-2' ),
+			'different parent sent' => array( 'admin_page', 'writer-child' ),
+		);
+	}
+
+	/**
+	 * The slug of a draft page is made unique among the pages that share the sent parent.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_draft_page_slugs_by_parent
+	 * @since 7.3.0
+	 *
+	 * @param string $parent_key The parent, as a fixture name.
+	 * @param string $expected   The stored slug.
+	 */
+	public function test_draft_page_slug_is_unique_among_its_siblings( string $parent_key, string $expected ): void {
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_parent' => self::$post_ids['writer_page'],
+				'post_name'   => 'writer-child',
+			)
+		);
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+				'post_title'  => 'Moving page',
+			)
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_abilities();
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'slug'   => 'writer-child',
+				'parent' => self::$post_ids[ $parent_key ],
+			)
+		);
+
+		$this->assertSame( $expected, $this->assert_updated( $result, $post_id )->post_name, 'The slug should be unique among the siblings.' );
+	}
+
+	/**
+	 * Returns updates without a new date of a floating draft, 2099-01-15 10:00 in
+	 * America/New_York, with the status they store.
+	 *
+	 * The date is in winter because PHP versions before 8.1 apply no daylight saving time
+	 * after 2037.
+	 *
+	 * @return array<string, array{0: array<string, mixed>, 1: string}> The data, and the stored status.
+	 */
+	public static function data_updates_without_a_new_date_of_a_floating_draft(): array {
+		return array(
+			'title'                             => array( array( 'title' => 'Still floating' ), 'draft' ),
+			'pending'                           => array( array( 'status' => 'pending' ), 'pending' ),
+			'title with the site date it shows' => array(
+				array(
+					'date'  => array( 'site' => '2099-01-15T10:00:00' ),
+					'title' => 'Same date',
+				),
+				'draft',
+			),
+			'title with the GMT date it shows'  => array(
+				array(
+					'date'  => array( 'gmt' => '2099-01-15T15:00:00' ),
+					'title' => 'Same date',
+				),
+				'draft',
+			),
+		);
+	}
+
+	/**
+	 * An update without a date keeps a floating draft floating, also when it moves the draft
+	 * to pending. Sending back the date the draft shows counts as not sent and never pins it.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_updates_without_a_new_date_of_a_floating_draft
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $data   The data.
+	 * @param string               $status The stored status.
+	 */
+	public function test_update_without_a_new_date_keeps_a_draft_floating( array $data, string $status ): void {
+		update_option( 'timezone_string', 'America/New_York' );
+		$post_id = $this->create_floating_draft( '2099-01-15 10:00:00' );
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$post = $this->assert_updated( $this->update_post( $post_id, $data ), $post_id );
+
+		$this->assertSame( $status, $post->post_status, "The post should be stored as {$status}." );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt, 'The post should keep floating.' );
+	}
+
+	/**
+	 * Returns statuses that do not float, reached from a floating draft without a date.
+	 *
+	 * @return array<string, array{0: string}> The statuses.
+	 */
+	public static function data_statuses_that_stamp_the_current_time(): array {
+		return array(
+			'publish' => array( 'publish' ),
+			'future'  => array( 'future' ),
+		);
+	}
+
+	/**
+	 * Publishing a floating draft without a date stamps the current time, also when it is
+	 * sent as scheduled, and with a past local date.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_statuses_that_stamp_the_current_time
+	 * @since 7.3.0
+	 *
+	 * @param string $status The status.
+	 */
+	public function test_publishing_a_floating_draft_without_a_date_stamps_the_current_time( string $status ): void {
+		update_option( 'timezone_string', 'America/New_York' );
+		$post_id = $this->create_floating_draft( '2020-01-01 10:00:00' );
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$post = $this->assert_updated( $this->update_post( $post_id, array( 'status' => $status ) ), $post_id );
+
+		$this->assertSame( 'publish', $post->post_status, 'The post should be published.' );
+		$this->assert_is_now( $post->post_date_gmt, 'The GMT date' );
+	}
+
+	/**
+	 * Returns dates that differ from the stored ones, in America/New_York.
+	 *
+	 * @return array<string, array{0: array<string, string>}> The dates, each 2017-01-01 10:00 local.
+	 */
+	public static function data_new_dates(): array {
+		return array(
+			'site'                => array( array( 'site' => '2017-01-01T10:00:00' ) ),
+			'gmt'                 => array( array( 'gmt' => '2017-01-01T15:00:00' ) ),
+			'site with an offset' => array( array( 'site' => '2017-01-01T16:00:00+01:00' ) ),
+			'both, the site wins' => array(
+				array(
+					'site' => '2017-01-01T10:00:00',
+					'gmt'  => '2001-01-01T00:00:00',
+				),
+			),
+		);
+	}
+
+	/**
+	 * The date that core/content-query returns can be sent back after the site's timezone
+	 * changed, when its `site` and `gmt` dates name different times: `site` wins, and as it
+	 * equals the stored local date, the stored dates are kept.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_queried_date_can_be_sent_back_after_a_timezone_change(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'   => self::$user_ids['editor'],
+				'post_status'   => 'publish',
+				'post_date'     => '2017-01-01 10:00:00',
+				'post_date_gmt' => '2017-01-01 10:00:00',
+			)
+		);
+
+		update_option( 'timezone_string', 'Europe/Paris' );
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$queried = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( $post_id ),
+				),
+				'fields' => array( 'date' ),
+			)
+		);
+
+		$this->assertIsArray( $queried, 'The query should succeed.' );
+		$date = $queried['items'][0]['date'];
+		$this->assertSame(
+			array(
+				'site' => '2017-01-01T10:00:00+01:00',
+				'gmt'  => '2017-01-01T10:00:00+00:00',
+			),
+			$date,
+			'Precondition: the queried `site` and `gmt` dates should name different times.'
+		);
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'title' => 'Round trip',
+				'date'  => $date,
+			)
+		);
+
+		$post = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( 'Round trip', $post->post_title, 'The title should be stored.' );
+		$this->assertSame( '2017-01-01 10:00:00', $post->post_date, 'The local date should be kept.' );
+		$this->assertSame( '2017-01-01 10:00:00', $post->post_date_gmt, 'The GMT date should be kept.' );
+	}
+
+	/**
+	 * A date that differs from the stored one is stored as sent, local and GMT.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_new_dates
+	 * @since 7.3.0
+	 *
+	 * @param array<string, string> $date The sent date.
+	 */
+	public function test_new_date_is_stored_local_and_gmt( array $date ): void {
+		update_option( 'timezone_string', 'America/New_York' );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'   => self::$user_ids['editor'],
+				'post_status'   => 'publish',
+				'post_date'     => '2016-12-12 14:00:00',
+				'post_date_gmt' => '2016-12-12 19:00:00',
+			)
+		);
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$post = $this->assert_updated( $this->update_post( $post_id, array( 'date' => $date ) ), $post_id );
+
+		$this->assertSame( '2017-01-01 10:00:00', $post->post_date, 'The local date should be stored.' );
+		$this->assertSame( '2017-01-01 15:00:00', $post->post_date_gmt, 'The GMT date should be stored.' );
+	}
+
+	/**
+	 * A new date pins a floating draft.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_new_dates
+	 * @since 7.3.0
+	 *
+	 * @param array<string, string> $date The sent date.
+	 */
+	public function test_new_date_pins_a_floating_draft( array $date ): void {
+		update_option( 'timezone_string', 'America/New_York' );
+		$post_id = $this->create_floating_draft( '2099-01-15 10:00:00' );
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$post = $this->assert_updated( $this->update_post( $post_id, array( 'date' => $date ) ), $post_id );
+
+		$this->assertSame( 'draft', $post->post_status, 'The post should stay a draft.' );
+		$this->assertSame( '2017-01-01 10:00:00', $post->post_date, 'The local date should be stored.' );
+		$this->assertSame( '2017-01-01 15:00:00', $post->post_date_gmt, 'The draft should no longer float.' );
+	}
+
+	/**
+	 * Returns past dates equal to the date a floating draft shows, 2020-01-01 10:00 in
+	 * America/New_York.
+	 *
+	 * @return array<string, array{0: array<string, string>}> The dates.
+	 */
+	public static function data_past_dates_equal_to_the_floating_date(): array {
+		return array(
+			'site' => array( array( 'site' => '2020-01-01T10:00:00' ) ),
+			'gmt'  => array( array( 'gmt' => '2020-01-01T15:00:00' ) ),
+		);
+	}
+
+	/**
+	 * Publishing a floating draft with the past date it shows publishes it at the current
+	 * time, as if no date was sent.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_past_dates_equal_to_the_floating_date
+	 * @since 7.3.0
+	 *
+	 * @param array<string, string> $date The sent date.
+	 */
+	public function test_publishing_with_the_past_floating_date_stamps_the_current_time( array $date ): void {
+		update_option( 'timezone_string', 'America/New_York' );
+		$post_id = $this->create_floating_draft( '2020-01-01 10:00:00' );
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$post = $this->assert_updated(
+			$this->update_post(
+				$post_id,
+				array(
+					'date'   => $date,
+					'status' => 'publish',
+				)
+			),
+			$post_id
+		);
+
+		$this->assertSame( 'publish', $post->post_status, 'The post should be published.' );
+		$this->assert_is_now( $post->post_date_gmt, 'The GMT date of the published post' );
+	}
+
+	/**
+	 * Returns statuses that do not float, for scheduling a floating draft for the date it shows.
+	 *
+	 * @return array<string, array{0: string, 1: array<string, string>}> The cases.
+	 */
+	public static function data_schedules_a_floating_draft_for_the_date_it_shows(): array {
+		return array(
+			'future, site'  => array( 'future', array( 'site' => '2099-01-15T10:00:00' ) ),
+			'future, gmt'   => array( 'future', array( 'gmt' => '2099-01-15T15:00:00' ) ),
+			'publish, site' => array( 'publish', array( 'site' => '2099-01-15T10:00:00' ) ),
+			'publish, gmt'  => array( 'publish', array( 'gmt' => '2099-01-15T15:00:00' ) ),
+		);
+	}
+
+	/**
+	 * Scheduling a floating draft for the future date it shows schedules it for that date.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_schedules_a_floating_draft_for_the_date_it_shows
+	 * @since 7.3.0
+	 *
+	 * @param string                $status The status.
+	 * @param array<string, string> $date   The sent date.
+	 */
+	public function test_scheduling_a_floating_draft_for_the_date_it_shows( string $status, array $date ): void {
+		update_option( 'timezone_string', 'America/New_York' );
+		$post_id = $this->create_floating_draft( '2099-01-15 10:00:00' );
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'date'   => $date,
+				'status' => $status,
+			),
+			array( 'status' )
+		);
+		$post   = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( 'future', $post->post_status, 'The post should be scheduled.' );
+		$this->assertSame( '2099-01-15 10:00:00', $post->post_date, 'The local date should be the sent date.' );
+		$this->assertSame( '2099-01-15 15:00:00', $post->post_date_gmt, 'The GMT date should be the sent date.' );
+		$this->assertSame( 'future', $result['status'], 'The scheduled status should be returned.' );
+	}
+
+	/**
+	 * The markup of an author is filtered on update.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_markup_of_an_author_is_filtered(): void {
+		$post_id = self::$post_ids['author:draft'];
+
+		$this->login_as( 'author' );
+		$this->register_abilities();
+
+		$this->assertFalse( current_user_can( 'unfiltered_html' ), 'Precondition: the user should not have unfiltered_html.' );
+
+		$markup = '<a href="#" target="_blank" unfiltered=true>link</a>';
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'title'   => $markup,
+				'content' => $markup,
+			),
+			array( 'title.raw', 'content.raw' )
+		);
+
+		$post = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( '<a href="#">link</a>', $post->post_title, 'The stored title should be filtered.' );
+		$this->assertSame( '<a href="#" target="_blank">link</a>', $post->post_content, 'The stored content should be filtered.' );
+		$this->assertSame( '<a href="#">link</a>', $result['title']['raw'], 'The returned title should be filtered.' );
+		$this->assertSame( '<a href="#" target="_blank">link</a>', $result['content']['raw'], 'The returned content should be filtered.' );
+	}
+
+	/**
+	 * The markup of an administrator with `unfiltered_html` is stored unchanged on update.
+	 *
+	 * @group ms-excluded
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_markup_of_an_administrator_is_not_filtered(): void {
+		$post_id = self::$post_ids['administrator:draft'];
+
+		$this->login_as( 'administrator' );
+		$this->register_abilities();
+
+		$markup = '<div>div</div> <script>oh noes</script>';
+		$post   = $this->assert_updated( $this->update_post( $post_id, array( 'content' => $markup ) ), $post_id );
+
+		$this->assertSame( $markup, $post->post_content, 'The stored content should not be filtered.' );
+	}
+
+	/**
+	 * On multisite, the markup of a site administrator is filtered on update.
+	 *
+	 * @group ms-required
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_markup_of_a_site_administrator_is_filtered_on_multisite(): void {
+		$post_id = self::$post_ids['administrator:draft'];
+
+		$this->login_as( 'administrator' );
+		$this->register_abilities();
+
+		$post = $this->assert_updated( $this->update_post( $post_id, array( 'content' => '<div>div</div> <script>oh noes</script>' ) ), $post_id );
+
+		$this->assertSame( '<div>div</div> ', $post->post_content, 'The stored content should be filtered.' );
+	}
+
+	/**
+	 * A password-protected post is returned with its protection flag.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_password_protected_post_is_returned_with_its_protection_flag(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'   => self::$user_ids['editor'],
+				'post_status'   => 'publish',
+				'post_password' => 'secret',
+			)
+		);
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$result = $this->update_post( $post_id, array( 'content' => 'Protected body.' ), array( 'content.raw', 'content.protected' ) );
+
+		$this->assert_updated( $result, $post_id );
+
+		$this->assertSame(
+			array(
+				'raw'       => 'Protected body.',
+				'protected' => true,
+			),
+			$result['content'],
+			'The content should be returned raw to the editor and flagged as protected.'
+		);
+		$this->assertSame( 'secret', get_post( $post_id )->post_password, 'The password should be kept.' );
+	}
+
+	/**
+	 * The author visibility is checked again at each call.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_each_call_checks_the_author_visibility_again(): void {
+		$writer  = self::factory()->user->create( array( 'role' => 'author' ) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => $writer,
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->login_as( 'editor' );
+		$this->assertFalse( current_user_can( 'list_users' ), 'Precondition: the editor should not be able to list users.' );
+
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+		$input   = $this->update_input( $post_id, array( 'title' => 'Visibility' ), array( 'author' ) );
+
+		$hidden = $execute( $input );
+
+		self::factory()->post->create(
+			array(
+				'post_author' => $writer,
+				'post_status' => 'publish',
+			)
+		);
+
+		$visible = $execute( $input );
+
+		$this->assertIsArray( $hidden, 'The first call should succeed.' );
+		$this->assertIsArray( $visible, 'The second call should succeed.' );
+		$this->assertSame(
+			array(
+				'id'   => $writer,
+				'name' => null,
+				'slug' => null,
+			),
+			$hidden['author'],
+			'An author without published posts should not be shown.'
+		);
+		$this->assertSame( get_userdata( $writer )->display_name, $visible['author']['name'], 'The author should be shown once they have a published post.' );
+	}
+
+	/**
+	 * A database error during the save keeps its own code and message, with status 500.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_database_error_is_the_save_error(): void {
+		global $wpdb;
+
+		$post_id = self::$post_ids['administrator:draft'];
+
+		$this->login_as( 'administrator' );
+		$this->register_abilities();
+
+		$before = $this->snapshot( $post_id );
+
+		$suppress = $wpdb->suppress_errors();
+		add_filter(
+			'query',
+			static function ( $query ) {
+				return str_starts_with( $query, 'UPDATE' ) ? '],' : $query;
+			}
+		);
+
+		try {
+			$result = $this->update_post( $post_id, array( 'title' => 'Database error' ) );
+		} finally {
+			$wpdb->suppress_errors( $suppress );
+		}
+
+		$this->assert_error( $result, 'db_update_error', 500, 'A database error' );
+		$this->assertSame( 'Could not update post in the database.', $result->get_error_message(), 'The message should be the message of the save error.' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written after a database error.' );
+	}
+
+	/**
+	 * A stored page template that no longer exists does not fail an unrelated update and is kept.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_stale_page_template_does_not_fail_an_update(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+		update_post_meta( $post_id, '_wp_page_template', 'cw-missing-template.php' );
+
+		$this->login_as( 'administrator' );
+		$this->register_abilities();
+
+		$post = $this->assert_updated( $this->update_post( $post_id, array( 'title' => 'Template kept' ) ), $post_id );
+
+		$this->assertSame( 'Template kept', $post->post_title, 'The title should be stored.' );
+		$this->assertSame( 'cw-missing-template.php', get_post_meta( $post_id, '_wp_page_template', true ), 'The stored page template should be kept.' );
+	}
+
+	/**
+	 * The `wp_after_insert_post` action fires once for the updated post, as in any regular save.
+	 *
+	 * A save that stores a revision also fires the action for the revision, so only the fires
+	 * for the updated post are counted, and a regular save of an identical post is the reference.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_wp_after_insert_post_fires_once(): void {
+		$post_id      = self::$post_ids['administrator:draft'];
+		$reference_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_status' => 'draft',
+			)
+		);
+		$fires        = array();
+		add_action(
+			'wp_after_insert_post',
+			static function ( $id ) use ( &$fires ): void {
+				$fires[] = (int) $id;
+			}
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_abilities();
+
+		wp_update_post(
+			array(
+				'ID'         => $reference_id,
+				'post_title' => 'Hooks',
+			)
+		);
+
+		$this->assertCount( 1, array_keys( $fires, $reference_id, true ), 'Precondition: a regular save should fire wp_after_insert_post once for the post.' );
+
+		$fires = array();
+		$this->assert_updated( $this->update_post( $post_id, array( 'title' => 'Hooks' ) ), $post_id );
+
+		$this->assertCount( 1, array_keys( $fires, $post_id, true ), 'wp_after_insert_post should fire once for the updated post.' );
+	}
+
+	/**
+	 * Returns internal statuses that a post can be stored in.
+	 *
+	 * @return array<string, array{0: string}> The statuses.
+	 */
+	public static function data_internal_stored_statuses(): array {
+		return array(
+			'trash'      => array( 'trash' ),
+			'auto-draft' => array( 'auto-draft' ),
+		);
+	}
+
+	/**
+	 * Called directly, an internal status is rejected also for a post that is already stored in
+	 * it, and the post is found whatever its stored status.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_internal_stored_statuses
+	 * @since 7.3.0
+	 *
+	 * @param string $status The stored status, which is also sent.
+	 */
+	public function test_direct_call_rejects_an_internal_status_the_post_already_has( string $status ): void {
+		if ( 'trash' === $status ) {
+			$post_id = self::$post_ids['administrator:trash_publish'];
+		} else {
+			$post_id = self::factory()->post->create(
+				array(
+					'post_author' => self::$user_ids['administrator'],
+					'post_status' => $status,
+				)
+			);
+		}
+
+		$this->assertSame( $status, get_post_status( $post_id ), 'Precondition: the post should be stored in the status.' );
+
+		$this->login_as( 'administrator' );
+
+		$this->assertTrue( current_user_can( 'edit_post', $post_id ), 'Precondition: the user should be able to edit the post.' );
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$before = $this->snapshot( $post_id );
+		$result = $execute( $this->update_input( $post_id, array( 'status' => $status ) ) );
+
+		$this->assert_invalid_attribute( $result, 'status', 'A direct call with the internal status the post already has', 'The status must be a registered post status that is not internal.' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * An empty excerpt and an empty title are stored on a post that keeps its content.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_stores_an_empty_excerpt_and_an_empty_title(): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'  => self::$user_ids['administrator'],
+				'post_status'  => 'draft',
+				'post_title'   => 'Title to clear',
+				'post_content' => 'Content to keep.',
+				'post_excerpt' => 'Excerpt to clear.',
+			)
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_abilities();
+
+		$post = $this->assert_updated(
+			$this->update_post(
+				$post_id,
+				array(
+					'excerpt' => '',
+					'title'   => '',
+				)
+			),
+			$post_id
+		);
+
+		$this->assertSame( '', $post->post_excerpt, 'The empty excerpt should be stored.' );
+		$this->assertSame( '', $post->post_title, 'The empty title should be stored.' );
+		$this->assertSame( 'Content to keep.', $post->post_content, 'The content should be kept.' );
+	}
+
+	/**
+	 * An author denied `publish_posts` may still move their own draft to `pending`.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_author_denied_publish_posts_may_set_pending(): void {
+		$post_id = self::$post_ids['restricted_author:draft'];
+
+		$this->login_as( 'restricted_author' );
+		$this->register_abilities();
+
+		$this->assertFalse( current_user_can( 'publish_posts' ), 'Precondition: the user should not be able to publish posts.' );
+
+		$result = $this->update_post( $post_id, array( 'status' => 'pending' ) );
+
+		$this->assertSame( 'pending', $this->assert_updated( $result, $post_id )->post_status, 'The draft should be pending.' );
+	}
+
+	/**
+	 * Creates a published or scheduled post owned by the author denied `publish_posts`.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $status The status, `publish` or `future`.
+	 * @return int The post ID.
+	 */
+	private function create_post_of_the_restricted_author( string $status ): int {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['restricted_author'],
+				'post_status' => $status,
+				'post_date'   => 'future' === $status ? '2099-01-01 00:00:00' : '2020-01-01 00:00:00',
+			)
+		);
+
+		$this->assertSame( $status, get_post_status( $post_id ), "Precondition: the post should be stored as {$status}." );
+
+		return $post_id;
+	}
+
+	/**
+	 * Returns date changes on a published or scheduled post, with the status the save stores.
+	 *
+	 * @return array<string, array{0: string, 1: bool, 2: string, 3: string}> The cases.
+	 */
+	public static function data_date_changes_on_a_published_or_scheduled_post(): array {
+		$ahead = '2099-01-15T12:00:00';
+		$past  = '2021-06-01T12:00:00';
+
+		return array(
+			'published post, date ahead'                => array( 'publish', false, $ahead, 'future' ),
+			'published post, date ahead, stored status' => array( 'publish', true, $ahead, 'future' ),
+			'published post, past date'                 => array( 'publish', false, $past, 'publish' ),
+			'scheduled post, past date'                 => array( 'future', false, $past, 'publish' ),
+			'scheduled post, past date, stored status'  => array( 'future', true, $past, 'publish' ),
+			'scheduled post, another date ahead'        => array( 'future', false, $ahead, 'future' ),
+		);
+	}
+
+	/**
+	 * A date written to a published or scheduled post needs no `publish_posts`.
+	 *
+	 * The call sets no status. The save stores `future` for a date ahead and `publish`
+	 * for any other date, so the date alone can schedule or publish the post.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_date_changes_on_a_published_or_scheduled_post
+	 * @since 7.3.0
+	 *
+	 * @param string $stored_status   The status the post has.
+	 * @param bool   $send_status     Whether the call also sends the stored status.
+	 * @param string $date            The sent GMT date.
+	 * @param string $expected_status The status the save stores.
+	 */
+	public function test_date_on_a_published_or_scheduled_post_needs_no_publish_posts( string $stored_status, bool $send_status, string $date, string $expected_status ): void {
+		$post_id = $this->create_post_of_the_restricted_author( $stored_status );
+
+		$this->login_as( 'restricted_author' );
+		$this->register_abilities();
+
+		$this->assertFalse( current_user_can( 'publish_posts' ), 'Precondition: the user should not be able to publish posts.' );
+
+		$data = array( 'date' => array( 'gmt' => $date ) );
+		if ( $send_status ) {
+			$data['status'] = $stored_status;
+		}
+
+		$result = $this->update_post( $post_id, $data, array( 'status' ) );
+		$post   = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( str_replace( 'T', ' ', $date ), $post->post_date_gmt, 'The sent date should be stored.' );
+		$this->assertSame( $expected_status, $post->post_status, 'The stored status should follow the date.' );
+		$this->assertSame( $expected_status, $result['status'], 'The status that follows the date should be returned.' );
+	}
+
+	/**
+	 * Returns changes between `publish` and `future` that name the new status.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string}> The cases.
+	 */
+	public static function data_named_status_changes_on_a_published_or_scheduled_post(): array {
+		return array(
+			'published post to future, date ahead' => array( 'publish', 'future', '2099-01-15T12:00:00' ),
+			'scheduled post to publish, past date' => array( 'future', 'publish', '2021-06-01T12:00:00' ),
+		);
+	}
+
+	/**
+	 * A call that names the other status, `future` or `publish`, needs `publish_posts`,
+	 * also when the sent date alone would lead to that status.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_named_status_changes_on_a_published_or_scheduled_post
+	 * @since 7.3.0
+	 *
+	 * @param string $stored_status The status the post has.
+	 * @param string $status        The sent status.
+	 * @param string $date          The sent GMT date.
+	 */
+	public function test_naming_the_status_a_date_leads_to_needs_publish_posts( string $stored_status, string $status, string $date ): void {
+		$post_id = $this->create_post_of_the_restricted_author( $stored_status );
+
+		$this->login_as( 'restricted_author' );
+		$this->register_abilities();
+
+		$this->assertFalse( current_user_can( 'publish_posts' ), 'Precondition: the user should not be able to publish posts.' );
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'status' => $status,
+				'date'   => array( 'gmt' => $date ),
+			)
+		);
+
+		$this->assert_refused( $result, 'A published or scheduled post moved to the other status without publish_posts' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * Grants `edit_post` and `read_post` on one post to one user through `map_meta_cap`.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int  $user_id          The user ID.
+	 * @param int  $post_id          The post ID.
+	 * @param bool $only_while_draft Whether the grant holds only while the post is a draft.
+	 */
+	private function grant_edit_and_read_on_one_post( int $user_id, int $post_id, bool $only_while_draft ): void {
+		add_filter(
+			'map_meta_cap',
+			static function ( $caps, $cap, $cap_user_id, $args ) use ( $user_id, $post_id, $only_while_draft ) {
+				if (
+					in_array( $cap, array( 'edit_post', 'read_post' ), true )
+					&& $user_id === (int) $cap_user_id
+					&& isset( $args[0] ) && $post_id === (int) $args[0]
+					&& ( ! $only_while_draft || 'draft' === get_post_status( $post_id ) )
+				) {
+					return array( 'read' );
+				}
+
+				return $caps;
+			},
+			10,
+			4
+		);
+	}
+
+	/**
+	 * A user with no edit capability for the type who is granted `edit_post` on exactly one post
+	 * may update that post's title, and nothing more.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_edit_post_granted_on_one_post_allows_only_editing_that_post(): void {
+		$user_id  = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$post_id  = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['other'],
+				'post_status' => 'draft',
+			)
+		);
+		$other_id = self::$post_ids['other:draft'];
+
+		$this->grant_edit_and_read_on_one_post( $user_id, $post_id, false );
+		wp_set_current_user( $user_id );
+
+		$this->assertFalse( current_user_can( 'edit_posts' ), 'Precondition: the user should have no edit capability for the type.' );
+		$this->assertTrue( current_user_can( 'edit_post', $post_id ), 'Precondition: the user should be able to edit the granted post.' );
+		$this->assertFalse( current_user_can( 'edit_post', $other_id ), 'Precondition: the user should not be able to edit another post.' );
+
+		$this->register_abilities();
+
+		$updated = $this->update_post( $post_id, array( 'title' => 'Granted title' ) );
+
+		$this->assertSame( 'Granted title', $this->assert_updated( $updated, $post_id )->post_title, 'The title of the granted post should be stored.' );
+
+		$other_before = $this->snapshot( $other_id );
+		$other        = $this->update_post( $other_id, array( 'title' => 'Not granted' ) );
+
+		$this->assert_refused( $other, 'Updating a post that is not granted' );
+		$this->assertSame( $other_before, $this->snapshot( $other_id ), 'Nothing should be written for the post that is not granted.' );
+
+		$before  = $this->snapshot( $post_id );
+		$publish = $this->update_post( $post_id, array( 'status' => 'publish' ) );
+
+		$this->assert_refused( $publish, 'Publishing the granted post' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written for the refused publish.' );
+	}
+
+	/**
+	 * An editor may update the title of the front page and of the posts page, but not the
+	 * privacy policy page.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_special_pages
+	 * @since 7.3.0
+	 *
+	 * @param string $page The page, as a fixture name.
+	 */
+	public function test_editor_may_update_a_special_page_other_than_the_privacy_policy_page( string $page ): void {
+		$this->set_special_pages();
+		$post_id = self::$post_ids[ $page ];
+
+		$this->login_as( 'editor' );
+		$this->register_abilities();
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, array( 'title' => 'Special page' ) );
+
+		if ( 'privacy_page' === $page ) {
+			$this->assert_refused( $result, 'An editor updating the privacy policy page' );
+			$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+			return;
+		}
+
+		$this->assertSame( 'Special page', $this->assert_updated( $result, $post_id )->post_title, 'The title of the special page should be stored.' );
+	}
+
+	/**
+	 * Returns updates of a page whose stored parent no longer exists.
+	 *
+	 * @return array<string, array{0: bool}> The cases.
+	 */
+	public static function data_updates_of_a_page_with_a_missing_parent(): array {
+		return array(
+			'parent equal to the stored parent' => array( true ),
+			'title only'                        => array( false ),
+		);
+	}
+
+	/**
+	 * A page whose stored parent no longer exists can be updated, and keeps that parent.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_updates_of_a_page_with_a_missing_parent
+	 * @since 7.3.0
+	 *
+	 * @param bool $send_parent Whether the stored parent is sent.
+	 */
+	public function test_page_with_a_missing_parent_can_be_updated( bool $send_parent ): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['page_writer'],
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+				'post_parent' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+			)
+		);
+
+		$this->assertSame( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, get_post( $post_id )->post_parent, 'Precondition: the page should keep the missing parent.' );
+		$this->assertNull( get_post( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ), 'Precondition: the parent should not exist.' );
+
+		$this->login_as( 'page_writer' );
+		$this->register_abilities();
+
+		$data = array( 'title' => 'Orphan' );
+		if ( $send_parent ) {
+			$data['parent'] = REST_TESTS_IMPOSSIBLY_HIGH_NUMBER;
+		}
+
+		$post = $this->assert_updated( $this->update_post( $post_id, $data ), $post_id );
+
+		$this->assertSame( 'Orphan', $post->post_title, 'The title should be stored.' );
+		$this->assertSame( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, $post->post_parent, 'The stored parent should not change.' );
+	}
+
+	/**
+	 * A contributor may set a hidden custom status on their own draft without `publish_posts`.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_contributor_may_set_a_hidden_custom_status(): void {
+		$this->register_custom_statuses();
+		$post_id = self::$post_ids['contributor:draft'];
+
+		$this->login_as( 'contributor' );
+		$this->register_abilities();
+
+		$result = $this->update_post( $post_id, array( 'status' => 'cw_hidden' ) );
+
+		$this->assertSame( 'cw_hidden', $this->assert_updated( $result, $post_id )->post_status, 'The hidden status should be stored.' );
+	}
+
+	/**
+	 * Returns custom statuses that make a post visible, with the stored status of the post.
+	 *
+	 * @return array<string, array{0: string, 1: string}> The cases.
+	 */
+	public static function data_custom_visible_statuses_by_stored_status(): array {
+		return array(
+			'public from a draft'    => array( 'cw_public', 'draft' ),
+			'private from a draft'   => array( 'cw_private', 'draft' ),
+			'public from pending'    => array( 'cw_public', 'pending' ),
+			'private from pending'   => array( 'cw_private', 'pending' ),
+			'public from the Trash'  => array( 'cw_public', 'trash_draft' ),
+			'private from the Trash' => array( 'cw_private', 'trash_draft' ),
+		);
+	}
+
+	/**
+	 * A contributor may not set a custom public or private status on their own post.
+	 *
+	 * @ticket 66706
+	 * @dataProvider data_custom_visible_statuses_by_stored_status
+	 * @since 7.3.0
+	 *
+	 * @param string $status The status.
+	 * @param string $stored The matrix status of the post.
+	 */
+	public function test_contributor_cannot_set_a_custom_visible_status( string $status, string $stored ): void {
+		$this->register_custom_statuses();
+		$post_id = self::$post_ids[ "contributor:{$stored}" ];
+
+		$this->login_as( 'contributor' );
+		$this->register_abilities();
+
+		$before = $this->snapshot( $post_id );
+		$result = $this->update_post( $post_id, array( 'status' => $status ) );
+
+		$this->assert_refused( $result, 'A contributor setting a custom visible status' );
+		$this->assertSame( $before, $this->snapshot( $post_id ), 'Nothing should be written.' );
+	}
+
+	/**
+	 * When the update takes away the caller's read access, the update is stored and the output
+	 * is the ID alone, whatever the fields ask for.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_output_is_the_id_alone_when_the_update_takes_away_read_access(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['other'],
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->grant_edit_and_read_on_one_post( $user_id, $post_id, true );
+		wp_set_current_user( $user_id );
+
+		$this->assertTrue( current_user_can( 'edit_post', $post_id ), 'Precondition: the user should be able to edit the draft.' );
+
+		$this->register_abilities();
+
+		$result = $this->update_post(
+			$post_id,
+			array(
+				'status' => 'pending',
+				'title'  => 'Out of reach',
+			),
+			array( 'title.rendered', 'status', 'content.rendered' )
+		);
+
+		$post = $this->assert_updated( $result, $post_id );
+
+		$this->assertSame( 'pending', $post->post_status, 'The new status should be stored.' );
+		$this->assertSame( 'Out of reach', $post->post_title, 'The new title should be stored.' );
+		$this->assertFalse( current_user_can( 'read_post', $post_id ), 'The user should no longer be able to read the post.' );
+		$this->assertSame( array( 'id' => $post_id ), $result, 'The output should be the ID alone.' );
+	}
+
+	/**
+	 * When the caller may still read the post after the update, the output holds the requested
+	 * fields.
+	 *
+	 * @ticket 66706
+	 * @since 7.3.0
+	 */
+	public function test_output_is_complete_when_the_caller_may_still_read_the_post(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['other'],
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->grant_edit_and_read_on_one_post( $user_id, $post_id, true );
+		wp_set_current_user( $user_id );
+		$this->register_abilities();
+
+		$result = $this->update_post( $post_id, array( 'title' => 'Still a draft' ), array( 'title.rendered', 'status' ) );
+
+		$this->assert_updated( $result, $post_id );
+		$this->assertTrue( current_user_can( 'read_post', $post_id ), 'The user should still be able to read the post.' );
+
+		$this->assertSameSetsWithIndex(
+			array(
+				'id'     => $post_id,
+				'status' => 'draft',
+				'title'  => array( 'rendered' => 'Still a draft' ),
+			),
+			$result,
+			'The output should hold the ID and the requested fields.'
+		);
+	}
+}

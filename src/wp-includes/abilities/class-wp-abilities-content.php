@@ -17,12 +17,17 @@ declare( strict_types = 1 );
  * status, author, and parent. Raw fields are only returned for posts the current user can
  * edit, and the author's name and slug only for authors the current user may see.
  *
+ * Also registers `core/content-create`, `core/content-update`, and `core/content-delete`,
+ * which create, update, and trash or delete one post of such a post type. Create and update
+ * return the written post in the same shape as a `core/content-query` item, and delete
+ * returns whether the post was trashed or deleted.
+ *
  * Unlike the core abilities registered directly in wp_register_core_abilities() as
- * self-contained closures, the content ability lives in a dedicated class because
- * its callbacks and schemas share helpers: the permission and execute callbacks read the
- * post type and the filters through the same code, and the input schema, output schema,
- * and field projection are built from the same field definitions. Future write-oriented
- * content abilities can reuse them as well.
+ * self-contained closures, the four content abilities live in one dedicated class because
+ * their callbacks and schemas share helpers as private methods, such as the read check,
+ * the field projection, and the input parsing: the permission and execute callbacks read
+ * the post type and the filters through the same code, and the input schema, output schema,
+ * and field projection are built from the same field definitions.
  *
  * Only register() is public. The ability callbacks are closures that call private
  * methods, so callers go through the Abilities API, such as
@@ -93,7 +98,7 @@ final class WP_Abilities_Content {
 	private const LOOP_GLOBALS = array( 'post', 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
 
 	/**
-	 * Whether each author seen in the current query has posts the current user may read.
+	 * Whether each author seen in the current call has posts the current user may read.
 	 *
 	 * @since 7.2.0
 	 * @var array<int, bool>
@@ -106,38 +111,45 @@ final class WP_Abilities_Content {
 	 * Must run on the `wp_abilities_api_init` hook.
 	 *
 	 * @since 7.2.0
+	 * @since 7.3.0 Added the `core/content-create`, `core/content-update`, and `core/content-delete` abilities.
 	 */
 	public function register(): void {
-		$this->register_content_query();
-
 		/*
-		 * Future write-oriented content abilities can be registered here, reusing the
-		 * shared helpers below (get_exposed_post_type(), format_post(), check_permission()).
-		 */
-	}
-
-	/**
-	 * Registers the read-only `core/content-query` ability.
-	 *
-	 * @since 7.2.0
-	 */
-	private function register_content_query(): void {
-		/*
-		 * Post types must be registered with `show_in_abilities` before the ability is
-		 * registered so they are included in its input schema.
+		 * Post types must be registered with `show_in_abilities` before the abilities are
+		 * registered so they are included in the input schemas. Without one, no content
+		 * ability is registered.
 		 */
 		$post_types = array_values( get_post_types( array( 'show_in_abilities' => true ) ) );
 		if ( empty( $post_types ) ) {
 			return;
 		}
 
+		// The statuses that can be set: the ones that are not internal.
+		$statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
+
+		$this->register_content_query( $post_types, $statuses );
+		$this->register_content_write_abilities( $post_types, $statuses );
+	}
+
+	/**
+	 * Registers the read-only `core/content-query` ability.
+	 *
+	 * @since 7.2.0
+	 * @since 7.3.0 Added the `$post_types` and `$statuses` parameters, and support for `trash`
+	 *              in the `where.status` filter.
+	 *
+	 * @param list<string> $post_types Exposed post type names.
+	 * @param list<string> $statuses   Post status slugs that are not internal.
+	 */
+	private function register_content_query( array $post_types, array $statuses ): void {
 		/*
-		 * Internal statuses (e.g. `inherit`) are excluded here and from the statuses a query
-		 * covers by default, so the posts of post types that rely on them (attachments)
-		 * cannot be queried, not even by ID. Revisit if such a post type is ever exposed via
+		 * Of the internal statuses, only `trash` can be requested, and only by name: it is never
+		 * one of the statuses a query covers by default. The others, such as `inherit`, can never
+		 * be queried, so the posts of post types that rely on them (attachments) cannot be
+		 * queried, not even by ID. Revisit if such a post type is ever exposed via
 		 * `show_in_abilities`.
 		 */
-		$statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
+		$statuses[] = 'trash';
 
 		wp_register_ability(
 			'core/content-query',
@@ -151,12 +163,97 @@ final class WP_Abilities_Content {
 					return $this->execute_content_query( $input );
 				},
 				'permission_callback' => function ( $input = array() ): bool {
-					return $this->check_permission( $input );
+					return $this->check_query_permission( $input );
 				},
 				'meta'                => array(
 					'annotations' => array(
 						'readonly'    => true,
 						'destructive' => false,
+						'idempotent'  => true,
+					),
+					'public'      => true,
+				),
+			)
+		);
+	}
+
+	/**
+	 * Registers the `core/content-create`, `core/content-update`, and `core/content-delete` abilities.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param list<string> $post_types Exposed post type names.
+	 * @param list<string> $statuses   Post status slugs that can be set.
+	 */
+	private function register_content_write_abilities( array $post_types, array $statuses ): void {
+		wp_register_ability(
+			'core/content-create',
+			array(
+				'label'               => __( 'Create Content' ),
+				'description'         => __( 'Creates a post of a post type exposed to abilities and returns it. Requires an authenticated user who can create posts of that type. The post is saved as a draft unless another status is given.' ),
+				'category'            => self::CATEGORY,
+				'input_schema'        => $this->get_content_create_input_schema( $post_types, $statuses ),
+				'output_schema'       => $this->get_content_output_schema(),
+				'execute_callback'    => function ( $input ) {
+					return $this->execute_content_create( $input );
+				},
+				'permission_callback' => function ( $input ): bool {
+					return $this->check_create_permission( $input );
+				},
+				'meta'                => array(
+					'annotations' => array(
+						'readonly'    => false,
+						'destructive' => false,
+						'idempotent'  => false,
+					),
+					'public'      => true,
+				),
+			)
+		);
+
+		wp_register_ability(
+			'core/content-update',
+			array(
+				'label'               => __( 'Update Content' ),
+				'description'         => __( 'Updates the given attributes of a post of a post type exposed to abilities and returns it. Attributes that are left out keep their stored values. Requires an authenticated user who can edit the post.' ),
+				'category'            => self::CATEGORY,
+				'input_schema'        => $this->get_content_update_input_schema( $post_types, $statuses ),
+				'output_schema'       => $this->get_content_output_schema(),
+				'execute_callback'    => function ( $input ) {
+					return $this->execute_content_update( $input );
+				},
+				'permission_callback' => function ( $input ): bool {
+					return $this->check_post_permission( $input, 'edit_post' );
+				},
+				'meta'                => array(
+					'annotations' => array(
+						'readonly'    => false,
+						'destructive' => false,
+						'idempotent'  => true,
+					),
+					'public'      => true,
+				),
+			)
+		);
+
+		wp_register_ability(
+			'core/content-delete',
+			array(
+				'label'               => __( 'Delete Content' ),
+				'description'         => __( 'Moves a post of a post type exposed to abilities to the Trash, or deletes it permanently when `permanent` is true. Requires an authenticated user who can delete the post.' ),
+				'category'            => self::CATEGORY,
+				'input_schema'        => $this->get_content_delete_input_schema( $post_types ),
+				'output_schema'       => $this->get_content_delete_output_schema(),
+				'execute_callback'    => function ( $input ) {
+					return $this->execute_content_delete( $input );
+				},
+				'permission_callback' => function ( $input ): bool {
+					return $this->check_post_permission( $input, 'delete_post' );
+				},
+				'meta'                => array(
+					'annotations' => array(
+						'readonly'    => false,
+						'destructive' => true,
 						'idempotent'  => true,
 					),
 					'public'      => true,
@@ -178,7 +275,7 @@ final class WP_Abilities_Content {
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
-	private function check_permission( $input = array() ): bool {
+	private function check_query_permission( $input = array() ): bool {
 		$input = rest_sanitize_object( $input );
 
 		if ( ! is_user_logged_in() ) {
@@ -204,12 +301,210 @@ final class WP_Abilities_Content {
 	}
 
 	/**
+	 * Permission callback for the `core/content-create` ability.
+	 *
+	 * Requires a logged-in user, a `data.type` that is exposed to abilities, the capability
+	 * to create posts of that type, and the capabilities that the sent attributes need,
+	 * see {@see self::can_set_attributes()}.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed $input The ability input, which is not prepared when
+	 *                     WP_Ability::check_permissions() is called directly.
+	 * @return bool True if the request may proceed, false otherwise.
+	 */
+	private function check_create_permission( $input ): bool {
+		if ( ! is_user_logged_in() ) {
+			return false;
+		}
+
+		$data             = $this->get_input_object( rest_sanitize_object( $input ), 'data' ) ?? array();
+		$post_type_object = $this->get_exposed_post_type( $data['type'] ?? null );
+
+		return null !== $post_type_object
+			&& current_user_can( $post_type_object->cap->create_posts )
+			&& $this->can_set_attributes( $data, $post_type_object, null );
+	}
+
+	/**
+	 * Checks the capabilities that the sent `status`, `author`, `parent` and `slug` need.
+	 *
+	 * A status that makes the post visible needs the capability to publish posts of the type,
+	 * and an author other than the current user needs the capability to edit the posts of
+	 * others. A parent must be a post the current user can read, of a type exposed to
+	 * abilities; a missing post is refused the same way, so the refusal never tells whether a
+	 * post exists. The slug of a post that will be pending needs the capability to publish the
+	 * post. A value that keeps the stored one needs none of these, see
+	 * {@see self::get_changed_data()}. Every other rule on these attributes is checked by the
+	 * execute callbacks.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $data             The `data` input.
+	 * @param WP_Post_Type $post_type_object The post type of the post being written.
+	 * @param WP_Post|null $post             The stored post on update, or null on create.
+	 * @return bool True if the user may set the sent attributes, false otherwise.
+	 */
+	private function can_set_attributes( array $data, WP_Post_Type $post_type_object, ?WP_Post $post ): bool {
+		$data = $this->get_changed_data( $data, $post );
+
+		if ( array_key_exists( 'status', $data ) ) {
+			$status = $data['status'];
+			if ( ! is_string( $status ) ) {
+				return false;
+			}
+
+			/*
+			 * Intentionally strict: every status that makes a post visible needs the capability
+			 * to publish posts of the type, including custom ones.
+			 */
+			$status_object = get_post_status_object( $status );
+			$makes_visible = $status_object instanceof stdClass
+				&& ( 'future' === $status || ! empty( $status_object->public ) || ! empty( $status_object->private ) || is_post_status_viewable( $status_object ) );
+			if ( $makes_visible && ! current_user_can( $post_type_object->cap->publish_posts ) ) {
+				return false;
+			}
+		}
+
+		if ( array_key_exists( 'author', $data ) ) {
+			$author_id = $this->parse_filter_int( $data['author'], 1 );
+			if ( null === $author_id ) {
+				return false;
+			}
+
+			if ( get_current_user_id() !== $author_id && ! current_user_can( $post_type_object->cap->edit_others_posts ) ) {
+				return false;
+			}
+		}
+
+		// A parent sent for a post type that is not hierarchical is refused by the execute callbacks.
+		if ( array_key_exists( 'parent', $data ) && is_post_type_hierarchical( $post_type_object->name ) ) {
+			$parent_id = $this->parse_filter_int( $data['parent'], 0 );
+			if ( null === $parent_id ) {
+				return false;
+			}
+
+			if ( 0 !== $parent_id ) {
+				$parent = get_post( $parent_id );
+				if ( ! $parent instanceof WP_Post || ! $this->check_read_permission( $parent ) ) {
+					return false;
+				}
+			}
+		}
+
+		if ( array_key_exists( 'slug', $data ) ) {
+			// Without a changed status, the save keeps the stored status, or defaults to `draft`.
+			$status = $data['status'] ?? ( $post ? $post->post_status : 'draft' );
+
+			/*
+			 * Intentionally strict: the save drops the slug of a pending post when the user
+			 * cannot publish it, so a changed slug is refused instead of being dropped without
+			 * notice. The stored slug sent back is accepted as unchanged, although the save
+			 * still drops it.
+			 */
+			if ( 'pending' === $status ) {
+				$can_publish = $post
+					? current_user_can( 'publish_post', $post->ID )
+					: current_user_can( $post_type_object->cap->publish_posts );
+				if ( ! $can_publish ) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Removes the sent `status`, `author`, `parent` and `slug` that keep their stored values.
+	 *
+	 * Keeping a stored value, also the empty slug of a draft, changes nothing, so it needs no
+	 * capability and is not checked or saved again. The IDs are read with
+	 * {@see self::parse_filter_int()}, as the permission callbacks read them. On create,
+	 * nothing is stored, so the data is returned as given.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $data The `data` input.
+	 * @param WP_Post|null $post The stored post on update, or null on create.
+	 * @return array<mixed> The `data` input without the attributes that keep their stored values.
+	 */
+	private function get_changed_data( array $data, ?WP_Post $post ): array {
+		if ( ! $post ) {
+			return $data;
+		}
+
+		$stored = array(
+			'status' => $post->post_status,
+			'author' => (int) $post->post_author,
+			'parent' => (int) $post->post_parent,
+			'slug'   => $post->post_name,
+		);
+
+		foreach ( $stored as $attribute => $stored_value ) {
+			if ( ! array_key_exists( $attribute, $data ) ) {
+				continue;
+			}
+
+			// An author ID is at least 1, a parent ID at least 0.
+			$value = is_int( $stored_value ) ? $this->parse_filter_int( $data[ $attribute ], 'author' === $attribute ? 1 : 0 ) : $data[ $attribute ];
+			if ( $stored_value === $value ) {
+				unset( $data[ $attribute ] );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Permission callback for the `core/content-update` and `core/content-delete` abilities.
+	 *
+	 * Requires a logged-in user, a `where.type` that is exposed to abilities, and the given
+	 * capability on the post that `where` names. An update with `edit_post` also requires the
+	 * capabilities that the sent attributes need, see {@see self::can_set_attributes()}. When
+	 * `where` names no post of that type, such as a missing ID or the ID of a post of another
+	 * type, the request is let through so that the execute callback can report it as not found.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param mixed  $input      The ability input, which is not prepared when
+	 *                           WP_Ability::check_permissions() is called directly.
+	 * @param string $capability The capability required on the post: `edit_post` for an
+	 *                           update, or `delete_post` for a delete.
+	 * @return bool True if the request may proceed, false otherwise.
+	 */
+	private function check_post_permission( $input, string $capability ): bool {
+		if ( ! is_user_logged_in() ) {
+			return false;
+		}
+
+		$input = rest_sanitize_object( $input );
+		$where = $this->get_input_object( $input, 'where' ) ?? array();
+		if ( ! $this->get_exposed_post_type( $where['type'] ?? null ) ) {
+			return false;
+		}
+
+		$post = $this->get_requested_post( $where );
+		if ( ! $post ) {
+			return true;
+		}
+
+		if ( ! current_user_can( $capability, $post->ID ) ) {
+			return false;
+		}
+
+		// get_requested_post() only returns posts of an exposed post type.
+		return 'edit_post' !== $capability
+			|| $this->can_set_attributes( $this->get_input_object( $input, 'data' ) ?? array(), get_post_type_object( $post->post_type ), $post );
+	}
+
+	/**
 	 * Parses a raw input value into an integer of at least a minimum, or null when invalid.
 	 *
 	 * Accepts the whole numbers that the integer schema accepts: native integers, floats such
 	 * as the 2.0 that JSON encoders produce, and integer strings such as "2", "2.0", or "+2".
-	 * Only the REST run controller converts input to the schema types, so other callers, such
-	 * as the MCP adapter or a direct WP_Ability::execute() call, pass them on unconverted.
+	 * WP_Ability::execute() converts input to the schema types, but
+	 * WP_Ability::check_permissions() does not, so a permission callback can receive any of them.
 	 * Anything else, such as a fraction, is rejected rather than coerced: a malformed ID would
 	 * otherwise resolve to another post, and a malformed `parent` filter would be read as 0,
 	 * which asks for top-level posts.
@@ -310,7 +605,7 @@ final class WP_Abilities_Content {
 	 * Checks if a post can be read by the current user.
 	 *
 	 * Mirrors the REST posts controller's read permission, while keeping this ability
-	 * authenticated-only via {@see self::check_permission()}.
+	 * authenticated-only via {@see self::check_query_permission()}.
 	 *
 	 * @since 7.2.0
 	 *
@@ -372,9 +667,10 @@ final class WP_Abilities_Content {
 		/*
 		 * Mirror the REST posts controller's inherited-parent behavior, but keep the
 		 * ability fail-closed for missing parents or parent loops. No input can request
-		 * `inherit`, since internal statuses are left out of the input schema and of the
-		 * statuses a query covers by default, but a query filter such as a `pre_get_posts`
-		 * callback can still add it, so such posts keep their parent's read check.
+		 * `inherit`: the input schema leaves out every internal status other than `trash`,
+		 * and the statuses a query covers by default hold no internal status. A query
+		 * filter such as a `pre_get_posts` callback can still add it, though, so such posts
+		 * keep their parent's read check.
 		 */
 		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
 			$parent = get_post( $post->post_parent );
@@ -389,7 +685,7 @@ final class WP_Abilities_Content {
 	/**
 	 * Executes the `core/content-query` ability.
 	 *
-	 * {@see WP_Ability::execute()} always runs {@see self::check_permission()} first, which
+	 * {@see WP_Ability::execute()} always runs {@see self::check_query_permission()} first, which
 	 * gates the request as a whole. The query still filters every row by read permission,
 	 * because the gate cannot know the rows before the query runs.
 	 *
@@ -419,19 +715,15 @@ final class WP_Abilities_Content {
 		$page       = $this->parse_filter_int( $pagination['page'] ?? 1, 1 ) ?? 1;
 
 		/*
-		 * Unreachable through gated transports, which run check_permission() first and deny a
-		 * request without a post type exposed to abilities. A direct call to the execute
+		 * Unreachable through gated transports, which run check_query_permission() first and deny
+		 * a request without a post type exposed to abilities. A direct call to the execute
 		 * callback still fails closed here, but it bypasses the checks of the request as a
 		 * whole that the permission callback performed, such as the status capabilities, so
 		 * only invoke the callback through WP_Ability::execute().
 		 */
 		$post_type_object = $this->get_exposed_post_type( $where['type'] ?? null );
 		if ( ! $post_type_object ) {
-			return new WP_Error(
-				'content_not_found',
-				__( 'The requested content was not found.' ),
-				array( 'status' => 404 )
-			);
+			return $this->not_found_error();
 		}
 
 		$post_type = $post_type_object->name;
@@ -577,9 +869,9 @@ final class WP_Abilities_Content {
 		 * The input schema lists the statuses registered when the ability was, so check them
 		 * again: WP_Query ignores a status that is not registered, and drops the status clause
 		 * when none is left, which would cover every status, including internal ones such as
-		 * `trash`.
+		 * `trash`. Of the internal statuses, only `trash` can be requested, by name.
 		 */
-		if ( ! empty( array_diff( $statuses, get_post_stati( array( 'internal' => false ) ) ) ) ) {
+		if ( ! empty( array_diff( $statuses, get_post_stati( array( 'internal' => false ) ), array( 'trash' ) ) ) ) {
 			return $this->invalid_filter_error(
 				'where[status]',
 				/* translators: %s: Parameter. */
@@ -691,18 +983,488 @@ final class WP_Abilities_Content {
 		 * Mirror the REST posts controller: totals come from the underlying WP_Query,
 		 * while the row-level checks above may withhold individual returned rows. The
 		 * totals can therefore count posts the current user cannot read, such as another
-		 * author's draft listed in `ids`. This is deliberate: it only reveals that such a
-		 * post exists, as a REST collection request with `include` and `status` does.
+		 * author's draft or a trashed post listed in `ids`. This is deliberate: it only
+		 * reveals that such a post exists, as a REST collection request with `include`
+		 * and `status` does.
 		 */
 		return $this->prepare_output( $posts, $total, $total_pages );
+	}
+
+	/**
+	 * Executes the `core/content-create` ability.
+	 *
+	 * The post type is checked first, then every attribute rule, and only then is the post
+	 * saved, so a rejected call writes nothing. The capabilities are checked by
+	 * {@see self::check_create_permission()}.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $input The ability input, as prepared by WP_Ability::execute().
+	 * @return array<string, mixed>|WP_Error The created post, or a WP_Error on failure.
+	 */
+	private function execute_content_create( array $input ) {
+		$data             = $input['data'] ?? array();
+		$post_type_object = $this->get_exposed_post_type( $data['type'] ?? null );
+		if ( ! $post_type_object ) {
+			return $this->not_found_error();
+		}
+
+		$postarr = $this->prepare_post_data( $data, $post_type_object, null );
+		if ( is_wp_error( $postarr ) ) {
+			return $postarr;
+		}
+
+		return $this->persist_post( $postarr, $this->normalize_fields( $input ) );
+	}
+
+	/**
+	 * Executes the `core/content-update` ability.
+	 *
+	 * The post is looked up first, then every attribute rule, and only then is the post
+	 * saved, so a rejected call writes nothing. The capabilities are checked by
+	 * {@see self::check_post_permission()}.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $input The ability input, as prepared by WP_Ability::execute().
+	 * @return array<string, mixed>|WP_Error The updated post, or a WP_Error on failure.
+	 */
+	private function execute_content_update( array $input ) {
+		$post = $this->get_requested_post( $input['where'] ?? array() );
+		if ( ! $post ) {
+			return $this->not_found_error();
+		}
+
+		/*
+		 * Known issue: a `data.status` sent for a post in the Trash moves it out of the Trash
+		 * through a regular save, not through wp_untrash_post(). The `_wp_trash_meta_status`
+		 * and `_wp_trash_meta_time` meta and the comments trashed with the post are left
+		 * behind. The REST API posts endpoint has the same issue when an update sends a
+		 * status for a trashed post. The cause is in the save path, so the fix belongs there,
+		 * where it covers every caller of wp_update_post().
+		 * See https://core.trac.wordpress.org/ticket/66809.
+		 */
+
+		// get_requested_post() only returns posts of an exposed post type.
+		$postarr = $this->prepare_post_data( $input['data'], get_post_type_object( $post->post_type ), $post );
+		if ( is_wp_error( $postarr ) ) {
+			return $postarr;
+		}
+
+		return $this->persist_post( $postarr, $this->normalize_fields( $input ) );
+	}
+
+	/**
+	 * Executes the `core/content-delete` ability.
+	 *
+	 * The post is deleted permanently when `permanent` is true; otherwise it is moved to the
+	 * Trash. The outcome is confirmed against the stored post afterwards. The capability is
+	 * checked by {@see self::check_post_permission()}.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $input The ability input, as prepared by WP_Ability::execute().
+	 * @return array<string, string>|WP_Error The outcome, or a WP_Error on failure.
+	 */
+	private function execute_content_delete( array $input ) {
+		$post = $this->get_requested_post( $input['where'] ?? array() );
+		if ( ! $post ) {
+			return $this->not_found_error();
+		}
+
+		if ( ! empty( $input['permanent'] ) ) {
+			$deleted = wp_delete_post( $post->ID, true );
+
+			return $deleted && null === get_post( $post->ID ) ? array( 'outcome' => 'deleted' ) : $this->delete_failed_error();
+		}
+
+		/*
+		 * Checked before wp_trash_post() is called: without a Trash, it deletes the post
+		 * permanently instead.
+		 */
+		if ( ! $this->can_trash( $post ) ) {
+			return new WP_Error(
+				'content_trash_not_supported',
+				__( 'The post does not support trashing. Set `permanent` to true to delete it.' ),
+				array( 'status' => 501 )
+			);
+		}
+
+		if ( 'trash' === $post->post_status ) {
+			return new WP_Error(
+				'content_already_trashed',
+				__( 'The post has already been trashed.' ),
+				array( 'status' => 410 )
+			);
+		}
+
+		$trashed = wp_trash_post( $post->ID );
+
+		return $trashed && 'trash' === get_post_status( $post->ID ) ? array( 'outcome' => 'trashed' ) : $this->delete_failed_error();
+	}
+
+	/**
+	 * Returns the post that `where` names, when it exists and has the named exposed type.
+	 *
+	 * The ID is read once, with {@see self::parse_filter_int()}, and that same integer is used
+	 * for the lookup, the capability checks, and the write. An ID that is not a whole number
+	 * of at least 1 names no post.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $where The `where` input.
+	 * @return WP_Post|null The post, or null when `where` names no post of an exposed type.
+	 */
+	private function get_requested_post( array $where ): ?WP_Post {
+		$post_type_object = $this->get_exposed_post_type( $where['type'] ?? null );
+		$post_id          = $this->parse_filter_int( $where['id'] ?? null, 1 );
+		if ( ! $post_type_object || null === $post_id ) {
+			return null;
+		}
+
+		$post = get_post( $post_id );
+
+		return $post instanceof WP_Post && $post_type_object->name === $post->post_type ? $post : null;
+	}
+
+	/**
+	 * Checks the `data` attributes and builds the array passed to the save.
+	 *
+	 * Shared by the create and update abilities. Only the attributes of
+	 * {@see self::get_content_write_properties()} that were sent reach the array, each mapped
+	 * to one post field, next to the values the server sets: the post type on create, the
+	 * post ID on update. The first rule that fails is returned and nothing is written.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $data             The `data` input.
+	 * @param WP_Post_Type $post_type_object The post type of the post being written.
+	 * @param WP_Post|null $post             The stored post on update, or null on create.
+	 * @return array<string, mixed>|WP_Error The unslashed post array, or a WP_Error.
+	 */
+	private function prepare_post_data( array $data, WP_Post_Type $post_type_object, ?WP_Post $post ) {
+		$post_type = $post_type_object->name;
+
+		// Checked first, since an attribute that cannot be stored is refused even when unchanged.
+		$error = $this->check_supported_attributes( $data, $post_type );
+		if ( $error ) {
+			return $error;
+		}
+
+		$data = $this->get_changed_data( $data, $post );
+
+		/*
+		 * Each step runs only for a sent attribute, and returns the post fields to save, or
+		 * the error of its first rule that fails. The date reads the status that is set, and
+		 * the slug the status and parent the post will have, so they run after the steps that
+		 * set them.
+		 */
+		$steps = array(
+			'title'   => fn() => array( 'post_title' => $data['title'] ),
+			'content' => fn() => array( 'post_content' => $data['content'] ),
+			'excerpt' => fn() => array( 'post_excerpt' => $data['excerpt'] ),
+			'status'  => fn() => array( 'post_status' => $data['status'] ),
+			'author'  => fn() => $this->prepare_author( $data['author'] ),
+			'parent'  => fn() => $this->prepare_parent( $data['parent'], $post_type, $post ),
+			'date'    => fn( array $postarr ) => $this->prepare_date( $data['date'], $post, $postarr['post_status'] ?? null ),
+			// Without a changed status, the save keeps the stored status, or defaults to `draft`.
+			'slug'    => fn( array $postarr ) => $this->prepare_slug(
+				$data['slug'],
+				$post_type_object,
+				$post,
+				$postarr['post_status'] ?? ( $post ? $post->post_status : 'draft' ),
+				$postarr['post_parent'] ?? ( $post ? $post->post_parent : 0 )
+			),
+		);
+
+		$postarr = array();
+		foreach ( $steps as $attribute => $step ) {
+			if ( ! array_key_exists( $attribute, $data ) ) {
+				continue;
+			}
+
+			$fields = $step( $postarr );
+			if ( is_wp_error( $fields ) ) {
+				return $fields;
+			}
+			$postarr = array_merge( $postarr, $fields );
+		}
+
+		if ( $post ) {
+			$postarr['ID'] = $post->ID;
+
+			// A stored page template that no longer exists must not fail an unrelated update.
+			$postarr['page_template'] = null;
+		} else {
+			$postarr['post_type'] = $post_type;
+		}
+
+		return $postarr;
+	}
+
+	/**
+	 * Rejects the sent attributes that cannot be stored.
+	 *
+	 * These are the attributes that the post type does not support, and a status that is not
+	 * registered or is internal.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $data      The `data` input.
+	 * @param string       $post_type The post type name.
+	 * @return WP_Error|null The error for the first attribute that cannot be stored, or null.
+	 */
+	private function check_supported_attributes( array $data, string $post_type ): ?WP_Error {
+		/*
+		 * Intentionally strict: an attribute that cannot be stored is an error and is never
+		 * ignored, even when its value would change nothing.
+		 */
+		$features = array(
+			'title'   => 'title',
+			'content' => 'editor',
+			'excerpt' => 'excerpt',
+			'author'  => 'author',
+		);
+		foreach ( $features as $attribute => $feature ) {
+			if ( array_key_exists( $attribute, $data ) && ! post_type_supports( $post_type, $feature ) ) {
+				return $this->invalid_attribute_error(
+					"data[{$attribute}]",
+					/* translators: 1: Attribute name, such as "content", 2: Post type feature, such as "editor". */
+					sprintf( __( 'The %1$s attribute is only supported for post types that support the %2$s feature.' ), $attribute, $feature )
+				);
+			}
+		}
+
+		if ( array_key_exists( 'parent', $data ) && ! is_post_type_hierarchical( $post_type ) ) {
+			return $this->invalid_attribute_error( 'data[parent]', __( 'The parent attribute is only supported for hierarchical post types.' ) );
+		}
+
+		/*
+		 * Intentionally strict: a status that is not registered is an error and is never
+		 * replaced by another status. Internal statuses, such as `trash`, can never be set,
+		 * not even when the post already has them.
+		 */
+		if ( array_key_exists( 'status', $data ) ) {
+			$status_object = get_post_status_object( $data['status'] );
+			if ( ! $status_object instanceof stdClass || ! empty( $status_object->internal ) ) {
+				return $this->invalid_attribute_error( 'data[status]', __( 'The status must be a registered post status that is not internal.' ) );
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Checks the sent `author` and returns the field to save.
+	 *
+	 * The capability to name another user is checked by the permission callbacks, so only
+	 * users who may name any user learn whether a user ID exists.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int $author_id The sent `author`, which differs from the stored one.
+	 * @return array<string, int>|WP_Error The author field, or a WP_Error.
+	 */
+	private function prepare_author( $author_id ) {
+		if ( get_current_user_id() === $author_id ) {
+			return array( 'post_author' => $author_id );
+		}
+
+		// Intentionally strict: the author must be an existing user who belongs to this site.
+		if ( ! get_userdata( $author_id ) || ( is_multisite() && ! is_user_member_of_blog( $author_id ) ) ) {
+			return $this->invalid_attribute_error( 'data[author]', __( 'The author must be an existing user of this site.' ) );
+		}
+
+		return array( 'post_author' => $author_id );
+	}
+
+	/**
+	 * Checks the sent `parent` and returns the field to save.
+	 *
+	 * The permission callbacks refuse a parent that is missing or that the current user cannot
+	 * read, so the errors here never tell whether a post ID exists.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int          $parent_id The sent `parent`, which differs from the stored one.
+	 * @param string       $post_type The post type name.
+	 * @param WP_Post|null $post      The stored post on update, or null on create.
+	 * @return array<string, int>|WP_Error The parent field, or a WP_Error.
+	 */
+	private function prepare_parent( $parent_id, string $post_type, ?WP_Post $post ) {
+		if ( 0 === $parent_id ) {
+			return array( 'post_parent' => 0 );
+		}
+
+		$reason = __( 'The parent must be 0, or a post of the same post type that is neither the post itself nor one of its descendants.' );
+
+		/*
+		 * Intentionally strict: a parent must be of the same type and free of loops; it is
+		 * never silently reset.
+		 */
+		$parent = get_post( $parent_id );
+		if ( ! $parent instanceof WP_Post || $post_type !== $parent->post_type ) {
+			return $this->invalid_attribute_error( 'data[parent]', $reason );
+		}
+
+		if ( $post && ( $post->ID === $parent->ID || in_array( $post->ID, get_post_ancestors( $parent ), true ) ) ) {
+			return $this->invalid_attribute_error( 'data[parent]', $reason );
+		}
+
+		return array( 'post_parent' => $parent_id );
+	}
+
+	/**
+	 * Returns the date fields to save for the sent `date`.
+	 *
+	 * `site` wins when both `site` and `gmt` are sent, so the pair that the query returns can
+	 * be sent back, also after the site's timezone changed. On update, a sent date that equals
+	 * the stored one counts as not sent, so a draft with a floating date keeps floating, unless
+	 * the call moves it to a status whose dates do not float with a date that is still ahead.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<mixed> $date   The sent `date`.
+	 * @param WP_Post|null $post   The stored post on update, or null on create.
+	 * @param string|null  $status The status to set, or null when none is sent or it is unchanged.
+	 * @return array<string, mixed> The date fields to save, empty for none.
+	 */
+	private function prepare_date( array $date, ?WP_Post $post, ?string $status ): array {
+		$dates = isset( $date['site'] ) ? rest_get_date_with_gmt( $date['site'] ) : rest_get_date_with_gmt( $date['gmt'], true );
+
+		$fields = array(
+			'post_date'     => $dates[0],
+			'post_date_gmt' => $dates[1],
+		);
+
+		if ( ! $post ) {
+			return $fields;
+		}
+
+		$fields['edit_date'] = true;
+
+		$is_floating = '0000-00-00 00:00:00' === $post->post_date_gmt;
+		if ( isset( $date['site'] ) ) {
+			$is_unchanged = $post->post_date === $dates[0];
+		} else {
+			$stored_gmt   = $is_floating ? get_gmt_from_date( $post->post_date ) : $post->post_date_gmt;
+			$is_unchanged = $stored_gmt === $dates[1];
+		}
+
+		if ( ! $is_unchanged ) {
+			return $fields;
+		}
+
+		/*
+		 * Intentionally strict: sending back the date a floating draft shows, in either form,
+		 * never pins it. The one exception is a call that also moves the draft to a status
+		 * whose dates do not float, with a date still ahead: the date is stored, so the post
+		 * is scheduled for the date it shows instead of being published at once.
+		 */
+		$schedules = $is_floating
+			&& null !== $status
+			&& ! in_array( $status, get_post_stati( array( 'date_floating' => true ) ), true )
+			&& $dates[1] > gmdate( 'Y-m-d H:i:s' );
+
+		return $schedules ? $fields : array();
+	}
+
+	/**
+	 * Checks the sent `slug` and returns the field to save.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string       $slug             The sent `slug`, which differs from the stored one.
+	 * @param WP_Post_Type $post_type_object The post type of the post being written.
+	 * @param WP_Post|null $post             The stored post on update, or null on create.
+	 * @param string       $status           The status the post will have.
+	 * @param int          $parent_id        The parent ID the post will have.
+	 * @return array<string, string>|WP_Error The slug field, or a WP_Error.
+	 */
+	private function prepare_slug( $slug, WP_Post_Type $post_type_object, ?WP_Post $post, string $status, int $parent_id ) {
+		$slug = sanitize_title( $slug );
+
+		// Intentionally strict: a slug that sanitizes to nothing is an error.
+		if ( '' === $slug ) {
+			return $this->invalid_attribute_error( 'data[slug]', __( 'The slug must contain characters that are valid in a slug.' ) );
+		}
+
+		/*
+		 * Intentionally strict: a draft never takes the slug of another post that shares its
+		 * parent. The save keeps the slugs of drafts and pending posts as given, so they are
+		 * made unique here as if the post were published.
+		 */
+		if ( in_array( $status, array( 'draft', 'pending' ), true ) ) {
+			$slug = wp_unique_post_slug( $slug, $post ? $post->ID : 0, 'publish', $post_type_object->name, $parent_id );
+		}
+
+		return array( 'post_name' => $slug );
+	}
+
+	/**
+	 * Saves a prepared post and returns it in the requested fields.
+	 *
+	 * The post is saved through the regular save functions, as the current user, so the
+	 * default filters, such as the markup filtering for users without `unfiltered_html`, and
+	 * the default hooks apply as in any other save.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<string, mixed> $postarr The unslashed post array from prepare_post_data(). It
+	 *                                      holds an `ID` when the post is updated.
+	 * @param list<string>         $fields  The requested field paths.
+	 * @return array<string, mixed>|WP_Error The saved post, only its ID when the current user
+	 *                                       may not read it, or a WP_Error on failure.
+	 */
+	private function persist_post( array $postarr, array $fields ) {
+		// The author visibility memo is per call; see get_visible_author().
+		$this->visible_authors = array();
+
+		$postarr = wp_slash( $postarr );
+		$post_id = isset( $postarr['ID'] ) ? wp_update_post( $postarr, true ) : wp_insert_post( $postarr, true );
+
+		if ( is_wp_error( $post_id ) ) {
+			$is_database_error = in_array( $post_id->get_error_code(), array( 'db_insert_error', 'db_update_error' ), true );
+			$post_id->add_data( array( 'status' => $is_database_error ? 500 : 400 ) );
+
+			return $post_id;
+		}
+
+		$post = get_post( $post_id );
+		if ( ! $post instanceof WP_Post ) {
+			return $this->not_found_error();
+		}
+
+		/*
+		 * Intentionally strict: the saved post passes the same read check as every query
+		 * row. When the current user may no longer read it, for example after moving it to
+		 * a status they cannot read, the write stands but only its ID is returned.
+		 */
+		if ( ! $this->check_read_permission( $post ) ) {
+			return array( 'id' => $post->ID );
+		}
+
+		return $this->format_post( $post, $fields );
+	}
+
+	/**
+	 * Checks whether the site can move a post to the Trash.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param WP_Post $post The post.
+	 * @return bool Whether the post can be trashed.
+	 */
+	private function can_trash( WP_Post $post ): bool {
+		return EMPTY_TRASH_DAYS > 0 && ( 'attachment' !== $post->post_type || MEDIA_TRASH );
 	}
 
 	/**
 	 * Reads an object member of the input, such as `where` or `pagination`.
 	 *
 	 * Accepts what schema validation reads as an object: an array, a `stdClass`, or an
-	 * empty string. Only the REST run controller converts input to the schema types, so
-	 * callers that bypass it, such as a direct WP_Ability::execute() call, can pass any of them.
+	 * empty string. WP_Ability::execute() converts input to the schema types, but
+	 * WP_Ability::check_permissions() does not, so a permission callback can receive any of them.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1132,7 +1894,7 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Builds the schema of the `fields` input, shared by all content abilities.
+	 * Builds the schema of the `fields` input, shared by the query, create, and update abilities.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1216,7 +1978,7 @@ final class WP_Abilities_Content {
 								'type' => 'string',
 								'enum' => $statuses,
 							),
-							'description' => __( 'Filter readable posts by one or more post statuses. Defaults to publish, or, when `ids` or `slugs` is given, to every status the current user may query. Statuses that are not publicly viewable, other than private, require edit access.' ),
+							'description' => __( 'Filter readable posts by one or more post statuses. Defaults to publish, or, when `ids` or `slugs` is given, to every status the current user may query. Statuses that are not publicly viewable, other than private, require edit access. Trashed posts are only covered when `trash` is requested.' ),
 						),
 						'author' => array(
 							'type'                 => 'object',
@@ -1273,7 +2035,208 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Builds the output schema of a single post, shared by all content abilities.
+	 * Returns the `data` attributes shared by the create and update input schemas.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param list<string> $statuses Post status slugs that can be set.
+	 * @return array<string, mixed> The attribute schemas, keyed by attribute name.
+	 */
+	private function get_content_write_properties( array $statuses ): array {
+		return array(
+			'title'   => array(
+				'type'        => 'string',
+				'description' => __( 'The raw post title. Only supported for post types that support titles.' ),
+			),
+			'content' => array(
+				'type'        => 'string',
+				'description' => __( 'The raw post content, such as block markup. Only supported for post types that support the editor.' ),
+			),
+			'excerpt' => array(
+				'type'        => 'string',
+				'description' => __( 'The raw post excerpt. Only supported for post types that support excerpts.' ),
+			),
+			'status'  => array(
+				'type'        => 'string',
+				'enum'        => $statuses,
+				'description' => __( 'The post status. A status that makes the post visible, such as publish, future, or private, requires the capability to publish posts of the type. A published post with a future date is scheduled, and a scheduled post with a past date is published.' ),
+			),
+			'slug'    => array(
+				'type'        => 'string',
+				'description' => __( 'The post slug. It is sanitized as a post slug is, and made unique among the posts of the type that share its parent.' ),
+			),
+			'date'    => array(
+				'type'                 => 'object',
+				'additionalProperties' => false,
+				'minProperties'        => 1,
+				'properties'           => array(
+					'site' => array(
+						'type'        => 'string',
+						'format'      => 'date-time',
+						'description' => __( "The publication date, in ISO 8601 format. Read in the site's timezone unless it has a UTC offset." ),
+					),
+					'gmt'  => array(
+						'type'        => 'string',
+						'format'      => 'date-time',
+						'description' => __( 'The publication date, in ISO 8601 format. Read as GMT unless it has a UTC offset.' ),
+					),
+				),
+				'description'          => __( 'The publication date. When both `site` and `gmt` are given, `site` is used.' ),
+			),
+			'author'  => array(
+				'type'        => 'integer',
+				'minimum'     => 1,
+				'description' => __( 'The user ID of the author. Naming a user other than the current one requires the capability to edit the posts of others. Only supported for post types that support authors.' ),
+			),
+			'parent'  => array(
+				'type'        => 'integer',
+				'minimum'     => 0,
+				'description' => __( 'The parent post ID: a readable post of the same type, or 0 for a top-level post. Only supported for hierarchical post types.' ),
+			),
+		);
+	}
+
+	/**
+	 * Builds the `where` schema that names one post, shared by the update and delete abilities.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param list<string> $post_types  Exposed post type names.
+	 * @param string       $description The description of `where`.
+	 * @return array<string, mixed> The `where` JSON Schema.
+	 */
+	private function get_content_where_post_schema( array $post_types, string $description ): array {
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => array( 'type', 'id' ),
+			'properties'           => array(
+				'type' => array(
+					'type'        => 'string',
+					'enum'        => $post_types,
+					'description' => __( 'The post type of the post.' ),
+				),
+				'id'   => array(
+					'type'        => 'integer',
+					'minimum'     => 1,
+					'description' => __( 'The post ID.' ),
+				),
+			),
+			'description'          => $description,
+		);
+	}
+
+	/**
+	 * Builds the input schema for the `core/content-create` ability.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param list<string> $post_types Exposed post type names.
+	 * @param list<string> $statuses   Post status slugs that can be set.
+	 * @return array<string, mixed> The input JSON Schema.
+	 */
+	private function get_content_create_input_schema( array $post_types, array $statuses ): array {
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => array( 'data' ),
+			'properties'           => array(
+				'data'   => array(
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'required'             => array( 'type' ),
+					'properties'           => array_merge(
+						array(
+							'type' => array(
+								'type'        => 'string',
+								'enum'        => $post_types,
+								'description' => __( 'The post type of the post to create.' ),
+							),
+						),
+						$this->get_content_write_properties( $statuses )
+					),
+					'description'          => __( 'The post to create. The status defaults to draft.' ),
+				),
+				'fields' => $this->get_fields_input_schema(),
+			),
+		);
+	}
+
+	/**
+	 * Builds the input schema for the `core/content-update` ability.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param list<string> $post_types Exposed post type names.
+	 * @param list<string> $statuses   Post status slugs that can be set.
+	 * @return array<string, mixed> The input JSON Schema.
+	 */
+	private function get_content_update_input_schema( array $post_types, array $statuses ): array {
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => array( 'where', 'data' ),
+			'properties'           => array(
+				'where'  => $this->get_content_where_post_schema( $post_types, __( 'Selects the post to update, by its type and ID.' ) ),
+				'data'   => array(
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'minProperties'        => 1,
+					'properties'           => $this->get_content_write_properties( $statuses ),
+					'description'          => __( 'The attributes to change. Attributes that are left out keep their stored values.' ),
+				),
+				'fields' => $this->get_fields_input_schema(),
+			),
+		);
+	}
+
+	/**
+	 * Builds the input schema for the `core/content-delete` ability.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param list<string> $post_types Exposed post type names.
+	 * @return array<string, mixed> The input JSON Schema.
+	 */
+	private function get_content_delete_input_schema( array $post_types ): array {
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => array( 'where' ),
+			'properties'           => array(
+				'where'     => $this->get_content_where_post_schema( $post_types, __( 'Selects the post to delete, by its type and ID.' ) ),
+				'permanent' => array(
+					'type'        => 'boolean',
+					'description' => __( 'Whether to delete the post permanently instead of moving it to the Trash. Defaults to false.' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Builds the output schema for the `core/content-delete` ability.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return array<string, mixed> The output JSON Schema.
+	 */
+	private function get_content_delete_output_schema(): array {
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => array( 'outcome' ),
+			'properties'           => array(
+				'outcome' => array(
+					'type'        => 'string',
+					'enum'        => array( 'trashed', 'deleted' ),
+					'description' => __( 'What happened to the post: `trashed` when it was moved to the Trash, `deleted` when it was deleted permanently.' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Builds the output schema of a single post, shared by the query, create, and update abilities.
 	 *
 	 * Only `id` is required, because it is always returned. The other fields are optional
 	 * because the `fields` input lets the caller request any subset, and a field is only
@@ -1343,7 +2306,7 @@ final class WP_Abilities_Content {
 	 * the current user may not see is reported like a missing one.
 	 *
 	 * The `author` field and the `author` slug filter share this rule, so the filter never
-	 * confirms a slug the field withholds. The post count is kept per author for the query,
+	 * confirms a slug the field withholds. The post count is kept per author for the call,
 	 * since count_user_posts() is not cached.
 	 *
 	 * @since 7.2.0
@@ -1832,6 +2795,62 @@ final class WP_Abilities_Content {
 				'status' => 400,
 				'params' => array( $param => $message ),
 			)
+		);
+	}
+
+	/**
+	 * Builds the error for a post that cannot be found.
+	 *
+	 * Returned alike for a missing post, a post of another type, and a post type that is not
+	 * exposed to abilities, so it never tells which one applies.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return WP_Error The not found error.
+	 */
+	private function not_found_error(): WP_Error {
+		return new WP_Error(
+			'content_not_found',
+			__( 'The requested content was not found.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	/**
+	 * Builds the error for a `data` attribute that cannot be applied.
+	 *
+	 * The error data maps the attribute's input path to the message under `params`, so
+	 * callers can tell which attribute failed without parsing the translated message.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $param   The attribute's input path, such as `data[title]`.
+	 * @param string $message The error message.
+	 * @return WP_Error The invalid attribute error.
+	 */
+	private function invalid_attribute_error( string $param, string $message ): WP_Error {
+		return new WP_Error(
+			'content_invalid_attribute',
+			$message,
+			array(
+				'status' => 400,
+				'params' => array( $param => $message ),
+			)
+		);
+	}
+
+	/**
+	 * Builds the error for a delete or trash call that failed or could not be confirmed.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return WP_Error The delete failed error.
+	 */
+	private function delete_failed_error(): WP_Error {
+		return new WP_Error(
+			'content_delete_failed',
+			__( 'The post could not be deleted.' ),
+			array( 'status' => 500 )
 		);
 	}
 }
