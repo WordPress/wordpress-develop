@@ -1209,6 +1209,49 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @ticket 66811
+	 */
+	public function test_get_item_full_size_of_pdf_uses_the_preview_mime_type() {
+		$attachment_id = self::factory()->attachment->create_object(
+			'wordpress-gsoc-flyer.pdf',
+			0,
+			array( 'post_mime_type' => 'application/pdf' )
+		);
+
+		wp_update_attachment_metadata(
+			$attachment_id,
+			array(
+				'filesize' => 12345,
+				'sizes'    => array(
+					'full'      => array(
+						'file'      => 'wordpress-gsoc-flyer-pdf.jpg',
+						'width'     => 1088,
+						'height'    => 1408,
+						'mime-type' => 'image/jpeg',
+						'filesize'  => 2345,
+					),
+					'thumbnail' => array(
+						'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
+						'width'     => 116,
+						'height'    => 150,
+						'mime-type' => 'image/jpeg',
+						'filesize'  => 345,
+					),
+				),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$full     = $data['media_details']['sizes']['full'];
+
+		$this->assertSame( 'application/pdf', $data['mime_type'], 'The attachment should keep the PDF MIME type.' );
+		$this->assertSame( 'wordpress-gsoc-flyer-pdf.jpg', $full['file'], 'The full size should be the preview image.' );
+		$this->assertSame( 'image/jpeg', $full['mime_type'], 'The full size should have the MIME type of the preview image.' );
+	}
+
+	/**
 	 * @ticket 65251
 	 */
 	public function test_get_item_sizes_empty_sizes_is_object() {

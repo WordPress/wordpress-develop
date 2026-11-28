@@ -1511,11 +1511,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				$full_src = wp_get_attachment_image_src( $post->ID, 'full' );
 
 				if ( ! empty( $full_src ) ) {
+					$full_mime_type = $post->post_mime_type;
+
+					// A file that is not an image, such as a PDF, uses its generated preview image as the full size.
+					if ( ! wp_attachment_is_image( $post->ID ) && isset( $data['media_details']['sizes']['full']['mime_type'] ) ) {
+						$full_mime_type = $data['media_details']['sizes']['full']['mime_type'];
+					}
+
 					$data['media_details']['sizes']['full'] = array(
 						'file'       => wp_basename( $full_src[0] ),
 						'width'      => $full_src[1],
 						'height'     => $full_src[2],
-						'mime_type'  => $post->post_mime_type,
+						'mime_type'  => $full_mime_type,
 						'source_url' => $full_src[0],
 					);
 				}
