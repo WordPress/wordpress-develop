@@ -269,3 +269,53 @@ function wp_tests_wpdb_arrow_function( wpdb $wpdb ): void {
 	$f     = fn( $query ) => assertType( 'non-empty-string|null', $wpdb->get_var( $query ) );
 	$g     = fn() => assertType( 'decimal-int-string|null', $wpdb->get_var( $query ) );
 }
+
+/**
+ * A union's columns may take their values from any of its queries, so it is left as declared, but a union in a
+ * subquery does not affect the outer query.
+ */
+function wp_tests_wpdb_unions( wpdb $wpdb ): void {
+	assertType( 'non-empty-string|null', $wpdb->get_var( "SELECT ID FROM $wpdb->posts UNION SELECT comment_ID FROM $wpdb->comments" ) );
+	assertType( 'non-empty-string|null', $wpdb->get_var( "(SELECT ID FROM $wpdb->posts) UNION (SELECT comment_ID FROM $wpdb->comments)" ) );
+	assertType( 'decimal-int-string|null', $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE ID IN ( SELECT post_id FROM $wpdb->postmeta UNION SELECT comment_post_ID FROM $wpdb->comments )" ) );
+	assertType( 'array{ID: decimal-int-string, x: string|null}|null', $wpdb->get_row( "SELECT ID, ( SELECT 1 UNION SELECT 2 LIMIT 1 ) AS x FROM $wpdb->posts", ARRAY_A ) );
+}
+
+/**
+ * The columns of a derived table are not known, and the tables in a subquery are not those of the outer query.
+ */
+function wp_tests_wpdb_subqueries( wpdb $wpdb ): void {
+	assertType( 'array{c: string|null}|null', $wpdb->get_row( "SELECT d.c FROM ( SELECT COUNT(*) AS c FROM $wpdb->posts ) d", ARRAY_A ) );
+	assertType( 'array<mixed>|null', $wpdb->get_row( "SELECT * FROM ( SELECT ID FROM $wpdb->posts ) AS d", ARRAY_A ) );
+	assertType( 'array{ID: decimal-int-string, c: string|null}|null', $wpdb->get_row( "SELECT p.ID, d.c FROM $wpdb->posts p INNER JOIN ( SELECT post_id, COUNT(*) c FROM $wpdb->postmeta GROUP BY post_id ) d ON d.post_id = p.ID", ARRAY_A ) );
+	assertType( 'array{post_title: string, post_name: string}|null', $wpdb->get_row( "SELECT p.post_title, p.post_name FROM $wpdb->posts p INNER JOIN ( SELECT post_id FROM $wpdb->postmeta ) d ON d.post_id = p.ID", ARRAY_A ) );
+	assertType( 'array{ID: decimal-int-string, n: string|null}|null', $wpdb->get_row( "SELECT ID, ( SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = ID ) AS n FROM $wpdb->posts", ARRAY_A ) );
+	assertType( 'array{post_title: string}|null', $wpdb->get_row( "SELECT post_title FROM $wpdb->posts WHERE ID IN ( SELECT post_id FROM $wpdb->postmeta )", ARRAY_A ) );
+}
+
+/**
+ * A `%i` placeholder is an identifier which is not known.
+ */
+function wp_tests_wpdb_identifier_placeholders( wpdb $wpdb, string $column, string $table, string $value ): void {
+	// A column, whose name is not known, though its position is.
+	assertType( 'array<mixed>|null', $wpdb->get_row( $wpdb->prepare( "SELECT %i, ID FROM $wpdb->posts", $column ), ARRAY_A ) );
+	assertType( 'array{string|null, decimal-int-string}|null', $wpdb->get_row( $wpdb->prepare( "SELECT %i, ID FROM $wpdb->posts", $column ), ARRAY_N ) );
+
+	// A table, which is not a core table.
+	assertType( 'array{ID: string|null}|null', $wpdb->get_row( $wpdb->prepare( "SELECT ID FROM %i", $table ), ARRAY_A ) );
+	assertType( 'array{ID: string|null}|null', $wpdb->get_row( $wpdb->prepare( "SELECT p.ID FROM %i p", $table ), ARRAY_A ) );
+	assertType( 'array<mixed>|null', $wpdb->get_row( $wpdb->prepare( "SELECT * FROM %i", $table ), ARRAY_A ) );
+
+	// Outside the select list and the `FROM` clause.
+	assertType( 'array{post_title: string}|null', $wpdb->get_row( $wpdb->prepare( "SELECT post_title FROM $wpdb->posts WHERE %i = %s", $column, $value ), ARRAY_A ) );
+}
+
+/**
+ * Tables joined with commas.
+ */
+function wp_tests_wpdb_comma_joins( wpdb $wpdb ): void {
+	assertType( 'array{ID: decimal-int-string, meta_value: string|null}|null', $wpdb->get_row( "SELECT p.ID, pm.meta_value FROM $wpdb->posts p, $wpdb->postmeta pm WHERE pm.post_id = p.ID", ARRAY_A ) );
+	assertType( 'array{term_id: decimal-int-string, name: string, slug: string, term_group: decimal-int-string, term_taxonomy_id: decimal-int-string, taxonomy: string, description: string, parent: decimal-int-string, count: decimal-int-string}|null', $wpdb->get_row( "SELECT * FROM $wpdb->terms t, $wpdb->term_taxonomy tt", ARRAY_A ) );
+	assertType( 'array{ID: decimal-int-string, comment_ID: decimal-int-string|null}|null', $wpdb->get_row( "SELECT p.ID, c.comment_ID FROM $wpdb->posts p, $wpdb->postmeta pm LEFT JOIN $wpdb->comments c ON c.comment_post_ID = pm.post_id", ARRAY_A ) );
+	assertType( 'array{ID: decimal-int-string, c: string|null}|null', $wpdb->get_row( "SELECT ID, c FROM $wpdb->posts, ( SELECT 1 AS c ) d", ARRAY_A ) );
+}
