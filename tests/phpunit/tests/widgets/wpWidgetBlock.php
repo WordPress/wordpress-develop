@@ -28,6 +28,13 @@ class Tests_Widgets_wpWidgetBlock extends WP_UnitTestCase {
 	);
 
 	/**
+	 * Block content carrying custom CSS in its attributes.
+	 *
+	 * @var string
+	 */
+	const CONTENT_WITH_CUSTOM_CSS = '<!-- wp:paragraph {"style":{"css":"color: red;"}} --><p>Hello</p><!-- /wp:paragraph -->';
+
+	/**
 	 * Creates a published post shared by the tests so dynamic blocks (such as core/calendar) have content.
 	 *
 	 * @param WP_UnitTest_Factory $factory Test factory.
@@ -359,6 +366,50 @@ class Tests_Widgets_wpWidgetBlock extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that update() strips custom CSS from the content when the user lacks edit_css.
+	 *
+	 * @ticket 64771
+	 *
+	 * @covers WP_Widget_Block::update
+	 */
+	public function test_update_strips_custom_css_without_edit_css() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		add_filter( 'map_meta_cap', array( $this, 'revoke_edit_css_cap' ), 10, 2 );
+		$this->assertFalse( current_user_can( 'edit_css' ) );
+
+		$widget = new WP_Widget_Block();
+		$result = $widget->update( array( 'content' => self::CONTENT_WITH_CUSTOM_CSS ), array() );
+		remove_filter( 'map_meta_cap', array( $this, 'revoke_edit_css_cap' ), 10 );
+
+		$blocks = parse_blocks( $result['content'] );
+		$this->assertSame( 'core/paragraph', $blocks[0]['blockName'] );
+		$this->assertArrayNotHasKey( 'style', $blocks[0]['attrs'], 'Custom CSS should be stripped for a user without edit_css.' );
+		$this->assertStringContainsString( '<p>Hello</p>', $result['content'] );
+	}
+
+	/**
+	 * Tests that update() keeps custom CSS in the content when the user has edit_css.
+	 *
+	 * @ticket 64771
+	 *
+	 * @covers WP_Widget_Block::update
+	 */
+	public function test_update_keeps_custom_css_with_edit_css() {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		if ( is_multisite() ) {
+			grant_super_admin( $admin_id );
+		}
+		wp_set_current_user( $admin_id );
+		$this->assertTrue( current_user_can( 'edit_css' ) );
+
+		$widget = new WP_Widget_Block();
+		$result = $widget->update( array( 'content' => self::CONTENT_WITH_CUSTOM_CSS ), array() );
+
+		$this->assertSame( self::CONTENT_WITH_CUSTOM_CSS, $result['content'] );
+	}
+
+	/**
 	 * Grants the unfiltered_html capability via map_meta_cap.
 	 *
 	 * @param string[] $caps Capabilities.
@@ -382,6 +433,21 @@ class Tests_Widgets_wpWidgetBlock extends WP_UnitTestCase {
 	public function revoke_unfiltered_html_cap( $caps, $cap ) {
 		if ( 'unfiltered_html' === $cap ) {
 			$caps = array( 'do_not_allow' );
+		}
+		return $caps;
+	}
+
+	/**
+	 * Revokes the edit_css capability via map_meta_cap.
+	 *
+	 * @param string[] $caps Capabilities.
+	 * @param string   $cap  Capability name.
+	 * @return string[] Filtered capabilities.
+	 */
+	public function revoke_edit_css_cap( $caps, $cap ) {
+		if ( 'edit_css' === $cap ) {
+			$caps   = array_diff( $caps, array( 'unfiltered_html' ) );
+			$caps[] = 'do_not_allow';
 		}
 		return $caps;
 	}
