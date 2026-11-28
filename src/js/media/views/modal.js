@@ -203,7 +203,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	/**
 	 * Handles the selection of attachments when the command or control key is pressed with the enter key.
 	 *
-	 * @since 6.7
+	 * @since 6.7.0
 	 *
 	 * @param {JQuery.Event} event The jQuery event object.
 	 */
