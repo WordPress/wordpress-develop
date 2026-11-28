@@ -90,6 +90,42 @@ class Tests_General_GetTheGenerator extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an empty $type is inferred from the current filter.
+	 *
+	 * @ticket 66832
+	 *
+	 * @dataProvider data_generator_type_from_current_filter
+	 *
+	 * @param string $filter Current filter name.
+	 * @param string $type   Expected inferred generator type.
+	 */
+	public function test_get_the_generator_infers_type_from_current_filter( $filter, $type ) {
+		global $wp_current_filter;
+
+		$wp_current_filter = array( $filter );
+
+		$this->assertSame( get_the_generator( $type ), get_the_generator() );
+	}
+
+	/**
+	 * Data provider for test_get_the_generator_infers_type_from_current_filter().
+	 *
+	 * @return array[]
+	 */
+	public static function data_generator_type_from_current_filter() {
+		return array(
+			'rss2_head'          => array( 'rss2_head', 'rss2' ),
+			'commentsrss2_head'  => array( 'commentsrss2_head', 'rss2' ),
+			'rss_head'           => array( 'rss_head', 'comment' ),
+			'opml_head'          => array( 'opml_head', 'comment' ),
+			'rdf_header'         => array( 'rdf_header', 'rdf' ),
+			'atom_head'          => array( 'atom_head', 'atom' ),
+			'comments_atom_head' => array( 'comments_atom_head', 'atom' ),
+			'app_head'           => array( 'app_head', 'atom' ),
+		);
+	}
+
+	/**
 	 * Tests that get_the_generator_$type filter modifies the generator markup.
 	 *
 	 * @ticket 65819
