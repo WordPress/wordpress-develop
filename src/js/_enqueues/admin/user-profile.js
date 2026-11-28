@@ -512,12 +512,16 @@
 		if ( select.length ) {
 			$('#first_name, #last_name, #nickname').on( 'blur.user_profile', function() {
 				var dub = [],
+					isEmail = $('#user_login').attr( 'data-is-email' ) === 'true',
 					inputs = {
 						display_nickname  : $('#nickname').val() || '',
-						display_username  : $('#user_login').val() || '',
 						display_firstname : $('#first_name').val() || '',
 						display_lastname  : $('#last_name').val() || ''
 					};
+
+				if ( ! isEmail ) {
+					inputs.display_username = $('#user_login').val() || '';
+				}
 
 				if ( inputs.display_firstname && inputs.display_lastname ) {
 					inputs.display_firstlast = inputs.display_firstname + ' ' + inputs.display_lastname;
