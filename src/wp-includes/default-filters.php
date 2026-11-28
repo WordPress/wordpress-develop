@@ -542,6 +542,11 @@ add_action( 'split_shared_term', '_wp_check_split_terms_in_menus', 10, 4 );
 add_action( 'split_shared_term', '_wp_check_split_nav_menu_terms', 10, 4 );
 add_action( 'wp_split_shared_term_batch', '_wp_batch_split_terms' );
 
+// Comment types.
+add_action( 'init', 'create_initial_comment_types', 0 ); // Highest priority.
+add_action( 'change_locale', 'create_initial_comment_types' );
+add_filter( 'default_excluded_comment_types', '_wp_exclude_internal_comment_types', 0 ); // Before plugins filter the set.
+
 // Comment type updates.
 add_action( 'admin_init', '_wp_check_for_scheduled_update_comment_type' );
 add_action( 'wp_update_comment_type_batch', '_wp_batch_update_comment_type' );
