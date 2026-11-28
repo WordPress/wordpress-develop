@@ -207,25 +207,32 @@ function dismissed_updates() {
 	);
 
 	if ( $dismissed ) {
-		$show_text = esc_js( __( 'Show hidden updates' ) );
-		$hide_text = esc_js( __( 'Hide hidden updates' ) );
-		?>
-		<script>
-			jQuery( function( $ ) {
-				$( '#show-dismissed' ).on( 'click', function() {
-					var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
+		$js_function = <<<'JS'
+			( showText, hideText ) => {
+				jQuery( function( $ ) {
+					$( '#show-dismissed' ).on( 'click', function() {
+						var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
 
-					if ( isExpanded ) {
-						$( this ).text( '<?php echo $show_text; ?>' ).attr( 'aria-expanded', 'false' );
-					} else {
-						$( this ).text( '<?php echo $hide_text; ?>' ).attr( 'aria-expanded', 'true' );
-					}
+						if ( isExpanded ) {
+							$( this ).text( showText ).attr( 'aria-expanded', 'false' );
+						} else {
+							$( this ).text( hideText ).attr( 'aria-expanded', 'true' );
+						}
 
-					$( '#dismissed-updates' ).toggle( 'fast' );
+						$( '#dismissed-updates' ).toggle( 'fast' );
+					});
 				});
-			});
-		</script>
-		<?php
+			}
+			JS;
+
+		wp_print_inline_script_tag(
+			sprintf(
+				'( %s )( %s, %s );',
+				$js_function,
+				wp_json_encode( __( 'Show hidden updates' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( __( 'Hide hidden updates' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+			)
+		);
 		echo '<p class="hide-if-no-js"><button type="button" class="button" id="show-dismissed" aria-expanded="false">' . __( 'Show hidden updates' ) . '</button></p>';
 		echo '<ul id="dismissed-updates" class="core-updates dismissed">';
 		foreach ( (array) $dismissed as $update ) {
@@ -1001,10 +1008,20 @@ function do_core_upgrade( $reinstall = false ) {
 	);
 	?>
 	</div>
-	<script>
-	window.location = '<?php echo esc_url( self_admin_url( 'about.php?updated' ) ); ?>';
-	</script>
 	<?php
+	$js_function = <<<'JS'
+		( url ) => {
+			window.location = url;
+		}
+		JS;
+
+	wp_print_inline_script_tag(
+		sprintf(
+			'( %s )( %s );',
+			$js_function,
+			wp_json_encode( self_admin_url( 'about.php?updated' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+		)
+	);
 }
 
 /**
