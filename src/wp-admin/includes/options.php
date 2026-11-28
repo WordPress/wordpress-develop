@@ -123,6 +123,7 @@ function options_reading_add_js() {
 			};
 		check_disabled();
 		section.find( 'input:radio' ).on( 'change', check_disabled );
+		$( window ).on( 'pageshow', check_disabled );
 	} );
 </script>
 	<?php
