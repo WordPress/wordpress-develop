@@ -2241,23 +2241,31 @@ function get_boundary_post( $in_same_term = false, $excluded_terms = '', $start 
 			$term_array = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'ids' ) );
 		}
 
+		$query_args['tax_query'] = array( 'relation' => 'AND' );
+
+		if ( $in_same_term ) {
+			$query_args['tax_query'][] = array(
+				'taxonomy' => $taxonomy,
+				'terms'    => $term_array,
+			);
+		}
+
 		if ( ! empty( $excluded_terms ) ) {
 			$excluded_terms = array_map( 'intval', $excluded_terms );
 			$excluded_terms = array_diff( $excluded_terms, $term_array );
-
-			$inverse_terms = array();
-			foreach ( $excluded_terms as $excluded_term ) {
-				$inverse_terms[] = $excluded_term * -1;
-			}
-			$excluded_terms = $inverse_terms;
 		}
 
-		$query_args['tax_query'] = array(
-			array(
+		/*
+		 * The excluded terms need their own clause: a tax query reads term IDs as
+		 * absolute values, so negative IDs would match the excluded terms instead.
+		 */
+		if ( ! empty( $excluded_terms ) ) {
+			$query_args['tax_query'][] = array(
 				'taxonomy' => $taxonomy,
-				'terms'    => array_merge( $term_array, $excluded_terms ),
-			),
-		);
+				'terms'    => array_values( $excluded_terms ),
+				'operator' => 'NOT IN',
+			);
+		}
 	}
 
 	return get_posts( $query_args );
