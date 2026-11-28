@@ -20,6 +20,7 @@ class Walker_Nav_Menu extends Walker {
 	 *
 	 * @since 3.0.0
 	 * @var string[]
+	 * @phpstan-var list<non-empty-string>
 	 *
 	 * @see Walker::$tree_type
 	 */
