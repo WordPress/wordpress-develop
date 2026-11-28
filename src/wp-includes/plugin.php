@@ -820,6 +820,7 @@ function plugin_basename( $file ) {
  * This is used in plugin_basename() to resolve symlinked paths.
  *
  * @since 3.9.0
+ * @since 7.3.0 Returns false if the real path of the file cannot be determined.
  *
  * @see wp_normalize_path()
  *
@@ -839,12 +840,20 @@ function wp_register_plugin_realpath( $file ) {
 		$wpmu_plugin_path = wp_normalize_path( WPMU_PLUGIN_DIR );
 	}
 
-	$plugin_path     = wp_normalize_path( dirname( $file ) );
-	$plugin_realpath = wp_normalize_path( dirname( realpath( $file ) ) );
+	$plugin_path = wp_normalize_path( dirname( $file ) );
 
 	if ( $plugin_path === $wp_plugin_path || $plugin_path === $wpmu_plugin_path ) {
 		return false;
 	}
+
+	$file_realpath = realpath( $file );
+
+	// An empty registered path would make plugin_basename() mangle every plugin path.
+	if ( false === $file_realpath ) {
+		return false;
+	}
+
+	$plugin_realpath = wp_normalize_path( dirname( $file_realpath ) );
 
 	if ( $plugin_path !== $plugin_realpath ) {
 		$wp_plugin_paths[ $plugin_path ] = $plugin_realpath;
