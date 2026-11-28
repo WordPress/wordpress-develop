@@ -624,7 +624,8 @@ Please click the following link to activate your user account:
  *
  * @since 5.6.0
  * @since 6.2.0 Allow insecure HTTP connections for the local environment.
- * @since 6.3.2 Validates the success and reject URLs to prevent `javascript` pseudo protocol from being executed.
+ * @since 6.3.2 Validates the success URL to prevent `javascript` pseudo protocol from being executed.
+ * @since x.y.z A reject URL is no longer supported or used.
  *
  * @param array   $request {
  *     The array of request data. All arguments are optional and may be empty.
@@ -632,7 +633,6 @@ Please click the following link to activate your user account:
  *     @type string $app_name    The suggested name of the application.
  *     @type string $app_id      A UUID provided by the application to uniquely identify it.
  *     @type string $success_url The URL the user will be redirected to after approving the application.
- *     @type string $reject_url  The URL the user will be redirected to after rejecting the application.
  * }
  * @param WP_User $user The user authorizing the application.
  * @return true|WP_Error True if the request is valid, a WP_Error object contains errors if not.
@@ -646,16 +646,6 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 			$error->add(
 				$validated_success_url->get_error_code(),
 				$validated_success_url->get_error_message()
-			);
-		}
-	}
-
-	if ( isset( $request['reject_url'] ) ) {
-		$validated_reject_url = wp_is_authorize_application_redirect_url_valid( $request['reject_url'] );
-		if ( is_wp_error( $validated_reject_url ) ) {
-			$error->add(
-				$validated_reject_url->get_error_code(),
-				$validated_reject_url->get_error_message()
 			);
 		}
 	}
@@ -734,6 +724,13 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 		);
 	}
 
+	if ( null !== wp_parse_url( $url, PHP_URL_USER ) ) {
+		return new WP_Error(
+			'invalid_redirect_url_format',
+			__( 'Credentials are not allowed in the URL.' )
+		);
+	}
+
 	// Allow insecure HTTP connections to locally hosted applications.
 	$is_loopback = in_array(
 		strtolower( $host ),
@@ -749,4 +746,34 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 	}
 
 	return true;
+}
+
+/**
+ * Returns a human-readable representation of the destination of an application password redirect URL.
+ *
+ * For `http` and `https` URLs this is the host name. For any other scheme the scheme is
+ * included so the user can see that they will be sent to an app rather than a website.
+ *
+ * @since x.y.z
+ *
+ * @param string $url The redirect URL.
+ * @return string The destination to display, or an empty string if the URL has no host.
+ */
+function wp_get_authorize_application_redirect_url_display( string $url ): string {
+	if ( empty( $url ) ) {
+		return '';
+	}
+
+	$scheme = strtolower( (string) wp_parse_url( $url, PHP_URL_SCHEME ) );
+	$host   = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+
+	if ( '' === $host ) {
+		return '';
+	}
+
+	if ( in_array( $scheme, array( 'http', 'https' ), true ) ) {
+		return $host;
+	}
+
+	return $scheme . '://' . $host;
 }
