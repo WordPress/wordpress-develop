@@ -402,6 +402,68 @@ function wp_get_root_state_style( $state_style, $nested_keys ) {
 }
 
 /**
+ * Returns the Global Styles a block instance state layers over: its block
+ * type's, then those of the block style variation applied to it.
+ *
+ * Each includes the Global Styles for the same state, so a state only
+ * escapes a text clip that applies there. A breakpoint pseudo-state layers
+ * over the root, the breakpoint, the pseudo-state, then both, as output.
+ *
+ * @since 7.3.0
+ *
+ * @param string      $block_name Block name.
+ * @param string|null $class_name Block class name, which names any applied variation.
+ * @param string[]    $state_keys Pseudo-state and breakpoint keys to leave out.
+ * @param string[]    $state_path Optional state the styles are for, e.g. `array( '@mobile', ':hover' )`.
+ * @return array<string, mixed> Root-only style object.
+ */
+function wp_get_block_state_global_base_style( $block_name, $class_name, $state_keys, $state_path = array() ) {
+	$global_styles = wp_get_global_styles();
+	$block_styles  = $global_styles['blocks'][ $block_name ] ?? array();
+	if ( ! is_array( $block_styles ) ) {
+		return array();
+	}
+
+	$nested_keys = array_merge( array( 'elements', 'blocks', 'variations' ), $state_keys );
+	$layer_paths = array( array() );
+	foreach ( $state_path as $state ) {
+		$layer_paths[] = array( $state );
+	}
+	if ( count( $state_path ) > 1 ) {
+		$layer_paths[] = $state_path;
+	}
+
+	$get_layers = static function ( $styles ) use ( $layer_paths, $nested_keys ) {
+		$merged = array();
+		foreach ( $layer_paths as $layer_path ) {
+			$layer = empty( $layer_path ) ? $styles : _wp_array_get( $styles, $layer_path, null );
+			if ( is_array( $layer ) ) {
+				$merged = wp_merge_state_style_objects(
+					$merged,
+					wp_get_root_state_style( $layer, $nested_keys )
+				);
+			}
+		}
+		return $merged;
+	};
+
+	$base_style = $get_layers( $block_styles );
+
+	// Only the first block style variation with data applies, as in the variation support.
+	foreach ( wp_get_block_style_variation_name_from_class( $class_name ) ?? array() as $variation ) {
+		$variation_styles = $block_styles['variations'][ $variation ] ?? null;
+		if ( ! empty( $variation_styles ) && is_array( $variation_styles ) ) {
+			return wp_merge_state_style_objects(
+				$base_style,
+				$get_layers( $variation_styles )
+			);
+		}
+	}
+
+	return $base_style;
+}
+
+/**
  * Generates all element selectors for a block root selector.
  *
  * @since 7.1.0
@@ -754,6 +816,21 @@ function wp_render_block_states_support( $block_content, $block ) {
 	);
 	$viewport_settings        = wp_get_global_settings( array( 'viewport' ) );
 	$responsive_media_queries = WP_Theme_JSON::get_viewport_media_queries( $viewport_settings );
+	$state_keys               = array_merge( $supported_pseudo_states, array_keys( $responsive_media_queries ) );
+
+	// Global Styles only matter for the clip escapes, so skip the lookup when no state could need one.
+	$has_global_base = array_intersect( $state_keys, array_keys( $style ) ) &&
+		block_has_support( $block_type, array( 'background', 'backgroundClip' ), false );
+	$class_name      = $block['attrs']['className'] ?? null;
+	$get_base_style  = static function ( $state_path ) use ( $has_global_base, $block_name, $class_name, $state_keys, $default_root_style ) {
+		if ( ! $has_global_base ) {
+			return $default_root_style;
+		}
+		return wp_merge_state_style_objects(
+			wp_get_block_state_global_base_style( $block_name, $class_name, $state_keys, $state_path ),
+			$default_root_style
+		);
+	};
 
 	foreach ( $supported_pseudo_states as $pseudo_state ) {
 		if ( empty( $style[ $pseudo_state ] ) || ! is_array( $style[ $pseudo_state ] ) ) {
@@ -766,7 +843,7 @@ function wp_render_block_states_support( $block_content, $block ) {
 				array( $pseudo_state => $style[ $pseudo_state ] ),
 				$block_type,
 				null,
-				$default_root_style
+				$get_base_style( array( $pseudo_state ) )
 			)
 		);
 	}
@@ -788,7 +865,7 @@ function wp_render_block_states_support( $block_content, $block ) {
 					array( '' => $root_state_style ),
 					$block_type,
 					$media_query,
-					$default_root_style
+					$get_base_style( array( $breakpoint ) )
 				)
 			);
 		}
@@ -855,9 +932,13 @@ function wp_render_block_states_support( $block_content, $block ) {
 					array( $pseudo_state => $style[ $breakpoint ][ $pseudo_state ] ),
 					$block_type,
 					$media_query,
+					// Cascade order: default, breakpoint, then the default pseudo-state.
 					wp_merge_state_style_objects(
-						$default_root_style,
-						$root_state_style
+						wp_merge_state_style_objects(
+							$get_base_style( array( $breakpoint, $pseudo_state ) ),
+							$root_state_style
+						),
+						$style[ $pseudo_state ] ?? array()
 					)
 				)
 			);
