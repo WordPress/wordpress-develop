@@ -487,6 +487,7 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
  *
  * @see restore_current_blog()
  * @since MU (3.0.0)
+ * @since 7.3.0 The `$new_blog_id` parameter now also accepts a WP_Site object.
  *
  * @global wpdb            $wpdb               WordPress database abstraction object.
  * @global int             $blog_id
@@ -495,14 +496,18 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
  * @global string          $table_prefix       The database table prefix.
  * @global WP_Object_Cache $wp_object_cache
  *
- * @param int  $new_blog_id The ID of the blog to switch to. Default: current blog.
- * @param bool $deprecated  Not used.
+ * @param int|string|WP_Site $new_blog_id The ID of the blog, or its WP_Site object, to switch to. Default: current blog.
+ * @param bool               $deprecated  Not used.
  * @return true Always returns true.
  *
  * @phpstan-param null $deprecated
  */
 function switch_to_blog( $new_blog_id, $deprecated = null ) {
 	global $wpdb;
+
+	if ( $new_blog_id instanceof WP_Site ) {
+		$new_blog_id = $new_blog_id->id;
+	}
 
 	$prev_blog_id = get_current_blog_id();
 	if ( empty( $new_blog_id ) ) {
