@@ -2209,7 +2209,7 @@ function signup_nonce_check( $result ) {
  * @since MU (3.0.0)
  */
 function maybe_redirect_404() {
-	if ( is_main_site() && is_404() && defined( 'NOBLOGREDIRECT' ) ) {
+	if ( ! is_subdomain_install() && is_main_site() && is_404() && defined( 'NOBLOGREDIRECT' ) ) {
 		/**
 		 * Filters the redirect URL for 404s on the main site.
 		 *
