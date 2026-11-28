@@ -1041,6 +1041,67 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57446
+	 *
+	 * @covers ::retrieve_widgets
+	 */
+	public function test_theme_switch_completes_with_malformed_sidebars_widgets_option() {
+		global $sidebars_widgets, $_wp_sidebars_widgets;
+
+		$sidebars_widgets     = null;
+		$_wp_sidebars_widgets = null;
+		remove_theme_mod( 'sidebars_widgets' );
+		update_option( 'sidebars_widgets', 'invalid widget assignments' );
+		update_option( 'theme_switched', 'previous-theme' );
+
+		try {
+			check_theme_switched();
+
+			$this->assertFalse( get_option( 'theme_switched' ) );
+			$this->assertSame( array(), $sidebars_widgets );
+		} finally {
+			$sidebars_widgets     = null;
+			$_wp_sidebars_widgets = null;
+		}
+	}
+
+	/**
+	 * @ticket 57446
+	 *
+	 * @covers ::retrieve_widgets
+	 */
+	public function test_retrieve_widgets_restores_saved_assignments_with_malformed_current_data() {
+		global $sidebars_widgets, $_wp_sidebars_widgets;
+
+		$this->register_sidebars( array( 'primary' ) );
+		wp_register_sidebar_widget( 'example-2', 'Example widget', '__return_null' );
+		set_theme_mod(
+			'sidebars_widgets',
+			array(
+				'time' => time(),
+				'data' => array( 'primary' => array( 'example-2', 'unregistered-2' ) ),
+			)
+		);
+
+		update_option( 'sidebars_widgets', 'invalid widget assignments' );
+
+		try {
+			$sidebars_widgets = array();
+			$this->assertSame( array( 'wp_inactive_widgets' => array( 'example-2' ) ), retrieve_widgets( 'customize' ) );
+
+			$sidebars_widgets = 'invalid widget assignments';
+			$result           = retrieve_widgets( 'customize' );
+
+			$this->assertSame( array( 'example-2' ), $result['primary'] );
+			$this->assertSame( array(), $result['wp_inactive_widgets'] );
+			$this->assertSame( 'invalid widget assignments', get_option( 'sidebars_widgets' ) );
+		} finally {
+			$sidebars_widgets     = null;
+			$_wp_sidebars_widgets = null;
+		}
+	}
+
+	/**
 	 * Tests for when 'sidebars_widgets' theme mod is populated.
 	 *
 	 * @covers ::retrieve_widgets

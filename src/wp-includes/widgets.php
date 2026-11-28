@@ -1335,8 +1335,18 @@ function retrieve_widgets( $theme_changed = false ) {
 
 	$registered_sidebars_keys = array_keys( $wp_registered_sidebars );
 	$registered_widgets_ids   = array_keys( $wp_registered_widgets );
+	$theme_sidebars_widgets   = get_theme_mod( 'sidebars_widgets' );
 
-	if ( ! is_array( get_theme_mod( 'sidebars_widgets' ) ) ) {
+	if ( ! is_array( $sidebars_widgets ) ) {
+		$sidebars_widgets = array();
+
+		if ( is_array( $theme_sidebars_widgets ) && ! empty( $theme_sidebars_widgets['data'] ) && is_array( $theme_sidebars_widgets['data'] ) ) {
+			// Allow the mapper to restore the saved theme assignments without a usable current mapping.
+			$sidebars_widgets['wp_inactive_widgets'] = array();
+		}
+	}
+
+	if ( ! is_array( $theme_sidebars_widgets ) ) {
 		if ( empty( $sidebars_widgets ) ) {
 			return array();
 		}
