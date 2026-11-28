@@ -243,7 +243,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="filter-drawer">
 			<div class="buttons">
 				<button type="button" class="apply-filters button"><?php _e( 'Apply Filters' ); ?><span></span></button>
-				<button type="button" class="clear-filters button" aria-label="<?php esc_attr_e( 'Clear current filters' ); ?>"><?php _e( 'Clear' ); ?></button>
+				<button type="button" class="clear-filters button" aria-label="<?php esc_attr_e( 'Clear current filters' ); ?>"><?php echo esc_html_x( 'Clear', 'clear filters' ); ?></button>
 			</div>
 		<?php
 		// Use the core list, rather than the .org API, due to inconsistencies
@@ -265,7 +265,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
 			<div class="buttons">
 				<button type="button" class="apply-filters button"><?php _e( 'Apply Filters' ); ?><span></span></button>
-				<button type="button" class="clear-filters button" aria-label="<?php esc_attr_e( 'Clear current filters' ); ?>"><?php _e( 'Clear' ); ?></button>
+				<button type="button" class="clear-filters button" aria-label="<?php esc_attr_e( 'Clear current filters' ); ?>"><?php echo esc_html_x( 'Clear', 'clear filters' ); ?></button>
 			</div>
 			<div class="filtered-by">
 				<span><?php _e( 'Filtering by:' ); ?></span>
