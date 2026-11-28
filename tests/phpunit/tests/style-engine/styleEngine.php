@@ -1058,4 +1058,45 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 			wp_style_engine_get_styles( $block_styles )
 		);
 	}
+
+	/**
+	 * Tests that a preset for an individual border side that matches none of its
+	 * CSS var patterns is left out of the returned declarations, not returned as empty.
+	 *
+	 * @ticket 66739
+	 *
+	 * @covers ::wp_style_engine_get_styles
+	 */
+	public function test_should_omit_unmatched_individual_preset_from_declarations(): void {
+		$block_styles = array(
+			'border' => array(
+				'top' => array(
+					'color' => 'var:preset|font-size|large',
+					'style' => 'solid',
+				),
+			),
+		);
+
+		$this->assertSame(
+			array(
+				'css'          => 'border-top-style:solid;',
+				'declarations' => array(
+					'border-top-style' => 'solid',
+				),
+			),
+			wp_style_engine_get_styles( $block_styles )
+		);
+	}
+
+	/**
+	 * Tests that a context with no store returns an empty stylesheet
+	 * instead of calling {@see WP_Style_Engine_CSS_Rules_Store::get_all_rules()} on null.
+	 *
+	 * @ticket 66739
+	 *
+	 * @covers ::wp_style_engine_get_stylesheet_from_context
+	 */
+	public function test_should_return_empty_stylesheet_for_context_without_store(): void {
+		$this->assertSame( '', wp_style_engine_get_stylesheet_from_context( '' ) );
+	}
 }
