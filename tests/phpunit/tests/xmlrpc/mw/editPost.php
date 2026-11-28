@@ -335,4 +335,98 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$future_date_string = date_format( date_create( "@{$future_time}" ), 'Y-m-d H:i:s' );
 		$this->assertSame( $future_date_string, $after->post_date );
 	}
+
+	/**
+	 * @ticket 28172
+	 */
+	public function test_make_post_sticky_updates_sticky_posts() {
+		$author_id = $this->make_user_by_role( 'editor' );
+		$post_id   = wp_insert_post(
+			array(
+				'post_title'  => 'Title',
+				'post_author' => $author_id,
+				'post_status' => 'publish',
+			)
+		);
+
+		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'editor', 'editor', array( 'sticky' => '1' ) ) );
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( is_sticky( $post_id ) );
+
+		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'editor', 'editor', array( 'sticky' => '0' ) ) );
+		$this->assertNotIXRError( $result );
+		$this->assertFalse( is_sticky( $post_id ) );
+	}
+
+	/**
+	 * @ticket 28172
+	 */
+	public function test_make_post_sticky_requires_edit_others_posts() {
+		$author_id = $this->make_user_by_role( 'author' );
+		$post_id   = wp_insert_post(
+			array(
+				'post_title'  => 'Title',
+				'post_author' => $author_id,
+				'post_status' => 'publish',
+			)
+		);
+
+		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'author', 'author', array( 'sticky' => '1' ) ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 401, $result->code );
+		$this->assertFalse( is_sticky( $post_id ) );
+	}
+
+	/**
+	 * @ticket 28172
+	 */
+	public function test_unchanged_sticky_state_when_sticky_is_not_sent() {
+		$author_id = $this->make_user_by_role( 'editor' );
+		$post_id   = wp_insert_post(
+			array(
+				'post_title'  => 'Title',
+				'post_author' => $author_id,
+				'post_status' => 'publish',
+			)
+		);
+		stick_post( $post_id );
+
+		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'editor', 'editor', array( 'title' => 'New title' ) ) );
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( is_sticky( $post_id ) );
+	}
+
+	/**
+	 * The sticky state is updated after the `save_post` action has fired,
+	 * so a `save_post` callback cannot change it.
+	 *
+	 * @ticket 28172
+	 */
+	public function test_sticky_state_is_updated_after_save_post() {
+		$author_id = $this->make_user_by_role( 'editor' );
+		$post_id   = wp_insert_post(
+			array(
+				'post_title'  => 'Title',
+				'post_author' => $author_id,
+				'post_status' => 'publish',
+			)
+		);
+
+		$sticky_during_save_post = null;
+		add_action(
+			'save_post',
+			static function ( $saved_post_id ) use ( $post_id, &$sticky_during_save_post ) {
+				if ( $saved_post_id === $post_id ) {
+					$sticky_during_save_post = is_sticky( $post_id );
+					unstick_post( $post_id );
+				}
+			}
+		);
+
+		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'editor', 'editor', array( 'sticky' => '1' ) ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertFalse( $sticky_during_save_post, 'The post is not yet sticky when save_post fires.' );
+		$this->assertTrue( is_sticky( $post_id ), 'The save_post callback unsticking the post is overridden.' );
+	}
 }
