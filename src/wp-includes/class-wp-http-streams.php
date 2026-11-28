@@ -306,13 +306,18 @@ class WP_Http_Streams {
 				$block = fread( $handle, $block_size );
 				if ( ! $body_started ) {
 					$response .= $block;
-					if ( strpos( $response, "\r\n\r\n" ) ) {
-						$processed_response = WP_Http::processResponse( $response );
-						$body_started       = true;
-						$block              = $processed_response['body'];
-						unset( $response );
-						$processed_response['body'] = '';
+					if ( false === strpos( $response, "\r\n\r\n" ) ) {
+						// The response headers are not complete yet. This block
+						// only contains (part of) the headers, so it must not be
+						// written to the destination file.
+						continue;
 					}
+
+					$processed_response = WP_Http::processResponse( $response );
+					$body_started       = true;
+					$block              = $processed_response['body'];
+					unset( $response );
+					$processed_response['body'] = '';
 				}
 
 				$this_block_size = strlen( $block );
