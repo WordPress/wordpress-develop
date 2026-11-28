@@ -541,6 +541,66 @@
 	vertical-align: middle;
 }
 
+/*
+ * The URL pill overlays the image. Sizes are the 450px design's pixel values
+ * converted to container query units (1px = 100cqw / 450) so the pill scales with
+ * the image, while its width follows the translated text.
+ *
+ * In RTL the pill is mirrored and grows from the right, 32px in from the image's
+ * edge. The URL text reads left to right but is right-aligned, as in RTL browser
+ * address bars.
+ */
+.about__container .about__image-random {
+	position: relative;
+	container-type: inline-size;
+}
+
+.about__container .about__image-random-url {
+	position: absolute;
+	top: 24.8889cqw;
+	/* rtl:ignore */
+	left: 24.8889%;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	gap: 2.6667cqw;
+	max-width: 70%;
+	padding: 2.6667cqw 4.4444cqw 2.6667cqw 2.6667cqw;
+	border-radius: 6.2222cqw;
+	background: #fff;
+	color: #1e1e1e;
+	font-family: Inter, Roboto, "Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial, sans-serif;
+	font-size: 5.3333cqw;
+	line-height: 1.25;
+}
+
+[dir="rtl"] .about__container .about__image-random-url {
+	/* rtl:ignore */
+	left: auto;
+	/* rtl:ignore */
+	right: 7.1111%;
+}
+
+.about__container .about__image-random-icon {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 7.1111cqw;
+	height: 7.1111cqw;
+	border-radius: 50%;
+	background: #e6e2d7;
+}
+
+.about__container .about__image-random-icon svg {
+	height: 5.3333cqw;
+}
+
+.about__container .about__image-random-text {
+	overflow-wrap: anywhere;
+	text-align: left;
+}
+
 .about__container .about__image + h3 {
 	margin-top: calc(0.75 * var(--gap));
 }
