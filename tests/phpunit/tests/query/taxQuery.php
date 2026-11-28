@@ -1744,4 +1744,142 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		$this->assertSameSets( array( $p ), $q->posts );
 		$this->assertStringNotContainsString( 'LIMIT 1', $query );
 	}
+
+	/**
+	 * Tests that a non-scalar 'taxonomy' or 'term' query var is ignored
+	 * instead of causing a fatal error.
+	 *
+	 * @ticket 66851
+	 *
+	 * @covers WP_Query::parse_tax_query
+	 *
+	 * @dataProvider data_non_scalar_taxonomy_or_term_query_var_is_ignored
+	 *
+	 * @param mixed $taxonomy The 'taxonomy' query var.
+	 * @param mixed $term     The 'term' query var.
+	 */
+	public function test_non_scalar_taxonomy_or_term_query_var_is_ignored( $taxonomy, $term ) {
+		register_taxonomy( 'wptests_tax', 'post' );
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'slug'     => '1',
+			)
+		);
+		$post_id = self::factory()->post->create();
+
+		$q = new WP_Query(
+			array(
+				'taxonomy' => $taxonomy,
+				'term'     => $term,
+				'fields'   => 'ids',
+			)
+		);
+
+		$this->assertSame( array(), $q->tax_query->queries, 'No tax query clause should be added.' );
+		$this->assertFalse( $q->is_category(), 'The query should not be a category archive.' );
+		$this->assertFalse( $q->is_tax(), 'The query should not be a taxonomy archive.' );
+		$this->assertSame( array( $post_id ), $q->posts, 'The malformed query var should be ignored.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_scalar_taxonomy_or_term_query_var_is_ignored() {
+		return array(
+			'term is an array'                         => array( 'category', array( '1' ) ),
+			'term is an array of an empty string'      => array( 'category', array( '' ) ),
+			'term is an array of several terms'        => array( 'category', array( '1', 'uncategorized' ) ),
+			'term is a nested array'                   => array( 'category', array( 'a' => array( '1' ) ) ),
+			'term is an array, custom taxonomy'        => array( 'wptests_tax', array( 'foo' ) ),
+			'term is an object'                        => array( 'category', new stdClass() ),
+			'taxonomy is an array'                     => array( array( 'category' ), '1' ),
+			'taxonomy is an associative array'         => array( array( 'a' => 'category' ), '1' ),
+			'taxonomy and term are arrays'             => array( array( 'category' ), array( '1' ) ),
+			'taxonomy is an integer, term is an array' => array( 1, array( '1' ) ),
+		);
+	}
+
+	/**
+	 * Tests that a scalar 'term' query var is still used.
+	 *
+	 * @ticket 66851
+	 *
+	 * @covers WP_Query::parse_tax_query
+	 */
+	public function test_scalar_term_query_var_is_used() {
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'slug'     => '1',
+			)
+		);
+		$post_id = self::factory()->post->create( array( 'post_category' => array( $term_id ) ) );
+		self::factory()->post->create();
+
+		$q = new WP_Query(
+			array(
+				'taxonomy' => 'category',
+				'term'     => 1,
+				'fields'   => 'ids',
+			)
+		);
+
+		$this->assertTrue( $q->is_category(), 'The query should be a category archive.' );
+		$this->assertSame( array( $post_id ), $q->posts, 'Only the post in the term should be found.' );
+	}
+
+	/**
+	 * Tests that front-end requests with a non-scalar 'taxonomy' or 'term'
+	 * query var do not cause a fatal error.
+	 *
+	 * @ticket 66851
+	 *
+	 * @covers WP::parse_request
+	 * @covers WP_Query::parse_tax_query
+	 *
+	 * @dataProvider data_request_with_non_scalar_taxonomy_or_term_query_var
+	 *
+	 * @param string $query_string The request query string.
+	 */
+	public function test_request_with_non_scalar_taxonomy_or_term_query_var( $query_string ) {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'public'    => true,
+				'query_var' => 'wptests_tax',
+			)
+		);
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'slug'     => '1',
+			)
+		);
+
+		$this->go_to( home_url( '/?' . $query_string ) );
+
+		$this->assertSame( array(), $GLOBALS['wp_query']->tax_query->queries, 'No tax query clause should be added.' );
+		$this->assertFalse( is_category(), 'The request should not be a category archive.' );
+		$this->assertFalse( is_tax(), 'The request should not be a taxonomy archive.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_request_with_non_scalar_taxonomy_or_term_query_var() {
+		return array(
+			'search with term array'   => array( 's=x&taxonomy=category&term[]=1' ),
+			'term array'               => array( 'taxonomy=category&term[]=1' ),
+			'nested term array'        => array( 'taxonomy=category&term[a][]=1' ),
+			'term array, custom tax'   => array( 'taxonomy=wptests_tax&term[]=x' ),
+			'taxonomy array'           => array( 'taxonomy[]=category&term=1' ),
+			'taxonomy and term arrays' => array( 'taxonomy[]=category&term[]=1' ),
+		);
+	}
 }
