@@ -41,6 +41,7 @@
 		"src/js/_enqueues/lib/codemirror/javascript-lint.js",
 		"src/js/_enqueues/lib/emoji-loader.js",
 		"src/js/_enqueues/lib/language-chooser.js",
+		"src/js/_enqueues/lib/zxcvbn-async.js",
 		"src/js/_enqueues/wp/code-editor.js",
 		"src/js/_enqueues/wp/emoji.js",
 		"src/js/_enqueues/wp/sanitize.js",

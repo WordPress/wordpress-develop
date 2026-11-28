@@ -9,22 +9,26 @@
  * script tag on the page.
  *
  * This makes sure zxcvbn isn't blocking loading the page as it is a big
- * library. The source for zxcvbn is read from the _zxcvbnSettings global.
+ * library. The source for zxcvbn is read from the `_zxcvbnSettings` global.
  */
-(function() {
-  var async_load = function() {
-    var first, s;
-    s = document.createElement('script');
-    s.src = _zxcvbnSettings.src;
-    s.type = 'text/javascript';
-    s.async = true;
-    first = document.getElementsByTagName('script')[0];
-    return first.parentNode.insertBefore(s, first);
-  };
+( () => {
+	const asyncLoad = () => {
+		if ( typeof _zxcvbnSettings === 'undefined' || ! _zxcvbnSettings.src ) {
+			return;
+		}
 
-  if (window.attachEvent != null) {
-    window.attachEvent('onload', async_load);
-  } else {
-    window.addEventListener('load', async_load, false);
-  }
-}).call(this);
+		const script = document.createElement( 'script' );
+		script.src = _zxcvbnSettings.src;
+		script.type = 'text/javascript';
+		script.async = true;
+
+		const first = document.getElementsByTagName( 'script' )[ 0 ];
+		if ( ! first || ! first.parentNode ) {
+			return;
+		}
+
+		first.parentNode.insertBefore( script, first );
+	};
+
+	window.addEventListener( 'load', asyncLoad );
+} )();
