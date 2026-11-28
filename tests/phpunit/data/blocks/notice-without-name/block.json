@@ -1,0 +1,5 @@
+{
+	"apiVersion": 2,
+	"editorScript": "file:../notice/block.js",
+	"style": "file:../notice/block.css"
+}

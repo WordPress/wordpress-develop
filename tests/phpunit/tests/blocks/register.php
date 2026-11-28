@@ -1023,6 +1023,47 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests registering style handles when the block name is supplied in arguments.
+	 *
+	 * @ticket 61910
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_register_block_type_from_metadata_with_name_and_style_arguments() {
+		$result = register_block_type_from_metadata(
+			'',
+			array(
+				'name'  => 'tests/notice-from-style-arguments',
+				'style' => array( 'tests-shared-style' ),
+			)
+		);
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertSame( array( 'tests-shared-style' ), $result->style_handles );
+	}
+
+	/**
+	 * Tests using the name argument to generate handles for file-backed assets.
+	 *
+	 * @ticket 61910
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_register_block_type_from_metadata_with_name_argument_and_file_assets() {
+		$result = register_block_type_from_metadata(
+			DIR_TESTDATA . '/blocks/notice-without-name',
+			array( 'name' => 'tests/notice-from-name-argument' )
+		);
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertSame( 'tests/notice-from-name-argument', $result->name );
+		$this->assertSame( array( 'tests-notice-from-name-argument-editor-script' ), $result->editor_script_handles );
+		$this->assertSame( array( 'tests-notice-from-name-argument-style' ), $result->style_handles );
+		$this->assertTrue( wp_script_is( 'tests-notice-from-name-argument-editor-script', 'registered' ) );
+		$this->assertTrue( wp_style_is( 'tests-notice-from-name-argument-style', 'registered' ) );
+	}
+
+	/**
 	 * Tests that defined $args can properly override the block.json file.
 	 *
 	 * @ticket 56865
