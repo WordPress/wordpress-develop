@@ -163,16 +163,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @coversNothing
-	 * @ticket 56922
-	 */
-	public function test_context_param() {
-		// A proper data provider cannot be used because this method's signature must match the parent method.
-		// Therefore, actual tests are performed in the test_context_param_with_data_provider method.
-		$this->assertTrue( true );
-	}
-
-	/**
 	 * @dataProvider data_context_param_with_data_provider
 	 * @covers WP_REST_Template_Autosaves_Controller::get_context_param
 	 * @ticket 56922
@@ -234,16 +224,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			'templates'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
 		);
-	}
-
-	/**
-	 * @coversNothing
-	 * @ticket 56922
-	 */
-	public function test_get_items() {
-		// A proper data provider cannot be used because this method's signature must match the parent method.
-		// Therefore, actual tests are performed in the test_get_items_with_data_provider method.
-		$this->assertTrue( true );
 	}
 
 	/**
@@ -401,16 +381,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @coversNothing
-	 * @ticket 56922
-	 */
-	public function test_get_item() {
-		// A proper data provider cannot be used because this method's signature must match the parent method.
-		// Therefore, actual tests are performed in the test_get_item_with_data_provider method.
-		$this->assertTrue( true );
-	}
-
-	/**
 	 * @dataProvider data_get_item_with_data_provider
 	 * @covers WP_REST_Template_Autosaves_Controller::get_item
 	 * @ticket 56922
@@ -560,16 +530,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @coversNothing
-	 * @ticket 56922
-	 */
-	public function test_prepare_item() {
-		// A proper data provider cannot be used because this method's signature must match the parent method.
-		// Therefore, actual tests are performed in the test_prepare_item_with_data_provider method.
-		$this->assertTrue( true );
-	}
-
-	/**
 	 * @dataProvider data_prepare_item_with_data_provider
 	 * @covers WP_REST_Template_Autosaves_Controller::prepare_item_for_response
 	 * @ticket 56922
@@ -643,16 +603,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @coversNothing
-	 * @ticket 56922
-	 */
-	public function test_get_item_schema() {
-		// A proper data provider cannot be used because this method's signature must match the parent method.
-		// Therefore, actual tests are performed in the test_prepare_item_with_data_provider method.
-		$this->assertTrue( true );
-	}
-
-	/**
 	 * @dataProvider data_get_item_schema_with_data_provider
 	 * @covers WP_REST_Template_Autosaves_Controller::get_item_schema
 	 * @ticket 56922
@@ -712,16 +662,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 				array( 'area' ),
 			),
 		);
-	}
-
-	/**
-	 * @coversNothing
-	 * @ticket 56922
-	 */
-	public function test_create_item() {
-		// A proper data provider cannot be used because this method's signature must match the parent method.
-		// Therefore, actual tests are performed in the test_create_item_with_data_provider method.
-		$this->assertTrue( true );
 	}
 
 	/**
