@@ -855,4 +855,114 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 
 		_unregister_taxonomy( $taxonomy );
 	}
+
+	/**
+	 * @ticket 38310
+	 */
+	public function test_wp_update_term_should_not_use_term_id_from_args_when_making_slug_unique() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$a = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Foo',
+			)
+		);
+		$b = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Bar',
+			)
+		);
+
+		$found = wp_update_term(
+			$a,
+			'wptests_tax',
+			array(
+				'name'    => 'Bar',
+				'slug'    => '',
+				'term_id' => $b,
+			)
+		);
+
+		$this->assertNotWPError( $found );
+		$this->assertSame( 'bar-2', get_term( $a )->slug );
+		$this->assertSame( 'bar', get_term( $b )->slug );
+
+		_unregister_taxonomy( 'wptests_tax' );
+	}
+
+	/**
+	 * @ticket 38310
+	 */
+	public function test_wp_update_term_should_not_use_taxonomy_from_args_when_making_slug_unique() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		register_taxonomy( 'wptests_tax_2', 'post' );
+		$a = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Foo',
+			)
+		);
+		$b = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Bar',
+			)
+		);
+
+		$found = wp_update_term(
+			$a,
+			'wptests_tax',
+			array(
+				'name'     => 'Bar',
+				'slug'     => '',
+				'taxonomy' => 'wptests_tax_2',
+			)
+		);
+
+		$this->assertNotWPError( $found );
+		$this->assertInstanceOf( 'WP_Term', get_term( $a, 'wptests_tax' ) );
+		$this->assertSame( 'bar-2', get_term( $a )->slug );
+		$this->assertSame( 'bar', get_term( $b )->slug );
+
+		_unregister_taxonomy( 'wptests_tax' );
+		_unregister_taxonomy( 'wptests_tax_2' );
+	}
+
+	/**
+	 * @ticket 38310
+	 */
+	public function test_wp_update_term_should_ignore_term_id_in_args_when_saving() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$a = self::factory()->term->create(
+			array(
+				'taxonomy'    => 'wptests_tax',
+				'name'        => 'Foo',
+				'description' => '',
+			)
+		);
+		$b = self::factory()->term->create(
+			array(
+				'taxonomy'    => 'wptests_tax',
+				'name'        => 'Bar',
+				'description' => '',
+			)
+		);
+
+		$found = wp_update_term(
+			$a,
+			'wptests_tax',
+			array(
+				'description' => 'New',
+				'term_id'     => $b,
+			)
+		);
+
+		$this->assertNotWPError( $found );
+		$this->assertSame( $a, $found['term_id'] );
+		$this->assertSame( 'New', get_term( $a )->description );
+		$this->assertSame( '', get_term( $b )->description );
+
+		_unregister_taxonomy( 'wptests_tax' );
+	}
 }
