@@ -565,4 +565,19 @@ EXPECTED;
 			'multi query vars' => array( 'foo=bar&pen=pencil' ),
 		);
 	}
+
+	/**
+	 * Tests that paginate_links() returns null when there is only one page.
+	 *
+	 * @ticket 66827
+	 */
+	public function test_paginate_links_returns_null_for_a_single_page() {
+		$this->assertNull(
+			paginate_links(
+				array(
+					'total' => '1',
+				)
+			)
+		);
+	}
 }
