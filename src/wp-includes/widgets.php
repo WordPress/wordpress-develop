@@ -1649,18 +1649,18 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 
 	echo '<ul>';
 	foreach ( $rss->get_items( 0, $items ) as $item ) {
-		$link = $item->get_link();
+		$link = (string) $item->get_link();
 		while ( ! empty( $link ) && stristr( $link, 'http' ) !== $link ) {
 			$link = substr( $link, 1 );
 		}
 		$link = esc_url( strip_tags( $link ) );
 
-		$title = esc_html( trim( strip_tags( $item->get_title() ) ) );
+		$title = esc_html( trim( strip_tags( (string) $item->get_title() ) ) );
 		if ( empty( $title ) ) {
 			$title = __( 'Untitled' );
 		}
 
-		$desc = html_entity_decode( $item->get_description(), ENT_QUOTES, $blog_charset );
+		$desc = html_entity_decode( (string) $item->get_description(), ENT_QUOTES, $blog_charset );
 		$desc = esc_attr( wp_trim_words( $desc, 55, ' [&hellip;]' ) );
 
 		$summary = '';
@@ -1688,7 +1688,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 		if ( $show_author ) {
 			$author = $item->get_author();
 			if ( is_object( $author ) ) {
-				$author = $author->get_name();
+				$author = (string) $author->get_name();
 				$author = ' <cite>' . esc_html( strip_tags( $author ) ) . '</cite>';
 			}
 		}
