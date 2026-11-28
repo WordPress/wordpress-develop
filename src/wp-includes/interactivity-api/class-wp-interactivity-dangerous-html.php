@@ -21,9 +21,12 @@
  * and it encodes as the marker too.
  *
  * Both JSON encoding paths of `wp_json_encode()` print the marker: `json_encode()`
- * uses {@see WP_Interactivity_Dangerous_HTML::jsonSerialize()}, and the fallback
- * for data that is not valid UTF-8 rebuilds the object by iterating it with
- * {@see WP_Interactivity_Dangerous_HTML::getIterator()}.
+ * and the fallback for data that is not valid UTF-8 both use
+ * {@see WP_Interactivity_Dangerous_HTML::jsonSerialize()}. When the fallback
+ * rebuilds objects from their public properties instead, as it does for an object
+ * holding the token whose serialized value cannot be encoded, it iterates the
+ * token with {@see WP_Interactivity_Dangerous_HTML::getIterator()}, which yields
+ * the same marker.
  *
  * @since 7.2.0
  *
@@ -96,7 +99,8 @@ final class WP_Interactivity_Dangerous_HTML implements JsonSerializable, Iterato
 	}
 
 	/**
-	 * Gets the iterator that `foreach` and the fallback of `wp_json_encode()` read.
+	 * Gets the iterator that `foreach` reads, and that the fallback of `wp_json_encode()`
+	 * reads when it rebuilds objects from their public properties.
 	 *
 	 * It yields the same single entry as {@see WP_Interactivity_Dangerous_HTML::jsonSerialize()}
 	 * and none of the token's HTML.
