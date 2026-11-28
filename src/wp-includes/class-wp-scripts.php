@@ -1156,6 +1156,7 @@ JS;
 			$fetchpriority = 'auto';
 		}
 
+		/** @var string[] $priorities */
 		static $priorities   = array(
 			'low',
 			'auto',

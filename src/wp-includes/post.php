@@ -6697,9 +6697,9 @@ function get_page_hierarchy( &$pages, $page_id = 0 ) {
  *
  * @see _page_traverse_name()
  *
- * @param int      $page_id  Page ID.
- * @param array    $children Parent-children relations (passed by reference).
- * @param string[] $result   Array of page names keyed by ID (passed by reference).
+ * @param int         $page_id  Page ID.
+ * @param WP_Post[][] $children Parent-children relations (passed by reference).
+ * @param string[]    $result   Array of page names keyed by ID (passed by reference).
  */
 function _page_traverse_name( $page_id, &$children, &$result ) {
 	if ( isset( $children[ $page_id ] ) ) {

@@ -371,6 +371,7 @@ class WP_Tax_Query {
 	 *
 	 * @param array $clause       Query clause (passed by reference).
 	 * @param array $parent_query Parent query array.
+	 * @param-out array|WP_Error $clause
 	 * @return array {
 	 *     Array containing JOIN and WHERE SQL clauses to append to a first-order query.
 	 *
@@ -539,6 +540,7 @@ class WP_Tax_Query {
 	 * @since 3.2.0
 	 *
 	 * @param array $query The single query. Passed by reference.
+	 * @param-out array|WP_Error $query
 	 */
 	private function clean_query( &$query ) {
 		if ( empty( $query['taxonomy'] ) ) {
@@ -589,6 +591,7 @@ class WP_Tax_Query {
 	 * @param array  $query           The single query. Passed by reference.
 	 * @param string $resulting_field The resulting field. Accepts 'slug', 'name', 'term_taxonomy_id',
 	 *                                or 'term_id'. Default 'term_id'.
+	 * @param-out array|WP_Error $query
 	 */
 	public function transform_query( &$query, $resulting_field ) {
 		if ( empty( $query['terms'] ) ) {
