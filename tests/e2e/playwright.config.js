@@ -7,6 +7,11 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * WordPress dependencies
  */
+const database = require( './config/database.js' );
+
+const { isDefaultEnvironment, setTestBaseURL } = database;
+
+const baseURL = setTestBaseURL();
 const baseConfig = require( '@wordpress/scripts/config/playwright.config' );
 
 process.env.WP_ARTIFACTS_PATH ??= path.join( process.cwd(), 'artifacts' );
@@ -22,16 +27,26 @@ const SERIAL_SPECS = [
 	'theme-activation.test.js',
 ];
 
+const webServer = isDefaultEnvironment( baseURL )
+	? {
+			...baseConfig.webServer,
+			command: 'npm run env:start',
+			port: new URL( baseURL ).port || '80',
+	  }
+	: undefined;
+
 const config = defineConfig( {
 	...baseConfig,
+	use: {
+		...baseConfig.use,
+		baseURL,
+	},
 	globalSetup: require.resolve( './config/global-setup.js' ),
+	globalTeardown: require.resolve( './config/global-teardown.js' ),
 	workers: '50%',
 	retries: process.env.CI ? 1 : 0,
 	reporter: process.env.CI ? [ [ 'github' ], [ 'list' ] ] : [ [ 'list' ] ],
-	webServer: {
-		...baseConfig.webServer,
-		command: 'npm run env:start',
-	},
+	webServer,
 	projects: [
 		{
 			name: 'all',

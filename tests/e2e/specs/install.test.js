@@ -12,6 +12,7 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 /**
  * Internal dependencies
  */
+import database from '../config/database.js';
 import { wpCli } from '../utils/wp-cli';
 
 let wpConfigOriginal;
@@ -20,6 +21,7 @@ let wpConfigOriginal;
 // constant since it has to stay in sync between the config rewrite and the
 // cleanup query below.
 const TEST_TABLE_PREFIX = 'wp_e2e_';
+const { getBaseURL, isDefaultEnvironment } = database;
 
 /**
  * Drops any tables left over under TEST_TABLE_PREFIX.
@@ -58,7 +60,7 @@ function dropE2eTables() {
 test.describe( 'WordPress installation process', () => {
 	const wpConfig = join(
 		process.cwd(),
-		'wp-config.php',
+	isDefaultEnvironment( getBaseURL() ) ? 'wp-config-e2e.php' : 'wp-config.php',
 	);
 
 
@@ -138,7 +140,9 @@ test.describe( 'WordPress installation process', () => {
 		await page.getByLabel( /Confirm use of weak password/ ).check()
 		await page.getByLabel( 'Your Email' ).fill( 'test@example.com' );
 
-		await page.getByRole( 'button', { name: 'Install WordPress' } ).click();
+		await page.getByRole( 'button', { name: 'Install WordPress' } ).click( {
+			timeout: 30_000,
+		} );
 
 		// Installation finished, can now log in.
 

@@ -11,6 +11,7 @@ services:
 
     ports:
       - ${LOCAL_PORT-8889}:80
+      - ${LOCAL_E2E_PORT:-8890}:80
 
     environment:
       LOCAL_DIR: ${LOCAL_DIR-src}
@@ -160,6 +161,14 @@ services:
     depends_on:
       php:
         condition: service_started
+
+  memcached-e2e:
+    image: memcached
+
+    networks:
+      - wpdevnet
+
+    command: memcached -m 64
 
 volumes:
   # So that sites aren't wiped every time containers are restarted, MySQL uses a persistent volume.

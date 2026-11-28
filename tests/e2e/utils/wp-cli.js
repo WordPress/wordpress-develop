@@ -5,6 +5,13 @@ import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 /**
+ * Internal dependencies
+ */
+import database from '../config/database.js';
+
+const { getBaseURL, isDefaultEnvironment } = database;
+
+/**
  * Runs a WP-CLI command in the local environment's `cli` container.
  *
  * `wp-cli.yml` points WP-CLI at `src/`, but the site may run from `build/`,
@@ -15,16 +22,26 @@ import { join } from 'node:path';
  * @return {string|null} The command's standard output, or `null` if `options.stdio` does not pipe it.
  */
 export function wpCli( args, options = {} ) {
+	const baseURL = getBaseURL();
+	const configArgs = isDefaultEnvironment( baseURL )
+		? [ '--env', 'WP_CONFIG_PATH=/var/www/wp-config-e2e.php' ]
+		: [];
+	const urlArgs = args.some( ( argument ) => argument.startsWith( '--url=' ) )
+		? []
+		: [ `--url=${ baseURL }` ];
+
 	return execFileSync(
 		process.execPath,
 		[
 			join( process.cwd(), 'tools/local-env/scripts/docker.js' ),
 			'exec',
+			...configArgs,
 			'--user',
 			'wp_php',
 			'cli',
 			'wp',
 			`--path=/var/www/${ process.env.LOCAL_DIR ?? 'src' }`,
+			...urlArgs,
 			...args,
 		],
 		{

@@ -3,6 +3,7 @@
 # Configuration files with possibly sensitive information
 .env
 wp-config.php
+/wp-config-e2e*
 wp-tests-config.php
 .htaccess
 
@@ -47,6 +48,8 @@ wp-tests-config.php
 /packagehash.txt
 /.gutenberg-hash
 /artifacts
+/tests/e2e/.database-state.json
+/tests/e2e/.database-lock*
 /setup.log
 /coverage
 
@@ -76,6 +79,7 @@ wp-tests-config.php
 !/src/wp-content/themes/ipsum
 /src/wp-content/upgrade
 /src/wp-content/uploads
+/src/wp-content/uploads-e2e
 /src/wp-content/advanced-cache.php
 /src/wp-content/blog-deleted.php
 /src/wp-content/blog-inactive.php

@@ -7,6 +7,7 @@ const local_env_utils = require( './utils' );
 local_env_utils.ensure_env_file();
 
 dotenvExpand.expand( dotenv.config() );
+process.env.LOCAL_E2E_PORT ||= String( Number( process.env.LOCAL_PORT || 8889 ) + 1 );
 
 // Use Xdebug to generate HTML code coverage reports, unless PCOV is enabled and Xdebug is not.
 if (

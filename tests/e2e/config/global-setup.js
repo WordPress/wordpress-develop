@@ -14,48 +14,69 @@ import { RequestUtils } from '@wordpress/e2e-test-utils-playwright';
  * Internal dependencies
  */
 import { removeMuPlugins } from '../fixtures/site';
+import database from './database.js';
+
+const { restoreE2EDatabase, setupE2EDatabase } = database;
 
 /**
+ * Set up the E2E environment.
  *
- * @param {import('@playwright/test').FullConfig} config
- * @returns {Promise<void>}
+ * @param {import('@playwright/test').FullConfig} config Playwright configuration.
+ * @return {Promise<void>} Promise that resolves when setup is complete.
  */
 async function globalSetup( config ) {
 	const { storageState, baseURL } = config.projects[ 0 ].use;
 	const storageStatePath =
 		typeof storageState === 'string' ? storageState : undefined;
 
-	// An interrupted run can leave this behind, and it breaks the whole site.
-	const documentRoot = join( process.cwd(), process.env.LOCAL_DIR ?? 'src' );
-	rmSync( join( documentRoot, '.maintenance' ), { force: true } );
-	removeMuPlugins();
+	let shouldRestoreDatabase = false;
+	let requestContext;
 
-	const requestContext = await request.newContext( {
-		baseURL,
-	} );
+	try {
+		shouldRestoreDatabase = await setupE2EDatabase( baseURL );
 
-	const requestUtils = new RequestUtils( requestContext, {
-		storageStatePath,
-	} );
+		// An interrupted run can leave this behind, and it breaks the whole site.
+		const documentRoot = join( process.cwd(), process.env.LOCAL_DIR ?? 'src' );
+		rmSync( join( documentRoot, '.maintenance' ), { force: true } );
+		removeMuPlugins();
 
-	// Authenticate and save the storageState to disk.
-	await requestUtils.setupRest();
+		requestContext = await request.newContext( {
+			baseURL,
+		} );
 
-	/*
-	 * Switch the theme before the other resets. switch_theme() updates the `template`
-	 * and `stylesheet` options one at a time, so a request that loads between the two
-	 * sees a mismatched theme pair and can fail with a PHP error.
-	 */
-	await requestUtils.activateTheme( 'twentytwentyone' );
+		const requestUtils = new RequestUtils( requestContext, {
+			storageStatePath,
+		} );
 
-	// Reset the test environment before running the tests.
-	await Promise.all( [
-		requestUtils.deleteAllPosts(),
-		requestUtils.deleteAllBlocks(),
-		requestUtils.resetPreferences(),
-	] );
+		// Authenticate and save the storageState to disk.
+		await requestUtils.setupRest();
 
-	await requestContext.dispose();
+		/*
+		 * Switch the theme before the other resets. switch_theme() updates the `template`
+		 * and `stylesheet` options one at a time, so a request that loads between the two
+		 * sees a mismatched theme pair and can fail with a PHP error.
+		 */
+		await requestUtils.activateTheme( 'twentytwentyone' );
+
+		// Reset the test environment before running the tests.
+		await Promise.all( [
+			requestUtils.deleteAllPosts(),
+			requestUtils.deleteAllBlocks(),
+			requestUtils.resetPreferences(),
+		] );
+	} catch ( error ) {
+		if ( shouldRestoreDatabase ) {
+			try {
+				await restoreE2EDatabase();
+			} catch ( restoreError ) {
+				error.message += ` Configuration restore also failed: ${ restoreError.message }`;
+			}
+		}
+
+		throw error;
+	} finally {
+		await requestContext?.dispose();
+	}
 }
 
 export default globalSetup;
