@@ -4316,8 +4316,8 @@ function wp_trash_post( $post_id = 0 ) {
 	 */
 	do_action( 'wp_trash_post', $post_id, $previous_status );
 
-	add_post_meta( $post_id, '_wp_trash_meta_status', $previous_status );
-	add_post_meta( $post_id, '_wp_trash_meta_time', time() );
+	update_post_meta( $post_id, '_wp_trash_meta_status', $previous_status );
+	update_post_meta( $post_id, '_wp_trash_meta_time', time() );
 
 	$post_updated = wp_update_post(
 		array(
@@ -5269,6 +5269,22 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 			} else {
 				return 0;
 			}
+		}
+
+		/*
+		 * If the post leaves the Trash without wp_untrash_post(), clear its trash meta
+		 * and restore its comments the way wp_untrash_post() does.
+		 * wp_untrash_post() deletes the trash status meta before it updates the post,
+		 * so this does not run for it.
+		 */
+		if (
+			'trash' === $previous_status
+			&& 'trash' !== $data['post_status']
+			&& metadata_exists( 'post', $post_id, '_wp_trash_meta_status' )
+		) {
+			delete_post_meta( $post_id, '_wp_trash_meta_status' );
+			delete_post_meta( $post_id, '_wp_trash_meta_time' );
+			wp_untrash_post_comments( $post_id );
 		}
 	} else {
 		// If there is a suggested ID, use it if not already present.

@@ -129,4 +129,41 @@ class Tests_Post_WpUntrashPost extends WP_UnitTestCase {
 
 		$this->assertGreaterThan( 0, did_action( 'untrashed_post' ), 'untrashed_post action was not called.' );
 	}
+
+	/**
+	 * Tests that wp_untrash_post() restores the comments trashed with the post once,
+	 * after the post leaves the Trash.
+	 *
+	 * @ticket 66809
+	 * @since 7.3.0
+	 */
+	public function test_untrash_post_restores_comments_once() {
+		$post_id    = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		wp_trash_post( $post_id );
+
+		$statuses_when_restoring_comments = array();
+		add_action(
+			'untrash_post_comments',
+			static function ( $post_id ) use ( &$statuses_when_restoring_comments ) {
+				$statuses_when_restoring_comments[] = get_post_status( $post_id );
+			}
+		);
+
+		$result = wp_untrash_post( $post_id );
+
+		$this->assertInstanceOf( 'WP_Post', $result, 'wp_untrash_post returned value should be an instance of WP_Post.' );
+		$this->assertSame( array( 'draft' ), $statuses_when_restoring_comments, 'Comments should be restored once, after the post left the Trash.' );
+		$this->assertSame( 'draft', get_post_status( $post_id ), 'Untrashed post should be a draft.' );
+		$this->assertSame( '1', get_comment( $comment_id )->comment_approved, 'The comment should be approved again.' );
+		$this->assertSame( array(), get_post_meta( $post_id, '_wp_trash_meta_status' ), 'Untrashed post should not have _wp_trash_meta_status meta anymore.' );
+		$this->assertSame( array(), get_post_meta( $post_id, '_wp_trash_meta_time' ), 'Untrashed post should not have _wp_trash_meta_time meta anymore.' );
+		$this->assertSame( array(), get_post_meta( $post_id, '_wp_trash_meta_comments_status' ), 'Untrashed post should not have _wp_trash_meta_comments_status meta anymore.' );
+	}
 }
