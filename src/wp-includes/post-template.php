@@ -26,7 +26,12 @@ function the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionNam
  */
 function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$post = get_post();
-	return ! empty( $post ) ? $post->ID : false;
+
+	if ( ! $post instanceof WP_Post ) {
+		return false;
+	}
+
+	return $post->ID;
 }
 
 /**
