@@ -1389,13 +1389,14 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		 *
 		 * With scripting enabled, a browser reads the contents of a NOSCRIPT element as
 		 * plain text up to the first `</noscript` followed by whitespace, `/` or `>`.
-		 * With scripting disabled, as in the Tag Processor, it parses them as HTML, and
-		 * the NOSCRIPT closing tag is ignored while an element such as P or DIV is still
-		 * open inside it. The two readings are only taken to agree when:
+		 * With scripting disabled, as in the Tag Processor, it parses them as HTML. The
+		 * two readings are only taken to agree when:
 		 *
 		 *  - no token parsed as HTML reaches past that first `</noscript`;
-		 *  - every element opened inside is closed, in order, before it;
-		 *  - no NOSCRIPT, PLAINTEXT, SVG or MATH element opens before it;
+		 *  - the only tokens before it are text, comments, and A, IFRAME, IMG and STYLE
+		 *    tags, which cover the NOSCRIPT fallbacks found in common embed codes;
+		 *  - every A closing tag closes an A element opened inside, and the last A
+		 *    element opened inside is closed before it;
 		 *  - a NOSCRIPT closing tag starts right there; and
 		 *  - the contents hold no block delimiters.
 		 *
@@ -1406,12 +1407,9 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		 * @since 7.2.0
 		 * @access private
 		 *
-		 * @param string[] $special_atomic_elements Elements whose contents the Tag Processor
-		 *                                          returns with the opening tag, without a
-		 *                                          separate closing tag token.
 		 * @return bool Whether the processor moved past the NOSCRIPT element.
 		 */
-		private function skip_noscript_element( array $special_atomic_elements ): bool {
+		private function skip_noscript_element(): bool {
 			$opener = $this->get_span();
 			if ( null === $opener ) {
 				return false;
@@ -1422,8 +1420,8 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				return false;
 			}
 
-			$raw_end       = $matches[0][1];
-			$open_elements = array();
+			$raw_end   = $matches[0][1];
+			$a_is_open = false;
 			while ( $this->next_token() ) {
 				$span = $this->get_span();
 				if ( null === $span ) {
@@ -1435,35 +1433,36 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					return (
 						'NOSCRIPT' === $token_name &&
 						$this->is_tag_closer() &&
-						empty( $open_elements ) &&
+						! $a_is_open &&
 						! self::contains_a_block_delimiter( substr( $this->html, $contents_start, $raw_end - $contents_start ) )
 					);
 				}
 
-				if ( $span->start + $span->length > $raw_end || 'NOSCRIPT' === $token_name ) {
+				if ( $span->start + $span->length > $raw_end ) {
 					return false;
 				}
 
-				if ( '#tag' !== $this->get_token_type() ) {
-					continue;
-				}
+				switch ( $token_name ) {
+					case '#comment':
+					case '#text':
+					case 'IFRAME':
+					case 'IMG':
+					case 'STYLE':
+						break;
 
-				if ( $this->is_tag_closer() ) {
-					if ( array_pop( $open_elements ) !== $token_name ) {
+					case 'A':
+						if ( $this->is_tag_closer() ) {
+							if ( ! $a_is_open ) {
+								return false;
+							}
+							$a_is_open = false;
+						} else {
+							$a_is_open = true;
+						}
+						break;
+
+					default:
 						return false;
-					}
-					continue;
-				}
-
-				if ( in_array( $token_name, array( 'PLAINTEXT', 'SVG', 'MATH' ), true ) ) {
-					return false;
-				}
-
-				if (
-					! WP_HTML_Processor::is_void( $token_name ) &&
-					! in_array( $token_name, $special_atomic_elements, true )
-				) {
-					$open_elements[] = $token_name;
 				}
 			}
 
@@ -1523,7 +1522,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				 * Otherwise, stop, as the rest of the document is ambiguous.
 				 */
 				if ( 'NOSCRIPT' === $token_name && ! $is_closer ) {
-					if ( 'html' !== $namespace || ! $this->skip_noscript_element( $special_atomic_elements ) ) {
+					if ( 'html' !== $namespace || ! $this->skip_noscript_element() ) {
 						break;
 					}
 

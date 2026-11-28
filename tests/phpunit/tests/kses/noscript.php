@@ -66,13 +66,29 @@ class Tests_Kses_Noscript extends WP_UnitTestCase {
 				'<p>Intro paragraph.</p><noscript><img src="https://images.squarespace-cdn.com/content/v1/abc/photo.jpg" alt="" /></noscript><img class="thumb-image" src="https://images.squarespace-cdn.com/content/v1/abc/photo.jpg" alt="" /><p>Rest of the post.</p>',
 				'<p>Intro paragraph.</p><img class="thumb-image" src="https://images.squarespace-cdn.com/content/v1/abc/photo.jpg" alt=""><p>Rest of the post.</p>',
 			),
-			'Closed elements inside'                => array(
-				'<p>Before</p><noscript><p>Enable <b>JavaScript</b>.</p><div><span>Thanks</span></div></noscript><p>After</p>',
-				'<p>Before</p><p>After</p>',
-			),
 			'Disqus embed code'                     => array(
 				'<div id="disqus_thread"></div><noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript><p>After</p>',
 				'<div id="disqus_thread"></div><p>After</p>',
+			),
+			'Meta Pixel embed code'                 => array(
+				'<p>Before</p><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1234567890&ev=PageView&noscript=1"/></noscript><p>After</p>',
+				'<p>Before</p><p>After</p>',
+			),
+			'Crowdsignal embed code'                => array(
+				'<p>Before</p><noscript><a href="https://polldaddy.com/poll/123456/">What is your favourite color?</a></noscript><p>After</p>',
+				'<p>Before</p><p>After</p>',
+			),
+			'IFRAME fallback'                       => array(
+				'<p>Before</p><noscript><iframe src="https://example.com/embed" height="0" width="0"></iframe></noscript><p>After</p>',
+				'<p>Before</p><p>After</p>',
+			),
+			'STYLE element and comment'             => array(
+				'<p>Before</p><noscript><!-- fallback --><style>.lazy { display: none; }</style></noscript><p>After</p>',
+				'<p>Before</p><p>After</p>',
+			),
+			'Last A element closed'                 => array(
+				'<p>Before</p><noscript><a href="a">One<a href="b">Two</a></noscript><p>After</p>',
+				'<p>Before</p><p>After</p>',
 			),
 		);
 	}
@@ -152,6 +168,30 @@ class Tests_Kses_Noscript extends WP_UnitTestCase {
 			),
 			'Block delimiter inside'                => array(
 				'<p>Before</p><noscript><!-- wp:paragraph --></noscript><p>After</p>',
+				'<p>Before</p>',
+			),
+			'Closed elements outside the list'      => array(
+				'<p>Before</p><noscript><p>Enable <b>JavaScript</b>.</p><div><span>Thanks</span></div></noscript><p>After</p>',
+				'<p>Before</p>',
+			),
+			'Unclosed B element inside'             => array(
+				'<p>Before</p><noscript><b>Inside</noscript><p>After</p>',
+				'<p>Before</p>',
+			),
+			'Unclosed A element inside'             => array(
+				'<p>Before</p><noscript><a href="a">Inside</noscript><p>After</p>',
+				'<p>Before</p>',
+			),
+			'Last A element unclosed'               => array(
+				'<p>Before</p><noscript><a href="a">One</a><a href="b">Two</noscript><p>After</p>',
+				'<p>Before</p>',
+			),
+			'A closing tag without an opener'       => array(
+				'<p><a href="a">Before<noscript></a></noscript>After</a></p>',
+				'<p><a href="a">Before</a></p>',
+			),
+			'Whole page inside'                     => array(
+				'<p>Before</p><noscript><html><head><title>Embed</title></head><body><p>Fallback</p></body></html></noscript><p>After</p>',
 				'<p>Before</p>',
 			),
 		);
