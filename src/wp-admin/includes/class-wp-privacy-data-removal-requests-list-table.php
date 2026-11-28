@@ -91,11 +91,11 @@ class WP_Privacy_Data_Removal_Requests_List_Table extends WP_Privacy_Requests_Ta
 				esc_attr(
 					sprintf(
 						/* translators: %s: Request email. */
-						__( 'Mark export request for &#8220;%s&#8221; as completed.' ),
+						__( 'Mark erasure request for &#8220;%s&#8221; as completed.' ),
 						$item->email
 					)
 				),
-				__( 'Complete request' )
+				__( 'Close request' )
 			);
 			$complete_request_markup .= '</span>';
 		}
