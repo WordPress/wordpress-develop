@@ -118,6 +118,62 @@ jQuery( function() {
 		assert.equal( result, 'this has the [foo param="bar"] shortcode', 'bar not found with params' );
 	});
 
+	QUnit.test( 'replace() should remove shortcodes when the callback returns an empty string', function( assert ) {
+		var examples = [
+			[ '[foo]', '' ],
+			[ 'before [foo /] after', 'before  after' ],
+			[ 'before [foo param="bar"]remove me[/foo] after', 'before  after' ],
+			[ 'before [foo]first[/foo] between [foo /] and [foo]remove me[/foo] after', 'before  between  and  after' ]
+		];
+
+		jQuery.each( examples, function( index, example ) {
+			var result = wp.shortcode.replace( 'foo', example[0], function() {
+				return '';
+			} );
+
+			assert.strictEqual( result, example[1], example[0] );
+		} );
+	});
+
+	QUnit.test( 'replace() should preserve escaping when the callback returns an empty string', function( assert ) {
+		var calls = 0,
+			result = wp.shortcode.replace( 'foo', 'before [[foo]] [foo] after', function() {
+				calls++;
+				return '';
+			} );
+
+		assert.strictEqual( result, 'before [[foo]]  after', 'Escaped shortcodes are preserved' );
+		assert.strictEqual( calls, 1, 'The callback only runs for unescaped shortcodes' );
+
+		jQuery.each( [ [ '[[foo]', '[' ], [ '[foo]]', ']' ] ], function( index, example ) {
+			result = wp.shortcode.replace( 'foo', example[0], function() {
+				return '';
+			} );
+
+			assert.strictEqual( result, example[1], 'Unmatched brackets are preserved in ' + example[0] );
+		} );
+	});
+
+	QUnit.test( 'replace() should preserve shortcodes for other falsey callback results', function( assert ) {
+		jQuery.each( [ false, null, undefined, 0, NaN ], function( index, value ) {
+			var result = wp.shortcode.replace( 'foo', 'before [foo] after', function() {
+				return value;
+			} );
+
+			assert.strictEqual( result, 'before [foo] after', 'Preserves the shortcode for ' + value );
+		} );
+	});
+
+	QUnit.test( 'replace() should accept nonempty callback strings', function( assert ) {
+		jQuery.each( [ '0', ' ' ], function( index, value ) {
+			var result = wp.shortcode.replace( 'foo', 'before [foo] after', function() {
+				return value;
+			} );
+
+			assert.strictEqual( result, 'before ' + value + ' after', 'Replaces the shortcode with "' + value + '"' );
+		} );
+	});
+
 	QUnit.test( 'replace() should replace the shortcode in all instances of its use', function( assert ) {
 		var result;
 
