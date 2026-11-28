@@ -94,6 +94,11 @@
 				model.set( attachment );
 			} )
 			.always( function () {
+				// The silent set above fired no event. Announce the finished
+				// upload now, as wp-plupload.js does, so listeners such as the
+				// toolbar can update, even when the query does not show it.
+				model.trigger( 'change:uploading', model, false, {} );
+
 				maybeResetQueue();
 
 				// Parity with wp-plupload.js, which exposes this callback so
