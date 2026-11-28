@@ -28,8 +28,10 @@ class WP_Comment_Query {
 	/**
 	 * Metadata query container
 	 *
+	 * This is false until the query is run.
+	 *
 	 * @since 3.5.0
-	 * @var WP_Meta_Query A meta query instance.
+	 * @var WP_Meta_Query|false A meta query instance.
 	 */
 	public $meta_query = false;
 
@@ -69,8 +71,10 @@ class WP_Comment_Query {
 	/**
 	 * Date query container
 	 *
+	 * This is false until a query with a `date_query` argument runs.
+	 *
 	 * @since 3.7.0
-	 * @var WP_Date_Query A date query instance.
+	 * @var WP_Date_Query|false A date query instance.
 	 */
 	public $date_query = false;
 

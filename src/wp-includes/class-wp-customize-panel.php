@@ -78,7 +78,7 @@ class WP_Customize_Panel {
 	 * Theme features required to support the panel.
 	 *
 	 * @since 4.0.0
-	 * @var mixed[]
+	 * @var string|string[]
 	 */
 	public $theme_supports = '';
 
@@ -125,14 +125,18 @@ class WP_Customize_Panel {
 	/**
 	 * Active callback.
 	 *
+	 * This is an empty string by default, which the constructor replaces with
+	 * {@see WP_Customize_Panel::active_callback()}.
+	 *
 	 * @since 4.1.0
 	 *
-	 * @see WP_Customize_Section::active()
+	 * @see WP_Customize_Panel::active()
 	 *
-	 * @var callable Callback is called with one argument, the instance of
-	 *               WP_Customize_Section, and returns bool to indicate whether
-	 *               the section is active (such as it relates to the URL currently
-	 *               being previewed).
+	 * @var callable|string Callback is called with one argument, the instance of
+	 *                      {@see WP_Customize_Panel}, and returns bool to indicate whether
+	 *                      the panel is active (such as it relates to the URL currently
+	 *                      being previewed).
+	 * @phpstan-var (callable( WP_Customize_Panel ): bool)|''
 	 */
 	public $active_callback = '';
 
@@ -152,7 +156,7 @@ class WP_Customize_Panel {
 	 *                                            of panels and sections. Default 160.
 	 *     @type string          $capability      Capability required for the panel.
 	 *                                            Default `edit_theme_options`.
-	 *     @type mixed[]         $theme_supports  Theme features required to support the panel.
+	 *     @type string|string[] $theme_supports  Theme features required to support the panel.
 	 *     @type string          $title           Title of the panel to show in UI.
 	 *     @type string          $description     Description to show in the UI.
 	 *     @type string          $type            Type of the panel.

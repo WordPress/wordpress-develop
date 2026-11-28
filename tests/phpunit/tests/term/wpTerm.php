@@ -187,4 +187,34 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 			'a WP_Term without term_id'  => array( new WP_Term( new stdClass() ) ),
 		);
 	}
+
+	/**
+	 * Tests that `term_group` defaults to the integer 0 when the term data does not include it.
+	 *
+	 * @ticket 66739
+	 *
+	 * @covers WP_Term::__construct
+	 *
+	 * @dataProvider data_term_group
+	 *
+	 * @param object $data     Term data passed to the constructor.
+	 * @param int    $expected Expected term group.
+	 */
+	public function test_term_group( object $data, int $expected ): void {
+		$term = new WP_Term( $data );
+
+		$this->assertSame( $expected, $term->term_group );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: object, 1: int }>
+	 */
+	public static function data_term_group(): array {
+		return array(
+			'term data without term_group' => array( new stdClass(), 0 ),
+			'term data with a term_group'  => array( (object) array( 'term_group' => 2 ), 2 ),
+		);
+	}
 }

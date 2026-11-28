@@ -43,8 +43,10 @@ class WP_Site_Query {
 	/**
 	 * Metadata query container.
 	 *
+	 * This is false until the query is run.
+	 *
 	 * @since 5.1.0
-	 * @var WP_Meta_Query
+	 * @var WP_Meta_Query|false
 	 */
 	public $meta_query = false;
 
@@ -59,8 +61,10 @@ class WP_Site_Query {
 	/**
 	 * Date query container.
 	 *
+	 * This is false until a query with a `date_query` argument runs.
+	 *
 	 * @since 4.6.0
-	 * @var WP_Date_Query A date query instance.
+	 * @var WP_Date_Query|false A date query instance.
 	 */
 	public $date_query = false;
 
