@@ -190,6 +190,7 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 				'name'     => $column['name'],
 				'type'     => $this->resolve_type( $column['type'] ),
 				'optional' => $column['optional'],
+				'variants' => $column['variants'] ?? array(),
 			);
 		}
 
@@ -261,7 +262,7 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	 *
 	 * Both return null for an empty string as well as for SQL NULL, since `get_col()` uses `get_var()`.
 	 *
-	 * @param list<array{ name: string|null, type: Type, optional: bool }> $columns  Columns.
+	 * @param list<array{ name: string|null, type: Type, optional: bool, variants: list<non-empty-string> }> $columns  Columns.
 	 * @param bool                                                         $complete Whether the columns are all known.
 	 * @param \PhpParser\Node\Expr|null                                    $x        The column index argument, if any.
 	 * @param Scope                                                        $scope    Analysis scope.
@@ -285,7 +286,7 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 				if ( ! $complete ) {
 					return null;
 				}
-				$indexes = array_keys( $variants[0] );
+				$indexes = range( 0, max( array_map( 'count', $variants ) ) - 1 );
 				// Or an index past the last column, for which the value is null.
 				$types[] = new NullType();
 			}
@@ -317,19 +318,41 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	 * Gets the values of a row as a list, as `ARRAY_N` and the column index of `get_var()` and `get_col()` see them.
 	 *
 	 * A column only present on some sites, like the multisite columns of the users table, shifts the positions of
-	 * those after it. So there are two variants of the row, one with those columns and one without. They are taken to
-	 * be all present or all absent together, as the multisite columns are.
+	 * those after it. So there is a variant of the row without the optional columns, and one with them. They are
+	 * taken to be all present or all absent together, as the multisite columns are, unless they name the variants
+	 * they are present in, like the columns of `SHOW INDEX` that only MySQL or only MariaDB has. Then there is a
+	 * variant with the columns of each name.
 	 *
 	 * The values are those of the row object's properties, so there is one for each column name: a later column with
 	 * the name of an earlier one replaces its value, in its position.
 	 *
-	 * @param list<array{ name: string|null, type: Type, optional: bool }> $columns Columns.
+	 * @param list<array{ name: string|null, type: Type, optional: bool, variants: list<non-empty-string> }> $columns Columns.
 	 * @return non-empty-list<list<Type>> Types of the values, in each variant of the row.
 	 */
 	private static function get_row_variants( array $columns ): array {
-		$with    = self::get_row_values( $columns );
-		$without = self::get_row_values( array_values( array_filter( $columns, static fn ( array $column ): bool => ! $column['optional'] ) ) );
-		return count( $with ) === count( $without ) ? array( $with ) : array( $with, $without );
+		// The names of the variants with optional columns, where '' is that of the columns which do not name theirs.
+		$names = array();
+		foreach ( $columns as $column ) {
+			if ( $column['optional'] ) {
+				foreach ( array() !== $column['variants'] ? $column['variants'] : array( '' ) as $name ) {
+					$names[ $name ] = true;
+				}
+			}
+		}
+
+		$variants = array();
+		foreach ( array_keys( $names ) as $name ) {
+			$variants[] = self::get_row_values(
+				array_values(
+					array_filter(
+						$columns,
+						static fn ( array $column ): bool => ! $column['optional'] || in_array( (string) $name, array() !== $column['variants'] ? $column['variants'] : array( '' ), true )
+					)
+				)
+			);
+		}
+		$variants[] = self::get_row_values( array_values( array_filter( $columns, static fn ( array $column ): bool => ! $column['optional'] ) ) );
+		return $variants;
 	}
 
 	/**
@@ -337,7 +360,7 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	 *
 	 * A column whose name is unknown is taken to have a name of its own.
 	 *
-	 * @param list<array{ name: string|null, type: Type, optional: bool }> $columns Columns present in the row.
+	 * @param list<array{ name: string|null, type: Type, optional: bool, variants: list<non-empty-string> }> $columns Columns present in the row.
 	 * @return list<Type> Types of the values.
 	 */
 	private static function get_row_values( array $columns ): array {
@@ -362,7 +385,7 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	 * Refines the rows in a declared return type of `get_row()` or `get_results()`.
 	 *
 	 * @param Type                                                         $declared Declared return type.
-	 * @param list<array{ name: string|null, type: Type, optional: bool }> $columns  Columns.
+	 * @param list<array{ name: string|null, type: Type, optional: bool, variants: list<non-empty-string> }> $columns  Columns.
 	 * @param bool                                                         $complete Whether the columns are all known.
 	 * @return Type
 	 */
@@ -484,7 +507,7 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	 *
 	 * A later column replaces an earlier one with the same name, as in the row object.
 	 *
-	 * @param list<array{ name: string|null, type: Type, optional: bool }> $columns Columns.
+	 * @param list<array{ name: string|null, type: Type, optional: bool, variants: list<non-empty-string> }> $columns Columns.
 	 * @return array<string, array{ type: Type, optional: bool }>|null Properties, or null if a column's name is unknown.
 	 */
 	private function get_properties( array $columns ): ?array {

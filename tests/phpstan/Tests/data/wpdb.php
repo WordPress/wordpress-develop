@@ -341,3 +341,49 @@ function wp_tests_wpdb_prefixes( wpdb $wpdb, int $blog_id, array $blog_ids ): vo
 	// Another method's result is not a prefix.
 	assertType( 'array{ID: string|null}|null', $wpdb->get_row( 'SELECT ID FROM ' . $wpdb->get_charset_collate() . 'posts', ARRAY_A ) );
 }
+
+/**
+ * `SHOW` and `DESCRIBE` statements, whose columns are fixed.
+ */
+function wp_tests_wpdb_show( wpdb $wpdb, string $table, string $name ): void {
+	$columns = 'object{Field: non-empty-string, Type: non-empty-string, Null: \'NO\'|\'YES\', Key: \'\'|\'MUL\'|\'PRI\'|\'UNI\', Default: string|null, Extra: string}&stdClass';
+	assertType( "(list<$columns>)|null", $wpdb->get_results( "DESCRIBE $wpdb->posts" ) );
+	assertType( "(list<$columns>)|null", $wpdb->get_results( "DESCRIBE {$table};" ) );
+	assertType( "(list<$columns>)|null", $wpdb->get_results( "DESC `$table` post_title" ) );
+	assertType( "(list<$columns>)|null", $wpdb->get_results( "SHOW COLUMNS FROM $wpdb->posts LIKE 'post_%'" ) );
+	assertType( "(list<$columns>)|null", $wpdb->get_results( "SHOW FIELDS IN $wpdb->posts" ) );
+	assertType( 'list<non-empty-string>', $wpdb->get_col( "DESC $table", 0 ) );
+	assertType( 'non-empty-string|null', $wpdb->get_var( "SHOW COLUMNS FROM $wpdb->posts LIKE 'post_category'" ) );
+	assertType( 'list<\'NO\'|\'YES\'>', $wpdb->get_col( "SHOW COLUMNS FROM $wpdb->posts", 2 ) );
+	assertType( '(list<object{Field: non-empty-string, Type: non-empty-string, Collation: non-empty-string|null, Null: \'NO\'|\'YES\', Key: \'\'|\'MUL\'|\'PRI\'|\'UNI\', Default: string|null, Extra: string, Privileges: string, Comment: string}&stdClass>)|null', $wpdb->get_results( "SHOW FULL COLUMNS FROM `$table`" ) );
+
+	$indexes = '(list<object{Table: non-empty-string, Non_unique: \'0\'|\'1\', Key_name: non-empty-string, Seq_in_index: decimal-int-string, Column_name: non-empty-string|null, Collation: \'A\'|\'D\'|null, Cardinality: decimal-int-string|null, Sub_part: decimal-int-string|null, Packed: string|null, Null: \'\'|\'YES\', Index_type: non-empty-string, Comment: string, Index_comment: string, Visible?: \'NO\'|\'YES\', Expression?: non-empty-string|null, Ignored?: \'NO\'|\'YES\'}&stdClass>)|null';
+	assertType( $indexes, $wpdb->get_results( "SHOW INDEX FROM {$table};" ) );
+	assertType( $indexes, $wpdb->get_results( "SHOW INDEXES FROM $wpdb->signups" ) );
+	assertType( $indexes, $wpdb->get_results( "SHOW KEYS IN $wpdb->termmeta WHERE Column_name = 'meta_key'" ) );
+	// The rows of MySQL 8.0, of MySQL 8.0.13 and later, and of MariaDB 10.6 and later have 14, 15, and 14 values.
+	assertType( 'list{0: non-empty-string, 1: \'0\'|\'1\', 2: non-empty-string, 3: decimal-int-string, 4: non-empty-string|null, 5: \'A\'|\'D\'|null, 6: decimal-int-string|null, 7: decimal-int-string|null, 8: string|null, 9: \'\'|\'YES\', 10: non-empty-string, 11: string, 12: string, 13?: \'NO\'|\'YES\', 14?: non-empty-string|null}|null', $wpdb->get_row( "SHOW INDEX FROM $wpdb->posts", ARRAY_N ) );
+	assertType( '\'NO\'|\'YES\'|null', $wpdb->get_var( "SHOW INDEX FROM $wpdb->posts", 13 ) );
+	assertType( 'list<non-empty-string|null>', $wpdb->get_col( "SHOW INDEX FROM $wpdb->posts", 14 ) );
+
+	assertType( 'list<non-empty-string>', $wpdb->get_col( 'SHOW TABLES' ) );
+	assertType( 'non-empty-string|null', $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $name ) ) );
+	assertType( 'non-empty-string|null', $wpdb->get_var( "SHOW TABLES LIKE '{$wpdb->termmeta}'" ) );
+	assertType( 'array{non-empty-string, non-empty-string}|null', $wpdb->get_row( 'SHOW FULL TABLES', ARRAY_N ) );
+	// The name of the column holds the name of the database.
+	assertType( 'stdClass|null', $wpdb->get_row( 'SHOW TABLES' ) );
+
+	$status = $wpdb->get_row( "SHOW TABLE STATUS LIKE '$table'", ARRAY_A );
+	assertType( 'array{Name: non-empty-string, Engine: non-empty-string|null, Version: decimal-int-string|null, Row_format: non-empty-string|null, Rows: decimal-int-string|null, Avg_row_length: decimal-int-string|null, Data_length: decimal-int-string|null, Max_data_length: decimal-int-string|null, Index_length: decimal-int-string|null, Data_free: decimal-int-string|null, Auto_increment: decimal-int-string|null, Create_time: non-falsy-string|null, Update_time: non-falsy-string|null, Check_time: non-falsy-string|null, Collation: non-empty-string|null, Checksum: decimal-int-string|null, Create_options: string|null, Comment: string|null, Max_index_length?: decimal-int-string|null, Temporary?: \'N\'|\'Y\'|null}|null', $status );
+
+	assertType( 'array{Variable_name: non-empty-string, Value: string|null}|null', $wpdb->get_row( $wpdb->prepare( 'SHOW VARIABLES LIKE %s', $name ), ARRAY_A ) );
+	assertType( 'array{Variable_name: non-empty-string, Value: string|null}|null', $wpdb->get_row( "SHOW GLOBAL STATUS LIKE 'Uptime'", ARRAY_A ) );
+	assertType( 'non-empty-string|null', $wpdb->get_var( "SHOW SESSION VARIABLES LIKE 'sql_mode'", 1 ) );
+
+	// Other statements, and `DESCRIBE` of a statement, are left as declared.
+	assertType( 'list<stdClass>|null', $wpdb->get_results( "DESCRIBE SELECT ID FROM $wpdb->posts" ) );
+	assertType( 'list<stdClass>|null', $wpdb->get_results( 'SHOW PROCESSLIST' ) );
+	assertType( 'list<stdClass>|null', $wpdb->get_results( "SHOW CREATE TABLE $wpdb->posts" ) );
+	assertType( 'list<stdClass>|null', $wpdb->get_results( "SHOW {$name} FROM $wpdb->posts" ) );
+	assertType( 'list<stdClass>|null', $wpdb->get_results( "SHOW FULL INDEX FROM $wpdb->posts" ) );
+}

@@ -12,6 +12,10 @@ namespace WordPress\PHPStan;
 /**
  * Determines the columns a `SELECT` query returns, and the type of each.
  *
+ * The columns of a `SHOW` or `DESCRIBE` statement, which are fixed, are also
+ * known, for `SHOW COLUMNS`, `SHOW INDEX`, `SHOW TABLES`, `SHOW TABLE STATUS`,
+ * and `SHOW VARIABLES` or `SHOW STATUS`.
+ *
  * This is not a SQL parser. It reads only as much of the query as it needs:
  * the select list, and the tables named in the `FROM` clause with their
  * aliases. The query text is as reconstructed by `WpdbQueryVisitor`, where a
@@ -48,7 +52,7 @@ namespace WordPress\PHPStan;
  * select expression with an unknown part outside any parentheses, since that
  * part could hold several columns.
  *
- * @phpstan-type Column array{ name: string|null, type: non-empty-string, optional: bool }
+ * @phpstan-type Column array{ name: string|null, type: non-empty-string, optional: bool, variants?: non-empty-list<non-empty-string> }
  * @phpstan-type Columns array{ columns: list<Column>, complete: bool }
  * @phpstan-type Token array{ text: string, offset: int }
  * @phpstan-type Table array{ name: string|null, nullable: bool }
@@ -87,6 +91,101 @@ final class WpdbSelectParser {
 	private const INTERVAL_UNITS = array( 'MICROSECOND', 'SECOND', 'MINUTE', 'HOUR', 'DAY', 'WEEK', 'MONTH', 'QUARTER', 'YEAR', 'SECOND_MICROSECOND', 'MINUTE_MICROSECOND', 'MINUTE_SECOND', 'HOUR_MICROSECOND', 'HOUR_SECOND', 'HOUR_MINUTE', 'DAY_MICROSECOND', 'DAY_SECOND', 'DAY_MINUTE', 'DAY_HOUR', 'YEAR_MONTH' );
 
 	/**
+	 * Keywords which may follow `DESCRIBE` for it to explain a statement, as `EXPLAIN` does, rather than describe a table.
+	 */
+	private const EXPLAIN_KEYWORDS = array( 'ANALYZE', 'DELETE', 'EXTENDED', 'FOR', 'FORMAT', 'INSERT', 'PARTITIONS', 'REPLACE', 'SELECT', 'TABLE', 'UPDATE', 'WITH' );
+
+	/**
+	 * Columns of each `SHOW` statement, and of `DESCRIBE`, which is `SHOW COLUMNS`, as of MySQL 5.5 and MariaDB 5.5.
+	 *
+	 * Each is a name, or null for the name of `SHOW TABLES`, which holds the database name, and a PHPDoc type. A
+	 * column which newer servers added is optional, and lists the variants of the row it is present in, as one server
+	 * may add columns another does not have.
+	 *
+	 * @link https://dev.mysql.com/doc/refman/8.4/en/show-columns.html
+	 * @link https://dev.mysql.com/doc/refman/8.4/en/show-index.html
+	 * @link https://dev.mysql.com/doc/refman/8.4/en/show-tables.html
+	 * @link https://dev.mysql.com/doc/refman/8.4/en/show-table-status.html
+	 * @link https://dev.mysql.com/doc/refman/8.4/en/show-variables.html
+	 * @link https://mariadb.com/kb/en/show-index/
+	 * @link https://mariadb.com/kb/en/show-table-status/
+	 */
+	private const SHOW_COLUMNS = array(
+		'COLUMNS'      => array(
+			array( 'Field', 'non-empty-string' ),
+			array( 'Type', 'non-empty-string' ),
+			array( 'Null', "'YES'|'NO'" ),
+			array( 'Key', "''|'PRI'|'UNI'|'MUL'" ),
+			array( 'Default', 'string|null' ),
+			array( 'Extra', 'string' ),
+		),
+		'FULL COLUMNS' => array(
+			array( 'Field', 'non-empty-string' ),
+			array( 'Type', 'non-empty-string' ),
+			array( 'Collation', 'non-empty-string|null' ),
+			array( 'Null', "'YES'|'NO'" ),
+			array( 'Key', "''|'PRI'|'UNI'|'MUL'" ),
+			array( 'Default', 'string|null' ),
+			array( 'Extra', 'string' ),
+			array( 'Privileges', 'string' ),
+			array( 'Comment', 'string' ),
+		),
+		'INDEX'        => array(
+			array( 'Table', 'non-empty-string' ),
+			array( 'Non_unique', "'0'|'1'" ),
+			array( 'Key_name', 'non-empty-string' ),
+			array( 'Seq_in_index', 'decimal-int-string' ),
+			// Null for a functional key part, as of MySQL 8.0.13.
+			array( 'Column_name', 'non-empty-string|null' ),
+			array( 'Collation', "'A'|'D'|null" ),
+			array( 'Cardinality', 'decimal-int-string|null' ),
+			array( 'Sub_part', 'decimal-int-string|null' ),
+			array( 'Packed', 'string|null' ),
+			array( 'Null', "''|'YES'" ),
+			array( 'Index_type', 'non-empty-string' ),
+			array( 'Comment', 'string' ),
+			array( 'Index_comment', 'string' ),
+			array( 'Visible', "'YES'|'NO'", array( 'MySQL 8.0', 'MySQL 8.0.13' ) ),
+			array( 'Expression', 'non-empty-string|null', array( 'MySQL 8.0.13' ) ),
+			array( 'Ignored', "'YES'|'NO'", array( 'MariaDB 10.6' ) ),
+		),
+		'TABLES'       => array(
+			array( null, 'non-empty-string' ),
+		),
+		'FULL TABLES'  => array(
+			array( null, 'non-empty-string' ),
+			array( 'Table_type', 'non-empty-string' ),
+		),
+		// Most of the values are null for a view.
+		'TABLE STATUS' => array(
+			array( 'Name', 'non-empty-string' ),
+			array( 'Engine', 'non-empty-string|null' ),
+			array( 'Version', 'decimal-int-string|null' ),
+			array( 'Row_format', 'non-empty-string|null' ),
+			array( 'Rows', 'decimal-int-string|null' ),
+			array( 'Avg_row_length', 'decimal-int-string|null' ),
+			array( 'Data_length', 'decimal-int-string|null' ),
+			array( 'Max_data_length', 'decimal-int-string|null' ),
+			array( 'Index_length', 'decimal-int-string|null' ),
+			array( 'Data_free', 'decimal-int-string|null' ),
+			array( 'Auto_increment', 'decimal-int-string|null' ),
+			array( 'Create_time', 'non-falsy-string|null' ),
+			array( 'Update_time', 'non-falsy-string|null' ),
+			array( 'Check_time', 'non-falsy-string|null' ),
+			array( 'Collation', 'non-empty-string|null' ),
+			array( 'Checksum', 'decimal-int-string|null' ),
+			array( 'Create_options', 'string|null' ),
+			array( 'Comment', 'string|null' ),
+			array( 'Max_index_length', 'decimal-int-string|null', array( 'MariaDB 10.3' ) ),
+			array( 'Temporary', "'N'|'Y'|null", array( 'MariaDB 10.3' ) ),
+		),
+		'VARIABLES'    => array(
+			array( 'Variable_name', 'non-empty-string' ),
+			array( 'Value', 'string|null' ),
+		),
+	);
+
+	/**
 	 * Schema of the core tables.
 	 *
 	 * @var WpdbSchema
@@ -103,7 +202,7 @@ final class WpdbSelectParser {
 	/**
 	 * Parsed queries, keyed by query.
 	 *
-	 * @var array<string, array{ columns: list<array{ name: string|null, type: non-empty-string, optional: bool }>, complete: bool }|null>
+	 * @var array<string, array{ columns: list<array{ name: string|null, type: non-empty-string, optional: bool, variants?: non-empty-list<non-empty-string> }>, complete: bool }|null>
 	 * @phpstan-var array<string, Columns|null>
 	 */
 	private array $cache = array();
@@ -125,15 +224,18 @@ final class WpdbSelectParser {
 	 * Gets the columns a query returns.
 	 *
 	 * @param string $query Query, as reconstructed by `WpdbQueryVisitor`.
-	 * @return array{ columns: list<array{ name: string|null, type: non-empty-string, optional: bool }>, complete: bool }|null {
-	 *     Columns, or null if the query is not a `SELECT` query this can read.
+	 * @return array{ columns: list<array{ name: string|null, type: non-empty-string, optional: bool, variants?: non-empty-list<non-empty-string> }>, complete: bool }|null {
+	 *     Columns, or null if the query is not a `SELECT`, `SHOW`, or `DESCRIBE` query this can read.
 	 *
 	 *     @type list<array> $columns  {
 	 *         Columns, in order.
 	 *
 	 *         @type string|null      $name     Column name, or null if unknown.
 	 *         @type non-empty-string $type     PHPDoc type of the column's values.
-	 *         @type bool             $optional Whether the column is only present on some sites.
+	 *         @type bool             $optional Whether the column is only present on some sites or servers.
+	 *         @type string[]         $variants Optional. Names of the variants of the row an optional column is
+	 *                                          present in, where columns of different variants are not present
+	 *                                          together. Optional columns without them are present together.
 	 *     }
 	 *     @type bool        $complete Whether the columns are all known. If not, more follow.
 	 * }
@@ -150,14 +252,20 @@ final class WpdbSelectParser {
 	 * Gets the columns a query returns, without the cache.
 	 *
 	 * @param string $query Query.
-	 * @return array|null Columns, or null if the query is not a `SELECT` query this can read.
+	 * @return array|null Columns, or null if the query is not a query this can read.
 	 * @phpstan-return Columns|null
 	 */
 	private function parse_uncached( string $query ): ?array {
 		$tokens = self::tokenize( $query );
 		$count  = count( $tokens );
 
-		if ( 0 === $count || 'SELECT' !== strtoupper( $tokens[0]['text'] ) ) {
+		if ( 0 === $count ) {
+			return null;
+		}
+		if ( in_array( strtoupper( $tokens[0]['text'] ), array( 'SHOW', 'DESCRIBE', 'DESC' ), true ) ) {
+			return self::parse_show( $tokens );
+		}
+		if ( 'SELECT' !== strtoupper( $tokens[0]['text'] ) ) {
 			return null;
 		}
 
@@ -220,6 +328,70 @@ final class WpdbSelectParser {
 		return array(
 			'columns'  => $columns,
 			'complete' => $complete,
+		);
+	}
+
+	/**
+	 * Gets the columns of a `SHOW` or `DESCRIBE` statement, which are fixed by the statement.
+	 *
+	 * Only the keywords at the start of the statement are read, since what follows them, like the table, a `LIKE`
+	 * pattern, or a `WHERE` condition, only selects the rows. An unknown table, as in `DESCRIBE {?}`, is taken to be
+	 * a table name, as it is in a `FROM` clause, and not a statement which `DESCRIBE` would explain instead.
+	 *
+	 * @param list<array{ text: string, offset: int }> $tokens Tokens of the query.
+	 * @return array|null Columns, or null if the statement is not one this reads.
+	 * @phpstan-param list<Token> $tokens
+	 * @phpstan-return Columns|null
+	 */
+	private static function parse_show( array $tokens ): ?array {
+		$texts = array_map( static fn ( array $token ): string => strtoupper( $token['text'] ), $tokens );
+
+		if ( 'SHOW' !== $texts[0] ) {
+			// `DESCRIBE` of a statement, like `DESCRIBE SELECT ...`, is `EXPLAIN` instead.
+			$next = $tokens[1]['text'] ?? '';
+			if ( ! ( WpdbQueryVisitor::UNKNOWN === $next || ( self::is_identifier( $next ) && ! in_array( strtoupper( $next ), self::EXPLAIN_KEYWORDS, true ) ) ) ) {
+				return null;
+			}
+			$statement = 'COLUMNS';
+		} else {
+			$i = 1;
+			if ( 'EXTENDED' === ( $texts[ $i ] ?? '' ) ) {
+				++$i;
+			}
+			$full = 'FULL' === ( $texts[ $i ] ?? '' );
+			if ( $full ) {
+				++$i;
+			}
+			$keyword = $texts[ $i ] ?? '';
+			$next    = $texts[ $i + 1 ] ?? '';
+
+			if ( in_array( $keyword, array( 'COLUMNS', 'FIELDS' ), true ) && in_array( $next, array( 'FROM', 'IN' ), true ) ) {
+				$statement = $full ? 'FULL COLUMNS' : 'COLUMNS';
+			} elseif ( ! $full && in_array( $keyword, array( 'INDEX', 'INDEXES', 'KEYS' ), true ) && in_array( $next, array( 'FROM', 'IN' ), true ) ) {
+				$statement = 'INDEX';
+			} elseif ( 'TABLES' === $keyword ) {
+				$statement = $full ? 'FULL TABLES' : 'TABLES';
+			} elseif ( ! $full && 'TABLE' === $keyword && 'STATUS' === $next ) {
+				$statement = 'TABLE STATUS';
+			} elseif ( ! $full && 1 === $i && ( in_array( $keyword, array( 'VARIABLES', 'STATUS' ), true ) || ( in_array( $keyword, array( 'GLOBAL', 'SESSION', 'LOCAL' ), true ) && in_array( $next, array( 'VARIABLES', 'STATUS' ), true ) ) ) ) {
+				$statement = 'VARIABLES';
+			} else {
+				return null;
+			}
+		}
+
+		$columns = array();
+		foreach ( self::SHOW_COLUMNS[ $statement ] as $column ) {
+			$columns[] = array(
+				'name'     => $column[0],
+				'type'     => $column[1],
+				'optional' => isset( $column[2] ),
+			) + ( isset( $column[2] ) ? array( 'variants' => $column[2] ) : array() );
+		}
+
+		return array(
+			'columns'  => $columns,
+			'complete' => true,
 		);
 	}
 
@@ -355,7 +527,7 @@ final class WpdbSelectParser {
 	 * @param list<array{ text: string, offset: int }>                  $item   Tokens of the expression, with its alias.
 	 * @param array<string, array{ name: string|null, nullable: bool }> $tables Tables in the `FROM` clause.
 	 * @param string                                                    $query  Query.
-	 * @return list<array{ name: string|null, type: non-empty-string, optional: bool }>|null Columns, or null if unknown.
+	 * @return list<array{ name: string|null, type: non-empty-string, optional: bool, variants?: non-empty-list<non-empty-string> }>|null Columns, or null if unknown.
 	 * @phpstan-param list<Token> $item
 	 * @phpstan-param array<string, Table> $tables
 	 * @phpstan-return list<Column>|null
