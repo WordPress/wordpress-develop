@@ -388,4 +388,78 @@ class Tests_Menu_Walker_Nav_Menu_Checklist extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Category &lt;Title&gt;</label>', $taxonomy_output );
 	}
+
+	/**
+	 * Tests that start_el() does not trigger postmeta queries when walking WP_Post items
+	 * queried with update_post_meta_cache disabled.
+	 *
+	 * @ticket 66834
+	 *
+	 * @covers ::start_el
+	 */
+	public function test_start_el_does_not_query_postmeta_for_wp_post_items() {
+		$post_ids = self::factory()->post->create_many(
+			3,
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			)
+		);
+
+		foreach ( $post_ids as $post_id ) {
+			wp_cache_delete( $post_id, 'post_meta' );
+		}
+
+		$query = new WP_Query(
+			array(
+				'post__in'               => $post_ids,
+				'post_type'              => 'post',
+				'update_post_term_cache' => false,
+				'update_post_meta_cache' => false,
+			)
+		);
+
+		$menu_items = array_map( 'wp_setup_nav_menu_item', $query->posts );
+		$walker     = new Walker_Nav_Menu_Checklist();
+
+		$queries_before = get_num_queries();
+		$output         = '';
+		foreach ( $menu_items as $menu_item ) {
+			$walker->start_el( $output, $menu_item );
+		}
+		$queries_after = get_num_queries();
+
+		$this->assertSame( $queries_before, $queries_after, 'Walker_Nav_Menu_Checklist::start_el() should not run postmeta queries for WP_Post items.' );
+		$this->assertNotEmpty( $output, 'Walker output should be generated for the menu items.' );
+	}
+
+	/**
+	 * Tests that start_el() does not read postmeta named label or front_or_home as menu item properties.
+	 *
+	 * @ticket 66834
+	 *
+	 * @covers ::start_el
+	 */
+	public function test_start_el_ignores_label_and_front_or_home_post_meta() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'post_title'  => 'Regular Post Title',
+			)
+		);
+
+		add_post_meta( $post_id, 'label', 'Meta Label Should Be Ignored' );
+		add_post_meta( $post_id, 'front_or_home', '1' );
+
+		$menu_item = wp_setup_nav_menu_item( get_post( $post_id ) );
+		$walker    = new Walker_Nav_Menu_Checklist();
+		$output    = '';
+
+		$walker->start_el( $output, $menu_item );
+
+		$this->assertStringContainsString( 'Regular Post Title</label>', $output, 'Post title should be used instead of a label postmeta value.' );
+		$this->assertStringNotContainsString( 'Meta Label Should Be Ignored', $output, 'Postmeta named label should not override the menu item title.' );
+		$this->assertStringNotContainsString( 'add-to-top', $output, 'Postmeta named front_or_home should not add the add-to-top class.' );
+	}
 }

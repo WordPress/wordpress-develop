@@ -89,13 +89,15 @@ class Walker_Nav_Menu_Checklist extends Walker_Nav_Menu {
 		$output .= '<label class="menu-item-title">';
 		$output .= '<input type="checkbox"' . wp_nav_menu_disabled_check( $nav_menu_selected_id, false ) . ' class="menu-item-checkbox';
 
-		if ( ! empty( $menu_item->front_or_home ) ) {
+		if ( property_exists( $menu_item, 'front_or_home' ) && ! empty( $menu_item->front_or_home ) ) {
 			$output .= ' add-to-top';
 		}
 
 		$output .= '" name="menu-item[' . $possible_object_id . '][menu-item-object-id]" value="' . esc_attr( $menu_item->object_id ) . '" /> ';
 
-		if ( ! empty( $menu_item->label ) ) {
+		$has_label = property_exists( $menu_item, 'label' ) && ! empty( $menu_item->label );
+
+		if ( $has_label ) {
 			$title = $menu_item->label;
 		} elseif ( isset( $menu_item->post_type ) ) {
 			/** This filter is documented in wp-includes/post-template.php */
@@ -104,7 +106,7 @@ class Walker_Nav_Menu_Checklist extends Walker_Nav_Menu {
 
 		$output .= isset( $title ) ? esc_html( $title ) : esc_html( $menu_item->title );
 
-		if ( empty( $menu_item->label ) && isset( $menu_item->post_type ) && 'page' === $menu_item->post_type ) {
+		if ( ! $has_label && isset( $menu_item->post_type ) && 'page' === $menu_item->post_type ) {
 			// Append post states.
 			$output .= _post_states( $menu_item, false );
 		}
