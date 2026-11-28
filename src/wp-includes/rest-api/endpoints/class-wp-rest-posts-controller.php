@@ -485,10 +485,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			remove_filter( 'post_password_required', array( $this, 'check_password_required' ) );
 		}
 
-		$page        = (int) ( $query_args['paged'] ?? 0 );
-		$total_posts = $posts_query->found_posts;
+		$page           = (int) ( $query_args['paged'] ?? 0 );
+		$total_posts    = $posts_query->found_posts;
+		$posts_per_page = (int) $posts_query->query_vars['posts_per_page'];
 
-		if ( $total_posts < 1 && $page > 1 ) {
+		if ( $total_posts < 1 && $page > 1 && 0 !== $posts_per_page ) {
 			// Out-of-bounds, run the query without pagination/offset to get the total count.
 			unset( $query_args['paged'] );
 
@@ -502,7 +503,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$total_posts = $count_query->found_posts;
 		}
 
-		$max_pages = (int) ceil( $total_posts / (int) $posts_query->query_vars['posts_per_page'] );
+		$max_pages = 0 !== $posts_per_page ? (int) ceil( $total_posts / $posts_per_page ) : 0;
 
 		if ( $page > $max_pages && $total_posts > 0 ) {
 			return new WP_Error(
@@ -521,7 +522,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$collection_url = rest_url( rest_get_route_for_post_type_items( $this->post_type ) );
 		$base           = add_query_arg( urlencode_deep( $request_params ), $collection_url );
 
-		if ( $page > 1 ) {
+		if ( $page > 1 && 0 !== $posts_per_page ) {
 			$prev_page = $page - 1;
 
 			if ( $prev_page > $max_pages ) {
