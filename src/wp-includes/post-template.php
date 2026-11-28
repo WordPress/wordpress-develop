@@ -327,6 +327,11 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		return get_the_password_form( $_post );
 	}
 
+	// The content_pagination filter can remove all pages.
+	if ( array() === $elements['pages'] ) {
+		return '';
+	}
+
 	// If the requested page doesn't exist.
 	if ( $elements['page'] > count( $elements['pages'] ) ) {
 		// Give them the highest numbered page that DOES exist.

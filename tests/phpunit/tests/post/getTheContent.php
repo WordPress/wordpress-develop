@@ -84,4 +84,37 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 
 		$this->assertSame( 'Foo', get_the_content() );
 	}
+
+	/**
+	 * @ticket 41933
+	 *
+	 * @covers ::get_the_content
+	 * @dataProvider data_empty_content_pagination
+	 *
+	 * @param bool $in_the_loop Whether to read the content from the Loop.
+	 */
+	public function test_returns_empty_string_when_content_pagination_has_no_pages( $in_the_loop ) {
+		$post_id = self::factory()->post->create( array( 'post_content' => 'Foo<!--nextpage-->Bar' ) );
+		add_filter( 'content_pagination', '__return_empty_array' );
+
+		if ( $in_the_loop ) {
+			$this->go_to( get_permalink( $post_id ) );
+			the_post();
+			$content = get_the_content();
+		} else {
+			$content = get_the_content( null, false, $post_id );
+		}
+
+		$this->assertSame( '', $content );
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public static function data_empty_content_pagination() {
+		return array(
+			'explicit post' => array( false ),
+			'the Loop'      => array( true ),
+		);
+	}
 }
