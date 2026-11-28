@@ -754,6 +754,177 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that CRUD methods accept raw column names that require escaping.
+	 *
+	 * @ticket 60505
+	 * @dataProvider data_crud_column_identifiers
+	 *
+	 * @param string $method CRUD method.
+	 * @param string $column Column name.
+	 */
+	public function test_crud_methods_escape_column_identifiers( $method, $column ) {
+		global $wpdb;
+
+		$table    = $this->create_table_with_column_identifier( $column );
+		$suppress = $wpdb->suppress_errors( true );
+
+		try {
+			if ( in_array( $method, array( 'update', 'delete' ), true ) ) {
+				$wpdb->query( $wpdb->prepare( 'INSERT INTO %i (%i, ordinary) VALUES (%s, %d)', $table, $column, 'original', 17 ) );
+			}
+
+			$data   = array(
+				$column    => 'changed',
+				'ordinary' => 23,
+				'fraction' => 0.25,
+				'nullable' => null,
+			);
+			$where  = array(
+				$column    => 'original',
+				'ordinary' => 17,
+			);
+			$format = array( '%s', '%d', '%f', '%s' );
+
+			if ( 'update' === $method ) {
+				$result = $wpdb->update( $table, $data, $where, $format, array( '%s', '%d' ) );
+			} elseif ( 'delete' === $method ) {
+				$result = $wpdb->delete( $table, $where, array( '%s', '%d' ) );
+			} else {
+				$result = $wpdb->$method( $table, $data, $format );
+			}
+
+			$this->assertSame( 1, $result, 'The CRUD operation should affect one row.' );
+			$this->assertEmpty( $wpdb->last_error, 'The raw column name should not cause a database error.' );
+
+			if ( 'delete' === $method ) {
+				$this->assertSame( '0', $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table ) ) );
+				$this->assertSame( 0, $wpdb->delete( $table, $where, array( '%s', '%d' ) ), 'Deleting a missing row should still return zero.' );
+			} else {
+				$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i', $table ), ARRAY_A );
+				$this->assertSame( 'changed', $row[ $column ] );
+				$this->assertSame( '23', $row['ordinary'], 'Value formats should retain their order.' );
+				$this->assertSame( '0.25', $row['fraction'] );
+				$this->assertNull( $row['nullable'], 'A null value should ignore its format.' );
+
+				if ( 'update' === $method ) {
+					$this->assertSame( 0, $wpdb->update( $table, $data, array( $column => 'changed' ), $format ), 'An unchanged row should still return zero.' );
+				}
+			}
+		} finally {
+			$wpdb->query( $wpdb->prepare( 'DROP TEMPORARY TABLE IF EXISTS %i', $table ) );
+			$wpdb->suppress_errors( $suppress );
+		}
+	}
+
+	/**
+	 * Tests escaping identifiers when null data and conditions omit value placeholders.
+	 *
+	 * @ticket 60505
+	 * @dataProvider data_crud_null_column_identifiers
+	 *
+	 * @param string $method CRUD method.
+	 * @param string $column Column name.
+	 */
+	public function test_crud_methods_escape_null_column_identifiers( $method, $column ) {
+		global $wpdb;
+
+		$table    = $this->create_table_with_column_identifier( $column );
+		$suppress = $wpdb->suppress_errors( true );
+
+		try {
+			$wpdb->query( $wpdb->prepare( 'INSERT INTO %i (%i, ordinary) VALUES (NULL, %d)', $table, $column, 17 ) );
+
+			$where = array(
+				$column    => null,
+				'ordinary' => 17,
+			);
+			if ( 'update' === $method ) {
+				$data   = array(
+					$column    => null,
+					'ordinary' => 23,
+				);
+				$result = $wpdb->update( $table, $data, $where, array( '%s', '%d' ), array( '%s', '%d' ) );
+			} else {
+				$result = $wpdb->delete( $table, $where, array( '%s', '%d' ) );
+			}
+
+			$this->assertSame( 1, $result, 'Null values should not displace identifier or value arguments.' );
+			$this->assertEmpty( $wpdb->last_error );
+
+			if ( 'update' === $method ) {
+				$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i', $table ), ARRAY_A );
+				$this->assertNull( $row[ $column ] );
+				$this->assertSame( '23', $row['ordinary'] );
+			} else {
+				$this->assertSame( '0', $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table ) ) );
+			}
+		} finally {
+			$wpdb->query( $wpdb->prepare( 'DROP TEMPORARY TABLE IF EXISTS %i', $table ) );
+			$wpdb->suppress_errors( $suppress );
+		}
+	}
+
+	/**
+	 * Creates a temporary table with a raw column identifier.
+	 *
+	 * @param string $column Column name.
+	 * @return string Table name.
+	 */
+	private function create_table_with_column_identifier( $column ) {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'test_column_identifier_' . md5( $column );
+		$this->assertNotFalse(
+			$wpdb->query( $wpdb->prepare( 'CREATE TEMPORARY TABLE %i (id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY, %i varchar(100) NULL, ordinary int, fraction double, nullable varchar(100) NULL)', $table, $column ) ),
+			'The test table should accept the column identifier.'
+		);
+
+		return $table;
+	}
+
+	/**
+	 * Provides CRUD methods and raw column identifiers.
+	 *
+	 * @return array[]
+	 */
+	public static function data_crud_column_identifiers() {
+		$data = array();
+		foreach ( array( 'insert', 'replace', 'update', 'delete' ) as $method ) {
+			foreach ( array( 'plain', 'back`tick', 'percent%s' ) as $column ) {
+				$data[ $method . ': ' . $column ] = array( $method, $column );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Provides CRUD methods with null data and conditions.
+	 *
+	 * @return array[]
+	 */
+	public static function data_crud_null_column_identifiers() {
+		return array_filter(
+			self::data_crud_column_identifiers(),
+			static function ( $test_case ) {
+				return in_array( $test_case[0], array( 'update', 'delete' ), true );
+			}
+		);
+	}
+
+	/**
+	 * Tests that an empty column list does not turn into a default-row insert.
+	 *
+	 * @ticket 60505
+	 */
+	public function test_insert_and_replace_reject_empty_column_lists() {
+		global $wpdb;
+
+		$this->assertFalse( $wpdb->insert( $wpdb->users, array() ) );
+		$this->assertFalse( $wpdb->replace( $wpdb->users, array() ) );
+	}
+
+	/**
 	 * wpdb::update() requires a WHERE condition.
 	 *
 	 * @ticket 26106
