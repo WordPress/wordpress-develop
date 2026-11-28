@@ -58,4 +58,21 @@ class Tests_General_WpHeartbeatSettings extends WP_UnitTestCase {
 		$this->assertSame( 15, $settings['interval'] );
 		$this->assertSame( 'customValue', $settings['customKey'] );
 	}
+
+	/**
+	 * Tests that admin requests do not get an `ajaxurl`, but logged-in users still get a nonce.
+	 *
+	 * Admin screens define `ajaxurl` themselves.
+	 *
+	 * @ticket 66820
+	 */
+	public function test_wp_heartbeat_settings_admin() {
+		wp_set_current_user( self::factory()->user->create() );
+		set_current_screen( 'dashboard' );
+
+		$settings = wp_heartbeat_settings( array() );
+
+		$this->assertArrayNotHasKey( 'ajaxurl', $settings, 'Admin requests should not get an ajaxurl.' );
+		$this->assertNotFalse( wp_verify_nonce( $settings['nonce'] ?? '', 'heartbeat-nonce' ), 'Logged-in admin requests should get a valid nonce.' );
+	}
 }
