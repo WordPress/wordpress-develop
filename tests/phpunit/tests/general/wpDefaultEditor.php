@@ -20,21 +20,31 @@ class Tests_General_WpDefaultEditor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_default_editor() returns user editor setting when set.
+	 * Tests that wp_default_editor() respects the user editor setting.
+	 *
+	 * An invalid setting falls back to user_can_richedit().
 	 *
 	 * @ticket 65819
+	 *
+	 * @dataProvider data_wp_default_editor_respects_user_setting
+	 *
+	 * @param string $setting      The user editor setting.
+	 * @param bool   $can_richedit Value returned by user_can_richedit().
+	 * @param string $expected     Expected editor.
 	 */
-	public function test_wp_default_editor_respects_user_setting() {
+	public function test_wp_default_editor_respects_user_setting( $setting, $can_richedit, $expected ) {
 		$user_id = self::factory()->user->create();
 		wp_set_current_user( $user_id );
+
+		add_filter( 'user_can_richedit', $can_richedit ? '__return_true' : '__return_false' );
 
 		$orig_updated_user_settings = $GLOBALS['_updated_user_settings'] ?? null;
 		unset( $GLOBALS['_updated_user_settings'] );
 
-		$_COOKIE[ 'wp-settings-' . $user_id ] = 'editor=html';
+		$_COOKIE[ 'wp-settings-' . $user_id ] = 'editor=' . $setting;
 
 		try {
-			$this->assertSame( 'html', wp_default_editor() );
+			$this->assertSame( $expected, wp_default_editor() );
 		} finally {
 			unset( $_COOKIE[ 'wp-settings-' . $user_id ] );
 
@@ -44,6 +54,19 @@ class Tests_General_WpDefaultEditor extends WP_UnitTestCase {
 				unset( $GLOBALS['_updated_user_settings'] );
 			}
 		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string, 1: bool, 2: string }>
+	 */
+	public static function data_wp_default_editor_respects_user_setting() {
+		return array(
+			'valid html setting'                        => array( 'html', true, 'html' ),
+			'invalid setting, rich editing available'   => array( 'invalid', true, 'tinymce' ),
+			'invalid setting, rich editing unavailable' => array( 'invalid', false, 'html' ),
+		);
 	}
 
 	/**
