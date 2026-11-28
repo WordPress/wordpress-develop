@@ -298,7 +298,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$args['generate_sub_sizes'] = array(
 			'type'        => 'boolean',
 			'default'     => true,
-			'description' => __( 'Whether to generate image sub sizes.' ),
+			'description' => __( 'Whether to generate image sub sizes. When false, the main image is also not converted to the image output format.' ),
 		);
 
 		$args['convert_format'] = array(
@@ -503,6 +503,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 4.7.0
 	 * @since 7.1.0 Added the `generate_sub_sizes`, `convert_format`, and `url` parameters.
+	 * @since 7.3.0 The main image is no longer converted to the image output format when `generate_sub_sizes` is false.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -633,6 +634,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Include media and image functions to get access to wp_generate_attachment_metadata().
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		/*
+		 * The client sideloads the converted main file. This is added after the upload is
+		 * stored, so wp_unique_filename() still reserves the converted file names.
+		 */
+		if ( false === $request['generate_sub_sizes'] ) {
+			add_filter( 'image_editor_output_format', '__return_empty_array', 100 );
+		}
 
 		/*
 		 * Post-process the upload (create image sub-sizes, make PDF thumbnails, etc.) and insert attachment meta.
@@ -3071,6 +3080,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					'rest_sideload_update_attached_file_failed',
 					__( 'Unable to update the attached file for this attachment.' ),
 					array( 'status' => 500 )
+				);
+			}
+
+			// Update the post mime type when the supplied image is in a different format.
+			if ( get_post_mime_type( $attachment_id ) !== $type ) {
+				wp_update_post(
+					array(
+						'ID'             => $attachment_id,
+						'post_mime_type' => $type,
+					)
 				);
 			}
 

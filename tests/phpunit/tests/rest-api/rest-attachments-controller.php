@@ -4491,6 +4491,137 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that the main file of a client-side upload is not converted when an
+	 * `image_editor_output_format` filter maps it to another format, since the
+	 * client sideloads the converted main file.
+	 *
+	 * @ticket 66763
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @requires function imagejpeg
+	 */
+	public function test_client_side_upload_main_file_is_not_converted() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires an image editor that can save WebP.' );
+		}
+
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'image_editor_output_format', array( $this, 'filter_output_format_jpeg_to_webp' ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=client-side-photo.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status(), 'Uploading the image should succeed.' );
+		$this->assertSame( 'image/webp', $data['image_output_format'], 'The client should still be asked to convert to WebP.' );
+
+		$attached_file = get_attached_file( $data['id'] );
+		$this->assertSame( 'client-side-photo.jpg', wp_basename( $attached_file ), 'The upload should stay the attached file.' );
+		$this->assertFileDoesNotExist( dirname( $attached_file ) . '/client-side-photo.webp', 'The server should not write a converted copy.' );
+	}
+
+	/**
+	 * Tests that a client-side upload whose main file the client converts keeps the
+	 * upload as `original_image` and leaves no files behind after it is deleted.
+	 *
+	 * @ticket 66763
+	 * @ticket 53665
+	 *
+	 * @dataProvider data_client_side_converted_main_file_flow
+	 *
+	 * @covers WP_REST_Attachments_Controller::create_item
+	 * @covers WP_REST_Attachments_Controller::sideload_item
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 * @requires function imagejpeg
+	 *
+	 * @param string $image_size The image size the client sideloads the main file as.
+	 * @param string $source     The test image to upload.
+	 * @param string $main_file  The expected name of the converted main file.
+	 */
+	public function test_client_side_converted_main_file_flow_leaves_no_files( string $image_size, string $source, string $main_file ) {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$this->markTestSkipped( 'This test requires an image editor that can save WebP.' );
+		}
+
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		add_filter( 'image_editor_output_format', array( $this, 'filter_output_format_jpeg_to_webp' ) );
+
+		$upload_dir   = wp_upload_dir();
+		$files_before = (array) glob( $upload_dir['path'] . '/*' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=flow-photo.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( file_get_contents( DIR_TESTDATA . '/images/' . $source ) );
+		$response      = rest_get_server()->dispatch( $request );
+		$attachment_id = $response->get_data()['id'];
+
+		$this->assertSame( 201, $response->get_status(), 'Uploading the image should succeed.' );
+
+		// Convert the main file as the client does, scaled down for a 'scaled' sideload.
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/' . $source );
+		if ( 'scaled' === $image_size ) {
+			$editor->resize( 1000, 1000 );
+		}
+		$converted = $editor->save( get_temp_dir() . 'flow-photo-converted.webp', 'image/webp' );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/webp' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=' . $main_file );
+		$request->set_param( 'image_size', $image_size );
+		$request->set_param( 'convert_format', false );
+		$request->set_body( file_get_contents( $converted['path'] ) );
+		$response  = rest_get_server()->dispatch( $request );
+		$main_data = $response->get_data();
+		unlink( $converted['path'] );
+
+		$this->assertSame( 200, $response->get_status(), 'Sideloading the converted main file should succeed.' );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $main_data ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status(), 'Finalize should succeed.' );
+
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertSame( 'flow-photo.jpg', $metadata['original_image'], 'The untouched upload should be recorded as original_image.' );
+		$this->assertSame( $main_file, wp_basename( $metadata['file'] ), 'The converted main file should become the attached file.' );
+		$this->assertSame( 'image/webp', get_post_mime_type( $attachment_id ), 'The attachment MIME type should match the converted main file.' );
+
+		$written = array_map( 'wp_basename', array_diff( (array) glob( $upload_dir['path'] . '/*' ), $files_before ) );
+		$this->assertEqualsCanonicalizing( array( 'flow-photo.jpg', $main_file ), $written, 'Only the upload and the converted main file should be written.' );
+
+		wp_delete_attachment( $attachment_id, true );
+
+		$remaining = array_diff( (array) glob( $upload_dir['path'] . '/*' ), $files_before );
+		$this->assertSame( array(), array_values( $remaining ), 'Deleting the attachment should leave no files behind.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string, 1: string, 2: string }>
+	 */
+	public static function data_client_side_converted_main_file_flow(): array {
+		return array(
+			'scaled image'   => array( 'scaled', '33772.jpg', 'flow-photo-scaled.webp' ),
+			'original image' => array( 'original', 'canola.jpg', 'flow-photo.webp' ),
+		);
+	}
+
+	/**
 	 * Tests that sideloading scaled image requires authentication.
 	 *
 	 * @ticket 64737
