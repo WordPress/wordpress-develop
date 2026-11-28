@@ -169,6 +169,9 @@ class WP_User_Query {
 	 *                                                See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_type_key       MySQL data type that the meta_key column will be CAST to for comparisons.
 	 *                                                See WP_Meta_Query::__construct() for accepted values and default value.
+	 *     @type bool            $meta_exclude_empty  Whether to exclude objects that have no value for `$meta_key`.
+	 *                                                Passing false keeps them in the results, e.g. when ordering by
+	 *                                                'meta_value'. Default true.
 	 *     @type array           $meta_query          An associative array of WP_Meta_Query arguments.
 	 *                                                See WP_Meta_Query::__construct() for accepted values.
 	 *     @type string|string[] $capability          An array or a comma-separated list of capability names that users
