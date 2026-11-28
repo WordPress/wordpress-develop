@@ -385,52 +385,59 @@ class Custom_Image_Header {
 				$default_color = '#' . $default_color;
 			}
 		}
-		?>
-<script>
-(function($){
-	var default_color = '<?php echo esc_js( $default_color ); ?>',
-		header_text_fields;
 
-	function pickColor(color) {
-		$('#name').css('color', color);
-		$('#desc').css('color', color);
-		$('#text-color').val(color);
-	}
+		$js_function = <<<'JS'
+			( $, default_color, runToggle ) => {
+				var header_text_fields;
 
-	function toggle_text() {
-		var checked = $('#display-header-text').prop('checked'),
-			text_color;
-		header_text_fields.toggle( checked );
-		if ( ! checked )
-			return;
-		text_color = $('#text-color');
-		if ( '' === text_color.val().replace('#', '') ) {
-			text_color.val( default_color );
-			pickColor( default_color );
-		} else {
-			pickColor( text_color.val() );
-		}
-	}
+				function pickColor(color) {
+					$('#name').css('color', color);
+					$('#desc').css('color', color);
+					$('#text-color').val(color);
+				}
 
-	$( function() {
-		var text_color = $('#text-color');
-		header_text_fields = $('.displaying-header-text');
-		text_color.wpColorPicker({
-			change: function( event, ui ) {
-				pickColor( text_color.wpColorPicker('color') );
-			},
-			clear: function() {
-				pickColor( '' );
+				function toggle_text() {
+					var checked = $('#display-header-text').prop('checked'),
+						text_color;
+					header_text_fields.toggle( checked );
+					if ( ! checked )
+						return;
+					text_color = $('#text-color');
+					if ( '' === text_color.val().replace('#', '') ) {
+						text_color.val( default_color );
+						pickColor( default_color );
+					} else {
+						pickColor( text_color.val() );
+					}
+				}
+
+				$( function() {
+					var text_color = $('#text-color');
+					header_text_fields = $('.displaying-header-text');
+					text_color.wpColorPicker({
+						change: function( event, ui ) {
+							pickColor( text_color.wpColorPicker('color') );
+						},
+						clear: function() {
+							pickColor( '' );
+						}
+					});
+					$('#display-header-text').click( toggle_text );
+					if ( runToggle ) {
+						toggle_text();
+					}
+				} );
 			}
-		});
-		$('#display-header-text').click( toggle_text );
-		<?php if ( ! display_header_text() ) : ?>
-		toggle_text();
-		<?php endif; ?>
-	} );
-})(jQuery);
-</script>
-		<?php
+			JS;
+
+		wp_print_inline_script_tag(
+			sprintf(
+				'( %s )( jQuery, %s, %s );',
+				$js_function,
+				wp_json_encode( $default_color, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( ! display_header_text(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+			)
+		);
 	}
 
 	/**
@@ -439,74 +446,90 @@ class Custom_Image_Header {
 	 * @since 2.6.0
 	 */
 	public function js_2() {
+		$js_function = <<<'JS'
+			( settings ) => {
+				function onEndCrop( coords ) {
+					jQuery( '#x1' ).val(coords.x);
+					jQuery( '#y1' ).val(coords.y);
+					jQuery( '#width' ).val(coords.w);
+					jQuery( '#height' ).val(coords.h);
+				}
 
-		?>
-<script>
-	function onEndCrop( coords ) {
-		jQuery( '#x1' ).val(coords.x);
-		jQuery( '#y1' ).val(coords.y);
-		jQuery( '#width' ).val(coords.w);
-		jQuery( '#height' ).val(coords.h);
-	}
+				jQuery( function() {
+					var xinit = settings.width;
+					var yinit = settings.height;
+					var ratio = xinit / yinit;
+					var ximg = jQuery('img#upload').width();
+					var yimg = jQuery('img#upload').height();
 
-	jQuery( function() {
-		var xinit = <?php echo absint( get_theme_support( 'custom-header', 'width' ) ); ?>;
-		var yinit = <?php echo absint( get_theme_support( 'custom-header', 'height' ) ); ?>;
-		var ratio = xinit / yinit;
-		var ximg = jQuery('img#upload').width();
-		var yimg = jQuery('img#upload').height();
+					if ( yimg < yinit || ximg < xinit ) {
+						if ( ximg / yimg > ratio ) {
+							yinit = yimg;
+							xinit = yinit * ratio;
+						} else {
+							xinit = ximg;
+							yinit = xinit / ratio;
+						}
+					}
 
-		if ( yimg < yinit || ximg < xinit ) {
-			if ( ximg / yimg > ratio ) {
-				yinit = yimg;
-				xinit = yinit * ratio;
-			} else {
-				xinit = ximg;
-				yinit = xinit / ratio;
-			}
-		}
+					var options = {
+						handles: true,
+						keys: true,
+						show: true,
+						x1: 0,
+						y1: 0,
+						x2: xinit,
+						y2: yinit,
+						onInit: function () {
+							jQuery('#width').val(xinit);
+							jQuery('#height').val(yinit);
+						},
+						onSelectChange: function(img, c) {
+							jQuery('#x1').val(c.x1);
+							jQuery('#y1').val(c.y1);
+							jQuery('#width').val(c.width);
+							jQuery('#height').val(c.height);
+						}
+					};
 
-		jQuery('img#upload').imgAreaSelect({
-			handles: true,
-			keys: true,
-			show: true,
-			x1: 0,
-			y1: 0,
-			x2: xinit,
-			y2: yinit,
-			<?php
-			if ( ! current_theme_supports( 'custom-header', 'flex-height' )
-				&& ! current_theme_supports( 'custom-header', 'flex-width' )
-			) {
-				?>
-			aspectRatio: xinit + ':' + yinit,
-				<?php
+					if ( settings.aspectRatio ) {
+						options.aspectRatio = xinit + ':' + yinit;
+					}
+
+					if ( null != settings.maxHeight ) {
+						options.maxHeight = settings.maxHeight;
+					}
+
+					if ( null != settings.maxWidth ) {
+						options.maxWidth = settings.maxWidth;
+					}
+
+					jQuery('img#upload').imgAreaSelect( options );
+				} );
 			}
-			if ( ! current_theme_supports( 'custom-header', 'flex-height' ) ) {
-				?>
-			maxHeight: <?php echo get_theme_support( 'custom-header', 'height' ); ?>,
-				<?php
-			}
-			if ( ! current_theme_supports( 'custom-header', 'flex-width' ) ) {
-				?>
-			maxWidth: <?php echo get_theme_support( 'custom-header', 'width' ); ?>,
-				<?php
-			}
-			?>
-			onInit: function () {
-				jQuery('#width').val(xinit);
-				jQuery('#height').val(yinit);
-			},
-			onSelectChange: function(img, c) {
-				jQuery('#x1').val(c.x1);
-				jQuery('#y1').val(c.y1);
-				jQuery('#width').val(c.width);
-				jQuery('#height').val(c.height);
-			}
-		});
-	} );
-</script>
-		<?php
+			JS;
+
+		wp_print_inline_script_tag(
+			sprintf(
+				'( %s )( %s );',
+				$js_function,
+				wp_json_encode(
+					array(
+						'width'       => absint( get_theme_support( 'custom-header', 'width' ) ),
+						'height'      => absint( get_theme_support( 'custom-header', 'height' ) ),
+						'aspectRatio' => ! current_theme_supports( 'custom-header', 'flex-height' )
+							&& ! current_theme_supports( 'custom-header', 'flex-width' ),
+						'maxHeight'   => current_theme_supports( 'custom-header', 'flex-height' )
+							? null
+							: get_theme_support( 'custom-header', 'height' ),
+						'maxWidth'    => current_theme_supports( 'custom-header', 'flex-width' )
+							? null
+							: get_theme_support( 'custom-header', 'width' ),
+					),
+					JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
+				)
+			)
+		);
 	}
 
 	/**
