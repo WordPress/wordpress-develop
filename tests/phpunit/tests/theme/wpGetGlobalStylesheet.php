@@ -318,6 +318,125 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 	}
 
 	/**
+	 * Tests global custom CSS and the Customizer cascade through both frontend hooks.
+	 *
+	 * @dataProvider data_theme_types_and_asset_loading
+	 * @covers ::wp_enqueue_global_styles
+	 *
+	 * @param string $theme            Theme stylesheet.
+	 * @param bool   $assets_on_demand Whether block assets load on demand.
+	 */
+	public function test_should_enqueue_theme_json_custom_css( $theme, $assets_on_demand ) {
+		$this->maybe_switch_theme( $theme );
+		$this->assertSame( 'block-theme' === $theme, wp_is_block_theme(), 'The fixture should match the expected theme type.' );
+		$custom_css     = '.theme-json-custom-css{color:red;}';
+		$customizer_css = '.customizer-custom-css{color:blue;}';
+		$theme_data     = static function ( $theme_json ) use ( $custom_css ) {
+			return $theme_json->update_with(
+				array(
+					'version' => 3,
+					'styles'  => array( 'css' => $custom_css ),
+				)
+			);
+		};
+		add_filter( 'wp_theme_json_data_theme', $theme_data );
+		add_filter( 'should_load_block_assets_on_demand', $assets_on_demand ? '__return_true' : '__return_false' );
+		add_filter(
+			'wp_get_custom_css',
+			static function () use ( $customizer_css ) {
+				return $customizer_css;
+			}
+		);
+		add_action( 'wp_head', 'wp_custom_css_cb', 101 );
+
+		ob_start();
+		do_action( 'wp_enqueue_scripts' );
+		$head_css = implode( '', (array) wp_styles()->get_data( 'global-styles', 'after' ) );
+		do_action( 'wp_footer' );
+		ob_end_clean();
+		$stylesheet = implode( '', (array) wp_styles()->get_data( 'global-styles', 'after' ) );
+
+		if ( 'default' === $theme && $assets_on_demand ) {
+			$this->assertStringNotContainsString( $custom_css, $head_css, 'Classic on-demand styles should be deferred to the footer.' );
+		} else {
+			$this->assertStringContainsString( $custom_css, $head_css, 'Global custom CSS should be enqueued in the head.' );
+		}
+		$this->assertSame( 1, substr_count( $stylesheet, $custom_css ), 'The global custom CSS should appear exactly once.' );
+
+		if ( 'default' === $theme ) {
+			$this->assertSame( 101, has_action( 'wp_head', 'wp_custom_css_cb' ), 'Classic themes should retain the Customizer callback at priority 101.' );
+			$this->assertStringNotContainsString( $customizer_css, $stylesheet, 'Classic themes should print Customizer CSS separately.' );
+			ob_start();
+			wp_custom_css_cb();
+			$this->assertStringContainsString( $customizer_css, ob_get_clean() );
+		} else {
+			$this->assertFalse( has_action( 'wp_head', 'wp_custom_css_cb' ), 'Block themes should merge Customizer CSS into global styles.' );
+			$this->assertSame( 1, substr_count( $stylesheet, $customizer_css ) );
+			$this->assertLessThan( strpos( $stylesheet, $custom_css ), strpos( $stylesheet, $customizer_css ), 'Customizer CSS should precede global custom CSS.' );
+		}
+	}
+
+	/**
+	 * Provides theme types and asset-loading modes.
+	 *
+	 * @return array Test cases.
+	 */
+	public static function data_theme_types_and_asset_loading() {
+		return array(
+			'classic, all assets' => array( 'default', false ),
+			'classic, on demand'  => array( 'default', true ),
+			'block, all assets'   => array( 'block-theme', false ),
+			'block, on demand'    => array( 'block-theme', true ),
+		);
+	}
+
+	/**
+	 * Tests that block-theme Customizer preview milestones remain intact.
+	 *
+	 * @dataProvider data_customizer_css
+	 * @covers ::wp_enqueue_global_styles
+	 *
+	 * @param string $customizer_css Customizer CSS, including existing milestones.
+	 */
+	public function test_should_preserve_customizer_preview_milestones( $customizer_css ) {
+		global $wp_customize;
+		$original_customize = $wp_customize;
+		$this->maybe_switch_theme( 'block-theme' );
+		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
+		$wp_customize = new WP_Customize_Manager();
+		$wp_customize->start_previewing_theme();
+		add_filter(
+			'wp_get_custom_css',
+			static function () use ( $customizer_css ) {
+				return $customizer_css;
+			}
+		);
+
+		try {
+			wp_enqueue_global_styles();
+			$stylesheet = implode( '', (array) wp_styles()->get_data( 'global-styles', 'after' ) );
+			$this->assertSame( 1, substr_count( $stylesheet, '/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/' ) );
+			$this->assertSame( 1, substr_count( $stylesheet, '/*END_CUSTOMIZER_CUSTOM_CSS*/' ) );
+			$this->assertFalse( has_action( 'wp_head', 'wp_custom_css_cb' ) );
+		} finally {
+			$wp_customize->stop_previewing_theme();
+			$wp_customize = $original_customize;
+		}
+	}
+
+	/**
+	 * Provides empty Customizer CSS and CSS containing preview milestones.
+	 *
+	 * @return array Test cases.
+	 */
+	public static function data_customizer_css() {
+		return array(
+			'empty'               => array( '' ),
+			'existing milestones' => array( '/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/.customizer-custom-css{color:blue;}/*END_CUSTOMIZER_CUSTOM_CSS*/' ),
+		);
+	}
+
+	/**
 	 * Adds the 'editor-font-sizes' theme support with custom font sizes.
 	 *
 	 * @param bool $add_theme_support Whether to add the theme support.
