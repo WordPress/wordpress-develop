@@ -3351,6 +3351,12 @@ function edit_form_image_editor( $post ) {
 
 		?>
 		</p>
+		<?php
+		/**
+		 * Fires after the Alt Text field in the attachment details template.
+		 */
+		do_action( 'attachment_details_after_alt_text' );
+		?>
 	<?php endif; ?>
 
 		<p>
@@ -3367,6 +3373,10 @@ function edit_form_image_editor( $post ) {
 		</p>
 
 	<?php
+	/**
+	 * Fires after the Caption field in the attachment details template.
+	 */
+	do_action( 'attachment_details_after_caption' );
 
 	$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
 	$editor_args        = array(
@@ -3396,6 +3406,13 @@ function edit_form_image_editor( $post ) {
 	?>
 	</label>
 	<?php wp_editor( format_to_edit( $post->post_content ), 'attachment_content', $editor_args ); ?>
+
+	<?php
+	/**
+	 * Fires after the Description field in the attachment details template.
+	 */
+	do_action( 'attachment_details_after_description' );
+	?>
 
 	</div>
 	<?php
