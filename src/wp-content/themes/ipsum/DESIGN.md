@@ -30,7 +30,7 @@ How the palettes are built:
 ### Usage rules
 
 -   **Use the slugs, never literal colors.** `var(--wp--preset--color--contrast)` in CSS, `var:preset|color|contrast` in block attributes, or `textColor` and `backgroundColor`. A literal hex freezes one variation's look into all the others.
--   **Text is Contrast.** Body, headings and links all use it. Hover goes to Strong Contrast. Contrast is translucent in the light palettes, so it only reads as intended on Base or Surface; on any other ground, use Strong Contrast.
+-   **Text is Contrast.** Body, headings and links all use it. Hover goes to Strong Contrast. Contrast is translucent in the light palettes, so it only reads as intended on Base or Surface; on any other ground, use Strong Contrast. The editor's "Transparent text may be hard for people to read" notice is expected for it; keep the alpha.
 -   **Links** have a dotted 1px underline. On hover they turn Strong Contrast and lose the underline. Navigation, post title, post navigation and pagination links do the reverse: no underline until hover.
 -   **Buttons** fill with Contrast, with Base text, and fill with Strong Contrast on hover. Focus and press use Contrast at 85% (`color-mix()`). The Outline style keeps a Contrast border and fills with Surface on hover.
 -   **Form fields** in Search and the comment form are Base with Contrast text and border. The border turns Strong Contrast on hover. Jetpack form fields get the same border.
