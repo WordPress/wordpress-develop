@@ -32,6 +32,7 @@ class Tests_Post_Walker_PageDropdown extends WP_UnitTestCase {
 	/**
 	 * Tests the option element generated for a page.
 	 *
+	 * @ticket 41471
 	 * @ticket 65819
 	 *
 	 * @covers ::start_el
@@ -60,41 +61,57 @@ class Tests_Post_Walker_PageDropdown extends WP_UnitTestCase {
 	 */
 	public static function data_start_el() {
 		return array(
-			'default arguments'                    => array(
+			'default arguments'                           => array(
 				array(),
 				0,
 				'<option class="level-0" value="7">About</option>',
 			),
-			'selected by string ID'                => array(
+			'selected by string ID'                       => array(
 				array( 'selected' => '7' ),
 				0,
 				'<option class="level-0" value="7" selected="selected">About</option>',
 			),
-			'post name as the value field'         => array(
+			'post name as the value field'                => array(
 				array( 'value_field' => 'post_name' ),
 				0,
 				'<option class="level-0" value="about">About</option>',
 			),
-			'selection uses the ID with another value field' => array(
+			'ID does not select with another value field' => array(
 				array(
 					'value_field' => 'post_name',
 					'selected'    => 7,
 				),
 				0,
-				'<option class="level-0" value="about" selected="selected">About</option>',
+				'<option class="level-0" value="about">About</option>',
 			),
-			'post name does not select the page'   => array(
+			'selected by post name'                       => array(
 				array(
 					'value_field' => 'post_name',
 					'selected'    => 'about',
 				),
 				0,
+				'<option class="level-0" value="about" selected="selected">About</option>',
+			),
+			'other post name does not select'             => array(
+				array(
+					'value_field' => 'post_name',
+					'selected'    => 'contact',
+				),
+				0,
 				'<option class="level-0" value="about">About</option>',
 			),
-			'unknown value field falls back to ID' => array(
+			'unknown value field falls back to ID'        => array(
 				array( 'value_field' => 'does_not_exist' ),
 				0,
 				'<option class="level-0" value="7">About</option>',
+			),
+			'selected by ID with unknown value field'     => array(
+				array(
+					'value_field' => 'does_not_exist',
+					'selected'    => 7,
+				),
+				0,
+				'<option class="level-0" value="7" selected="selected">About</option>',
 			),
 		);
 	}
