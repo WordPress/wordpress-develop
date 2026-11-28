@@ -413,7 +413,7 @@ function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ) {
 	<?php } ?>
 
 	<p><?php _e( 'If you are not going to use a great site domain, leave it for a new user. Now have at it!' ); ?></p>
-	<form id="setupform" method="post" action="wp-signup.php">
+	<form id="setupform"<?php echo $errors->has_errors() ? ' class="wp-signup-error"' : ''; ?> method="post" action="wp-signup.php">
 		<input type="hidden" name="stage" value="gimmeanotherblog" />
 		<?php
 		/**
@@ -640,7 +640,7 @@ function signup_user( $user_name = '', $user_email = '', $errors = '' ) {
 		printf( __( 'Get your own %s account in seconds' ), get_network()->site_name );
 	?>
 	</h2>
-	<form id="setupform" method="post" action="wp-signup.php" novalidate="novalidate">
+	<form id="setupform"<?php echo $errors->has_errors() ? ' class="wp-signup-error"' : ''; ?> method="post" action="wp-signup.php" novalidate="novalidate">
 		<input type="hidden" name="stage" value="validate-user-signup" />
 		<?php
 		/** This action is documented in wp-signup.php */
@@ -783,7 +783,7 @@ function signup_blog( $user_name = '', $user_email = '', $blogname = '', $blog_t
 		$blogname = $user_name;
 	}
 	?>
-	<form id="setupform" method="post" action="wp-signup.php">
+	<form id="setupform"<?php echo $errors->has_errors() ? ' class="wp-signup-error"' : ''; ?> method="post" action="wp-signup.php">
 		<input type="hidden" name="stage" value="validate-blog-signup" />
 		<input type="hidden" name="user_name" value="<?php echo esc_attr( $user_name ); ?>" />
 		<input type="hidden" name="user_email" value="<?php echo esc_attr( $user_email ); ?>" />
