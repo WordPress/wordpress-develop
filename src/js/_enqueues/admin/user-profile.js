@@ -662,7 +662,7 @@
 		if ( true === updateLock ) {
 			return __( 'Your new password has not been saved.' );
 		}
-		if ( originalFormContent !== $form.serialize() && ! isSubmitting ) {
+		if ( $form && originalFormContent !== $form.serialize() && ! isSubmitting ) {
 			return __( 'The changes you made will be lost if you navigate away from this page.' );
 		}
 	});
