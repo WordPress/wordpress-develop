@@ -135,11 +135,10 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	public function test_prepare_items_without_cron_option_does_not_throw_warning() {
 		global $wp_query;
 
-		// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
 		$mock = $this->getMockBuilder( WP_Media_List_Table::class )
 			->disableOriginalConstructor()
 			->disallowMockingUnknownTypes()
-			->setMethods( array( 'set_pagination_args' ) )
+			->onlyMethods( array( 'set_pagination_args' ) )
 			->getMock();
 
 		$mock->expects( $this->once() )
