@@ -321,6 +321,17 @@ final class WP_Abilities_Registry {
 			WP_Ability_Categories_Registry::get_instance();
 
 			/**
+			 * Fires before abilities are registered, so that extensions to them can be registered.
+			 *
+			 * Post fields and post query filters must be registered on this action with
+			 * wp_register_ability_post_field() and wp_register_ability_post_query_filter(), since
+			 * the abilities that return posts read them when they are registered.
+			 *
+			 * @since 7.3.0
+			 */
+			do_action( 'wp_abilities_api_extensions_init' );
+
+			/**
 			 * Fires when preparing abilities registry.
 			 *
 			 * Abilities should be created and register their hooks on this action rather

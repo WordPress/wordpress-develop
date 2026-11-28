@@ -895,3 +895,196 @@ function wp_get_ability_categories(): array {
 
 	return $registry->get_all_registered();
 }
+
+/**
+ * Registers a field that content abilities add to the posts they return.
+ *
+ * The field is returned under `extensions.<namespace>.<name>` for each post, and the
+ * `fields` input of the abilities accepts its path, such as `extensions.my-plugin.language`.
+ * It is not a default field, so a caller must request it, directly or through the
+ * `extensions` or `extensions.<namespace>` path. Abilities that return posts, such as
+ * `core/content-query`, read the registered fields when they are registered, so post
+ * fields must be registered on the `wp_abilities_api_extensions_init` action hook.
+ *
+ * Example:
+ *
+ *     function my_plugin_register_post_fields(): void {
+ *         wp_register_ability_post_field(
+ *             'my-plugin',
+ *             'language',
+ *             array(
+ *                 'schema'       => array(
+ *                     'type'        => array( 'string', 'null' ),
+ *                     'description' => __( 'The language slug of the post, such as "fi".', 'my-plugin' ),
+ *                 ),
+ *                 'get_callback' => static function ( WP_Post $post ) {
+ *                     return my_plugin_get_post_language( $post->ID );
+ *                 },
+ *             )
+ *         );
+ *     }
+ *     add_action( 'wp_abilities_api_extensions_init', 'my_plugin_register_post_fields' );
+ *
+ * @since 7.3.0
+ *
+ * @param string               $extension_namespace The namespace of the plugin that registers the field,
+ *                                                  such as `my-plugin`. Lowercase letters, digits, and dashes.
+ * @param string               $name                The field name. Lowercase letters, digits, dashes, and underscores.
+ * @param array<string, mixed> $args                {
+ *     Arguments for the field.
+ *
+ *     @type array<string, mixed> $schema       The JSON Schema of the field value, used in the
+ *                                              output schema of the abilities.
+ *     @type callable             $get_callback Returns the field value for a post. Receives the
+ *                                              WP_Post object, which is set up as the global post.
+ *                                              Only called for posts the current user can read.
+ *     @type string[]             $object_types Optional. The post types the field applies to. The field
+ *                                              is left out of posts of other post types. Default empty
+ *                                              array, which applies to every post type.
+ * }
+ * @return bool True if the field was registered, false otherwise.
+ */
+function wp_register_ability_post_field( string $extension_namespace, string $name, array $args ): bool {
+	return _wp_register_ability_post_extension( 'fields', 'get_callback', __FUNCTION__, $extension_namespace, $name, $args );
+}
+
+/**
+ * Registers a query filter that content abilities accept for the posts they query.
+ *
+ * The filter is read from `where.extensions.<namespace>.<name>` in the input of
+ * abilities that query posts, such as `core/content-query`. Its callback turns the
+ * value into a limited set of query arguments, which the ability joins with its own
+ * filters and with the other query filters, so a post must match all of them. The
+ * ability applies them to every query it runs, so the totals match the results.
+ * Query filters must be registered on the `wp_abilities_api_extensions_init` action hook.
+ *
+ * The callback receives the filter value, already validated against the schema, and the
+ * WP_Post_Type object of the queried post type. It returns an array with any of the
+ * following WP_Query arguments, or a WP_Error to refuse the query:
+ *
+ *  - `meta_query` and `tax_query`: added as a nested clause, joined with AND.
+ *  - `post__in`: intersected with the IDs the other filters allow. An empty list matches no post.
+ *  - `post__not_in`: merged with the IDs the other filters exclude.
+ *
+ * Example:
+ *
+ *     function my_plugin_register_post_query_filters(): void {
+ *         wp_register_ability_post_query_filter(
+ *             'my-plugin',
+ *             'language',
+ *             array(
+ *                 'schema'   => array(
+ *                     'type'        => 'string',
+ *                     'minLength'   => 1,
+ *                     'description' => __( 'Only return posts in this language, such as "fi".', 'my-plugin' ),
+ *                 ),
+ *                 'callback' => static function ( string $language ): array {
+ *                     return array(
+ *                         'tax_query' => array(
+ *                             array(
+ *                                 'taxonomy' => 'language',
+ *                                 'field'    => 'slug',
+ *                                 'terms'    => $language,
+ *                             ),
+ *                         ),
+ *                     );
+ *                 },
+ *             )
+ *         );
+ *     }
+ *     add_action( 'wp_abilities_api_extensions_init', 'my_plugin_register_post_query_filters' );
+ *
+ * @since 7.3.0
+ *
+ * @param string               $extension_namespace The namespace of the plugin that registers the filter,
+ *                                                  such as `my-plugin`. Lowercase letters, digits, and dashes.
+ * @param string               $name                The filter name. Lowercase letters, digits, dashes, and underscores.
+ * @param array<string, mixed> $args                {
+ *     Arguments for the query filter.
+ *
+ *     @type array<string, mixed> $schema       The JSON Schema of the filter value, used in the
+ *                                              input schema of the abilities.
+ *     @type callable             $callback     Returns the query arguments for a filter value, or a
+ *                                              WP_Error to refuse the query.
+ *     @type string[]             $object_types Optional. The post types the filter applies to. A query
+ *                                              of another post type that sets the filter is refused.
+ *                                              Default empty array, which applies to every post type.
+ * }
+ * @return bool True if the query filter was registered, false otherwise.
+ */
+function wp_register_ability_post_query_filter( string $extension_namespace, string $name, array $args ): bool {
+	return _wp_register_ability_post_extension( 'query_filters', 'callback', __FUNCTION__, $extension_namespace, $name, $args );
+}
+
+/**
+ * Registers a post field or a post query filter for content abilities.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @global array $wp_ability_post_extensions Registered post fields and query filters, keyed by
+ *                                           kind, then namespace, then name.
+ *
+ * @param string               $kind                The kind of extension: `fields` or `query_filters`.
+ * @param string               $callback_key        The argument that holds the callback.
+ * @param string               $function_name       The public function that was called, for notices.
+ * @param string               $extension_namespace The extension namespace.
+ * @param string               $name                The extension name.
+ * @param array<string, mixed> $args                The extension arguments.
+ * @return bool True if the extension was registered, false otherwise.
+ */
+function _wp_register_ability_post_extension( string $kind, string $callback_key, string $function_name, string $extension_namespace, string $name, array $args ): bool {
+	global $wp_ability_post_extensions;
+
+	$error = '';
+	if ( ! doing_action( 'wp_abilities_api_extensions_init' ) ) {
+		/* translators: %s: wp_abilities_api_extensions_init */
+		$error = sprintf( __( 'Ability extensions must be registered on the %s action.' ), '<code>wp_abilities_api_extensions_init</code>' );
+	} elseif ( ! preg_match( '/^[a-z0-9-]+$/', $extension_namespace ) ) {
+		$error = __( 'The namespace must contain only lowercase letters, digits, and dashes.' );
+	} elseif ( ! preg_match( '/^[a-z0-9_-]+$/', $name ) ) {
+		$error = __( 'The name must contain only lowercase letters, digits, dashes, and underscores.' );
+	} elseif ( isset( $wp_ability_post_extensions[ $kind ][ $extension_namespace ][ $name ] ) ) {
+		$error = __( 'An extension with this namespace and name is already registered.' );
+	} elseif ( empty( $args['schema'] ) || ! is_array( $args['schema'] ) ) {
+		/* translators: %s: schema */
+		$error = sprintf( __( 'The %s argument must be a non-empty array.' ), '<code>schema</code>' );
+	} elseif ( ! isset( $args[ $callback_key ] ) || ! is_callable( $args[ $callback_key ] ) ) {
+		/* translators: %s: Argument name. */
+		$error = sprintf( __( 'The %s argument must be a valid callback.' ), '<code>' . $callback_key . '</code>' );
+	} elseif ( isset( $args['object_types'] ) && ( ! is_array( $args['object_types'] ) || array_filter( $args['object_types'], 'is_string' ) !== $args['object_types'] ) ) {
+		/* translators: %s: object_types */
+		$error = sprintf( __( 'The %s argument must be an array of post type names.' ), '<code>object_types</code>' );
+	}
+
+	if ( '' !== $error ) {
+		_doing_it_wrong( $function_name, $error, '7.3.0' );
+		return false;
+	}
+
+	$wp_ability_post_extensions[ $kind ][ $extension_namespace ][ $name ] = array(
+		'schema'       => $args['schema'],
+		'callback'     => $args[ $callback_key ],
+		'object_types' => array_values( $args['object_types'] ?? array() ),
+	);
+
+	return true;
+}
+
+/**
+ * Returns the registered post fields or post query filters for content abilities.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @global array $wp_ability_post_extensions Registered post fields and query filters.
+ *
+ * @param string $kind The kind of extension: `fields` or `query_filters`.
+ * @return array<string, array<string, array{schema: array<string, mixed>, callback: callable, object_types: list<string>}>>
+ *         The extensions, keyed by namespace, then name.
+ */
+function _wp_get_ability_post_extensions( string $kind ): array {
+	global $wp_ability_post_extensions;
+
+	return $wp_ability_post_extensions[ $kind ] ?? array();
+}
