@@ -660,4 +660,160 @@ line 2<br/>
 
 		$this->assertSameIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
+
+	/**
+	 * Opts a shortcode out of autop through the `no_autop_shortcodes` filter.
+	 *
+	 * @param string $tagname Shortcode name.
+	 */
+	private function opt_out_of_autop( $tagname ) {
+		add_filter(
+			'no_autop_shortcodes',
+			static function ( $tagnames ) use ( $tagname ) {
+				$tagnames[] = $tagname;
+				return $tagnames;
+			}
+		);
+	}
+
+	/**
+	 * Shortcodes are formatted by default.
+	 *
+	 * @ticket 6984
+	 */
+	public function test_shortcode_content_is_formatted_by_default() {
+		$this->assertSame(
+			"<p>[code]a</p>\n<p>b<br />\nc[/code]</p>\n",
+			wpautop( "[code]a\n\nb\nc[/code]" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_leaves_shortcode_content_untouched() {
+		$this->opt_out_of_autop( 'code' );
+
+		$this->assertSame(
+			"<p>Before</p>\n<p>[code]line1\n\nline2\nline3[/code]</p>\n<p>After</p>\n",
+			wpautop( "Before\n\n[code]line1\n\nline2\nline3[/code]\n\nAfter" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_only_affects_listed_shortcodes() {
+		$this->opt_out_of_autop( 'code' );
+
+		$this->assertSame(
+			"<p>[other]a</p>\n<p>b[/other]</p>\n",
+			wpautop( "[other]a\n\nb[/other]" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_handles_multiple_shortcodes() {
+		$this->opt_out_of_autop( 'code' );
+
+		$this->assertSame(
+			"<p>[code]a\n\nb[/code]</p>\n<p>[code]c\n\nd[/code]</p>\n",
+			wpautop( "[code]a\n\nb[/code]\n\n[code]c\n\nd[/code]" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_keeps_surrounding_text_formatted() {
+		$this->opt_out_of_autop( 'code' );
+
+		$this->assertSame(
+			"<p>Text [code]a\n\nb[/code] more<br />\ntext</p>\n",
+			wpautop( "Text [code]a\n\nb[/code] more\ntext" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_keeps_line_breaks_in_attributes() {
+		$this->opt_out_of_autop( 'code' );
+
+		$this->assertSame(
+			"<p>[code lang=\"php\"\nfoo=\"1\"] x</p>\n<p>y</p>\n",
+			wpautop( "[code lang=\"php\"\nfoo=\"1\"] x\n\ny" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_ignores_escaped_shortcodes() {
+		$this->opt_out_of_autop( 'code' );
+
+		$this->assertSame(
+			"<p>[[code]]x</p>\n<p>y[[/code]]</p>\n",
+			wpautop( "[[code]]x\n\ny[[/code]]" )
+		);
+	}
+
+	/**
+	 * Replacement-like characters in the content must be preserved.
+	 *
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_preserves_replacement_characters() {
+		$this->opt_out_of_autop( 'code' );
+
+		$this->assertSame(
+			"<p>[code]\$1 \\1\n\nx[/code]</p>\n",
+			wpautop( "[code]\$1 \\1\n\nx[/code]" )
+		);
+	}
+
+	/**
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_without_line_breaks_conversion() {
+		$this->opt_out_of_autop( 'code' );
+
+		$this->assertSame(
+			"<p>[code]a\nb[/code]\nc\nd</p>\n",
+			wpautop( "[code]a\nb[/code]\nc\nd", false )
+		);
+	}
+
+	/**
+	 * The shortcode callback should receive the content as written, when the
+	 * shortcode content is processed in the same order as the `the_content` filter.
+	 *
+	 * @ticket 6984
+	 */
+	public function test_no_autop_shortcodes_filter_passes_content_unchanged_to_shortcode_callback() {
+		$code = '$text = str_replace( array(\'<p><p>\', \'</p></p>\'), array(\'<p>\', \'</p>\'), $text);' . "\n\nif ( \$a ) {\n\techo 1;\n}";
+
+		add_shortcode(
+			'code',
+			static function ( $atts, $content = '' ) {
+				return '<pre class="code">' . $content . '</pre>';
+			}
+		);
+
+		$this->opt_out_of_autop( 'code' );
+
+		try {
+			// Same order as the default `the_content` filters: wpautop(), shortcode_unautop(), do_shortcode().
+			$actual = do_shortcode( shortcode_unautop( wpautop( "Intro.\n\n[code lang=\"php\"]{$code}[/code]\n\nOutro." ) ) );
+		} finally {
+			remove_shortcode( 'code' );
+		}
+
+		$this->assertSame(
+			"<p>Intro.</p>\n<pre class=\"code\">{$code}</pre>\n<p>Outro.</p>\n",
+			$actual
+		);
+	}
 }
