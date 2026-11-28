@@ -2061,8 +2061,8 @@ function get_most_recent_post_of_user( $user_id ) {
  *
  * @since MU (3.0.0)
  *
- * @param array $mimes
- * @return array
+ * @param array<string, string> $mimes Mime types keyed by the file extension regex corresponding to those types.
+ * @return array<string, string> Mime types allowed by the network, keyed by the file extension regex.
  */
 function check_upload_mimes( $mimes ) {
 	$site_exts  = explode( ' ', get_site_option( 'upload_filetypes', 'jpg jpeg png gif' ) );
