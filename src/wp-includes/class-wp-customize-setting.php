@@ -90,7 +90,7 @@ class WP_Customize_Setting {
 	 *
 	 * @since 4.6.0
 	 * @var callable|string
-	 * @phpstan-var callable|''
+	 * @phpstan-var (callable( WP_Error, mixed, WP_Customize_Setting ): mixed)|''
 	 */
 	public $validate_callback = '';
 
@@ -101,7 +101,7 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 * @var callable|string
-	 * @phpstan-var callable|''
+	 * @phpstan-var (callable( mixed, WP_Customize_Setting ): mixed)|''
 	 */
 	public $sanitize_callback = '';
 
@@ -112,7 +112,7 @@ class WP_Customize_Setting {
 	 *
 	 * @since 3.4.0
 	 * @var callable|string
-	 * @phpstan-var callable|''
+	 * @phpstan-var (callable( mixed, WP_Customize_Setting ): mixed)|''
 	 */
 	public $sanitize_js_callback = '';
 
