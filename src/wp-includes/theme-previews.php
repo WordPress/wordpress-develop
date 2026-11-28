@@ -68,11 +68,20 @@ function wp_attach_theme_preview_middleware() {
  */
 function wp_block_theme_activate_nonce() {
 	$nonce_handle = 'switch-theme_' . wp_get_theme_preview_path();
-	?>
-	<script>
-		window.WP_BLOCK_THEME_ACTIVATE_NONCE = <?php echo wp_json_encode( wp_create_nonce( $nonce_handle ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
-	</script>
-	<?php
+
+	$js_function = <<<'JS'
+		( nonce ) => {
+			window.WP_BLOCK_THEME_ACTIVATE_NONCE = nonce;
+		}
+		JS;
+
+	wp_print_inline_script_tag(
+		sprintf(
+			'( %s )( %s );',
+			$js_function,
+			wp_json_encode( wp_create_nonce( $nonce_handle ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+		)
+	);
 }
 
 /**
