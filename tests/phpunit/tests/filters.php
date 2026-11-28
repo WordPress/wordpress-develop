@@ -26,6 +26,26 @@ class Tests_Filters extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 36786
+	 */
+	public function test_get_call_count_by_hook_name_for_filters() {
+		$a           = new MockAction();
+		$hook_name_1 = __FUNCTION__ . '_1';
+		$hook_name_2 = __FUNCTION__ . '_2';
+
+		add_filter( $hook_name_1, array( $a, 'filter' ) );
+		add_filter( $hook_name_2, array( $a, 'filter' ) );
+		apply_filters( $hook_name_1, 'value' );
+		apply_filters( $hook_name_2, 'value' );
+		apply_filters( $hook_name_2, 'value' );
+
+		$this->assertSame( 1, $a->get_call_count( $hook_name_1 ), 'Calls to the first hook should be counted.' );
+		$this->assertSame( 2, $a->get_call_count( $hook_name_2 ), 'Calls to the second hook should be counted.' );
+		$this->assertSame( 0, $a->get_call_count( 'filter' ), 'The callback method name should not be counted as a hook name.' );
+		$this->assertSame( 3, $a->get_call_count(), 'All calls should be counted when no hook name is passed.' );
+	}
+
+	/**
 	 * @covers ::remove_filter
 	 */
 	public function test_remove_filter() {
