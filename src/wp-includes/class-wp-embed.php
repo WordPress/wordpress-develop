@@ -87,13 +87,21 @@ class WP_Embed {
 		if ( ! $post || empty( $_GET['message'] ) ) {
 			return;
 		}
-		?>
-<script>
-	jQuery( function($) {
-		$.get("<?php echo esc_url( admin_url( 'admin-ajax.php', 'relative' ) ) . '?action=oembed-cache&post=' . $post->ID; ?>");
-	} );
-</script>
-		<?php
+		$js_function = <<<'JS'
+			( url ) => {
+				jQuery( function($) {
+					$.get( url );
+				} );
+			}
+			JS;
+
+		wp_print_inline_script_tag(
+			sprintf(
+				'( %s )( %s );',
+				$js_function,
+				wp_json_encode( admin_url( 'admin-ajax.php', 'relative' ) . '?action=oembed-cache&post=' . $post->ID, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+			)
+		);
 	}
 
 	/**
