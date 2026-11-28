@@ -2060,11 +2060,12 @@ function _redirect_to_about_wordpress( $new_version ) {
 		) . '</span>'
 	);
 	echo '</div>';
-	?>
-<script>
-window.location = 'about.php?updated';
-</script>
-	<?php
+
+	wp_print_inline_script_tag(
+		<<<'JS'
+		window.location = 'about.php?updated';
+		JS
+	);
 
 	// Include admin-footer.php and exit.
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
