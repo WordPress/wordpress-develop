@@ -1498,9 +1498,9 @@ p.customize-section-description {
 
 .customize-control .attachment-media-view .button-add-media:focus {
 	background-color: #fff;
-	border-color: #3582c4;
+	border-color: var(--wp-admin-theme-color, #3858e9);
 	border-style: solid;
-	box-shadow: 0 0 0 1px #3582c4;
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
