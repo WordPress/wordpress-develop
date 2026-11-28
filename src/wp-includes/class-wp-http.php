@@ -38,6 +38,55 @@ if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
  *     filename?: string|null,
  *     http_response?: WP_HTTP_Requests_Response|null,
  * }
+ * @phpstan-type HTTP_Request_Args array{
+ *     method?: string,
+ *     timeout?: float|int,
+ *     redirection?: int,
+ *     httpversion?: string,
+ *     'user-agent'?: string,
+ *     reject_unsafe_urls?: bool,
+ *     blocking?: bool,
+ *     headers?: string|mixed[]|null,
+ *     cookies?: mixed[],
+ *     body?: string|mixed[]|null,
+ *     compress?: bool,
+ *     decompress?: bool,
+ *     sslverify?: bool,
+ *     sslcertificates?: string,
+ *     stream?: bool,
+ *     filename?: string|null,
+ *     limit_response_size?: int|null,
+ *     ...
+ * }
+ * @phpstan-type Parsed_HTTP_Request_Args array{
+ *     method: string,
+ *     timeout: float|int,
+ *     redirection: int,
+ *     httpversion: string,
+ *     'user-agent': string,
+ *     reject_unsafe_urls: bool,
+ *     blocking: bool,
+ *     headers: string|mixed[]|null,
+ *     cookies: mixed[],
+ *     body: string|mixed[]|null,
+ *     compress: bool,
+ *     decompress: bool,
+ *     sslverify: bool,
+ *     sslcertificates: string,
+ *     stream: bool,
+ *     filename: string|null,
+ *     limit_response_size: int|null,
+ *     _redirection: int,
+ *     ...
+ * }
+ * @phpstan-type Prepared_Request array{
+ *     url: string,
+ *     headers: mixed[],
+ *     data: mixed,
+ *     type: mixed,
+ *     options: array<string, mixed>,
+ *     args: Parsed_HTTP_Request_Args,
+ * }
  */
 #[AllowDynamicProperties]
 class WP_Http {
@@ -176,9 +225,234 @@ class WP_Http {
 	 *     @type WP_HTTP_Requests_Response|null                         $http_response Response object.
 	 * }
 	 *
+	 * @phpstan-param string|HTTP_Request_Args $args
 	 * @phpstan-return HTTP_Response|WP_Error
 	 */
 	public function request( $url, $args = array() ) {
+		if ( ! is_array( $args ) ) {
+			$args = wp_parse_args( $args );
+		}
+
+		$prepared = $this->prepare_request( $url, $args );
+
+		if ( is_wp_error( $prepared ) ) {
+			return $prepared;
+		}
+
+		// The request was short-circuited by the 'pre_http_request' filter.
+		if ( array_key_exists( 'response', $prepared ) ) {
+			return $prepared['response'];
+		}
+
+		// Avoid issues where mbstring.func_overload is enabled.
+		mbstring_binary_safe_encoding();
+
+		try {
+			$response = WpOrg\Requests\Requests::request(
+				$prepared['url'],
+				$prepared['headers'],
+				$prepared['data'],
+				$prepared['type'],
+				$prepared['options']
+			);
+		} catch ( WpOrg\Requests\Exception $e ) {
+			$response = new WP_Error( 'http_request_failed', $e->getMessage() );
+		} finally {
+			reset_mbstring_encoding();
+		}
+
+		return $this->finalize_response( $response, $prepared['args'], $prepared['url'] );
+	}
+
+	/**
+	 * Sends multiple HTTP requests concurrently and returns their responses.
+	 *
+	 * Every request is prepared, and its response processed, exactly like a request
+	 * sent through WP_Http::request(): the 'http_request_args', 'pre_http_request' and
+	 * 'http_response' filters and the 'http_api_debug' action apply to each request
+	 * individually. The requests that were not short-circuited are then sent side by
+	 * side, at most $concurrency at a time.
+	 *
+	 * Non-blocking requests are not supported: every request is performed in full.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @see WP_Http::request() For the accepted request arguments and the response format.
+	 *
+	 * @param array $requests Requests to send, keyed by an identifier of the caller's choosing.
+	 *                        Each request is either a URL string, for a GET request with the
+	 *                        default arguments, or an array with the request URL under 'url'
+	 *                        and, optionally, the request arguments under 'args'.
+	 *                        See {@see WP_Http::request()} for the accepted request arguments.
+	 * @param array $options {
+	 *     Optional. Options that apply to the batch of requests.
+	 *
+	 *     @type int $concurrency Maximum number of requests to send at once. Default 6. Minimum 1.
+	 * }
+	 * @return array Responses keyed like $requests. Each is a response array, or a WP_Error
+	 *               on failure. See {@see WP_Http::request()} for the response format.
+	 * @phpstan-param array<string|array{ url?: string, args?: string|HTTP_Request_Args }> $requests
+	 * @phpstan-return array<HTTP_Response|WP_Error>
+	 */
+	public function request_multiple( array $requests, array $options = array() ): array {
+		$responses = array();
+		$pending   = array();
+
+		foreach ( $requests as $id => $request ) {
+			if ( ! is_array( $request ) ) {
+				$request = array( 'url' => $request );
+			}
+
+			$url  = $request['url'] ?? '';
+			$args = $request['args'] ?? array();
+
+			if ( ! is_array( $args ) ) {
+				$args = wp_parse_args( $args );
+			}
+
+			// Batches cannot send non-blocking requests, each request is performed in full.
+			$args['blocking'] = true;
+
+			$prepared = $this->prepare_request( $url, $args );
+
+			if ( is_wp_error( $prepared ) ) {
+				$responses[ $id ] = $prepared;
+			} elseif ( array_key_exists( 'response', $prepared ) ) {
+				// The request was short-circuited by the 'pre_http_request' filter.
+				$responses[ $id ] = $prepared['response'];
+			} else {
+				$pending[ $id ] = $prepared;
+			}
+		}
+
+		if ( ! empty( $pending ) ) {
+			$concurrency = max( 1, (int) ( $options['concurrency'] ?? 6 ) );
+
+			/**
+			 * Filters the maximum number of HTTP requests that WP_Http::request_multiple() sends at once.
+			 *
+			 * @since 7.3.0
+			 *
+			 * @param int   $concurrency Maximum number of requests to send at once. Default 6. Minimum 1.
+			 * @param array $requests    The requests to send. See WP_Http::request_multiple().
+			 * @phpstan-param positive-int $concurrency
+			 * @phpstan-param array<string|array{ url?: string, args?: string|HTTP_Request_Args }> $requests
+			 */
+			$concurrency = (int) apply_filters( 'http_request_multiple_concurrency', $concurrency, $requests );
+			$concurrency = max( 1, $concurrency );
+
+			foreach ( array_chunk( $pending, $concurrency, true ) as $batch ) {
+				$results        = array();
+				$batch_requests = array();
+
+				// Avoid issues where mbstring.func_overload is enabled.
+				mbstring_binary_safe_encoding();
+
+				try {
+					foreach ( $batch as $id => $prepared ) {
+						$request_url     = $prepared['url'];
+						$request_headers = $prepared['headers'];
+						$request_data    = $prepared['data'];
+						$request_type    = $prepared['type'];
+						$request_options = $prepared['options'];
+
+						/*
+						 * Requests::request() fires this hook for a single request, but
+						 * Requests::request_multiple() does not, so fire it here to treat
+						 * the requests of a batch like requests sent on their own.
+						 */
+						$request_options['hooks']->dispatch(
+							'requests.before_request',
+							array( &$request_url, &$request_headers, &$request_data, &$request_type, &$request_options )
+						);
+
+						/*
+						 * Requests::request_multiple() throws for the whole batch if one of its URLs
+						 * is not an HTTP(S) URL. Reject such a request on its own instead, with the
+						 * same error that Requests::request() would throw for it.
+						 */
+						if ( ! preg_match( '/^http(s)?:\/\//i', $request_url ) ) {
+							$results[ $id ] = new WpOrg\Requests\Exception( 'Only HTTP(S) requests are handled.', 'nonhttp', $request_url );
+							continue;
+						}
+
+						$batch_requests[ $id ] = array(
+							'url'     => $request_url,
+							'headers' => $request_headers,
+							'data'    => $request_data,
+							'type'    => $request_type,
+							'options' => $request_options,
+						);
+					}
+
+					if ( ! empty( $batch_requests ) ) {
+						/** @var array<\WpOrg\Requests\Response|\WpOrg\Requests\Exception> $batch_results */
+						$batch_results = WpOrg\Requests\Requests::request_multiple( $batch_requests );
+						$results       = $batch_results + $results;
+					}
+				} catch ( WpOrg\Requests\Exception $e ) {
+					/*
+					 * The batch failed as a whole. Its requests may already have been sent,
+					 * so do not send them again: report the error for each of them instead.
+					 */
+					foreach ( $batch as $id => $prepared ) {
+						if ( ! isset( $results[ $id ] ) ) {
+							$results[ $id ] = $e;
+						}
+					}
+				} finally {
+					reset_mbstring_encoding();
+				}
+
+				foreach ( $batch as $id => $prepared ) {
+					if ( isset( $results[ $id ] ) ) {
+						$result = $results[ $id ];
+					} else {
+						$result = new WP_Error( 'http_request_failed', __( 'No response was received.' ) );
+					}
+
+					$responses[ $id ] = $this->finalize_response( $result, $prepared['args'], $prepared['url'] );
+				}
+			}
+		}
+
+		// Return the responses in the order the requests were given.
+		$ordered = array();
+
+		foreach ( $requests as $id => $request ) {
+			$ordered[ $id ] = $responses[ $id ];
+		}
+
+		return $ordered;
+	}
+
+	/**
+	 * Prepares a request for the Requests library.
+	 *
+	 * Parses and filters the request arguments, lets the 'pre_http_request' filter
+	 * short-circuit the request, validates the URL, checks whether the request is
+	 * blocked, and translates the arguments into options for the Requests library.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string               $url  The request URL.
+	 * @param array<string, mixed> $args Optional. Request arguments. See {@see WP_Http::request()}.
+	 * @return array|WP_Error {
+	 *     The prepared request, or a WP_Error if the request cannot be sent. If the request was
+	 *     short-circuited by the 'pre_http_request' filter, only the 'response' key is present.
+	 *
+	 *     @type string         $url      The validated request URL.
+	 *     @type array          $headers  Request headers.
+	 *     @type mixed          $data     Request body.
+	 *     @type string         $type     Request method.
+	 *     @type array          $options  Options for the Requests library.
+	 *     @type array          $args     The parsed request arguments, after the 'http_request_args' filter.
+	 *     @type array|WP_Error $response Optional. The response returned by the 'pre_http_request' filter.
+	 * }
+	 * @phpstan-param HTTP_Request_Args $args
+	 * @phpstan-return Prepared_Request|array{ response: HTTP_Response|WP_Error }|WP_Error
+	 */
+	protected function prepare_request( $url, array $args = array() ) {
 		$defaults = array(
 			'method'              => 'GET',
 			/**
@@ -244,9 +518,6 @@ class WP_Http {
 			'limit_response_size' => null,
 		);
 
-		// Pre-parse for the HEAD checks.
-		$args = wp_parse_args( $args );
-
 		// By default, HEAD requests do not cause redirections.
 		if ( isset( $args['method'] ) && 'HEAD' === $args['method'] ) {
 			$defaults['redirection'] = 0;
@@ -285,11 +556,14 @@ class WP_Http {
 		 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
 		 * @param array                $parsed_args HTTP request arguments.
 		 * @param string               $url         The request URL.
+		 * @phpstan-param false|HTTP_Response|WP_Error $response
 		 */
 		$pre = apply_filters( 'pre_http_request', false, $parsed_args, $url );
 
 		if ( false !== $pre ) {
-			return $pre;
+			return array(
+				'response' => $pre,
+			);
 		}
 
 		if ( function_exists( 'wp_kses_bad_protocol' ) ) {
@@ -421,23 +695,45 @@ class WP_Http {
 			}
 		}
 
-		// Avoid issues where mbstring.func_overload is enabled.
-		mbstring_binary_safe_encoding();
+		return array(
+			'url'     => $url,
+			'headers' => $headers,
+			'data'    => $data,
+			'type'    => $type,
+			'options' => $options,
+			'args'    => $parsed_args,
+		);
+	}
 
-		try {
-			$requests_response = WpOrg\Requests\Requests::request( $url, $headers, $data, $type, $options );
+	/**
+	 * Turns the result of a request into a WP_Http response array.
+	 *
+	 * Fires the 'http_api_debug' action and applies the 'http_response' filter.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param \WpOrg\Requests\Response|\WpOrg\Requests\Exception|WP_Error $response    The response, or the error the
+	 *                                                                                 request failed with.
+	 * @param mixed[]                                                     $parsed_args The parsed request arguments, as
+	 *                                                                                 returned by {@see WP_Http::prepare_request()}.
+	 * @param string                                                      $url         The request URL.
+	 * @return array|WP_Error The response array, or a WP_Error on failure. See {@see WP_Http::request()}.
+	 * @phpstan-param Parsed_HTTP_Request_Args $parsed_args
+	 * @phpstan-return HTTP_Response|WP_Error
+	 */
+	protected function finalize_response( $response, array $parsed_args, string $url ) {
+		if ( $response instanceof WpOrg\Requests\Exception ) {
+			$response = new WP_Error( 'http_request_failed', $response->getMessage() );
+		}
 
+		if ( ! is_wp_error( $response ) ) {
 			// Convert the response into an array.
-			$http_response = new WP_HTTP_Requests_Response( $requests_response, $parsed_args['filename'] );
+			$http_response = new WP_HTTP_Requests_Response( $response, $parsed_args['filename'] );
 			$response      = $http_response->to_array();
 
 			// Add the original object to the array.
 			$response['http_response'] = $http_response;
-		} catch ( WpOrg\Requests\Exception $e ) {
-			$response = new WP_Error( 'http_request_failed', $e->getMessage() );
 		}
-
-		reset_mbstring_encoding();
 
 		/**
 		 * Fires after an HTTP API response is received and before the response is returned.
