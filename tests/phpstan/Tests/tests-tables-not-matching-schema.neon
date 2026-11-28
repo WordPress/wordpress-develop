@@ -1,0 +1,6 @@
+# PHPStan configuration for the tests of the wpdb query types where the core tables
+# may have more columns than the core schema, as for a plugin or theme, on top of
+# tests.neon.
+
+parameters:
+	wpdbTablesMatchSchema: false

@@ -60,6 +60,11 @@ use PHPStan\Type\TypeTraverser;
  * string or null. A drop-in replacing it could return other types. It also
  * assumes that the query is run as written, which a callback on the `query`
  * filter, which `wpdb::query()` applies to every query, could change.
+ *
+ * A `*` over a core table is expanded to the columns of the core schema only
+ * with the `wpdbTablesMatchSchema` parameter, since a plugin may have added
+ * columns to the table on a site. It is true for core, which is analyzed
+ * against its own schema.
  */
 class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTypeExtension {
 
@@ -88,10 +93,13 @@ class WpdbQueryDynamicMethodReturnTypeExtension implements DynamicMethodReturnTy
 	 * Constructor.
 	 *
 	 * @param TypeStringResolver $type_string_resolver Resolver for PHPDoc type strings.
+	 * @param bool               $tables_match_schema  Whether the core tables have only the columns of the core schema,
+	 *                                                 so that a `*` over one of them can be expanded. True for core
+	 *                                                 itself, but not where plugins may have added columns.
 	 */
-	public function __construct( TypeStringResolver $type_string_resolver ) {
+	public function __construct( TypeStringResolver $type_string_resolver, bool $tables_match_schema ) {
 		$this->type_string_resolver = $type_string_resolver;
-		$this->parser               = new WpdbSelectParser( new WpdbSchema() );
+		$this->parser               = new WpdbSelectParser( new WpdbSchema(), $tables_match_schema );
 	}
 
 	/**

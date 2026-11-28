@@ -7,6 +7,9 @@
 # so a test can describe a broken reference without a broken reference existing in
 # core.
 
+parametersSchema:
+	wpdbTablesMatchSchema: bool()
+
 parameters:
 	# The parameters of base.neon that change what type PHPStan infers, kept the
 	# same here, so that a fixture's types are the ones the analysis of core sees.
@@ -14,6 +17,7 @@ parameters:
 		min: 70400
 		max: 80600
 	treatPhpDocTypesAsCertain: false
+	wpdbTablesMatchSchema: true
 
 	# The hook functions and wpdb are reflected from core itself, so the tests see
 	# the same signatures the analysis does. The helpers are declared for the
@@ -63,5 +67,7 @@ services:
 
 	-
 		class: WordPress\PHPStan\WpdbQueryDynamicMethodReturnTypeExtension
+		arguments:
+			tables_match_schema: %wpdbTablesMatchSchema%
 		tags:
 			- phpstan.broker.dynamicMethodReturnTypeExtension

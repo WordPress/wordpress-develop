@@ -57,6 +57,8 @@ services:
 	# the result of wpdb::query() from the statement its query begins with.
 	-
 		class: WordPress\PHPStan\WpdbQueryDynamicMethodReturnTypeExtension
+		arguments:
+			tables_match_schema: %wpdbTablesMatchSchema%
 		tags:
 			- phpstan.broker.dynamicMethodReturnTypeExtension
 
@@ -117,7 +119,16 @@ services:
 			wrappedParser: @currentPhpVersionRichParser
 		autowired: false
 
+parametersSchema:
+	wpdbTablesMatchSchema: bool()
+
 parameters:
+	# Whether the core tables have only the columns of the core schema, so that the
+	# wpdb query types expand a `*` over one of them to its columns. This holds for
+	# core, though not for plugins and themes, which run on sites where other plugins
+	# may have added columns.
+	wpdbTablesMatchSchema: true
+
 	# Cache is stored locally, so it's available for CI.
 	tmpDir: ../../.cache
 

@@ -39,9 +39,10 @@ namespace WordPress\PHPStan;
  * whose text is not known is itself unknown.
  *
  * The columns are incomplete from the first one whose count is not known: a
- * `*` over a table that is not a core table, or a select expression with an
- * unknown part outside any parentheses, since that part could hold several
- * columns.
+ * `*` over a table that is not a core table, or over any table unless the
+ * core tables are taken to have only the columns of the core schema, or a
+ * select expression with an unknown part outside any parentheses, since that
+ * part could hold several columns.
  *
  * @phpstan-type Column array{ name: string|null, type: non-empty-string, optional: bool }
  * @phpstan-type Columns array{ columns: list<Column>, complete: bool }
@@ -89,6 +90,13 @@ final class WpdbSelectParser {
 	private WpdbSchema $schema;
 
 	/**
+	 * Whether the core tables have only the columns of the core schema, which a `*` over one of them expands to.
+	 *
+	 * @var bool
+	 */
+	private bool $tables_match_schema;
+
+	/**
 	 * Parsed queries, keyed by query.
 	 *
 	 * @var array<string, array{ columns: list<array{ name: string|null, type: non-empty-string, optional: bool }>, complete: bool }|null>
@@ -99,10 +107,14 @@ final class WpdbSelectParser {
 	/**
 	 * Constructor.
 	 *
-	 * @param WpdbSchema $schema Schema of the core tables.
+	 * @param WpdbSchema $schema              Schema of the core tables.
+	 * @param bool       $tables_match_schema Whether the core tables have only the columns of the core schema. If not,
+	 *                                        as where plugins may have added columns, a `*` over one of them is not
+	 *                                        expanded, since it may select more columns.
 	 */
-	public function __construct( WpdbSchema $schema ) {
-		$this->schema = $schema;
+	public function __construct( WpdbSchema $schema, bool $tables_match_schema ) {
+		$this->schema              = $schema;
+		$this->tables_match_schema = $tables_match_schema;
 	}
 
 	/**
@@ -389,7 +401,7 @@ final class WpdbSelectParser {
 			}
 			$columns = array();
 			foreach ( $star_tables as $table ) {
-				if ( null === $table || null === $table['name'] ) {
+				if ( null === $table || null === $table['name'] || ! $this->tables_match_schema ) {
 					return null;
 				}
 				foreach ( $this->schema->get_columns( $table['name'] ) as $column ) {

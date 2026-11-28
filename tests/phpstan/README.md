@@ -229,6 +229,8 @@ Where the columns cannot be determined, such as for `SELECT *` from a table that
 
 These types assume `wpdb` itself. A `db.php` drop-in that replaces it could return values of other types. They also assume that a query is run as written, which a callback on the `query` filter could change, since `wpdb::query()` applies it to every query, including those of the other methods.
 
+A `*` over a core table is expanded to the columns `schema.php` gives it, which assumes that the table has no others. That holds for core, but a plugin may add columns to a core table on a site, and a query of `*` there returns those too. So the expansion is controlled by the `wpdbTablesMatchSchema` parameter in `base.neon`, which is `true` for core. Where the extension is used for plugins or themes, it would be `false`: a `*` over a core table is then left as declared, as over any other table, while named columns, which return only themselves, are still typed from the schema.
+
 Since the schema is read from `schema.php` rather than through PHPStan's reflection, PHPStan does not know that the files with queries depend on it. After changing a column in `schema.php`, [clear the cache](#clear-the-cache-after-changing-anything-in-this-directory) so that the queries are analyzed again.
 
 ### Testing the extensions
