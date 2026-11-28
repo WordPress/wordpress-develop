@@ -222,6 +222,16 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
 	// Store the original image file name in image_meta.
 	$image_meta['original_image'] = wp_basename( $original_file );
 
+	// Update the post mime type when the new image was saved in a different format.
+	if ( isset( $saved_data['mime-type'] ) && get_post_mime_type( $attachment_id ) !== $saved_data['mime-type'] ) {
+		wp_update_post(
+			array(
+				'ID'             => $attachment_id,
+				'post_mime_type' => $saved_data['mime-type'],
+			)
+		);
+	}
+
 	return $image_meta;
 }
 

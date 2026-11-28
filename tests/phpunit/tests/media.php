@@ -7657,6 +7657,7 @@ EOF;
 	 *
 	 * @ticket 62305
 	 * @ticket 62359
+	 * @ticket 53665
 	 *
 	 * @dataProvider data_image_converted_to_other_format_has_correct_filename
 	 *
@@ -7692,6 +7693,7 @@ EOF;
 		$this->assertSame( "test-image{$scaled_suffix}.jpg", basename( $image_meta['file'] ), "The file name is expected to be test-image{$scaled_suffix}.jpg" );
 		$this->assertSame( 'test-image.heic', $image_meta['original_image'], 'The original image name is expected to be stored in the meta data.' );
 		$this->assertSame( 'image/jpeg', wp_get_image_mime( $image_meta['file'] ), 'The image mime type is expected to be image/jpeg.' );
+		$this->assertSame( 'image/jpeg', get_post_mime_type( $attachment_id ), 'The attachment mime type is expected to be image/jpeg.' );
 	}
 
 	/**
@@ -7699,6 +7701,7 @@ EOF;
 	 *
 	 * @ticket 62305
 	 * @ticket 62359
+	 * @ticket 53665
 	 *
 	 * @dataProvider data_image_converted_to_other_format_has_correct_filename
 	 *
@@ -7737,6 +7740,7 @@ EOF;
 		$this->assertSame( "33772{$scaled_suffix}.webp", basename( $image_meta['file'] ), "The file name is expected to be 33772{$scaled_suffix}.webp." );
 		$this->assertSame( '33772.jpg', $image_meta['original_image'], 'The original image name is expected to be stored in the meta data.' );
 		$this->assertSame( 'image/webp', wp_get_image_mime( $image_meta['file'] ), 'The image mime type is expected to be image/webp.' );
+		$this->assertSame( 'image/webp', get_post_mime_type( $attachment_id ), 'The attachment mime type is expected to be image/webp.' );
 	}
 
 	/**
