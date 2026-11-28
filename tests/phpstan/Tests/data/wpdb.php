@@ -319,3 +319,25 @@ function wp_tests_wpdb_comma_joins( wpdb $wpdb ): void {
 	assertType( 'array{ID: decimal-int-string, comment_ID: decimal-int-string|null}|null', $wpdb->get_row( "SELECT p.ID, c.comment_ID FROM $wpdb->posts p, $wpdb->postmeta pm LEFT JOIN $wpdb->comments c ON c.comment_post_ID = pm.post_id", ARRAY_A ) );
 	assertType( 'array{ID: decimal-int-string, c: string|null}|null', $wpdb->get_row( "SELECT ID, c FROM $wpdb->posts, ( SELECT 1 AS c ) d", ARRAY_A ) );
 }
+
+/**
+ * A core table by its name after the prefix, including the prefix of another site.
+ *
+ * @param list<int> $blog_ids Site IDs.
+ */
+function wp_tests_wpdb_prefixes( wpdb $wpdb, int $blog_id, array $blog_ids ): void {
+	assertType( 'list<decimal-int-string>', $wpdb->get_col( "SELECT ID FROM {$wpdb->prefix}posts" ) );
+	assertType( 'list<decimal-int-string>', $wpdb->get_col( "SELECT ID FROM {$wpdb->base_prefix}posts" ) );
+	assertType( 'list<decimal-int-string>', $wpdb->get_col( 'SELECT ID FROM ' . $wpdb->get_blog_prefix( $blog_id ) . 'posts' ) );
+
+	$prefix = $wpdb->get_blog_prefix( $blog_id );
+	assertType( 'array{ID: decimal-int-string, post_date_gmt: non-falsy-string}|null', $wpdb->get_row( $wpdb->prepare( "SELECT ID, post_date_gmt FROM {$prefix}posts WHERE post_author = %d", $blog_id ), ARRAY_A ) );
+
+	foreach ( $blog_ids as $id ) {
+		$prefix = $wpdb->get_blog_prefix( $id );
+		assertType( 'array{ID: decimal-int-string, post_date_gmt: non-falsy-string}|null', $wpdb->get_row( "SELECT ID, post_date_gmt FROM {$prefix}posts", ARRAY_A ) );
+	}
+
+	// Another method's result is not a prefix.
+	assertType( 'array{ID: string|null}|null', $wpdb->get_row( 'SELECT ID FROM ' . $wpdb->get_charset_collate() . 'posts', ARRAY_A ) );
+}

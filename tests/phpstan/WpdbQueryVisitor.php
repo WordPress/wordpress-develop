@@ -49,6 +49,9 @@ use PhpParser\NodeVisitorAbstract;
  * - String literals, interpolation, and concatenation are joined.
  * - A table property on `$wpdb`, like `$wpdb->posts`, becomes the placeholder
  *   `{wpdb:posts}`, so that the query parser knows which table it names.
+ * - `$wpdb->get_blog_prefix()` becomes `{wpdb:prefix}`, as `$wpdb->prefix`
+ *   does, since the tables of every site have the same columns, so that
+ *   `{$wpdb->get_blog_prefix( $blog_id )}posts` is the `posts` table.
  * - `$wpdb->prepare( $query, ... )` is replaced by its query, with the
  *   placeholder `{value}` for each of its placeholders, like `%d` or `%i`, and
  *   `%` for each `%%`.
@@ -274,6 +277,16 @@ final class WpdbQueryVisitor extends NodeVisitorAbstract {
 
 		if ( $expr instanceof PropertyFetch && $this->is_wpdb( $expr->var ) && $expr->name instanceof Identifier ) {
 			return '{wpdb:' . $expr->name->toString() . '}';
+		}
+
+		// The prefix of a site's tables, which have the same columns whichever site it is.
+		if (
+			$expr instanceof MethodCall
+			&& $this->is_wpdb( $expr->var )
+			&& $expr->name instanceof Identifier
+			&& 'get_blog_prefix' === $expr->name->toLowerString()
+		) {
+			return '{wpdb:prefix}';
 		}
 
 		if (
