@@ -26,12 +26,14 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * the default actions of the tests, hooked at priority 0 as WordPress
 	 * registers its own, so every test runs against a registry holding
 	 * actions registered before the callbacks hooked at the default priority
-	 * run.
+	 * run. It also resets the registry, as an earlier test may have read it
+	 * with the actions WordPress registers.
 	 */
 	public function set_up() {
 		parent::set_up();
 		remove_action( 'wp_entity_actions_api_init', 'register_core_entity_actions', 0 );
 		add_action( 'wp_entity_actions_api_init', array( __CLASS__, 'register_default_actions' ), 0 );
+		self::reset_registry();
 	}
 
 	/**
