@@ -145,6 +145,8 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 					)
 				);
 			} else {
+				$stored = _wp_encode_field_values_for_database( array( 'comment_author' => $author ), $wpdb->comments, array( 'comment_author' ) );
+
 				// expected_slashed ($author, $email)
 				$ok_to_comment = $wpdb->get_var(
 					$wpdb->prepare(
@@ -154,7 +156,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 						AND comment_author_email = %s
 						AND comment_approved = '1'
 						LIMIT 1",
-						$author,
+						$stored['comment_author'],
 						$email
 					)
 				);
@@ -768,6 +770,8 @@ function sanitize_comment_cookies() {
 function wp_allow_comment( $commentdata, $wp_error = false ) {
 	global $wpdb;
 
+	$stored = _wp_encode_field_values_for_database( $commentdata, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+
 	/*
 	 * Simple duplicate check.
 	 * expected_slashed ($comment_post_ID, $comment_author, $comment_author_email, $comment_content)
@@ -776,7 +780,7 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 		"SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_parent = %s AND comment_approved != 'trash' AND ( comment_author = %s ",
 		wp_unslash( $commentdata['comment_post_ID'] ),
 		wp_unslash( $commentdata['comment_parent'] ),
-		wp_unslash( $commentdata['comment_author'] )
+		wp_unslash( $stored['comment_author'] )
 	);
 	if ( $commentdata['comment_author_email'] ) {
 		$dupe .= $wpdb->prepare(
@@ -786,7 +790,7 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 	}
 	$dupe .= $wpdb->prepare(
 		') AND comment_content = %s LIMIT 1',
-		wp_unslash( $commentdata['comment_content'] )
+		wp_unslash( $stored['comment_content'] )
 	);
 
 	$dupe_id = $wpdb->get_var( $dupe );
@@ -1322,16 +1326,20 @@ function wp_get_comment_fields_max_lengths() {
 }
 
 /**
- * Compares the lengths of comment data against the maximum character limits.
+ * Checks comment field lengths after preparing the author and content for storage.
  *
  * @since 4.7.0
  *
- * @param array $comment_data Array of arguments for inserting a comment.
+ * @global wpdb $wpdb WordPress database abstraction object.
+ * @param array $comment_data Array of unslashed arguments for inserting a comment.
  * @return WP_Error|true WP_Error when a comment field exceeds the limit,
  *                       otherwise true.
  */
 function wp_check_comment_data_max_lengths( $comment_data ) {
-	$max_lengths = wp_get_comment_fields_max_lengths();
+	global $wpdb;
+
+	$comment_data = _wp_encode_field_values_for_database( $comment_data, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+	$max_lengths  = wp_get_comment_fields_max_lengths();
 
 	if ( isset( $comment_data['comment_author'] ) && mb_strlen( $comment_data['comment_author'], '8bit' ) > $max_lengths['comment_author'] ) {
 		return new WP_Error( 'comment_author_column_length', __( '<strong>Error:</strong> Your name is too long.' ), 200 );
@@ -2307,6 +2315,8 @@ function wp_insert_comment( $commentdata ) {
 		'user_id'
 	);
 
+	$compacted = _wp_encode_field_values_for_database( $compacted, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
+
 	if ( ! $wpdb->insert( $wpdb->comments, $compacted ) ) {
 		return false;
 	}
@@ -2563,12 +2573,29 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 	$comment_id = wp_insert_comment( $commentdata );
 
 	if ( ! $comment_id ) {
-		$fields = array( 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content' );
+		$fields    = array( 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content' );
+		$unslashed = wp_unslash( $commentdata );
+		$stored    = _wp_encode_field_values_for_database( $unslashed, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
 		foreach ( $fields as $field ) {
-			if ( isset( $commentdata[ $field ] ) ) {
-				$commentdata[ $field ] = $wpdb->strip_invalid_text_for_column( $wpdb->comments, $field, $commentdata[ $field ] );
+			if ( ! isset( $commentdata[ $field ] ) ) {
+				continue;
 			}
+
+			if ( $stored[ $field ] !== $unslashed[ $field ] ) {
+				$value         = $stored[ $field ];
+				$check_lengths = wp_check_comment_data_max_lengths( array( $field => $value ) );
+				if ( is_wp_error( $check_lengths ) ) {
+					return $wp_error ? $check_lengths : false;
+				}
+
+				// Keep the original characters for comment filters when the encoded value is valid.
+				if ( wp_is_valid_utf8( $value ) ) {
+					continue;
+				}
+			}
+
+			$commentdata[ $field ] = $wpdb->strip_invalid_text_for_column( $wpdb->comments, $field, $commentdata[ $field ] );
 		}
 
 		$commentdata = wp_filter_comment( $commentdata );
@@ -3094,6 +3121,8 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	);
 
 	$data = wp_array_slice_assoc( $data, $keys );
+
+	$data = _wp_encode_field_values_for_database( $data, $wpdb->comments, array( 'comment_author', 'comment_content' ) );
 
 	$result = $wpdb->update( $wpdb->comments, $data, array( 'comment_ID' => $comment_id ) );
 

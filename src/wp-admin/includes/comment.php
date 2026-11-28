@@ -31,11 +31,13 @@ function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
 		$date_field = 'comment_date_gmt';
 	}
 
+	$stored = _wp_encode_field_values_for_database( array( 'comment_author' => stripslashes( $comment_author ) ), $wpdb->comments, array( 'comment_author' ) );
+
 	return $wpdb->get_var(
 		$wpdb->prepare(
 			"SELECT comment_post_ID FROM $wpdb->comments
 			WHERE comment_author = %s AND $date_field = %s",
-			stripslashes( $comment_author ),
+			$stored['comment_author'],
 			stripslashes( $comment_date )
 		)
 	);
