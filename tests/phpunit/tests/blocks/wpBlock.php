@@ -1603,4 +1603,253 @@ HTML
 		$this->assertSame( 2, $render_block_data_callback->get_call_count() );
 		$this->assertSame( 2, $render_block_context_callback->get_call_count() );
 	}
+
+	/**
+	 * Tests that rendering legacy static core blocks enqueues the canonical block type's styles.
+	 *
+	 * @ticket 66842
+	 *
+	 * @dataProvider data_legacy_static_block_style_mapping
+	 *
+	 * @param string $legacy_block_name    Legacy block name saved in post content.
+	 * @param string $canonical_block_name Canonical registered block name.
+	 * @param string $markup               Serialized legacy block markup.
+	 */
+	public function test_render_legacy_static_block_enqueues_canonical_styles( $legacy_block_name, $canonical_block_name, $markup ) {
+		$render_callback_called = false;
+		$style_handle           = 'test-canonical-style';
+		$view_style_handle      = 'test-canonical-view-style';
+
+		wp_register_style( $style_handle, '/test-canonical-style.css' );
+		wp_register_style( $view_style_handle, '/test-canonical-view-style.css' );
+
+		$this->registry->register(
+			$canonical_block_name,
+			array(
+				'style_handles'      => array( $style_handle ),
+				'view_style_handles' => array( $view_style_handle ),
+				'render_callback'    => static function () use ( &$render_callback_called ) {
+					$render_callback_called = true;
+					return '<div>Dynamic output</div>';
+				},
+			)
+		);
+
+		$parsed_blocks = parse_blocks( $markup );
+		$block         = new WP_Block( $parsed_blocks[0], array(), $this->registry );
+		$output        = $block->render();
+
+		$this->assertSame(
+			$legacy_block_name,
+			$block->name,
+			'Legacy block name should be preserved on the WP_Block instance.'
+		);
+		$this->assertNull(
+			$block->block_type,
+			'Legacy block should not override block_type when unregistered.'
+		);
+		$this->assertFalse(
+			$render_callback_called,
+			'Canonical block render_callback must not run for legacy static block markup.'
+		);
+		$this->assertSame(
+			$parsed_blocks[0]['innerHTML'],
+			$output,
+			'Saved static HTML of the legacy block should be preserved.'
+		);
+		$this->assertTrue(
+			wp_style_is( $style_handle, 'enqueued' ),
+			'Canonical block style handle should be enqueued.'
+		);
+		$this->assertTrue(
+			wp_style_is( $view_style_handle, 'enqueued' ),
+			'Canonical block view style handle should be enqueued.'
+		);
+	}
+
+	/**
+	 * Data provider for test_render_legacy_static_block_enqueues_canonical_styles().
+	 *
+	 * @return array[]
+	 */
+	public static function data_legacy_static_block_style_mapping() {
+		return array(
+			'core-embed/youtube' => array(
+				'core-embed/youtube',
+				'core/embed',
+				'<!-- wp:core-embed/youtube {"url":"https://www.youtube.com/watch?v=iY1SeWQvqx8"} --><figure class="wp-block-embed-youtube wp-block-embed"><div class="wp-block-embed__wrapper">https://www.youtube.com/watch?v=iY1SeWQvqx8</div></figure><!-- /wp:core-embed/youtube -->',
+			),
+			'core-embed/twitter' => array(
+				'core-embed/twitter',
+				'core/embed',
+				'<!-- wp:core-embed/twitter {"url":"https://twitter.com/wordpress"} --><figure class="wp-block-embed-twitter wp-block-embed"><div class="wp-block-embed__wrapper">https://twitter.com/wordpress</div></figure><!-- /wp:core-embed/twitter -->',
+			),
+			'core/cover-image'   => array(
+				'core/cover-image',
+				'core/cover',
+				'<!-- wp:cover-image {"url":"https://example.com/image.jpg"} --><div class="wp-block-cover-image has-background-dim" style="background-image:url(https://example.com/image.jpg)"><p class="wp-block-cover-image-text">Title</p></div><!-- /wp:cover-image -->',
+			),
+			'core/text'          => array(
+				'core/text',
+				'core/paragraph',
+				'<!-- wp:text --><p>Legacy text block</p><!-- /wp:text -->',
+			),
+			'core/cover-text'    => array(
+				'core/cover-text',
+				'core/paragraph',
+				'<!-- wp:cover-text --><p>Legacy cover text block</p><!-- /wp:cover-text -->',
+			),
+		);
+	}
+
+	/**
+	 * Tests that a nested legacy core-embed/* block enqueues core/embed styles.
+	 *
+	 * @ticket 66842
+	 */
+	public function test_render_nested_legacy_core_embed_enqueues_canonical_styles() {
+		wp_register_style( 'test-embed-style', '/test-embed.css' );
+		$this->registry->register( 'core/group', array() );
+		$this->registry->register(
+			'core/embed',
+			array(
+				'style_handles' => array( 'test-embed-style' ),
+			)
+		);
+
+		$markup        = '<!-- wp:group --><div class="wp-block-group"><!-- wp:core-embed/vimeo --><figure class="wp-block-embed"><div class="wp-block-embed__wrapper">https://vimeo.com/12345</div></figure><!-- /wp:core-embed/vimeo --></div><!-- /wp:group -->';
+		$parsed_blocks = parse_blocks( $markup );
+		$block         = new WP_Block( $parsed_blocks[0], array(), $this->registry );
+		$block->render();
+
+		$this->assertTrue(
+			wp_style_is( 'test-embed-style', 'enqueued' ),
+			'Nested legacy core-embed block should enqueue core/embed style handle.'
+		);
+	}
+
+	/**
+	 * Tests that an explicitly registered legacy block name takes precedence over canonical fallback styles.
+	 *
+	 * @ticket 66842
+	 */
+	public function test_render_explicitly_registered_legacy_block_prefers_own_styles() {
+		wp_register_style( 'test-canonical-embed-style', '/canonical-embed.css' );
+		wp_register_style( 'test-custom-youtube-style', '/custom-youtube.css' );
+
+		$this->registry->register(
+			'core/embed',
+			array(
+				'style_handles' => array( 'test-canonical-embed-style' ),
+			)
+		);
+		$this->registry->register(
+			'core-embed/youtube',
+			array(
+				'style_handles' => array( 'test-custom-youtube-style' ),
+			)
+		);
+
+		$markup        = '<!-- wp:core-embed/youtube --><figure class="wp-block-embed"><div class="wp-block-embed__wrapper">https://www.youtube.com/watch?v=iY1SeWQvqx8</div></figure><!-- /wp:core-embed/youtube -->';
+		$parsed_blocks = parse_blocks( $markup );
+		$block         = new WP_Block( $parsed_blocks[0], array(), $this->registry );
+		$block->render();
+
+		$this->assertTrue(
+			wp_style_is( 'test-custom-youtube-style', 'enqueued' ),
+			'Explicitly registered legacy block style handle should be enqueued.'
+		);
+		$this->assertFalse(
+			wp_style_is( 'test-canonical-embed-style', 'enqueued' ),
+			'Canonical fallback style handle should not be enqueued when the legacy block is explicitly registered.'
+		);
+	}
+
+	/**
+	 * Tests that legacy static blocks with empty content do not keep canonical styles enqueued.
+	 *
+	 * @ticket 66842
+	 */
+	public function test_render_empty_legacy_core_embed_dequeues_canonical_styles() {
+		wp_register_style( 'test-embed-style', '/test-embed.css' );
+		$this->registry->register(
+			'core/embed',
+			array(
+				'style_handles' => array( 'test-embed-style' ),
+			)
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:core-embed/youtube /-->' );
+		$block         = new WP_Block( $parsed_blocks[0], array(), $this->registry );
+		$block->render();
+
+		$this->assertFalse(
+			wp_style_is( 'test-embed-style', 'enqueued' ),
+			'Canonical style handle should be dequeued when the legacy block renders empty content.'
+		);
+	}
+
+	/**
+	 * Tests that unregistered non-legacy blocks and malformed core-embed/ names do not enqueue canonical styles.
+	 *
+	 * @ticket 66842
+	 *
+	 * @dataProvider data_non_legacy_unregistered_blocks
+	 *
+	 * @param array $parsed_block Parsed block array.
+	 */
+	public function test_render_non_legacy_unregistered_block_does_not_enqueue_canonical_styles( $parsed_block ) {
+		wp_register_style( 'test-embed-style', '/test-embed.css' );
+		$this->registry->register(
+			'core/embed',
+			array(
+				'style_handles' => array( 'test-embed-style' ),
+			)
+		);
+
+		$block = new WP_Block( $parsed_block, array(), $this->registry );
+		$block->render();
+
+		$this->assertFalse(
+			wp_style_is( 'test-embed-style', 'enqueued' ),
+			'Unrelated or malformed unregistered block should not enqueue core/embed styles.'
+		);
+	}
+
+	/**
+	 * Data provider for test_render_non_legacy_unregistered_block_does_not_enqueue_canonical_styles().
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_legacy_unregistered_blocks() {
+		return array(
+			'empty core-embed provider' => array(
+				array(
+					'blockName'    => 'core-embed/',
+					'attrs'        => array(),
+					'innerBlocks'  => array(),
+					'innerHTML'    => '<p>Content</p>',
+					'innerContent' => array( '<p>Content</p>' ),
+				),
+			),
+			'unregistered custom block' => array(
+				array(
+					'blockName'    => 'my-plugin/unregistered',
+					'attrs'        => array(),
+					'innerBlocks'  => array(),
+					'innerHTML'    => '<p>Content</p>',
+					'innerContent' => array( '<p>Content</p>' ),
+				),
+			),
+			'freeform null block name'  => array(
+				array(
+					'blockName'    => null,
+					'attrs'        => array(),
+					'innerBlocks'  => array(),
+					'innerHTML'    => '<p>Freeform</p>',
+					'innerContent' => array( '<p>Freeform</p>' ),
+				),
+			),
+		);
+	}
 }
