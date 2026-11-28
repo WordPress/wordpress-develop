@@ -7,6 +7,8 @@
  * @since 7.2.0
  */
 
+use WordPress\AiClient\Builders\EmbeddingBuilder;
+use WordPress\AiClient\Builders\PromptBuilder;
 use WordPress\AiClient\Common\Exception\InvalidArgumentException;
 use WordPress\AiClient\Common\Exception\TokenLimitReachedException;
 use WordPress\AiClient\Providers\Http\DTO\RequestOptions;
@@ -43,7 +45,7 @@ abstract class WP_AI_Client_Builder {
 	 *
 	 * @since 7.0.0
 	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
-	 * @var object
+	 * @var PromptBuilder|EmbeddingBuilder
 	 */
 	private object $builder;
 
@@ -135,7 +137,7 @@ abstract class WP_AI_Client_Builder {
 	 *
 	 * @param ProviderRegistry $registry The provider registry for finding suitable models.
 	 * @param mixed            $input    Initial input content for the builder, or null.
-	 * @return object The SDK builder instance.
+	 * @return PromptBuilder|EmbeddingBuilder The SDK builder instance.
 	 */
 	abstract protected function create_sdk_builder( ProviderRegistry $registry, $input ): object;
 
