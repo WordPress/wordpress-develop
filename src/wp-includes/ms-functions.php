@@ -1208,7 +1208,6 @@ function wpmu_activate_signup(
 ) {
 	global $wpdb;
 
-	/** @var object{ signup_id: string, domain: string, path: string, title: string, user_login: string, user_email: string, registered: string, activated: string, active: string, activation_key: string, meta: string|null }|null $signup */
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE activation_key = %s", $key ) );
 
 	if ( empty( $signup ) ) {

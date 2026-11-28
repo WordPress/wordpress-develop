@@ -1,0 +1,960 @@
+<?php
+/**
+ * Parser for the select list of a SQL query, for `WpdbQueryDynamicMethodReturnTypeExtension`.
+ *
+ * @package WordPress
+ */
+
+declare(strict_types=1);
+
+namespace WordPress\PHPStan;
+
+/**
+ * Determines the columns a `SELECT` query returns, and the type of each.
+ *
+ * The columns of a `SHOW` or `DESCRIBE` statement, which are fixed, are also
+ * known, for `SHOW COLUMNS`, `SHOW INDEX`, `SHOW TABLES`, `SHOW TABLE STATUS`,
+ * and `SHOW VARIABLES` or `SHOW STATUS`.
+ *
+ * This is not a SQL parser. It reads only as much of the query as it needs:
+ * the select list, and the tables named in the `FROM` clause with their
+ * aliases. The query text is as reconstructed by `WpdbQueryVisitor`, where a
+ * core table is `{wpdb:<table>}`, an unknown part is `{?}`, and an unknown
+ * single value, from a placeholder, is `{value}`.
+ *
+ * A known table is a core table, or one declared to `WpdbSchema`, named by its
+ * `wpdb` property, as `{wpdb:<table>}`, or by its name after the prefix, as
+ * `{wpdb:prefix}<table>` or `{wpdb:base_prefix}<table>`.
+ *
+ * Each column is typed as follows:
+ *
+ * - A column of a known table, including each one a `*` or `alias.*` expands
+ *   to, has the type `WpdbSchema` gives it, or null as well for a table on the
+ *   outer side of a `LEFT JOIN` or `RIGHT JOIN`, which has no row to match.
+ * - `COUNT()` is a `decimal-int-string`, `SUM()` and `AVG()` are a
+ *   `numeric-string` or null, and `MIN()` and `MAX()` of a core column are the
+ *   column's type or null.
+ * - `YEAR()`, `MONTH()`, `DAY()`, `DAYOFMONTH()`, `HOUR()`, `MINUTE()`, and
+ *   `SECOND()` are a `decimal-int-string`, or null as well unless of a date or
+ *   time column which is `NOT NULL`.
+ * - `DATE_ADD()`, `DATE_SUB()`, `ADDDATE()`, and `SUBDATE()` are a
+ *   `non-falsy-string` or null, and `VERSION()` is a `non-empty-string`.
+ * - With `WITH ROLLUP`, every column is nullable as well, since the subtotal
+ *   rows it adds have NULL for the columns grouped by.
+ * - A number or string literal is that constant string.
+ * - Anything else is `string|null`, which is every value `wpdb` can return.
+ *
+ * A column's name is its alias, or else its name for a column reference, or
+ * else the text of its expression, as MySQL names them. A name holding a part
+ * whose text is not known is itself unknown.
+ *
+ * The columns are incomplete from the first one whose count is not known: a
+ * `*` over a table that is not known, or over a core table unless the core
+ * tables are taken to have only the columns of the schema, or a
+ * select expression with an unknown part outside any parentheses, since that
+ * part could hold several columns.
+ *
+ * @phpstan-type Column array{ name: string|null, type: non-empty-string, optional: bool, variants?: non-empty-list<non-empty-string> }
+ * @phpstan-type Columns array{ columns: list<Column>, complete: bool }
+ * @phpstan-type Token array{ text: string, offset: int }
+ * @phpstan-type Table array{ name: string|null, nullable: bool }
+ * @phpstan-import-type Column from WpdbSchema as SchemaColumn
+ */
+final class WpdbSelectParser {
+
+	/**
+	 * Keywords which end the select list or the `FROM` clause.
+	 */
+	private const CLAUSE_KEYWORDS = array( 'FROM', 'WHERE', 'GROUP', 'HAVING', 'WINDOW', 'ORDER', 'LIMIT', 'FOR', 'INTO', 'LOCK', 'UNION', 'EXCEPT', 'INTERSECT', ';' );
+
+	/**
+	 * Keywords which start a join in the `FROM` clause.
+	 */
+	private const JOIN_KEYWORDS = array( 'JOIN', 'INNER', 'CROSS', 'LEFT', 'RIGHT', 'OUTER', 'NATURAL', 'STRAIGHT_JOIN' );
+
+	/**
+	 * Modifiers which may follow `SELECT`.
+	 */
+	private const SELECT_MODIFIERS = array( 'ALL', 'DISTINCT', 'DISTINCTROW', 'HIGH_PRIORITY', 'STRAIGHT_JOIN', 'SQL_SMALL_RESULT', 'SQL_BIG_RESULT', 'SQL_BUFFER_RESULT', 'SQL_NO_CACHE', 'SQL_CACHE', 'SQL_CALC_FOUND_ROWS' );
+
+	/**
+	 * Keywords which can end an expression, and so are not an alias following one.
+	 */
+	private const NON_ALIAS_KEYWORDS = array( 'END', 'NULL', 'TRUE', 'FALSE', 'ASC', 'DESC', 'DISTINCT' );
+
+	/**
+	 * Keywords which an operand follows, so that a name following one is not an alias.
+	 */
+	private const OPERAND_KEYWORDS = array( 'AND', 'BETWEEN', 'BINARY', 'CASE', 'COLLATE', 'DIV', 'ELSE', 'ESCAPE', 'IN', 'INTERVAL', 'IS', 'LIKE', 'MOD', 'NOT', 'OR', 'REGEXP', 'RLIKE', 'THEN', 'WHEN', 'XOR' );
+
+	/**
+	 * Units of an `INTERVAL`, as in `post_date + INTERVAL 1 DAY`, which are not an alias there.
+	 */
+	private const INTERVAL_UNITS = array( 'MICROSECOND', 'SECOND', 'MINUTE', 'HOUR', 'DAY', 'WEEK', 'MONTH', 'QUARTER', 'YEAR', 'SECOND_MICROSECOND', 'MINUTE_MICROSECOND', 'MINUTE_SECOND', 'HOUR_MICROSECOND', 'HOUR_SECOND', 'HOUR_MINUTE', 'DAY_MICROSECOND', 'DAY_SECOND', 'DAY_MINUTE', 'DAY_HOUR', 'YEAR_MONTH' );
+
+	/**
+	 * Keywords which may follow `DESCRIBE` for it to explain a statement, as `EXPLAIN` does, rather than describe a table.
+	 */
+	private const EXPLAIN_KEYWORDS = array( 'ANALYZE', 'DELETE', 'EXTENDED', 'FOR', 'FORMAT', 'INSERT', 'PARTITIONS', 'REPLACE', 'SELECT', 'TABLE', 'UPDATE', 'WITH' );
+
+	/**
+	 * Columns of each `SHOW` statement, and of `DESCRIBE`, which is `SHOW COLUMNS`, as of MySQL 5.5 and MariaDB 5.5.
+	 *
+	 * Each is a name, or null for the name of `SHOW TABLES`, which holds the database name, and a PHPDoc type. A
+	 * column which newer servers added is optional, and lists the variants of the row it is present in, as one server
+	 * may add columns another does not have.
+	 *
+	 * @link https://dev.mysql.com/doc/refman/8.4/en/show-columns.html
+	 * @link https://dev.mysql.com/doc/refman/8.4/en/show-index.html
+	 * @link https://dev.mysql.com/doc/refman/8.4/en/show-tables.html
+	 * @link https://dev.mysql.com/doc/refman/8.4/en/show-table-status.html
+	 * @link https://dev.mysql.com/doc/refman/8.4/en/show-variables.html
+	 * @link https://mariadb.com/kb/en/show-index/
+	 * @link https://mariadb.com/kb/en/show-table-status/
+	 */
+	private const SHOW_COLUMNS = array(
+		'COLUMNS'      => array(
+			array( 'Field', 'non-empty-string' ),
+			array( 'Type', 'non-empty-string' ),
+			array( 'Null', "'YES'|'NO'" ),
+			array( 'Key', "''|'PRI'|'UNI'|'MUL'" ),
+			array( 'Default', 'string|null' ),
+			array( 'Extra', 'string' ),
+		),
+		'FULL COLUMNS' => array(
+			array( 'Field', 'non-empty-string' ),
+			array( 'Type', 'non-empty-string' ),
+			array( 'Collation', 'non-empty-string|null' ),
+			array( 'Null', "'YES'|'NO'" ),
+			array( 'Key', "''|'PRI'|'UNI'|'MUL'" ),
+			array( 'Default', 'string|null' ),
+			array( 'Extra', 'string' ),
+			array( 'Privileges', 'string' ),
+			array( 'Comment', 'string' ),
+		),
+		'INDEX'        => array(
+			array( 'Table', 'non-empty-string' ),
+			array( 'Non_unique', "'0'|'1'" ),
+			array( 'Key_name', 'non-empty-string' ),
+			array( 'Seq_in_index', 'decimal-int-string' ),
+			// Null for a functional key part, as of MySQL 8.0.13.
+			array( 'Column_name', 'non-empty-string|null' ),
+			array( 'Collation', "'A'|'D'|null" ),
+			array( 'Cardinality', 'decimal-int-string|null' ),
+			array( 'Sub_part', 'decimal-int-string|null' ),
+			array( 'Packed', 'string|null' ),
+			array( 'Null', "''|'YES'" ),
+			array( 'Index_type', 'non-empty-string' ),
+			array( 'Comment', 'string' ),
+			array( 'Index_comment', 'string' ),
+			array( 'Visible', "'YES'|'NO'", array( 'MySQL 8.0', 'MySQL 8.0.13' ) ),
+			array( 'Expression', 'non-empty-string|null', array( 'MySQL 8.0.13' ) ),
+			array( 'Ignored', "'YES'|'NO'", array( 'MariaDB 10.6' ) ),
+		),
+		'TABLES'       => array(
+			array( null, 'non-empty-string' ),
+		),
+		'FULL TABLES'  => array(
+			array( null, 'non-empty-string' ),
+			array( 'Table_type', 'non-empty-string' ),
+		),
+		// Most of the values are null for a view.
+		'TABLE STATUS' => array(
+			array( 'Name', 'non-empty-string' ),
+			array( 'Engine', 'non-empty-string|null' ),
+			array( 'Version', 'decimal-int-string|null' ),
+			array( 'Row_format', 'non-empty-string|null' ),
+			array( 'Rows', 'decimal-int-string|null' ),
+			array( 'Avg_row_length', 'decimal-int-string|null' ),
+			array( 'Data_length', 'decimal-int-string|null' ),
+			array( 'Max_data_length', 'decimal-int-string|null' ),
+			array( 'Index_length', 'decimal-int-string|null' ),
+			array( 'Data_free', 'decimal-int-string|null' ),
+			array( 'Auto_increment', 'decimal-int-string|null' ),
+			array( 'Create_time', 'non-falsy-string|null' ),
+			array( 'Update_time', 'non-falsy-string|null' ),
+			array( 'Check_time', 'non-falsy-string|null' ),
+			array( 'Collation', 'non-empty-string|null' ),
+			array( 'Checksum', 'decimal-int-string|null' ),
+			array( 'Create_options', 'string|null' ),
+			array( 'Comment', 'string|null' ),
+			array( 'Max_index_length', 'decimal-int-string|null', array( 'MariaDB 10.3' ) ),
+			array( 'Temporary', "'N'|'Y'|null", array( 'MariaDB 10.3' ) ),
+		),
+		'VARIABLES'    => array(
+			array( 'Variable_name', 'non-empty-string' ),
+			array( 'Value', 'string|null' ),
+		),
+	);
+
+	/**
+	 * Schema of the core tables.
+	 *
+	 * @var WpdbSchema
+	 */
+	private WpdbSchema $schema;
+
+	/**
+	 * Whether the core tables have only the columns of the core schema, which a `*` over one of them expands to.
+	 *
+	 * @var bool
+	 */
+	private bool $tables_match_schema;
+
+	/**
+	 * Parsed queries, keyed by query.
+	 *
+	 * @var array<string, array{ columns: list<array{ name: string|null, type: non-empty-string, optional: bool, variants?: non-empty-list<non-empty-string> }>, complete: bool }|null>
+	 * @phpstan-var array<string, Columns|null>
+	 */
+	private array $cache = array();
+
+	/**
+	 * Constructor.
+	 *
+	 * @param WpdbSchema $schema              Schema of the core tables.
+	 * @param bool       $tables_match_schema Whether the core tables have only the columns of the core schema. If not,
+	 *                                        as where plugins may have added columns, a `*` over one of them is not
+	 *                                        expanded, since it may select more columns.
+	 */
+	public function __construct( WpdbSchema $schema, bool $tables_match_schema ) {
+		$this->schema              = $schema;
+		$this->tables_match_schema = $tables_match_schema;
+	}
+
+	/**
+	 * Gets the columns a query returns.
+	 *
+	 * @param string $query Query, as reconstructed by `WpdbQueryVisitor`.
+	 * @return array{ columns: list<array{ name: string|null, type: non-empty-string, optional: bool, variants?: non-empty-list<non-empty-string> }>, complete: bool }|null {
+	 *     Columns, or null if the query is not a `SELECT`, `SHOW`, or `DESCRIBE` query this can read.
+	 *
+	 *     @type list<array> $columns  {
+	 *         Columns, in order.
+	 *
+	 *         @type string|null      $name     Column name, or null if unknown.
+	 *         @type non-empty-string $type     PHPDoc type of the column's values.
+	 *         @type bool             $optional Whether the column is only present on some sites or servers.
+	 *         @type string[]         $variants Optional. Names of the variants of the row an optional column is
+	 *                                          present in, where columns of different variants are not present
+	 *                                          together. Optional columns without them are present together.
+	 *     }
+	 *     @type bool        $complete Whether the columns are all known. If not, more follow.
+	 * }
+	 * @phpstan-return Columns|null
+	 */
+	public function parse( string $query ): ?array {
+		if ( ! array_key_exists( $query, $this->cache ) ) {
+			$this->cache[ $query ] = $this->parse_uncached( $query );
+		}
+		return $this->cache[ $query ];
+	}
+
+	/**
+	 * Gets the columns a query returns, without the cache.
+	 *
+	 * @param string $query Query.
+	 * @return array|null Columns, or null if the query is not a query this can read.
+	 * @phpstan-return Columns|null
+	 */
+	private function parse_uncached( string $query ): ?array {
+		$tokens = self::tokenize( $query );
+		$count  = count( $tokens );
+
+		if ( 0 === $count ) {
+			return null;
+		}
+		if ( in_array( strtoupper( $tokens[0]['text'] ), array( 'SHOW', 'DESCRIBE', 'DESC' ), true ) ) {
+			return self::parse_show( $tokens );
+		}
+		if ( 'SELECT' !== strtoupper( $tokens[0]['text'] ) ) {
+			return null;
+		}
+
+		$i = 1;
+		while ( $i < $count && in_array( strtoupper( $tokens[ $i ]['text'] ), self::SELECT_MODIFIERS, true ) ) {
+			++$i;
+		}
+
+		// Split the select list into its expressions.
+		$items = array();
+		$item  = array();
+		$depth = 0;
+		for ( ; $i < $count; $i++ ) {
+			$text = $tokens[ $i ]['text'];
+			if ( 0 === $depth && ( ',' === $text || in_array( strtoupper( $text ), self::CLAUSE_KEYWORDS, true ) ) ) {
+				if ( ',' !== $text ) {
+					break;
+				}
+				$items[] = $item;
+				$item    = array();
+				continue;
+			}
+			$depth  += self::get_depth_change( $text );
+			$item[]  = $tokens[ $i ];
+		}
+		$items[] = $item;
+
+		$tables = $this->parse_from( $tokens, $i );
+		if ( null === $tables ) {
+			return null;
+		}
+
+		// The rows `WITH ROLLUP` adds for the subtotals have NULL for the columns grouped by, which may be any of them.
+		$rollup = false;
+		$depth  = 0;
+		for ( $j = $i; $j < $count; $j++ ) {
+			$depth += self::get_depth_change( $tokens[ $j ]['text'] );
+			if ( 0 === $depth && 'ROLLUP' === strtoupper( $tokens[ $j ]['text'] ) ) {
+				$rollup = true;
+				break;
+			}
+		}
+
+		$columns  = array();
+		$complete = true;
+		foreach ( $items as $item ) {
+			$item_columns = $this->get_item_columns( $item, $tables, $query );
+			if ( null === $item_columns ) {
+				$complete = false;
+				break;
+			}
+			foreach ( $item_columns as $column ) {
+				if ( $rollup ) {
+					$column['type'] = self::add_null( $column['type'] );
+				}
+				$columns[] = $column;
+			}
+		}
+
+		return array(
+			'columns'  => $columns,
+			'complete' => $complete,
+		);
+	}
+
+	/**
+	 * Gets the columns of a `SHOW` or `DESCRIBE` statement, which are fixed by the statement.
+	 *
+	 * Only the keywords at the start of the statement are read, since what follows them, like the table, a `LIKE`
+	 * pattern, or a `WHERE` condition, only selects the rows. An unknown table, as in `DESCRIBE {?}`, is taken to be
+	 * a table name, as it is in a `FROM` clause, and not a statement which `DESCRIBE` would explain instead.
+	 *
+	 * @param list<array{ text: string, offset: int }> $tokens Tokens of the query.
+	 * @return array|null Columns, or null if the statement is not one this reads.
+	 * @phpstan-param list<Token> $tokens
+	 * @phpstan-return Columns|null
+	 */
+	private static function parse_show( array $tokens ): ?array {
+		$texts = array_map( static fn ( array $token ): string => strtoupper( $token['text'] ), $tokens );
+
+		if ( 'SHOW' !== $texts[0] ) {
+			// `DESCRIBE` of a statement, like `DESCRIBE SELECT ...`, is `EXPLAIN` instead.
+			$next = $tokens[1]['text'] ?? '';
+			if ( ! ( WpdbQueryVisitor::UNKNOWN === $next || ( self::is_identifier( $next ) && ! in_array( strtoupper( $next ), self::EXPLAIN_KEYWORDS, true ) ) ) ) {
+				return null;
+			}
+			$statement = 'COLUMNS';
+		} else {
+			$i = 1;
+			if ( 'EXTENDED' === ( $texts[ $i ] ?? '' ) ) {
+				++$i;
+			}
+			$full = 'FULL' === ( $texts[ $i ] ?? '' );
+			if ( $full ) {
+				++$i;
+			}
+			$keyword = $texts[ $i ] ?? '';
+			$next    = $texts[ $i + 1 ] ?? '';
+
+			if ( in_array( $keyword, array( 'COLUMNS', 'FIELDS' ), true ) && in_array( $next, array( 'FROM', 'IN' ), true ) ) {
+				$statement = $full ? 'FULL COLUMNS' : 'COLUMNS';
+			} elseif ( ! $full && in_array( $keyword, array( 'INDEX', 'INDEXES', 'KEYS' ), true ) && in_array( $next, array( 'FROM', 'IN' ), true ) ) {
+				$statement = 'INDEX';
+			} elseif ( 'TABLES' === $keyword ) {
+				$statement = $full ? 'FULL TABLES' : 'TABLES';
+			} elseif ( ! $full && 'TABLE' === $keyword && 'STATUS' === $next ) {
+				$statement = 'TABLE STATUS';
+			} elseif ( ! $full && 1 === $i && ( in_array( $keyword, array( 'VARIABLES', 'STATUS' ), true ) || ( in_array( $keyword, array( 'GLOBAL', 'SESSION', 'LOCAL' ), true ) && in_array( $next, array( 'VARIABLES', 'STATUS' ), true ) ) ) ) {
+				$statement = 'VARIABLES';
+			} else {
+				return null;
+			}
+		}
+
+		$columns = array();
+		foreach ( self::SHOW_COLUMNS[ $statement ] as $column ) {
+			$columns[] = array(
+				'name'     => $column[0],
+				'type'     => $column[1],
+				'optional' => isset( $column[2] ),
+			) + ( isset( $column[2] ) ? array( 'variants' => $column[2] ) : array() );
+		}
+
+		return array(
+			'columns'  => $columns,
+			'complete' => true,
+		);
+	}
+
+	/**
+	 * Reads the tables in the `FROM` clause.
+	 *
+	 * @param list<array{ text: string, offset: int }> $tokens Tokens of the query.
+	 * @param int                                      $i      Index of the token ending the select list.
+	 * @return array<string, array{ name: string|null, nullable: bool }>|null Tables, keyed by the lowercase alias or
+	 *                                                                    name they are referred to by. Each has its
+	 *                                                                    `wpdb` property name, or null if not a core
+	 *                                                                    table, and whether its columns may be null
+	 *                                                                    from an outer join. Null if the query is a
+	 *                                                                    union, whose column types this does not read.
+	 * @phpstan-param list<Token> $tokens
+	 * @phpstan-return array<string, Table>|null
+	 */
+	private function parse_from( array $tokens, int $i ): ?array {
+		$count = count( $tokens );
+
+		// A union's columns may take their values from any of its queries.
+		$depth = 0;
+		for ( $j = $i; $j < $count; $j++ ) {
+			$depth += self::get_depth_change( $tokens[ $j ]['text'] );
+			if ( 0 === $depth && in_array( strtoupper( $tokens[ $j ]['text'] ), array( 'UNION', 'EXCEPT', 'INTERSECT' ), true ) ) {
+				return null;
+			}
+		}
+
+		$tables = array();
+		if ( $i >= $count || 'FROM' !== strtoupper( $tokens[ $i ]['text'] ) ) {
+			return $tables;
+		}
+
+		$expect_table = true;
+		$outer_join   = null;
+		$depth        = 0;
+		for ( ++$i; $i < $count; $i++ ) {
+			$text  = $tokens[ $i ]['text'];
+			$upper = strtoupper( $text );
+
+			if ( 0 === $depth && in_array( $upper, self::CLAUSE_KEYWORDS, true ) ) {
+				break;
+			}
+
+			// `LEFT` and `RIGHT` are also functions, as in an `ON` condition.
+			if ( ( 'LEFT' === $upper || 'RIGHT' === $upper ) && ! in_array( strtoupper( $tokens[ $i + 1 ]['text'] ?? '' ), array( 'JOIN', 'OUTER' ), true ) ) {
+				$depth += self::get_depth_change( $text );
+				continue;
+			}
+
+			if ( 0 === $depth && ( ',' === $text || in_array( $upper, self::JOIN_KEYWORDS, true ) ) ) {
+				$expect_table = true;
+				if ( 'LEFT' === $upper || 'RIGHT' === $upper ) {
+					$outer_join = $upper;
+				} elseif ( ',' === $text ) {
+					$outer_join = null;
+				}
+				continue;
+			}
+
+			if ( 0 === $depth && $expect_table ) {
+				$expect_table = false;
+
+				if ( '(' === $text ) {
+					// A derived table, or a parenthesized join. Its columns are unknown, unless they are qualified.
+					$name   = null;
+					$nested = 0;
+					for ( ; $i < $count; $i++ ) {
+						$nested += self::get_depth_change( $tokens[ $i ]['text'] );
+						if ( 0 === $nested ) {
+							break;
+						}
+					}
+					$key = '';
+				} else {
+					$name = null;
+					/*
+					 * A known table, by its `wpdb` property, or by its name after the prefix, as in
+					 * `{wpdb:prefix}wc_orders`. Either may be quoted, as in `` `{wpdb:options}` ``.
+					 */
+					if ( preg_match( '/^(?:\{wpdb:(\w+)\}|\{wpdb:(?:base_)?prefix\}(\w+))$/', self::unquote( $text ), $match ) ) {
+						$table = $match[1] . ( $match[2] ?? '' );
+						if ( $this->schema->has_table( $table ) ) {
+							$name = $table;
+						}
+					}
+					$key = strtolower( self::unquote( $text ) );
+				}
+
+				// The alias, if any.
+				$next = $tokens[ $i + 1 ]['text'] ?? '';
+				if ( 'AS' === strtoupper( $next ) ) {
+					$i   += 1;
+					$next = $tokens[ $i + 1 ]['text'] ?? '';
+				}
+				if ( self::is_identifier( $next ) && ! in_array( strtoupper( $next ), array_merge( self::CLAUSE_KEYWORDS, self::JOIN_KEYWORDS, array( 'ON', 'USING', 'USE', 'IGNORE', 'FORCE', 'PARTITION' ) ), true ) ) {
+					$key = strtolower( self::unquote( $next ) );
+					$i  += 1;
+				}
+
+				// The table on the outer side of a join may have no row to match, which makes its columns null.
+				if ( 'RIGHT' === $outer_join ) {
+					foreach ( array_keys( $tables ) as $table_key ) {
+						$tables[ $table_key ]['nullable'] = true;
+					}
+				}
+				$tables[ $key ] = array(
+					'name'     => $name,
+					'nullable' => 'LEFT' === $outer_join,
+				);
+				$outer_join     = null;
+				continue;
+			}
+
+			// Unknown text outside any parentheses may join more tables, whose columns are not known.
+			if ( 0 === $depth && WpdbQueryVisitor::UNKNOWN === $text ) {
+				$tables[ WpdbQueryVisitor::UNKNOWN ] = array(
+					'name'     => null,
+					'nullable' => false,
+				);
+			}
+
+			$depth += self::get_depth_change( $text );
+		}
+
+		return $tables;
+	}
+
+	/**
+	 * Gets the columns of one expression in the select list.
+	 *
+	 * @param list<array{ text: string, offset: int }>                  $item   Tokens of the expression, with its alias.
+	 * @param array<string, array{ name: string|null, nullable: bool }> $tables Tables in the `FROM` clause.
+	 * @param string                                                    $query  Query.
+	 * @return list<array{ name: string|null, type: non-empty-string, optional: bool, variants?: non-empty-list<non-empty-string> }>|null Columns, or null if unknown.
+	 * @phpstan-param list<Token> $item
+	 * @phpstan-param array<string, Table> $tables
+	 * @phpstan-return list<Column>|null
+	 */
+	private function get_item_columns( array $item, array $tables, string $query ): ?array {
+		$count = count( $item );
+		if ( 0 === $count ) {
+			return null;
+		}
+
+		// An unknown part outside any parentheses could be any number of columns.
+		$depth = 0;
+		foreach ( $item as $token ) {
+			if ( 0 === $depth && WpdbQueryVisitor::UNKNOWN === $token['text'] ) {
+				return null;
+			}
+			$depth += self::get_depth_change( $token['text'] );
+		}
+
+		// The alias, if any, which may be a name or a quoted string.
+		$alias     = null;
+		$last_text = $item[ $count - 1 ]['text'];
+		$previous  = $count >= 2 ? $item[ $count - 2 ]['text'] : '';
+		if ( $count >= 3 && 'AS' === strtoupper( $previous ) && ( self::is_identifier( $last_text ) || self::is_quoted_string( $last_text ) ) ) {
+			$alias = self::unquote( $last_text );
+			$item  = array_slice( $item, 0, $count - 2 );
+		} elseif (
+			$count >= 2
+			&& ! in_array( strtoupper( $previous ), self::OPERAND_KEYWORDS, true )
+			&& ! ( in_array( strtoupper( $last_text ), self::INTERVAL_UNITS, true ) && self::has_top_level_token( $item, 'INTERVAL' ) )
+			&& (
+				// A string following a string literal is not an alias, but is joined to it.
+				( self::is_quoted_string( $last_text ) && ( ')' === $previous || self::is_identifier( $previous ) ) )
+				|| (
+					self::is_identifier( $last_text )
+					&& ! in_array( strtoupper( $last_text ), self::NON_ALIAS_KEYWORDS, true )
+					&& ( ')' === $previous || self::is_identifier( $previous ) || self::is_literal( $previous ) )
+				)
+			)
+		) {
+			$alias = self::unquote( $last_text );
+			$item  = array_slice( $item, 0, $count - 1 );
+		}
+
+		$texts = array_column( $item, 'text' );
+		$count = count( $texts );
+
+		// A `*` or `alias.*`.
+		if ( array( '*' ) === $texts || ( 3 === $count && '.' === $texts[1] && '*' === $texts[2] ) ) {
+			$star_tables = 1 === $count ? array_values( $tables ) : array( $tables[ strtolower( self::unquote( $texts[0] ) ) ] ?? null );
+			if ( array() === $star_tables ) {
+				return null;
+			}
+			$columns = array();
+			foreach ( $star_tables as $table ) {
+				// A declared table has only the columns declared, but a core table may have others added to it.
+				if ( null === $table || null === $table['name'] || ( ! $this->tables_match_schema && $this->schema->is_core_table( $table['name'] ) ) ) {
+					return null;
+				}
+				foreach ( $this->schema->get_columns( $table['name'] ) as $column ) {
+					$columns[] = self::apply_nullable( $column, $table );
+				}
+			}
+			return $columns;
+		}
+
+		// A column reference, which MySQL names by the column even in parentheses, as in `DISTINCT(post_author)`.
+		$column_ref = self::get_column_reference( self::strip_parentheses( $texts ) );
+		if ( null !== $column_ref ) {
+			list( $qualifier, $name ) = $column_ref;
+			$column                   = $this->find_column( $tables, $qualifier, $name );
+			return array(
+				array(
+					'name'     => self::get_known_name( $alias ?? $name ),
+					'type'     => null !== $column ? $column['type'] : 'string|null',
+					'optional' => null !== $column && $column['optional'],
+				),
+			);
+		}
+
+		/*
+		 * Otherwise MySQL names the column by the value of a string, or the first of adjacent strings it joins, or else
+		 * by the text of its expression. The name of a string with a prefix, like `_utf8mb4'text'`, is not followed.
+		 */
+		$name = $alias;
+		if ( null === $name && array() === array_filter( $texts, static fn ( string $text ): bool => ! self::is_quoted_string( $text ) ) ) {
+			$name = self::unquote( $texts[0] );
+		} elseif ( null === $name && ! ( 1 === $count && preg_match( '/^(?:[xXbBnN]|_[A-Za-z0-9]+)\'/', $texts[0] ) ) ) {
+			$last = end( $item );
+			$name = (string) substr( $query, $item[0]['offset'], $last['offset'] + strlen( $last['text'] ) - $item[0]['offset'] );
+		}
+
+		return array(
+			array(
+				'name'     => self::get_known_name( $name ),
+				'type'     => $this->get_expression_type( $texts, $tables ),
+				'optional' => false,
+			),
+		);
+	}
+
+	/**
+	 * Gets the type of the values of an expression which is not a column reference.
+	 *
+	 * @param list<string>                                              $texts  Tokens of the expression.
+	 * @param array<string, array{ name: string|null, nullable: bool }> $tables Tables in the `FROM` clause.
+	 * @return non-empty-string PHPDoc type.
+	 * @phpstan-param array<string, Table> $tables
+	 */
+	private function get_expression_type( array $texts, array $tables ): string {
+		$count = count( $texts );
+
+		// An integer, written as MySQL gives it back. Others, like `007` or `1e3`, are given back otherwise.
+		if ( 1 === $count && preg_match( '/^(?:0|[1-9]\d*)$/', $texts[0] ) ) {
+			return "'" . $texts[0] . "'";
+		}
+		if ( 1 === $count && preg_match( "/^'([\\w .:-]*)'$/", $texts[0], $match ) ) {
+			return "'" . $match[1] . "'";
+		}
+
+		// A function call, like `COUNT( DISTINCT ID )`.
+		if ( $count >= 3 && self::is_identifier( $texts[0] ) && '(' === $texts[1] && ')' === $texts[ $count - 1 ] ) {
+			// The parentheses must be those of the one call, not `COUNT(a) + (b)`.
+			$depth = 0;
+			for ( $i = 1; $i < $count - 1; $i++ ) {
+				$depth += self::get_depth_change( $texts[ $i ] );
+				if ( 0 === $depth ) {
+					return 'string|null';
+				}
+			}
+
+			$arguments = array_slice( $texts, 2, $count - 3 );
+			switch ( strtoupper( $texts[0] ) ) {
+				case 'COUNT':
+					return 'decimal-int-string';
+				case 'SUM':
+				case 'AVG':
+					return 'numeric-string|null';
+				case 'MIN':
+				case 'MAX':
+					if ( isset( $arguments[0] ) && 'DISTINCT' === strtoupper( $arguments[0] ) ) {
+						$arguments = array_slice( $arguments, 1 );
+					}
+					$column_ref = self::get_column_reference( $arguments );
+					$column     = null !== $column_ref ? $this->find_column( $tables, $column_ref[0], $column_ref[1] ) : null;
+					if ( null !== $column ) {
+						return self::add_null( $column['type'] );
+					}
+					return 'string|null';
+				case 'YEAR':
+				case 'MONTH':
+				case 'DAY':
+				case 'DAYOFMONTH':
+				case 'HOUR':
+				case 'MINUTE':
+				case 'SECOND':
+					/*
+					 * These give an integer for any date or time, including 0 for the zero date, like
+					 * '0000-00-00 00:00:00'. Others, like `DAYOFWEEK()`, give NULL for it. For a value
+					 * which is not a date or time, they give NULL.
+					 */
+					$column_ref = self::get_column_reference( $arguments );
+					$column     = null !== $column_ref ? $this->find_column( $tables, $column_ref[0], $column_ref[1] ) : null;
+					if ( null !== $column && 'non-falsy-string' === $column['type'] ) {
+						return 'decimal-int-string';
+					}
+					return 'decimal-int-string|null';
+				case 'DATE_ADD':
+				case 'DATE_SUB':
+				case 'ADDDATE':
+				case 'SUBDATE':
+					/*
+					 * These give a date or time, like '2024-01-02 03:04:05', whatever their arguments, or NULL for a
+					 * result out of range, as for the zero date, and for a value which is not a date or time.
+					 */
+					return 'non-falsy-string|null';
+				case 'VERSION':
+					return array() === $arguments ? 'non-empty-string' : 'string|null';
+			}
+		}
+
+		return 'string|null';
+	}
+
+	/**
+	 * Finds a column of a known table.
+	 *
+	 * @param array<string, array{ name: string|null, nullable: bool }> $tables    Tables in the `FROM` clause.
+	 * @param string|null                                               $qualifier Lowercase alias or name of the table,
+	 *                                                                             or null if not qualified.
+	 * @param string                                                    $name      Column name.
+	 * @return array{ name: non-empty-string, type: non-empty-string, optional: bool }|null Column, or null if unknown.
+	 * @phpstan-param array<string, Table> $tables
+	 * @phpstan-return SchemaColumn|null
+	 */
+	private function find_column( array $tables, ?string $qualifier, string $name ): ?array {
+		if ( null !== $qualifier ) {
+			$table = $tables[ $qualifier ] ?? null;
+			if ( null === $table || null === $table['name'] ) {
+				return null;
+			}
+			$column = $this->schema->get_column( $table['name'], $name );
+			return null !== $column ? self::apply_nullable( $column, $table ) : null;
+		}
+
+		foreach ( $tables as $table ) {
+			$column = null !== $table['name'] ? $this->schema->get_column( $table['name'], $name ) : null;
+			if ( null !== $column ) {
+				return self::apply_nullable( $column, $table );
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Makes a column's type nullable if its table is on the outer side of a join.
+	 *
+	 * @param array{ name: non-empty-string, type: non-empty-string, optional: bool } $column Column of a core table.
+	 * @param array{ name: string|null, nullable: bool }                             $table  Table the column is in.
+	 * @return array{ name: non-empty-string, type: non-empty-string, optional: bool } Column.
+	 * @phpstan-param SchemaColumn $column
+	 * @phpstan-param Table $table
+	 * @phpstan-return SchemaColumn
+	 */
+	private static function apply_nullable( array $column, array $table ): array {
+		if ( $table['nullable'] ) {
+			$column['type'] = self::add_null( $column['type'] );
+		}
+		return $column;
+	}
+
+	/**
+	 * Adds null to a PHPDoc type.
+	 *
+	 * @param non-empty-string $type PHPDoc type.
+	 * @return non-empty-string
+	 */
+	private static function add_null( string $type ): string {
+		return '|null' === substr( $type, -5 ) ? $type : $type . '|null';
+	}
+
+	/**
+	 * Removes the parentheses around an expression, as in `(ID)` or `((ID))`.
+	 *
+	 * @param list<string> $texts Tokens of an expression.
+	 * @return list<string> Tokens of the expression in the parentheses.
+	 */
+	private static function strip_parentheses( array $texts ): array {
+		while ( count( $texts ) >= 3 && '(' === $texts[0] && ')' === $texts[ count( $texts ) - 1 ] ) {
+			// The parentheses must be a pair, not those of `(a) + (b)`.
+			$depth = 0;
+			$last  = count( $texts ) - 1;
+			for ( $i = 0; $i < $last; $i++ ) {
+				$depth += self::get_depth_change( $texts[ $i ] );
+				if ( 0 === $depth ) {
+					return $texts;
+				}
+			}
+			$texts = array_slice( $texts, 1, -1 );
+		}
+		return $texts;
+	}
+
+	/**
+	 * Gets the qualifier and name of a column reference, like `p.ID` or `ID`.
+	 *
+	 * @param list<string> $texts Tokens of an expression.
+	 * @return array{ 0: string|null, 1: string }|null Lowercase qualifier, or null if none, and column name. Null if
+	 *                                                 the expression is not a column reference.
+	 */
+	private static function get_column_reference( array $texts ): ?array {
+		$count = count( $texts );
+		if ( 1 === $count && self::is_identifier( $texts[0] ) && ! self::is_keyword_value( $texts[0] ) ) {
+			return array( null, self::unquote( $texts[0] ) );
+		}
+		if ( 3 === $count && self::is_identifier( $texts[0] ) && '.' === $texts[1] && self::is_identifier( $texts[2] ) ) {
+			return array( strtolower( self::unquote( $texts[0] ) ), self::unquote( $texts[2] ) );
+		}
+		return null;
+	}
+
+	/**
+	 * Splits a query into tokens, leaving out whitespace and comments.
+	 *
+	 * The comments are those of MySQL: from `#`, or from `--` followed by whitespace or a control character, to the
+	 * end of the line, and between `/*` and `*\/`. A `--` followed by anything else is two minus signs, as in `5--3`.
+	 *
+	 * A table placeholder with name characters or other placeholders on either side of it, as in
+	 * `{wpdb:posts}_archive` or `{wpdb:posts}{?}`, is one token with them, since together they may name some other
+	 * table.
+	 *
+	 * A literal is one token, including a number like `0x41` or `1e3`, and a string with a prefix, like `x'41'` or
+	 * `_utf8mb4'text'`. A name may start with digits, as in `1st`, but not be all digits.
+	 *
+	 * @param string $query Query.
+	 * @return list<array{ text: string, offset: int }>
+	 * @phpstan-return list<Token>
+	 */
+	private static function tokenize( string $query ): array {
+		preg_match_all(
+			'/\s+|--(?:[\s\x00-\x1f][^\n]*|$)|#[^\n]*|\/\*.*?\*\/|\'(?:[^\'\\\\]|\\\\.|\'\')*\'|"(?:[^"\\\\]|\\\\.|"")*"|`[^`]*`|(?:[\w$]|\{[^{}]*\})*\{wpdb:\w+\}(?:[\w$]|\{[^{}]*\})*|\{[^{}]*\}|(?:[xXbBnN]|_[A-Za-z0-9]+)\'(?:[^\'\\\\]|\\\\.|\'\')*\'|0x[0-9a-fA-F]+(?![\w$])|\d+(?:\.\d+)?(?:[eE][-+]?\d+)?(?![\w$])|[\w$]+|<=>|[<>!]=|<>|\|\||&&|./s',
+			$query,
+			$matches,
+			PREG_OFFSET_CAPTURE
+		);
+
+		$tokens = array();
+		foreach ( $matches[0] as $match ) {
+			list( $text, $offset ) = $match;
+			if ( '' === trim( $text ) || 0 === strpos( $text, '--' ) || 0 === strpos( $text, '#' ) || 0 === strpos( $text, '/*' ) ) {
+				continue;
+			}
+			$tokens[] = array(
+				'text'   => $text,
+				'offset' => $offset,
+			);
+		}
+		return $tokens;
+	}
+
+	/**
+	 * Gets how much a token changes the depth of parentheses.
+	 *
+	 * @param string $text Token.
+	 * @return int
+	 */
+	private static function get_depth_change( string $text ): int {
+		if ( '(' === $text ) {
+			return 1;
+		}
+		if ( ')' === $text ) {
+			return -1;
+		}
+		return 0;
+	}
+
+	/**
+	 * Determines whether a token is an identifier: a name, a backtick-quoted name, a `wpdb` property, or a name after
+	 * the prefix, like `{wpdb:prefix}wc_orders`.
+	 *
+	 * The unknown placeholder `{?}` is not one.
+	 *
+	 * @param string $text Token.
+	 * @return bool
+	 */
+	private static function is_identifier( string $text ): bool {
+		return (bool) preg_match( '/^(?:[A-Za-z_$][\w$]*|`[^`]+`|\{wpdb:\w+\}|\{wpdb:(?:base_)?prefix\}\w+)$/', $text );
+	}
+
+	/**
+	 * Determines whether a token is a literal: a number, a quoted string, or a value from a placeholder.
+	 *
+	 * @param string $text Token.
+	 * @return bool
+	 */
+	private static function is_literal( string $text ): bool {
+		return WpdbQueryVisitor::VALUE === $text || (bool) preg_match( '/^(?:\d|\'|"|(?:[xXbBnN]|_[A-Za-z0-9]+)\')/', $text );
+	}
+
+	/**
+	 * Determines whether a token is a keyword which is a value, rather than a column name.
+	 *
+	 * @param string $text Token.
+	 * @return bool
+	 */
+	private static function is_keyword_value( string $text ): bool {
+		return in_array( strtoupper( $text ), array( 'NULL', 'TRUE', 'FALSE', 'CURRENT_TIMESTAMP', 'CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_USER' ), true );
+	}
+
+	/**
+	 * Gets a column name, unless it holds a placeholder, whose text is not known.
+	 *
+	 * A placeholder can be in a name as well as be one, as in `` `{?}` `` or `'{value}'`, or a `wpdb` property
+	 * other than a table, like `{wpdb:blogid}`.
+	 *
+	 * @param string|null $name Column name.
+	 * @return string|null Column name, or null if unknown.
+	 */
+	private static function get_known_name( ?string $name ): ?string {
+		return null !== $name && false === strpos( $name, '{' ) ? $name : null;
+	}
+
+	/**
+	 * Determines whether an expression has a keyword outside any parentheses.
+	 *
+	 * @param list<array{ text: string, offset: int }> $item    Tokens of the expression.
+	 * @param string                                   $keyword Uppercase keyword.
+	 * @return bool
+	 * @phpstan-param list<Token> $item
+	 */
+	private static function has_top_level_token( array $item, string $keyword ): bool {
+		$depth = 0;
+		foreach ( $item as $token ) {
+			if ( 0 === $depth && strtoupper( $token['text'] ) === $keyword ) {
+				return true;
+			}
+			$depth += self::get_depth_change( $token['text'] );
+		}
+		return false;
+	}
+
+	/**
+	 * Determines whether a token is a quoted string, with single or double quotes.
+	 *
+	 * @param string $text Token.
+	 * @return bool
+	 */
+	private static function is_quoted_string( string $text ): bool {
+		return strlen( $text ) >= 2 && ( "'" === $text[0] || '"' === $text[0] ) && $text[0] === substr( $text, -1 );
+	}
+
+	/**
+	 * Removes the backticks around an identifier, or the quotes around a string used as an alias.
+	 *
+	 * @param string $text Identifier or quoted string.
+	 * @return string
+	 */
+	private static function unquote( string $text ): string {
+		if ( strlen( $text ) >= 2 && '`' === $text[0] && '`' === substr( $text, -1 ) ) {
+			return substr( $text, 1, -1 );
+		}
+		if ( self::is_quoted_string( $text ) ) {
+			$quote = $text[0];
+			return str_replace( array( $quote . $quote, '\\' . $quote, '\\\\' ), array( $quote, $quote, '\\' ), substr( $text, 1, -1 ) );
+		}
+		return $text;
+	}
+}

@@ -6562,7 +6562,6 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 			post_status IN ('draft', 'pending', 'auto-draft') ASC, ID ASC
 	";
 
-	/** @var array<object{ ID: string, post_name: string, post_parent: string, post_type: string }> $pages */
 	$pages = $wpdb->get_results( $sql, OBJECT_K ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The escaping has been applied above via esc_sql().
 
 	$revparts = array_reverse( $parts );

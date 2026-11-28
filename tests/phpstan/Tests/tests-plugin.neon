@@ -1,0 +1,15 @@
+# PHPStan configuration for the tests of the wpdb query types as configured for a
+# plugin or theme, on top of tests.neon: the core tables may have more columns than
+# the core schema, and the plugin declares its own table and a column it adds to a
+# core table.
+
+parameters:
+	wpdbTablesMatchSchema: false
+	wpdbTables:
+		terms:
+			term_order: 'decimal-int-string|null'
+		wp_tests_orders:
+			id: decimal-int-string
+			status: string
+			total: 'numeric-string|null'
+			date_created_gmt: 'non-falsy-string|null'

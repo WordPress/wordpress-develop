@@ -303,6 +303,7 @@ class wpdb {
 	 *
 	 * @see wpdb::tables()
 	 * @var string[]
+	 * @phpstan-var list<non-empty-string>
 	 */
 	public $tables = array(
 		'posts',
@@ -326,6 +327,7 @@ class wpdb {
 	 *
 	 * @see wpdb::tables()
 	 * @var string[]
+	 * @phpstan-var list<non-empty-string>
 	 */
 	public $old_tables = array( 'categories', 'post2cat', 'link2cat' );
 
@@ -336,6 +338,7 @@ class wpdb {
 	 *
 	 * @see wpdb::tables()
 	 * @var string[]
+	 * @phpstan-var list<non-empty-string>
 	 */
 	public $global_tables = array( 'users', 'usermeta' );
 
@@ -346,6 +349,7 @@ class wpdb {
 	 *
 	 * @see wpdb::tables()
 	 * @var string[]
+	 * @phpstan-var list<non-empty-string>
 	 */
 	public $ms_global_tables = array(
 		'blogs',
@@ -363,6 +367,7 @@ class wpdb {
 	 *
 	 * @see wpdb::tables()
 	 * @var string[]
+	 * @phpstan-var list<non-empty-string>
 	 */
 	public $old_ms_global_tables = array( 'sitecategories' );
 
@@ -1136,6 +1141,7 @@ class wpdb {
 	 * @param int    $blog_id Optional. The blog_id to prefix. Used only when prefix is requested.
 	 *                        Defaults to `wpdb::$blogid`.
 	 * @return string[] Table names. When a prefix is requested, the key is the unprefixed table name.
+	 * @phpstan-return ( $prefix is true ? array<non-empty-string, non-empty-string> : list<non-empty-string> )
 	 */
 	public function tables( $scope = 'all', $prefix = true, $blog_id = 0 ) {
 		switch ( $scope ) {
@@ -1810,6 +1816,7 @@ class wpdb {
 	 *                     should have no extra or deleted slashes.
 	 * @return string Text in the form of a LIKE phrase. The output is not SQL safe.
 	 *                Call wpdb::prepare() or wpdb::_real_escape() next.
+	 * @phpstan-return ( $text is non-empty-string ? non-empty-string : string )
 	 */
 	public function esc_like( $text ) {
 		return addcslashes( $text, '_%\\' );
@@ -2236,6 +2243,9 @@ class wpdb {
 	 *
 	 * More information can be found on the documentation page.
 	 *
+	 * The number of rows returned is never negative: `mysqli_affected_rows()` only gives -1
+	 * for a query which failed, for which false is returned instead.
+	 *
 	 * @since 0.71
 	 *
 	 * @link https://developer.wordpress.org/reference/classes/wpdb/
@@ -2243,6 +2253,7 @@ class wpdb {
 	 * @param string $query Database query.
 	 * @return int|bool Boolean true for CREATE, ALTER, TRUNCATE and DROP queries. Number of rows
 	 *                  affected/selected for all other queries. Boolean false on error.
+	 * @phpstan-return int<0, max>|bool
 	 */
 	public function query( $query ) {
 		if ( ! $this->ready ) {
@@ -2533,6 +2544,7 @@ class wpdb {
 	 *                                If omitted, all values in `$data` will be treated as strings unless otherwise
 	 *                                specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows inserted, or false on error.
+	 * @phpstan-return int<0, max>|false
 	 */
 	public function insert( $table, $data, $format = null ) {
 		return $this->_insert_replace_helper( $table, $data, $format, 'INSERT' );
@@ -2586,6 +2598,7 @@ class wpdb {
 	 *                                If omitted, all values in `$data` will be treated as strings unless otherwise
 	 *                                specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows affected, or false on error.
+	 * @phpstan-return int<0, max>|false
 	 */
 	public function replace( $table, $data, $format = null ) {
 		return $this->_insert_replace_helper( $table, $data, $format, 'REPLACE' );
@@ -2615,6 +2628,7 @@ class wpdb {
 	 * @param string          $type   Optional. Type of operation. Either 'INSERT' or 'REPLACE'.
 	 *                                Default 'INSERT'.
 	 * @return int|false The number of rows affected, or false on error.
+	 * @phpstan-return int<0, max>|false
 	 */
 	public function _insert_replace_helper( $table, $data, $format = null, $type = 'INSERT' ) {
 		$this->insert_id = 0;
@@ -2709,6 +2723,7 @@ class wpdb {
 	 *                                      If omitted, all values in $where will be treated as strings unless otherwise
 	 *                                      specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows updated, or false on error.
+	 * @phpstan-return int<0, max>|false
 	 */
 	public function update( $table, $data, $where, $format = null, $where_format = null ) {
 		if ( ! is_array( $data ) || ! is_array( $where ) ) {
@@ -2794,6 +2809,7 @@ class wpdb {
 	 *                                      If omitted, all values in $where will be treated as strings unless otherwise
 	 *                                      specified in wpdb::$field_types. Default null.
 	 * @return int|false The number of rows deleted, or false on error.
+	 * @phpstan-return int<0, max>|false
 	 */
 	public function delete( $table, $where, $where_format = null ) {
 		if ( ! is_array( $where ) ) {

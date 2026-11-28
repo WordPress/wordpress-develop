@@ -45,6 +45,24 @@ services:
 		tags:
 			- phpstan.broker.dynamicFunctionReturnTypeExtension
 
+	# Reconstructs the text of the query passed to each wpdb query method, following
+	# the variables it is built up in. See tests/phpstan/WpdbQueryVisitor.php.
+	-
+		class: WordPress\PHPStan\WpdbQueryVisitor
+		tags:
+			- phpstan.parser.richParserNodeVisitor
+
+	# Types the results of wpdb::get_var(), get_row(), get_col(), and get_results()
+	# from the columns their query selects, typed from the core database schema, and
+	# the result of wpdb::query() from the statement its query begins with.
+	-
+		class: WordPress\PHPStan\WpdbQueryDynamicMethodReturnTypeExtension
+		arguments:
+			tables_match_schema: %wpdbTablesMatchSchema%
+			tables: %wpdbTables%
+		tags:
+			- phpstan.broker.dynamicMethodReturnTypeExtension
+
 	# Enforces that every hook invocation is preceded by a documenting docblock or
 	# a valid "This filter is documented in <file>" reference comment.
 	-
@@ -102,7 +120,30 @@ services:
 			wrappedParser: @currentPhpVersionRichParser
 		autowired: false
 
+parametersSchema:
+	wpdbTablesMatchSchema: bool()
+	wpdbTables: arrayOf(arrayOf(string(), string()), string())
+
 parameters:
+	# Whether the core tables have only the columns of the core schema, so that the
+	# wpdb query types expand a `*` over one of them to its columns. This holds for
+	# core, though not for plugins and themes, which run on sites where other plugins
+	# may have added columns.
+	wpdbTablesMatchSchema: true
+
+	# The column types of tables the core schema does not have, for the wpdb query
+	# types, keyed by table name without the prefix, with the PHPDoc type of each
+	# column in order. Core has none, but a plugin or theme would declare its own
+	# tables here, and the columns plugins add to core tables, for example:
+	#
+	#     wpdbTables:
+	#         terms:
+	#             term_order: 'decimal-int-string|null'
+	#         wc_orders:
+	#             id: decimal-int-string
+	#             status: 'string|null'
+	wpdbTables: []
+
 	# Cache is stored locally, so it's available for CI.
 	tmpDir: ../../.cache
 
@@ -148,6 +189,8 @@ parameters:
 		COOKIEHASH: 'string'
 		COOKIEPATH: 'string'
 		CUSTOM_TAGS: 'bool'
+		CUSTOM_USER_META_TABLE: 'non-empty-string'
+		CUSTOM_USER_TABLE: 'non-empty-string'
 		# Raw getenv() configs also yield false. Core treats any falsy value as empty.
 		DB_COLLATE: 'string'
 		# Also defined as 1, 'true', and getenv() strings. Core checks truthiness.
@@ -307,6 +350,10 @@ parameters:
 		- HookDocumentationRule.php
 		- HookParamCountRule.php
 		- Tests
+		- WpdbQueryDynamicMethodReturnTypeExtension.php
+		- WpdbQueryVisitor.php
+		- WpdbSchema.php
+		- WpdbSelectParser.php
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:

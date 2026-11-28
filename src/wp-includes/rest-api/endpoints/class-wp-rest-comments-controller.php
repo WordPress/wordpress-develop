@@ -2432,16 +2432,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 
 		// Query 1: Get aggregated counts per emoji per note.
-		$query = "SELECT r.comment_parent, r.comment_content, COUNT(*) AS reaction_count $from $where GROUP BY r.comment_parent, r.comment_content";
-		/** @var list<object{ comment_parent: decimal-int-string, comment_content: string, reaction_count: decimal-int-string }&stdClass>|null $counts */
+		$query  = "SELECT r.comment_parent, r.comment_content, COUNT(*) AS reaction_count $from $where GROUP BY r.comment_parent, r.comment_content";
 		$counts = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- It is prepared above.
 
 		// Query 2: Get the current user's own reaction IDs (if logged in).
 		$my_reactions = array();
 		if ( $current_user_id ) {
-			$query  = "SELECT r.comment_ID, r.comment_parent, r.comment_content $from $where";
-			$query .= $wpdb->prepare( ' AND r.user_id = %d', $current_user_id );
-			/** @var list<object{ comment_ID: decimal-int-string, comment_parent: decimal-int-string, comment_content: string }&stdClass>|null $user_rows */
+			$query     = "SELECT r.comment_ID, r.comment_parent, r.comment_content $from $where";
+			$query    .= $wpdb->prepare( ' AND r.user_id = %d', $current_user_id );
 			$user_rows = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- It is prepared above.
 
 			if ( $user_rows ) {

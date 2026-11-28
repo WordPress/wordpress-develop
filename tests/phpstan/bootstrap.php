@@ -98,6 +98,10 @@ define( 'NOBLOGREDIRECT', '%siteurl%' );
 define( 'UPLOADBLOGSDIR', 'wp-content/blogs.dir' );
 define( 'BLOGUPLOADDIR', WP_CONTENT_DIR . '/blogs.dir/1/files/' );
 
+/** @see wpdb::tables() */
+define( 'CUSTOM_USER_TABLE', 'wp_users' );
+define( 'CUSTOM_USER_META_TABLE', 'wp_usermeta' );
+
 /** @see WP_Filesystem() */
 define( 'FS_CONNECT_TIMEOUT', 30 ); // 30 seconds.
 define( 'FS_TIMEOUT', 30 ); // 30 seconds.

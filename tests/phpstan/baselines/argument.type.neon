@@ -64,6 +64,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/edit.php
 		-
+			message: '#^Parameter \#1 \$number of function zeroise expects int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/export.php
+		-
 			message: '#^Parameter \#1 \$attachment of function wp_get_attachment_id3_keys expects WP_Post, stdClass given\.$#'
 			identifier: argument.type
 			count: 1
@@ -134,12 +139,27 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/includes/dashboard.php
 		-
-			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(stdClass\)\: mixed\)\|null, ''get_comment'' given\.$#'
+			message: '#^Parameter \#1 \$attachment_id of function wp_get_attachment_url expects int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/export.php
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(object\{comment_ID\: decimal\-int\-string, comment_post_ID\: decimal\-int\-string, comment_author\: string, comment_author_email\: string, comment_author_url\: string, comment_author_IP\: string, comment_date\: non\-falsy\-string, comment_date_gmt\: non\-falsy\-string, comment_content\: string, comment_karma\: decimal\-int\-string, comment_approved\: string, comment_agent\: string, comment_type\: string, comment_parent\: decimal\-int\-string, user_id\: decimal\-int\-string\}&stdClass\)\: mixed\)\|null, ''get_comment'' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/export.php
+		-
+			message: '#^Parameter \#1 \$post_id of function is_sticky expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/export.php
 		-
 			message: '#^Parameter \#1 \$term of function get_term expects int\|object, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/export.php
+		-
+			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/export.php
@@ -199,6 +219,11 @@ parameters:
 			count: 3
 			path: ../../../src/wp-admin/includes/media.php
 		-
+			message: '#^Parameter \#1 \$number of function zeroise expects int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/media.php
+		-
 			message: '#^Parameter \#1 \$post_id of function get_media_items expects int, null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -209,12 +234,12 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/menu.php
 		-
-			message: '#^Parameter \#1 \$link_id of function wp_delete_link expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$link_id of function wp_delete_link expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/ms.php
 		-
-			message: '#^Parameter \#1 \$post_id of function wp_delete_post expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$post_id of function wp_delete_post expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/ms.php
@@ -224,7 +249,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/ms.php
 		-
-			message: '#^Parameter \#1 \$post_id of function wp_delete_post expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$post_id of function wp_delete_post expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/nav-menu.php
@@ -284,6 +309,11 @@ parameters:
 			count: 3
 			path: ../../../src/wp-admin/includes/template.php
 		-
+			message: '#^Parameter \#2 \$parent_page of function parent_dropdown expects int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/template.php
+		-
 			message: '#^Parameter \#2 \$title of function add_meta_box expects string, null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -299,27 +329,57 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/update-core.php
 		-
+			message: '#^Parameter \#1 \$attachment_id of function update_attached_file expects int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/upgrade.php
+		-
+			message: '#^Parameter \#1 \$comment_id of function wp_delete_comment expects int\|WP_Comment, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/upgrade.php
+		-
+			message: '#^Parameter \#1 \$post of function get_permalink expects int\|WP_Post, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/upgrade.php
+		-
+			message: '#^Parameter \#1 \$post_id of function get_post_meta expects int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/upgrade.php
+		-
 			message: '#^Parameter \#1 \$timestamp of function wp_schedule_event expects int, float given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/upgrade.php
 		-
-			message: '#^Parameter \#1 \$bookmark_id of function clean_bookmark_cache expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$user_id of function get_user_meta expects int, string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-admin/includes/upgrade.php
+		-
+			message: '#^Parameter \#1 \$user_id of function update_user_meta expects int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-admin/includes/upgrade.php
+		-
+			message: '#^Parameter \#1 \$bookmark_id of function clean_bookmark_cache expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/user.php
 		-
-			message: '#^Parameter \#1 \$link_id of function wp_delete_link expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$link_id of function wp_delete_link expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/user.php
 		-
-			message: '#^Parameter \#1 \$post of function clean_post_cache expects int\|WP_Post, string\|null given\.$#'
+			message: '#^Parameter \#1 \$post of function clean_post_cache expects int\|WP_Post, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/user.php
 		-
-			message: '#^Parameter \#1 \$post_id of function wp_delete_post expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$post_id of function wp_delete_post expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/user.php
@@ -654,6 +714,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/blocks.php
 		-
+			message: '#^Parameter \#1 \$object_ids of function wp_get_object_terms expects array\<int\>\|int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/bookmark.php
+		-
 			message: '#^Parameter \#2 \$callback of function preg_replace_callback expects callable\(array\<string\>\)\: string, ''lowercase_octets'' given\.$#'
 			identifier: argument.type
 			count: 1
@@ -724,7 +789,12 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-query.php
 		-
-			message: '#^Parameter \#1 \$pages of function get_page_hierarchy expects array\<WP_Post\>, list\<stdClass\>\|null given\.$#'
+			message: '#^Parameter \#1 \$page of function get_page_uri expects int\|object, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: ../../../src/wp-includes/class-wp-rewrite.php
+		-
+			message: '#^Parameter \#1 \$pages of function get_page_hierarchy expects array\<WP_Post\>, \(list\<object\{ID\: string, post_name\: string, post_parent\: string\}&stdClass\>\)\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-rewrite.php
@@ -779,7 +849,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/comment.php
 		-
-			message: '#^Parameter \#1 \$comments of function update_comment_cache expects array\<WP_Comment\>, list\<stdClass\>\|null given\.$#'
+			message: '#^Parameter \#1 \$comments of function update_comment_cache expects array\<WP_Comment\>, \(list\<object\{comment_ID\: string, comment_post_ID\: string, comment_author\: string, comment_author_email\: string, comment_author_url\: string, comment_author_IP\: string, comment_date\: string, comment_date_gmt\: string, comment_content\: string, comment_karma\: string, comment_approved\: string, comment_agent\: string, comment_type\: string, comment_parent\: string, user_id\: string\}&stdClass\>\)\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/comment.php
@@ -879,6 +949,16 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/general-template.php
 		-
+			message: '#^Parameter \#1 \$year of function get_month_link expects int\|false, decimal\-int\-string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/general-template.php
+		-
+			message: '#^Parameter \#2 \$month of function get_month_link expects int\|false, decimal\-int\-string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/general-template.php
+		-
 			message: '#^Parameter \#2 \$replace of function str_replace expects array\<string\>\|string, int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 2
@@ -924,12 +1004,12 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/media.php
 		-
-			message: '#^Parameter \#2 \$callback of function array_walk expects callable\(non\-empty\-string\|null, int\<0, max\>\)\: mixed, ''clean_bookmark_cache'' given\.$#'
+			message: '#^Parameter \#2 \$callback of function array_walk expects callable\(decimal\-int\-string, int\<0, max\>\)\: mixed, ''clean_bookmark_cache'' given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/ms-functions.php
 		-
-			message: '#^Parameter \#2 \$callback of function array_walk expects callable\(non\-empty\-string\|null, int\<0, max\>\)\: mixed, ''clean_post_cache'' given\.$#'
+			message: '#^Parameter \#2 \$callback of function array_walk expects callable\(decimal\-int\-string, int\<0, max\>\)\: mixed, ''clean_post_cache'' given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/ms-functions.php
@@ -1014,32 +1094,32 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/post-template.php
 		-
-			message: '#^Parameter \#1 \$comment_id of function wp_delete_comment expects int\|WP_Comment, string\|null given\.$#'
+			message: '#^Parameter \#1 \$comment_id of function wp_delete_comment expects int\|WP_Comment, string given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/post.php
 		-
-			message: '#^Parameter \#1 \$post of function clean_post_cache expects int\|WP_Post, stdClass given\.$#'
+			message: '#^Parameter \#1 \$post of function clean_post_cache expects int\|WP_Post, object\{ID\: string, post_author\: string, post_date\: string, post_date_gmt\: string, post_content\: string, post_title\: string, post_excerpt\: string, post_status\: string, comment_status\: string, ping_status\: string, post_password\: string, post_name\: string, to_ping\: string, pinged\: string, post_modified\: string, post_modified_gmt\: string, post_content_filtered\: string, post_parent\: string, guid\: string, menu_order\: string, post_type\: string, post_mime_type\: string, comment_count\: string\}&stdClass given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/post.php
 		-
-			message: '#^Parameter \#1 \$post of function get_post expects int\|decimal\-int\-string\|WP_Post\|null, stdClass given\.$#'
+			message: '#^Parameter \#1 \$post of function get_post expects int\|decimal\-int\-string\|WP_Post\|null, object\{ID\: decimal\-int\-string, post_author\: decimal\-int\-string, post_date\: non\-falsy\-string, post_date_gmt\: non\-falsy\-string, post_content\: string, post_title\: string, post_excerpt\: string, post_status\: string, comment_status\: string, ping_status\: string, post_password\: string, post_name\: string, to_ping\: string, pinged\: string, post_modified\: non\-falsy\-string, post_modified_gmt\: non\-falsy\-string, post_content_filtered\: string, post_parent\: decimal\-int\-string, guid\: string, menu_order\: decimal\-int\-string, post_type\: string, post_mime_type\: string, comment_count\: decimal\-int\-string\}&stdClass given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/post.php
 		-
-			message: '#^Parameter \#1 \$post_id of function wp_delete_post expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$post_id of function wp_delete_post expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/post.php
 		-
-			message: '#^Parameter \#1 \$posts of function update_post_cache expects array\<WP_Post\>, list\<stdClass\> given\.$#'
+			message: '#^Parameter \#1 \$posts of function update_post_cache expects array\<WP_Post\>, list\<object\{ID\: string, post_author\: string, post_date\: string, post_date_gmt\: string, post_content\: string, post_title\: string, post_excerpt\: string, post_status\: string, comment_status\: string, ping_status\: string, post_password\: string, post_name\: string, to_ping\: string, pinged\: string, post_modified\: string, post_modified_gmt\: string, post_content_filtered\: string, post_parent\: string, guid\: string, menu_order\: string, post_type\: string, post_mime_type\: string, comment_count\: string\}&stdClass\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/post.php
 		-
-			message: '#^Parameter \#1 \$revision of function wp_delete_post_revision expects int\|WP_Post, string\|null given\.$#'
+			message: '#^Parameter \#1 \$revision of function wp_delete_post_revision expects int\|WP_Post, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/post.php
@@ -1164,27 +1244,27 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/script-loader.php
 		-
-			message: '#^Parameter \#1 \$object_id of function wp_remove_object_terms expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$object_id of function wp_remove_object_terms expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
 		-
-			message: '#^Parameter \#1 \$object_id of function wp_set_object_terms expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$object_id of function wp_set_object_terms expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
 		-
-			message: '#^Parameter \#1 \$object_ids of function wp_get_object_terms expects array\<int\>\|int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$object_ids of function wp_get_object_terms expects array\<int\>\|int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
 		-
-			message: '#^Parameter \#1 \$post_id of function update_post_meta expects int, string\|null given\.$#'
+			message: '#^Parameter \#1 \$post_id of function update_post_meta expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
 		-
-			message: '#^Parameter \#1 \$terms of function update_term_cache expects array\<WP_Term\>, list\<stdClass\>\|null given\.$#'
+			message: '#^Parameter \#1 \$terms of function update_term_cache expects array\<WP_Term\>, \(list\<object\{term_id\: string, name\: string, slug\: string, term_group\: string, term_taxonomy_id\: string, taxonomy\: string, description\: string, parent\: string, count\: string\}&stdClass\>\)\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
