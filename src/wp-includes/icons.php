@@ -35,6 +35,8 @@ function wp_register_icon_collection( $slug, $args ) {
 /**
  * Unregisters an icon collection.
  *
+ * The "core-admin" collection cannot be unregistered.
+ *
  * @since 7.1.0
  *
  * @param string $slug Icon collection slug.
@@ -76,6 +78,8 @@ function wp_register_icon( $icon_name, $args ) {
 
 /**
  * Unregisters an icon.
+ *
+ * The core icons in the "core-admin" collection cannot be unregistered.
  *
  * @since 7.1.0
  *
