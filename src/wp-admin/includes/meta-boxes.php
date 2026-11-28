@@ -912,9 +912,19 @@ function post_comment_meta_box( $post ) {
 	} else {
 		$hidden = get_hidden_meta_boxes( get_current_screen() );
 		if ( ! in_array( 'commentsdiv', $hidden, true ) ) {
-			?>
-			<script>jQuery(function(){commentsBox.get(<?php echo $total; ?>, 10);});</script>
-			<?php
+			$js_function = <<<'JS'
+				( total ) => {
+					jQuery(function(){commentsBox.get(total, 10);});
+				}
+				JS;
+
+			wp_print_inline_script_tag(
+				sprintf(
+					'( %s )( %s );',
+					$js_function,
+					wp_json_encode( (int) $total, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+				)
+			);
 		}
 
 		?>
