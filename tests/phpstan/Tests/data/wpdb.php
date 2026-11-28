@@ -387,3 +387,18 @@ function wp_tests_wpdb_show( wpdb $wpdb, string $table, string $name ): void {
 	assertType( 'list<stdClass>|null', $wpdb->get_results( "SHOW {$name} FROM $wpdb->posts" ) );
 	assertType( 'list<stdClass>|null', $wpdb->get_results( "SHOW FULL INDEX FROM $wpdb->posts" ) );
 }
+
+/**
+ * Functions giving a date or time, and the server's version.
+ */
+function wp_tests_wpdb_functions( wpdb $wpdb, int $seconds, string $field ): void {
+	assertType( 'non-empty-string|null', $wpdb->get_var( 'SELECT VERSION()' ) );
+	assertType( 'array{\'VERSION()\': non-empty-string}|null', $wpdb->get_row( 'SELECT VERSION()', ARRAY_A ) );
+	assertType( 'non-falsy-string|null', $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments ORDER BY comment_date_gmt DESC LIMIT 1", $seconds ) ) );
+	assertType( 'array{d: non-falsy-string|null}|null', $wpdb->get_row( "SELECT DATE_SUB(post_date, INTERVAL 1 DAY) AS d FROM $wpdb->posts", ARRAY_A ) );
+	assertType( 'array{d: non-falsy-string|null}|null', $wpdb->get_row( "SELECT ADDDATE(post_date, 1) AS d FROM $wpdb->posts", ARRAY_A ) );
+	assertType( 'array{d: non-falsy-string|null}|null', $wpdb->get_row( "SELECT subdate('2024-01-01', INTERVAL 1 DAY) AS d", ARRAY_A ) );
+	// Whatever the date is.
+	assertType( 'non-falsy-string|null', $wpdb->get_var( "SELECT DATE_ADD(post_{$field}_gmt, INTERVAL 1 SECOND) FROM $wpdb->posts" ) );
+	assertType( 'array{v: string|null}|null', $wpdb->get_row( 'SELECT VERSION(1) AS v', ARRAY_A ) );
+}

@@ -37,6 +37,8 @@ namespace WordPress\PHPStan;
  * - `YEAR()`, `MONTH()`, `DAY()`, `DAYOFMONTH()`, `HOUR()`, `MINUTE()`, and
  *   `SECOND()` are a `decimal-int-string`, or null as well unless of a date or
  *   time column which is `NOT NULL`.
+ * - `DATE_ADD()`, `DATE_SUB()`, `ADDDATE()`, and `SUBDATE()` are a
+ *   `non-falsy-string` or null, and `VERSION()` is a `non-empty-string`.
  * - With `WITH ROLLUP`, every column is nullable as well, since the subtotal
  *   rows it adds have NULL for the columns grouped by.
  * - A number or string literal is that constant string.
@@ -695,6 +697,17 @@ final class WpdbSelectParser {
 						return 'decimal-int-string';
 					}
 					return 'decimal-int-string|null';
+				case 'DATE_ADD':
+				case 'DATE_SUB':
+				case 'ADDDATE':
+				case 'SUBDATE':
+					/*
+					 * These give a date or time, like '2024-01-02 03:04:05', whatever their arguments, or NULL for a
+					 * result out of range, as for the zero date, and for a value which is not a date or time.
+					 */
+					return 'non-falsy-string|null';
+				case 'VERSION':
+					return array() === $arguments ? 'non-empty-string' : 'string|null';
 			}
 		}
 
