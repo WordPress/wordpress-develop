@@ -158,17 +158,17 @@ class WP_Customize_Control {
 	 * Callback.
 	 *
 	 * This is an empty string by default, which the constructor replaces with
-	 * WP_Customize_Control::active_callback().
+	 * {@see WP_Customize_Control::active_callback()}.
 	 *
 	 * @since 4.0.0
 	 *
 	 * @see WP_Customize_Control::active()
 	 *
 	 * @var callable|string Callback is called with one argument, the instance of
-	 *                      WP_Customize_Control, and returns bool to indicate whether
+	 *                      {@see WP_Customize_Control}, and returns bool to indicate whether
 	 *                      the control is active (such as it relates to the URL
 	 *                      currently being previewed).
-	 * @phpstan-var callable|''
+	 * @phpstan-var (callable( WP_Customize_Control ): bool)|''
 	 */
 	public $active_callback = '';
 
