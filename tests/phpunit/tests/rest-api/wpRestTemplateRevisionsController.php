@@ -222,6 +222,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 		wp_set_post_terms( self::$template_part_post_2->ID, self::TEST_THEME, 'wp_theme' );
 		wp_set_post_terms( self::$template_part_post_2->ID, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
+		wp_set_current_user( 0 );
 	}
 
 	/**

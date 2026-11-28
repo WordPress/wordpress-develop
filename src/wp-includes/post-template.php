@@ -1352,7 +1352,7 @@ function wp_list_pages( $args = '' ) {
 	 * @since 2.1.0
 	 *
 	 * @param string[] $exclude_array An array of page IDs to exclude.
-	 * @phpstan-param list<numeric-string> $exclude_array
+	 * @phpstan-param list<decimal-int-string> $exclude_array
 	 */
 	$parsed_args['exclude'] = implode( ',', apply_filters( 'wp_list_pages_excludes', $exclude_array ) );
 
@@ -2052,6 +2052,8 @@ function wp_post_revision_title_expanded( $revision, $link = true ) {
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @param string      $type 'all' (default), 'revision' or 'autosave'
+ *
+ * @phpstan-param 'all'|'revision'|'autosave' $type
  */
 function wp_list_post_revisions( $post = 0, $type = 'all' ) {
 	$post = get_post( $post );

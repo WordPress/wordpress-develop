@@ -1,1 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="300" fill="none"><radialGradient id="b" cx="0" cy="0" r="1" gradientTransform="matrix(0 527 -688.902 0 524 527)" gradientUnits="userSpaceOnUse"><stop offset=".589" stop-color="#3858e9"/><stop offset="1" stop-color="#00c253"/></radialGradient><radialGradient id="d" cx="0" cy="0" r="1" gradientTransform="matrix(0 178.544 -233.35 0 177.493 178.544)" gradientUnits="userSpaceOnUse"><stop offset=".589" stop-color="#3858e9"/><stop offset="1" stop-color="#00c253" stop-opacity=".7"/></radialGradient><clipPath id="a"><path d="M1000 0H0v300h1000z"/></clipPath><g clip-path="url(#a)"><path fill="#00c253" d="M1000 0H0v300h1000z"/><ellipse cx="524" cy="527" fill="url(#b)" rx="524" ry="527" transform="matrix(0 -1 -1 0 1159 903)"/><ellipse cx="177.493" cy="178.544" fill="url(#d)" rx="177.493" ry="178.544" transform="matrix(0 -1 -1 0 211 354.545)"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="300" viewBox="0 0 1000 300">
+	<!--!
+	Font: JetBrains Mono (subset)
+	Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+	This Font Software is licensed under the SIL Open Font License, Version 1.1.
+	https://openfontlicense.org
+	-->
+	<style>@font-face{font-family:a;src:url(data:font/woff2;base64,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)}text{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:geometricPrecision}</style>
+	<path fill="#323232" d="M0 0h1000v300H0z"/>
+	<g fill="#000" font-family="a, monospace" font-size="7.82" letter-spacing="-0.4844" font-variant-ligatures="none">
+		<text x="177.54" y="29.99">imp</text>
+		<text x="152.3" y="40.58">ort <tspan fill="#e5482f">{ </tspan>registerB</text>
+		<text x="122.85" y="51.17">lockType } from '@wordpress/b</text>
+		<text x="93.39" y="61.76">locks'<tspan fill="#e5482f">; </tspan>import { useBlockProps, RichText, I</text>
+		<text x="68.15" y="72.35">nspectorControls } from '@wordpress/block-editor'; impo</text>
+		<text x="59.74" y="82.94">rt { PanelBody, RangeControl } from '<tspan fill="#e5482f">@</tspan>wordpress/components'</text>
+		<text x="59.74" y="93.53">; import { __ } from '<tspan fill="#e5482f">@</tspan>wordpress/i18n'; registerBlockType(</text>
+		<text x="59.74" y="104.13">'vamp/path', { edit( { attributes, setAttributes } <tspan fill="#e5482f">) </tspan>{ cons</text>
+		<text x="59.74" y="114.72">t blockProps = useBlockProps(); return ( &lt;&gt; &lt;InspectorContr</text>
+		<text x="59.74" y="125.31">ols&gt; <tspan fill="#e5482f">&lt;</tspan>PanelBody title={ __(</text>
+		<text x="190.18" y="125.31">'Spacing', 'vamp' ) }&gt; &lt;Rang</text>
+		<text x="59.73" y="135.9">eControl label={ _<tspan fill="#e5482f">_</tspan>( 'Tr</text>
+		<text x="207.01" y="135.9">acking', 'vamp' ) } valu</text>
+		<text x="59.73" y="146.49">e={ attributes.tracking</text>
+		<text x="215.41" y="146.49">} onChange={ ( trackin</text>
+		<text x="59.73" y="157.08">g ) =&gt; setAttributes( {</text>
+		<text x="215.41" y="157.08">tracking } ) } min={ 0</text>
+		<text x="63.94" y="167.67">} max={ <tspan fill="#e5482f">20 </tspan>} /&gt; &lt;<tspan fill="#e5482f">/</tspan>Pane</text>
+		<text x="207.02" y="167.67">lBody&gt; &lt;/InspectorContro</text>
+		<text x="59.73" y="178.26">ls&gt; &lt;RichText { ...blockPr</text>
+		<text x="198.6" y="178.26">ops } tagName="p" value={</text>
+		<text x="59.72" y="188.85">attributes.content } onCh</text>
+		<text x="202.8" y="188.85">ange={ ( content ) =&gt; set</text>
+		<text x="63.94" y="199.44">Attributes( { content }</text>
+		<text x="202.81" y="199.44">) } /&gt; &lt;/&gt; )<tspan fill="#e5482f">; </tspan>}, save( {</text>
+		<text x="68.14" y="210.03">attributes <tspan fill="#e5482f">} </tspan>) { retur</text>
+		<text x="207.01" y="210.03">n &lt;RichText.Content { .</text>
+		<text x="68.19" y="220.62">..useBlockProps.save()</text>
+		<text x="211.21" y="220.62">} tagName="p" value={</text>
+		<text x="76.55" y="231.21">attributes.content } /&gt;; }, } ); import { registerBl</text>
+		<text x="76.57" y="241.81">ockType } from '<tspan fill="#e5482f">@</tspan>wordpress/blocks'; import { useBlo</text>
+		<text x="80.77" y="252.4">ckProps, RichText, InspectorControls <tspan fill="#e5482f">} </tspan>from '@wor</text>
+		<text x="89.19" y="262.98">dpress/block-editor'; import { PanelBody, Ran</text>
+		<text x="97.6" y="273.58">geControl } from '@wordpress<tspan fill="#e5482f">/</tspan>components';</text>
+		<text x="110.23" y="284.17">import { __ <tspan fill="#e5482f">} </tspan>from '@wordpress/i18n'</text>
+		<text x="118.65" y="294.76">; registerBlockType( 'vamp/path</text>
+		<text x="131.26" y="305.36">!</text>
+		<text x="143.88" y="305.36">{</text>
+		<text x="156.52" y="305.36">dit( {</text>
+		<text x="190.18" y="305.36">tt ib t</text>
+	</g>
+</svg>

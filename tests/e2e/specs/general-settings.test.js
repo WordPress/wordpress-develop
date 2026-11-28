@@ -1,11 +1,11 @@
-import { test, expect } from '@wordpress/e2e-test-utils-playwright';
+import { test, expect } from '../fixtures';
 import { GENERAL_SETTINGS } from '../utils/locks';
 
 test.describe( 'Settings -> General', { lock: GENERAL_SETTINGS }, () => {
 	test( 'Saving General Settings preserves the active theme options', async ( {
 		admin,
 		page,
-		requestUtils,
+		siteSettings,
 	} ) => {
 		await admin.visitAdminPage( 'options.php' );
 		const stylesheet = await page.locator( '#stylesheet' ).inputValue();
@@ -20,22 +20,17 @@ test.describe( 'Settings -> General', { lock: GENERAL_SETTINGS }, () => {
 			originalTagline + ' Updated in General Settings.'
 		).trimStart();
 
-		try {
-			await tagline.fill( updatedTagline );
-			await page.getByRole( 'button', { name: 'Save Changes' } ).click();
-			await expect(
-				page.locator( '#setting-error-settings_updated' )
-			).toContainText( 'Settings saved.' );
-			await expect( tagline ).toHaveValue( updatedTagline );
+		await siteSettings.remember( [ 'description' ] );
+		await tagline.fill( updatedTagline );
+		await page.getByRole( 'button', { name: 'Save Changes' } ).click();
+		await expect(
+			page.locator( '#setting-error-settings_updated' )
+		).toContainText( 'Settings saved.' );
+		await expect( tagline ).toHaveValue( updatedTagline );
 
-			await admin.visitAdminPage( 'options.php' );
-			await expect( page.locator( '#stylesheet' ) ).toHaveValue( stylesheet );
-			await expect( page.locator( '#template' ) ).toHaveValue( template );
-		} finally {
-			await requestUtils.updateSiteSettings( {
-				description: originalTagline,
-			} );
-		}
+		await admin.visitAdminPage( 'options.php' );
+		await expect( page.locator( '#stylesheet' ) ).toHaveValue( stylesheet );
+		await expect( page.locator( '#template' ) ).toHaveValue( template );
 	} );
 } );
 

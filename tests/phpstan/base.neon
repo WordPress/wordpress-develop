@@ -75,8 +75,8 @@ services:
 	# reflected out of a file does not depend on whether that file was analyzed, and
 	# the per-file reflection cache can be keyed on the file's contents alone.
 	#
-	# HashNotationVisitor breaks that agreement. It rewrites `@param`, `@return` and
-	# `@var` docblocks, which are exactly what reflection exposes, so a file read
+	# HashNotationVisitor breaks that agreement. It rewrites `@param` and `@return`
+	# docblocks, which are exactly what reflection exposes, so a file read
 	# through the simple parser reflects the documented `array` where the same file
 	# analyzed reflects the shape its hash notation describes. Analyzing a subset of
 	# the tree then reports against types no longer derived, and writes that reading
@@ -91,6 +91,7 @@ services:
 	# point. Should a future release rename either, this definition stops being wired
 	# into anything and the behavior above returns; the errors it prevents are all of
 	# the quiet sort, so check this first when a hash notation type looks wrong.
+	# Tests/ReflectionParserTest.php fails when that happens.
 	#
 	# `arguments!` replaces the inherited arguments rather than merging with them.
 	# Without the `!`, the original `wrappedParser` argument survives and the container
@@ -305,6 +306,7 @@ parameters:
 		- ApplyFiltersDynamicFunctionReturnTypeExtension.php
 		- HookDocumentationRule.php
 		- HookParamCountRule.php
+		- Tests
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:
@@ -312,6 +314,8 @@ parameters:
 		- ../../src/wp-admin/includes/ms.php
 	excludePaths:
 		analyseAndScan:
+			# Fixtures for the tests of the extensions above, which carry the errors those tests expect.
+			- Tests/data
 			# Locally installed npm dependencies, such as in bundled themes, which may include PHP files.
 			- */node_modules/*
 			# Composer dependencies of themes and plugins, which are not part of core.

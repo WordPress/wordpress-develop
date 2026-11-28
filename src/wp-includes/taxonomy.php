@@ -1348,7 +1348,7 @@ function get_term_to_edit( $id, $taxonomy ) {
  *
  * @phpstan-return (
  *     $args is array{ fields: 'count', ... }
- *         ? 0|numeric-string|WP_Error
+ *         ? 0|decimal-int-string|WP_Error
  *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
  *             ? int[]|WP_Error
  *             : ( $args is array{ fields: 'id=>parent', ... }
@@ -1657,10 +1657,10 @@ function unregister_term_meta( $taxonomy, $meta_key ) {
  * @phpstan-return (
  *     $term is null ? null : (
  *         $term is 0 ? 0 : (
- *             $taxonomy is '' ? numeric-string|null : (
+ *             $taxonomy is '' ? decimal-int-string|null : (
  *                 array{
- *                     term_id: numeric-string,
- *                     term_taxonomy_id: numeric-string,
+ *                     term_id: decimal-int-string,
+ *                     term_taxonomy_id: decimal-int-string,
  *                 }|null
  *             )
  *         )
@@ -2039,7 +2039,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
  * @return string|int|WP_Error Numeric string containing the number of terms in that taxonomy,
  *                             the integer 0 when the queried parent term is not in the taxonomy
  *                             hierarchy, or WP_Error if the taxonomy does not exist.
- * @phpstan-return numeric-string|0|WP_Error
+ * @phpstan-return decimal-int-string|0|WP_Error
  */
 function wp_count_terms( $args = array(), $deprecated = '' ) {
 	$use_legacy_args = false;
@@ -2379,7 +2379,7 @@ function wp_delete_category( $cat_id ) {
  *
  * @phpstan-return (
  *     $args is array{ fields: 'count', ... }
- *         ? numeric-string|WP_Error
+ *         ? decimal-int-string|WP_Error
  *         : ( $args is array{ fields: 'ids'|'tt_ids', ... }
  *             ? int[]|WP_Error
  *             : ( $args is array{ fields: 'id=>parent', ... }
@@ -2580,8 +2580,8 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  *     ...
  * } $args
  * @phpstan-return array{
- *     term_id: int,
- *     term_taxonomy_id: int|numeric-string,
+ *     term_id: non-negative-int,
+ *     term_taxonomy_id: int|decimal-int-string,
  * }|WP_Error
  */
 function wp_insert_term( $term, $taxonomy, $args = array() ) {
@@ -2768,7 +2768,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		do_action( 'edited_terms', $term_id, $taxonomy, $args );
 	}
 
-	/** @var numeric-string|null $tt_id */
+	/** @var decimal-int-string|null $tt_id */
 	$tt_id = $wpdb->get_var( $wpdb->prepare( "SELECT tt.term_taxonomy_id FROM $wpdb->term_taxonomy AS tt INNER JOIN $wpdb->terms AS t ON tt.term_id = t.term_id WHERE tt.taxonomy = %s AND t.term_id = %d", $taxonomy, $term_id ) );
 
 	if ( ! empty( $tt_id ) ) {
@@ -2807,6 +2807,8 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 * @param string $taxonomy       Taxonomy name.
 	 * @param array  $args           Arguments passed to wp_insert_term().
 	 * @param int    $tt_id          term_taxonomy_id for the newly created term.
+	 *
+	 * @phpstan-param object{ term_id: non-negative-int, term_taxonomy_id: int|numeric-string }|null $duplicate_term
 	 */
 	$duplicate_term = apply_filters( 'wp_insert_term_duplicate_term_check', $duplicate_term, $term, $taxonomy, $args, $tt_id );
 
@@ -2869,6 +2871,8 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 * @param int   $term_id Term ID.
 	 * @param int   $tt_id   Term taxonomy ID.
 	 * @param array $args    Arguments passed to wp_insert_term().
+	 *
+	 * @phpstan-param non-negative-int $term_id
 	 */
 	$term_id = apply_filters( 'term_id_filter', $term_id, $tt_id, $args );
 
@@ -3267,6 +3271,8 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
  * @param string $slug The string that will be tried for a unique slug.
  * @param object $term The term object that the `$slug` will belong to.
  * @return string Will return a true unique slug.
+ *
+ * @phpstan-param object{ taxonomy: string, parent?: int, term_id?: int } $term
  */
 function wp_unique_term_slug( $slug, $term ) {
 	global $wpdb;
@@ -3286,7 +3292,7 @@ function wp_unique_term_slug( $slug, $term ) {
 	$parent_suffix = '';
 	if ( $needs_suffix && is_taxonomy_hierarchical( $term->taxonomy ) && ! empty( $term->parent ) ) {
 		$the_parent = $term->parent;
-		while ( ! empty( $the_parent ) ) {
+		do {
 			$parent_term = get_term( $the_parent, $term->taxonomy );
 			if ( is_wp_error( $parent_term ) || empty( $parent_term ) ) {
 				break;
@@ -3296,11 +3302,8 @@ function wp_unique_term_slug( $slug, $term ) {
 				break;
 			}
 
-			if ( empty( $parent_term->parent ) ) {
-				break;
-			}
 			$the_parent = $parent_term->parent;
-		}
+		} while ( ! empty( $the_parent ) );
 	}
 
 	// If we didn't get a unique slug, try appending a number to make it unique.
@@ -3392,7 +3395,7 @@ function wp_unique_term_slug( $slug, $term ) {
  *     ...
  * } $args
  * @phpstan-return array{
- *     term_id: int,
+ *     term_id: non-negative-int,
  *     term_taxonomy_id: int,
  * }|WP_Error
  */
