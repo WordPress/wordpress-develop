@@ -9874,7 +9874,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Theme_JSON::sanitize
-	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 * @covers WP_Theme_JSON_Sanitizer::remove_keys_not_in_schema
 	 *
 	 * @ticket 64280
 	 */
@@ -9898,7 +9898,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Theme_JSON::sanitize
-	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 * @covers WP_Theme_JSON_Sanitizer::remove_keys_not_in_schema
 	 *
 	 * @ticket 64280
 	 */
@@ -9922,7 +9922,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Theme_JSON::sanitize
-	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 * @covers WP_Theme_JSON_Sanitizer::remove_keys_not_in_schema
 	 *
 	 * @ticket 64280
 	 */
@@ -9950,7 +9950,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Theme_JSON::sanitize
-	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 * @covers WP_Theme_JSON_Sanitizer::remove_keys_not_in_schema
 	 *
 	 * @ticket 64280
 	 */
@@ -9979,7 +9979,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Theme_JSON::sanitize
-	 * @covers WP_Theme_JSON::remove_keys_not_in_schema
+	 * @covers WP_Theme_JSON_Sanitizer::remove_keys_not_in_schema
 	 *
 	 * @ticket 64280
 	 */
