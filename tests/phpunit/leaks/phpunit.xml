@@ -1,0 +1,58 @@
+<phpunit
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
+		bootstrap="bootstrap.php"
+		backupGlobals="false"
+		colors="true"
+		beStrictAboutTestsThatDoNotTestAnything="true"
+		beStrictAboutOutputDuringTests="true"
+		failOnRisky="true"
+		convertErrorsToExceptions="true"
+		convertWarningsToExceptions="true"
+		convertNoticesToExceptions="true"
+		convertDeprecationsToExceptions="true"
+		defaultTestSuite="default,restapi-autosave"
+		>
+	<!-- Mirrors phpunit.xml.dist, with the leak listener and its probes. -->
+	<testsuites>
+		<!-- Default test suite to run all tests. -->
+		<testsuite name="default">
+			<directory suffix=".php">../tests</directory>
+			<exclude>../tests/rest-api/rest-autosaves-controller.php</exclude>
+		</testsuite>
+		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last. -->
+		<testsuite name="restapi-autosave">
+			<file>../tests/rest-api/rest-autosaves-controller.php</file>
+		</testsuite>
+		<!-- Leaks state on purpose, so only runs when named. -->
+		<testsuite name="leak-probe">
+			<directory suffix=".php">probe</directory>
+		</testsuite>
+	</testsuites>
+	<groups>
+		<exclude>
+			<group>ajax</group>
+			<group>ms-files</group>
+			<group>ms-required</group>
+			<group>external-http</group>
+			<group>html-api-web-platform-tests</group>
+		</exclude>
+	</groups>
+	<listeners>
+		<listener class="WP_PHPUnit_Default_Group_Filter" />
+		<!-- Env vars win when set: WP_TESTS_LEAKS_RULES, WP_TESTS_LEAKS_SCOPE. -->
+		<listener class="WP_PHPUnit_Leak_Listener">
+			<arguments>
+				<array>
+					<!-- What to snapshot, from the repo root. -->
+					<element key="rules"><string>tests/phpunit/leaks/rules.php</string></element>
+					<!-- test: each test and class; class: class bounds, against the install. -->
+					<element key="scope"><string>test</string></element>
+				</array>
+			</arguments>
+		</listener>
+	</listeners>
+	<php>
+		<const name="WP_RUN_CORE_TESTS" value="1" />
+	</php>
+</phpunit>

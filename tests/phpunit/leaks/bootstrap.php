@@ -1,0 +1,44 @@
+<?php
+/**
+ * Bootstrap for leak detection runs, see tests/phpunit/README.md.
+ */
+
+// Before the core bootstrap, which reinstalls the test database. PHPUnit 5.7 has this interface as an alias.
+if ( ! interface_exists( 'PHPUnit\Framework\TestListener' ) ) {
+	fwrite( STDERR, "Leak detection needs PHPUnit 9 or earlier: PHPUnit 10 removed test listeners.\n" );
+	exit( 1 );
+}
+
+$leaks_out = getenv( 'WP_TESTS_LEAKS_OUT' );
+if ( ! $leaks_out ) {
+	$leaks_out = dirname( __DIR__ ) . '/build/leaks/snapshots.jsonl';
+} elseif ( '/' !== $leaks_out[0] ) {
+	// Tests can chdir(), e.g. Tests_Leak_Probe_Class_Fixture.
+	$leaks_cwd = getcwd();
+	if ( false === $leaks_cwd ) {
+		fwrite( STDERR, "Cannot resolve WP_TESTS_LEAKS_OUT $leaks_out: no working directory.\n" );
+		exit( 1 );
+	}
+
+	$leaks_out = "$leaks_cwd/$leaks_out";
+}
+
+putenv( "WP_TESTS_LEAKS_OUT=$leaks_out" );
+
+// Before the core bootstrap, which can exit: a failed run, or one matching no test, must not leave the last run's snapshots.
+if ( ! isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] ) ) {
+	if ( ! is_dir( dirname( $leaks_out ) ) ) {
+		mkdir( dirname( $leaks_out ), 0777, true );
+	}
+
+	if ( false === file_put_contents( $leaks_out, '' ) ) {
+		fwrite( STDERR, "Cannot write $leaks_out.\n" );
+		exit( 1 );
+	}
+}
+
+// Else the listener snapshots them as globals.
+unset( $leaks_out, $leaks_cwd );
+
+require dirname( __DIR__ ) . '/includes/bootstrap.php';
+require_once __DIR__ . '/class-wp-phpunit-leak-listener.php';

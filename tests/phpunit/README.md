@@ -21,3 +21,68 @@ Adding the label starts a separate run without another code push. An existing re
 Unrelated labels skip only the label-triggered workflow's `full-matrix` job and do not replace or cancel PHPUnit checks.
 
 Look for `PHPUnit Tests (full matrix)` in GitHub Actions and the PHPUnit checks on the PR. Each run tests the PR's merge commit and retains its own logs and results, so check the revision before relying on an older run.
+
+## Find state that tests leak
+
+A test or test class that changes shared state and does not restore it can make later tests pass or fail depending on the order they run in. `tests/phpunit/leaks/` holds an opt-in PHPUnit listener that snapshots state between tests and classes, and a script that reports what changed.
+
+It snapshots database rows, schema and `AUTO_INCREMENT` counters, temporary tables, the object cache (including the keys on memcached servers), cached options that disagree with the database, globals, static properties and variables, constants, ini settings, environment variables, other process state such as the error handler, and files under `wp-content` and the temporary directory. A process-isolated test's in-process state dies with its child process: its report shows what the child leaves in the database, files and memcached. It needs PHPUnit 9 or earlier: PHPUnit 10 removed test listeners.
+
+Run the tests with the leak configuration (`tests/phpunit/leaks/multisite.xml` for multisite), then compare the snapshots:
+
+```
+node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --filter Tests_Option
+node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/diff.php tests/phpunit/build/leaks/snapshots.jsonl
+```
+
+The report lists what each test and class leaves behind, i.e. the state that differs before and after it. Cache entries it drops are left out: a miss reads the source again. It exits with 2 if it reports anything, 1 if the run did not finish, ran no test or snapshotted none, else 0. Each run replaces the snapshots file. Snapshots take time and space, e.g. 156 MB for `Tests_Multisite_Site`: run one class or group per-test, not the whole suite.
+
+To sweep the whole suite, use the `class` scope: it snapshots at class bounds only, by default only the state that outlives the PHP process (database, files, memcached, stale cached options). `diff.php` then lists each class that leaves that state unlike the install:
+
+```
+node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_SCOPE=class php ./vendor/bin/phpunit -c tests/phpunit/leaks/multisite.xml
+```
+
+To find out why a class only fails after others, run it alone and in sequence, each with its own `WP_TESTS_LEAKS_OUT` and without `WP_TESTS_LEAKS_SCOPE`, then compare the state it starts with. Keys that differ between the two runs before any snapshotted class ran, e.g. timestamps, are run noise and left out. Both runs are read only up to its `class_start`, so they need not finish. In the sequence run another snapshotted class must run before it. `--filter` keeps file order, so use `--order-by=reverse` when the earlier class's file sorts after its:
+
+```
+node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_OUT=/var/www/tests/phpunit/build/leaks/alone.jsonl php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --filter Tests_Class_Name
+node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_OUT=/var/www/tests/phpunit/build/leaks/sequence.jsonl php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --filter 'Tests_Earlier_Class|Tests_Class_Name'
+node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/diff.php tests/phpunit/build/leaks/alone.jsonl tests/phpunit/build/leaks/sequence.jsonl Tests_Class_Name
+```
+
+In comparison mode, `diff.php` exits with 2 when it reports differences after filtering out run noise, or 0 when there are none. It exits with 1 if either run has no `class_start` for the target or the target was the first snapshotted class in the sequence run.
+
+For example, before [r65746](https://core.trac.wordpress.org/changeset/65746), two `Tests_Post_TheTitleAttribute` tests passed alone and failed after `Tests_Post_wpGetPostAutosave`: post titles were saved without kses. On a checkout before it, a sweep over the hook that should have filtered them names one class, instead of hundreds of global differences:
+
+```
+node ./tools/local-env/scripts/docker.js run --rm -e WP_TESTS_LEAKS_SCOPE=class -e WP_TESTS_LEAKS_AREAS=global/wp_filter/title_save_pre php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --order-by=reverse --filter 'Tests_Post_wpGetPostAutosave|Tests_Post_TheTitleAttribute'
+```
+
+`diff.php` reports `Tests_Post_wpGetPostAutosave` leaving `global/wp_filter/title_save_pre` without `wp_filter_kses`: its `wpSetUpBeforeClass()` logged in an administrator, whose `unfiltered_html` removes the kses filters, and never logged out. `--order-by=reverse` runs it first.
+
+`tests/phpunit/leaks/rules.php` sets what is snapshotted: per scope, a list of patterns over the snapshot keys (`area/key`, e.g. `static/WP_Theme_JSON_Resolver::*`; `!` negates, the last match wins), and per test file, rules adding or dropping patterns, each saying why. A file no pattern keeps, e.g. one rule `!*`, is not snapshotted. The listener checks the file before any test runs, and stops on an unknown area, a rule missing its reason, or a path matching no file.
+
+The leak configurations pass the listener its settings: `rules`, the rules file from the repo root, and `scope`, `test` or `class`. Environment variables win over them when set:
+
+* `WP_TESTS_LEAKS_RULES`: rules file.
+* `WP_TESTS_LEAKS_SCOPE`: `test` or `class`.
+* `WP_TESTS_LEAKS_AREAS`: comma-separated patterns replacing the scope's defaults in the rules file; its per-file rules still apply. A pattern that kept no key all run, e.g. a typo, is listed on STDERR, and the run reads as incomplete. Takes shorthands: `all`, `persistent`, `database`, `caches`, `globals`, `statics`, `runtime`, `files`, e.g. `statics,globals` or `caches,!stale`.
+* `WP_TESTS_LEAKS_OUT`: snapshots file, default `tests/phpunit/build/leaks/snapshots.jsonl`.
+
+To check the test classes a branch adds or changes:
+
+```
+classes=$(git diff --name-only --diff-filter=AM trunk...HEAD -- 'tests/phpunit/tests/*.php' | xargs grep -ho '^class [A-Za-z0-9_]*' | cut -d' ' -f2 | paste -sd'|' -)
+node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --filter "/^($classes)::/"
+node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/diff.php tests/phpunit/build/leaks/snapshots.jsonl
+```
+
+The `leak-probe` test suite leaks one kind of state per test, to check the listener sees each, and that the probe rules in `rules.php` drop and skip what they say. `check-probes.php` exits with 1 if the report misses one, or lists state it must not, e.g. state that dies with an isolated child. It reads the run's setup (multisite, PHP version, persistent object cache, scope) from the snapshots file:
+
+```
+node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit -c tests/phpunit/leaks/phpunit.xml --testsuite leak-probe
+node ./tools/local-env/scripts/docker.js run --rm php php tests/phpunit/leaks/check-probes.php tests/phpunit/build/leaks/snapshots.jsonl
+```
+
+The suite runs only when named, except on PHPUnit 5, which ignores `defaultTestSuite`: run `--testsuite default` and `--testsuite restapi-autosave` there, each with its own `WP_TESTS_LEAKS_OUT`, and diff each file. With a persistent object cache, `tear_down()` flushes it, so the cached option probes leave nothing.
