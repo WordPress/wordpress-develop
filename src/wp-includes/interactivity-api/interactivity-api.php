@@ -20,11 +20,27 @@
  * @return WP_Interactivity_API The main WP_Interactivity_API instance.
  */
 function wp_interactivity(): WP_Interactivity_API {
-	global $wp_interactivity;
+		global $wp_interactivity;
+
 	if ( ! ( $wp_interactivity instanceof WP_Interactivity_API ) ) {
-		$wp_interactivity = new WP_Interactivity_API();
+			$wp_interactivity = new WP_Interactivity_API();
+
+		if (
+					defined( 'WP_INTERACTIVITY_ALLOW_PRIVATE_API' )
+					&& WP_INTERACTIVITY_ALLOW_PRIVATE_API
+			) {
+				$instance = apply_filters(
+					'wp_interactivity_instance',
+					$wp_interactivity
+				);
+
+			if ( $instance instanceof WP_Interactivity_API ) {
+				$wp_interactivity = $instance;
+			}
+		}
 	}
-	return $wp_interactivity;
+
+		return $wp_interactivity;
 }
 
 /**
