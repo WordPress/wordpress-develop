@@ -121,37 +121,44 @@ final class WP_Internal_Pointers {
 			return;
 		}
 
-		?>
-		<script>
-		(function($){
-			var options = <?php echo wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>, setup;
+		$js_function = <<<'JS'
+			( $, options, pointerId, selector ) => {
+				var setup;
 
-			if ( ! options )
-				return;
+				if ( ! options )
+					return;
 
-			options = $.extend( options, {
-				close: function() {
-					$.post( ajaxurl, {
-						pointer: '<?php echo $pointer_id; ?>',
-						action: 'dismiss-wp-pointer'
-					});
-				}
-			});
+				options = $.extend( options, {
+					close: function() {
+						$.post( ajaxurl, {
+							pointer: pointerId,
+							action: 'dismiss-wp-pointer'
+						});
+					}
+				});
 
-			setup = function() {
-				$('<?php echo $selector; ?>').first().pointer( options ).pointer('open');
-			};
+				setup = function() {
+					$( selector ).first().pointer( options ).pointer('open');
+				};
 
-			if ( options.position && options.position.defer_loading )
-				$(window).bind( 'load.wp-pointers', setup );
-			else
-				$( function() {
-					setup();
-				} );
+				if ( options.position && options.position.defer_loading )
+					$(window).bind( 'load.wp-pointers', setup );
+				else
+					$( function() {
+						setup();
+					} );
+			}
+			JS;
 
-		})( jQuery );
-		</script>
-		<?php
+		wp_print_inline_script_tag(
+			sprintf(
+				'( %s )( jQuery, %s, %s, %s );',
+				$js_function,
+				wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( $pointer_id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( $selector, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+			)
+		);
 	}
 
 	public static function pointer_wp330_toolbar() {}
