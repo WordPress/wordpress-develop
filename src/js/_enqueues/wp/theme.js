@@ -1693,6 +1693,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 		'click .filter-group [type="checkbox"]': 'addFilter',
 		'click .filter-drawer .clear-filters': 'clearFilters',
 		'click .edit-filters': 'backToFilters',
+		'click .filtered-by .remove-filters': 'removeFilters',
 		'click .favorites-form-submit' : 'saveUsername',
 		'keyup #wporg-username-input': 'saveUsername'
 	},
@@ -1994,6 +1995,36 @@ themes.view.Installer = themes.view.Appearance.extend({
 			$( item ).prop( 'checked', false );
 			return self.filtersChecked();
 		});
+	},
+
+	/**
+	 * Clears all applied filters and restores the default theme listing.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param {Event} event The click event.
+	 */
+	removeFilters: function( event ) {
+		var sort = themes.router.selectedTab || 'popular';
+
+		if ( event ) {
+			event.preventDefault();
+		}
+
+		$( '.filter-group' ).find( ':checkbox' ).prop( 'checked', false );
+		this.filtersChecked();
+
+		$( '.filtered-by .tags' ).empty();
+		$( 'body' ).removeClass( 'filters-applied show-filters' );
+		$( '.drawer-toggle' ).attr( 'aria-expanded', 'false' );
+
+		this.sort( sort );
+
+		// Trigger a router.navigate update.
+		themes.router.navigate( themes.router.baseUrl( themes.router.browsePath + sort ) );
+
+		wp.a11y.speak( wp.i18n.__( 'Filters cleared.' ) );
+		$( '.drawer-toggle' ).trigger( 'focus' );
 	},
 
 	backToFilters: function( event ) {
