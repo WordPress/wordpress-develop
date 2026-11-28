@@ -61,6 +61,10 @@ function wp_normalize_state_preset_vars( $value ) {
  * @return array Normalized state style object.
  */
 function wp_normalize_state_style_for_css_output( $style ) {
+	if ( ! is_array( $style ) ) {
+		return array();
+	}
+
 	// Layout is processed separately by wp_render_layout_support_flag(), so we remove it before declaration generation.
 	unset( $style['layout'] );
 	$style = wp_normalize_state_preset_vars( $style );
@@ -81,7 +85,7 @@ function wp_normalize_state_style_for_css_output( $style ) {
  */
 function wp_get_state_declarations_with_fallback_border_styles( $declarations ) {
 	if ( ! is_array( $declarations ) ) {
-		return $declarations;
+		return array();
 	}
 
 	$has_border_style = isset( $declarations['border-style'] ) && '' !== $declarations['border-style'];
@@ -126,7 +130,7 @@ function wp_get_state_declarations_with_fallback_border_styles( $declarations ) 
  */
 function wp_get_state_declarations_with_background_resets( $declarations ) {
 	if ( ! is_array( $declarations ) ) {
-		return $declarations;
+		return array();
 	}
 
 	$has_background_color = isset( $declarations['background-color'] ) && '' !== $declarations['background-color'];
@@ -247,7 +251,7 @@ function wp_get_state_text_fill_reset( array $state_style ): array {
  */
 function wp_get_state_style_with_fallback_dimension_styles( $state_style ) {
 	if ( ! is_array( $state_style ) ) {
-		return $state_style;
+		return array();
 	}
 
 	$dimensions = isset( $state_style['dimensions'] ) && is_array( $state_style['dimensions'] )
@@ -390,7 +394,7 @@ function wp_get_state_style_groups( $state_style, $block_selectors ) {
  */
 function wp_get_root_state_style( $state_style, $nested_keys ) {
 	if ( ! is_array( $state_style ) ) {
-		return $state_style;
+		return array();
 	}
 
 	$root_style = $state_style;
