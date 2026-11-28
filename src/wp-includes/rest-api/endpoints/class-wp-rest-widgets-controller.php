@@ -289,12 +289,13 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @global WP_Widget_Factory $wp_widget_factory
+	 * @global array             $wp_registered_widgets The registered widgets.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function update_item( $request ) {
-		global $wp_widget_factory;
+		global $wp_widget_factory, $wp_registered_widgets;
 
 		/*
 		 * retrieve_widgets() contains logic to move "hidden" or "lost" widgets to the
@@ -312,10 +313,10 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
 
-		// Allow sidebar to be unset or missing when widget is not a WP_Widget.
+		// Allow sidebar to be unset or missing for a registered widget that is not a WP_Widget.
 		$parsed_id     = wp_parse_widget_id( $widget_id );
 		$widget_object = $wp_widget_factory->get_widget_object( $parsed_id['id_base'] );
-		if ( is_null( $sidebar_id ) && $widget_object ) {
+		if ( is_null( $sidebar_id ) && ( $widget_object || ! isset( $wp_registered_widgets[ $widget_id ] ) ) ) {
 			return new WP_Error(
 				'rest_widget_not_found',
 				__( 'No widget was found with that id.' ),
