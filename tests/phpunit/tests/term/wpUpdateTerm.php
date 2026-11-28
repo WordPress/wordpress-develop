@@ -855,4 +855,159 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 
 		_unregister_taxonomy( $taxonomy );
 	}
+
+	/**
+	 * @ticket 58404
+	 */
+	public function test_pre_update_term_filter_should_not_fire_when_term_does_not_exist() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$fired = false;
+		add_filter(
+			'pre_update_term',
+			static function () use ( &$fired ) {
+				$fired = true;
+				return null;
+			}
+		);
+
+		$found = wp_update_term( 0, 'wptests_tax', array( 'name' => 'Updated' ) );
+
+		_unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertWPError( $found );
+		$this->assertSame( 'invalid_term', $found->get_error_code() );
+		$this->assertFalse( $fired, 'pre_update_term fired for a term that does not exist.' );
+	}
+
+	/**
+	 * @ticket 58404
+	 */
+	public function test_pre_update_term_filter_should_receive_term_taxonomy_and_args() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$t        = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		$captured = array();
+
+		add_filter(
+			'pre_update_term',
+			static function ( $term, $taxonomy, $args ) use ( &$captured ) {
+				$captured = array( $term, $taxonomy, $args );
+				return $term;
+			},
+			10,
+			3
+		);
+
+		$found = wp_update_term( $t, 'wptests_tax', array( 'description' => 'New description' ) );
+
+		_unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertNotWPError( $found );
+		$this->assertInstanceOf( WP_Term::class, $captured[0] );
+		$this->assertSame( $t, $captured[0]->term_id );
+		$this->assertSame( 'wptests_tax', $captured[1] );
+		$this->assertSame( array( 'description' => 'New description' ), $captured[2] );
+	}
+
+	/**
+	 * @ticket 58404
+	 */
+	public function test_pre_update_term_filter_should_abort_update_with_wp_error() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Original Name',
+			)
+		);
+
+		add_filter(
+			'pre_update_term',
+			static function () {
+				return new WP_Error( 'my_custom_error', 'My custom error.' );
+			}
+		);
+
+		$edit_terms_fired = false;
+		add_action(
+			'edit_terms',
+			static function () use ( &$edit_terms_fired ) {
+				$edit_terms_fired = true;
+			}
+		);
+
+		$found = wp_update_term( $t, 'wptests_tax', array( 'name' => 'Updated Name' ) );
+
+		$term = get_term( $t, 'wptests_tax' );
+
+		_unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertWPError( $found );
+		$this->assertSame( 'my_custom_error', $found->get_error_code() );
+		$this->assertFalse( $edit_terms_fired, 'edit_terms fired after a pre_update_term short-circuit.' );
+		$this->assertSame( 'Original Name', $term->name, 'The term was updated despite the pre_update_term short-circuit.' );
+	}
+
+	/**
+	 * @ticket 58404
+	 */
+	public function test_pre_update_term_filter_should_return_error_for_non_term_value() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Original Name',
+			)
+		);
+
+		add_filter(
+			'pre_update_term',
+			static function () {
+				return 'not a term';
+			}
+		);
+
+		$found = wp_update_term( $t, 'wptests_tax', array( 'name' => 'Updated Name' ) );
+
+		$term = get_term( $t, 'wptests_tax' );
+
+		_unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertWPError( $found );
+		$this->assertSame( 'invalid_term', $found->get_error_code() );
+		$this->assertSame( 'Original Name', $term->name, 'The term was updated despite an invalid pre_update_term return value.' );
+	}
+
+	/**
+	 * @ticket 58404
+	 */
+	public function test_pre_update_term_filter_should_allow_update_to_proceed() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Original Name',
+			)
+		);
+
+		add_filter(
+			'pre_update_term',
+			static function ( $term ) {
+				return $term;
+			}
+		);
+
+		$found = wp_update_term( $t, 'wptests_tax', array( 'name' => 'Updated Name' ) );
+
+		$term = get_term( $t, 'wptests_tax' );
+
+		_unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertNotWPError( $found );
+		$this->assertSame( 'Updated Name', $term->name );
+	}
 }

@@ -3419,6 +3419,30 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 		return new WP_Error( 'invalid_term', __( 'Empty Term.' ) );
 	}
 
+	/**
+	 * Filters a term before it is updated in the database.
+	 *
+	 * The filter only runs when the term exists. Returning a WP_Error object
+	 * short-circuits the update and returns that error. Returning any other
+	 * value that is not a WP_Term object short-circuits the update with an
+	 * invalid_term error.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param WP_Term      $term     Term object.
+	 * @param string       $taxonomy Taxonomy slug.
+	 * @param array|string $args     Array or query string of arguments passed to wp_update_term().
+	 */
+	$term = apply_filters( 'pre_update_term', $term, $taxonomy, $args );
+
+	if ( is_wp_error( $term ) ) {
+		return $term;
+	}
+
+	if ( ! $term instanceof WP_Term ) {
+		return new WP_Error( 'invalid_term', __( 'Invalid term.' ) );
+	}
+
 	$term = (array) $term->data;
 
 	// Escape data pulled from DB.
