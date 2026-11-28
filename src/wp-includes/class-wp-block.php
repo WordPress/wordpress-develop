@@ -516,6 +516,7 @@ class WP_Block {
 	 * @since 5.5.0
 	 * @since 6.5.0 Added block bindings processing.
 	 * @since 7.1.0 Preserve inner blocks when binding a rich text attribute.
+	 * @since 7.3.0 Enqueue styles from the canonical block type for legacy static core blocks.
 	 *
 	 * @global WP_Post $post Global post object.
 	 *
@@ -691,15 +692,21 @@ class WP_Block {
 		 * For Core blocks, these styles are only enqueued if `wp_should_load_separate_core_block_assets()` returns
 		 * true. Otherwise these `wp_enqueue_style()` calls will not have any effect, as the Core blocks are relying on
 		 * the combined 'wp-block-library' stylesheet instead, which is unconditionally enqueued.
+		 *
+		 * For legacy static core blocks whose names were renamed or consolidated (such as `core-embed/*` to
+		 * `core/embed`, `core/cover-image` to `core/cover`, and `core/text` / `core/cover-text` to `core/paragraph`),
+		 * fall back to the canonical registered block type so their styles are still enqueued on demand.
 		 */
-		if ( ( ! empty( $this->block_type->style_handles ) ) ) {
-			foreach ( $this->block_type->style_handles as $style_handle ) {
+		$style_block_type = $this->block_type ?? $this->get_legacy_block_type();
+
+		if ( ! empty( $style_block_type->style_handles ) ) {
+			foreach ( $style_block_type->style_handles as $style_handle ) {
 				wp_enqueue_style( $style_handle );
 			}
 		}
 
-		if ( ( ! empty( $this->block_type->view_style_handles ) ) ) {
-			foreach ( $this->block_type->view_style_handles as $view_style_handle ) {
+		if ( ! empty( $style_block_type->view_style_handles ) ) {
+			foreach ( $style_block_type->view_style_handles as $view_style_handle ) {
 				wp_enqueue_style( $view_style_handle );
 			}
 		}
@@ -782,5 +789,36 @@ class WP_Block {
 		}
 
 		return $block_content;
+	}
+
+	/**
+	 * Resolves the canonical registered block type for a legacy static core block.
+	 *
+	 * Pre-5.6 content may contain legacy block names such as `core-embed/youtube`
+	 * (consolidated into `core/embed`), `core/cover-image` (renamed to `core/cover`),
+	 * or `core/text` and `core/cover-text` (renamed to `core/paragraph`). While the
+	 * block editor migrates these on load, front-end rendering still encounters the
+	 * saved names, which are not registered block types.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return WP_Block_Type|null The canonical registered block type, or null if not applicable or not registered.
+	 */
+	private function get_legacy_block_type() {
+		if ( ! is_string( $this->name ) || '' === $this->name ) {
+			return null;
+		}
+
+		if ( str_starts_with( $this->name, 'core-embed/' ) && 'core-embed/' !== $this->name ) {
+			$canonical_name = 'core/embed';
+		} elseif ( 'core/cover-image' === $this->name ) {
+			$canonical_name = 'core/cover';
+		} elseif ( 'core/text' === $this->name || 'core/cover-text' === $this->name ) {
+			$canonical_name = 'core/paragraph';
+		} else {
+			return null;
+		}
+
+		return $this->registry->get_registered( $canonical_name );
 	}
 }
