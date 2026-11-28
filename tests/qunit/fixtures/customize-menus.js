@@ -84,7 +84,7 @@ window._wpCustomizeNavMenusSettings = {
 		'itemDeleted': 'Menu item deleted',
 		'itemsFound': 'Number of items found: %d',
 		'itemsFoundMore': 'Additional items found: %d',
-		'itemsLoadingMore': 'Loading more results... please wait.',
+		'itemsLoadingMore': 'Loading more results&hellip; please wait.',
 		'menuAdded': 'Menu created',
 		'menuDeleted': 'Menu deleted',
 		'menuLocation': '(Currently set to: %s)',
