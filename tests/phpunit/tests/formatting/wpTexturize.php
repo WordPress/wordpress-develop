@@ -2270,6 +2270,62 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	}
 
 	/**
+	 * Quote tables are rebuilt after the locale is switched and restored, so text
+	 * rendered in another locale uses that locale's punctuation.
+	 *
+	 * @ticket 66721
+	 */
+	public function test_quote_tables_follow_locale_switch(): void {
+		$german    = array(
+			'opening curly double quote' => '&#8222;',
+			'closing curly double quote' => '&#8220;',
+		);
+		$translate = static function ( $translation, $text, $context ) use ( $german ) {
+			return 'de_DE' === get_locale() && isset( $german[ $context ] ) ? $german[ $context ] : $translation;
+		};
+		add_filter( 'gettext_with_context', $translate, 10, 3 );
+
+		try {
+			$this->assertSame( '&#8220;Hello&#8221;', wptexturize( '"Hello"', true ), 'English quotes before the switch.' );
+
+			$this->assertTrue( switch_to_locale( 'de_DE' ), 'The de_DE test locale should be available.' );
+			$this->assertSame( '&#8222;Hallo&#8220;', wptexturize( '"Hallo"' ), 'German quotes after switching to de_DE.' );
+
+			restore_previous_locale();
+			$this->assertSame( '&#8220;Hello&#8221;', wptexturize( '"Hello"' ), 'English quotes after restoring the locale.' );
+		} finally {
+			remove_filter( 'gettext_with_context', $translate, 10 );
+			restore_current_locale();
+			wptexturize( 'reset', true );
+		}
+	}
+
+	/**
+	 * A locale switch rebuilds the quote tables without running the
+	 * 'run_wptexturize' filter again, which still runs once per reset.
+	 *
+	 * @ticket 66721
+	 */
+	public function test_locale_switch_does_not_rerun_run_wptexturize_filter(): void {
+		$filter = new MockAction();
+		add_filter( 'run_wptexturize', array( $filter, 'filter' ) );
+
+		try {
+			wptexturize( '"Hello"', true );
+			switch_to_locale( 'de_DE' );
+			wptexturize( '"Hallo"' );
+			restore_previous_locale();
+			wptexturize( '"Hello"' );
+
+			$this->assertSame( 1, $filter->get_call_count() );
+		} finally {
+			remove_filter( 'run_wptexturize', array( $filter, 'filter' ) );
+			restore_current_locale();
+			wptexturize( 'reset', true );
+		}
+	}
+
+	/**
 	 * Data provider for {@see self::test_pcre_performance()}.
 	 *
 	 * @return array<int, array{0: string}>
