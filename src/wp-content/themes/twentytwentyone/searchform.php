@@ -12,6 +12,8 @@
  * @since Twenty Twenty-One 1.0
  */
 
+/** @var array{ wrap_in_search: bool, aria_label: string } $args */
+
 /*
  * Generate a unique ID for each form and a string containing an aria-label
  * if one was passed to get_search_form() in the args array.
@@ -19,9 +21,17 @@
 $twentytwentyone_unique_id = wp_unique_id( 'search-form-' );
 
 $twentytwentyone_aria_label = ! empty( $args['aria_label'] ) ? 'aria-label="' . esc_attr( $args['aria_label'] ) . '"' : '';
+
+$twentytwentyone_wrap_in_search = ! empty( $args['wrap_in_search'] );
 ?>
-<form role="search" <?php echo $twentytwentyone_aria_label; ?> method="get" class="search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+<?php if ( $twentytwentyone_wrap_in_search ) : ?>
+<search<?php echo $twentytwentyone_aria_label ? ' ' . $twentytwentyone_aria_label : ''; ?>>
+<?php endif; ?>
+<form <?php echo $twentytwentyone_wrap_in_search ? '' : 'role="search" ' . $twentytwentyone_aria_label . ' '; ?>method="get" class="search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
 	<label for="<?php echo esc_attr( $twentytwentyone_unique_id ); ?>"><?php _e( 'Search&hellip;', 'twentytwentyone' ); // phpcs:ignore: WordPress.Security.EscapeOutput.UnsafePrintingFunction -- core trusts translations ?></label>
 	<input type="search" id="<?php echo esc_attr( $twentytwentyone_unique_id ); ?>" class="search-field" value="<?php echo get_search_query(); ?>" name="s" />
 	<input type="submit" class="search-submit" value="<?php echo esc_attr_x( 'Search', 'submit button', 'twentytwentyone' ); ?>" />
 </form>
+<?php if ( $twentytwentyone_wrap_in_search ) : ?>
+</search>
+<?php endif; ?>

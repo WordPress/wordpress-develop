@@ -8,11 +8,17 @@
  * @version 1.0
  */
 
+/** @var array{ wrap_in_search: bool, aria_label: string } $args */
+
 ?>
 
 <?php $unique_id = esc_attr( twentyseventeen_unique_id( 'search-form-' ) ); ?>
 
-<form role="search" method="get" class="search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+<?php $twentyseventeen_wrap_in_search = ! empty( $args['wrap_in_search'] ); ?>
+<?php if ( $twentyseventeen_wrap_in_search ) : ?>
+<search>
+<?php endif; ?>
+<form <?php echo $twentyseventeen_wrap_in_search ? '' : 'role="search" '; ?>method="get" class="search-form" action="<?php echo esc_url( home_url( '/' ) ); ?>">
 	<label for="<?php echo $unique_id; ?>">
 		<span class="screen-reader-text">
 			<?php
@@ -29,3 +35,6 @@
 		?>
 	</span></button>
 </form>
+<?php if ( $twentyseventeen_wrap_in_search ) : ?>
+</search>
+<?php endif; ?>
