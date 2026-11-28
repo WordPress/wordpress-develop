@@ -298,7 +298,7 @@ final class WP_Theme implements ArrayAccess {
 					self::$cache_expiration = self::$persistently_cache;
 				}
 			} else {
-				wp_cache_add_non_persistent_groups( 'themes' );
+				wp_cache_add_non_persistent_groups( 'themes' ); // @phpstan-ignore function.resultUnused (A no-op in core, but object cache drop-ins implement it.)
 			}
 		}
 
