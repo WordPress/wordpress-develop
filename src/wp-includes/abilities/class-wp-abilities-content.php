@@ -124,18 +124,18 @@ final class WP_Abilities_Content {
 	private function register_content_query(): void {
 		/*
 		 * Post types must be registered with `show_in_abilities` before the ability is
-		 * registered so they are included in its input schema.
+		 * registered so they are included in its input schema. Attachments are exposed
+		 * through the media abilities instead.
 		 */
-		$post_types = array_values( get_post_types( array( 'show_in_abilities' => true ) ) );
+		$post_types = $this->get_exposed_post_types();
 		if ( empty( $post_types ) ) {
 			return;
 		}
 
 		/*
 		 * Internal statuses (e.g. `inherit`) are excluded here and from the statuses a query
-		 * covers by default, so the posts of post types that rely on them (attachments)
-		 * cannot be queried, not even by ID. Revisit if such a post type is ever exposed via
-		 * `show_in_abilities`.
+		 * covers by default, so the posts of post types that rely on them cannot be queried,
+		 * not even by ID.
 		 */
 		$statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
 
@@ -824,9 +824,20 @@ final class WP_Abilities_Content {
 	 * @return WP_Post_Type|null The post type object, or null when the post type is not exposed.
 	 */
 	private function get_exposed_post_type( $post_type ): ?WP_Post_Type {
-		$post_type_object = is_string( $post_type ) ? get_post_type_object( $post_type ) : null;
+		return is_string( $post_type ) && in_array( $post_type, $this->get_exposed_post_types(), true ) ? get_post_type_object( $post_type ) : null;
+	}
 
-		return empty( $post_type_object->show_in_abilities ) ? null : $post_type_object;
+	/**
+	 * Returns the names of the post types exposed through the Abilities API.
+	 *
+	 * Attachments are never exposed: the media abilities handle them.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return list<string> The post type names.
+	 */
+	private function get_exposed_post_types(): array {
+		return array_values( array_diff( get_post_types( array( 'show_in_abilities' => true ) ), array( 'attachment' ) ) );
 	}
 
 	/**
@@ -1362,7 +1373,7 @@ final class WP_Abilities_Content {
 		}
 
 		if ( ! isset( $this->visible_authors[ $user_id ] ) ) {
-			$post_types                        = array_values( array_filter( get_post_types( array( 'show_in_abilities' => true ), 'names' ), 'is_post_type_viewable' ) );
+			$post_types                        = array_values( array_filter( $this->get_exposed_post_types(), 'is_post_type_viewable' ) );
 			$this->visible_authors[ $user_id ] = (int) count_user_posts( $user_id, $post_types ) > 0;
 		}
 

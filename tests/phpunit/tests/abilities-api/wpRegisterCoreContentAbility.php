@@ -938,6 +938,26 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Attachments are not exposed by the content ability, although their post type has
+	 * `show_in_abilities` on: the media abilities handle them.
+	 *
+	 * @ticket 66719
+	 * @since 7.3.0
+	 */
+	public function test_does_not_expose_attachments(): void {
+		$this->assertTrue( get_post_type_object( 'attachment' )->show_in_abilities, 'The attachment post type should have show_in_abilities on.' );
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$ability = wp_get_ability( 'core/content-query' );
+		$enum    = $ability->get_input_schema()['properties']['where']['properties']['type']['enum'];
+
+		$this->assertNotContains( 'attachment', $enum, 'The attachment post type should not appear in the post type enum.' );
+		$this->assertFalse( $ability->check_permissions( array( 'where' => array( 'type' => 'attachment' ) ) ), 'A query of attachments should be refused.' );
+	}
+
+	/**
 	 * Returns `show_in_abilities` values other than `true`.
 	 *
 	 * @return array<string, array{value: mixed}> Non-boolean `show_in_abilities` test cases.
@@ -6183,76 +6203,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns `where.ids` values that hold no valid ID: no item is a whole number of at least
-	 * 1 within the integer range.
-	 *
-	 * @return array<string, array{ids: mixed}> The `where.ids` values.
-	 */
-	public static function data_ids_with_no_valid_ids(): array {
-		return array(
-			'zero'                     => array(
-				'ids' => array( 0 ),
-			),
-			'fraction'                 => array(
-				'ids' => array( 2.5 ),
-			),
-			'negative number'          => array(
-				'ids' => array( -5 ),
-			),
-			'non-numeric string'       => array(
-				'ids' => 'abc',
-			),
-			'beyond the integer range' => array(
-				'ids' => array( 2 ** 64 + self::ALIASED_POST_ID ),
-			),
-		);
-	}
-
-	/**
-	 * An ids filter that parses to no valid IDs is rejected rather than returning an
-	 * unrestricted result set.
-	 *
-	 * WP_Query ignores an empty `post__in`, so an ids list with no valid IDs would otherwise
-	 * return every post of the type — the opposite of the caller's intent. The filter must
-	 * fail closed instead, and an ID beyond the integer range must not wrap around onto the
-	 * published post whose ID it aliases.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_ids_with_no_valid_ids
-	 * @since 7.2.0
-	 *
-	 * @param mixed $ids The `where.ids` value to send.
-	 */
-	public function test_execute_callback_rejects_ids_with_no_valid_ids( $ids ): void {
-		$this->login_as( 'administrator' );
-
-		self::factory()->post->create(
-			array(
-				'import_id'   => self::ALIASED_POST_ID,
-				'post_status' => 'publish',
-			)
-		);
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-
-		$result = $execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'ids'  => $ids,
-				),
-			)
-		);
-
-		$this->assertWPError( $result, 'An ids filter with no valid IDs must not fall through to an unrestricted query.' );
-		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An empty-after-parsing ids filter should fail closed as an invalid filter.' );
-		$this->assertSame(
-			array( 'where[ids]' => $result->get_error_message() ),
-			$result->get_error_data()['params'],
-			'The error data should map the ids filter to the error message.'
-		);
-	}
-
-	/**
 	 * Called directly, an item of `where.ids` that is not a valid ID is dropped, while the
 	 * other IDs still apply.
 	 *
@@ -6827,5 +6777,78 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( array( $post_id ), wp_list_pluck( $by_slug['items'], 'id' ), 'The slug should return the author\'s posts on the site.' );
 		$this->assertIsArray( $by_id, 'An author with published posts on the site should be filterable by ID without being a member.' );
 		$this->assertSame( array( $post_id ), wp_list_pluck( $by_id['items'], 'id' ), 'The ID should return the author\'s posts on the site.' );
+	}
+
+	/**
+	 * Returns `where.ids` values that hold no valid ID: no item is a whole number of at least
+	 * 1 within the integer range.
+	 *
+	 * @return array<string, array{ids: mixed}> The `where.ids` values.
+	 */
+	public static function data_ids_with_no_valid_ids(): array {
+		return array(
+			'zero'                     => array(
+				'ids' => array( 0 ),
+			),
+			'fraction'                 => array(
+				'ids' => array( 2.5 ),
+			),
+			'negative number'          => array(
+				'ids' => array( -5 ),
+			),
+			'non-numeric string'       => array(
+				'ids' => 'abc',
+			),
+			'beyond the integer range' => array(
+				'ids' => array( 2 ** 64 + self::ALIASED_POST_ID ),
+			),
+		);
+	}
+
+	/**
+	 * An ids filter that parses to no valid IDs is rejected rather than returning an
+	 * unrestricted result set.
+	 *
+	 * WP_Query ignores an empty `post__in`, so an ids list with no valid IDs would otherwise
+	 * return every post of the type — the opposite of the caller's intent. The filter must
+	 * fail closed instead, and an ID beyond the integer range must not wrap around onto the
+	 * published post whose ID it aliases.
+	 *
+	 * This is the last test of the class: every post created after it gets an ID above
+	 * ALIASED_POST_ID.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_ids_with_no_valid_ids
+	 * @since 7.2.0
+	 *
+	 * @param mixed $ids The `where.ids` value to send.
+	 */
+	public function test_execute_callback_rejects_ids_with_no_valid_ids( $ids ): void {
+		$this->login_as( 'administrator' );
+
+		self::factory()->post->create(
+			array(
+				'import_id'   => self::ALIASED_POST_ID,
+				'post_status' => 'publish',
+			)
+		);
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute(
+			array(
+				'where' => array(
+					'type' => 'post',
+					'ids'  => $ids,
+				),
+			)
+		);
+
+		$this->assertWPError( $result, 'An ids filter with no valid IDs must not fall through to an unrestricted query.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An empty-after-parsing ids filter should fail closed as an invalid filter.' );
+		$this->assertSame(
+			array( 'where[ids]' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the ids filter to the error message.'
+		);
 	}
 }
