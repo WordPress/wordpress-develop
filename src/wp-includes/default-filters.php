@@ -337,15 +337,6 @@ add_filter( 'http_request_host_is_external', 'allowed_http_request_hosts', 10, 2
 add_action( 'xmlrpc_rsd_apis', 'rest_output_rsd' );
 add_action( 'wp_head', 'rest_output_link_wp_head', 10, 0 );
 add_action( 'template_redirect', 'rest_output_link_header', 11, 0 );
-add_action( 'auth_cookie_malformed', 'rest_cookie_collect_status' );
-add_action( 'auth_cookie_expired', 'rest_cookie_collect_status' );
-add_action( 'auth_cookie_bad_username', 'rest_cookie_collect_status' );
-add_action( 'auth_cookie_bad_hash', 'rest_cookie_collect_status' );
-add_action( 'auth_cookie_valid', 'rest_cookie_collect_status' );
-add_action( 'application_password_failed_authentication', 'rest_application_password_collect_status' );
-add_action( 'application_password_did_authenticate', 'rest_application_password_collect_status', 10, 2 );
-add_filter( 'rest_authentication_errors', 'rest_application_password_check_errors', 90 );
-add_filter( 'rest_authentication_errors', 'rest_cookie_check_errors', 100 );
 
 // Application password notifications.
 add_action( 'wp_create_application_password', 'wp_application_password_created_notification', 10, 2 );

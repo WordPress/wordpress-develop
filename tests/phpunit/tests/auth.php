@@ -98,6 +98,19 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertFalse( wp_validate_auth_cookie( self::$user_id, 'auth' ), 'altered cookie' );
 	}
 
+	/**
+	 * @ticket 55796
+	 */
+	public function test_default_filters_do_not_register_rest_cookie_tracking() {
+		$this->assertSame( 10, has_action( 'auth_cookie_malformed', 'rest_cookie_collect_status' ) );
+		remove_action( 'auth_cookie_malformed', 'rest_cookie_collect_status' );
+
+		require ABSPATH . WPINC . '/default-filters.php';
+
+		$this->assertFalse( has_action( 'auth_cookie_malformed', 'rest_cookie_collect_status' ) );
+		$this->assertFalse( wp_validate_auth_cookie( 'invalid-cookie' ) );
+	}
+
 	public function test_auth_cookie_scheme() {
 		// Arbitrary scheme name.
 		$cookie = wp_generate_auth_cookie( self::$user_id, time() + 3600, 'foo' );
