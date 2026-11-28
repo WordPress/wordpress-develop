@@ -23,6 +23,20 @@ define( 'WP_DEFAULT_THEME', 'default' );
  */
 // define( 'WP_TESTS_FORCE_KNOWN_BUGS', true );
 
+/*
+ * API keys and models for the live AI provider tests, which send real requests.
+ * A non-empty environment variable of the same name takes precedence over each
+ * constant. The tests of a provider are skipped while its key is not set, and a
+ * provider uses its default model while its model is not set. A model is set by
+ * its ID, such as `gemini-3.5-flash-lite`.
+ */
+// define( 'WP_TESTS_AI_ANTHROPIC_API_KEY', '' );
+// define( 'WP_TESTS_AI_GOOGLE_API_KEY', '' );
+// define( 'WP_TESTS_AI_OPENAI_API_KEY', '' );
+// define( 'WP_TESTS_AI_ANTHROPIC_MODEL', '' );
+// define( 'WP_TESTS_AI_GOOGLE_MODEL', '' );
+// define( 'WP_TESTS_AI_OPENAI_MODEL', '' );
+
 // Test with WordPress debug mode (default).
 define( 'WP_DEBUG', true );
 
