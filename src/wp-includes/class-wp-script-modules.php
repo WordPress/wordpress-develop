@@ -787,6 +787,8 @@ class WP_Script_Modules {
 	 *
 	 * @return array<string, array<string, mixed>> Script modules marked for enqueue, keyed by script module identifier.
 	 * @phpstan-return array<string, ScriptModule>
+	 *
+	 * @phpstan-ignore method.unused (Kept for plugins that call it through the Reflection API.)
 	 */
 	private function get_marked_for_enqueue(): array {
 		return wp_array_slice_assoc(

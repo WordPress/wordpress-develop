@@ -620,6 +620,8 @@ class WP_Http {
 	 * @param array  $args Request arguments.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error.
+	 *
+	 * @phpstan-ignore method.unused (Deprecated in 5.1.0. Core does not remove deprecated methods.)
 	 */
 	private function _dispatch_request( $url, $args ) {
 		static $transports = array();
