@@ -33,6 +33,8 @@ For development on Windows, [Windows Subsystem for Linux (WSL)](https://learn.mi
 
 After installing Docker Desktop, enable Docker's WSL integration under **Settings > Resources > WSL integration**. This only needs to be configured once.
 
+For much better performance, keep the project files within the Linux filesystem (e.g., `\\wsl.localhost\Ubuntu\home\user\wordpress-develop`) rather than on a mounted Windows drive (e.g., `C:\`).
+
 If you use Docker Desktop directly from Windows without WSL, make sure it is using Linux containers. Right-click the Docker icon in the system tray and select **Switch to Linux containers...**. If that option is not available, or the menu shows **Switch to Windows containers...**, Docker is already using Linux containers. You can switch between container types later if another project requires Windows containers.
 
 ### Development Environment Commands
