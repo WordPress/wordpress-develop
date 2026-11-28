@@ -842,11 +842,18 @@ function can_edit_network( $network_id ) {
  * @access private
  */
 function _thickbox_path_admin_subfolder() {
-	?>
-<script>
-var tb_pathToImage = "<?php echo esc_js( includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ) ); ?>";
-</script>
-	<?php
+	$js_function = <<<'JS'
+		( path ) => {
+			window.tb_pathToImage = path;
+		}
+		JS;
+	wp_print_inline_script_tag(
+		sprintf(
+			'( %s )( %s );',
+			$js_function,
+			wp_json_encode( includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+		)
+	);
 }
 
 /**
@@ -1052,22 +1059,22 @@ function confirm_delete_users( $users ) {
  * @since 4.1.0
  */
 function network_settings_add_js() {
-	?>
-<script>
-jQuery( function($) {
-	var languageSelect = $( '#WPLANG' );
-	$( 'form' ).on( 'submit', function() {
-		/*
-		 * Don't show a spinner for English and installed languages,
-		 * as there is nothing to download.
-		 */
-		if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
-			$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
-		}
-	});
-} );
-</script>
-	<?php
+	wp_print_inline_script_tag(
+		<<<'JS'
+		jQuery( function($) {
+			var languageSelect = $( '#WPLANG' );
+			$( 'form' ).on( 'submit', function() {
+				/*
+				 * Don't show a spinner for English and installed languages,
+				 * as there is nothing to download.
+				 */
+				if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
+					$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
+				}
+			});
+		} );
+		JS
+	);
 }
 
 /**
