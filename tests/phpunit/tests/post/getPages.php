@@ -1204,4 +1204,71 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			'Check that ORDER is post modified when using modified_gmt.'
 		);
 	}
+
+	/**
+	 * Tests that `child_of` finds matching descendants even when an intermediate page does not match the meta query.
+	 *
+	 * @ticket 14477
+	 */
+	public function test_get_pages_child_of_with_meta_and_interrupted_hierarchy() {
+		$root = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Root',
+			)
+		);
+		$child = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Child',
+				'post_parent' => $root,
+			)
+		);
+		$grandchild_a = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Grandchild A',
+				'post_parent' => $child,
+			)
+		);
+		$grandchild_b = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Grandchild B',
+				'post_parent' => $child,
+			)
+		);
+		$other_root = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Other root',
+			)
+		);
+		$outsider = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Outsider',
+				'post_parent' => $other_root,
+			)
+		);
+
+		// Only some descendants (and an unrelated page) have the meta; the intermediate `$child` does not.
+		foreach ( array( $grandchild_a, $grandchild_b, $outsider ) as $page_id ) {
+			add_post_meta( $page_id, 'foo', 'bar' );
+		}
+
+		$pages = get_pages(
+			array(
+				'child_of'   => $root,
+				'meta_key'   => 'foo',
+				'meta_value' => 'bar',
+			)
+		);
+
+		$this->assertSame(
+			array( $grandchild_a, $grandchild_b ),
+			wp_list_pluck( $pages, 'ID' ),
+			'Matching grandchildren should be returned, without non-matching intermediates or unrelated pages.'
+		);
+	}
 }
