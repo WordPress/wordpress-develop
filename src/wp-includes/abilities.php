@@ -380,3 +380,33 @@ function wp_register_core_abilities(): void {
 	// Register the content abilities (currently the read-only `core/content-query`).
 	( new WP_Abilities_Content() )->register();
 }
+
+/**
+ * Determines whether a `show_in_abilities` value lets abilities write the object it is set on.
+ *
+ * Write abilities check the `show_in_abilities` value of each post type, setting, or other
+ * object they change, so that an object marked read only can be read through abilities but
+ * not created, updated, or deleted.
+ *
+ * `true` and an array without a truthy `readonly` key allow writes. An array with a truthy
+ * `readonly` key, an empty array, and any other value do not.
+ *
+ * Example:
+ *
+ *     $post_type_object = get_post_type_object( 'book' );
+ *     if ( $post_type_object && wp_is_writable_through_abilities( $post_type_object->show_in_abilities ) ) {
+ *         // Books can be created, updated, and deleted through abilities.
+ *     }
+ *
+ * @since 7.3.0
+ *
+ * @param mixed $show_in_abilities The `show_in_abilities` value of a post type, a setting, or another object.
+ * @return bool Whether abilities may write the object.
+ */
+function wp_is_writable_through_abilities( $show_in_abilities ): bool {
+	if ( is_array( $show_in_abilities ) ) {
+		return ! empty( $show_in_abilities ) && empty( $show_in_abilities['readonly'] );
+	}
+
+	return true === $show_in_abilities;
+}

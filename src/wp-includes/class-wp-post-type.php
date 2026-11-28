@@ -390,10 +390,12 @@ final class WP_Post_Type {
 	 * Whether this post type should be exposed through the Abilities API.
 	 *
 	 * Default false. If true, the core content abilities can access the post type's
-	 * posts, subject to the current user's capabilities.
+	 * posts, subject to the current user's capabilities. If an array with `readonly`
+	 * set to true, the posts can be read through abilities but not written.
 	 *
 	 * @since 7.2.0
-	 * @var bool $show_in_abilities
+	 * @since 7.3.0 Can be an array with a `readonly` key.
+	 * @var bool|array{readonly: bool} $show_in_abilities
 	 */
 	public $show_in_abilities;
 
@@ -612,8 +614,15 @@ final class WP_Post_Type {
 			$args['rest_namespace'] = 'wp/v2';
 		}
 
-		// Only `true` exposes the post type, so other values, such as arrays, can be given a meaning later.
-		$args['show_in_abilities'] = true === $args['show_in_abilities'];
+		/*
+		 * Only `true` and an array with a boolean `readonly` key expose the post type. Other
+		 * keys of the array are dropped, so other values can be given a meaning later.
+		 */
+		if ( is_array( $args['show_in_abilities'] ) && is_bool( $args['show_in_abilities']['readonly'] ?? null ) ) {
+			$args['show_in_abilities'] = array( 'readonly' => $args['show_in_abilities']['readonly'] );
+		} else {
+			$args['show_in_abilities'] = true === $args['show_in_abilities'];
+		}
 
 		// If not set, default to the setting for 'show_ui'.
 		if ( null === $args['show_in_menu'] || ! $args['show_ui'] ) {
