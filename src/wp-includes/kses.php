@@ -1382,6 +1382,92 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		}
 
 		/**
+		 * Moves past the NOSCRIPT element whose opening tag is the current token, if
+		 * a browser would end it in the same place whether scripting is enabled or not.
+		 *
+		 * With scripting enabled, a browser reads the contents of a NOSCRIPT element as
+		 * plain text up to the first `</noscript` followed by whitespace, `/` or `>`.
+		 * With scripting disabled, as in the Tag Processor, it parses them as HTML. The
+		 * two readings are only taken to agree when:
+		 *
+		 *  - no token parsed as HTML reaches past that first `</noscript`;
+		 *  - the only tokens before it are text, comments, and A, IFRAME, IMG and STYLE
+		 *    tags, which cover the NOSCRIPT fallbacks found in common embed codes;
+		 *  - every A closing tag closes an A element opened inside, and the last A
+		 *    element opened inside is closed before it;
+		 *  - a NOSCRIPT closing tag starts right there; and
+		 *  - the contents hold no block delimiters.
+		 *
+		 * When they agree, the processor is left on the closing tag, so that nothing
+		 * from the element reaches the output. Otherwise, the processor may have moved
+		 * forward and the rest of the document should not be used.
+		 *
+		 * @since 7.2.0
+		 * @access private
+		 *
+		 * @return bool Whether the processor moved past the NOSCRIPT element.
+		 */
+		private function skip_noscript_element(): bool {
+			$opener = $this->get_span();
+			if ( null === $opener ) {
+				return false;
+			}
+
+			$contents_start = $opener->start + $opener->length;
+			if ( 1 !== preg_match( '~</noscript[ \t\n\f\r/>]~i', $this->html, $matches, PREG_OFFSET_CAPTURE, $contents_start ) ) {
+				return false;
+			}
+
+			$raw_end   = $matches[0][1];
+			$a_is_open = false;
+			while ( $this->next_token() ) {
+				$span = $this->get_span();
+				if ( null === $span ) {
+					return false;
+				}
+
+				$token_name = $this->get_token_name();
+				if ( $raw_end === $span->start ) {
+					return (
+						'NOSCRIPT' === $token_name &&
+						$this->is_tag_closer() &&
+						! $a_is_open &&
+						! self::contains_a_block_delimiter( substr( $this->html, $contents_start, $raw_end - $contents_start ) )
+					);
+				}
+
+				if ( $span->start + $span->length > $raw_end ) {
+					return false;
+				}
+
+				switch ( $token_name ) {
+					case '#comment':
+					case '#text':
+					case 'IFRAME':
+					case 'IMG':
+					case 'STYLE':
+						break;
+
+					case 'A':
+						if ( $this->is_tag_closer() ) {
+							if ( ! $a_is_open ) {
+								return false;
+							}
+							$a_is_open = false;
+						} else {
+							$a_is_open = true;
+						}
+						break;
+
+					default:
+						return false;
+				}
+			}
+
+			return false;
+		}
+
+		/**
 		 * Returns a sanitized copy of the input HTML.
 		 *
 		 * @since 7.2.0
@@ -1428,9 +1514,17 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 				 * based on whether the scripting flag is enabled in a browser.
 				 * Rely on trusted inputs for producing the appropriate NOSCRIPT
 				 * content, and prevent untrusted inputs from generating it.
+				 *
+				 * Remove the element and its contents when both parsing modes
+				 * agree on where it ends, so that the content after it is kept.
+				 * Otherwise, stop, as the rest of the document is ambiguous.
 				 */
 				if ( 'NOSCRIPT' === $token_name && ! $is_closer ) {
-					break;
+					if ( 'html' !== $namespace || ! $this->skip_noscript_element() ) {
+						break;
+					}
+
+					continue;
 				}
 
 				/*
