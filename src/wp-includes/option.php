@@ -2846,7 +2846,12 @@ function register_initial_settings() {
 		'general',
 		'start_of_week',
 		array(
-			'show_in_rest'      => true,
+			'show_in_rest'      => array(
+				'schema' => array(
+					'minimum' => 0,
+					'maximum' => 6,
+				),
+			),
 			'show_in_abilities' => true,
 			'type'              => 'integer',
 			'description'       => __( 'A day number of the week that the week should start on.' ),
@@ -2918,7 +2923,11 @@ function register_initial_settings() {
 		'reading',
 		'show_on_front',
 		array(
-			'show_in_rest'      => true,
+			'show_in_rest'      => array(
+				'schema' => array(
+					'enum' => array( 'posts', 'page' ),
+				),
+			),
 			'show_in_abilities' => true,
 			'type'              => 'string',
 			'label'             => __( 'Show on front' ),
