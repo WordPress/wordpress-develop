@@ -647,15 +647,20 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 */
 	public function test_get_item_dates_are_null_for_file_backed_template() {
 		wp_set_current_user( self::$admin_id );
+		$stylesheet = get_stylesheet();
 		switch_theme( 'block-theme' );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/block-theme//page-home' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
+		try {
+			$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/block-theme//page-home' );
+			$response = rest_get_server()->dispatch( $request );
+			$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status(), 'Fetching a file-backed template should return 200.' );
-		$this->assertNull( $data['date'], 'The date should be null for a file-backed template.' );
-		$this->assertNull( $data['modified'], 'The modified date should be null for a file-backed template.' );
+			$this->assertSame( 200, $response->get_status(), 'Fetching a file-backed template should return 200.' );
+			$this->assertNull( $data['date'], 'The date should be null for a file-backed template.' );
+			$this->assertNull( $data['modified'], 'The modified date should be null for a file-backed template.' );
+		} finally {
+			switch_theme( $stylesheet );
+		}
 	}
 
 	/**
@@ -1153,27 +1158,33 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 */
 	public function test_get_template_fallback() {
 		wp_set_current_user( self::$admin_id );
+		$stylesheet = get_stylesheet();
 		switch_theme( 'block-theme' );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/lookup' );
-		// Should fallback to `index.html`.
-		$request->set_param( 'slug', 'tag-status' );
-		$request->set_param( 'is_custom', false );
-		$request->set_param( 'template_prefix', 'tag' );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html`.' );
-		// Should fallback to `page.html`.
-		$request->set_param( 'slug', 'page-hello' );
-		$request->set_param( 'is_custom', false );
-		$request->set_param( 'template_prefix', 'page' );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 'page', $response->get_data()['slug'], 'Should fallback to `page.html`.' );
-		// Should fallback to `index.html`.
-		$request->set_param( 'slug', 'author' );
-		$request->set_param( 'ignore_empty', true );
-		$request->set_param( 'template_prefix', 'tag' );
-		$request->set_param( 'is_custom', false );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html` when  ignore_empty is `true`.' );
+
+		try {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/templates/lookup' );
+			// Should fallback to `index.html`.
+			$request->set_param( 'slug', 'tag-status' );
+			$request->set_param( 'is_custom', false );
+			$request->set_param( 'template_prefix', 'tag' );
+			$response = rest_get_server()->dispatch( $request );
+			$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html`.' );
+			// Should fallback to `page.html`.
+			$request->set_param( 'slug', 'page-hello' );
+			$request->set_param( 'is_custom', false );
+			$request->set_param( 'template_prefix', 'page' );
+			$response = rest_get_server()->dispatch( $request );
+			$this->assertSame( 'page', $response->get_data()['slug'], 'Should fallback to `page.html`.' );
+			// Should fallback to `index.html`.
+			$request->set_param( 'slug', 'author' );
+			$request->set_param( 'ignore_empty', true );
+			$request->set_param( 'template_prefix', 'tag' );
+			$request->set_param( 'is_custom', false );
+			$response = rest_get_server()->dispatch( $request );
+			$this->assertSame( 'index', $response->get_data()['slug'], 'Should fallback to `index.html` when  ignore_empty is `true`.' );
+		} finally {
+			switch_theme( $stylesheet );
+		}
 	}
 
 	/**
