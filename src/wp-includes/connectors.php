@@ -220,6 +220,24 @@ function _wp_connectors_init(): void {
 	// Only register default AI providers if AI support is enabled.
 	if ( wp_supports_ai() ) {
 		_wp_connectors_register_default_ai_providers( $registry );
+
+		$registry->register(
+			'mcp-adapter',
+			array(
+				'name'           => __( 'WordPress MCP' ),
+				'description'    => __( 'Connect AI agents and MCP clients to this site.' ),
+				'type'           => 'mcp_server',
+				'plugin'         => array(
+					'file'      => 'mcp-adapter/mcp-adapter.php',
+					'is_active' => static function () {
+						return defined( 'WP_MCP_VERSION' );
+					},
+				),
+				'authentication' => array(
+					'method' => 'none',
+				),
+			)
+		);
 	}
 
 	// Non-AI default connectors.
@@ -966,6 +984,17 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 	ksort( $connectors );
 	$data['connectors']        = $connectors;
 	$data['isFileModDisabled'] = ! wp_is_file_mod_allowed( 'install_plugins' );
+
+	$user                         = wp_get_current_user();
+	$data['applicationPasswords'] = array(
+		'isSupported'        => wp_is_application_passwords_supported(),
+		'isAvailable'        => wp_is_application_passwords_available(),
+		'isAvailableForUser' => wp_is_application_passwords_available_for_user( $user ),
+		'canCreate'          => current_user_can( 'create_app_password', $user->ID ),
+		'username'           => $user->user_login,
+		'profileUrl'         => admin_url( 'profile.php#application-passwords-section' ),
+	);
+
 	return $data;
 }
 add_filter( 'script_module_data_options-connectors-wp-admin', '_wp_connectors_get_connector_script_module_data' );

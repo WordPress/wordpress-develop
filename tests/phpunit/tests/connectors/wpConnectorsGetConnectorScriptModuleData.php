@@ -209,4 +209,46 @@ class Tests_Connectors_WpConnectorsGetConnectorScriptModuleData extends WP_UnitT
 		$this->assertSame( 'env', $auth['keySource'] );
 		$this->assertTrue( $auth['isConnected'] );
 	}
+
+	/**
+	 * @ticket 66323
+	 */
+	public function test_exposes_mcp_adapter_connector(): void {
+		$data      = _wp_connectors_get_connector_script_module_data( array() );
+		$connector = $data['connectors']['mcp-adapter'];
+
+		$this->assertSame( 'mcp_server', $connector['type'] );
+		$this->assertSame( array( 'method' => 'none' ), $connector['authentication'] );
+		$this->assertSame(
+			array(
+				'file'        => 'mcp-adapter/mcp-adapter.php',
+				'isInstalled' => false,
+				'isActivated' => false,
+			),
+			$connector['plugin']
+		);
+	}
+
+	/**
+	 * @ticket 66323
+	 */
+	public function test_exposes_application_passwords_data_for_current_user(): void {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user->ID );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		$data = _wp_connectors_get_connector_script_module_data( array() );
+
+		$this->assertSame(
+			array(
+				'isSupported'        => wp_is_application_passwords_supported(),
+				'isAvailable'        => true,
+				'isAvailableForUser' => true,
+				'canCreate'          => true,
+				'username'           => $user->user_login,
+				'profileUrl'         => admin_url( 'profile.php#application-passwords-section' ),
+			),
+			$data['applicationPasswords']
+		);
+	}
 }
