@@ -168,6 +168,37 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the default quality for AVIF is 74.
+	 *
+	 * @ticket 66677
+	 */
+	public function test_set_quality_default_for_avif() {
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/avif-lossy.avif' );
+		$editor->set_mime_type( 'image/avif' );
+
+		$this->assertSame( 74, $editor->get_quality(), 'Default quality setting for AVIF should be 74.' );
+
+		unset( $editor );
+
+		add_filter(
+			'image_editor_output_format',
+			static function ( $formats ) {
+				$formats['image/jpeg'] = 'image/avif';
+				return $formats;
+			}
+		);
+
+		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/test-image.jpg' );
+		$editor->set_mime_type( 'image/jpeg' );
+
+		$this->assertSame( 82, $editor->get_quality(), 'Default quality setting for JPEG should be 82.' );
+
+		// A JPEG image will be converted to AVIF whose quality should be 74.
+		$editor->save();
+		$this->assertSame( 74, $editor->get_quality(), 'Image conversion from JPEG to AVIF. Quality setting for it should be 74.' );
+	}
+
+	/**
 	 * Changes the output format when editing images. PNG and JPEG files
 	 * will be converted to WEBP (if the image editor in PHP supports it).
 	 *

@@ -986,6 +986,7 @@ function wp_get_registered_image_subsizes(): array {
  * server would apply, without loading the image into an editor.
  *
  * @since 7.1.0
+ * @since 7.3.0 Added a default quality of 74 for AVIF.
  *
  * @param string   $mime_type       The output image MIME type, e.g. 'image/jpeg'.
  * @param array    $size            {
@@ -995,7 +996,8 @@ function wp_get_registered_image_subsizes(): array {
  *     @type int $height The image height in pixels.
  * }
  * @param int|null $default_quality Optional. Starting quality before filters are applied.
- *                                  Defaults to the per-format default (86 for WebP, 82 otherwise).
+ *                                  Defaults to the per-format default (86 for WebP, 74 for AVIF,
+ *                                  82 otherwise).
  * @return int Encode quality between 1 and 100.
  *
  * @phpstan-param non-empty-string $mime_type
@@ -1005,8 +1007,17 @@ function wp_get_registered_image_subsizes(): array {
  */
 function wp_get_image_encode_quality( string $mime_type, array $size = array(), ?int $default_quality = null ): int {
 	if ( null === $default_quality ) {
-		// Mirror WP_Image_Editor::get_default_quality(): WebP defaults to 86, everything else to 82.
-		$default_quality = ( 'image/webp' === $mime_type ) ? 86 : 82;
+		// Mirror WP_Image_Editor::get_default_quality(): WebP defaults to 86, AVIF to 74, everything else to 82.
+		switch ( $mime_type ) {
+			case 'image/webp':
+				$default_quality = 86;
+				break;
+			case 'image/avif':
+				$default_quality = 74;
+				break;
+			default:
+				$default_quality = 82;
+		}
 	}
 
 	/** This filter is documented in wp-includes/class-wp-image-editor.php */
