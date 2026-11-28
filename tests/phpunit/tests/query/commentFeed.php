@@ -114,7 +114,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		$this->assertTrue( $q->is_comment_feed() );
 		$this->assertFalse( $q->is_singular() );
 
-		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
+		$comment_ids = $this->get_feed_comment_ids( $q );
 		$this->assertNotContains( $internal_id, $comment_ids, "Comments feed should not include '{$comment_type}' comments." );
 		$this->assertSame( 15, $q->comment_count, 'Comments feed should include all regular comments.' );
 	}
@@ -148,7 +148,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		$this->assertTrue( $q->is_comment_feed() );
 		$this->assertTrue( $q->is_archive() );
 
-		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
+		$comment_ids = $this->get_feed_comment_ids( $q );
 		$this->assertNotContains( $internal_id, $comment_ids, "Archive comments feed should not include '{$comment_type}' comments." );
 		$this->assertSame( 15, $q->comment_count, 'Archive comments feed should include all regular comments.' );
 	}
@@ -186,9 +186,184 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		$this->assertTrue( $q->is_comment_feed() );
 		$this->assertTrue( $q->is_singular() );
 
-		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
+		$comment_ids = $this->get_feed_comment_ids( $q );
 		$this->assertNotContains( $internal_id, $comment_ids, "Singular comments feed should not include '{$comment_type}' comments." );
 		$this->assertSame( 5, $q->comment_count, 'Singular comments feed should include all regular comments.' );
+	}
+
+	/**
+	 * Returns the IDs of the comments a feed query found.
+	 *
+	 * @param WP_Query $query Comments feed query.
+	 * @return int[] Comment IDs.
+	 */
+	private function get_feed_comment_ids( WP_Query $query ): array {
+		$this->assertIsArray( $query->comments, 'The feed query should hold a list of comments.' );
+
+		return wp_parse_id_list( wp_list_pluck( $query->comments, 'comment_ID' ) );
+	}
+
+	/**
+	 * Adds a custom comment type to the default-excluded set.
+	 *
+	 * @param string[] $excluded_types Comment types excluded by default.
+	 * @return string[] Filtered comment types.
+	 */
+	public function filter_exclude_private_comment_type( array $excluded_types ): array {
+		$excluded_types[] = 'private';
+
+		return $excluded_types;
+	}
+
+	/**
+	 * @ticket 65537
+	 */
+	public function test_main_comment_feed_should_exclude_filtered_types(): void {
+		$private_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_ids[0],
+				'comment_type'     => 'private',
+				'comment_approved' => '1',
+			)
+		);
+
+		$args = array(
+			'withcomments' => 1,
+			'feed'         => 'comments-rss',
+		);
+
+		$unfiltered = new WP_Query();
+		$unfiltered->query( $args );
+
+		$this->assertContains(
+			$private_id,
+			$this->get_feed_comment_ids( $unfiltered ),
+			'An unfiltered custom comment type should appear in the comments feed.'
+		);
+
+		add_filter( 'default_excluded_comment_types', array( $this, 'filter_exclude_private_comment_type' ) );
+
+		$q = new WP_Query();
+		$q->query( $args );
+
+		$this->assertTrue( $q->is_comment_feed(), 'The query should be a comments feed.' );
+		$this->assertFalse( $q->is_singular(), 'The query should not be singular.' );
+
+		$comment_ids = $this->get_feed_comment_ids( $q );
+		$this->assertNotContains( $private_id, $comment_ids, 'Comments feed should not include excluded types.' );
+		$this->assertSame( 15, $q->comment_count, 'Comments feed should include all regular comments.' );
+	}
+
+	/**
+	 * @ticket 65537
+	 */
+	public function test_archive_comment_feed_should_exclude_filtered_types(): void {
+		$private_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_ids[0],
+				'comment_type'     => 'private',
+				'comment_approved' => '1',
+			)
+		);
+
+		add_filter( 'default_excluded_comment_types', array( $this, 'filter_exclude_private_comment_type' ) );
+
+		$q = new WP_Query();
+		$q->query(
+			array(
+				'withcomments' => 1,
+				'feed'         => 'comments-rss',
+				'year'         => (int) get_the_date( 'Y', self::$post_ids[0] ),
+			)
+		);
+
+		$this->assertTrue( $q->is_comment_feed(), 'The query should be a comments feed.' );
+		$this->assertTrue( $q->is_archive(), 'The query should be an archive.' );
+
+		$comment_ids = $this->get_feed_comment_ids( $q );
+		$this->assertNotContains( $private_id, $comment_ids, 'Archive comments feed should not include excluded types.' );
+		$this->assertSame( 15, $q->comment_count, 'Archive comments feed should include all regular comments.' );
+	}
+
+	/**
+	 * @ticket 65537
+	 */
+	public function test_single_comment_feed_should_exclude_filtered_types(): void {
+		$post = get_post( self::$post_ids[0] );
+		$this->assertInstanceOf( WP_Post::class, $post, 'The fixture post should exist.' );
+
+		$private_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post->ID,
+				'comment_type'     => 'private',
+				'comment_approved' => '1',
+			)
+		);
+
+		add_filter( 'default_excluded_comment_types', array( $this, 'filter_exclude_private_comment_type' ) );
+
+		$q = new WP_Query();
+		$q->query(
+			array(
+				'withcomments' => 1,
+				'feed'         => 'comments-rss',
+				'post_type'    => $post->post_type,
+				'name'         => $post->post_name,
+			)
+		);
+
+		$this->assertTrue( $q->is_comment_feed(), 'The query should be a comments feed.' );
+		$this->assertTrue( $q->is_singular(), 'The query should be singular.' );
+
+		$comment_ids = $this->get_feed_comment_ids( $q );
+		$this->assertNotContains( $private_id, $comment_ids, 'Singular comments feed should not include excluded types.' );
+		$this->assertSame( 5, $q->comment_count, 'Singular comments feed should include all regular comments.' );
+	}
+
+	/**
+	 * The feed queries are cached against the SQL they build, so an excluded type
+	 * must not survive in a cached result after the filter changes.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_comment_feed_cache_reflects_a_changed_excluded_set(): void {
+		$private_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_ids[0],
+				'comment_type'     => 'private',
+				'comment_approved' => '1',
+			)
+		);
+
+		$args = array(
+			'withcomments' => 1,
+			'feed'         => 'comments-rss',
+		);
+
+		$warm = new WP_Query();
+		$warm->query( $args );
+
+		add_filter( 'default_excluded_comment_types', array( $this, 'filter_exclude_private_comment_type' ) );
+
+		$filtered = new WP_Query();
+		$filtered->query( $args );
+
+		$this->assertNotContains(
+			$private_id,
+			$this->get_feed_comment_ids( $filtered ),
+			'A warm feed cache should not serve a type that is now excluded.'
+		);
+
+		remove_filter( 'default_excluded_comment_types', array( $this, 'filter_exclude_private_comment_type' ) );
+
+		$restored = new WP_Query();
+		$restored->query( $args );
+
+		$this->assertContains(
+			$private_id,
+			$this->get_feed_comment_ids( $restored ),
+			'A type should reappear in the feed once it is no longer excluded.'
+		);
 	}
 
 	/**
