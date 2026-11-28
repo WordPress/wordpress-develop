@@ -303,10 +303,23 @@ endif; // twentyeleven_setup()
  * Enqueues scripts and styles for front end.
  *
  * @since Twenty Eleven 2.9
+ * @since Twenty Eleven 5.3 Added navigation script for touch devices.
  */
 function twentyeleven_scripts_styles() {
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20240703' );
+
+	// Adds JavaScript for opening submenus on touch devices.
+	wp_enqueue_script(
+		'twentyeleven-navigation',
+		get_template_directory_uri() . '/js/navigation.js',
+		array(),
+		'20261028',
+		array(
+			'in_footer' => false,
+			'strategy'  => 'defer',
+		)
+	);
 }
 add_action( 'wp_enqueue_scripts', 'twentyeleven_scripts_styles' );
 
