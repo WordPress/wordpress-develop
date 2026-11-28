@@ -1,10 +1,10 @@
 <?php
 /**
- * Class for working with PO files
+ * Class for working with PO files.
  *
- * @version $Id: po.php 1158 2015-11-20 04:31:23Z dd32 $
  * @package pomo
  * @subpackage po
+ * @since 2.8.0
  */
 
 require_once __DIR__ . '/translations.php';
