@@ -272,7 +272,7 @@ window.edToolbar = function(){};
 			use = '';
 
 			// Set buttons.
-			if ( settings.buttons ) {
+			if ( settings.buttons || '' === settings.buttons ) {
 				use = ','+settings.buttons+',';
 			}
 
