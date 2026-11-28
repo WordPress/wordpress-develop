@@ -21,6 +21,24 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 401, $result->code );
 	}
 
+	/**
+	 * Tests that a keyword that is not a string or number is skipped and the other keywords are kept.
+	 *
+	 * @ticket 66108
+	 */
+	public function test_invalid_keyword(): void {
+		$this->make_user_by_role( 'author' );
+
+		$post   = array(
+			'title'       => 'Test',
+			'mt_keywords' => array( 'foo', array( 'bar' ) ),
+		);
+		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'author', 'author', $post ) );
+
+		$this->assertNotIXRError( $result );
+		$this->assertSame( array( 'foo' ), wp_get_post_tags( (int) $result, array( 'fields' => 'names' ) ) );
+	}
+
 	public function test_no_content() {
 		$this->make_user_by_role( 'author' );
 
