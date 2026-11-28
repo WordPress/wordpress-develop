@@ -71,6 +71,33 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	);
 
 	/**
+	 * The block type that the Block Hooks tests hook to an anchor block.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	private const HOOKED_BLOCK_TYPE = 'tests/hooked-block';
+
+	/**
+	 * The markup that the hooked block type renders.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	private const HOOKED_BLOCK_MARKUP = '<p class="tests-hooked-block">Hooked block</p>';
+
+	/**
+	 * Post content holding a single paragraph block, used as the anchor block.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @var string
+	 */
+	private const ANCHOR_BLOCK_CONTENT = '<!-- wp:paragraph --><p>Anchor</p><!-- /wp:paragraph -->';
+
+	/**
 	 * Shared user IDs keyed by role or fixture name.
 	 *
 	 * @since 7.2.0
@@ -181,6 +208,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		 * register no content ability, and all of its tests would fail.
 		 */
 		$this->reset_post_types();
+
+		if ( WP_Block_Type_Registry::get_instance()->is_registered( self::HOOKED_BLOCK_TYPE ) ) {
+			unregister_block_type( self::HOOKED_BLOCK_TYPE );
+		}
 
 		parent::tear_down();
 	}
@@ -1214,6 +1245,225 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			$result['pagination'],
 			'The query by ID should report one post on one page.'
 		);
+	}
+
+	/**
+	 * Registers the hooked block type and hooks it to an anchor block in a relative position.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $anchor_block_type The anchor block type.
+	 * @param string $relative_position The position relative to the anchor block.
+	 */
+	private function hook_block( string $anchor_block_type, string $relative_position ): void {
+		register_block_type(
+			self::HOOKED_BLOCK_TYPE,
+			array(
+				'render_callback' => static function (): string {
+					return self::HOOKED_BLOCK_MARKUP;
+				},
+			)
+		);
+
+		add_filter(
+			'hooked_block_types',
+			static function ( $hooked_block_types, $position, $anchor ) use ( $anchor_block_type, $relative_position ) {
+				if ( $anchor_block_type === $anchor && $relative_position === $position ) {
+					$hooked_block_types[] = self::HOOKED_BLOCK_TYPE;
+				}
+
+				return $hooked_block_types;
+			},
+			10,
+			3
+		);
+	}
+
+	/**
+	 * Returns the raw and rendered content of a post, and its rendered content when the raw
+	 * content is not requested.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param int $post_id The post ID.
+	 * @return array{raw: string, rendered: string, rendered_alone: string} The content values.
+	 */
+	private function query_content( int $post_id ): array {
+		$ability = wp_get_ability( 'core/content-query' );
+		$where   = array(
+			'type' => 'post',
+			'ids'  => array( $post_id ),
+		);
+
+		$content  = $ability->execute(
+			array(
+				'where'  => $where,
+				'fields' => array( 'content.raw', 'content.rendered' ),
+			)
+		)['items'][0]['content'];
+		$rendered = $ability->execute(
+			array(
+				'where'  => $where,
+				'fields' => array( 'content.rendered' ),
+			)
+		)['items'][0]['content'];
+
+		return array(
+			'raw'            => $content['raw'],
+			'rendered'       => $content['rendered'],
+			'rendered_alone' => $rendered['rendered'],
+		);
+	}
+
+	/**
+	 * Returns the positions a block can be hooked in, with the raw content expected for the
+	 * anchor block content.
+	 *
+	 * @return array<string, array{anchor_block_type: string, relative_position: string, expected_raw: string}> The hooked block positions.
+	 */
+	public static function data_hooked_block_positions(): array {
+		return array(
+			'before an anchor block'          => array(
+				'anchor_block_type' => 'core/paragraph',
+				'relative_position' => 'before',
+				'expected_raw'      => '<!-- wp:tests/hooked-block /--><!-- wp:paragraph {"metadata":{"ignoredHookedBlocks":["tests/hooked-block"]}} --><p>Anchor</p><!-- /wp:paragraph -->',
+			),
+			'after an anchor block'           => array(
+				'anchor_block_type' => 'core/paragraph',
+				'relative_position' => 'after',
+				'expected_raw'      => '<!-- wp:paragraph {"metadata":{"ignoredHookedBlocks":["tests/hooked-block"]}} --><p>Anchor</p><!-- /wp:paragraph --><!-- wp:tests/hooked-block /-->',
+			),
+			'first child of the post content' => array(
+				'anchor_block_type' => 'core/post-content',
+				'relative_position' => 'first_child',
+				'expected_raw'      => '<!-- wp:tests/hooked-block /-->' . self::ANCHOR_BLOCK_CONTENT,
+			),
+			'last child of the post content'  => array(
+				'anchor_block_type' => 'core/post-content',
+				'relative_position' => 'last_child',
+				'expected_raw'      => self::ANCHOR_BLOCK_CONTENT . '<!-- wp:tests/hooked-block /-->',
+			),
+		);
+	}
+
+	/**
+	 * The raw content includes the blocks hooked to the post's blocks, with each anchor block
+	 * listing them as ignored hooked blocks, while the rendered content renders each hooked
+	 * block once. A block hooked as the first or last child of the post content has no anchor
+	 * block in the content, so no ignored hooked blocks are listed for it.
+	 *
+	 * @ticket 66847
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_hooked_block_positions
+	 *
+	 * @param string $anchor_block_type The anchor block type.
+	 * @param string $relative_position The position relative to the anchor block.
+	 * @param string $expected_raw      The expected raw content.
+	 */
+	public function test_raw_content_includes_hooked_blocks( string $anchor_block_type, string $relative_position, string $expected_raw ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+		$post_id = self::factory()->post->create( array( 'post_content' => self::ANCHOR_BLOCK_CONTENT ) );
+		$this->hook_block( $anchor_block_type, $relative_position );
+
+		$content = $this->query_content( $post_id );
+
+		$this->assertSame( $expected_raw, $content['raw'], 'The raw content should include the hooked block.' );
+		$this->assertSame( 1, substr_count( $content['rendered'], self::HOOKED_BLOCK_MARKUP ), 'The rendered content should render the hooked block once.' );
+		$this->assertSame( $content['rendered_alone'], $content['rendered'], 'Requesting the raw content should not change the rendered content.' );
+		$this->assertSame( self::ANCHOR_BLOCK_CONTENT, get_post( $post_id )->post_content, 'Querying the content should not change the stored content.' );
+	}
+
+	/**
+	 * Returns post content of each kind, for posts with no hooked blocks.
+	 *
+	 * @return array<string, array{post_content: string}> The post content.
+	 */
+	public static function data_content_without_hooked_blocks(): array {
+		return array(
+			'block content'   => array(
+				'post_content' => self::ANCHOR_BLOCK_CONTENT,
+			),
+			'classic content' => array(
+				'post_content' => '<p>Classic</p>',
+			),
+		);
+	}
+
+	/**
+	 * The raw content is the stored content when no block is hooked to the post's blocks.
+	 *
+	 * @ticket 66847
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_content_without_hooked_blocks
+	 *
+	 * @param string $post_content The stored post content.
+	 */
+	public function test_raw_content_is_stored_content_without_hooked_blocks( string $post_content ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+		$post_id = self::factory()->post->create( array( 'post_content' => $post_content ) );
+
+		$content = $this->query_content( $post_id );
+
+		$this->assertSame( $post_content, $content['raw'], 'The raw content should be the stored content.' );
+		$this->assertSame( $content['rendered_alone'], $content['rendered'], 'Requesting the raw content should not change the rendered content.' );
+	}
+
+	/**
+	 * Returns posts that already list the hooked block as ignored: in the anchor block's
+	 * metadata, or in the post meta for a block hooked as a child of the post content.
+	 *
+	 * @return array<string, array{anchor_block_type: string, relative_position: string, post_content: string, ignored_at_root: bool}> The posts.
+	 */
+	public static function data_posts_that_ignore_the_hooked_block(): array {
+		return array(
+			'anchor block metadata' => array(
+				'anchor_block_type' => 'core/paragraph',
+				'relative_position' => 'after',
+				'post_content'      => '<!-- wp:paragraph {"metadata":{"ignoredHookedBlocks":["tests/hooked-block"]}} --><p>Anchor</p><!-- /wp:paragraph -->',
+				'ignored_at_root'   => false,
+			),
+			'post meta'             => array(
+				'anchor_block_type' => 'core/post-content',
+				'relative_position' => 'first_child',
+				'post_content'      => self::ANCHOR_BLOCK_CONTENT,
+				'ignored_at_root'   => true,
+			),
+		);
+	}
+
+	/**
+	 * A hooked block that the post already lists as ignored, such as one removed from the
+	 * content, is not inserted into the raw or rendered content.
+	 *
+	 * @ticket 66847
+	 * @since 7.3.0
+	 *
+	 * @dataProvider data_posts_that_ignore_the_hooked_block
+	 *
+	 * @param string $anchor_block_type The anchor block type.
+	 * @param string $relative_position The position relative to the anchor block.
+	 * @param string $post_content      The stored post content.
+	 * @param bool   $ignored_at_root   Whether the post meta lists the hooked block as ignored.
+	 */
+	public function test_raw_content_leaves_out_ignored_hooked_blocks( string $anchor_block_type, string $relative_position, string $post_content, bool $ignored_at_root ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => $post_content,
+				'meta_input'   => $ignored_at_root ? array( '_wp_ignored_hooked_blocks' => wp_json_encode( array( self::HOOKED_BLOCK_TYPE ) ) ) : array(),
+			)
+		);
+		$this->hook_block( $anchor_block_type, $relative_position );
+
+		$content = $this->query_content( $post_id );
+
+		$this->assertSame( $post_content, $content['raw'], 'The raw content should be the stored content.' );
+		$this->assertStringNotContainsString( self::HOOKED_BLOCK_MARKUP, $content['rendered'], 'The rendered content should not render the ignored hooked block.' );
 	}
 
 	/**

@@ -967,6 +967,7 @@ final class WP_Abilities_Content {
 	 * posts the current user can edit.
 	 *
 	 * @since 7.2.0
+	 * @since 7.3.0 The raw content includes the blocks hooked to it.
 	 *
 	 * @return array<string, mixed> Post field definitions.
 	 */
@@ -1067,7 +1068,7 @@ final class WP_Abilities_Content {
 				'properties'           => array(
 					'raw'       => array(
 						'type'        => 'string',
-						'description' => __( 'The raw, unfiltered post content (block markup). Present when the current user can edit the post.' ),
+						'description' => __( 'The raw post content (block markup), including the blocks inserted through Block Hooks. Present when the current user can edit the post.' ),
 					),
 					'rendered'  => array(
 						'type'        => 'string',
@@ -1441,6 +1442,7 @@ final class WP_Abilities_Content {
 	 * API behavior.
 	 *
 	 * @since 7.2.0
+	 * @since 7.3.0 The raw content includes the blocks hooked to it.
 	 *
 	 * @param WP_Post      $post         The post object.
 	 * @param list<string> $fields       The requested field paths.
@@ -1500,7 +1502,7 @@ final class WP_Abilities_Content {
 
 			$value = array();
 			if ( $can_edit && $this->is_field_requested( "{$field}.raw", $fields ) ) {
-				$value['raw'] = $post->$property;
+				$value['raw'] = 'content' === $field ? $this->get_raw_content( $post ) : $post->$property;
 			}
 			if ( $this->is_field_requested( "{$field}.rendered", $fields ) ) {
 				$value['rendered'] = ( $protectable && $is_protected ) ? '' : $this->$render( $post );
@@ -1614,6 +1616,34 @@ final class WP_Abilities_Content {
 		$excerpt = apply_filters( 'the_excerpt', $excerpt );
 
 		return is_string( $excerpt ) ? $excerpt : '';
+	}
+
+	/**
+	 * Returns the raw post content with the blocks hooked to it inserted.
+	 *
+	 * The rendered content gets the blocks hooked to the post's blocks through `the_content`,
+	 * so the raw content gets them too, and each anchor block lists the block types hooked to
+	 * it in its `metadata.ignoredHookedBlocks` attribute. Content edited from the raw value
+	 * can then keep or remove a hooked block, without the block being inserted again when it
+	 * is rendered. Blocks hooked as the first or last child of the post content have no anchor
+	 * block in the content to hold that list; the post's `_wp_ignored_hooked_blocks` meta
+	 * holds it instead and is not returned. Empty content is returned as is.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param WP_Post $post The post object.
+	 * @return string Raw post content.
+	 */
+	private function get_raw_content( WP_Post $post ): string {
+		if ( '' === $post->post_content ) {
+			return '';
+		}
+
+		return apply_block_hooks_to_content_from_post_object(
+			$post->post_content,
+			$post,
+			'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
+		);
 	}
 
 	/**
