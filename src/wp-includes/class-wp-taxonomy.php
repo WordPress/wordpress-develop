@@ -210,6 +210,17 @@ final class WP_Taxonomy {
 	public $show_in_rest;
 
 	/**
+	 * Whether this taxonomy should be exposed through the Abilities API.
+	 *
+	 * Default false. If true, the core term abilities can access the taxonomy's
+	 * terms, subject to the current user's capabilities.
+	 *
+	 * @since 7.3.0
+	 * @var bool $show_in_abilities
+	 */
+	public $show_in_abilities = false;
+
+	/**
 	 * The base path for this taxonomy's REST API endpoints.
 	 *
 	 * @since 4.7.4
@@ -364,6 +375,7 @@ final class WP_Taxonomy {
 			'query_var'             => $this->name,
 			'update_count_callback' => '',
 			'show_in_rest'          => false,
+			'show_in_abilities'     => false,
 			'rest_base'             => false,
 			'rest_namespace'        => false,
 			'rest_controller_class' => false,
@@ -425,6 +437,9 @@ final class WP_Taxonomy {
 		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {
 			$args['rest_namespace'] = 'wp/v2';
 		}
+
+		// Only `true` exposes the taxonomy, so other values, such as arrays, can be given a meaning later.
+		$args['show_in_abilities'] = true === $args['show_in_abilities'];
 
 		$default_caps = array(
 			'manage_terms' => 'manage_categories',
