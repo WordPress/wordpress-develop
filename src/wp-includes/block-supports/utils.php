@@ -33,3 +33,61 @@ function wp_should_skip_block_supports_serialization( $block_type, $feature_set,
 
 	return $skip_serialization;
 }
+
+/**
+ * Returns the combined classes and inline styles of the background, color,
+ * border, shadow and spacing block supports for block attributes. Does not
+ * check block support or skipped serialization.
+ *
+ * @since 7.3.0
+ *
+ * @param array<string, mixed> $block_attributes Block attributes.
+ * @param string[]|null        $supports         Optional. Supports to include: any of `background`, `color`,
+ *                                               `border`, `shadow` and `spacing`. Unknown names are ignored.
+ *                                               Default null, for all of them.
+ * @return array<string, string> Array with `class` and `style` keys, each present only when non-empty.
+ *
+ * @phpstan-return array{ class?: non-empty-string, style?: non-empty-string }
+ */
+function wp_get_block_supports_classes_and_styles( $block_attributes, $supports = null ) {
+	// Follows the style engine's group order.
+	$getters = array(
+		'background' => 'wp_get_background_classes_and_styles',
+		'color'      => 'wp_get_color_classes_and_styles',
+		'border'     => 'wp_get_border_classes_and_styles',
+		'shadow'     => 'wp_get_shadow_classes_and_styles',
+		'spacing'    => 'wp_get_spacing_classes_and_styles',
+	);
+
+	if ( is_array( $supports ) ) {
+		$getters = array_intersect_key( $getters, array_flip( $supports ) );
+	}
+
+	$classes = array();
+	$styles  = '';
+
+	foreach ( $getters as $getter ) {
+		$classes_and_styles = $getter( $block_attributes );
+
+		if ( ! empty( $classes_and_styles['class'] ) ) {
+			$classes[] = $classes_and_styles['class'];
+		}
+
+		if ( ! empty( $classes_and_styles['style'] ) ) {
+			$styles .= $classes_and_styles['style'];
+		}
+	}
+
+	$attributes = array();
+
+	if ( ! empty( $classes ) ) {
+		// Background and color can both add `has-background`.
+		$attributes['class'] = implode( ' ', array_unique( explode( ' ', implode( ' ', $classes ) ) ) );
+	}
+
+	if ( '' !== $styles ) {
+		$attributes['style'] = $styles;
+	}
+
+	return $attributes;
+}
