@@ -15,9 +15,11 @@ jQuery( function( $ ) {
 		var menuItemCount  = $( '#menu-plugins' ).find( '.plugin-count' ).eq( 0 ).text();
 		var screenReaderItemCount = $( '#wp-admin-bar-updates' ).find( '.screen-reader-text' ).text();
 		var adminItemCount = $( '#wp-admin-bar-updates' ).find( '.ab-label' ).text();
+		var submenuHeadCount = $( '#menu-plugins .wp-submenu-head' ).find( '.plugin-count' ).text();
 		assert.equal( menuItemCount, 2, 'Initial value is correct' );
 		assert.equal( screenReaderItemCount, '2 Plugin Updates', 'Initial value is correct' );
 		assert.equal( adminItemCount, 2, 'Initial value is correct' );
+		assert.equal( submenuHeadCount, 2, 'Initial submenu header value is correct' );
 
 		wp.updates.decrementCount( 'plugin' );
 
@@ -25,12 +27,20 @@ jQuery( function( $ ) {
 		menuItemCount  = $( '#menu-plugins' ).find( '.plugin-count' ).eq( 0 ).text();
 		screenReaderItemCount = $( '#wp-admin-bar-updates' ).find( '.screen-reader-text' ).text();
 		adminItemCount = $( '#wp-admin-bar-updates' ).find( '.ab-label' ).text();
+		submenuHeadCount = $( '#menu-plugins .wp-submenu-head' ).find( '.plugin-count' ).text();
 		assert.equal( menuItemCount, 1 );
 
 		// @todo: Update screen reader count.
 		// Should the screenReader count change? Is that announced to the user?
 		// assert.equal( screenReaderItemCount, '1 Plugin Update' );
 		assert.equal( adminItemCount, 1 );
+
+		// The submenu header shows the count when the admin menu is folded.
+		assert.equal( submenuHeadCount, 1, 'Submenu header count is updated' );
+
+		// With no updates left, the count is removed from the menu item and its submenu header.
+		wp.updates.decrementCount( 'plugin' );
+		assert.equal( $( '#menu-plugins' ).find( '.plugin-count' ).length, 0, 'Both counts are removed when no updates remain' );
 	});
 
 	QUnit.test( '`beforeunload` should only fire when locked', function( assert ) {
