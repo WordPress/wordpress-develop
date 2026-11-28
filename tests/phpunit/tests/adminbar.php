@@ -1304,4 +1304,163 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/plus' ) . '</span>New label', $html );
 	}
+
+	/**
+	 * Tests that the site name menu in regular admin includes Plugins and Themes without Dashboard.
+	 *
+	 * @ticket 66675
+	 *
+	 * @covers ::wp_admin_bar_site_menu
+	 */
+	public function test_site_name_menu_in_regular_admin_includes_plugins_and_themes_without_dashboard() {
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+		wp_set_current_user( self::$admin_id );
+		set_current_screen( 'dashboard' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$nodes        = $wp_admin_bar->get_nodes();
+
+		$this->assertNotNull( $wp_admin_bar->get_node( 'view-site' ), 'Visit Site should be in the site name menu in regular admin.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'dashboard' ), 'Dashboard should not be in the site name menu in regular admin.' );
+		$this->assertNotNull( $wp_admin_bar->get_node( 'plugins' ), 'Plugins should be in the site name menu in regular admin.' );
+		$this->assertNotNull( $wp_admin_bar->get_node( 'themes' ), 'Themes should be in the site name menu in regular admin.' );
+
+		$site_name_children = array_keys(
+			array_filter(
+				$nodes,
+				static function ( $node ) {
+					return 'site-name' === $node->parent;
+				}
+			)
+		);
+		$expected_order     = is_multisite()
+			? array( 'view-site', 'edit-site', 'plugins', 'appearance' )
+			: array( 'view-site', 'plugins', 'appearance' );
+
+		$this->assertSame( $expected_order, $site_name_children, 'Site name children in regular admin should appear in the expected order.' );
+	}
+
+	/**
+	 * Tests that the site name menu in the block editors includes Dashboard, Plugins, and Themes.
+	 *
+	 * @ticket 66675
+	 *
+	 * @dataProvider data_block_editor_screens
+	 *
+	 * @covers ::wp_admin_bar_site_menu
+	 *
+	 * @param string $screen_id Screen ID to activate.
+	 */
+	public function test_site_name_menu_in_block_editor_includes_dashboard_plugins_and_themes( $screen_id ) {
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+		wp_set_current_user( self::$admin_id );
+		if ( 'post' === $screen_id ) {
+			$GLOBALS['post'] = self::factory()->post->create_and_get();
+		}
+		set_current_screen( $screen_id );
+		get_current_screen()->is_block_editor( true );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+		$nodes        = $wp_admin_bar->get_nodes();
+
+		$dashboard = $wp_admin_bar->get_node( 'dashboard' );
+		$this->assertNotNull( $wp_admin_bar->get_node( 'view-site' ), 'Visit Site should be in the site name menu in the block editor.' );
+		$this->assertNotNull( $dashboard, 'Dashboard should be in the site name menu in the block editor.' );
+		$this->assertSame( admin_url(), $dashboard->href, 'Dashboard link should point to the site admin URL.' );
+		$this->assertNotNull( $wp_admin_bar->get_node( 'plugins' ), 'Plugins should be in the site name menu in the block editor.' );
+		$this->assertNotNull( $wp_admin_bar->get_node( 'themes' ), 'Themes should be in the site name menu in the block editor.' );
+
+		$site_name_children = array_keys(
+			array_filter(
+				$nodes,
+				static function ( $node ) {
+					return 'site-name' === $node->parent;
+				}
+			)
+		);
+		$expected_order     = is_multisite()
+			? array( 'view-site', 'dashboard', 'edit-site', 'plugins', 'appearance' )
+			: array( 'view-site', 'dashboard', 'plugins', 'appearance' );
+
+		$this->assertSame( $expected_order, $site_name_children, 'Site name children in the block editor should appear in the expected order.' );
+	}
+
+	/**
+	 * Data provider for block editor screens.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_block_editor_screens(): array {
+		return array(
+			'post editor' => array( 'post' ),
+			'site editor' => array( 'site-editor' ),
+		);
+	}
+
+	/**
+	 * Tests that the site name menu in the block editor respects user capabilities.
+	 *
+	 * @ticket 66675
+	 *
+	 * @covers ::wp_admin_bar_site_menu
+	 */
+	public function test_site_name_menu_in_block_editor_respects_user_capabilities() {
+		wp_set_current_user( self::$editor_id );
+		$GLOBALS['post'] = self::factory()->post->create_and_get();
+		set_current_screen( 'post' );
+		get_current_screen()->is_block_editor( true );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNotNull( $wp_admin_bar->get_node( 'view-site' ), 'Visit Site should be visible to an editor.' );
+		$this->assertNotNull( $wp_admin_bar->get_node( 'dashboard' ), 'Dashboard should be visible to an editor in the block editor.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'plugins' ), 'Plugins should not be visible to an editor without activate_plugins.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'themes' ), 'Themes should not be visible to an editor without switch_themes.' );
+	}
+
+	/**
+	 * Tests that the site name menu in User Admin omits site-level Dashboard, Plugins, and Themes.
+	 *
+	 * @ticket 66675
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_site_menu
+	 */
+	public function test_site_name_menu_in_user_admin_omits_site_plugins_and_themes() {
+		wp_set_current_user( self::$admin_id );
+		set_current_screen( 'dashboard-user' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNotNull( $wp_admin_bar->get_node( 'view-site' ), 'Visit Site should be present in User Admin.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'dashboard' ), 'Dashboard should not be added to the site name menu in User Admin.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'plugins' ), 'Plugins should not be added to the site name menu in User Admin.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'themes' ), 'Themes should not be added to the site name menu in User Admin.' );
+	}
+
+	/**
+	 * Tests that the site name menu in Network Admin omits site-level Dashboard, Plugins, and Themes.
+	 *
+	 * @ticket 66675
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_site_menu
+	 */
+	public function test_site_name_menu_in_network_admin_omits_site_plugins_and_themes() {
+		wp_set_current_user( self::$admin_id );
+		set_current_screen( 'dashboard-network' );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNotNull( $wp_admin_bar->get_node( 'view-site' ), 'Visit Site should be present in Network Admin.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'dashboard' ), 'Dashboard should not be added to the site name menu in Network Admin.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'plugins' ), 'Plugins should not be added to the site name menu in Network Admin.' );
+		$this->assertNull( $wp_admin_bar->get_node( 'themes' ), 'Themes should not be added to the site name menu in Network Admin.' );
+	}
 }
