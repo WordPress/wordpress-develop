@@ -167,8 +167,10 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @since 7.2.0
 	 */
 	private function register_ability(): void {
-		if ( wp_has_ability( 'core/users-query' ) ) {
-			wp_unregister_ability( 'core/users-query' );
+		foreach ( array( 'core/users-query', 'core/user-create', 'core/user-update', 'core/user-delete' ) as $ability_name ) {
+			if ( wp_has_ability( $ability_name ) ) {
+				wp_unregister_ability( $ability_name );
+			}
 		}
 
 		global $wp_current_filter;
