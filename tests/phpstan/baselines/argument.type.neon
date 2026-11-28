@@ -334,7 +334,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/upgrade.php
 		-
-			message: '#^Parameter \#1 \$comment_id of function wp_delete_comment expects int\|WP_Comment, string\|null given\.$#'
+			message: '#^Parameter \#1 \$comment_id of function wp_delete_comment expects int\|WP_Comment, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/upgrade.php

@@ -95,6 +95,11 @@ function wp_tests_wpdb_schema( wpdb $wpdb, string $unknown ): void {
 	// A core table name extended by more text is another table.
 	assertType( '(object{ID: string|null, extra: string|null}&stdClass)|null', $wpdb->get_row( "SELECT ID, extra FROM {$wpdb->posts}_archive" ) );
 	assertType( '(object{ID: string|null}&stdClass)|null', $wpdb->get_row( "SELECT ID FROM {$wpdb->posts}{$unknown}" ) );
+	assertType( '(object{ID: string|null}&stdClass)|null', $wpdb->get_row( "SELECT ID FROM `{$wpdb->posts}_archive`" ) );
+
+	// A core table in backticks.
+	assertType( "array{option_name: string, autoload: string}|null", $wpdb->get_row( "SELECT option_name, o.autoload FROM `$wpdb->options` AS o", ARRAY_A ) );
+	assertType( "array{option_value: string}|null", $wpdb->get_row( "SELECT `o`.`option_value` FROM `$wpdb->options` `o`", ARRAY_A ) );
 
 	// Unknown text in the `FROM` clause may join more tables, whose columns `*` would include.
 	assertType( 'array<mixed>|null', $wpdb->get_row( "SELECT * FROM $wpdb->terms $unknown WHERE 1=1", ARRAY_A ) );

@@ -281,7 +281,8 @@ final class WpdbSelectParser {
 					$key = '';
 				} else {
 					$name = null;
-					if ( preg_match( '/^\{wpdb:(\w+)\}$/', $text, $match ) && $this->schema->has_table( $match[1] ) ) {
+					// A core table, which may be quoted, as in `` `{wpdb:options}` ``.
+					if ( preg_match( '/^\{wpdb:(\w+)\}$/', self::unquote( $text ), $match ) && $this->schema->has_table( $match[1] ) ) {
 						$name = $match[1];
 					}
 					$key = strtolower( self::unquote( $text ) );
