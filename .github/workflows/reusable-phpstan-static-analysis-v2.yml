@@ -38,6 +38,7 @@ jobs:
   # - Runs PHPStan static analysis.
   # - Reports the results as annotations.
   # - Uploads the results as an artifact (pull requests only).
+  # - Runs the tests of the WordPress-specific PHPStan extensions (default analysis only).
   # - Checks for errors that cannot be reported as warnings, such as out-of-date baselines.
   # - Saves the PHPStan result cache.
   # - Ensures version-controlled files are not modified or deleted.
@@ -276,6 +277,20 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: ${{ runner.temp }}/phpstan-results/
+
+      # The extensions in `tests/phpstan` are tested against fixtures rather than against
+      # core, so a defect in one is reported here as a failing test rather than as a
+      # change in what the analysis above reports.
+      #
+      # This runs after the results are reported and uploaded, so that a failing test
+      # does not also keep the pull request from being annotated and commented on. It
+      # runs even when the analysis failed, since the two are independent, but not when
+      # the analysis was skipped: that means a step setting up the job, such as installing
+      # the Composer dependencies, failed, and the tests could only fail along with it.
+      # Both analyses load the same extensions, so the tests run in only one of them.
+      - name: Run the tests of the PHPStan extensions
+        if: ${{ !cancelled() && steps.phpstan.outcome != 'skipped' && matrix.analysis == 'default' && hashFiles('tests/phpstan/phpunit.xml.dist') != '' }}
+        run: composer run phpstan:test
 
       # Some errors cannot be ignored, so they cannot be reported as warnings either. Most often
       # this is an ignored error that no longer occurs, or occurs a different number of times,
