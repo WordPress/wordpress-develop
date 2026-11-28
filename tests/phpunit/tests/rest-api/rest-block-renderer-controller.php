@@ -158,18 +158,24 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 			self::$block_name,
 			array(
 				'attributes'      => array(
-					'some_string' => array(
+					'some_string'   => array(
 						'type'    => 'string',
 						'default' => 'some_default',
 					),
-					'some_int'    => array(
+					'some_int'      => array(
 						'type' => 'integer',
 					),
-					'some_array'  => array(
+					'some_array'    => array(
 						'type'  => 'array',
 						'items' => array(
 							'type' => 'integer',
 						),
+					),
+					'some_datetime' => array(
+						'type' => 'datetime',
+					),
+					'some_url'      => array(
+						'type' => 'url',
 					),
 				),
 				'render_callback' => array( $this, 'render_test_block' ),
@@ -578,6 +584,62 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$data = $response->get_data();
 
 		$this->assertSame( $expected, json_decode( $data['rendered'], true ) );
+	}
+
+	/**
+	 * @ticket 66852
+	 *
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
+	 */
+	public function test_get_item_with_datetime_and_url_attributes() {
+		wp_set_current_user( self::$user_id );
+
+		$attributes = array(
+			'some_string'   => 'some_default',
+			'some_datetime' => '2025-12-03T17:48:48+00:00',
+			'some_url'      => 'https://wordpress.org/',
+		);
+
+		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$block_name );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'attributes', $attributes );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $attributes, json_decode( $response->get_data()['rendered'], true ) );
+	}
+
+	/**
+	 * @ticket 66852
+	 *
+	 * @dataProvider data_get_item_with_invalid_datetime_and_url_attributes
+	 *
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
+	 *
+	 * @param array $attributes Block attributes.
+	 */
+	public function test_get_item_with_invalid_datetime_and_url_attributes( $attributes ) {
+		wp_set_current_user( self::$user_id );
+
+		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$block_name );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'attributes', $attributes );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_item_with_invalid_datetime_and_url_attributes() {
+		return array(
+			'datetime that is not a date' => array( array( 'some_datetime' => 'not a date' ) ),
+			'datetime that is a number'   => array( array( 'some_datetime' => 1764784128 ) ),
+			'url that is an array'        => array( array( 'some_url' => array( 'https://wordpress.org/' ) ) ),
+		);
 	}
 
 	/**
