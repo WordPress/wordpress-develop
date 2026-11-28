@@ -3,9 +3,9 @@
 /**
  * @group admin
  *
- * @covers WP_Terms_List_Table
+ * @covers WP_Terms_List_Table::handle_row_actions
  */
-class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
+class Admin_WpTermsListTable_HandleRowActions_Test extends WP_UnitTestCase {
 
 	/**
 	 * List table.
@@ -56,8 +56,6 @@ class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Terms_List_Table::handle_row_actions()
-	 *
 	 * @ticket 59336
 	 */
 	public function test_handle_row_actions_as_author() {
@@ -72,8 +70,6 @@ class Tests_Admin_WpTermsListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Terms_List_Table::handle_row_actions()
-	 *
 	 * @ticket 59336
 	 */
 	public function test_handle_row_actions_as_admin() {
