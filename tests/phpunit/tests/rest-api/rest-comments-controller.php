@@ -4997,13 +4997,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * The stored reaction content is the validated, canonical key - markup
-	 * around the key must not reach the database, or `reaction_summary`
-	 * grouping would split visually identical reactions.
+	 * Markup around a key is not a key, so it is rejected and never reaches
+	 * the database.
 	 *
 	 * @ticket 64638
+	 * @ticket 66695
 	 */
-	public function test_create_reaction_stores_canonical_key() {
+	public function test_create_reaction_rejects_markup_around_key(): void {
 		wp_set_current_user( self::$editor_id );
 
 		$post_id = self::factory()->post->create();
@@ -5032,10 +5032,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 201, $response->get_status() );
-
-		$new_comment = get_comment( $response->get_data()['id'] );
-		$this->assertSame( '2764', $new_comment->comment_content );
+		$this->assertErrorResponse( 'rest_comment_invalid_reaction', $response, 400 );
 	}
 
 	/**
@@ -6731,12 +6728,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * Rows that strip to the same key are counted together rather than the
-	 * last one overwriting the others.
+	 * A row holding markup around a curated key is not that key, so it is
+	 * left out and does not add to the real key's count.
 	 *
-	 * @ticket 66635
+	 * @ticket 66695
 	 */
-	public function test_reaction_summary_accumulates_rows_that_strip_to_the_same_key(): void {
+	public function test_reaction_summary_ignores_markup_around_a_curated_key(): void {
 		list( $post_id, $note_id ) = $this->create_editor_note();
 
 		$heart_id = self::factory()->comment->create(
@@ -6765,7 +6762,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertCount( 1, $summary );
 		$this->assertArrayHasKey( self::HEART_REACTION_KEY, $summary );
-		$this->assertSame( 2, $summary[ self::HEART_REACTION_KEY ]['count'] );
+		$this->assertSame( 1, $summary[ self::HEART_REACTION_KEY ]['count'] );
 		$this->assertSame( $heart_id, $summary[ self::HEART_REACTION_KEY ]['current_user_reaction'] );
 	}
 

@@ -820,7 +820,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$raw_content = $request['content']['raw'];
 			}
 
-			$emoji_key = trim( wp_strip_all_tags( $raw_content ) );
+			$emoji_key = trim( $raw_content );
 
 			if ( ! in_array( $emoji_key, self::get_note_reaction_keys(), true ) ) {
 				return new WP_Error(
@@ -863,7 +863,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 
 			foreach ( $existing as $existing_reaction ) {
-				if ( wp_strip_all_tags( $existing_reaction->comment_content ) === $emoji_key ) {
+				if ( $existing_reaction->comment_content === $emoji_key ) {
 					return new WP_Error(
 						'rest_comment_duplicate_reaction',
 						__( 'You have already reacted with this emoji.' ),
@@ -885,7 +885,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		/*
 		 * Persist the validated, canonical reaction key rather than the raw
 		 * request content, so stored values stay consistent for grouping and
-		 * counting (e.g. "<b>2764</b>" is stored as "2764").
+		 * counting (e.g. " 2764" is stored as "2764").
 		 */
 		if ( null !== $reaction_key ) {
 			$prepared_comment['comment_content'] = $reaction_key;
@@ -1056,7 +1056,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 			$duplicates = array();
 			foreach ( $matching as $candidate ) {
-				if ( wp_strip_all_tags( $candidate->comment_content ) === $reaction_key ) {
+				if ( $candidate->comment_content === $reaction_key ) {
 					$duplicates[] = (int) $candidate->comment_ID;
 				}
 			}
@@ -2446,7 +2446,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 			if ( $user_rows ) {
 				foreach ( $user_rows as $row ) {
-					$key                  = (int) $row->comment_parent . ':' . wp_strip_all_tags( $row->comment_content );
+					$key                  = (int) $row->comment_parent . ':' . $row->comment_content;
 					$my_reactions[ $key ] = (int) $row->comment_ID;
 				}
 			}
@@ -2465,7 +2465,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		foreach ( $counts as $row ) {
 			$note_id   = (int) $row->comment_parent;
-			$emoji_key = wp_strip_all_tags( $row->comment_content );
+			$emoji_key = $row->comment_content;
 			$key       = $note_id . ':' . $emoji_key;
 
 			// Only curated emoji keys are summarized.
@@ -2473,15 +2473,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				continue;
 			}
 
-			// Rows are grouped on the raw content, so several groups can strip to one key.
-			if ( ! isset( $this->reaction_summaries[ $note_id ][ $emoji_key ] ) ) {
-				$this->reaction_summaries[ $note_id ][ $emoji_key ] = array(
-					'count'                 => 0,
-					'current_user_reaction' => $my_reactions[ $key ] ?? 0,
-				);
-			}
-
-			$this->reaction_summaries[ $note_id ][ $emoji_key ]['count'] += (int) $row->reaction_count;
+			$this->reaction_summaries[ $note_id ][ $emoji_key ] = array(
+				'count'                 => (int) $row->reaction_count,
+				'current_user_reaction' => $my_reactions[ $key ] ?? 0,
+			);
 		}
 	}
 
