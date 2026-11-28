@@ -1,9 +1,9 @@
 === Twenty Twenty-Three ===
 Contributors: wordpressdotorg
 Requires at least: 6.1
-Tested up to: 7.1
+Tested up to: 7.3
 Requires PHP: 5.6
-Stable tag: 1.7
+Stable tag: 1.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
