@@ -12,3 +12,9 @@
  * two conflict. Code which may run in either context therefore has to declare it.
  */
 declare var WorkerGlobalScope: Function | undefined;
+
+/**
+ * Localized onto `zxcvbn-async` by `WP_Scripts::localize()`.
+ * Present only when that script is enqueued.
+ */
+declare var _zxcvbnSettings: { src: string } | undefined;
