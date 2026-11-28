@@ -267,6 +267,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		 */
 		echo apply_filters( 'install_plugin_overwrite_comparison', $table, $current_plugin_data, $new_plugin_data );
 
+		echo $this->get_overwrite_file_changes();
+
 		$install_actions = array();
 		$can_update      = true;
 

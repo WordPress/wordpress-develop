@@ -110,6 +110,90 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Builds the file changes summary for the overwrite screen.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @return string The summary HTML, or an empty string if there is nothing to compare.
+	 */
+	protected function get_overwrite_file_changes() {
+		if ( ! $this->upgrader instanceof WP_Upgrader || ! $this->upgrader->package_file_changes ) {
+			return '';
+		}
+
+		$file_changes = $this->upgrader->package_file_changes;
+
+		$count_labels = array(
+			/* translators: %s: Number of files. */
+			'added'   => __( 'Added: %s' ),
+			/* translators: %s: Number of files. */
+			'removed' => __( 'Removed: %s' ),
+			/* translators: %s: Number of files. */
+			'changed' => __( 'Changed: %s' ),
+		);
+
+		$headings = array(
+			'added'   => _x( 'Added', 'files' ),
+			'removed' => _x( 'Removed', 'files' ),
+			'changed' => _x( 'Changed', 'files' ),
+		);
+
+		$counts = '';
+		$lists  = '';
+
+		foreach ( $count_labels as $type => $label ) {
+			$files = $file_changes[ $type ];
+			$count = number_format_i18n( count( $files ) );
+
+			$counts .= '<li class="' . $type . '">' . esc_html( sprintf( $label, $count ) ) . '</li>';
+
+			if ( ! $files ) {
+				continue;
+			}
+
+			$lists .= '<h4 class="' . $type . '">' . esc_html( $headings[ $type ] ) . '</h4><ul>';
+
+			foreach ( $files as $file ) {
+				$lists .= '<li><code>' . esc_html( $file ) . '</code></li>';
+			}
+
+			$lists .= '</ul>';
+		}
+
+		/* translators: %s: Number of files. */
+		$unchanged = sprintf( __( 'Unchanged: %s' ), number_format_i18n( $file_changes['unchanged'] ) );
+		$counts   .= '<li class="unchanged">' . esc_html( $unchanged ) . '</li>';
+
+		$output  = '<div class="update-from-upload-file-changes">';
+		$output .= '<h3>' . esc_html__( 'File changes' ) . '</h3>';
+
+		if ( $lists ) {
+			$output .= '<ul class="update-from-upload-file-counts">' . $counts . '</ul>';
+			$output .= '<details><summary>' . esc_html__( 'View file list' ) . '</summary>';
+			$output .= '<div class="update-from-upload-file-list">' . $lists . '</div></details>';
+		} else {
+			// Same files on both sides, e.g. the same zip uploaded twice.
+			$output .= '<p>' . esc_html__( 'The uploaded files are identical to the installed files.' ) . '</p>';
+		}
+
+		$output .= '</div>';
+
+		/**
+		 * Filters the file changes summary on the overwrite screen.
+		 *
+		 * Return an empty string to hide it.
+		 *
+		 * @since 7.3.0
+		 *
+		 * @param string           $output       The summary HTML.
+		 * @param array            $file_changes Added, removed and changed file paths, plus the unchanged count.
+		 *                                       See WP_Upgrader::compare_package_files().
+		 * @param WP_Upgrader_Skin $skin         The skin showing the screen.
+		 */
+		return apply_filters( 'upgrader_overwrite_file_changes', $output, $file_changes, $this );
+	}
+
+	/**
 	 * Displays a form to the user to request for their FTP/SSH details in order
 	 * to connect to the filesystem.
 	 *
