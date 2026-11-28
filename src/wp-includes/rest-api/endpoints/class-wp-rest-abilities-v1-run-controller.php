@@ -114,29 +114,40 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Validates if the HTTP method matches the expected method for the ability based on its annotations.
 	 *
+	 * Read-only abilities require GET. Destructive and idempotent abilities require PUT, and also
+	 * accept PATCH and DELETE. All other abilities require POST.
+	 *
 	 * @since 6.9.0
+	 * @since 7.3.0 Destructive and idempotent abilities require PUT, and also accept PATCH and DELETE.
 	 *
 	 * @param string                     $request_method The HTTP method of the request.
 	 * @param array<string, (null|bool)> $annotations    The ability annotations.
 	 * @return true|WP_Error True on success, or WP_Error object on failure.
 	 */
 	public function validate_request_method( string $request_method, array $annotations ) {
-		$expected_method = 'POST';
+		$expected_method  = 'POST';
+		$accepted_methods = array();
 		if ( ! empty( $annotations['readonly'] ) ) {
 			$expected_method = 'GET';
 		} elseif ( ! empty( $annotations['destructive'] ) && ! empty( $annotations['idempotent'] ) ) {
-			$expected_method = 'DELETE';
+			/*
+			 * Updates and deletes share these annotations. PUT is idempotent by definition
+			 * and carries the input in a JSON body. PATCH also suits partial updates, and
+			 * DELETE stays accepted for clients written before PUT was supported.
+			 */
+			$expected_method  = 'PUT';
+			$accepted_methods = array( 'PATCH', 'DELETE' );
 		}
 
-		if ( $expected_method === $request_method ) {
+		if ( $expected_method === $request_method || in_array( $request_method, $accepted_methods, true ) ) {
 			return true;
 		}
 
 		$error_message = __( 'Abilities that perform updates require POST method.' );
 		if ( 'GET' === $expected_method ) {
 			$error_message = __( 'Read-only abilities require GET method.' );
-		} elseif ( 'DELETE' === $expected_method ) {
-			$error_message = __( 'Abilities that perform destructive actions require DELETE method.' );
+		} elseif ( 'PUT' === $expected_method ) {
+			$error_message = __( 'Idempotent destructive abilities require PUT method.' );
 		}
 		return new WP_Error(
 			'rest_ability_invalid_method',
@@ -226,7 +237,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $query_params['input'] ?? null;
 		}
 
-		// For POST requests, look for 'input' in JSON body.
+		// For POST, PUT and PATCH requests, look for 'input' in JSON body.
 		$json_params = $request->get_json_params();
 		return $json_params['input'] ?? null;
 	}

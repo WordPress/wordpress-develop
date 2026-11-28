@@ -239,7 +239,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
-		// Destructive ability (DELETE method).
+		// Destructive and idempotent ability (PUT method, PATCH and DELETE also accepted).
 		$this->register_test_ability(
 			'test/delete-user',
 			array(
@@ -702,12 +702,13 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test HTTP method validation for destructive abilities.
+	 * Test HTTP method validation for destructive and idempotent abilities.
 	 *
 	 * @ticket 64098
+	 * @ticket 66801
 	 */
-	public function test_destructive_ability_requires_delete(): void {
-		// Try POST on a destructive ability (should fail).
+	public function test_destructive_idempotent_ability_requires_put(): void {
+		// Try POST on a destructive and idempotent ability (should fail).
 		$request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/delete-user/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( array( 'user_id' => 1 ) ) );
@@ -717,7 +718,100 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertSame( 405, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_invalid_method', $data['code'] );
-		$this->assertSame( 'Abilities that perform destructive actions require DELETE method.', $data['message'] );
+		$this->assertSame( 'Idempotent destructive abilities require PUT method.', $data['message'] );
+	}
+
+	/**
+	 * Data provider for the HTTP methods each set of annotations accepts.
+	 *
+	 * @return array<string, array{0: array<string, bool>, 1: string, 2: bool}> Ability annotations,
+	 *                                                                          HTTP method, and whether it is accepted.
+	 */
+	public static function data_request_methods_for_annotations(): array {
+		$readonly               = array( 'readonly' => true );
+		$additive               = array( 'destructive' => false );
+		$additive_idempotent    = array(
+			'destructive' => false,
+			'idempotent'  => true,
+		);
+		$destructive            = array( 'destructive' => true );
+		$destructive_idempotent = array(
+			'destructive' => true,
+			'idempotent'  => true,
+		);
+
+		return array(
+			'read-only with GET'                 => array( $readonly, 'GET', true ),
+			'read-only with PUT'                 => array( $readonly, 'PUT', false ),
+			'additive with POST'                 => array( $additive, 'POST', true ),
+			'additive with PUT'                  => array( $additive, 'PUT', false ),
+			'additive idempotent with POST'      => array( $additive_idempotent, 'POST', true ),
+			'additive idempotent with PUT'       => array( $additive_idempotent, 'PUT', false ),
+			'destructive with POST'              => array( $destructive, 'POST', true ),
+			'destructive with PUT'               => array( $destructive, 'PUT', false ),
+			'destructive with PATCH'             => array( $destructive, 'PATCH', false ),
+			'destructive with DELETE'            => array( $destructive, 'DELETE', false ),
+			'destructive idempotent with PUT'    => array( $destructive_idempotent, 'PUT', true ),
+			'destructive idempotent with PATCH'  => array( $destructive_idempotent, 'PATCH', true ),
+			'destructive idempotent with DELETE' => array( $destructive_idempotent, 'DELETE', true ),
+			'destructive idempotent with POST'   => array( $destructive_idempotent, 'POST', false ),
+			'destructive idempotent with GET'    => array( $destructive_idempotent, 'GET', false ),
+			'destructive idempotent with HEAD'   => array( $destructive_idempotent, 'HEAD', false ),
+		);
+	}
+
+	/**
+	 * Tests which HTTP methods the run endpoint accepts for each set of annotations.
+	 *
+	 * @ticket 66801
+	 *
+	 * @dataProvider data_request_methods_for_annotations
+	 *
+	 * @param array<string, bool> $annotations Ability annotations.
+	 * @param string              $method      HTTP method.
+	 * @param bool                $is_accepted Whether the method is accepted.
+	 */
+	public function test_validate_request_method( array $annotations, string $method, bool $is_accepted ): void {
+		$controller = new WP_REST_Abilities_V1_Run_Controller();
+		$result     = $controller->validate_request_method( $method, $annotations );
+
+		if ( $is_accepted ) {
+			$this->assertTrue( $result );
+			return;
+		}
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_ability_invalid_method', $result->get_error_code() );
+		$this->assertSame( 405, $result->get_error_data()['status'] );
+	}
+
+	/**
+	 * Tests that PUT does not read the input from the query string.
+	 *
+	 * @ticket 66801
+	 */
+	public function test_put_ignores_input_in_query_string(): void {
+		$this->register_reflecting_ability(
+			'test/update-title',
+			array(
+				'type'       => array( 'object', 'null' ),
+				'properties' => array(
+					'id' => array( 'type' => 'integer' ),
+				),
+			),
+			array(
+				'destructive' => true,
+				'idempotent'  => true,
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', '/wp-abilities/v1/abilities/test/update-title/run' );
+		$request->set_query_params( array( 'input' => array( 'id' => 5 ) ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNull( $response->get_data()['value'] );
 	}
 
 	/**
@@ -1784,7 +1878,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	/**
 	 * Dispatches a run request for an ability, nesting the value under the `input` parameter.
 	 *
-	 * GET and DELETE send the input as query parameters, POST sends it as a JSON body. Pass
+	 * GET and DELETE send the input as query parameters, POST, PUT and PATCH send it as a JSON body. Pass
 	 * `null` to send no input at all.
 	 *
 	 * @param string $method HTTP method.
@@ -1816,6 +1910,20 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		return array(
 			'GET'    => array( 'GET', array( 'readonly' => true ) ),
 			'POST'   => array( 'POST', array() ),
+			'PUT'    => array(
+				'PUT',
+				array(
+					'destructive' => true,
+					'idempotent'  => true,
+				),
+			),
+			'PATCH'  => array(
+				'PATCH',
+				array(
+					'destructive' => true,
+					'idempotent'  => true,
+				),
+			),
 			'DELETE' => array(
 				'DELETE',
 				array(
